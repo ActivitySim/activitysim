@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 import numpy as np
+import pandas as pd
 
 from activitysim.abm.models.util.overlap import hh_time_window_overlap
 from activitysim.abm.models.util.tour_frequency import (
@@ -25,7 +26,9 @@ logger = logging.getLogger(__name__)
 
 @workflow.step()
 def joint_tour_frequency_composition(
-    state: workflow.State, households_merged, persons, chunk_size, trace_hh_id
+    state: workflow.State,
+    households_merged: pd.DataFrame,
+    persons: pd.DataFrame,
 ):
     """
     This model predicts the frequency and composition of fully joint tours.
@@ -42,11 +45,9 @@ def joint_tour_frequency_composition(
 
     # - only interested in households with more than one cdap travel_active person and
     # - at least one non-preschooler
-    households_merged = households_merged.to_frame()
     choosers = households_merged[households_merged.participates_in_jtf_model].copy()
 
     # - only interested in persons in choosers households
-    persons = persons.to_frame()
     persons = persons[persons.household_id.isin(choosers.index)]
 
     logger.info("Running %s with %d households", trace_label, len(choosers))
@@ -71,7 +72,7 @@ def joint_tour_frequency_composition(
     if preprocessor_settings:
         locals_dict = {
             "persons": persons,
-            "hh_time_window_overlap": hh_time_window_overlap,
+            "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
         }
 
         expressions.assign_columns(
@@ -82,10 +83,12 @@ def joint_tour_frequency_composition(
             trace_label=trace_label,
         )
 
-    estimator = estimation.manager.begin_estimation("joint_tour_frequency_composition")
+    estimator = estimation.manager.begin_estimation(
+        state, "joint_tour_frequency_composition"
+    )
 
     model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec, coefficients_df, estimator
     )
@@ -113,7 +116,7 @@ def joint_tour_frequency_composition(
         alternatives=alt_tdd,
         spec=model_spec,
         locals_d=constants,
-        chunk_size=chunk_size,
+        chunk_size=state.settings.chunk_size,
         trace_label=trace_label,
         trace_choice_name=trace_label,
         estimator=estimator,
@@ -196,7 +199,7 @@ def joint_tour_frequency_composition(
         value_counts=True,
     )
 
-    if trace_hh_id:
+    if state.settings.trace_hh_id:
         state.tracing.trace_df(
             households_merged, label="joint_tour_frequency_composition.households"
         )

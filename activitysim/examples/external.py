@@ -167,6 +167,13 @@ def download_external_example(
                 else:
                     working_subdir = working_dir.joinpath(common_prefix)
                 tfile.extractall(working_dir)
+        elif target_path.suffixes[-2:] == [".tar", ".zst"]:
+            working_dir = working_dir.joinpath(name)
+            working_dir.mkdir(parents=True, exist_ok=True)
+            working_subdir = working_dir
+            from sharrow.utils.tar_zst import extract_zst
+
+            extract_zst(target_path, working_dir)
         elif target_path.suffix == ".zip":
             with zipfile.ZipFile(target_path, "r") as zf:
                 common_prefix = os.path.commonprefix(zf.namelist())

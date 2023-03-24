@@ -5,17 +5,15 @@ import os
 from pathlib import Path
 
 import pandas as pd
-import pyarrow as pa
 import pytest
 import scipy.stats as stats
 from numpy import dot
 from numpy.linalg import norm
 from numpy.random import randint
-from pyarrow import csv
 
-# import models is necessary to initalize the model steps with orca
 from activitysim.abm import models  # noqa: F401
 from activitysim.core import workflow
+from activitysim.core.util import read_csv, read_parquet, to_csv
 
 logger = logging.getLogger(__name__)
 
@@ -278,23 +276,12 @@ def test_auto_ownership_variation(reconnect_pipeline: workflow.State, caplog):
     assert p_value < alpha
 
 
-def read_csv(filename):
-    return csv.read_csv(filename).to_pandas()
-
-
-def to_csv(df, filename, index=False):
-    filename = Path(filename)
-    if filename.suffix == ".gz":
-        with pa.CompressedOutputStream(filename, "gzip") as out:
-            csv.write_csv(pa.Table.from_pandas(df, preserve_index=index), out)
-    else:
-        csv.write_csv(pa.Table.from_pandas(df, preserve_index=index), filename)
-
-
-@pytest.fixture(scope="module")
-def tmp_path_module(request, tmp_path_factory):
-    """A tmpdir fixture for the module scope. Persists throughout the module."""
-    return tmp_path_factory.mktemp(request.module.__name__)
+#
+# @pytest.fixture(scope="module")
+# def tmp_path_module(request, tmp_path_factory):
+#     """A tmpdir fixture for the module scope. Persists throughout the module."""
+#     return tmp_path_factory.mktemp(request.module.__name__)
+#
 
 
 # fetch/prepare existing files for model inputs
@@ -315,14 +302,14 @@ def prepare_module_inputs(tmp_path_module: Path) -> Path:
 
     ext_examp_dir = registered_external_example("legacy_mtc", tmp_path)
 
-    landuse_file = ext_examp_dir.joinpath("landuse", "maz_data_withDensity.csv.gz")
-
     # add original maz id to accessibility table
-    land_use_df = read_csv(landuse_file)
+    land_use_df = read_parquet(
+        ext_examp_dir.joinpath("landuse", "maz_data_withDensity.parquet")
+    )
     to_csv(land_use_df, tmp_path.joinpath("land_use.csv"), index=False)
 
-    accessibility_df = read_csv(
-        ext_examp_dir.joinpath("tm2_outputs", "accessibilities.csv.gz")
+    accessibility_df = read_parquet(
+        ext_examp_dir.joinpath("tm2_outputs", "accessibilities.parquet")
     )
 
     accessibility_df = pd.merge(
@@ -340,15 +327,15 @@ def prepare_module_inputs(tmp_path_module: Path) -> Path:
     ####
 
     # household file from populationsim
-    household_df = read_csv(ext_examp_dir.joinpath("popsyn", "households.csv.gz"))
+    household_df = read_parquet(ext_examp_dir.joinpath("popsyn", "households.parquet"))
 
     household_columns_dict = {"HHID": "household_id", "MAZ": "home_zone_id"}
 
     household_df.rename(columns=household_columns_dict, inplace=True)
 
     # get columns from ctramp output
-    tm2_simulated_household_df = read_csv(
-        ext_examp_dir.joinpath("tm2_outputs", "householdData_1.csv.gz")
+    tm2_simulated_household_df = read_parquet(
+        ext_examp_dir.joinpath("tm2_outputs", "householdData_1.parquet")
     )
     tm2_simulated_household_df.rename(columns={"hh_id": "household_id"}, inplace=True)
 
@@ -368,8 +355,8 @@ def prepare_module_inputs(tmp_path_module: Path) -> Path:
         on="household_id",
     )
 
-    tm2_pre_ao_results_df = read_csv(
-        ext_examp_dir.joinpath("tm2_outputs", "aoResults_pre.csv.gz")
+    tm2_pre_ao_results_df = read_parquet(
+        ext_examp_dir.joinpath("tm2_outputs", "aoResults_pre.parquet")
     )
     tm2_pre_ao_results_df.rename(
         columns={"HHID": "household_id", "AO": "pre_autos"}, inplace=True
@@ -382,15 +369,15 @@ def prepare_module_inputs(tmp_path_module: Path) -> Path:
     to_csv(household_df, tmp_path.joinpath("households.csv"), index=False)
 
     # person file from populationsim
-    person_df = read_csv(ext_examp_dir.joinpath("popsyn", "persons.csv.gz"))
+    person_df = read_parquet(ext_examp_dir.joinpath("popsyn", "persons.parquet"))
 
     person_columns_dict = {"HHID": "household_id", "PERID": "person_id"}
 
     person_df.rename(columns=person_columns_dict, inplace=True)
 
     # get columns from ctramp result
-    tm2_simulated_person_df = read_csv(
-        ext_examp_dir.joinpath("tm2_outputs", "personData_3.csv.gz")
+    tm2_simulated_person_df = read_parquet(
+        ext_examp_dir.joinpath("tm2_outputs", "personData_3.parquet")
     )
     tm2_simulated_person_df.rename(columns={"hh_id": "household_id"}, inplace=True)
 

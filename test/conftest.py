@@ -10,6 +10,12 @@ from activitysim.core import workflow
 from activitysim.core.los import Network_LOS as los
 
 
+@pytest.fixture(scope="module")
+def tmp_path_module(request, tmp_path_factory):
+    """A tmpdir fixture for the module scope. Persists throughout the module."""
+    return tmp_path_factory.mktemp(request.module.__name__)
+
+
 def _initialize_pipeline(
     module: str,
     tables: dict[str, str],

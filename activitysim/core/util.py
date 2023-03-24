@@ -9,11 +9,15 @@ import logging
 import os
 from builtins import zip
 from operator import itemgetter
+from pathlib import Path
 
 import cytoolz as tz
 import cytoolz.curried
 import numpy as np
 import pandas as pd
+import pyarrow as pa
+import pyarrow.csv as csv
+import pyarrow.parquet as pq
 import yaml
 
 logger = logging.getLogger(__name__)
@@ -469,3 +473,28 @@ def nearest_node_index(node, nodes):
     deltas = nodes - node
     dist_2 = np.einsum("ij,ij->i", deltas, deltas)
     return np.argmin(dist_2)
+
+
+def read_csv(filename):
+    """Simple read of a CSV file, much faster than pandas.read_csv"""
+    return csv.read_csv(filename).to_pandas()
+
+
+def to_csv(df, filename, index=False):
+    """Simple write of a CSV file, much faster than pandas.DataFrame.to_csv"""
+    filename = Path(filename)
+    if filename.suffix == ".gz":
+        with pa.CompressedOutputStream(filename, "gzip") as out:
+            csv.write_csv(pa.Table.from_pandas(df, preserve_index=index), out)
+    else:
+        csv.write_csv(pa.Table.from_pandas(df, preserve_index=index), filename)
+
+
+def read_parquet(filename):
+    """Simple read of a parquet file"""
+    return pq.read_table(filename).to_pandas()
+
+
+def to_parquet(df, filename, index=False):
+    filename = Path(filename)
+    pq.write_table(pa.Table.from_pandas(df, preserve_index=index), filename)

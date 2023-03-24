@@ -20,5 +20,10 @@ prototype_mtc:
       sha256: 394e5b403d4c61d5214493cefe161432db840ba4967c23c999d914178d43a1f0
 
 legacy_mtc:
-  url: https://github.com/camsys/legacy_mtc_tm2_data/releases/download/v1.1/legacy-mtc.tar.gz
-  sha256: 92f4f7639bace14c00e769719d09da83ad4e9f9c567ddd1627e76a9396697810
+  url: https://github.com/camsys/legacy_mtc_tm2_data/releases/download/v1.2/legacy-mtc.tar.zst
+  sha256: b62b462eb5178d01e61506274272508f163e3921777f34ba9d04fdb2c4be0fdf
+
+legacy_mtc_skims:
+  url: https://github.com/camsys/legacy_mtc_tm2_data/releases/download/v1.2/skims.zarr.tar.zst
+  sha256: 8c5ae22ce28b52bb5633627986f114b88df7fee27a42931a2aa0e454f0dd84b9
+  name: legacy_mtc/skims.zarr

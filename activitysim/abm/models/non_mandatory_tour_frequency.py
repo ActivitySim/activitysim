@@ -151,12 +151,9 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
 
     model_settings = config.read_model_settings(model_settings_file_name)
 
-    # FIXME kind of tacky both that we know to add this here and del it below
-    # 'tot_tours' is used in model_spec expressions
     alternatives = simulate.read_model_alts(
         "non_mandatory_tour_frequency_alternatives.csv", set_index=None
     )
-    alternatives["tot_tours"] = alternatives.sum(axis=1)
 
     # filter based on results of CDAP
     choosers = persons_merged.to_frame()

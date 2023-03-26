@@ -1,4 +1,3 @@
-
 inherit_settings: True
 
 shadow_pricing_models:
@@ -9,6 +8,9 @@ shadow_pricing_models:
 # (ignored if global use_shadow_pricing switch is False)
 LOAD_SAVED_SHADOW_PRICES: False
 
+# write out choices by iteration to trace folder
+WRITE_ITERATION_CHOICES: False
+
 # number of shadow price iterations for cold start
 MAX_ITERATIONS: 10
 
@@ -18,6 +20,7 @@ MAX_ITERATIONS_SAVED: 1
 # ignore criteria for zones smaller than size_threshold
 SIZE_THRESHOLD: 10
 
+# ignore criteria for zones smaller than target_threshold (total employmnet or enrollment)
 TARGET_THRESHOLD: 20
 
 # zone passes if modeled is within percent_tolerance of  predicted_size
@@ -27,25 +30,27 @@ PERCENT_TOLERANCE: 5
 FAIL_THRESHOLD: 1
 
 # CTRAMP or daysim
-SHADOW_PRICE_METHOD: ctramp
+# SHADOW_PRICE_METHOD: ctramp
 #SHADOW_PRICE_METHOD: daysim
-
-school_segmentation_targets:
-  # format is segment: land_use_column
-  university: TOTENR_univ
-  highschool: HSENROLL
-  gradeschool: AGE0519
-
-# if target names are the same, they will be combined together
-workplace_segmentation_targets:
-  # using total employment scaled to remove external workers. see annotate_landuse.csv
-  work_low: TOTEMP_scaled
-  work_med: TOTEMP_scaled
-  work_high: TOTEMP_scaled
-  work_veryhigh: TOTEMP_scaled
+SHADOW_PRICE_METHOD: simulation
 
 # ctramp-style shadow_pricing_method parameters
 DAMPING_FACTOR: 1
+# apply different targets for each segment specified in destination_size_terms.csv
+school_segmentation_targets:
+  # format is segment: land_use_column
+  university: Univ_Enrollment
+  highschool: G9_12
+  gradeschool: K_8
+
+
+# if target names are the same, they will be combined together
+workplace_segmentation_targets:
+  # ideally, need to use employment with removed external workers
+  work_low: tot_emp
+  work_med: tot_emp
+  work_high: tot_emp
+  work_veryhigh: tot_emp
 
 # daysim-style shadow_pricing_method parameters
 # FIXME should these be the same as PERCENT_TOLERANCE and FAIL_THRESHOLD above?

@@ -327,7 +327,12 @@ def schedule_trips_in_leg(
             # choices are relative to the previous departure time
             choices = nth_trips.earliest + choices
             # need to update the departure time based on the choice
-            update_tour_earliest(trips, choices, _logic_version(model_settings))
+            logic_version = _logic_version(model_settings)
+            if logic_version == 1:
+                raise ValueError(
+                    "cannot use logic version 1 with 'relative' scheduling mode"
+                )
+            update_tour_earliest(trips, choices, logic_version)
 
         # adjust allowed depart range of next trip
         has_next_trip = nth_trips.next_trip_id != NO_TRIP_ID

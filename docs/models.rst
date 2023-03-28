@@ -1211,8 +1211,8 @@ Core Table: ``trips`` | Result Field: ``purpose, destination`` | Skims Keys: ``o
 
 .. _trip_scheduling:
 
-Trip Scheduling (Probablistic)
-------------------------------
+Trip Scheduling (Probabilistic)
+-------------------------------
 
 For each trip, assign a departure hour based on an input lookup table of percents by tour purpose,
 direction (inbound/outbound), tour hour, and trip index.
@@ -1234,12 +1234,13 @@ work tours, the available time periods is constrained by the at-work subtour sta
 
 In order to avoid trip failing, a new probabilistic trip scheduling mode was developed named "relative".
 When setting the _scheduling_mode_ option to relative, trips are scheduled relative to the previously scheduled trips.
-The first trip still departs when the tour starts and for every subsequet trip, the choices are selected with respect to
+The first trip still departs when the tour starts and for every subsequent trip, the choices are selected with respect to
 the previous trip depart time. Inbound trips are no longer handled in reverse order.  The key to this relative mode is to
 index the probabilities based on how much time is remaining on the tour.  For tours that include subtours, the time remaining will
 be based on the subtour start time for outbound trips and will resume again for inbound trips after the subtour ends.
 By indexing the probabilities based on time remaining and scheduling relative to the previous trip, scheduling trips in relative
-mode will not fail.
+mode will not fail.  Note also that relative scheduling mode requires the use of logic
+version 2 (see warning about logic versions, below).
 
 An example of trip scheduling in relative mode is included in the :ref:`prototype_mwcog` example.  In this example, trip
 scheduling probabilities are indexed by the following columns:
@@ -1251,16 +1252,20 @@ scheduling probabilities are indexed by the following columns:
 Each of these variables are listed as merge columns in the trip_scheduling.yaml file and are declared in the trip scheduling preprocessor.
 The variables above attempt to balance the statistics available for probability creation with the amount of segmentation of trip characteristics.
 
-Earlier versions of ActivitySim contained a logic error in this model, whereby
-the earliest departure time for inbound legs was bounded by the maximum outbound
-departure time, even if there was a scheduling failure and one or more outbound
-leg departures and that bound was NA.  For continuity, this process has been
-retained in this ActivitySim component as *logic_version* 1, and it remains the
-default process if the user does not explicitly specify a logic version in the
-model settings yaml file. The revised logic includes bounding inbound legs only
-when the maximum outbound departure time is well defined.  This version of the
-model can be used by explicitly setting `logic_version: 2` (or greater) in the
-model settings yaml file.
+.. warning::
+
+    Earlier versions of ActivitySim contained a logic error in this model, whereby
+    the earliest departure time for inbound legs was bounded by the maximum outbound
+    departure time, even if there was a scheduling failure for one or more outbound
+    leg departures and that bound was NA.  For continuity, this process has been
+    retained in this ActivitySim component as *logic_version* 1, and it remains the
+    default process if the user does not explicitly specify a logic version in the
+    model settings yaml file. The revised logic includes bounding inbound legs only
+    when the maximum outbound departure time is well defined.  This version of the
+    model can be used by explicitly setting `logic_version: 2` (or greater) in the
+    model settings yaml file.  It is strongly recommended that all new model
+    development efforts use logic version 2; a future version of ActivitySim may
+    make this the default for this component, and/or remove logic version 1 entirely.
 
 The main interface to the trip scheduling model is the
 :py:func:`~activitysim.abm.models.trip_scheduling.trip_scheduling` function.

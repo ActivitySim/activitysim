@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import argparse
@@ -180,3 +182,11 @@ def filter_warnings(state=None):
         pass
     else:
         warnings.filterwarnings("default", category=CacheMissWarning)
+
+    # beginning from PR #660 (after 1.2.0), a FutureWarning is emitted when the trip
+    # scheduling component lacks a logic_version setting
+    warnings.filterwarnings(
+        "ignore",
+        category=FutureWarning,
+        message="The trip_scheduling component now has a logic_version setting.*",
+    )

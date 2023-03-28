@@ -9,7 +9,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Models &#8212; ActivitySim 1.2.1.dev10+g2cd06a68</title>
+    <title>Models &#8212; ActivitySim 1.2.1.dev12+gfbec0a59</title>
   
   
   
@@ -114,7 +114,7 @@
   
   
   
-    <p class="title logo__title">ActivitySim 1.2.1.dev10+g2cd06a68</p>
+    <p class="title logo__title">ActivitySim 1.2.1.dev12+gfbec0a59</p>
   
 </a></div>
     
@@ -2466,8 +2466,8 @@ the remaining failed trips (i.e. trips that cannot be assigned a destination).  
 function.  This function is registered as an Inject step in the example Pipeline.</p>
 <p>Core Table: <code class="docutils literal notranslate"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">purpose,</span> <span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">origin,</span> <span class="pre">(tour</span> <span class="pre">primary)</span> <span class="pre">destination,</span> <span class="pre">dest_taz,</span> <span class="pre">trip_period</span></code></p>
 <span class="target" id="module-activitysim.abm.models.trip_purpose_and_destination"></span></section>
-<section id="trip-scheduling-probablistic">
-<span id="trip-scheduling"></span><h2>Trip Scheduling (Probablistic)<a class="headerlink" href="#trip-scheduling-probablistic" title="Permalink to this headline">#</a></h2>
+<section id="trip-scheduling-probabilistic">
+<span id="trip-scheduling"></span><h2>Trip Scheduling (Probabilistic)<a class="headerlink" href="#trip-scheduling-probabilistic" title="Permalink to this headline">#</a></h2>
 <p>For each trip, assign a departure hour based on an input lookup table of percents by tour purpose,
 direction (inbound/outbound), tour hour, and trip index.</p>
 <blockquote>
@@ -2486,14 +2486,15 @@ the previous trip’s choice (i.e. assumed to happen right after the previous tr
 The trip scheduling model does not use mode choice logsums.</p>
 <p>Alternatives: Available time periods in the tour window (i.e. tour start and end period).  When processing stops on
 work tours, the available time periods is constrained by the at-work subtour start and end period as well.</p>
-<p>In order to avoid trip failing, a new probabalisitic trip scheduling mode was developed named “relative”.
+<p>In order to avoid trip failing, a new probabilistic trip scheduling mode was developed named “relative”.
 When setting the _scheduling_mode_ option to relative, trips are scheduled relative to the previously scheduled trips.
-The first trip still departs when the tour starts and for every subsequet trip, the choices are selected with respect to
+The first trip still departs when the tour starts and for every subsequent trip, the choices are selected with respect to
 the previous trip depart time. Inbound trips are no longer handled in reverse order.  The key to this relative mode is to
 index the probabilities based on how much time is remaining on the tour.  For tours that include subtours, the time remaining will
 be based on the subtour start time for outbound trips and will resume again for inbound trips after the subtour ends.
 By indexing the probabilities based on time remaining and scheduling relative to the previous trip, scheduling trips in relative
-mode will not fail.</p>
+mode will not fail.  Note also that relative scheduling mode requires the use of logic
+version 2 (see warning about logic versions, below).</p>
 <p>An example of trip scheduling in relative mode is included in the <a class="reference internal" href="examples.html#prototype-mwcog"><span class="std std-ref">prototype_mwcog</span></a> example.  In this example, trip
 scheduling probabilities are indexed by the following columns:</p>
 <blockquote>
@@ -2507,6 +2508,21 @@ scheduling probabilities are indexed by the following columns:</p>
 </div></blockquote>
 <p>Each of these variables are listed as merge columns in the trip_scheduling.yaml file and are declared in the trip scheduling preprocessor.
 The variables above attempt to balance the statistics available for probability creation with the amount of segmentation of trip characteristics.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Earlier versions of ActivitySim contained a logic error in this model, whereby
+the earliest departure time for inbound legs was bounded by the maximum outbound
+departure time, even if there was a scheduling failure for one or more outbound
+leg departures and that bound was NA.  For continuity, this process has been
+retained in this ActivitySim component as <em>logic_version</em> 1, and it remains the
+default process if the user does not explicitly specify a logic version in the
+model settings yaml file. The revised logic includes bounding inbound legs only
+when the maximum outbound departure time is well defined.  This version of the
+model can be used by explicitly setting <cite>logic_version: 2</cite> (or greater) in the
+model settings yaml file.  It is strongly recommended that all new model
+development efforts use logic version 2; a future version of ActivitySim may
+make this the default for this component, and/or remove logic version 1 entirely.</p>
+</div>
 <p>The main interface to the trip scheduling model is the
 <a class="reference internal" href="#activitysim.abm.models.trip_scheduling.trip_scheduling" title="activitysim.abm.models.trip_scheduling.trip_scheduling"><code class="xref py py-func docutils literal notranslate"><span class="pre">trip_scheduling()</span></code></a> function.
 This function is registered as an Inject step in the example Pipeline.</p>
@@ -2612,7 +2628,7 @@ trips in trip_destination.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.update_tour_earliest">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_scheduling.</span></span><span class="sig-name descname"><span class="pre">update_tour_earliest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trips</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outbound_choices</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.update_tour_earliest" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_scheduling.</span></span><span class="sig-name descname"><span class="pre">update_tour_earliest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trips</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outbound_choices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logic_version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.update_tour_earliest" title="Permalink to this definition">#</a></dt>
 <dd><p>Updates “earliest” column for inbound trips based on
 the maximum outbound trip departure time of the tour.
 This is done to ensure inbound trips do not depart
@@ -2624,9 +2640,18 @@ before the last outbound trip of a tour.</p>
 <dt><strong>outbound_choices: pd.Series</strong></dt><dd><p>time periods depart choices, one per trip (except for trips with
 zero probs)</p>
 </dd>
-<dt><strong>Returns</strong></dt><dd></dd>
-<dt><strong>——-</strong></dt><dd></dd>
-<dt><strong>modifies trips in place</strong></dt><dd></dd>
+<dt><strong>logic_version</strong><span class="classifier">int</span></dt><dd><p>Logic version 1 is the original ActivitySim implementation, which
+sets the “earliest” value to the max outbound departure for all
+inbound trips, regardless of what that max outbound departure value
+is (even if it is NA).  Logic version 2 introduces a change whereby
+that assignment is only made if the max outbound departure value is
+not NA.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>modifies trips in place</dt><dd></dd>
 </dl>
 </dd>
 </dl>
@@ -4181,7 +4206,7 @@ DataFrame and the values are the index of the alts DataFrame.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-purpose">Trip Purpose</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-destination-choice">Trip Destination Choice</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-purpose-and-destination">Trip Purpose and Destination</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-scheduling-probablistic">Trip Scheduling (Probablistic)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-scheduling-probabilistic">Trip Scheduling (Probabilistic)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-scheduling-choice-logit-choice">Trip Scheduling Choice (Logit Choice)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-departure-choice-logit-choice">Trip Departure Choice (Logit Choice)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-mode-choice">Trip Mode Choice</a></li>
@@ -4234,7 +4259,7 @@ DataFrame and the values are the index of the alts DataFrame.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.1.dev10+g2cd06a68, documentation last updated Mar 21, 2023.<br/>
+ActivitySim 1.2.1.dev12+gfbec0a59, documentation last updated Mar 28, 2023.<br/>
 </p></div>
       
         <div class="footer-item">

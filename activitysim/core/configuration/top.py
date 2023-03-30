@@ -204,7 +204,7 @@ class MultiprocessStep(PydanticBase):
     chunk_size: int = None
 
 
-class Settings(PydanticBase, extra="allow"):
+class Settings(PydanticBase, extra="allow", validate_assignment=True):
     """
     The overall settings for the ActivitySim model system.
 

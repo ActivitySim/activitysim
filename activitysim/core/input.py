@@ -122,9 +122,11 @@ def read_from_table_info(table_info: InputTable, state):
     assert tablename is not None, "no tablename provided"
     assert data_filename is not None, "no input file provided"
 
-    data_file_path = state.filesystem.get_data_file_path(data_filename)
+    data_file_path = state.filesystem.get_data_file_path(
+        data_filename, alternative_suffixes=(".csv.gz", ".parquet")
+    )
 
-    df = _read_input_file(
+    df = read_input_file(
         str(data_file_path), h5_tablename=h5_tablename, csv_dtypes=csv_dtypes
     )
 
@@ -229,7 +231,12 @@ def read_from_table_info(table_info: InputTable, state):
     return df
 
 
-def _read_input_file(filepath, h5_tablename=None, csv_dtypes=None):
+def read_input_file(filepath: str, h5_tablename: str = None, csv_dtypes=None):
+    """
+    Read data to a pandas DataFrame, inferring file type from filename extension.
+    """
+
+    filepath = str(filepath)
     assert os.path.exists(filepath), "input file not found: %s" % filepath
 
     if filepath.endswith(".csv") or filepath.endswith(".csv.gz"):

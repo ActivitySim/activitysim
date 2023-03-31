@@ -3,6 +3,7 @@ from __future__ import annotations
 import glob
 import logging
 import os
+from functools import partial
 from pathlib import Path
 
 import numpy as np
@@ -14,6 +15,7 @@ import xarray as xr
 from activitysim.core import config
 from activitysim.core import flow as __flow  # noqa: 401
 from activitysim.core import workflow
+from activitysim.core.input import read_input_file
 
 logger = logging.getLogger(__name__)
 
@@ -586,7 +588,7 @@ def load_sparse_maz_skims(
     maz2taz_file_name : str
     maz_to_maz_tables : Collection[]
     max_blend_distance : optional
-    data_file_resolver : function
+    data_file_resolver : function or Callable
 
     Returns
     -------
@@ -599,7 +601,8 @@ def load_sparse_maz_skims(
 
     if zone_system in [TWO_ZONE, THREE_ZONE]:
         # maz
-        maz_taz = pd.read_csv(data_file_resolver(maz2taz_file_name, mandatory=True))
+        maz_filename = data_file_resolver(maz2taz_file_name, mandatory=True)
+        maz_taz = read_input_file(maz_filename)
         maz_taz = maz_taz[["MAZ", "TAZ"]].set_index("MAZ").sort_index()
 
         # MAZ alignment is ensured here, so no re-alignment check is
@@ -637,7 +640,7 @@ def load_sparse_maz_skims(
             max_blend_distance = {"DEFAULT": max_blend_distance}
 
         for file_name in maz_to_maz_tables:
-            df = pd.read_csv(data_file_resolver(file_name, mandatory=True))
+            df = read_input_file(data_file_resolver(file_name, mandatory=True))
             if remapper is not None:
                 df.OMAZ = df.OMAZ.map(remapper.get)
                 df.DMAZ = df.DMAZ.map(remapper.get)
@@ -778,7 +781,10 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
                     max_blend_distance=network_los_preload.setting(
                         "maz_to_maz.max_blend_distance", default={}
                     ),
-                    data_file_resolver=state.filesystem.get_data_file_path,
+                    data_file_resolver=partial(
+                        state.filesystem.get_data_file_path,
+                        alternative_suffixes=(".csv.gz", ".parquet"),
+                    ),
                 )
 
         d = _drop_unused_names(state, d)

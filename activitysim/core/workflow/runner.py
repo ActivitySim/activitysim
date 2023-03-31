@@ -17,6 +17,7 @@ from activitysim.core.workflow.checkpoint import (
     LAST_CHECKPOINT,
 )
 from activitysim.core.workflow.steps import run_named_step
+from activitysim.core.workflow.util import write_notebook_heading
 
 # single character prefix for run_list model name to indicate that no checkpoint should be saved
 NO_CHECKPOINT_PREFIX = "_"
@@ -177,12 +178,27 @@ class Runner(StateAccessor):
 
     def __getattr__(self, item):
         if item in self._obj._RUNNABLE_STEPS:
-            f = lambda **kwargs: self.by_name(item, **kwargs)
+
+            def f(**kwargs):
+                write_notebook_heading(item, self.heading_level)
+                return self.by_name(item, **kwargs)
+
             f.__doc__ = self._obj._RUNNABLE_STEPS[item].__doc__
             return f
         raise AttributeError(item)
 
     timing_notes: set[str] = FromState(default_init=True)
+
+    heading_level: int | None = FromState(default_value=None)
+    """
+    int: Individual component heading level to use when running in a notebook.
+
+    When individual components are called in a Jupyter notebook-like environment
+    using the `state.run.component_name` syntax, an HTML heading for each component
+    can be displayed in the notebook.  These headings can be detected by Jupyter
+    extensions to enable rapid navigation with an automatically generated table
+    of contents.
+    """
 
     def log_runtime(self, model_name, start_time=None, timing=None, force=False):
         assert (start_time or timing) and not (start_time and timing)
@@ -295,7 +311,7 @@ class Runner(StateAccessor):
                     from pyinstrument import Profiler
                 except ImportError:
                     instrument = False
-            if isinstance(instrument, (list, set, tuple)):
+            if isinstance(instrument, list | set | tuple):
                 if self.step_name not in instrument:
                     instrument = False
                 else:
@@ -311,14 +327,14 @@ class Runner(StateAccessor):
                 out_file = self._obj.filesystem.get_profiling_file_path(
                     f"{self.step_name}.html"
                 )
-                with open(out_file, "wt") as f:
+                with open(out_file, "w") as f:
                     f.write(profiler.output_html())
             else:
                 self._obj._context = run_named_step(
                     self.step_name, self._obj._context, **kwargs
                 )
 
-        except Exception as err:
+        except Exception:
             self.t0 = self._log_elapsed_time(f"run.{model_name} UNTIL ERROR", self.t0)
             self._obj.add_injectable("step_args", None)
             self._obj.rng().end_step(model_name)

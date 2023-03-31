@@ -552,7 +552,9 @@ class FileSystem(PydanticBase, validate_assignment=True):
         """
         return tuple(self.get_working_subdir(i) for i in self.data_dir)
 
-    def get_data_file_path(self, file_name, mandatory=True, allow_glob=False) -> Path:
+    def get_data_file_path(
+        self, file_name, mandatory=True, allow_glob=False, alternative_suffixes=()
+    ) -> Path:
         """
         Find the first matching file among data directories.
 
@@ -565,14 +567,29 @@ class FileSystem(PydanticBase, validate_assignment=True):
             this method returns None when there is no match.
         allow_glob : bool, default False
             Allow glob-style matches.
+        alternative_suffixes : Iterable[str], optional
+            Other file suffixes to search for, if the expected filename is
+            not found. This allows, for example, the data files to be stored
+            as compressed csv ("*.csv.gz") without changing the config files.
 
         Returns
         -------
         Path or None
         """
-        return self._cascading_input_file_path(
-            file_name, "data_dir", mandatory, allow_glob
-        )
+        try:
+            return self._cascading_input_file_path(
+                file_name, "data_dir", mandatory, allow_glob
+            )
+        except FileNotFoundError:
+            if not allow_glob:
+                file_name = Path(file_name)
+                for alt in alternative_suffixes:
+                    alt_file = self._cascading_input_file_path(
+                        file_name.with_suffix(alt), "data_dir", mandatory=False
+                    )
+                    if alt_file:
+                        return alt_file
+            raise
 
     def open_log_file(self, file_name, mode, header=None, prefix=False):
         if prefix:

@@ -71,6 +71,29 @@ def is_notebook() -> bool:
         return False  # Probably standard Python interpreter
 
 
+def write_notebook_heading(text: str, heading_level: int | None = None) -> None:
+    """
+    If running in a jupyter-like environment, display a heading.
+
+    Parameters
+    ----------
+    text : str
+        The heading to display
+    heading_level : int, optional
+        The heading level to use.  Should be an integer from 1 to 6.
+        If omitted or zero, no heading is not displayed.
+    """
+    if heading_level and is_notebook():
+        if heading_level < 0:
+            raise ValueError("negative heading levels not allowed")
+        if heading_level > 6:
+            # heading levels greater than 6 are not allowed
+            heading_level = 6
+        import IPython.display
+
+        IPython.display.display_markdown("#" * heading_level + f" {text}", raw=True)
+
+
 def remove_empty_folders(path_abs):
     walk = list(os.walk(path_abs))
     for path, _, _ in walk[::-1]:

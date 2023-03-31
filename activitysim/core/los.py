@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from pydantic import ValidationError
 
-from activitysim.core import config, pathbuilder, skim_dictionary, tracing, util
+from activitysim.core import config, input, pathbuilder, skim_dictionary, tracing, util
 from activitysim.core.cleaning import recode_based_on_table
 from activitysim.core.configuration.network import NetworkSettings, TAZ_Settings
 from activitysim.core.skim_dict_factory import MemMapSkimFactory, NumpyArraySkimFactory
@@ -244,9 +244,11 @@ class Network_LOS(object):
 
         if self.zone_system == THREE_ZONE:
             # load this here rather than in load_data as it is required during multiprocessing to size TVPBCache
-            self.tap_df = pd.read_csv(
+            self.tap_df = input.read_input_file(
                 self.state.filesystem.get_data_file_path(
-                    self.setting("tap"), mandatory=True
+                    self.setting("tap"),
+                    mandatory=True,
+                    alternative_suffixes=(".csv.gz", ".parquet"),
                 )
             ).sort_values("TAP")
             self.tvpb = pathbuilder.TransitVirtualPathBuilder(
@@ -262,8 +264,12 @@ class Network_LOS(object):
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
             # maz
             file_name = self.setting("maz")
-            self.maz_taz_df = pd.read_csv(
-                self.state.filesystem.get_data_file_path(file_name, mandatory=True)
+            self.maz_taz_df = input.read_input_file(
+                self.state.filesystem.get_data_file_path(
+                    file_name,
+                    mandatory=True,
+                    alternative_suffixes=(".csv.gz", ".parquet"),
+                )
             )
             self.maz_taz_df = self.maz_taz_df[["MAZ", "TAZ"]].sort_values(
                 by="MAZ"
@@ -287,8 +293,12 @@ class Network_LOS(object):
                 else maz_to_maz_tables
             )
             for file_name in maz_to_maz_tables:
-                df = pd.read_csv(
-                    self.state.filesystem.get_data_file_path(file_name, mandatory=True)
+                df = input.read_input_file(
+                    self.state.filesystem.get_data_file_path(
+                        file_name,
+                        mandatory=True,
+                        alternative_suffixes=(".csv.gz", ".parquet"),
+                    )
                 )
 
                 # recode MAZs if needed
@@ -338,8 +348,12 @@ class Network_LOS(object):
                 ), f"Expected setting maz_to_tap.{mode}.table not found in in {LOS_SETTINGS_FILE_NAME}"
 
                 file_name = maz_to_tap_settings["table"]
-                df = pd.read_csv(
-                    self.state.filesystem.get_data_file_path(file_name, mandatory=True)
+                df = input.read_input_file(
+                    self.state.filesystem.get_data_file_path(
+                        file_name,
+                        mandatory=True,
+                        alternative_suffixes=(".csv.gz", ".parquet"),
+                    )
                 )
 
                 # recode MAZs if needed
@@ -355,9 +369,11 @@ class Network_LOS(object):
                         tap_lines_file_name = self.setting(
                             "tap_lines",
                         )
-                        self.tap_lines_df = pd.read_csv(
+                        self.tap_lines_df = input.read_input_file(
                             self.state.filesystem.get_data_file_path(
-                                tap_lines_file_name, mandatory=True
+                                tap_lines_file_name,
+                                mandatory=True,
+                                alternative_suffixes=(".csv.gz", ".parquet"),
                             )
                         )
 

@@ -103,6 +103,9 @@ def work_from_home(
             state, model_spec, coefficients_df, estimator
         )
 
+        if model_settings.get("sharrow_skip", False):
+            constants["disable_sharrow"] = True
+
         choices = simulate.simple_simulate(
             state,
             choosers=choosers,

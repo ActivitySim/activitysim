@@ -117,6 +117,8 @@ class SkimDataset:
         orig = np.asanyarray(orig).astype(int)
         dest = np.asanyarray(dest).astype(int)
 
+        some_missing = (orig.min() < 0) or (dest.min() < 0)
+
         # TODO offset mapper if required
         positions = {self.odim: orig, self.ddim: dest}
 
@@ -133,6 +135,8 @@ class SkimDataset:
             **positions, _name=key
         )  # Dataset.iat as implemented by sharrow strips data encoding
 
+        if some_missing:
+            result[(orig < 0) | (dest < 0)] = np.nan
         result = result.to_series()
 
         if use_index is not None:

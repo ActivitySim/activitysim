@@ -8,6 +8,7 @@ import itertools
 import logging
 import os
 from builtins import zip
+from collections.abc import Iterable
 from operator import itemgetter
 from pathlib import Path
 
@@ -498,3 +499,34 @@ def read_parquet(filename):
 def to_parquet(df, filename, index=False):
     filename = Path(filename)
     pq.write_table(pa.Table.from_pandas(df, preserve_index=index), filename)
+
+
+def latest_file_modification_time(filenames: Iterable[Path]):
+    """Find the most recent file modification time."""
+    return max(os.path.getmtime(filename) for filename in filenames)
+
+
+def oldest_file_modification_time(filenames: Iterable[Path]):
+    """Find the least recent file modification time."""
+    return min(os.path.getmtime(filename) for filename in filenames)
+
+
+def zarr_file_modification_time(zarr_dir: Path):
+    """Find the most recent file modification time inside a zarr dir."""
+    t = 0
+    for dirpath, dirnames, filenames in os.walk(zarr_dir):
+        if os.path.basename(dirpath).startswith(".git"):
+            continue
+        for n in range(len(dirnames) - 1, -1, -1):
+            if dirnames[n].startswith(".git"):
+                dirnames.pop(n)
+        for f in filenames:
+            if f.startswith(".git") or f == ".DS_Store":
+                continue
+            finame = Path(os.path.join(dirpath, f))
+            file_time = os.path.getmtime(finame)
+            if file_time > t:
+                t = file_time
+    if t == 0:
+        raise FileNotFoundError(zarr_dir)
+    return t

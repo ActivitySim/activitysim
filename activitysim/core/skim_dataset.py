@@ -3,6 +3,7 @@ from __future__ import annotations
 import glob
 import logging
 import os
+import time
 from functools import partial
 from pathlib import Path
 
@@ -720,21 +721,26 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
         remapper = None
 
     d = _use_existing_backing_if_valid(backing, omx_file_paths, skim_tag)
+    do_not_save_zarr = False
 
     if d is None:
         time_periods = _dedupe_time_periods(network_los_preload)
         if zarr_file:
             logger.info(f"looking for zarr skims at {zarr_file}")
         if zarr_file and os.path.exists(zarr_file):
-            # TODO: check if the OMX skims or sparse MAZ are modified more
-            #       recently than the cached ZARR versions; if so do not use
-            #       the ZARR
+            from .util import latest_file_modification_time
+
             logger.info("found zarr skims, loading them")
-            d = sh.dataset.from_zarr_with_attr(zarr_file).max_float_precision(
-                max_float_precision
-            )
-        else:
-            if zarr_file:
+            d = sh.dataset.from_zarr_with_attr(zarr_file)
+            zarr_write_time = d.attrs.get("ZARR_WRITE_TIME", 0)
+            if zarr_write_time < latest_file_modification_time(omx_file_paths):
+                logger.warning("zarr skims older than omx, not using them")
+                do_not_save_zarr = True
+                d = None
+            else:
+                d = d.max_float_precision(max_float_precision)
+        if d is None:
+            if zarr_file and not do_not_save_zarr:
                 logger.info("did not find zarr skims, loading omx")
             d = sh.dataset.from_omx_3d(
                 [openmatrix.open_file(f, mode="r") for f in omx_file_paths],
@@ -761,7 +767,9 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
                     if zarr_digital_encoding:
                         d = _apply_digital_encoding(d, zarr_digital_encoding)
                     logger.info(f"writing zarr skims to {zarr_file}")
-                    d.to_zarr_with_attr(zarr_file)
+                    d.attrs["ZARR_WRITE_TIME"] = time.time()
+                    if not do_not_save_zarr:
+                        d.to_zarr_with_attr(zarr_file)
 
         if skim_tag in ("taz", "maz"):
             # load sparse MAZ skims, if any

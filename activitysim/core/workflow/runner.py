@@ -36,9 +36,24 @@ def _format_elapsed_time(t):
     return td
 
 
-def split_arg(s, sep, default=""):
+def split_arg(s: str, sep: str, default="") -> tuple[str, Any]:
     """
-    split str s in two at first sep, returning empty string as second result if no sep
+    Split a string into two parts.
+
+    When the part after the seperator is "true" or "false" (case-insensitive)
+    the second element of the returned tuple is the matching boolean value,
+    not a string.
+
+    Parameters
+    ----------
+    s : str
+        The string to split.
+    sep : str
+        The split character.
+    default : Any, default ""
+        The second part is by default an empty string, but through this
+        argument this can be overridden to be some other value.
+
     """
     r = s.split(sep, 2)
     r = list(map(str.strip, r))

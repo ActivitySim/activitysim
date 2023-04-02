@@ -43,24 +43,6 @@ NO_CHECKPOINT_PREFIX = "_"
 NO_DEFAULT = "throw error if missing"
 
 
-def split_arg(s, sep, default=""):
-    """
-    split str s in two at first sep, returning empty string as second result if no sep
-    """
-    r = s.split(sep, 2)
-    r = list(map(str.strip, r))
-
-    arg = r[0]
-
-    if len(r) == 1:
-        val = default
-    else:
-        val = r[1]
-        val = {"true": True, "false": False}.get(val.lower(), val)
-
-    return arg, val
-
-
 class StateAttr:
     def __init__(self, member_type, default_init=False):
         self.member_type = member_type
@@ -88,6 +70,10 @@ class StateAttr:
 
 
 class State:
+    """
+    The encapsulated state of an ActivitySim model.
+    """
+
     def __init__(self, context=None):
 
         self.open_files: dict[str, io.TextIOBase] = {}

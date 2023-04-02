@@ -23,6 +23,7 @@ Contents
    :maxdepth: 3
 
    install
+   core-workflow
    using-sharrow
    skim-dataset
    workflows

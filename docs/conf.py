@@ -12,6 +12,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+from __future__ import annotations
+
 import os
 import sys
 
@@ -39,6 +41,7 @@ extensions = [
     "myst_parser",
     "sphinx_design",
     "sphinxarg.ext",
+    "sphinx.ext.intersphinx",
     "sphinxcontrib.autodoc_pydantic",
 ]
 
@@ -134,7 +137,7 @@ GITHUB_REPOSITORY_OWNER = os.environ.get(
 print("github repo owner: " + GITHUB_REPOSITORY_OWNER)
 
 html_theme_options = {
-    "footer_items": ["version-date", "sphinx-version"],
+    "footer_start": ["version-date", "sphinx-version"],
     "switcher": {
         "json_url": f"https://{GITHUB_REPOSITORY_OWNER}.github.io/activitysim/switcher.json",
         "version_match": version,
@@ -147,7 +150,7 @@ html_theme_options = {
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = f"ActivitySim {release}"
+html_title = "ActivitySim"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 # html_short_title = None
@@ -215,6 +218,13 @@ html_last_updated_fmt = "%b %d, %Y"
 # Output file base name for HTML help builder.
 htmlhelp_basename = "ActivitySimdoc"
 
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "pandas": ("http://pandas.pydata.org/pandas-docs/stable", None),
+    "xarray": ("https://docs.xarray.dev/en/stable", None),
+    "pyarrow": ("https://arrow.apache.org/docs", None),
+    "numba": ("https://numba.pydata.org/numba-doc/latest", None),
+}
 
 # -- Options for LaTeX output ---------------------------------------------
 

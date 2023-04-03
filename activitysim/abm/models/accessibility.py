@@ -35,12 +35,20 @@ def compute_accessibilities_for_zones(
     )
 
     # create OD dataframe
-    od_df = pd.DataFrame(
-        data={
-            "orig": np.repeat(orig_zones, dest_zone_count),
-            "dest": np.tile(dest_zones, orig_zone_count),
-        }
-    )
+    od_data = {
+        "orig": np.repeat(orig_zones, dest_zone_count),
+        "dest": np.tile(dest_zones, orig_zone_count),
+    }
+    # previously, the land use was added to the dataframe via pd.merge
+    # but the merge is expensive and unnecessary as we can just tile.
+    logger.debug(f"{trace_label}: tiling land_use_columns into od_data")
+    for c in land_use_df.columns:
+        od_data[c] = np.tile(land_use_df[c].to_numpy(), orig_zone_count)
+    logger.debug(f"{trace_label}: converting od_data to DataFrame")
+    od_df = pd.DataFrame(od_data)
+    logger.debug(f"{trace_label}: dropping od_data")
+    del od_data
+    logger.debug(f"{trace_label}: dropping od_data complete")
 
     trace_od = state.settings.trace_od
     if trace_od:
@@ -49,9 +57,6 @@ def compute_accessibilities_for_zones(
     else:
         trace_od_rows = None
 
-    # merge land_use_columns into od_df
-    logger.info(f"{trace_label}: merge land_use_columns into od_df")
-    od_df = pd.merge(od_df, land_use_df, left_on="dest", right_index=True).sort_index()
     chunk_sizer.log_df(trace_label, "od_df", od_df)
 
     locals_d = {
@@ -62,6 +67,7 @@ def compute_accessibilities_for_zones(
     locals_d.update(constants)
 
     skim_dict = network_los.get_default_skim_dict()
+    # FIXME: because od_df is so huge, next two lines use a fair bit of memory
     locals_d["skim_od"] = skim_dict.wrap("orig", "dest").set_df(od_df)
     locals_d["skim_do"] = skim_dict.wrap("dest", "orig").set_df(od_df)
 
@@ -84,9 +90,11 @@ def compute_accessibilities_for_zones(
 
     # accessibility_df = accessibility_df.copy()
     for column in results.columns:
+        logger.debug(f"{trace_label}: aggregating column {column}")
         data = np.asanyarray(results[column])
         data.shape = (orig_zone_count, dest_zone_count)  # (o,d)
         accessibility_df[column] = np.log(np.sum(data, axis=1) + 1)
+    logger.debug(f"{trace_label}: completed aggregating")
 
     if trace_od:
 

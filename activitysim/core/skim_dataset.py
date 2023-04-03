@@ -312,8 +312,10 @@ class DatasetWrapper:
             main_key, time_key = key
             if time_key in self.time_map:
                 if isinstance(x, dict):
-                    x["time_period"] = np.full_like(
-                        x[self.odim], fill_value=self.time_map[time_key]
+                    # np.broadcast_to saves memory over np.full_like, since we
+                    # don't ever write to this array.
+                    x["time_period"] = np.broadcast_to(
+                        self.time_map[time_key], x[self.odim].shape
                     )
                 else:
                     x = x.assign(time_period=self.time_map[time_key])

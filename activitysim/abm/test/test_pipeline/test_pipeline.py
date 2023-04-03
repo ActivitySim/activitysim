@@ -298,7 +298,7 @@ def full_run(
     households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
     trace_hh_id=None,
     trace_od=None,
-    check_for_variability=None,
+    check_for_variability=False,
 ):
 
     state = setup_dirs()

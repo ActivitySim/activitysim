@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import datetime
 import glob
 import logging
@@ -72,13 +74,27 @@ MODE_PRODUCTION
 MODE_CHUNKLESS
     Do not do chunking, and also do not check or log memory usage, so ActivitySim can focus on performance
     assuming there is abundant RAM.
+
+MODE_EXPLICIT
+    Allow the user to explicitly set a chunk size (number of chooser row per chunk)
+    for each component. No assessment of overhead is made, and all responsibility
+    for monitoring RAM usage is and ensuring quality performance is transferred to the
+    model user.  If a component is missing an `explicit_chunk` setting, it is assumed
+    to be run in a single chunk.
 """
 
 MODE_RETRAIN = "training"
 MODE_ADAPTIVE = "adaptive"
 MODE_PRODUCTION = "production"
 MODE_CHUNKLESS = "disabled"
-TRAINING_MODES = [MODE_RETRAIN, MODE_ADAPTIVE, MODE_PRODUCTION, MODE_CHUNKLESS]
+MODE_EXPLICIT = "explicit"
+TRAINING_MODES = [
+    MODE_RETRAIN,
+    MODE_ADAPTIVE,
+    MODE_PRODUCTION,
+    MODE_CHUNKLESS,
+    MODE_EXPLICIT,
+]
 
 #
 # low level
@@ -729,7 +745,7 @@ class ChunkSizer:
         self.depth = len(CHUNK_SIZERS) + 1
         self.chunk_training_mode = chunk_training_mode
 
-        if self.chunk_training_mode != MODE_CHUNKLESS:
+        if self.chunk_training_mode not in (MODE_CHUNKLESS, MODE_EXPLICIT):
             if chunk_metric(self.state) == USS:
                 self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
             else:
@@ -751,7 +767,9 @@ class ChunkSizer:
         else:
             self.rss, self.uss = 0, 0
             # config.override_setting("chunk_size", 0)
-            return
+            if self.chunk_training_mode == MODE_CHUNKLESS:
+                # chunkless needs nothing else
+                return
 
         self.chunk_tag = chunk_tag
         self.trace_label = trace_label
@@ -759,6 +777,11 @@ class ChunkSizer:
 
         self.num_choosers = num_choosers
         self.rows_processed = 0
+
+        if self.chunk_training_mode == MODE_EXPLICIT:
+            self.rows_per_chunk = chunk_size
+            # explicit needs nothing else
+            return
 
         min_chunk_ratio = min_available_chunk_ratio(self.state)
         assert (
@@ -800,11 +823,12 @@ class ChunkSizer:
         )
 
     def close(self):
-        if self.chunk_training_mode == MODE_CHUNKLESS:
+        if self.chunk_training_mode in (MODE_CHUNKLESS, MODE_EXPLICIT):
             return
 
         if ((self.depth == 1) or WRITE_SUBCHUNK_HISTORY) and (
-            self.chunk_training_mode not in (MODE_PRODUCTION, MODE_CHUNKLESS)
+            self.chunk_training_mode
+            not in (MODE_PRODUCTION, MODE_CHUNKLESS, MODE_EXPLICIT)
         ):
             _HISTORIAN.write_history(self.state, self.history, self.chunk_tag)
 
@@ -829,9 +853,24 @@ class ChunkSizer:
         return headroom
 
     def initial_rows_per_chunk(self):
-        # whatever the TRAINING_MODE, use cache to determine initial_row_size
+        if self.chunk_training_mode == MODE_EXPLICIT:
+            if self.rows_per_chunk:
+                number_of_chunks = self.num_choosers // self.rows_per_chunk + (
+                    1 if self.num_choosers % self.rows_per_chunk else 0
+                )
+            else:
+                number_of_chunks = 1
+            return self.rows_per_chunk, number_of_chunks
+
+        # for any other TRAINING_MODE, use cache to determine initial_row_size
         # (presumably preferable to default_initial_rows_per_chunk)
-        self.initial_row_size = _HISTORIAN.cached_row_size(self.state, self.chunk_tag)
+        try:
+            self.initial_row_size = _HISTORIAN.cached_row_size(
+                self.state, self.chunk_tag
+            )
+        except:
+            print(f"{self.chunk_training_mode=}")
+            raise
 
         if self.chunk_size == 0:
             rows_per_chunk = self.num_choosers
@@ -884,6 +923,15 @@ class ChunkSizer:
         return rows_per_chunk, estimated_number_of_chunks
 
     def adaptive_rows_per_chunk(self, i):
+        if self.chunk_training_mode == MODE_EXPLICIT:
+            if self.rows_per_chunk:
+                number_of_chunks = self.num_choosers // self.rows_per_chunk + (
+                    1 if self.num_choosers % self.rows_per_chunk else 0
+                )
+            else:
+                number_of_chunks = 1
+            return self.rows_per_chunk, number_of_chunks
+
         # rows_processed is out of phase with cum_overhead
         # overhead is the actual bytes/rss used top process chooser chunk with prev_rows_per_chunk rows
 
@@ -983,15 +1031,19 @@ class ChunkSizer:
 
         # input()
 
-        if self.chunk_training_mode not in (MODE_PRODUCTION, MODE_CHUNKLESS):
+        if self.chunk_training_mode not in (
+            MODE_PRODUCTION,
+            MODE_CHUNKLESS,
+            MODE_EXPLICIT,
+        ):
             self.cum_rows += self.rows_per_chunk
 
         return self.rows_per_chunk, estimated_number_of_chunks
 
     @contextmanager
     def ledger(self):
-        # don't do anything in chunkless mode
-        if self.chunk_training_mode == MODE_CHUNKLESS:
+        # don't do anything in chunkless mode or explicit mode
+        if self.chunk_training_mode in (MODE_CHUNKLESS, MODE_EXPLICIT):
             yield
             return
 
@@ -1047,8 +1099,8 @@ class ChunkSizer:
                 self.chunk_ledger = None
 
     def log_rss(self, trace_label, force=False):
-        if self.chunk_training_mode == MODE_CHUNKLESS:
-            # no memory tracing at all in chunkless mode
+        if self.chunk_training_mode in (MODE_CHUNKLESS, MODE_EXPLICIT):
+            # no memory tracing at all in chunkless or explicit mode
             return
 
         assert len(CHUNK_LEDGERS) > 0, f"log_rss called without current chunker."
@@ -1069,7 +1121,7 @@ class ChunkSizer:
                 c.check_local_hwm(hwm_trace_label, rss, uss, total_bytes=None)
 
     def log_df(self, trace_label, table_name, df):
-        if self.chunk_training_mode in (MODE_PRODUCTION, MODE_CHUNKLESS):
+        if self.chunk_training_mode in (MODE_PRODUCTION, MODE_CHUNKLESS, MODE_EXPLICIT):
             return
 
         assert len(CHUNK_LEDGERS) > 0, f"log_df called without current chunker."
@@ -1156,10 +1208,14 @@ def adaptive_chunked_choosers(
     choosers: pd.DataFrame,
     trace_label: str,
     chunk_tag: str = None,
+    explicit_chunk_size: int = 0,
 ):
     # generator to iterate over choosers
 
-    if state.settings.chunk_training_mode == MODE_CHUNKLESS:
+    if state.settings.chunk_training_mode == MODE_CHUNKLESS or (
+        (state.settings.chunk_training_mode == MODE_EXPLICIT)
+        and (explicit_chunk_size == 0)
+    ):
         # The adaptive chunking logic is expensive and sometimes results
         # in needless data copying.  So we short circuit it entirely
         # when chunking is disabled.
@@ -1170,7 +1226,10 @@ def adaptive_chunked_choosers(
         return
 
     chunk_tag = chunk_tag or trace_label
-    chunk_size = state.settings.chunk_size
+    if state.settings.chunk_training_mode == MODE_EXPLICIT:
+        chunk_size = explicit_chunk_size
+    else:
+        chunk_size = state.settings.chunk_size
 
     num_choosers = len(choosers.index)
     assert num_choosers > 0
@@ -1180,14 +1239,20 @@ def adaptive_chunked_choosers(
         f"{trace_label} Running adaptive_chunked_choosers with {num_choosers} choosers"
     )
 
-    chunk_sizer = ChunkSizer(state, chunk_tag, trace_label, num_choosers, chunk_size)
+    chunk_sizer = ChunkSizer(
+        state,
+        chunk_tag,
+        trace_label,
+        num_choosers,
+        chunk_size,
+        chunk_training_mode=state.settings.chunk_training_mode,
+    )
 
     rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()
 
     i = offset = 0
     while offset < num_choosers:
         i += 1
-        assert offset + rows_per_chunk <= num_choosers
 
         chunk_trace_label = trace_label_for_chunk(trace_label, chunk_size, i)
 
@@ -1219,6 +1284,7 @@ def adaptive_chunked_choosers_and_alts(
     alternatives: pd.DataFrame,
     trace_label: str,
     chunk_tag: str = None,
+    explicit_chunk_size: int = 0,
 ):
     """
     generator to iterate over choosers and alternatives in chunk_size chunks
@@ -1253,7 +1319,10 @@ def adaptive_chunked_choosers_and_alts(
         chunk of alternatives for chooser chunk
     """
 
-    if state.settings.chunk_training_mode == MODE_CHUNKLESS:
+    if state.settings.chunk_training_mode == MODE_CHUNKLESS or (
+        (state.settings.chunk_training_mode == MODE_EXPLICIT)
+        and (explicit_chunk_size == 0)
+    ):
         # The adaptive chunking logic is expensive and sometimes results
         # in needless data copying.  So we short circuit it entirely
         # when chunking is disabled.
@@ -1292,8 +1361,18 @@ def adaptive_chunked_choosers_and_alts(
         f"with {num_choosers} choosers and {num_alternatives} alternatives"
     )
 
-    chunk_size = state.settings.chunk_size
-    chunk_sizer = ChunkSizer(state, chunk_tag, trace_label, num_choosers, chunk_size)
+    if state.settings.chunk_training_mode == MODE_EXPLICIT:
+        chunk_size = explicit_chunk_size
+    else:
+        chunk_size = state.settings.chunk_size
+    chunk_sizer = ChunkSizer(
+        state,
+        chunk_tag,
+        trace_label,
+        num_choosers,
+        chunk_size,
+        state.settings.chunk_training_mode,
+    )
     rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()
     assert (rows_per_chunk > 0) and (rows_per_chunk <= num_choosers)
 
@@ -1351,7 +1430,11 @@ def adaptive_chunked_choosers_and_alts(
 
 
 def adaptive_chunked_choosers_by_chunk_id(
-    state: workflow.State, choosers: pd.DataFrame, trace_label: str, chunk_tag=None
+    state: workflow.State,
+    choosers: pd.DataFrame,
+    trace_label: str,
+    chunk_tag=None,
+    explicit_chunk_size: int = 0,
 ):
     # generator to iterate over choosers in chunk_size chunks
     # like chunked_choosers but based on chunk_id field rather than dataframe length
@@ -1359,7 +1442,10 @@ def adaptive_chunked_choosers_by_chunk_id(
     # all have to be included in the same chunk)
     # FIXME - we pathologically know name of chunk_id col in households table
 
-    if state.settings.chunk_training_mode == MODE_CHUNKLESS:
+    if state.settings.chunk_training_mode == MODE_CHUNKLESS or (
+        (state.settings.chunk_training_mode == MODE_EXPLICIT)
+        and (explicit_chunk_size == 0)
+    ):
         # The adaptive chunking logic is expensive and sometimes results
         # in needless data copying.  So we short circuit it entirely
         # when chunking is disabled.
@@ -1375,15 +1461,24 @@ def adaptive_chunked_choosers_by_chunk_id(
     num_choosers = choosers["chunk_id"].max() + 1
     assert num_choosers > 0
 
-    chunk_size = state.settings.chunk_size
-    chunk_sizer = ChunkSizer(chunk_tag, trace_label, num_choosers, chunk_size)
+    if state.settings.chunk_training_mode == MODE_EXPLICIT:
+        chunk_size = explicit_chunk_size
+    else:
+        chunk_size = state.settings.chunk_size
+    chunk_sizer = ChunkSizer(
+        state,
+        chunk_tag,
+        trace_label,
+        num_choosers,
+        chunk_size,
+        chunk_training_mode=state.settings.chunk_training_mode,
+    )
 
     rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()
 
     i = offset = 0
     while offset < num_choosers:
         i += 1
-        assert offset + rows_per_chunk <= num_choosers
 
         chunk_trace_label = trace_label_for_chunk(trace_label, chunk_size, i)
 

@@ -186,14 +186,19 @@ def compute_accessibility(
     )
 
     accessibilities_list = []
+    explicit_chunk_size = model_settings.get("explicit_chunk", 0)
+
+    print(f"{explicit_chunk_size=}")
+    print(f"{state.settings.chunk_training_mode=}")
 
     for (
-        i,
+        _i,
         chooser_chunk,
-        chunk_trace_label,
+        _chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(state, accessibility_df, trace_label):
-
+    ) in chunk.adaptive_chunked_choosers(
+        state, accessibility_df, trace_label, explicit_chunk_size=explicit_chunk_size
+    ):
         accessibilities = compute_accessibilities_for_zones(
             state,
             chooser_chunk,

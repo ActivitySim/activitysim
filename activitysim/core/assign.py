@@ -238,7 +238,9 @@ def assign_variables(
         return target.startswith("_")
 
     def to_series(x):
-        if x is None or np.isscalar(x):
+        if np.isscalar(x):
+            return pd.Series(x, index=df.index)
+        if x is None:
             return pd.Series([x] * len(df.index), index=df.index)
         return x
 

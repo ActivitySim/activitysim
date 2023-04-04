@@ -4,12 +4,26 @@ from __future__ import annotations
 
 import logging
 
+import numba as nb
 import numpy as np
 import pandas as pd
 
-from activitysim.core import assign, chunk, los, tracing, workflow
+from activitysim.core import assign, chunk, los, workflow
 
 logger = logging.getLogger(__name__)
+
+
+@nb.njit
+def _accumulate_accessibility(arr, orig_zone_count, dest_zone_count):
+    assert arr.size == orig_zone_count * dest_zone_count
+    arr2 = arr.reshape((orig_zone_count, dest_zone_count))
+    result = np.empty((orig_zone_count,), dtype=arr.dtype)
+    for o in range(orig_zone_count):
+        x = 0
+        for d in range(dest_zone_count):
+            x += arr2[o, d]
+        result[o] = np.log1p(x)
+    return result
 
 
 def compute_accessibilities_for_zones(
@@ -22,7 +36,6 @@ def compute_accessibilities_for_zones(
     trace_label,
     chunk_sizer,
 ):
-
     orig_zones = accessibility_df.index.values
     dest_zones = land_use_df.index.values
 
@@ -89,21 +102,22 @@ def compute_accessibilities_for_zones(
     logger.info(f"{trace_label}: have results")
 
     # accessibility_df = accessibility_df.copy()
+    accessibility_new_columns = {}
     for column in results.columns:
-        logger.debug(f"{trace_label}: aggregating column {column}")
-        data = np.asanyarray(results[column])
-        data.shape = (orig_zone_count, dest_zone_count)  # (o,d)
-        accessibility_df[column] = np.log(np.sum(data, axis=1) + 1)
-    logger.debug(f"{trace_label}: completed aggregating")
+        logger.info(f"{trace_label}: aggregating column {column}")
+        accessibility_new_columns[column] = _accumulate_accessibility(
+            results[column].to_numpy(), orig_zone_count, dest_zone_count
+        )
+    logger.info(f"{trace_label}: completed aggregating")
+    accessibility_df = accessibility_df.assign(**accessibility_new_columns)
+    logger.info(f"{trace_label}: completed aggregating info df")
 
     if trace_od:
-
         if not trace_od_rows.any():
             logger.warning(
                 f"trace_od not found origin = {trace_orig}, dest = {trace_dest}"
             )
         else:
-
             # add OD columns to trace results
             df = pd.concat([od_df[trace_od_rows], trace_results], axis=1)
 
@@ -131,7 +145,6 @@ def compute_accessibility(
     accessibility: pd.DataFrame,
     network_los: los.Network_LOS,
 ):
-
     """
     Compute accessibility for each zone in land use file using expressions from accessibility_spec
 
@@ -159,7 +172,7 @@ def compute_accessibility(
         logger.warning(
             f"accessibility table is not empty. Columns:{list(accessibility_df.columns)}"
         )
-        raise RuntimeError(f"accessibility table is not empty.")
+        raise RuntimeError("accessibility table is not empty.")
 
     constants = model_settings.get("CONSTANTS", {})
 

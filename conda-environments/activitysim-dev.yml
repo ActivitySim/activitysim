@@ -38,7 +38,7 @@ dependencies:
 - numpydoc
 - openmatrix >= 0.3.4.1
 - orca >= 1.6
-- pandas >= 1.1.0
+- pandas >= 1.1.0,<2
 - pre-commit
 - psutil >= 4.1
 - pyarrow >= 2.0

@@ -16,12 +16,14 @@ logger = logging.getLogger(__name__)
 @nb.njit
 def _accumulate_accessibility(arr, orig_zone_count, dest_zone_count):
     assert arr.size == orig_zone_count * dest_zone_count
-    arr2 = arr.reshape((orig_zone_count, dest_zone_count))
+    assert arr.ndim == 1
+    i = 0
     result = np.empty((orig_zone_count,), dtype=arr.dtype)
     for o in range(orig_zone_count):
         x = 0
         for d in range(dest_zone_count):
-            x += arr2[o, d]
+            x += arr[i]
+            i += 1
         result[o] = np.log1p(x)
     return result
 

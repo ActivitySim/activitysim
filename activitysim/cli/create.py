@@ -129,7 +129,7 @@ def get_example(
         Files downloaded via http pointers will be cached in
         this location.  If a path is not given but just a truthy
         value, then a cache directory is created using in a location
-        selected by the appdirs library (or, if not installed,
+        selected by the platformdirs library (or, if not installed,
         linking is skipped.)
     with_subdirs: bool, default False
         Also return any instructions about sub-directories.
@@ -234,11 +234,12 @@ def download_asset(url, target_path, sha256=None, link=True, base_path=None):
             target_path = os.path.relpath(target_path, base_path)
         if not isinstance(link, (str, Path)):
             try:
-                import appdirs
+                import platformdirs
             except ImportError:
                 link = False
             else:
-                link = appdirs.user_data_dir("ActivitySim")
+                link = platformdirs.user_data_dir("ActivitySim")
+        original_target_path = target_path
         target_path = os.path.join(link, target_path)
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
     if url.endswith(".gz") and not target_path.endswith(".gz"):

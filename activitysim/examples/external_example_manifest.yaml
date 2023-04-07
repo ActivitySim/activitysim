@@ -27,3 +27,7 @@ legacy_mtc_skims:
   url: https://github.com/camsys/legacy_mtc_tm2_data/releases/download/v1.2/skims.zarr.tar.zst
   sha256: 8c5ae22ce28b52bb5633627986f114b88df7fee27a42931a2aa0e454f0dd84b9
   name: legacy_mtc/skims.zarr
+
+prototype_psrc_in_development:
+  url: https://github.com/jpn--/psrc_activitysim/archive/refs/tags/v23.04.06.tar.gz
+  sha256: c64770e23b2862aef1b6b1c356536db06a696b558a28b69571cef6d082af523f

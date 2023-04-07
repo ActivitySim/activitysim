@@ -44,34 +44,66 @@ NO_DEFAULT = "throw error if missing"
 
 
 class StateAttr:
+    """
+    Convenience class for defining a context value as an attribute on a State.
+
+    The name of the attribute defined in the `State` object is the key used
+    to find the attribute in the context.  The primary use case is to make
+    a Pydantic BaseModel available as an attribute.
+
+    Parameters
+    ----------
+    member_type : type
+    default_init : bool, default False
+        When this attribute is accessed but the underlying key is not
+        found in the state's context, the default constructor can be called
+        to initialize the object.  If this is False, accessing a missing
+        key raises a StateAccessError.
+
+    See Also
+    --------
+    activitysim.core.workflow.accessor.StateAccessor
+    """
+
     def __init__(self, member_type, default_init=False):
         self.member_type = member_type
         self._default_init = default_init
 
     def __set_name__(self, owner, name):
+        """Captures the attribute name when assigned in the State class."""
         self.name = name
 
     def __get__(self, instance, objtype=None):
+        """Access the value from the State's context."""
         try:
             return instance._context[self.name]
         except (KeyError, AttributeError):
             if self._default_init:
                 instance._context[self.name] = self.member_type()
                 return instance._context[self.name]
-            raise StateAccessError(f"{self.name} not initialized for this state")
+            raise StateAccessError(
+                f"{self.name} not initialized for this state"
+            ) from None
 
     def __set__(self, instance, value):
+        """Write a value into the State's context."""
         if not isinstance(value, self.member_type):
             raise TypeError(f"{self.name} must be {self.member_type} not {type(value)}")
         instance._context[self.name] = value
 
     def __delete__(self, instance):
+        """Remove a value from the State's context."""
         self.__set__(instance, None)
 
 
 class State:
     """
     The encapsulated state of an ActivitySim model.
+
+    Parameters
+    ----------
+    context : pypyr.Context, optional
+        An initial context can be provided when the State is created.
     """
 
     def __init__(self, context=None):
@@ -108,9 +140,23 @@ class State:
         return self._context.__contains__(key)
 
     def copy(self):
+        """
+        Create a copy of this State.
+
+        The copy will share the memory space for most arrays and tables with
+        the original state.
+        """
         return self.__class__(context=Context(self._context.copy()))
 
-    def init_state(self):
+    def init_state(self) -> None:
+        """
+        Initialize this state.
+
+        - All checkpoints are wiped out.
+        - All open file objects connected to this state are closed.
+        - The status of all random number generators is cleared.
+        - The set of traceable table id's is emptied.
+        """
         self.checkpoint.initialize()
 
         self.close_open_files()
@@ -133,7 +179,32 @@ class State:
                 base_seed = self.settings.rng_base_seed
         self._context["prng"].set_base_seed(base_seed)
 
-    def import_extensions(self, ext: str | Iterable[str] = None, append=True):
+    def import_extensions(self, ext: str | Iterable[str] = None, append=True) -> None:
+        """
+        Import one or more extension modules for use with this model.
+
+        This method isn't really necessary for single-process model
+        runs, as extension modules can be imported in the normal manner
+        for python.  The real reason this methid is here is to support
+        multiprocessing.  The names of extension modules imported with
+        this method will be saved and passed through to subtask workers,
+        which will also import the extensions and make them available as
+        model steps within the workers.
+
+        Parameters
+        ----------
+        ext: str | Iterable[str]
+            Names of extension modules to import.  They should be module
+            or package names that can be imported from this state's working
+            directory.  If they need to be imported from elsewhere, the
+            name should be the relative path to the extension module from
+            the working directory.
+        append : bool, default True
+            Extension names will be appended to the "imported_extensions" list
+            in this State's context (creating it if needed).  Setting this
+            argument to false will remove references to any existing extensions,
+            before adding this new extension to the list.
+        """
         if ext is None:
             return
         if isinstance(ext, str):

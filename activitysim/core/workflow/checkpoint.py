@@ -45,7 +45,7 @@ class GenericCheckpointStore:
         df: pd.DataFrame,
         complib: str = None,
         checkpoint_name: str = None,
-    ):
+    ) -> None:
         """
         Store a table.
 
@@ -185,7 +185,7 @@ class HdfStore(GenericCheckpointStore):
         df: pd.DataFrame,
         complib: str = None,
         checkpoint_name: str = None,
-    ):
+    ) -> None:
         key = self._store_table_key(table_name, checkpoint_name)
         if complib is None or len(df.columns) == 0:
             # tables with no columns can't be compressed successfully, so to
@@ -283,7 +283,7 @@ class ParquetStore(GenericCheckpointStore):
         df: pd.DataFrame,
         complib: str = "NOTSET",
         checkpoint_name: str = None,
-    ):
+    ) -> None:
         if self.is_readonly:
             raise ValueError("store is read-only")
         filepath = self._store_table_path(table_name, checkpoint_name)
@@ -401,13 +401,21 @@ class ParquetStore(GenericCheckpointStore):
 
 
 class NullStore(GenericCheckpointStore):
+    """
+    A NullStore is a dummy that emulates a checkpoint store object.
+
+    It never writes anything to disk and is primarily used to for
+    temporary data to prevent accidentally overwriting content in
+    a "real" store.
+    """
+
     def put(
         self,
         table_name: str,
         df: pd.DataFrame,
         complib: str = "NOTSET",
         checkpoint_name: str = None,
-    ):
+    ) -> None:
         pass
 
     def get_dataframe(

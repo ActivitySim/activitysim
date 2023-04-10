@@ -1,7 +1,9 @@
 name: ActivitySim Branch Docs
 # This workflow is provided as a service for forks to build branch-specific documentation.
 
-on: push
+on:
+  - push
+  - workflow_dispatch
 
 jobs:
   docbuild:

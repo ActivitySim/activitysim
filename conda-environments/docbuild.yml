@@ -12,7 +12,6 @@ channels:
 dependencies:
 - python=3.10
 - pip
-- appdirs
 - black >= 22.0,<23
 - bump2version
 - coveralls
@@ -32,6 +31,7 @@ dependencies:
 - openmatrix >= 0.3.4.1
 - orca >= 1.6
 - pandas >= 1.1.0
+- platformdirs
 - psutil >= 4.1
 - pyarrow >= 2.0
 - pydantic
@@ -46,6 +46,7 @@ dependencies:
 - sharrow >= 2.5.2
 - simwrapper > 1.7
 - sphinx-argparse
+- sphinx-autosummary-accessors
 - sphinx_rtd_theme
 - xarray >= 0.21
 - zarr

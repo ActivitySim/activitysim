@@ -263,6 +263,7 @@ jobs:
       matrix:
         region:
           - prototype_mtc
+          - prototype_psrc_in_development
       fail-fast: false
     defaults:
       run:

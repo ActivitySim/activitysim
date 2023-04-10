@@ -193,7 +193,7 @@ class State:
 
         Parameters
         ----------
-        ext: str | Iterable[str]
+        ext : str | Iterable[str]
             Names of extension modules to import.  They should be module
             or package names that can be imported from this state's working
             directory.  If they need to be imported from elsewhere, the
@@ -722,7 +722,10 @@ class State:
         return func(self)
 
     get_injectable = get  # legacy function name
+    """Alias for :meth:`State.get`."""
+
     add_injectable = set  # legacy function name
+    """Alias for :meth:`State.set`."""
 
     def rng(self):
         if "prng" not in self._context:
@@ -794,94 +797,6 @@ class State:
     def current_model_name(self) -> str:
         """Name of the currently running model."""
         return self.rng().step_name
-
-    # def run_model(self, model_name):
-    #     """
-    #     Run the specified model and add checkpoint for model_name
-    #
-    #     Since we use model_name as checkpoint name, the same model may not be run more than once.
-    #
-    #     Parameters
-    #     ----------
-    #     model_name : str
-    #         model_name is assumed to be the name of a registered orca step
-    #     """
-    #
-    #     # if not self.is_open:
-    #     #     raise RuntimeError("Pipeline not initialized! Did you call open_pipeline?")
-    #
-    #     # can't run same model more than once
-    #     if model_name in [
-    #         checkpoint[CHECKPOINT_NAME] for checkpoint in self.checkpoint.checkpoints
-    #     ]:
-    #         raise RuntimeError("Cannot run model '%s' more than once" % model_name)
-    #
-    #     self.rng().begin_step(model_name)
-    #
-    #     # check for args
-    #     if "." in model_name:
-    #         step_name, arg_string = model_name.split(".", 1)
-    #         args = dict(
-    #             (k, v)
-    #             for k, v in (
-    #                 split_arg(item, "=", default=True) for item in arg_string.split(";")
-    #             )
-    #         )
-    #     else:
-    #         step_name = model_name
-    #         args = {}
-    #
-    #     # check for no_checkpoint prefix
-    #     if step_name[0] == NO_CHECKPOINT_PREFIX:
-    #         step_name = step_name[1:]
-    #         checkpoint = False
-    #     else:
-    #         checkpoint = self.should_save_checkpoint(model_name)
-    #
-    #     self.add_injectable("step_args", args)
-    #
-    #     self.trace_memory_info(f"pipeline.run_model {model_name} start")
-    #
-    #     from activitysim.core.tracing import print_elapsed_time
-    #
-    #     t0 = print_elapsed_time()
-    #     logger.info(f"#run_model running step {step_name}")
-    #
-    #     instrument = self.settings.instrument
-    #     if instrument is not None:
-    #         try:
-    #             from pyinstrument import Profiler
-    #         except ImportError:
-    #             instrument = False
-    #     if isinstance(instrument, (list, set, tuple)):
-    #         if step_name not in instrument:
-    #             instrument = False
-    #         else:
-    #             instrument = True
-    #
-    #     if instrument:
-    #         from pyinstrument import Profiler
-    #
-    #         with Profiler() as profiler:
-    #             self._context = run_named_step(step_name, self._context)
-    #         out_file = self.filesystem.get_profiling_file_path(f"{step_name}.html")
-    #         with open(out_file, "wt") as f:
-    #             f.write(profiler.output_html())
-    #     else:
-    #         self._context = run_named_step(step_name, self._context)
-    #
-    #     t0 = print_elapsed_time(
-    #         "#run_model completed step '%s'" % model_name, t0, debug=True
-    #     )
-    #     self.trace_memory_info(f"pipeline.run_model {model_name} finished")
-    #
-    #     self.add_injectable("step_args", None)
-    #
-    #     self.rng().end_step(model_name)
-    #     if checkpoint:
-    #         self.checkpoint.add(model_name)
-    #     else:
-    #         logger.info("##### skipping %s checkpoint for %s" % (step_name, model_name))
 
     def close_pipeline(self):
         """

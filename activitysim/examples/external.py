@@ -6,7 +6,7 @@ import tarfile
 import zipfile
 from pathlib import Path
 
-import appdirs
+import platformdirs
 import yaml
 
 from activitysim.cli.create import download_asset
@@ -113,7 +113,7 @@ def _run_tests_on_example(name):
 
 
 def default_cache_dir() -> Path:
-    return Path(appdirs.user_cache_dir(appname="ActivitySim")).joinpath(
+    return Path(platformdirs.user_cache_dir(appname="ActivitySim")).joinpath(
         "External-Examples"
     )
 

@@ -1,3 +1,13 @@
+"""
+Tools to download and use example models from external sources.
+
+The tools in this module allow for automated access to *external* example models,
+which are not necessarily maintained or supported by the ActivitySim Consortium.
+These models can be test-sized or full scale representations of models operated
+by various agencies, and can contain thousands of zones and/or millions of simulated
+households.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -14,7 +24,9 @@ from activitysim.cli.create import download_asset
 logger = logging.getLogger(__name__)
 
 
-def registered_external_example(name, working_dir):
+def registered_external_example(
+    name: str, working_dir: Path, registry: Path | None = None
+) -> Path:
     """
     Download a registered external example and copy into a working directory.
 
@@ -23,9 +35,15 @@ def registered_external_example(name, working_dir):
     name : str
         The unique name for the registered external example.  See
         `activitysim/examples/external_example_manifest.yaml` or run
-        `list_registered_examples()` for the names of the registered examples.
+        `list_registered_examples()` for the names of the built-in registered
+        examples.
     working_dir : path-like
         The location to install the external example.
+    registry : path-like, optional
+        Provide the file location of an alternative example registry.  This
+        should be a yaml file with information about the location of examples.
+        When not provided, the default external example registry is used,
+        which is found at `activitysim/examples/external_example_manifest.yaml`.
 
     Returns
     -------
@@ -33,7 +51,9 @@ def registered_external_example(name, working_dir):
         The location where the example was installed, generally a subdirectory
         of `working_dir`.
     """
-    with open(Path(__file__).parent.joinpath("external_example_manifest.yaml")) as eem:
+    if registry is None:
+        registry = Path(__file__).parent.joinpath("external_example_manifest.yaml")
+    with open(registry) as eem:
         registered_examples = yaml.load(eem, yaml.SafeLoader)
     if name not in registered_examples:
         raise KeyError(f"{name!r} is not a registered external example")
@@ -45,22 +65,37 @@ def registered_external_example(name, working_dir):
     )
 
 
-def list_registered_examples():
+def list_registered_examples(registry: Path | None = None) -> list[str]:
     """
     Read a list of registered example names.
+
+    Parameters
+    ----------
+    registry : path-like, optional
+        Provide the file location of an alternative example registry.  This
+        should be a yaml file with information about the location of examples.
+        When not provided, the default external example registry is used,
+        which is found at `activitysim/examples/external_example_manifest.yaml`.
 
     Returns
     -------
     list[str]
     """
-    with open(Path(__file__).parent.joinpath("external_example_manifest.yaml")) as eem:
+    if registry is None:
+        registry = Path(__file__).parent.joinpath("external_example_manifest.yaml")
+    with open(registry) as eem:
         registered_examples = yaml.load(eem, yaml.SafeLoader)
     return list(registered_examples.keys())
 
 
 def exercise_external_example(
-    name, working_dir, maxfail: int = None, verbose=2, durations=0
-):
+    name: str,
+    working_dir: Path,
+    maxfail: int = None,
+    verbose: int = 2,
+    durations: int = 0,
+    registry: Path | None = None,
+) -> int:
     """
     Use pytest to ensure that an external example is functioning correctly.
 
@@ -87,7 +122,7 @@ def exercise_external_example(
         The result code returned by pytest.
     """
     try:
-        directory = registered_external_example(name, working_dir)
+        directory = registered_external_example(name, working_dir, registry)
     except Exception as err:
         logger.exception(err)
         raise
@@ -113,6 +148,13 @@ def _run_tests_on_example(name):
 
 
 def default_cache_dir() -> Path:
+    """
+    Get the default external example cache directory.
+
+    Returns
+    -------
+    Path
+    """
     return Path(platformdirs.user_cache_dir(appname="ActivitySim")).joinpath(
         "External-Examples"
     )
@@ -127,7 +169,7 @@ def download_external_example(
     name=None,
     assets: dict = None,
     link_assets: bool = True,
-):
+) -> Path:
     """
     Download an external example.
 
@@ -139,7 +181,7 @@ def download_external_example(
         exist, and downloaded files will be installed there.
     url : str, optional
         The main url for the example to download.  This should point to an
-        archive file (e.g. *.tar.gz) that will be unpacked into the target
+        archive file (e.g. blah.tar.gz) that will be unpacked into the target
         working subdirectory.
     cache_dir : Path, optional
         The compressed archive(s) will be downloaded and cached in this

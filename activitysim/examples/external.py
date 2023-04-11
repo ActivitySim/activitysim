@@ -119,15 +119,59 @@ def default_cache_dir() -> Path:
 
 
 def download_external_example(
-    working_dir,
-    url=None,
-    cache_dir=None,
-    cache_file_name=None,
-    sha256=None,
+    working_dir: Path,
+    url: str | None = None,
+    cache_dir: Path | None = None,
+    cache_file_name: str | None = None,
+    sha256: str | None = None,
     name=None,
     assets: dict = None,
-    link_assets=True,
+    link_assets: bool = True,
 ):
+    """
+    Download an external example.
+
+    Parameters
+    ----------
+    working_dir : Path
+        The working directory where the external example files will be installed.
+        The `name` subdirectory of this directory will be created if it does not
+        exist, and downloaded files will be installed there.
+    url : str, optional
+        The main url for the example to download.  This should point to an
+        archive file (e.g. *.tar.gz) that will be unpacked into the target
+        working subdirectory.
+    cache_dir : Path, optional
+        The compressed archive(s) will be downloaded and cached in this
+        directory.  If not provided, a suitable cache location is chosen based
+        on the suggested user cache locations from platformdirs library.
+    cache_file_name : str, optional
+        The archive at the primary url will be cached with this filename.  It
+        is typically not necessary to provide this file name explicitly, as a
+        file name will be generated automatically from the url if not given.
+    sha256 : str, optional
+        This checksum is used to validate the download and/or the cached
+        archive file. If the cached file exists but the checksum does not match,
+        the file will be re-downloaded.
+    name : str, optional
+        The name of the external example.  This will become the working
+        subdirectory name where files are installed, unless the main archive
+        has an embedded name (as a common prefix) in which case the name is
+        ignored.
+    assets : dict, optional
+        Instructions for additional files to be downloaded to support this
+        external example (e.g. large data files not in the main archive).
+    link_assets : bool, default True
+        If set to True, this function will attempt to symlink assets from the
+        cache into the target directory instead of copying them.  This can
+        save disk space when the same external example is installed multiple
+        times.
+
+    Returns
+    -------
+    Path
+        The working subdirectory name where files are installed.
+    """
     # set up cache dir
     if cache_dir is None:
         cache_dir = default_cache_dir()

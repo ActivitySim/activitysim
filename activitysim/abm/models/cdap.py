@@ -101,7 +101,8 @@ def cdap_simulate(
             "JOINT_TOUR_COEFFICIENTS", "cdap_joint_tour_coefficients.csv"
         )
         cdap_joint_tour_coefficients = pd.read_csv(
-            config.config_file_path(joint_tour_coefficients_file_name), comment="#"
+            state.filesystem.get_config_file_path(joint_tour_coefficients_file_name),
+            comment="#",
         )
 
     # add tour-based chunk_id so we can chunk all trips in tour together
@@ -140,11 +141,13 @@ def cdap_simulate(
             # build cdap joint tour spec
             # joint_spec_dependency = spec.loc[[c for c in spec.index if c.startswith(('M_p', 'N_p', 'H_p'))]]
             joint_spec = cdap.build_cdap_joint_spec(
-                cdap_joint_tour_coefficients, hhsize, cache=True
+                state, cdap_joint_tour_coefficients, hhsize, cache=True
             )
-            if inject.get_injectable("locutor", False):
+            if state.get_injectable("locutor", False):
                 joint_spec.to_csv(
-                    config.output_file_path("cdap_joint_spec_%s.csv" % hhsize),
+                    state.filesystem.get_config_file_path(
+                        "cdap_joint_spec_%s.csv" % hhsize
+                    ),
                     index=True,
                 )
 

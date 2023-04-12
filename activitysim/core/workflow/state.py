@@ -75,6 +75,8 @@ class StateAttr:
 
     def __get__(self, instance, objtype=None):
         """Access the value from the State's context."""
+        if instance is None:
+            return self
         try:
             return instance._context[self.name]
         except (KeyError, AttributeError):

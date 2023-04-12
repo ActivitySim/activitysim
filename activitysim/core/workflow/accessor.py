@@ -90,13 +90,19 @@ class FromState:
         try:
             return instance._obj._context[self.name]
         except (KeyError, AttributeError):
+            if instance._obj is None:
+                # a freestanding accessor not bound to a parent State is not
+                # typical but does happen when Sphinx generates documentation
+                return self
             if self._default_init:
                 instance._obj._context[self.name] = self.member_type()
                 return instance._obj._context[self.name]
             elif self._default_value != NO_DEFAULT:
                 instance._obj._context[self.name] = self._default_value
                 return instance._obj._context[self.name]
-            raise StateAccessError(f"{self.name} not initialized for this state")
+            raise StateAccessError(
+                f"{self.name} not initialized for this state"
+            ) from None
 
     def __set__(self, instance: StateAccessor, value):
         if not self.__validate_type(value):

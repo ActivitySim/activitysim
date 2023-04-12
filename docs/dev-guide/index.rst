@@ -26,6 +26,7 @@ Contents
    core-workflow
    using-sharrow
    skim-dataset
+   checkpointing
    workflows
    ../development
    ../models

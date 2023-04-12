@@ -452,6 +452,7 @@ class Checkpoints(StateAccessor):
 
     @property
     def store(self) -> GenericCheckpointStore:
+        """GenericCheckpointStore : The store where checkpoints are written."""
         if self._checkpoint_store is None:
             self.open_store()
         return self._checkpoint_store
@@ -461,8 +462,11 @@ class Checkpoints(StateAccessor):
             return False
         return self._checkpoint_store.is_open
 
-    @property
     def default_pipeline_file_path(self):
+        if self._obj is None:
+            # a freestanding accessor not bound to a parent State is not
+            # typical but does happen when Sphinx generates documentation
+            return self
         prefix = self._obj.get("pipeline_file_prefix", None)
         if prefix is None:
             return self._obj.filesystem.get_pipeline_filepath()
@@ -505,7 +509,7 @@ class Checkpoints(StateAccessor):
             raise RuntimeError("Pipeline store is already open!")
 
         if pipeline_file_name is None:
-            pipeline_file_path = self.default_pipeline_file_path
+            pipeline_file_path = self.default_pipeline_file_path()
         else:
             pipeline_file_path = Path(pipeline_file_name)
 
@@ -534,16 +538,20 @@ class Checkpoints(StateAccessor):
             self._checkpoint_store = None
         logger.debug("checkpoint.close_store")
 
-    @property
     def is_readonly(self):
         if self._checkpoint_store is not None:
-            return self._checkpoint_store.is_readonly
+            try:
+                return self._checkpoint_store.is_readonly
+            except AttributeError:
+                return None
         return False
 
-    @property
     def last_checkpoint_name(self):
         if self.last_checkpoint:
-            return self.last_checkpoint.get("checkpoint_name", None)
+            try:
+                return self.last_checkpoint.get("checkpoint_name", None)
+            except AttributeError:
+                return None
         else:
             return None
 
@@ -977,6 +985,7 @@ class Checkpoints(StateAccessor):
         Remove intermediate checkpoints from pipeline.
 
         These are the steps to clean up:
+
         - Open main pipeline if not already open (it may be closed if
           running with multiprocessing),
         - Create a new single-checkpoint pipeline file with the latest

@@ -47,6 +47,7 @@ dependencies:
 - simwrapper > 1.7
 - sphinx-argparse
 - sphinx-autosummary-accessors
+- sphinx-remove-toctrees
 - sphinx_rtd_theme
 - xarray >= 0.21
 - zarr

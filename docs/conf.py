@@ -44,8 +44,10 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_autosummary_accessors",
+    "sphinx_remove_toctrees",
 ]
 
+remove_from_toctrees = ["dev-guide/_generated/*", "users-guide/_generated/*"]
 myst_enable_extensions = ["colon_fence"]
 numpydoc_show_class_members = False
 autosummary_generate = True

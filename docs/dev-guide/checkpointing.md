@@ -16,7 +16,16 @@ There are currently two data file formats available for checkpointing:
 - [Apache Parquet](https://parquet.apache.org/), added as an option as of
   ActivitySim version 1.3.
 
+## Usage
 
+The operation of automatic checkpointing during an ActivitySim run is controlled
+via a few values in the top-level settings:
+
+- [`checkpoint_format`](activitysim.core.configuration.Settings.checkpoint_format)
+  controls which checkpoint data file format is used.
+- [`checkpoints`](activitysim.core.configuration.Settings.checkpoints)
+  controls how frequently checkpoints are written (after every component, after
+  only certain components, or not at all).
 
 
 ## API

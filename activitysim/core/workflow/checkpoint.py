@@ -41,6 +41,8 @@ CheckpointStore = TypeVar("CheckpointStore", bound="GenericCheckpointStore")
 
 
 class GenericCheckpointStore:
+    """Abstract base class defining interface for table storage."""
+
     @abc.abstractmethod
     def put(
         self,
@@ -244,6 +246,10 @@ class HdfStore(GenericCheckpointStore):
 
 class ParquetStore(GenericCheckpointStore):
     """Storage interface for parquet-based table storage.
+
+    This store will store each saved table in a parquet-format archive,
+    resulting in a hierarchy of separate files in a defined structure, as
+    opposed to a single monolithic repository files containing all the data.
 
     This interface will fall back to storing tables in a gzipped pickle if
     the parquet format fails (as might happen if datatypes for some columns

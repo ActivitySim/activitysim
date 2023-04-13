@@ -6,7 +6,7 @@ import logging
 import os
 import warnings
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, TypeVar
 
 import pandas as pd
 import pyarrow as pa
@@ -35,6 +35,9 @@ LAST_CHECKPOINT = "_"
 # name of the first step/checkpoint created when the pipeline is started
 INITIAL_CHECKPOINT_NAME = "init"
 FINAL_CHECKPOINT_NAME = "final"
+
+
+CheckpointStore = TypeVar("CheckpointStore", bound="GenericCheckpointStore")
 
 
 class GenericCheckpointStore:
@@ -106,7 +109,31 @@ class GenericCheckpointStore:
             return list(df.checkpoint_name)
 
     @classmethod
-    def from_hdf(cls, source_filename, dest_filename, mode="a"):
+    def from_hdf(
+        cls: CheckpointStore,
+        source_filename: Path,
+        dest_filename: Path,
+        mode: str = "a",
+    ) -> CheckpointStore:
+        """
+        Create a new checkpoint store from an existing HdfStore.
+
+        Parameters
+        ----------
+        source_filename : path-like
+            The filename of the source HDF5 checkpoint file.  This file should
+            be the output of an ActivitySim run (or constructed alike).
+        dest_filename : path-like
+            The filename or directory where a new checkpoint storage will be
+            created.
+        mode : str
+            The file mode used to open the destination.  Must not be a read-only
+            mode or this operation will fail.
+
+        Returns
+        -------
+        CheckpointStore
+        """
         hdf_store = HdfStore(source_filename, "r")
         output_store = cls(dest_filename, mode)
         checkpoint_df = hdf_store.get_dataframe(CHECKPOINT_TABLE_NAME)
@@ -128,7 +155,7 @@ class GenericCheckpointStore:
     def _get_store_checkpoint_from_named_checkpoint(
         self, table_name: str, checkpoint_name: str = LAST_CHECKPOINT
     ):
-        f"""
+        """
         Get the name of the checkpoint where a table is actually written.
 
         Checkpoint tables are not re-written if the content has not changed, so
@@ -138,10 +165,9 @@ class GenericCheckpointStore:
         Parameters
         ----------
         table_name : str
-        checkpoint_name : str, default {LAST_CHECKPOINT!r}
-            The name of the checkpoint to load.  If not given, {LAST_CHECKPOINT!r}
-            is assumed, indicating that this function should load the last stored
-            checkpoint value.
+        checkpoint_name : str, optional
+            The name of the checkpoint to load.  If not given this function
+            will load the last stored checkpoint value.
 
         Returns
         -------
@@ -481,9 +507,8 @@ class Checkpoints(StateAccessor):
         """
         Open the checkpoint store.
 
-        If the pipeline_file_name setting ends in ".h5", then the pandas
-        HDFStore file format is used, otherwise pipeline files are stored
-        as parquet files organized in regular file system directories.
+        The format for the checkpoint store is determined by the
+        `checkpoint_format` setting in the top-level Settings.
 
         Parameters
         ----------
@@ -513,7 +538,7 @@ class Checkpoints(StateAccessor):
         else:
             pipeline_file_path = Path(pipeline_file_name)
 
-        if pipeline_file_path.suffix == ".h5":
+        if self._obj.settings.checkpoint_format == "hdf":
             if overwrite:
                 try:
                     if os.path.isfile(pipeline_file_path):
@@ -521,7 +546,7 @@ class Checkpoints(StateAccessor):
                         os.unlink(pipeline_file_path)
                 except Exception as e:
                     print(e)
-                    logger.warning("Error removing %s: %s" % (pipeline_file_path, e))
+                    logger.warning(f"Error removing {pipeline_file_path}: {e}")
 
             self._checkpoint_store = HdfStore(pipeline_file_path, mode=mode)
         else:
@@ -892,7 +917,7 @@ class Checkpoints(StateAccessor):
         logger.debug(f"checkpoint.restore_from - opening {location}")
         if isinstance(location, str):
             location = Path(location)
-        if location.suffix == ".h5":
+        if self._obj.settings.checkpoint_format == "hdf":
             from_store = HdfStore(location, mode="r")
         else:
             from_store = ParquetStore(location, mode="r")
@@ -927,7 +952,7 @@ class Checkpoints(StateAccessor):
 
         if isinstance(location, str):
             location = Path(location)
-        if location.suffix == ".h5":
+        if self._obj.settings.checkpoint_format == "hdf":
             from_store = HdfStore(location, mode="r")
         else:
             from_store = ParquetStore(location, mode="r")
@@ -1011,7 +1036,7 @@ class Checkpoints(StateAccessor):
         FINAL_PIPELINE_FILE_NAME = f"final_{self._obj.filesystem.pipeline_file_name}"
         FINAL_CHECKPOINT_NAME = "final"
 
-        if FINAL_PIPELINE_FILE_NAME.endswith(".h5"):
+        if self._obj.settings.checkpoint_format == "hdf":
             # constructing the path manually like this will not create a
             # subdirectory that competes with the HDF5 filename.
             final_pipeline_file_path = self._obj.filesystem.get_output_dir().joinpath(
@@ -1027,7 +1052,7 @@ class Checkpoints(StateAccessor):
         checkpoints_df = self.get_inventory().tail(1).copy()
         checkpoints_df["checkpoint_name"] = FINAL_CHECKPOINT_NAME
 
-        if final_pipeline_file_path.suffix == ".h5":
+        if self._obj.settings.checkpoint_format == "hdf":
             with pd.HDFStore(
                 str(final_pipeline_file_path), mode="w"
             ) as final_pipeline_store:

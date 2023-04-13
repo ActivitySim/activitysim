@@ -203,3 +203,16 @@ within the `checkpoint` accessor.
     State.tracing.delete_output_files
     State.tracing.delete_trace_files
 ```
+
+
+## Logging
+
+```{eval-rst}
+
+.. autosummary::
+    :toctree: _generated
+    :template: autosummary/accessor_method.rst
+
+    State.logging.config_logger
+    State.logging.rotate_log_directory
+```

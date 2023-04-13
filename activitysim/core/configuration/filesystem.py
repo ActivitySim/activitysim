@@ -97,9 +97,6 @@ class FileSystem(PydanticBase, validate_assignment=True):
     pipeline_file_name: str = "pipeline"
     """
     The name for the base pipeline file or directory.
-
-    To use the HDF5 pipeline file format, include a '.h5' file extension.
-    Otherwise, the default parquet file format is used.
     """
 
     @classmethod

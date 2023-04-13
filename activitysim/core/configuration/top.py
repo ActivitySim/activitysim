@@ -317,6 +317,11 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     list of models to checkpoint.
     """
 
+    checkpoint_format: Literal["hdf", "parquet"] = "parquet"
+    """
+    Storage format to use when saving checkpoint files.
+    """
+
     check_for_variability: bool = False
     """
     Debugging feature to find broken model specifications.

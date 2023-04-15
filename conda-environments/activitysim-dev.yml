@@ -67,6 +67,7 @@ dependencies:
 - xarray = 2023.2.*
 - xmle
 - zarr = 2.14.*
+- zstandard
 
 - pip:
   - autodoc_pydantic

@@ -34,3 +34,4 @@ dependencies:
 - simwrapper > 1.7
 - xarray = 2023.2.*
 - zarr = 2.14.*
+- zstandard

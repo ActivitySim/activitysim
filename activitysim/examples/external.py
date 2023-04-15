@@ -321,7 +321,7 @@ def download_external_example(
                     sha256=asset_info.get("sha256", "deadbeef"),
                     link=cache_dir,
                     base_path=working_subdir,
-                    unpack=asset_info.get("unpack", False),
+                    unpack=asset_info.get("unpack"),
                 )
             else:
                 # TODO should cache and copy, this just downloads to new locations

@@ -6,7 +6,7 @@ from activitysim.cli.create import sha256_checksum
 from activitysim.examples.external import registered_external_example
 
 
-def test_external_download():
+def test_external_download_unpack():
     """Test the external download mechanism, including unpacking assets"""
     t = tempfile.TemporaryDirectory()
     p = registered_external_example("estimation_example", t.name)
@@ -31,4 +31,16 @@ def test_external_download():
     assert (
         sha256_checksum(p.joinpath("data_sf/survey_data/survey_tours.csv"))
         == "633f734d964dcf25a20a4032a859982d861e1d327443d4f1bac64af9ef69cc7a"
+    )
+
+
+def test_external_download_basic():
+    """Test the external download mechanism, including unpacking assets"""
+    t = tempfile.TemporaryDirectory()
+    p = registered_external_example("prototype_mtc", t.name)
+    assert p.joinpath("configs/settings.yaml").is_file()
+    assert p.joinpath("test/prototype_mtc_reference_pipeline.zip").is_file()
+    assert (
+        sha256_checksum(p.joinpath("test/prototype_mtc_reference_pipeline.zip"))
+        == "394e5b403d4c61d5214493cefe161432db840ba4967c23c999d914178d43a1f0"
     )

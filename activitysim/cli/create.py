@@ -304,10 +304,11 @@ def download_asset(
         if base_path is not None and os.path.isabs(target_path):
             target_path = os.path.relpath(target_path, base_path)
         if base_path is not None:
-            if os.path.isabs(unpack):
-                unpack = os.path.relpath(unpack, base_path)
-            else:
-                unpack = os.path.join(base_path, unpack)
+            if unpack:
+                if os.path.isabs(unpack):
+                    unpack = os.path.relpath(unpack, base_path)
+                else:
+                    unpack = os.path.join(base_path, unpack)
         if not isinstance(link, str | Path):
             try:
                 import platformdirs

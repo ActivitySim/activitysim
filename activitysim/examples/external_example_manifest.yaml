@@ -9,6 +9,7 @@
 #     test/filename.zip:     -- filename for additional file relative to common root
 #       url: https://*       -- url for each extra file
 #       sha256: deadbeef     -- the checksum for extra file
+#       unpack: location     -- (optional) decompress asset archive file here
 #
 
 prototype_mtc:
@@ -18,6 +19,15 @@ prototype_mtc:
     test/prototype_mtc_reference_pipeline.zip:
       url: https://github.com/jpn--/activitysim-prototype-mtc/releases/download/v1.3.1/prototype_mtc_reference_pipeline.zip
       sha256: 394e5b403d4c61d5214493cefe161432db840ba4967c23c999d914178d43a1f0
+
+estimation_example:
+  url: https://github.com/ActivitySim/activitysim-estimation-example/archive/refs/tags/v0.0.2.tar.gz
+  sha256: 88c8208ee250a20e7d77036d77bc71122f21cbfeaba1eaf3b644120799f9d023
+  assets:
+    data_sf.tar.zst:
+      url: https://github.com/ActivitySim/activitysim-estimation-example/releases/download/v0.0.2/data_sf.tar.zst
+      sha256: e0775ee2211367e25de541fa210350009d7ac142d49deba41c5e154fc908146e
+      unpack: data_sf
 
 legacy_mtc:
   url: https://github.com/camsys/legacy_mtc_tm2_data/releases/download/v1.2/legacy-mtc.tar.zst

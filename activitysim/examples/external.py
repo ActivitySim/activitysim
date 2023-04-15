@@ -160,6 +160,40 @@ def default_cache_dir() -> Path:
     )
 
 
+def _decompress_archive(archive_path: Path, target_location: Path):
+    # decompress archive file into working directory
+    if archive_path.suffixes[-2:] == [".tar", ".gz"]:
+        with tarfile.open(archive_path) as tfile:
+            common_prefix = os.path.commonprefix(tfile.getnames())
+            if common_prefix in {"", ".", "./", None}:
+                working_dir = target_location
+                working_dir.mkdir(parents=True, exist_ok=True)
+                working_subdir = working_dir
+            else:
+                working_subdir = target_location.joinpath(common_prefix)
+            tfile.extractall(working_dir)
+    elif archive_path.suffixes[-2:] == [".tar", ".zst"]:
+        working_dir = target_location
+        working_dir.mkdir(parents=True, exist_ok=True)
+        working_subdir = working_dir
+        from sharrow.utils.tar_zst import extract_zst
+
+        extract_zst(archive_path, working_dir)
+    elif archive_path.suffix == ".zip":
+        with zipfile.ZipFile(archive_path, "r") as zf:
+            common_prefix = os.path.commonprefix(zf.namelist())
+            if common_prefix in {"", ".", "./", None}:
+                working_dir = target_location
+                working_dir.mkdir(parents=True, exist_ok=True)
+                working_subdir = working_dir
+            else:
+                working_subdir = target_location.joinpath(common_prefix)
+            zf.extractall(working_dir)
+    else:
+        raise ValueError(f"unknown archive file type {''.join(archive_path.suffixes)}")
+    return working_subdir
+
+
 def download_external_example(
     working_dir: Path,
     url: str | None = None,
@@ -279,7 +313,7 @@ def download_external_example(
     # download assets if any:
     if assets:
         for asset_name, asset_info in assets.items():
-            if link_assets:
+            if link_assets or asset_info.get("unpack", False):
                 asset_target_path = working_subdir.joinpath(asset_name)
                 download_asset(
                     asset_info.get("url"),
@@ -287,6 +321,7 @@ def download_external_example(
                     sha256=asset_info.get("sha256", "deadbeef"),
                     link=cache_dir,
                     base_path=working_subdir,
+                    unpack=asset_info.get("unpack", False),
                 )
             else:
                 # TODO should cache and copy, this just downloads to new locations

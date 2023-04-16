@@ -2,14 +2,14 @@
 # Registered External Examples
 #
 #
-# key:                                         -- a unique name for the example
-#   url:  https://.../*.tar.gz  or  .../*.zip  -- the public url for the archive
-#   sha256: deadbeefdeadbeefdeadbeefdeadbeef   -- the checksum for the archive
-#   assets:                  -- additional files for testing (optional)
-#     test/filename.zip:     -- filename for additional file relative to common root
-#       url: https://*       -- url for each extra file
-#       sha256: deadbeef     -- the checksum for extra file
-#       unpack: location     -- (optional) decompress asset archive file here
+# <key>:                                       -- a unique name for the example
+#   url: <https://.../*.tar.gz  or  .../*.zip> -- the public url for the archive
+#   sha256: <deadbeefdeadbeefdeadbeef...>      -- the checksum for the archive
+#   assets:                   -- additional files for testing (optional)
+#     <test/filename.zip>:    -- filename for asset relative to common root
+#       url: <https://*>      -- url for each extra file
+#       sha256: <deadbeef...> -- the checksum for extra file
+#       unpack: <location>    -- (optional) decompress asset archive file here
 #
 
 prototype_mtc:
@@ -39,5 +39,5 @@ legacy_mtc_skims:
   name: legacy_mtc/skims.zarr
 
 prototype_psrc_in_development:
-  url: https://github.com/jpn--/psrc_activitysim/archive/refs/tags/v23.04.06.tar.gz
-  sha256: c64770e23b2862aef1b6b1c356536db06a696b558a28b69571cef6d082af523f
+  url: https://github.com/jpn--/psrc_activitysim/archive/refs/tags/v23.04.16.tar.gz
+  sha256: ba1e767cf07812b14156c13a42aa2641a7f046280a3ffe77f6672eafd1d619d6

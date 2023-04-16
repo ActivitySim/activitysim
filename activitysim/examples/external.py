@@ -1,3 +1,13 @@
+"""
+Tools to download and use example models from external sources.
+
+The tools in this module allow for automated access to *external* example models,
+which are not necessarily maintained or supported by the ActivitySim Consortium.
+These models can be test-sized or full scale representations of models operated
+by various agencies, and can contain thousands of zones and/or millions of simulated
+households.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -6,7 +16,7 @@ import tarfile
 import zipfile
 from pathlib import Path
 
-import appdirs
+import platformdirs
 import yaml
 
 from activitysim.cli.create import download_asset
@@ -14,7 +24,9 @@ from activitysim.cli.create import download_asset
 logger = logging.getLogger(__name__)
 
 
-def registered_external_example(name, working_dir):
+def registered_external_example(
+    name: str, working_dir: Path, registry: Path | None = None
+) -> Path:
     """
     Download a registered external example and copy into a working directory.
 
@@ -23,9 +35,15 @@ def registered_external_example(name, working_dir):
     name : str
         The unique name for the registered external example.  See
         `activitysim/examples/external_example_manifest.yaml` or run
-        `list_registered_examples()` for the names of the registered examples.
+        `list_registered_examples()` for the names of the built-in registered
+        examples.
     working_dir : path-like
         The location to install the external example.
+    registry : path-like, optional
+        Provide the file location of an alternative example registry.  This
+        should be a yaml file with information about the location of examples.
+        When not provided, the default external example registry is used,
+        which is found at `activitysim/examples/external_example_manifest.yaml`.
 
     Returns
     -------
@@ -33,7 +51,9 @@ def registered_external_example(name, working_dir):
         The location where the example was installed, generally a subdirectory
         of `working_dir`.
     """
-    with open(Path(__file__).parent.joinpath("external_example_manifest.yaml")) as eem:
+    if registry is None:
+        registry = Path(__file__).parent.joinpath("external_example_manifest.yaml")
+    with open(registry) as eem:
         registered_examples = yaml.load(eem, yaml.SafeLoader)
     if name not in registered_examples:
         raise KeyError(f"{name!r} is not a registered external example")
@@ -45,22 +65,37 @@ def registered_external_example(name, working_dir):
     )
 
 
-def list_registered_examples():
+def list_registered_examples(registry: Path | None = None) -> list[str]:
     """
     Read a list of registered example names.
+
+    Parameters
+    ----------
+    registry : path-like, optional
+        Provide the file location of an alternative example registry.  This
+        should be a yaml file with information about the location of examples.
+        When not provided, the default external example registry is used,
+        which is found at `activitysim/examples/external_example_manifest.yaml`.
 
     Returns
     -------
     list[str]
     """
-    with open(Path(__file__).parent.joinpath("external_example_manifest.yaml")) as eem:
+    if registry is None:
+        registry = Path(__file__).parent.joinpath("external_example_manifest.yaml")
+    with open(registry) as eem:
         registered_examples = yaml.load(eem, yaml.SafeLoader)
     return list(registered_examples.keys())
 
 
 def exercise_external_example(
-    name, working_dir, maxfail: int = None, verbose=2, durations=0
-):
+    name: str,
+    working_dir: Path,
+    maxfail: int = None,
+    verbose: int = 2,
+    durations: int = 0,
+    registry: Path | None = None,
+) -> int:
     """
     Use pytest to ensure that an external example is functioning correctly.
 
@@ -87,7 +122,7 @@ def exercise_external_example(
         The result code returned by pytest.
     """
     try:
-        directory = registered_external_example(name, working_dir)
+        directory = registered_external_example(name, working_dir, registry)
     except Exception as err:
         logger.exception(err)
         raise
@@ -113,21 +148,106 @@ def _run_tests_on_example(name):
 
 
 def default_cache_dir() -> Path:
-    return Path(appdirs.user_cache_dir(appname="ActivitySim")).joinpath(
+    """
+    Get the default external example cache directory.
+
+    Returns
+    -------
+    Path
+    """
+    return Path(platformdirs.user_cache_dir(appname="ActivitySim")).joinpath(
         "External-Examples"
     )
 
 
+def _decompress_archive(archive_path: Path, target_location: Path):
+    # decompress archive file into working directory
+    if archive_path.suffixes[-2:] == [".tar", ".gz"]:
+        with tarfile.open(archive_path) as tfile:
+            common_prefix = os.path.commonprefix(tfile.getnames())
+            if common_prefix in {"", ".", "./", None}:
+                working_dir = target_location
+                working_dir.mkdir(parents=True, exist_ok=True)
+                working_subdir = working_dir
+            else:
+                working_subdir = target_location.joinpath(common_prefix)
+            tfile.extractall(working_dir)
+    elif archive_path.suffixes[-2:] == [".tar", ".zst"]:
+        working_dir = target_location
+        working_dir.mkdir(parents=True, exist_ok=True)
+        working_subdir = working_dir
+        from sharrow.utils.tar_zst import extract_zst
+
+        extract_zst(archive_path, working_dir)
+    elif archive_path.suffix == ".zip":
+        with zipfile.ZipFile(archive_path, "r") as zf:
+            common_prefix = os.path.commonprefix(zf.namelist())
+            if common_prefix in {"", ".", "./", None}:
+                working_dir = target_location
+                working_dir.mkdir(parents=True, exist_ok=True)
+                working_subdir = working_dir
+            else:
+                working_subdir = target_location.joinpath(common_prefix)
+            zf.extractall(working_dir)
+    else:
+        raise ValueError(f"unknown archive file type {''.join(archive_path.suffixes)}")
+    return working_subdir
+
+
 def download_external_example(
-    working_dir,
-    url=None,
-    cache_dir=None,
-    cache_file_name=None,
-    sha256=None,
+    working_dir: Path,
+    url: str | None = None,
+    cache_dir: Path | None = None,
+    cache_file_name: str | None = None,
+    sha256: str | None = None,
     name=None,
     assets: dict = None,
-    link_assets=True,
-):
+    link_assets: bool = True,
+) -> Path:
+    """
+    Download an external example.
+
+    Parameters
+    ----------
+    working_dir : Path
+        The working directory where the external example files will be installed.
+        The `name` subdirectory of this directory will be created if it does not
+        exist, and downloaded files will be installed there.
+    url : str, optional
+        The main url for the example to download.  This should point to an
+        archive file (e.g. blah.tar.gz) that will be unpacked into the target
+        working subdirectory.
+    cache_dir : Path, optional
+        The compressed archive(s) will be downloaded and cached in this
+        directory.  If not provided, a suitable cache location is chosen based
+        on the suggested user cache locations from platformdirs library.
+    cache_file_name : str, optional
+        The archive at the primary url will be cached with this filename.  It
+        is typically not necessary to provide this file name explicitly, as a
+        file name will be generated automatically from the url if not given.
+    sha256 : str, optional
+        This checksum is used to validate the download and/or the cached
+        archive file. If the cached file exists but the checksum does not match,
+        the file will be re-downloaded.
+    name : str, optional
+        The name of the external example.  This will become the working
+        subdirectory name where files are installed, unless the main archive
+        has an embedded name (as a common prefix) in which case the name is
+        ignored.
+    assets : dict, optional
+        Instructions for additional files to be downloaded to support this
+        external example (e.g. large data files not in the main archive).
+    link_assets : bool, default True
+        If set to True, this function will attempt to symlink assets from the
+        cache into the target directory instead of copying them.  This can
+        save disk space when the same external example is installed multiple
+        times.
+
+    Returns
+    -------
+    Path
+        The working subdirectory name where files are installed.
+    """
     # set up cache dir
     if cache_dir is None:
         cache_dir = default_cache_dir()
@@ -193,7 +313,7 @@ def download_external_example(
     # download assets if any:
     if assets:
         for asset_name, asset_info in assets.items():
-            if link_assets:
+            if link_assets or asset_info.get("unpack", False):
                 asset_target_path = working_subdir.joinpath(asset_name)
                 download_asset(
                     asset_info.get("url"),
@@ -201,6 +321,7 @@ def download_external_example(
                     sha256=asset_info.get("sha256", "deadbeef"),
                     link=cache_dir,
                     base_path=working_subdir,
+                    unpack=asset_info.get("unpack"),
                 )
             else:
                 # TODO should cache and copy, this just downloads to new locations

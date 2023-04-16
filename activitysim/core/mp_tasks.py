@@ -584,7 +584,7 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
             pipeline_file_name, prefix=process_name
         )
 
-        if pipeline_path.suffix == ".h5":
+        if state.settings.checkpoint_format == "hdf":
             # remove existing file
             try:
                 os.unlink(pipeline_path)
@@ -778,7 +778,7 @@ def coalesce_pipelines(state: workflow.State, sub_proc_names, slice_info):
         pipeline_file_name, prefix=sub_proc_names[0]
     )
 
-    if pipeline_path.suffix == ".h5":
+    if state.settings.checkpoint_format == "hdf":
         with pd.HDFStore(str(pipeline_path), mode="r") as pipeline_store:
             # hdf5_keys is a dict mapping table_name to pipeline hdf5_key
             checkpoint_name, hdf5_keys = pipeline_table_keys(pipeline_store)
@@ -837,7 +837,7 @@ def coalesce_pipelines(state: workflow.State, sub_proc_names, slice_info):
         )
         logger.info(f"coalesce pipeline {pipeline_path}")
 
-        if pipeline_path.suffix == ".h5":
+        if state.settings.checkpoint_format == "hdf":
             with pd.HDFStore(str(pipeline_path), mode="r") as pipeline_store:
                 for table_name, hdf5_key in omnibus_keys.items():
                     omnibus_tables[table_name].append(pipeline_store[hdf5_key])

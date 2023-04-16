@@ -57,6 +57,8 @@ class Tracing(StateAccessor):
 
     @property
     def validation_directory(self) -> Path | None:
+        if self._obj is None:
+            return None
         result = self._obj._context.get("tracing_validation_directory", None)
         if isinstance(result, tempfile.TemporaryDirectory):
             return Path(result.name)

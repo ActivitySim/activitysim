@@ -59,7 +59,11 @@ def _rewrite_config_dict(state, x):
 
 
 class Logging(StateAccessor):
-    def __get__(self, instance, objtype=None) -> "Logging":
+    """
+    This accessor provides logging tools.
+    """
+
+    def __get__(self, instance, objtype=None) -> Logging:
         # derived __get__ changes annotation, aids in type checking
         return super().__get__(instance, objtype)
 

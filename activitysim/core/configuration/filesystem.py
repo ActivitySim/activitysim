@@ -7,6 +7,8 @@ import struct
 import time
 from pathlib import Path
 
+import numba
+import platformdirs
 import yaml
 from pydantic import DirectoryPath, validator
 
@@ -95,9 +97,6 @@ class FileSystem(PydanticBase, validate_assignment=True):
     pipeline_file_name: str = "pipeline"
     """
     The name for the base pipeline file or directory.
-
-    To use the HDF5 pipeline file format, include a '.h5' file extension.
-    Otherwise, the default parquet file format is used.
     """
 
     @classmethod
@@ -392,20 +391,24 @@ class FileSystem(PydanticBase, validate_assignment=True):
 
         return out
 
-    def persist_sharrow_cache(self):
+    def persist_sharrow_cache(self) -> None:
         """
         Change the sharrow cache directory to a persistent, user-global location.
 
-        This location is selected by the `appdirs.user_cache_dir` function.
-        """
-        import appdirs
-        import numba
+        The change is made in-place to `sharrow_cache_dir` for this object. The
+        location for the cache is selected by `platformdirs.user_cache_dir`.
+        An extra directory layer based on the current numba version is also added
+        to the cache directory, which allows for different sets of cache files to
+        co-exist for different version of numba (i.e. different conda envs).
+        This location is not configurable -- to select a different location,
+        change the value of `FileSystem.sharrow_cache_dir` itself.
 
-        # the cache folder gets an extra directory layer based on the current
-        # numba version, which allows for different sets of cache files to
-        # co-exist for different version of numba (i.e. different conda envs)
+        See Also
+        --------
+        FileSystem.sharrow_cache_dir
+        """
         self.sharrow_cache_dir = Path(
-            appdirs.user_cache_dir(appname="ActivitySim")
+            platformdirs.user_cache_dir(appname="ActivitySim")
         ).joinpath(f"numba-{numba.__version__}")
         self.sharrow_cache_dir.mkdir(parents=True, exist_ok=True)
 

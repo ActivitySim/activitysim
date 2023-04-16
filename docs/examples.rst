@@ -4,8 +4,8 @@
 .. _example :
 .. _examples :
 
-Examples
-========
+Built-in Examples
+=================
 
 This page describes the example models included with ActivitySim. There are three
 basic types of example model:

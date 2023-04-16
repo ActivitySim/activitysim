@@ -81,6 +81,10 @@ jobs:
         run: |
           python -m pytest --pyargs activitysim.cli
 
+      - name: Test activitysim.examples.test
+        run: |
+          python -m pytest --pyargs activitysim.examples.test
+
 
   cross-platform:
     # also test foundation cross platforms, but do not require a successful
@@ -263,6 +267,7 @@ jobs:
       matrix:
         region:
           - prototype_mtc
+          - prototype_psrc_in_development
       fail-fast: false
     defaults:
       run:

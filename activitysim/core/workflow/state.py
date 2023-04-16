@@ -44,34 +44,68 @@ NO_DEFAULT = "throw error if missing"
 
 
 class StateAttr:
+    """
+    Convenience class for defining a context value as an attribute on a State.
+
+    The name of the attribute defined in the `State` object is the key used
+    to find the attribute in the context.  The primary use case is to make
+    a Pydantic BaseModel available as an attribute.
+
+    Parameters
+    ----------
+    member_type : type
+    default_init : bool, default False
+        When this attribute is accessed but the underlying key is not
+        found in the state's context, the default constructor can be called
+        to initialize the object.  If this is False, accessing a missing
+        key raises a StateAccessError.
+
+    See Also
+    --------
+    activitysim.core.workflow.accessor.StateAccessor
+    """
+
     def __init__(self, member_type, default_init=False):
         self.member_type = member_type
         self._default_init = default_init
 
     def __set_name__(self, owner, name):
+        """Captures the attribute name when assigned in the State class."""
         self.name = name
 
     def __get__(self, instance, objtype=None):
+        """Access the value from the State's context."""
+        if instance is None:
+            return self
         try:
             return instance._context[self.name]
         except (KeyError, AttributeError):
             if self._default_init:
                 instance._context[self.name] = self.member_type()
                 return instance._context[self.name]
-            raise StateAccessError(f"{self.name} not initialized for this state")
+            raise StateAccessError(
+                f"{self.name} not initialized for this state"
+            ) from None
 
     def __set__(self, instance, value):
+        """Write a value into the State's context."""
         if not isinstance(value, self.member_type):
             raise TypeError(f"{self.name} must be {self.member_type} not {type(value)}")
         instance._context[self.name] = value
 
     def __delete__(self, instance):
+        """Remove a value from the State's context."""
         self.__set__(instance, None)
 
 
 class State:
     """
     The encapsulated state of an ActivitySim model.
+
+    Parameters
+    ----------
+    context : pypyr.Context, optional
+        An initial context can be provided when the State is created.
     """
 
     def __init__(self, context=None):
@@ -108,9 +142,23 @@ class State:
         return self._context.__contains__(key)
 
     def copy(self):
+        """
+        Create a copy of this State.
+
+        The copy will share the memory space for most arrays and tables with
+        the original state.
+        """
         return self.__class__(context=Context(self._context.copy()))
 
-    def init_state(self):
+    def init_state(self) -> None:
+        """
+        Initialize this state.
+
+        - All checkpoints are wiped out.
+        - All open file objects connected to this state are closed.
+        - The status of all random number generators is cleared.
+        - The set of traceable table id's is emptied.
+        """
         self.checkpoint.initialize()
 
         self.close_open_files()
@@ -133,7 +181,32 @@ class State:
                 base_seed = self.settings.rng_base_seed
         self._context["prng"].set_base_seed(base_seed)
 
-    def import_extensions(self, ext: str | Iterable[str] = None, append=True):
+    def import_extensions(self, ext: str | Iterable[str] = None, append=True) -> None:
+        """
+        Import one or more extension modules for use with this model.
+
+        This method isn't really necessary for single-process model
+        runs, as extension modules can be imported in the normal manner
+        for python.  The real reason this methid is here is to support
+        multiprocessing.  The names of extension modules imported with
+        this method will be saved and passed through to subtask workers,
+        which will also import the extensions and make them available as
+        model steps within the workers.
+
+        Parameters
+        ----------
+        ext : str | Iterable[str]
+            Names of extension modules to import.  They should be module
+            or package names that can be imported from this state's working
+            directory.  If they need to be imported from elsewhere, the
+            name should be the relative path to the extension module from
+            the working directory.
+        append : bool, default True
+            Extension names will be appended to the "imported_extensions" list
+            in this State's context (creating it if needed).  Setting this
+            argument to false will remove references to any existing extensions,
+            before adding this new extension to the list.
+        """
         if ext is None:
             return
         if isinstance(ext, str):
@@ -651,7 +724,10 @@ class State:
         return func(self)
 
     get_injectable = get  # legacy function name
+    """Alias for :meth:`State.get`."""
+
     add_injectable = set  # legacy function name
+    """Alias for :meth:`State.set`."""
 
     def rng(self):
         if "prng" not in self._context:
@@ -723,94 +799,6 @@ class State:
     def current_model_name(self) -> str:
         """Name of the currently running model."""
         return self.rng().step_name
-
-    # def run_model(self, model_name):
-    #     """
-    #     Run the specified model and add checkpoint for model_name
-    #
-    #     Since we use model_name as checkpoint name, the same model may not be run more than once.
-    #
-    #     Parameters
-    #     ----------
-    #     model_name : str
-    #         model_name is assumed to be the name of a registered orca step
-    #     """
-    #
-    #     # if not self.is_open:
-    #     #     raise RuntimeError("Pipeline not initialized! Did you call open_pipeline?")
-    #
-    #     # can't run same model more than once
-    #     if model_name in [
-    #         checkpoint[CHECKPOINT_NAME] for checkpoint in self.checkpoint.checkpoints
-    #     ]:
-    #         raise RuntimeError("Cannot run model '%s' more than once" % model_name)
-    #
-    #     self.rng().begin_step(model_name)
-    #
-    #     # check for args
-    #     if "." in model_name:
-    #         step_name, arg_string = model_name.split(".", 1)
-    #         args = dict(
-    #             (k, v)
-    #             for k, v in (
-    #                 split_arg(item, "=", default=True) for item in arg_string.split(";")
-    #             )
-    #         )
-    #     else:
-    #         step_name = model_name
-    #         args = {}
-    #
-    #     # check for no_checkpoint prefix
-    #     if step_name[0] == NO_CHECKPOINT_PREFIX:
-    #         step_name = step_name[1:]
-    #         checkpoint = False
-    #     else:
-    #         checkpoint = self.should_save_checkpoint(model_name)
-    #
-    #     self.add_injectable("step_args", args)
-    #
-    #     self.trace_memory_info(f"pipeline.run_model {model_name} start")
-    #
-    #     from activitysim.core.tracing import print_elapsed_time
-    #
-    #     t0 = print_elapsed_time()
-    #     logger.info(f"#run_model running step {step_name}")
-    #
-    #     instrument = self.settings.instrument
-    #     if instrument is not None:
-    #         try:
-    #             from pyinstrument import Profiler
-    #         except ImportError:
-    #             instrument = False
-    #     if isinstance(instrument, (list, set, tuple)):
-    #         if step_name not in instrument:
-    #             instrument = False
-    #         else:
-    #             instrument = True
-    #
-    #     if instrument:
-    #         from pyinstrument import Profiler
-    #
-    #         with Profiler() as profiler:
-    #             self._context = run_named_step(step_name, self._context)
-    #         out_file = self.filesystem.get_profiling_file_path(f"{step_name}.html")
-    #         with open(out_file, "wt") as f:
-    #             f.write(profiler.output_html())
-    #     else:
-    #         self._context = run_named_step(step_name, self._context)
-    #
-    #     t0 = print_elapsed_time(
-    #         "#run_model completed step '%s'" % model_name, t0, debug=True
-    #     )
-    #     self.trace_memory_info(f"pipeline.run_model {model_name} finished")
-    #
-    #     self.add_injectable("step_args", None)
-    #
-    #     self.rng().end_step(model_name)
-    #     if checkpoint:
-    #         self.checkpoint.add(model_name)
-    #     else:
-    #         logger.info("##### skipping %s checkpoint for %s" % (step_name, model_name))
 
     def close_pipeline(self):
         """

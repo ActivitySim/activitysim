@@ -389,7 +389,7 @@ def write_tables(state: workflow.State):
                 str(file_path), key=table_name, mode="a", format="fixed"
             )
         else:
-            file_name = "%s%s.csv" % (prefix, table_name)
+            file_name = f"{prefix}{table_name}.csv"
             file_path = state.get_output_file_path(file_name)
 
             # include the index if it has a name or is a MultiIndex

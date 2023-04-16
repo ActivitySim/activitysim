@@ -26,6 +26,7 @@ Contents
    ../gettingstarted
    cli-tools
    ../examples
+   external-examples
    configuration
    ../cli
    ../estimation

@@ -4,8 +4,8 @@ import datetime
 import os
 from pathlib import Path
 
-import appdirs
 import pandas as pd
+import platformdirs
 import pytest
 
 from activitysim.core import workflow
@@ -14,7 +14,7 @@ from activitysim.core import workflow
 @pytest.fixture(scope="module")
 def est_data():
     cwd = os.getcwd()
-    working_dir = Path(appdirs.user_cache_dir(appname="ActivitySim")).joinpath(
+    working_dir = Path(platformdirs.user_cache_dir(appname="ActivitySim")).joinpath(
         f"estimation-test-base"
     )
     working_dir.mkdir(parents=True, exist_ok=True)

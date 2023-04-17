@@ -1173,7 +1173,9 @@ def chunk_log(state: workflow.State, trace_label, chunk_tag=None, base=False):
         yield ChunkSizer(state, "chunkless", trace_label, 0, 0, _chunk_training_mode)
         return
 
-    assert base == (len(CHUNK_SIZERS) == 0)
+    assert (_chunk_training_mode == MODE_EXPLICIT) or (
+        base == (len(CHUNK_SIZERS) == 0)
+    ), f"{base=}, {len(CHUNK_SIZERS)=}"
 
     trace_label = f"{trace_label}.chunk_log"
 

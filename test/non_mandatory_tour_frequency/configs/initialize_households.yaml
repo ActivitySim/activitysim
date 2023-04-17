@@ -1,0 +1,48 @@
+annotate_tables:
+  - tablename: persons
+    column_map:
+      HHID: household_id
+      PERID: person_id
+      AGEP: age
+      SEX: sex
+      SCHL: education_attainment
+      OCCP: occupation
+      WKHP: hours_worked
+      WKW: weeks_worked
+      EMPLOYED: employment_status
+      ESR: esr
+      SCHG: grade_attending
+      activity_pattern: cdap_activity
+    annotate:
+      SPEC: annotate_persons
+      DF: persons
+      TABLES:
+        - households
+  - tablename: households
+    column_map:
+      HHID: household_id
+      MAZ: home_zone_id
+      HHINCADJ: income
+      NWRKRS_ESR: num_workers
+      VEH: auto_ownership
+      NP: hhsize
+      HHT: hh_type
+      BLD: building_size
+      TYPE: hh_unit_type
+      MTCCountyID: county_id
+    annotate:
+      SPEC: annotate_households
+      DF: households
+      TABLES:
+        - persons
+        - land_use
+
+CONSTANTS:
+  PTYPE_FULL: 1
+  PTYPE_PART: 2
+  PTYPE_UNIVERSITY: 3
+  PTYPE_NONWORK: 4
+  PTYPE_RETIRED: 5
+  PTYPE_DRIVING: 6
+  PTYPE_SCHOOL: 7
+  PTYPE_PRESCHOOL: 8

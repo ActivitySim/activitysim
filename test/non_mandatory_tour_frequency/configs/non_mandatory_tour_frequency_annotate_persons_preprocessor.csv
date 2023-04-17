@@ -1,0 +1,36 @@
+Description,Target,Expression
+#,,
+,low_income,persons.income<=30000
+,medium_low_income,(persons.income > 30000) & (persons.income <= 60000)
+,medium_income,(persons.income > 60000) & (persons.income <= 100000)
+,medium_high_income,(persons.income > 100000) & (persons.income <= 150000)
+,high_income,(persons.income > 150000)
+,no_cars,(persons.auto_ownership == 0)
+,car_sufficiency,persons.autos-persons.num_workers
+#,,
+# joint tour counts per persons,,
+get joint tours,_JOINT_TOURS,tours[tours.tour_category=='JOINT_NON_MANDATORY']
+create participant list in joint tours,_JOINT_TOURS,"_JOINT_TOURS.assign(person_num=_JOINT_TOURS.apply(lambda x: [int(p) for p in x.tour_participants.split(' ')],axis=1))"
+explode joint tour participants,_JOINT_TOURS,_JOINT_TOURS.explode('person_num')
+join joint tour info with persons,_JOINT_TOURS_PERSONS,"pd.merge(_JOINT_TOURS[['household_id','person_num','tour_purpose']],persons.reset_index()[['household_id','person_num','person_id']], on=['household_id','person_num'], how='left')"
+,num_person_joint_tours,"reindex_i(_JOINT_TOURS_PERSONS.groupby(['person_id']).size(), persons.index)"
+,num_person_joint_shop_tours,"reindex_i(_JOINT_TOURS_PERSONS[_JOINT_TOURS_PERSONS.tour_purpose=='Shop'].groupby(['person_id']).size(), persons.index)"
+,num_person_joint_maint_tours,"reindex_i(_JOINT_TOURS_PERSONS[_JOINT_TOURS_PERSONS.tour_purpose=='Maintenance'].groupby(['person_id']).size(), persons.index)"
+,num_person_joint_eatout_tours,"reindex_i(_JOINT_TOURS_PERSONS[_JOINT_TOURS_PERSONS.tour_purpose=='Eating Out'].groupby(['person_id']).size(), persons.index)"
+,num_person_joint_visit_tours,"reindex_i(_JOINT_TOURS_PERSONS[_JOINT_TOURS_PERSONS.tour_purpose=='Visiting'].groupby(['person_id']).size(), persons.index)"
+,num_person_joint_othdiscr_tours,"reindex_i(_JOINT_TOURS_PERSONS[_JOINT_TOURS_PERSONS.tour_purpose=='Discretionary'].groupby(['person_id']).size(), persons.index)"
+# non_mandatory tour frequency extension,,
+,_INDIV_TOURS,tours[tours.tour_category!='JOINT_NON_MANDATORY']
+,num_mandatory_tours,"reindex_i(_INDIV_TOURS[_INDIV_TOURS.tour_purpose=='MANDATORY'].groupby('person_id').size(), persons.index)"
+,has_mandatory_tour,(num_mandatory_tours > 0) * 1
+,has_joint_tour,(num_person_joint_tours > 0) * 1
+# number of person types in household in addition to self,,
+,num_full_time_workers_not_self,"np.where(df.ptype == PTYPE_FULL, df.num_full_time_workers-1, df.num_full_time_workers)"
+,num_part_time_workers_not_self,"np.where(df.ptype == PTYPE_PART, df.num_part_time_workers-1, df.num_part_time_workers)"
+,num_university_students_not_self,"np.where(df.ptype == PTYPE_UNIVERSITY, df.num_university_students-1, df.num_university_students)"
+,num_non_workers_not_self,"np.where(df.ptype == PTYPE_NONWORK, df.num_non_workers-1, df.num_non_workers)"
+,num_retirees_not_self,"np.where(df.ptype == PTYPE_RETIRED, df.num_retirees-1, df.num_retirees)"
+,num_driving_age_students_not_self,"np.where(df.ptype == PTYPE_DRIVING, df.num_driving_age_students-1, df.num_driving_age_students)"
+,num_pre_driving_age_school_kids_not_self,"np.where(df.ptype == PTYPE_SCHOOL, df.num_pre_driving_age_school_kids-1, df.num_pre_driving_age_school_kids)"
+,num_pre_school_kids_not_self,"np.where(df.ptype == PTYPE_PRESCHOOL, df.num_pre_school_kids-1, df.num_pre_school_kids)"
+,retiredHh,"np.where(df.num_full_time_workers+df.num_part_time_workers+df.num_university_students+df.num_driving_age_students+df.num_pre_driving_age_school_kids+df.num_pre_school_kids == 0,1,0)"

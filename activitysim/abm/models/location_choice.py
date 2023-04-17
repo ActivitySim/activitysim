@@ -426,6 +426,8 @@ def run_location_sample(
     )
     dest_size_terms = dest_size_terms[dest_size_terms.size_term > 0]
 
+    assert len(dest_size_terms) > 0, "No destination with available size terms"
+
     # by default, enable presampling for multizone systems, unless they disable it in settings file
     pre_sample_taz = not (network_los.zone_system == los.ONE_ZONE)
     if pre_sample_taz and not config.setting("want_dest_choice_presampling", True):

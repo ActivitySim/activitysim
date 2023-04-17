@@ -290,7 +290,7 @@ After the frequency and time-of-day for work and school tours are determined, th
 next major model component relates to joint household travel. This component produces a
 number of joint tours by travel purpose for the entire household, travel party composition
 in terms of adults and children, and then defines the participation of each household
-member in each joint household tour. It is followed by choice of destination and time-ofday.
+member in each joint household tour. It is followed by choice of destination and time-of-day.
 
 The next stage relates to maintenance and discretionary tours that are modeled at the individual
 person level. The models include tour frequency, choice of destination and time
@@ -512,7 +512,6 @@ Configuration
 ^^^^^^^^^^^^^
 
 This section has been moved to :ref:`configuration`.
-
 
 .. _sub-model-spec-files:
 

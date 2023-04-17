@@ -16,11 +16,11 @@ dependencies:
 - python=3.9
 - pip
 - asv  # for benchmarking
-- black
+- black >= 22.0,<23
 - bump2version  # for making a release
 - coveralls
-- cytoolz >= 0.8.1
-- dask
+- cytoolz = 0.12.*
+- dask = 2023.3.*
 - descartes
 - filelock
 - fsspec
@@ -30,44 +30,45 @@ dependencies:
 - ipykernel  # so this env will appear in jupyter as a selection
 - isort
 - jupyterlab
-- larch >= 5.5.8
+- larch = 5.7.*
 - matplotlib
 - myst-parser  # allows markdown in sphinx
 - nbconvert
 - nbformat
-- numba >= 0.55.2
+- numba = 0.56.*
 - numexpr
-- numpy >= 1.16.1,<=1.21
+- numpy = 1.23.*
 - numpydoc
-- openmatrix >= 0.3.4.1
-- orca >= 1.6
-- pandas >= 1.1.0
+- openmatrix = 0.3.*
+- orca = 1.8
+- pandas = 1.4.*
+- platformdirs = 3.2.*
 - pre-commit
-- psutil >= 4.1
-- pyarrow >= 2.0
+- psutil = 5.9.*
+- pyarrow = 11.*
 - pycodestyle
-- pydantic
+- pydantic = 1.10.*
 - pydata-sphinx-theme
-- pyinstrument
-- pypyr
+- pyinstrument = 4.4
+- pypyr = 5.8.*
 - pytables >=3.5.1,<3.7
-- pytest
+- pytest = 7.2.*
 - pytest-cov
 - pytest-regressions
-- pyyaml >= 5.1
-- requests >= 2.7
-- rich
+- pyyaml = 6.*
+- requests = 2.28.*
+- rich = 13.3.*
 - ruby  # required for benchmarking pre-commit hooks
 - setuptools_scm
-- scikit-learn >= 1.1
+- scikit-learn = 1.2.*
 - simwrapper > 1.7
 - snakeviz  # for profiling
-- sphinx
-- sphinx_rtd_theme
-- sphinx-argparse
-- xarray >= 0.21
+- sphinx = 6.1.*
+- sphinx_rtd_theme = 1.2.*
+- sphinx-argparse = 0.4.*
+- xarray = 2023.2.*
 - xmle
-- zarr
+- zarr = 2.14.*
 
 - pip:
   - autodoc_pydantic

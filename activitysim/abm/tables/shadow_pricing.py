@@ -61,6 +61,12 @@ default_segment_to_name_dict = {
     "workplace": "income_segment",
 }
 
+default_segment_to_name_dict = {
+    # model_selector : persons_segment_name
+    "school": "school_segment",
+    "workplace": "income_segment",
+}
+
 
 def size_table_name(model_selector):
     """

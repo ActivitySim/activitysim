@@ -310,12 +310,12 @@ class Network_LOS(object):
                 elif self.maz_ceiling > 32767:
                     # too many MAZs, or un-recoded MAZ ID's that are too large
                     # will overflow a 32-bit index, so upgrade to 64bit.
-                    df["i"] = df.OMAZ.astype(np.int64) * self.maz_ceiling.astype(
-                        np.int64
+                    df["i"] = df.OMAZ.astype(np.int64) * np.int64(
+                        self.maz_ceiling
                     ) + df.DMAZ.astype(np.int64)
                 else:
-                    df["i"] = df.OMAZ.astype(np.int32) * self.maz_ceiling.astype(
-                        np.int32
+                    df["i"] = df.OMAZ.astype(np.int32) * np.int32(
+                        self.maz_ceiling
                     ) + df.DMAZ.astype(np.int32)
                 df.set_index("i", drop=True, inplace=True, verify_integrity=True)
                 logger.debug(

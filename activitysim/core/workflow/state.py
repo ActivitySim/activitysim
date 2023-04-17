@@ -109,7 +109,6 @@ class State:
     """
 
     def __init__(self, context=None):
-
         self.open_files: dict[str, io.TextIOBase] = {}
         """Files to close when state is destroyed or re-initialized."""
 
@@ -344,20 +343,72 @@ class State:
 
     def initialize_filesystem(
         self,
-        working_dir=None,
+        working_dir: Path | None = None,
         *,
-        configs_dir=("configs",),
-        data_dir=("data",),
-        output_dir="output",
-        profile_dir=None,
-        cache_dir=None,
-        settings_file_name="settings.yaml",
-        pipeline_file_name="pipeline",
+        configs_dir: Path | tuple[Path, ...] = ("configs",),
+        data_dir: Path | tuple[Path, ...] = ("data",),
+        output_dir: str | Path = "output",
+        profile_dir: Path | None = None,
+        cache_dir: Path | None = None,
+        settings_file_name: str = "settings.yaml",
+        pipeline_file_name: str = "pipeline",
         **silently_ignored_kwargs,
-    ) -> "State":
-        if isinstance(configs_dir, (str, Path)):
+    ) -> State:
+        """
+        Initialize the state's filesystem.
+
+        ActivitySim has a number of features to extract settings, model configs,
+        data, and other inputs automatically from various files, and to write
+        outputs to the file system in various locations.  These directories
+        are defined very early in a model run, and other settings are loaded
+        based on them, so for convenience the filesystem settings are collected
+        together in a single pydantic validated object separate from all other
+        settings.
+
+        All arguments to this function beyond `working_dir` are keyword-only.
+        Keyword arguments other than those listed are silently ignored.
+
+        Parameters
+        ----------
+        working_dir : path-like, optional
+            The top-level working directory for the model.  When other
+            directories are given as relative paths, those relative paths are
+            evaluated relative to this directory.
+        configs_dir : path-like or tuple of path-like, default "configs"
+            Directories containing model configurations and settings. ActivitySim
+            model runs can be configured with settings file inheritance to avoid
+            duplicating settings across model configurations, e.g. to allow for
+            single-process and multiprocess configurations that share most of
+            their inputs and settings.
+        data_dir : path-like or tuple of path-like, default "data"
+            The directories where input data files can be found.
+        output_dir : path-like, default "output"
+            Most ActivitySim output will be written to this directory (or
+            subdirectories within it).
+        profile_dir : path-like, optional
+            If runtime instrumentation is turned on, pyinstrument profiling
+            output will be written in this directory. If not given, a unique
+            time-stamped subdirectory will be created in the `output` directory.
+        cache_dir : path-like, optional
+            Various intermediate files may be stored in the cache directory. This
+            should be a writable and readable location, and cached files may
+            persist and be re-used by various different model runs.  It should
+            always be safe to simply delete everything in the cache directory,
+            as everything saved here should be recreated automatically from other
+            inputs if it is missing (although it may take some time to do so).
+        settings_file_name : str, default "settings.yaml"
+            Top level settings are defined in this file, which should be found
+            in one or more `configs_dir` locations.
+        pipeline_file_name : str, default "pipeline"
+            The base filename for checkpointed intermediate outputs.
+
+        Returns
+        -------
+        self : State
+        """
+        if isinstance(configs_dir, str | Path):
             configs_dir = (configs_dir,)
-        if isinstance(data_dir, (str, Path)):
+        if isinstance(data_dir, str | Path):
             data_dir = (data_dir,)
 
         fs = dict(
@@ -380,7 +431,7 @@ class State:
             raise
         return self
 
-    def default_settings(self, force=False) -> "State":
+    def default_settings(self, force=False) -> State:
         """
         Initialize with all default settings, rather than reading from a file.
 
@@ -400,7 +451,14 @@ class State:
         self.init_state()
         return self
 
-    def load_settings(self) -> "State":
+    def load_settings(self) -> State:
+        """
+        Read and parse settings file(s) from config dirs.
+
+        Returns
+        -------
+        self : State
+        """
         # read settings file
         raw_settings = self.filesystem.read_settings_file(
             self.filesystem.settings_file_name,
@@ -499,7 +557,7 @@ class State:
     def get_dataset(
         self,
         table_name: str,
-        column_names: Optional[list[str]] = None,
+        column_names: list[str] | None = None,
         as_copy: bool = False,
     ) -> xr.Dataset:
         """

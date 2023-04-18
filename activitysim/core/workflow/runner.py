@@ -204,16 +204,18 @@ class Runner(StateAccessor):
 
     timing_notes: set[str] = FromState(default_init=True)
 
-    heading_level: int | None = FromState(default_value=None)
-    """
-    int: Individual component heading level to use when running in a notebook.
+    heading_level: int | None = FromState(
+        default_value=None,
+        doc="""
+    Individual component heading level to use when running in a notebook.
 
     When individual components are called in a Jupyter notebook-like environment
     using the `state.run.component_name` syntax, an HTML heading for each component
     can be displayed in the notebook.  These headings can be detected by Jupyter
     extensions to enable rapid navigation with an automatically generated table
     of contents.
-    """
+    """,
+    )
 
     def log_runtime(self, model_name, start_time=None, timing=None, force=False):
         assert (start_time or timing) and not (start_time and timing)

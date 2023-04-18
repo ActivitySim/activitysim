@@ -27,6 +27,10 @@ via a few values in the top-level settings:
   controls how frequently checkpoints are written (after every component, after
   only certain components, or not at all).
 
+For code developers wanting to integrate some aspect of checkpointing into
+a manual workflow or a new component, the
+[`State.checkpoint`](activitysim.core.workflow.State.checkpoint)
+accessor has most of the relevant methods.
 
 ## API
 

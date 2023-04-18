@@ -39,6 +39,8 @@ The general framework of each ActivitySim model is defined within an encapsulate
     State.default_settings
     State.load_settings
     State.settings
+    State.filesystem
+    State.network_settings
 ```
 
 
@@ -74,6 +76,9 @@ ORCA as `pandas.DataFrame`s, but the exact internal storage format is abstracted
 away here in favor of providing access to the data in several specific formats.
 
 ```{eval-rst}
+
+.. rubric:: Methods
+
 .. autosummary::
 
     State.get_dataset
@@ -85,7 +90,16 @@ away here in favor of providing access to the data in several specific formats.
     State.is_table
     State.registered_tables
     State.get_table
+
+.. rubric:: Accessor
+
+.. autosummary::
+    :toctree: _generated2
+    :template: autosummary/accessor.rst
+
+    State.dataset
 ```
+
 
 ## Run
 
@@ -94,7 +108,7 @@ Executing model components is handled by methods in the `run` accessor.
 ```{eval-rst}
 
 .. autosummary::
-    :toctree: _generated
+    :toctree: _generated2
     :template: autosummary/accessor_callable.rst
 
     State.run
@@ -221,4 +235,46 @@ within the `checkpoint` accessor.
 
     State.logging.config_logger
     State.logging.rotate_log_directory
+```
+
+
+## Reporting
+
+```{eval-rst}
+
+.. autosummary::
+    :toctree: _generated2
+    :template: autosummary/accessor.rst
+
+    State.report
+
+.. autosummary::
+    :toctree: _generated
+    :template: autosummary/accessor_method.rst
+
+    State.report.nominal_distribution
+    State.report.ordinal_distribution
+    State.report.histogram
+```
+
+
+## Extending
+
+Methods to extend ActivitySim's functionality are available under the `extend`
+accessor.
+
+```{eval-rst}
+
+.. autosummary::
+    :toctree: _generated2
+    :template: autosummary/accessor.rst
+
+    State.extend
+
+
+.. autosummary::
+    :toctree: _generated
+    :template: autosummary/accessor_method.rst
+
+    State.extend.declare_table
 ```

@@ -5,6 +5,7 @@ import io
 import logging
 import os
 import sys
+import textwrap
 import warnings
 from builtins import map, next
 from collections.abc import Iterable
@@ -65,9 +66,13 @@ class StateAttr:
     activitysim.core.workflow.accessor.StateAccessor
     """
 
-    def __init__(self, member_type, default_init=False):
+    def __init__(self, member_type, default_init=False, doc=None):
         self.member_type = member_type
         self._default_init = default_init
+        if doc:
+            self.__doc__ = textwrap.dedent(doc).strip()
+        else:
+            self.__doc__ = member_type.__doc__
 
     def __set_name__(self, owner, name):
         """Captures the attribute name when assigned in the State class."""
@@ -236,10 +241,10 @@ class State:
             extensions.append(e)
         self.set("imported_extensions", extensions)
 
-    filesystem = StateAttr(FileSystem)
-    settings = StateAttr(Settings)
-    network_settings = StateAttr(NetworkSettings)
-    predicates = StateAttr(dict, default_init=True)
+    filesystem: FileSystem = StateAttr(FileSystem)
+    settings: Settings = StateAttr(Settings)
+    network_settings: NetworkSettings = StateAttr(NetworkSettings)
+    predicates: dict = StateAttr(dict, default_init=True)
 
     checkpoint = Checkpoints()
     logging = Logging()
@@ -708,12 +713,58 @@ class State:
             return t
         raise TypeError(f"cannot convert {tablename} to pyarrow.Table")
 
-    def access(self, key, initializer):
+    def access(self, key: str, initializer: Any = NO_DEFAULT) -> Any:
+        """
+        Raw access to values stored in this state's context.
+
+        This method short-circuits all of ActivitySim's machinery to provide
+        or build missing context values automatically -- only values already
+        stored can be accessed.
+
+        Parameters
+        ----------
+        key : str
+            The name of the variable to access.
+        initializer : Any, optional
+            If the variable is not already in the state's context, it will
+            be set with this value, or if it is not provided a KeyError is
+            raised instead.
+
+        Returns
+        -------
+        Any
+        """
         if key not in self._context:
-            self.set(key, initializer)
+            if initializer != NO_DEFAULT:
+                self.set(key, initializer)
+            else:
+                raise KeyError(key)
         return self._context[key]
 
-    def get(self, key, default: Any = NO_DEFAULT):
+    def get(self, key, default: Any = NO_DEFAULT) -> Any:
+        """
+        Automated access to values stored in this state's context.
+
+        This method takes advantage of ActivitySim's machinery to provide
+        or build missing context values automatically.  If a value is already
+        present in this state's context it is returned, otherwise the set of
+        defined methods for loadable objects and tables will be used to
+        create values if possible.
+
+        Parameters
+        ----------
+        key : str
+            The name of the variable to access.
+        default : Any, optional
+            If the variable is not already in the state's context, and cannot
+            be otherwise created automatically, it will be set with this value,
+            or else a KeyError is raised instead.
+
+        Returns
+        -------
+        Any
+        """
+
         if not isinstance(key, str):
             key_name = getattr(key, "__name__", None)
             if key_name in self._LOADABLE_TABLES or key_name in self._LOADABLE_OBJECTS:
@@ -741,7 +792,7 @@ class State:
                     key=key, caller=self.__class__.__name__
                 )
                 raise KeyError(key)
-        if not isinstance(result, (xr.Dataset, xr.DataArray, pd.DataFrame, pd.Series)):
+        if not isinstance(result, xr.Dataset | xr.DataArray | pd.DataFrame | pd.Series):
             result = self._context.get_formatted_value(result)
         return result
 
@@ -835,7 +886,35 @@ class State:
         else:
             return filesystem.read_settings_file("constants.yaml", mandatory=False)
 
-    def add_table(self, name, content, salient=None):
+    def add_table(
+        self, name: str, content: pd.DataFrame | xr.Dataset, salient: bool | None = None
+    ):
+        """
+        Add a data table to this context, and potentially mark it for checkpointing.
+
+        The table added completely replaces any existing table of the same
+        name. In part because checkpointing currently manages tables only in their
+        entirety, there is no mechanism to incrementally update a table by adding
+        data (columns and/or rows) in-place, although nothing prevents the user
+        of this method from partially re-using data content from an existing
+        table via a zero-copy transformation.
+
+        Parameters
+        ----------
+        name : str
+            The name of the table being added to this state's context.
+        content : pandas.DataFrame or xarray.Dataset
+            The new data content to write.
+        salient : bool, optional
+            Explicitly mark this table as salient or not.  Salient tables
+            are marked to be checkpointed the next time a checkpoint operation
+            happens.  If not set explicitly tables are presumed to be salient
+            unless they elsewhere defined as temporary tables.
+
+        See Also
+        --------
+        State.set
+        """
         if salient is None:
             salient = name not in self._TEMP_NAMES
         if salient:
@@ -844,7 +923,18 @@ class State:
             self.existing_table_status[name] = True
         self.set(name, content)
 
-    def is_table(self, name):
+    def is_table(self, name: str):
+        """
+        Check if a name corresponds to a table in this state's context.
+
+        Parameters
+        ----------
+        name : str
+
+        Returns
+        -------
+        bool
+        """
         return name in self.existing_table_status
 
     def registered_tables(self):

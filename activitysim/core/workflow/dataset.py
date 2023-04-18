@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 import logging
-import multiprocessing
-import time
-from datetime import timedelta
-from typing import Callable, Iterable
+from collections.abc import Iterable
 
 import xarray as xr
 from sharrow.dataset import construct
@@ -17,9 +14,17 @@ logger = logging.getLogger(__name__)
 class Datasets(StateAccessor):
     """
     This accessor provides easy access to state tables and datasets.
+
+    Named datasets are available as attributes on this accessor, for
+    example `State.dataset.persons`, which is the equivalent of calling
+    `State.get_dataset("persons")`.
+
+    Otherwise, there are no "normal" methods for this accessor, but the
+    `__dir__` method is implemented to provide tab-completion capabilities
+    inside compatible interactive interpreters (including Jupyter notebooks).
     """
 
-    def __get__(self, instance, objtype=None) -> "Datasets":
+    def __get__(self, instance, objtype=None) -> Datasets:
         # derived __get__ changes annotation, aids in type checking
         return super().__get__(instance, objtype)
 

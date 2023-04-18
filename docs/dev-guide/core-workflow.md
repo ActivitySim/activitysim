@@ -121,13 +121,20 @@ Executing model components is handled by methods in the `run` accessor.
     State.run.all
 ```
 
-
+(state-checkpoint)=
 ## Checkpoints
 
 The `State` object provides access to [checkpointing](checkpointing.md) functions
 within the `checkpoint` accessor.
 
 ```{eval-rst}
+
+.. autosummary::
+    :toctree: _generated2
+    :template: autosummary/accessor.rst
+
+    State.checkpoint
+
 
 .. rubric:: Attributes
 
@@ -161,7 +168,6 @@ within the `checkpoint` accessor.
     State.checkpoint.last_checkpoint_name
     State.checkpoint.is_readonly
     State.checkpoint.default_pipeline_file_path
-
 
 ```
 

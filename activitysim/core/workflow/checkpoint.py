@@ -469,11 +469,38 @@ class NullStore(GenericCheckpointStore):
 
 
 class Checkpoints(StateAccessor):
-    last_checkpoint: dict = FromState(default_init=True)
-    checkpoints: list[dict] = FromState(default_init=True)
-    _checkpoint_store: GenericCheckpointStore | None = FromState(default_value=None)
+    """
+    State accessor for checkpointing operations.
 
-    def __get__(self, instance, objtype=None) -> "Checkpoints":
+    See :ref:`State.checkpoint <state-checkpoint>` for more detailed
+    documentation.
+    """
+
+    last_checkpoint: dict = FromState(
+        default_init=True,
+        doc="""
+    Metadata about the last saved checkpoint.
+
+    This dictionary contains the name of the checkpoint, a timestamp, and
+    the checkpoint-lookup for all relevant tables.
+    """,
+    )
+    checkpoints: list[dict] = FromState(
+        default_init=True,
+        doc="""
+    Metadata about various saved checkpoint(s).
+
+    Each item in this list is a dictionary similar to the `last_checkpoint`.
+    """,
+    )
+    _checkpoint_store: GenericCheckpointStore | None = FromState(
+        default_value=None,
+        doc="""
+    The store where checkpoints are written.
+    """,
+    )
+
+    def __get__(self, instance, objtype=None) -> Checkpoints:
         # derived __get__ changes annotation, aids in type checking
         return super().__get__(instance, objtype)
 
@@ -484,12 +511,13 @@ class Checkpoints(StateAccessor):
 
     @property
     def store(self) -> GenericCheckpointStore:
-        """GenericCheckpointStore : The store where checkpoints are written."""
+        """The store where checkpoints are written."""
         if self._checkpoint_store is None:
             self.open_store()
         return self._checkpoint_store
 
     def store_is_open(self) -> bool:
+        """Whether this checkpoint store is open."""
         if self._checkpoint_store is None:
             return False
         return self._checkpoint_store.is_open

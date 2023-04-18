@@ -106,14 +106,18 @@ class StateAttr:
 class State:
     """
     The encapsulated state of an ActivitySim model.
-
-    Parameters
-    ----------
-    context : pypyr.Context, optional
-        An initial context can be provided when the State is created.
     """
 
     def __init__(self, context=None):
+        """
+        Initialize the encapsulated state of an ActivitySim model.
+
+        Parameters
+        ----------
+        context : pypyr.Context, optional
+            An initial context can be provided when the State is created.
+        """
+
         self.open_files: dict[str, io.TextIOBase] = {}
         """Files to close when state is destroyed or re-initialized."""
 

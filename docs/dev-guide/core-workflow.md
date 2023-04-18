@@ -1,19 +1,37 @@
-# Workflow State API
+# Workflow State
 
-An ActivitySim model is represented by a few fundamental elements:
+The general framework of each ActivitySim model is defined within an encapsulated
+`State` object.  This object maintains references to data and model structures
+in a well-defined context, and allow the user to pass that context around to
+the various functions and methods that progressively build up the simulated
+activity patterns.
+
+The `State` object replaces the ORCA framework, and allows for data from multiple
+models, or multiple versions of the same model, to co-exist in a single Python
+instance simultaneously.
+
+Within the `State` object for a typical ActivitySim model are a few fundamental
+elements:
 
 - **Data tables**, sometimes referred to in older documentation sections as
     "pipeline tables".  These tables include households, persons, trips, tours,
     and potentially other tables that represent aspects of the simulated agents.
 - **Network Level of Service**, defined by zones, network skims and representations
     of discrete time steps used for modeling.
-- **Components**, which define the mathematical structure of various model steps.
+- **Settings and Configurations**, which define how models and model components
+    operate.
 
-The general framework of each ActivitySim model is defined within an encapsulated
-`State` object.
+
+## State API
 
 ```{eval-rst}
 .. currentmodule:: activitysim.core.workflow
+
+.. autosummary::
+    :toctree: _generated
+    :recursive:
+
+    State
 ```
 
 ## Constructors
@@ -23,9 +41,10 @@ The general framework of each ActivitySim model is defined within an encapsulate
     :toctree: _generated
     :recursive:
 
-    State
+    State.__init__
     State.make_default
     State.make_temp
+    create_example
 ```
 
 ## Model Setup
@@ -107,6 +126,8 @@ Executing model components is handled by methods in the `run` accessor.
 
 ```{eval-rst}
 
+.. rubric:: Accessor
+
 .. autosummary::
     :toctree: _generated2
     :template: autosummary/accessor_callable.rst
@@ -142,6 +163,8 @@ The `State` object provides access to [checkpointing](checkpointing.md) function
 within the `checkpoint` accessor.
 
 ```{eval-rst}
+
+.. rubric:: Accessor
 
 .. autosummary::
     :toctree: _generated2
@@ -229,6 +252,8 @@ within the `checkpoint` accessor.
 
 ```{eval-rst}
 
+.. rubric:: Methods
+
 .. autosummary::
     :toctree: _generated
     :template: autosummary/accessor_method.rst
@@ -242,11 +267,16 @@ within the `checkpoint` accessor.
 
 ```{eval-rst}
 
+.. rubric:: Accessor
+
 .. autosummary::
     :toctree: _generated2
     :template: autosummary/accessor.rst
 
     State.report
+
+
+.. rubric:: Methods
 
 .. autosummary::
     :toctree: _generated
@@ -265,12 +295,16 @@ accessor.
 
 ```{eval-rst}
 
+.. rubric:: Accessor
+
 .. autosummary::
     :toctree: _generated2
     :template: autosummary/accessor.rst
 
     State.extend
 
+
+.. rubric:: Methods
 
 .. autosummary::
     :toctree: _generated

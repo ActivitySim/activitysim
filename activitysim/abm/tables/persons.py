@@ -25,7 +25,7 @@ def read_raw_persons(state, households):
 
 
 @workflow.table
-def persons(state: workflow.State):
+def persons(state: workflow.State) -> pd.DataFrame:
     households = state.get_dataframe("households")
     trace_hh_id = state.settings.trace_hh_id
     df = read_raw_persons(state, households)

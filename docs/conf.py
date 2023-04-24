@@ -38,7 +38,8 @@ extensions = [
     "sphinx.ext.mathjax",
     "numpydoc",
     "sphinx.ext.autosummary",
-    "myst_parser",
+    "myst_nb",
+    # "myst_parser",
     "sphinx_design",
     "sphinxarg.ext",
     "sphinx.ext.intersphinx",
@@ -53,6 +54,7 @@ remove_from_toctrees = [
     "users-guide/_generated/*",
 ]
 myst_enable_extensions = ["colon_fence"]
+myst_heading_anchors = 3
 numpydoc_show_class_members = False
 autosummary_generate = True
 autodoc_pydantic_model_signature_prefix = "settings"
@@ -67,8 +69,8 @@ templates_path = ["_templates"]
 # The suffix of source filenames.
 source_suffix = {
     ".rst": "restructuredtext",
-    ".txt": "markdown",
-    ".md": "markdown",
+    # ".txt": "markdown",
+    # ".md": "markdown",
 }
 
 # The encoding of source files.

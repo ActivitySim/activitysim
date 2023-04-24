@@ -40,11 +40,6 @@ ExtendedArgSpec = namedtuple(
 )
 
 
-class TableInfo(NamedTuple):
-    factory: Callable
-    predicates: tuple[str]
-
-
 def error_logging(func):
     def wrapper(*args, **kwargs):
         try:

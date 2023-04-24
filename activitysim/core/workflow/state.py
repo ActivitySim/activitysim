@@ -248,7 +248,6 @@ class State:
     filesystem: FileSystem = StateAttr(FileSystem)
     settings: Settings = StateAttr(Settings)
     network_settings: NetworkSettings = StateAttr(NetworkSettings)
-    predicates: dict = StateAttr(dict, default_init=True)
 
     checkpoint = Checkpoints()
     logging = Logging()

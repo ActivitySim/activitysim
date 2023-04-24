@@ -7,9 +7,8 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config
 from activitysim.abm.models.util.canonical_ids import set_tour_index
-from activitysim.core import workflow
+from activitysim.core import config, workflow
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
@@ -479,6 +478,7 @@ def process_joint_tours(
 
 
 def process_joint_tours_frequency_composition(
+    state: workflow.State,
     joint_tour_frequency_composition,
     joint_tour_frequency_composition_alts,
     point_persons,
@@ -512,6 +512,7 @@ def process_joint_tours_frequency_composition(
     assert not joint_tour_frequency_composition.isnull().any()
 
     tours = process_tours_frequency_composition(
+        state,
         joint_tour_frequency_composition.dropna(),
         joint_tour_frequency_composition_alts,
         tour_category="joint",
@@ -526,7 +527,7 @@ def process_joint_tours_frequency_composition(
     tours["origin"] = reindex(point_persons.home_zone_id, tours.household_id)
 
     # assign stable (predictable) tour_id
-    set_tour_index(tours, is_joint=True)
+    set_tour_index(state, tours, is_joint=True)
 
     """
                    household_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count
@@ -546,6 +547,7 @@ def process_joint_tours_frequency_composition(
 
 
 def process_tours_frequency_composition(
+    state: workflow.State,
     joint_tour_frequency_composition,
     joint_tour_frequency_composition_alts,
     tour_category,
@@ -608,12 +610,14 @@ def process_tours_frequency_composition(
     2588677       1         1         0
     """
 
-    tours = create_joint_tours(tour_counts, tour_category, parent_col)
+    tours = create_joint_tours(state, tour_counts, tour_category, parent_col)
 
     return tours
 
 
-def create_joint_tours(tour_counts, tour_category, parent_col="person_id"):
+def create_joint_tours(
+    state: workflow.State, tour_counts, tour_category, parent_col="person_id"
+):
     """
     This method processes the tour_frequency column that comes
     out of the model of the same name and turns into a DataFrame that
@@ -655,7 +659,7 @@ def create_joint_tours(tour_counts, tour_category, parent_col="person_id"):
     """
     model_settings_file_name = "joint_tour_frequency_composition.yaml"
 
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     alts_table_structure = model_settings.get("ALTS_TABLE_STRUCTURE", None)
     assert (

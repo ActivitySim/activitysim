@@ -1355,6 +1355,7 @@ def run_cdap(
     ) in chunk.adaptive_chunked_choosers_by_chunk_id(state, persons, trace_label):
         if add_joint_tour_utility:
             cdap_results, hh_choice_results = _run_cdap(
+                state,
                 persons_chunk,
                 person_type_map,
                 cdap_indiv_spec,

@@ -43,7 +43,7 @@ def cdap_simulate(
     person_type_map = model_settings.get("PERSON_TYPE_MAP", None)
     assert (
         person_type_map is not None
-    ), f"Expected to find PERSON_TYPE_MAP setting in cdap.yaml"
+    ), "Expected to find PERSON_TYPE_MAP setting in cdap.yaml"
     estimator = estimation.manager.begin_estimation(state, "cdap")
 
     cdap_indiv_spec = state.filesystem.read_model_spec(
@@ -135,7 +135,7 @@ def cdap_simulate(
         )
         if state.get_injectable("locutor", False):
             spec.to_csv(
-                state.get_output_file_path("cdap_spec_%s.csv" % hhsize), index=True
+                state.get_output_file_path(f"cdap_spec_{hhsize}.csv"), index=True
             )
         if add_joint_tour_utility:
             # build cdap joint tour spec
@@ -145,8 +145,8 @@ def cdap_simulate(
             )
             if state.get_injectable("locutor", False):
                 joint_spec.to_csv(
-                    state.filesystem.get_config_file_path(
-                        "cdap_joint_spec_%s.csv" % hhsize
+                    state.get_output_file_path(
+                        f"cdap_joint_spec_{hhsize}.csv",
                     ),
                     index=True,
                 )

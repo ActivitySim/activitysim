@@ -46,6 +46,7 @@ extensions = [
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_autosummary_accessors",
     "sphinx_remove_toctrees",
+    "sphinx_copybutton",
 ]
 
 remove_from_toctrees = [
@@ -55,6 +56,7 @@ remove_from_toctrees = [
 ]
 myst_enable_extensions = ["colon_fence"]
 myst_heading_anchors = 3
+nb_merge_streams = True
 numpydoc_show_class_members = False
 autosummary_generate = True
 autodoc_pydantic_model_signature_prefix = "settings"

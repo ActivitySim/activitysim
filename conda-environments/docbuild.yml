@@ -12,6 +12,7 @@ channels:
 dependencies:
 - python=3.10
 - pip
+- altair
 - black >= 22.0,<23
 - bump2version
 - coveralls
@@ -48,6 +49,7 @@ dependencies:
 - simwrapper > 1.7
 - sphinx-argparse
 - sphinx-autosummary-accessors
+- sphinx-copybutton
 - sphinx-remove-toctrees
 - sphinx_rtd_theme
 - xarray >= 0.21

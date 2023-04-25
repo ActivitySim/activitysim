@@ -40,11 +40,6 @@ ExtendedArgSpec = namedtuple(
 )
 
 
-class TableInfo(NamedTuple):
-    factory: Callable
-    predicates: tuple[str]
-
-
 def error_logging(func):
     def wrapper(*args, **kwargs):
         try:
@@ -107,59 +102,44 @@ class ModelSettingsFromYaml(StepArgInit):
         return state.filesystem.read_model_settings(self.model_settings_file_name)
 
 
-class workflow_step:
+class step:
     """
-    Decorator for functions that update a context variable.
+    Decorator for ActivitySim model components and related functions.
 
-    The decorator will generate a `run_step` function in the same module,
-    wrapped with additional arguments and appropriately annotated for use
-    with the pypyr workflow model.  The original function also remains
-    available to import and use without changes.
-
-    When called as a step inside a pypyr workflow, the following context
-    variables are potentially accessed:
-
-    report : xmle.Reporter
-        The active report into which new figures or tables are added.
-    caption : str
-        A caption for the item being processed.  This is used both in
-        writing out the output (if any) in the report and for logging
-        step progression during a run.
-    caption_type : str
-        The caption type (typically, 'fig' for figures or 'tab'
-        for tables).
-    progress_tag : str
-        Use this instead of `caption` to log step progression during a run.
-
-    If the function returns values that should update the context, that
-    can be done in one of three ways:
-
-    - Set `updates_context` to True and return a `dict`, and use that
-      dict to update the context directly.
-    - Return a single object, and set `returns_names` to a string
-      giving the name that object should take in the context.
-    - Return a sequence of objects, and set `returns_names` to a
-      matching sequence of names that those objects should take
-      in the context.
-
-    Otherwise, the return value is appended to the report.  To declare that
-    there is no return value and no reporting should be done, you must
-    explicitly annotate the function with a return value of `-> None`.
-
-    Important: there can be only one `workstep` in
-    each module.  If you need more than one, make another separate module.
+    See the documentation on :ref:`workflow-steps` for more details.
 
     Parameters
     ----------
     wrapped_func : Callable
-    returns_names : str or tuple[str], optional
-    updates_context : bool, default False
+        The function being wrapped.
+    step_name : str, optional
+        The name of the step.  This is usually just inferred from the name of
+        the function being wrapped, but it can be explicitly set to some other
+        value if needed.
+    cache : bool, default False
+        If true, this function is only run if the named value is not
+        already stored in the context.  Also, the return value should
+        not be a mapping but instead just a single Python object that
+        will be stored in the context with a key given by the step_name.
+    kind : {"step", "table", "temp_table", "cached_object"}
+        The kind of workflow function being wrapped.
+    copy_tables : bool or Container[str], default True
+        If this evaluates to true, access to tables as a DataFrame is
+        always via a copy operation on any registered table instead of the
+        original. If given as a container, only table names in the container
+        are copied.
+    overloading : bool, default False
+        Allow this step definition to overload an existing wrapped workflow
+        function. This permits a user to overload ActivitySim functions with
+        bespoke alternatives.  To ensure that the reverse never occurs (i.e.
+        the user creates a bespoke alternative implementation and then allows
+        it to be overwritten by ActivitySim's default by importing things in
+        the wrong order) steps defined and delivered within the ActivitySim
+        package itself should never set this flag.
 
     Returns
     -------
-    wrapped_func : Callable
-        The original wrapped function
-
+    Callable
     """
 
     def __new__(
@@ -168,32 +148,10 @@ class workflow_step:
         *,
         step_name=None,
         cache=False,
-        inplace=False,
         kind="step",
         copy_tables=True,
         overloading=False,
     ):
-        """
-        Initialize a work step wrapper.
-
-        Parameters
-        ----------
-        wrapped_func : Callable
-            The function being decorated.
-        step_name : str
-            Use this name for the function being decorated, if not given
-            the existing name is used.
-        cache : bool, default False
-            If true, this function is only run if the named value is not
-            already stored in the context.  Also, the return value should
-            not be a mapping but instead just a single Python object that
-            will be stored in the context with a key given by the step_name.
-        copy_tables : bool or Container[str], default True
-            If this evaluates to true, access to tables as a DataFrame is
-            always via a copy of the any registerd table instead of the
-            original. If given as a container, only table names in the container
-            are copied.
-        """
         if wrapped_func is not None and not isinstance(wrapped_func, Callable):
             raise TypeError("workflow step must decorate a callable")
         if step_name is None and wrapped_func is not None:
@@ -201,7 +159,6 @@ class workflow_step:
         self = super().__new__(cls)
         self._step_name = step_name
         self._cache = cache
-        self._inplace = inplace
         self._kind = kind
         self._copy_tables = copy_tables
         self._overloading = overloading
@@ -212,7 +169,7 @@ class workflow_step:
 
     def __call__(self, wrapped_func):
         """
-        Initialize a workflow_step wrapper.
+        Initialize a workflow.step wrapper.
 
         Parameters
         ----------
@@ -464,21 +421,54 @@ class workflow_step:
             raise ValueError(self._kind)
 
 
-class workflow_cached_object(workflow_step):
+class cached_object(step):
+    """
+    Decorator for functions that deliver objects that should be cached.
+
+    The function is called to initialize or otherwise generate the value of
+    an object to be cached, but only if the matching name is not already stored
+    in the state's context.
+
+    :py:class:`@workflow.cached_object <activitysim.core.workflow.cached_object>` is equivalent to
+    :py:class:`@workflow.step(cache=True, kind="cached_object") <activitysim.core.workflow.step>`.
+    """
+
     def __new__(cls, wrapped_func=None, *, step_name=None):
         return super().__new__(
             cls, wrapped_func, step_name=step_name, cache=True, kind="cached_object"
         )
 
 
-class workflow_table(workflow_step):
+class table(step):
+    """
+    Decorator for functions that deliver a data table.
+
+    The function is called to initialize or otherwise generate the content of
+    a named data table, but only if the matching name is not already stored
+    in the state's context.
+
+    :py:class:`@workflow.table <activitysim.core.workflow.table>` is equivalent to
+    :py:class:`@workflow.step(cache=True, kind="table") <activitysim.core.workflow.step>`.
+    """
+
     def __new__(cls, wrapped_func=None, *, step_name=None):
         return super().__new__(
             cls, wrapped_func, step_name=step_name, cache=True, kind="table"
         )
 
 
-class workflow_temp_table(workflow_step):
+class temp_table(step):
+    """
+    Decorator for functions that deliver a temporary data table.
+
+    The function is called to initialize or otherwise generate the content of
+    a named temp table, but only if the matching name is not already stored
+    in the state's context.
+
+    :py:class:`@workflow.temp_table <activitysim.core.workflow.temp_table>` is equivalent to
+    :py:class:`@workflow.step(cache=True, kind="temp_table") <activitysim.core.workflow.step>`.
+    """
+
     def __new__(cls, wrapped_func=None, *, step_name=None):
         return super().__new__(
             cls, wrapped_func, step_name=step_name, cache=True, kind="temp_table"

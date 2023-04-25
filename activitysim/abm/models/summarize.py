@@ -211,7 +211,7 @@ def summarize(
     trips: pd.DataFrame,
     tours_merged: pd.DataFrame,
     land_use: pd.DataFrame,
-):
+) -> None:
     """
     A standard model that uses expression files to summarize pipeline tables for vizualization.
 

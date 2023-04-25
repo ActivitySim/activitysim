@@ -18,7 +18,7 @@ def write_trip_matrices(
     state: workflow.State,
     network_los: los.Network_LOS,
     trips: pd.DataFrame,
-):
+) -> None:
     """
     Write trip matrices step.
 

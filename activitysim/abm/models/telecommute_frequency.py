@@ -23,7 +23,7 @@ def telecommute_frequency(
     state: workflow.State,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
-):
+) -> None:
     """
     This model predicts the frequency of telecommute for a person (worker) who
     does not works from home. The alternatives of this model are 'No Telecommute',

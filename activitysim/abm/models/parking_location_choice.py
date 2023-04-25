@@ -288,7 +288,7 @@ def parking_location(
     trips_merged: pd.DataFrame,
     land_use: pd.DataFrame,
     network_los: los.Network_LOS,
-):
+) -> None:
     """
     Given a set of trips, each trip needs to have a parking location if
     it is eligible for remote parking.

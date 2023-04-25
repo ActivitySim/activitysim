@@ -146,7 +146,7 @@ def compute_accessibility(
     land_use: pd.DataFrame,
     accessibility: pd.DataFrame,
     network_los: los.Network_LOS,
-):
+) -> None:
     """
     Compute accessibility for each zone in land use file using expressions from accessibility_spec
 

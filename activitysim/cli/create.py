@@ -293,7 +293,7 @@ def download_asset(
     base_path : str, optional
         Give the base directory for the example.
     unpack : str, optional
-        If the asset is an archive file (*.zip, *.tar.gz, or *.tar.zst), it
+        If the asset is an archive file (.zip, .tar.gz, or .tar.zst), it
         will be decompressed into this location.
     """
     if isinstance(target_path, Path):

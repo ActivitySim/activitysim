@@ -267,7 +267,7 @@ def run_trip_purpose(state: workflow.State, trips_df, estimator, trace_label):
 
 
 @workflow.step
-def trip_purpose(state: workflow.State, trips: pd.DataFrame):
+def trip_purpose(state: workflow.State, trips: pd.DataFrame) -> None:
     """
     trip purpose model step - calls run_trip_purpose to run the actual model
 

@@ -299,7 +299,7 @@ def joint_tour_participation(
     state: workflow.State,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
-):
+) -> None:
     """
     Predicts for each eligible person to participate or not participate in each joint tour.
     """

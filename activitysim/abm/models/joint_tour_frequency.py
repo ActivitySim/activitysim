@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 @workflow.step
 def joint_tour_frequency(
     state: workflow.State, households: pd.DataFrame, persons: pd.DataFrame
-):
+) -> None:
     """
     This model predicts the frequency of making fully joint trips (see the
     alternatives above).

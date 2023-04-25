@@ -9,7 +9,7 @@ def create_example(
     example_name: str,
     directory: Path | str = None,
     temp: bool = False,
-) -> "workflow.State":
+) -> workflow.State:
     """
     Create an example model.
 

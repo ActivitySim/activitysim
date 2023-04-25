@@ -20,7 +20,7 @@ def atwork_subtour_destination(
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     network_los: los.Network_LOS,
-):
+) -> None:
     trace_label = "atwork_subtour_destination"
     model_settings_file_name = "atwork_subtour_destination.yaml"
     model_settings = state.filesystem.read_model_settings(model_settings_file_name)

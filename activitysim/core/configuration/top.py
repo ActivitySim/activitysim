@@ -291,11 +291,49 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     See :ref:`chunk_size` for more details.
     """
 
-    chunk_method: str = None
+    chunk_method: Literal[
+        "bytes",
+        "uss",
+        "hybrid_uss",
+        "rss",
+        "hybrid_rss",
+    ] = "hybrid_uss"
     """
     Memory use measure to use for chunking.
 
-    See :ref:`chunk_size`.
+    The following methods are supported to calculate memory overhead when chunking
+    is enabled:
+
+    * "bytes"
+        expected rowsize based on actual size (as reported by numpy and
+        pandas) of explicitly allocated data this can underestimate overhead due
+        to transient data requirements of operations (e.g. merge, sort, transpose).
+    * "uss"
+        expected rowsize based on change in (unique set size) (uss) both as
+        a result of explicit data allocation, and readings by MemMonitor sniffer
+        thread that measures transient uss during time-consuming numpy and pandas
+        operations.
+    * "hybrid_uss"
+        hybrid_uss avoids problems with pure uss, especially with
+        small chunk sizes (e.g. initial training chunks) as numpy may recycle
+        cached blocks and show no increase in uss even though data was allocated
+        and logged.
+    * "rss"
+        like uss, but for resident set size (rss), which is the portion of
+        memory occupied by a process that is held in RAM.
+    * "hybrid_rss"
+        like hybrid_uss, but for rss
+
+    RSS is reported by :py:meth:`psutil.Process.memory_info` and USS is reported by
+    :py:meth:`psutil.Process.memory_full_info`.  USS is the memory which is private to
+    a process and which would be freed if the process were terminated.  This is
+    the metric that most closely matches the rather vague notion of memory
+    "in use" (the meaning of which is difficult to pin down in operating systems
+    with virtual memory where memory can (but sometimes can't) be swapped or
+    mapped to disk. Previous testing found `hybrid_uss` performs best and is most
+    reliable and is therefore the default.
+
+    For more, see :ref:`chunk_size`.
     """
 
     keep_chunk_logs: bool = True

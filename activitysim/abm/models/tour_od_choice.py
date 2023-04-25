@@ -21,7 +21,7 @@ def tour_od_choice(
     land_use: pd.DataFrame,
     network_los: los.Network_LOS,
     chunk_size,
-):
+) -> None:
     """Simulates joint origin/destination choice for all tours.
 
     Given a set of previously generated tours, each tour needs to have an

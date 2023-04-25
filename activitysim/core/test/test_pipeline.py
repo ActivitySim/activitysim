@@ -50,10 +50,10 @@ def close_handlers():
 # @pytest.mark.filterwarnings('ignore::tables.NaturalNameWarning')
 def test_pipeline_run(state):
 
-    # workflow.steps.workflow_step(steps.step1, step_name="step1")
-    # workflow.steps.workflow_step(steps.step2, step_name="step2")
-    # workflow.steps.workflow_step(steps.step3, step_name="step3")
-    # workflow.steps.workflow_step(steps.step_add_col, step_name="step_add_col")
+    # workflow.step(steps.step1, step_name="step1")
+    # workflow.step(steps.step2, step_name="step2")
+    # workflow.step(steps.step3, step_name="step3")
+    # workflow.step(steps.step_add_col, step_name="step_add_col")
 
     _MODELS = [
         "step1",
@@ -94,11 +94,11 @@ def test_pipeline_run(state):
 
 def test_pipeline_checkpoint_drop(state):
 
-    # workflow.steps.workflow_step(steps.step1, step_name="step1")
-    # workflow.steps.workflow_step(steps.step2, step_name="step2")
-    # workflow.steps.workflow_step(steps.step3, step_name="step3")
-    # workflow.steps.workflow_step(steps.step_add_col, step_name="step_add_col")
-    # workflow.steps.workflow_step(steps.step_forget_tab, step_name="step_forget_tab")
+    # workflow.step(steps.step1, step_name="step1")
+    # workflow.step(steps.step2, step_name="step2")
+    # workflow.step(steps.step3, step_name="step3")
+    # workflow.step(steps.step_add_col, step_name="step_add_col")
+    # workflow.step(steps.step_forget_tab, step_name="step_forget_tab")
 
     _MODELS = [
         "step1",

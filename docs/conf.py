@@ -38,13 +38,15 @@ extensions = [
     "sphinx.ext.mathjax",
     "numpydoc",
     "sphinx.ext.autosummary",
-    "myst_parser",
+    "myst_nb",
+    # "myst_parser",
     "sphinx_design",
     "sphinxarg.ext",
     "sphinx.ext.intersphinx",
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_autosummary_accessors",
     "sphinx_remove_toctrees",
+    "sphinx_copybutton",
 ]
 
 remove_from_toctrees = [
@@ -53,6 +55,8 @@ remove_from_toctrees = [
     "users-guide/_generated/*",
 ]
 myst_enable_extensions = ["colon_fence"]
+myst_heading_anchors = 3
+nb_merge_streams = True
 numpydoc_show_class_members = False
 autosummary_generate = True
 autodoc_pydantic_model_signature_prefix = "settings"
@@ -67,8 +71,8 @@ templates_path = ["_templates"]
 # The suffix of source filenames.
 source_suffix = {
     ".rst": "restructuredtext",
-    ".txt": "markdown",
-    ".md": "markdown",
+    # ".txt": "markdown",
+    # ".md": "markdown",
 }
 
 # The encoding of source files.
@@ -234,6 +238,7 @@ intersphinx_mapping = {
     "xarray": ("https://docs.xarray.dev/en/stable", None),
     "pyarrow": ("https://arrow.apache.org/docs", None),
     "numba": ("https://numba.pydata.org/numba-doc/latest", None),
+    "psutil": ("https://psutil.readthedocs.io/en/latest", None),
 }
 
 # -- Options for LaTeX output ---------------------------------------------

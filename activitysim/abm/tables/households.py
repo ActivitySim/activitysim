@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.table
-def households(state: workflow.State):
+def households(state: workflow.State) -> pd.DataFrame:
     households_sample_size = state.settings.households_sample_size
     _override_hh_ids = override_hh_ids(state)
     _trace_hh_id = state.settings.trace_hh_id
@@ -126,7 +126,7 @@ def households_merged(
     households: pd.DataFrame,
     land_use: pd.DataFrame,
     accessibility: pd.DataFrame,
-):
+) -> pd.DataFrame:
 
     households = simple_table_join(
         households,

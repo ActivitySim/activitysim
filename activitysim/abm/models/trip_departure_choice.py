@@ -480,7 +480,7 @@ def apply_stage_two_model(state, omnibus_spec, trips, chunk_size, trace_label):
 @workflow.step
 def trip_departure_choice(
     state: workflow.State, trips: pd.DataFrame, trips_merged: pd.DataFrame, skim_dict
-):
+) -> None:
     trace_label = "trip_departure_choice"
     model_settings = state.filesystem.read_model_settings("trip_departure_choice.yaml")
 

@@ -6,8 +6,8 @@ import logging
 import time
 import warnings
 from collections import OrderedDict
+from collections.abc import Callable
 from datetime import timedelta
-from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
@@ -106,7 +106,7 @@ def read_model_spec(filesystem: configuration.FileSystem, file_name: str):
 
     assert isinstance(file_name, str)
     if not file_name.lower().endswith(".csv"):
-        file_name = "%s.csv" % (file_name,)
+        file_name = f"{file_name}.csv"
 
     file_path = filesystem.get_config_file_path(file_name)
 
@@ -185,7 +185,7 @@ def spec_for_segment(
     model_settings,
     spec_id: str,
     segment_name: str,
-    estimator: "Optional[Estimator]",
+    estimator: Estimator | None,
 ) -> pd.DataFrame:
     """
     Select spec for specified segment from omnibus spec containing columns for each segment
@@ -414,7 +414,7 @@ def eval_coefficients(
     state: workflow.State,
     spec: pd.DataFrame,
     coefficients: dict | pd.DataFrame,
-    estimator: Optional[Estimator],
+    estimator: Estimator | None,
 ) -> pd.DataFrame:
     spec = spec.copy()  # don't clobber input spec
 
@@ -1114,7 +1114,7 @@ def eval_mnl(
     locals_d : Dict or None
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
-    custom_chooser : function(probs, choosers, spec, trace_label) returns choices, rands
+    custom_chooser : function(state, probs, choosers, spec, trace_label) returns choices, rands
         custom alternative to logit.make_choices
     estimator : Estimator object
         called to report intermediate table results (used for estimation)
@@ -1350,10 +1350,11 @@ def eval_nl(
 
     if custom_chooser:
         choices, rands = custom_chooser(
-            probs=base_probabilities,
-            choosers=choosers,
-            spec=spec,
-            trace_label=trace_label,
+            state,
+            base_probabilities,
+            choosers,
+            spec,
+            trace_label,
         )
     else:
         choices, rands = logit.make_choices(
@@ -1367,10 +1368,10 @@ def eval_nl(
         state.tracing.trace_df(
             choices, "%s.choices" % trace_label, columns=[None, trace_choice_name]
         )
-        state.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
+        state.tracing.trace_df(rands, f"{trace_label}.rands", columns=[None, "rand"])
         if want_logsums:
             state.tracing.trace_df(
-                logsums, "%s.logsums" % trace_label, columns=[None, "logsum"]
+                logsums, f"{trace_label}.logsums", columns=[None, "logsum"]
             )
 
     if want_logsums:

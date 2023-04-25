@@ -31,7 +31,7 @@ def joint_tour_composition(
     tours: pd.DataFrame,
     households: pd.DataFrame,
     persons: pd.DataFrame,
-):
+) -> None:
     """
     This model predicts the makeup of the travel party (adults, children, or mixed).
     """

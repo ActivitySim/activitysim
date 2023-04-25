@@ -23,7 +23,7 @@ def transit_pass_subsidy(
     state: workflow.State,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
-):
+) -> None:
     """
     Transit pass subsidy model.
     """

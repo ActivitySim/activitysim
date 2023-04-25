@@ -20,7 +20,7 @@ def atwork_subtour_mode_choice(
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     network_los: los.Network_LOS,
-):
+) -> None:
     """
     At-work subtour mode choice simulate
     """

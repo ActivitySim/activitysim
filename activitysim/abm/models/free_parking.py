@@ -27,7 +27,7 @@ def free_parking(
     model_settings_file_name: str = "free_parking.yaml",
     model_settings: dict[str, Any] = workflow.from_yaml("free_parking.yaml"),
     trace_label: str = "free_parking",
-):
+) -> None:
     """
     Determine for each person whether they have free parking available at work.
 

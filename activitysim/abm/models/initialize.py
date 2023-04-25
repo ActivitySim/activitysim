@@ -98,7 +98,7 @@ def annotate_tables(state: workflow.State, model_settings, trace_label, chunk_si
 
 
 @workflow.step
-def initialize_landuse(state: workflow.State):
+def initialize_landuse(state: workflow.State) -> None:
     """
     Initialize the land use table.
 
@@ -126,7 +126,7 @@ def initialize_landuse(state: workflow.State):
 
 
 @workflow.step
-def initialize_households(state: workflow.State):
+def initialize_households(state: workflow.State) -> None:
     trace_label = "initialize_households"
 
     with chunk.chunk_log(state, trace_label, base=True) as chunk_sizer:

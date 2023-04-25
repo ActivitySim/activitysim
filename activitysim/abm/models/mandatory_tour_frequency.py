@@ -46,7 +46,7 @@ def add_null_results(state, trace_label, mandatory_tour_frequency_settings):
 def mandatory_tour_frequency(
     state: workflow.State,
     persons_merged: pd.DataFrame,
-):
+) -> None:
     """
     This model predicts the frequency of making mandatory trips (see the
     alternatives above) - these trips include work and school in some combination.

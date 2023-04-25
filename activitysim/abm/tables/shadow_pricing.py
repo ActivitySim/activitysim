@@ -1236,15 +1236,15 @@ def load_shadow_price_calculator(state: workflow.State, model_settings):
 def add_size_tables(
     state: workflow.State,
     disaggregate_suffixes: dict[str, Any],
-):
-    return _add_size_tables(state, disaggregate_suffixes)
+) -> None:
+    _add_size_tables(state, disaggregate_suffixes)
 
 
 # then define _add_size_tables as a second method which also offers an optional
 # default argument to not scale sizes.  This is used only in disaggregate
 # accessibility (for now) and is not called via orca.  We need to do this to
 # avoid having to create a new orca variable for the scale argument.
-def _add_size_tables(state, disaggregate_suffixes, scale=True):
+def _add_size_tables(state, disaggregate_suffixes, scale=True) -> None:
     """
     inject tour_destination_size_terms tables for each model_selector (e.g. school, workplace)
 

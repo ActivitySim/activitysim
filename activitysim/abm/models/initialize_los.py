@@ -59,7 +59,7 @@ def num_uninitialized(data, lock=None):
 
 
 @workflow.step
-def initialize_los(state: workflow.State, network_los: los.Network_LOS):
+def initialize_los(state: workflow.State, network_los: los.Network_LOS) -> None:
     """
     Currently, this step is only needed for THREE_ZONE systems in which the tap_tap_utilities are precomputed
     in the (presumably subsequent) initialize_tvpb step.
@@ -193,7 +193,7 @@ def initialize_tvpb(
     state: workflow.State,
     network_los: los.Network_LOS,
     attribute_combinations: pd.DataFrame,
-):
+) -> None:
     """
     Initialize STATIC tap_tap_utility cache and write mmap to disk.
 

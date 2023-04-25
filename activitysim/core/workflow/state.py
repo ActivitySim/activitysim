@@ -1106,13 +1106,13 @@ class State:
         if prefix is None or prefix is True:
             prefix = self.get_injectable("output_file_prefix", None)
         if prefix:
-            file_name = "%s-%s" % (prefix, file_name)
+            file_name = f"{prefix}-{file_name}"
         return self.filesystem.get_output_dir().joinpath(file_name)
 
     def get_log_file_path(self, file_name: str, prefix=True) -> Path:
-        prefix = self.get_injectable("output_file_prefix", None)
+        prefix = prefix and self.get_injectable("log_file_prefix", None)
         if prefix:
-            file_name = "%s-%s" % (prefix, file_name)
+            file_name = f"{prefix}-{file_name}"
         return self.filesystem.get_log_file_path(file_name)
 
     def set_step_args(self, args=None):

@@ -236,6 +236,7 @@ intersphinx_mapping = {
     "xarray": ("https://docs.xarray.dev/en/stable", None),
     "pyarrow": ("https://arrow.apache.org/docs", None),
     "numba": ("https://numba.pydata.org/numba-doc/latest", None),
+    "psutil": ("https://psutil.readthedocs.io/en/latest", None),
 }
 
 # -- Options for LaTeX output ---------------------------------------------

@@ -100,3 +100,18 @@ Unlike temporary tables, they are not formally predicated on their arguments, so
 for example in the `cached_object` above, a change in the value of `other_thing`
 will cause `name_of_object` to be regenerated if it already exists in the state's
 context.
+
+## API
+
+```{eval-rst}
+.. currentmodule:: activitysim.core.workflow
+
+.. autosummary::
+    :toctree: _generated
+    :template: autosummary/class_decorator.rst
+    :recursive:
+
+    table
+    temp_table
+    cached_object
+```

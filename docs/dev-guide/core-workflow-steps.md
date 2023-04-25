@@ -64,7 +64,4 @@ separately by the caller if the function is executed directly.
     :recursive:
 
     step
-    table
-    temp_table
-    cached_object
 ```

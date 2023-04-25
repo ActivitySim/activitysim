@@ -81,7 +81,7 @@ def initialize_tours(
     state: workflow.State,
     households: pd.DataFrame,
     persons: pd.DataFrame,
-):
+) -> None:
     trace_label = "initialize_tours"
 
     trace_hh_id = state.settings.trace_hh_id

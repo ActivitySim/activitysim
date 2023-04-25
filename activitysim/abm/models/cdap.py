@@ -26,7 +26,7 @@ def cdap_simulate(
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
     households: pd.DataFrame,
-):
+) -> None:
     """
     CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
     high-level activity pattern for each person, in a coordinated way with other

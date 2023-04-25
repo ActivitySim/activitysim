@@ -19,7 +19,7 @@ def non_mandatory_tour_destination(
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     network_los: los.Network_LOS,
-):
+) -> None:
     """
     Given the tour generation from the above, each tour needs to have a
     destination, so in this case tours are the choosers (with the associated

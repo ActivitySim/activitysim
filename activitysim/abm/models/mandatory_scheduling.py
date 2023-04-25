@@ -22,7 +22,7 @@ def mandatory_tour_scheduling(
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     tdd_alts: pd.DataFrame,
-):
+) -> None:
     """
     This model predicts the departure time and duration of each activity for mandatory tours
     """

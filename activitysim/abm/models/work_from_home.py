@@ -24,7 +24,7 @@ def work_from_home(
     state: workflow.State,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
-):
+) -> None:
     """
     This model predicts whether a person (worker) works from home. The output
     from this model is TRUE (if works from home) or FALSE (works away from home).

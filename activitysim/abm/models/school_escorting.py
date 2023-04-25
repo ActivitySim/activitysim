@@ -341,7 +341,7 @@ def school_escorting(
     households_merged: pd.DataFrame,
     persons: pd.DataFrame,
     tours: pd.DataFrame,
-):
+) -> None:
     """
     school escorting model
 

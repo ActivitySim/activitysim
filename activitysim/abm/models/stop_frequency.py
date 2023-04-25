@@ -28,7 +28,7 @@ def stop_frequency(
     tours_merged: pd.DataFrame,
     stop_frequency_alts,
     network_los: los.Network_LOS,
-):
+) -> None:
     """
     stop frequency model
 

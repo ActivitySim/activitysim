@@ -27,7 +27,7 @@ def atwork_subtour_scheduling(
     persons_merged: pd.DataFrame,
     tdd_alts: pd.DataFrame,
     skim_dict,
-):
+) -> None:
     """
     This model predicts the departure time and duration of each activity for at work subtours tours
     """

@@ -16,7 +16,7 @@ def auto_ownership_simulate(
     state: workflow.State,
     households: pd.DataFrame,
     households_merged: pd.DataFrame,
-):
+) -> None:
     """
     Auto ownership is a standard model which predicts how many cars a household
     with given characteristics owns

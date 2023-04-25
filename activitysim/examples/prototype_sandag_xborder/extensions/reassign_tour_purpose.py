@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.step
-def reassign_tour_purpose_by_poe(state: workflow.State, tours: pd.DataFrame):
+def reassign_tour_purpose_by_poe(state: workflow.State, tours: pd.DataFrame) -> None:
 
     """
     Simulates tour purpose choices after tour origin has been assigned. This

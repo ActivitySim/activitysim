@@ -55,7 +55,7 @@ def trip_purpose_and_destination(
     state: workflow.State,
     trips: pd.DataFrame,
     tours_merged: pd.DataFrame,
-):
+) -> None:
     trace_label = "trip_purpose_and_destination"
     model_settings = state.filesystem.read_model_settings(
         "trip_purpose_and_destination.yaml"

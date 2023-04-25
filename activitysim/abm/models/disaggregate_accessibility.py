@@ -680,7 +680,7 @@ def get_disaggregate_logsums(
 def initialize_proto_population(
     state: workflow.State,
     network_los: los.Network_LOS,
-):
+) -> None:
     # Synthesize the proto-population
     ProtoPop(state, network_los, state.settings.chunk_size)
     return
@@ -690,7 +690,7 @@ def initialize_proto_population(
 def compute_disaggregate_accessibility(
     state: workflow.State,
     network_los: los.Network_LOS,
-):
+) -> None:
     """
     Compute enhanced disaggregate accessibility for user specified population segments,
     as well as each zone in land use file using expressions from accessibility_spec.

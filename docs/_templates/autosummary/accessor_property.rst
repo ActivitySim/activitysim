@@ -1,13 +1,8 @@
 {{ objname }}
 {{ underline }}
 
-..
-   module is "{{ module }}"
-   objname is "{{ objname }}"
-   objtype is "{{ objtype }}"
-
 {% if module.startswith('activitysim.core.workflow') %}
-.. currentmodule:: {{ module.split('.')[:3] }}
+.. currentmodule:: {{ module.split('.')[:3] | join('.') }}
 
 .. autoaccessormethod:: {{ (module.split('.')[3:] + [objname]) | join('.') }}
 {% else %}

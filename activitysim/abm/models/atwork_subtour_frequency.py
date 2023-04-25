@@ -31,7 +31,7 @@ def atwork_subtour_frequency(
     state: workflow.State,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
-):
+) -> None:
     """
     This model predicts the frequency of making at-work subtour tours
     (alternatives for this model come from a separate csv file which is

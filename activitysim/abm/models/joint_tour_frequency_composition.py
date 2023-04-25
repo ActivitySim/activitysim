@@ -24,12 +24,12 @@ from activitysim.core.interaction_simulate import interaction_simulate
 logger = logging.getLogger(__name__)
 
 
-@workflow.step()
+@workflow.step
 def joint_tour_frequency_composition(
     state: workflow.State,
     households_merged: pd.DataFrame,
     persons: pd.DataFrame,
-):
+) -> None:
     """
     This model predicts the frequency and composition of fully joint tours.
     """

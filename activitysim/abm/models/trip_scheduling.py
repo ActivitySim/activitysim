@@ -434,7 +434,7 @@ def trip_scheduling(
     state: workflow.State,
     trips: pd.DataFrame,
     tours: pd.DataFrame,
-):
+) -> None:
     """
     Trip scheduling assigns depart times for trips within the start, end limits of the tour.
 

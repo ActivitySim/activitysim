@@ -329,7 +329,7 @@ def trip_scheduling_choice(
     trips: pd.DataFrame,
     tours: pd.DataFrame,
     skim_dict,
-):
+) -> None:
     trace_label = "trip_scheduling_choice"
     model_settings = state.filesystem.read_model_settings("trip_scheduling_choice.yaml")
     spec = get_spec_for_segment(state, model_settings, "SPECIFICATION", "stage_one")

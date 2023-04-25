@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.step
-def track_skim_usage(state: workflow.State):
+def track_skim_usage(state: workflow.State) -> None:
     """
     write statistics on skim usage (diagnostic to detect loading of un-needed skims)
 
@@ -92,7 +92,7 @@ def previous_write_data_dictionary(state: workflow.State, output_dir):
 
 
 @workflow.step
-def write_data_dictionary(state: workflow.State):
+def write_data_dictionary(state: workflow.State) -> None:
     """
     Write table schema for all tables
 
@@ -224,7 +224,7 @@ def write_data_dictionary(state: workflow.State):
 
 
 @workflow.step
-def write_tables(state: workflow.State):
+def write_tables(state: workflow.State) -> None:
     """
     Write pipeline tables as csv files (in output directory) as specified by output_tables list
     in settings file.

@@ -1083,7 +1083,7 @@ def workplace_location(
     households: pd.DataFrame,
     network_los: los.Network_LOS,
     locutor: bool,
-):
+) -> None:
     """
     workplace location choice model
 
@@ -1133,7 +1133,7 @@ def school_location(
     households: pd.DataFrame,
     network_los: los.Network_LOS,
     locutor: bool,
-):
+) -> None:
     """
     School location choice model
 

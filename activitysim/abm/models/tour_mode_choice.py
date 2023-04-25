@@ -177,7 +177,7 @@ def tour_mode_choice_simulate(
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     network_los: los.Network_LOS,
-):
+) -> None:
     """
     Tour mode choice simulate
     """

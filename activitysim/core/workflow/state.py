@@ -7,7 +7,6 @@ import os
 import sys
 import textwrap
 import warnings
-from builtins import map, next
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Optional
@@ -26,7 +25,7 @@ from activitysim.core.workflow.extending import Extend
 from activitysim.core.workflow.logging import Logging
 from activitysim.core.workflow.report import Reporting
 from activitysim.core.workflow.runner import Runner
-from activitysim.core.workflow.steps import workflow_step
+from activitysim.core.workflow.steps import step as workflow_step
 from activitysim.core.workflow.tracing import Tracing
 
 # ActivitySim

@@ -480,7 +480,7 @@ def vehicle_type_choice(
     households: pd.DataFrame,
     vehicles: pd.DataFrame,
     vehicles_merged: pd.DataFrame,
-):
+) -> None:
     """Assign a vehicle type to each vehicle in the `vehicles` table.
 
     If a "SIMULATION_TYPE" is set to simple_simulate in the

@@ -90,7 +90,7 @@ def vehicle_allocation(
     tours: pd.DataFrame,
     tours_merged: pd.DataFrame,
     network_los: los.Network_LOS,
-):
+) -> None:
     """Selects a vehicle for each occupancy level for each tour.
 
     Alternatives consist of the up to the number of household vehicles plus one

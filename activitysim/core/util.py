@@ -373,8 +373,22 @@ def assign_in_place(df, df2):
     df[new_columns] = df2[new_columns]
 
 
-def df_from_dict(values, index=None):
+def reindex_if_series(values, index):
+    if index is not None:
+        return values
+    
+    if isinstance(values, pd.Series):
+        assert len(set(values.index).intersection(index)) == len(index)
+        
+        if all(values.index != index):
+            return values.reindex(index=index) 
 
+
+def df_from_dict(values, index=None):
+    
+    # If value object is a series and has out of order index, reindex it
+    values = {k: reindex_if_series(v, index) for k, v in values.items()}   
+    
     df = pd.DataFrame.from_dict(values)
     if index is not None:
         df.index = index

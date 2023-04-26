@@ -261,12 +261,17 @@ class Runner(StateAccessor):
         bool
             True if the run of this step should be skipped.
         """
-        if model_name in [
+        checkpointed_models = [
             checkpoint[CHECKPOINT_NAME]
             for checkpoint in self._obj.checkpoint.checkpoints
-        ]:
+        ]
+        if model_name in checkpointed_models:
             if self._obj.settings.duplicate_step_execution == "raise":
-                raise RuntimeError("Cannot run model '%s' more than once" % model_name)
+                checkpointed_model_bullets = "\n - ".join(checkpointed_models)
+                raise RuntimeError(
+                    f"Checkpointed Models:\n - {checkpointed_model_bullets}\n"
+                    f"Cannot run model '{model_name}' more than once"
+                )
             elif self._obj.settings.duplicate_step_execution == "warn":
                 warnings.warn(
                     f"aborting attempt to re-run step {model_name!r} more than once"

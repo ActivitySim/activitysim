@@ -746,16 +746,16 @@ class Checkpoints(StateAccessor):
             model_name of checkpoint to load (resume_after argument to open_pipeline)
         """
 
-        logger.info("load_checkpoint %s" % (checkpoint_name))
+        logger.info(f"load_checkpoint {checkpoint_name} from {self.store.filename}")
 
         try:
             checkpoints = self._read_df(CHECKPOINT_TABLE_NAME, store=store)
         except FileNotFoundError as err:
-            raise CheckpointFileNotFoundError(err)
+            raise CheckpointFileNotFoundError(err) from None
 
         if checkpoint_name == LAST_CHECKPOINT:
             checkpoint_name = checkpoints[CHECKPOINT_NAME].iloc[-1]
-            logger.info("loading checkpoint '%s'" % checkpoint_name)
+            logger.info(f"loading checkpoint '{checkpoint_name}'")
 
         try:
             # truncate rows after target checkpoint
@@ -772,10 +772,10 @@ class Checkpoints(StateAccessor):
                 self._write_df(checkpoints, CHECKPOINT_TABLE_NAME)
 
         except IndexError:
-            msg = "Couldn't find checkpoint '%s' in checkpoints" % (checkpoint_name,)
+            msg = f"Couldn't find checkpoint '{checkpoint_name}' in checkpoints"
             print(checkpoints[CHECKPOINT_NAME])
             logger.error(msg)
-            raise RuntimeError(msg)
+            raise RuntimeError(msg) from None
 
         # convert pandas dataframe back to array of checkpoint dicts
         checkpoints = checkpoints.to_dict(orient="records")

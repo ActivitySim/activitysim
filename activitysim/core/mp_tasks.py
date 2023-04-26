@@ -1027,7 +1027,7 @@ def run_simulation(
             resume_after = LAST_CHECKPOINT
 
     state.checkpoint.restore(resume_after)
-    last_checkpoint = state.checkpoint.last_checkpoint
+    last_checkpoint = state.checkpoint.last_checkpoint.get(CHECKPOINT_NAME)
 
     if last_checkpoint in models:
         info(state, f"Resuming model run list after {last_checkpoint}")

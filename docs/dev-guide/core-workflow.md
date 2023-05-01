@@ -16,7 +16,7 @@ simulated households, persons, etc.  Extensive documentation on the
 The [`State`](core-workflow-api) class for ActivitySim also offers hooks for a
 few fundamental elements:
 
-- [**Model Components**](core-workflow-steps), also referred to as "steps",
+- [**Steps**](core-workflow-steps), also referred to as "model components",
     which represent the fundamental mathematical building blocks of an ActivitySim
     model.  Each component contains instructions for incrementally augmenting the
     state of the model, generally by adding columns or rows to an existing table,

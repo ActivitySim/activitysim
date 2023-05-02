@@ -102,7 +102,7 @@ def run_activitysim_as_subprocess(
     # args = shlex.split(args)
 
     env = os.environ.copy()
-    pythonpath = env.pop("PYTHONPATH", None)
+    _pythonpath = env.pop("PYTHONPATH", None)
 
     if single_thread:
         env["MKL_NUM_THREADS"] = "1"
@@ -119,18 +119,6 @@ def run_activitysim_as_subprocess(
         env["NUMBA_NUM_THREADS"] = str(multi_thread.get("NUMBA", 1))
         env["VECLIB_MAXIMUM_THREADS"] = str(multi_thread.get("VECLIB", 1))
         env["NUMEXPR_NUM_THREADS"] = str(multi_thread.get("NUMEXPR", 1))
-
-    # if pythonpath:
-    #     print(f"removed PYTHONPATH from ENV: {pythonpath}")
-    # else:
-    #     print(f"no removed PYTHONPATH from ENV!")
-    #
-    # for k, v in env.items():
-    #     print(f"  - {k}: {v}")
-
-    # if conda_prefix is not None:
-    # args = ["conda", "init", "bash", "&&", 'conda', 'activate', conda_prefix, '&&'] + list(args)
-    # args = ['conda', 'run', '-p', conda_prefix] + list(args)
 
     if conda_prefix:
         conda_prefix_1 = os.environ.get("CONDA_PREFIX_1", None)

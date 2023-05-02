@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os.path
 import warnings
-from typing import Mapping
+from collections.abc import Mapping
 
 import yaml
 
@@ -19,9 +19,9 @@ def check_data_dictionary(input):
         return {}
     elif isinstance(input, str):
         if not os.path.exists(input):
-            warnings.warn(f"data dictionary file {input} is missing")
+            warnings.warn(f"data dictionary file {input} is missing", stacklevel=2)
             return {}
-        with open(input, "rt") as f:
+        with open(input) as f:
             content = yaml.safe_load(f)
     else:
         content = input

@@ -1,13 +1,15 @@
+from __future__ import annotations
+
 import importlib
 import logging
+from collections.abc import Mapping
 from inspect import getfullargspec
-from typing import Mapping
 
 from pypyr.context import Context
 
-from . import get_formatted_or_default
-from .error_handler import error_logging
-from .progression import reset_progress_step
+from activitysim.workflows.steps import get_formatted_or_default
+from activitysim.workflows.steps.error_handler import error_logging
+from activitysim.workflows.steps.progression import reset_progress_step
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +90,7 @@ class workstep:
         wrapped_func : Callable
             The function being decorated.
         """
-        if isinstance(wrapped_func, (str, tuple, list)):
+        if isinstance(wrapped_func, str | tuple | list):
             # the returns_names are provided instead of the wrapped func
             returns_names = wrapped_func
             wrapped_func = None
@@ -117,7 +119,6 @@ class workstep:
             returns_names = (returns_names,)
 
         def run_step(context: Context = None) -> None:
-
             caption = get_formatted_or_default(context, "caption", None)
             progress_tag = get_formatted_or_default(context, "progress_tag", caption)
             if progress_tag is not None:

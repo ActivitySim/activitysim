@@ -1,0 +1,44 @@
+#
+#  mtc_mini
+#
+#   This workflow runs the Prototype MTC model using mini skims (190 zones),
+#   in a single process runner.  It is for mainly for rapid testing of the code
+#   and specification files for errors, not for policy analysis.
+#
+
+context_parser: pypyr.parser.keyvaluepairs
+steps:
+
+- description: Setting default workflow parameters
+  name: pypyr.steps.default
+  in:
+    defaults:
+      example_name: prototype_mtc_sf
+      workflow_name: v1.3/mtc_mini
+      workspace: workspace  # this is the directory where model runs are stored
+      create: True
+      compile: False
+      sharrow: True
+      legacy: True
+      reference: True
+      tag:
+      resume_after:
+      fast: False
+      compile_n_households: 500
+      main_n_households: 50000
+      config_dirs: configs
+      data_dir: data
+      instrument: False
+      memory_profile: True
+      trace_hh_id:
+      trace_od:
+      workplace_zone_agg:
+        caption: Workplaces by County
+        district_id: county_id
+      distance_skim: DIST
+      household_income: income
+
+- name: activitysim.workflows.steps.pype
+  in:
+    pype:
+      name: v1.3/_contrast_runner

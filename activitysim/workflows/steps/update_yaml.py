@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import yaml
 from pypyr.errors import KeyNotInContextError
 from pypyr.steps.fetchyaml import run_step as _fetch
 from pypyr.steps.filewriteyaml import run_step as _write
@@ -48,3 +51,11 @@ def run_step(context):
         "encoding": fetch_yaml_input.get("encoding", None),
     }
     _write(context)
+
+
+def update_yaml(path, payload):
+    with open(path) as f:
+        content = yaml.safe_load(f)
+    content.update(payload)
+    with open(path, "w") as f:
+        yaml.safe_dump(content, f)

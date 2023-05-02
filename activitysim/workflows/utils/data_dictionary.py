@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os.path
 import warnings
 from typing import Mapping

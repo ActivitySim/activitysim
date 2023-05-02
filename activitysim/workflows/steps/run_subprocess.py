@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import subprocess
@@ -61,6 +63,7 @@ def run_activitysim_as_subprocess(
     conda_prefix=None,
     single_thread=True,
     multi_thread=None,
+    persist_sharrow_cache=False,
 ) -> None:
     if isinstance(pre_config_dirs, str):
         pre_config_dirs = [pre_config_dirs]
@@ -81,6 +84,8 @@ def run_activitysim_as_subprocess(
         flags.append(f" -r {resume_after}")
     if fast:
         flags.append("--fast")
+    if persist_sharrow_cache:
+        flags.append("--persist-sharrow-cache")
     if settings_file:
         flags.append(f"-s {settings_file}")
     flags = " ".join(flags)

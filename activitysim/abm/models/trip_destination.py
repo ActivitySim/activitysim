@@ -1379,7 +1379,9 @@ def run_trip_destination(
 
 @workflow.step
 def trip_destination(
-    state: workflow.State, trips: pd.DataFrame, tours_merged: pd.DataFrame
+    state: workflow.State,
+    trips: pd.DataFrame,
+    tours_merged: pd.DataFrame,
 ) -> None:
     """
     Choose a destination for all intermediate trips based on trip purpose.

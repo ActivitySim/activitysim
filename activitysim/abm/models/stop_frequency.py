@@ -26,7 +26,7 @@ def stop_frequency(
     state: workflow.State,
     tours: pd.DataFrame,
     tours_merged: pd.DataFrame,
-    stop_frequency_alts,
+    stop_frequency_alts: pd.DataFrame,
     network_los: los.Network_LOS,
 ) -> None:
     """

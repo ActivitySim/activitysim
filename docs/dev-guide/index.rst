@@ -30,6 +30,7 @@ Contents
    workflows
    ../development
    ../models
+   component-configs
    components/index
    ../core
    ../benchmarking

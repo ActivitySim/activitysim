@@ -13,6 +13,8 @@ from activitysim.abm.models.util.vectorize_tour_scheduling import (
 from activitysim.core import config, estimation, expressions, simulate
 from activitysim.core import timetable as tt
 from activitysim.core import tracing, workflow
+from activitysim.core.skim_dataset import SkimDataset
+from activitysim.core.skim_dictionary import SkimDict
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
@@ -26,7 +28,7 @@ def atwork_subtour_scheduling(
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     tdd_alts: pd.DataFrame,
-    skim_dict,
+    skim_dict: SkimDict | SkimDataset,
 ) -> None:
     """
     This model predicts the departure time and duration of each activity for at work subtours tours

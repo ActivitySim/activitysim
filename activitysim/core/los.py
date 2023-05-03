@@ -712,7 +712,7 @@ class Network_LOS(object):
 
         Returns
         -------
-        SkimDict or subclass (e.g. MazSkimDict)
+        SkimDict or subclass (e.g. MazSkimDict) or SkimDataset
         """
         sharrow_enabled = self.sharrow_enabled
         if sharrow_enabled and skim_tag in ("taz", "maz"):

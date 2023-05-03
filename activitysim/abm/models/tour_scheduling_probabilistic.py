@@ -70,7 +70,10 @@ def run_tour_scheduling_probabilistic(
 
 
 @workflow.step
-def tour_scheduling_probabilistic(state: workflow.State, tours: pd.DataFrame) -> None:
+def tour_scheduling_probabilistic(
+    state: workflow.State,
+    tours: pd.DataFrame,
+) -> None:
     """Makes tour departure and arrival choices by sampling from a probability lookup table
 
     This model samples tour scheduling choices from an exogenously defined probability

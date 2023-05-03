@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Mapping
+from collections.abc import Mapping
 
 import numpy as np
 import pandas as pd
@@ -14,6 +14,8 @@ from activitysim.abm.models.util.trip import (
 )
 from activitysim.core import chunk, expressions, simulate, tracing, workflow
 from activitysim.core.interaction_sample_simulate import _interaction_sample_simulate
+from activitysim.core.skim_dataset import SkimDataset
+from activitysim.core.skim_dictionary import SkimDict
 
 logger = logging.getLogger(__name__)
 
@@ -64,9 +66,7 @@ def generate_schedule_alternatives(tours):
             stops.
     :return: pd.Dataframe: Potential time duration windows.
     """
-    assert set([NUM_IB_STOPS, NUM_OB_STOPS, TOUR_DURATION_COLUMN]).issubset(
-        tours.columns
-    )
+    assert {NUM_IB_STOPS, NUM_OB_STOPS, TOUR_DURATION_COLUMN}.issubset(tours.columns)
 
     stop_pattern = tours[HAS_OB_STOPS].astype(int) + tours[HAS_IB_STOPS].astype(int)
 
@@ -300,7 +300,7 @@ def run_trip_scheduling_choice(
 
             result_list.append(choices)
 
-            chunk_sizer.log_df(trace_label, f"result_list", result_list)
+            chunk_sizer.log_df(trace_label, "result_list", result_list)
 
         # FIXME: this will require 2X RAM
         # if necessary, could append to hdf5 store on disk:
@@ -328,7 +328,7 @@ def trip_scheduling_choice(
     state: workflow.State,
     trips: pd.DataFrame,
     tours: pd.DataFrame,
-    skim_dict,
+    skim_dict: SkimDict | SkimDataset,
 ) -> None:
     trace_label = "trip_scheduling_choice"
     model_settings = state.filesystem.read_model_settings("trip_scheduling_choice.yaml")

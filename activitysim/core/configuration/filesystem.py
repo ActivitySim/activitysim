@@ -6,13 +6,15 @@ import os
 import struct
 import time
 from pathlib import Path
+from typing import Any
 
 import numba
+import pandas as pd
 import platformdirs
 import yaml
 from pydantic import DirectoryPath, validator
 
-from activitysim.core.configuration.base import PydanticBase
+from activitysim.core.configuration.base import LogitComponentSettings, PydanticBase
 from activitysim.core.exceptions import SettingsFileNotFoundError
 from activitysim.core.util import parse_suffix_args, suffix_tables_in_settings
 
@@ -614,11 +616,11 @@ class FileSystem(PydanticBase, validate_assignment=True):
 
     def read_settings_file(
         self,
-        file_name,
-        mandatory=True,
-        include_stack=False,
-        configs_dir_list=None,
-        validator_class=None,
+        file_name: str,
+        mandatory: bool = True,
+        include_stack: bool = False,
+        configs_dir_list: tuple[Path] | None = None,
+        validator_class: type[PydanticBase] | None = None,
     ):
         """
         Load settings from one or more yaml files.
@@ -815,7 +817,11 @@ class FileSystem(PydanticBase, validate_assignment=True):
 
         return simulate.read_model_spec(self, file_name)
 
-    def read_model_coefficients(self, model_settings=None, file_name=None):
+    def read_model_coefficients(
+        self,
+        model_settings: LogitComponentSettings | dict[str, Any] | None = None,
+        file_name: str | None = None,
+    ) -> pd.DataFrame:
         from activitysim.core import simulate
 
         return simulate.read_model_coefficients(

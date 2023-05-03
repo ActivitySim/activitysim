@@ -511,19 +511,9 @@ Core Table: ``persons`` | Result Field: ``telecommute_frequency`` | Skims Keys: 
 Free Parking Eligibility
 ------------------------
 
-The Free Parking Eligibility model predicts the availability of free parking at a person's
-workplace.  It is applied for people who work in zones that have parking charges, which are
-generally located in the Central Business Districts. The purpose of the model is to adequately
-reflect the cost of driving to work in subsequent models, particularly in mode choice.
+See :ref:`Free Parking Eligibility <component-free-parking>`.
 
-The main interface to the free parking eligibility model is the
-:py:func:`~activitysim.abm.models.free_parking.free_parking` function.  This function is registered
-as an Inject step in the example Pipeline.
 
-Core Table: ``persons`` | Result Field: ``free_parking_at_work`` | Skims Keys: NA
-
-.. automodule:: activitysim.abm.models.free_parking
-   :members:
 
 .. _cdap:
 

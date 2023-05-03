@@ -8,6 +8,7 @@ import warnings
 from collections import OrderedDict
 from collections.abc import Callable
 from datetime import timedelta
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -23,6 +24,7 @@ from activitysim.core import (
     util,
     workflow,
 )
+from activitysim.core.configuration.base import LogitComponentSettings
 from activitysim.core.estimation import Estimator
 from activitysim.core.simulate_consts import (
     ALT_LOSER_UTIL,
@@ -137,8 +139,10 @@ def read_model_spec(filesystem: configuration.FileSystem, file_name: str):
 
 
 def read_model_coefficients(
-    filesystem: configuration.FileSystem, model_settings=None, file_name=None
-):
+    filesystem: configuration.FileSystem,
+    model_settings: LogitComponentSettings | dict[str, Any] | None = None,
+    file_name: str | None = None,
+) -> pd.DataFrame:
     """
     Read the coefficient file specified by COEFFICIENTS model setting
     """
@@ -148,12 +152,15 @@ def read_model_coefficients(
         assert file_name is not None
     else:
         assert file_name is None
-        assert (
-            "COEFFICIENTS" in model_settings
-        ), "'COEFFICIENTS' tag not in model_settings in %s" % model_settings.get(
-            "source_file_paths"
-        )
-        file_name = model_settings["COEFFICIENTS"]
+        if isinstance(model_settings, LogitComponentSettings):
+            file_name = model_settings.COEFFICIENTS
+        else:
+            assert (
+                "COEFFICIENTS" in model_settings
+            ), "'COEFFICIENTS' tag not in model_settings in %s" % model_settings.get(
+                "source_file_paths"
+            )
+            file_name = model_settings["COEFFICIENTS"]
         logger.debug(f"read_model_coefficients file_name {file_name}")
 
     file_path = filesystem.get_config_file_path(file_name)

@@ -597,7 +597,7 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     When this value is True, all config directories are searched in order for
     additional files with the same filename.  If other files are found they
     are also loaded, but only settings values that are not already explicitly
-    set are applied.  Alternatives, set this to a different file name, in which
+    set are applied.  Alternatively, set this to a different file name, in which
     case settings from that other file are loaded (again, backfilling unset
     values only).  Once the settings files are loaded, this value does not
     have any other effect on the operation of the model(s).

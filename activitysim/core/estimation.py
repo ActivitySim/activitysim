@@ -10,6 +10,7 @@ import pandas as pd
 import yaml
 
 from activitysim.core import simulate, workflow
+from activitysim.core.configuration.base import PydanticBase
 from activitysim.core.util import reindex
 
 logger = logging.getLogger("estimation")
@@ -33,7 +34,6 @@ class Estimator:
     def __init__(
         self, state: workflow.State, bundle_name, model_name, estimation_table_recipes
     ):
-
         logger.info("Initialize Estimator for'%s'" % (model_name,))
 
         self.state = state
@@ -112,7 +112,6 @@ class Estimator:
         return self.chooser_id_column_name
 
     def end_estimation(self):
-
         self.write_omnibus_table()
 
         self.estimating = False
@@ -123,7 +122,6 @@ class Estimator:
         manager.release(self)
 
     def output_directory(self, bundle_directory=False):
-
         # shouldn't be asking for this if not estimating
         assert self.estimating
         assert self.model_name is not None
@@ -143,7 +141,6 @@ class Estimator:
         return dir
 
     def output_file_path(self, table_name, file_type=None, bundle_directory=False):
-
         # shouldn't be asking for this if not estimating
         assert self.estimating
 
@@ -219,12 +216,10 @@ class Estimator:
             self.debug("write_table write: %s" % table_name)
 
     def write_omnibus_table(self):
-
         if len(self.omnibus_tables) == 0:
             return
 
         for omnibus_table, table_names in self.omnibus_tables.items():
-
             self.debug(
                 "write_omnibus_table: %s table_names: %s" % (omnibus_table, table_names)
             )
@@ -252,7 +247,6 @@ class Estimator:
             self.debug("write_omnibus_choosers: %s" % file_path)
 
     def write_dict(self, d, dict_name, bundle_directory):
-
         assert self.estimating
 
         file_path = self.output_file_path(dict_name, "yaml", bundle_directory)
@@ -325,7 +319,6 @@ class Estimator:
     def copy_model_settings(
         self, settings_file_name, tag="model_settings", bundle_directory=False
     ):
-
         input_path = self.state.filesystem.get_config_file_path(settings_file_name)
 
         output_path = self.output_file_path(tag, "yaml", bundle_directory)
@@ -333,27 +326,45 @@ class Estimator:
         shutil.copy(input_path, output_path)
 
     def write_model_settings(
-        self, model_settings, settings_file_name, bundle_directory=False
+        self,
+        model_settings: PydanticBase | dict,
+        settings_file_name: str,
+        bundle_directory: bool = False,
     ):
-
-        if "include_settings" in model_settings:
+        if isinstance(model_settings, PydanticBase):
+            # TODO: Deal with how Pydantic settings are used in estimation.
+            #       Legacy estimation data bundles provide separate handling
+            #       for when `include_settings` and `inherit_settings` keys
+            #       are present in YAML files.  The new pydantic settings model
+            #       divorces us from the config source content and merely stores
+            #       the resulting values of settings.  Do we really want to
+            #       carry around all this baggage in estimation?  The content
+            #       is still out there in the original source files, why do we
+            #       make copies in the estimation data bundle in the first place?
             file_path = self.output_file_path(
                 "model_settings", "yaml", bundle_directory
             )
             assert not os.path.isfile(file_path)
             with open(file_path, "w") as f:
-                yaml.dump(model_settings, f)
+                yaml.dump(model_settings.dict(), f)
         else:
-            self.copy_model_settings(
-                settings_file_name, bundle_directory=bundle_directory
-            )
-        if "inherit_settings" in model_settings:
-            self.write_dict(
-                model_settings, "inherited_model_settings", bundle_directory
-            )
+            if "include_settings" in model_settings:
+                file_path = self.output_file_path(
+                    "model_settings", "yaml", bundle_directory
+                )
+                assert not os.path.isfile(file_path)
+                with open(file_path, "w") as f:
+                    yaml.dump(model_settings, f)
+            else:
+                self.copy_model_settings(
+                    settings_file_name, bundle_directory=bundle_directory
+                )
+            if "inherit_settings" in model_settings:
+                self.write_dict(
+                    model_settings, "inherited_model_settings", bundle_directory
+                )
 
     def melt_alternatives(self, df):
-
         alt_id_name = self.alt_id_column_name
 
         assert alt_id_name is not None, (
@@ -449,7 +460,6 @@ class Estimator:
     def write_spec(
         self, model_settings=None, file_name=None, tag="SPEC", bundle_directory=False
     ):
-
         if model_settings is not None:
             assert file_name is None
             file_name = model_settings[tag]
@@ -464,7 +474,6 @@ class Estimator:
 
 class EstimationManager(object):
     def __init__(self):
-
         self.settings_initialized = False
         self.bundles = []
         self.estimation_table_recipes = {}
@@ -472,7 +481,6 @@ class EstimationManager(object):
         self.estimating = {}
 
     def initialize_settings(self, state):
-
         # FIXME - can't we just initialize in init and handle no-presence of settings file as not enabled
         if self.settings_initialized:
             return
@@ -494,7 +502,6 @@ class EstimationManager(object):
         self.estimation_table_recipes = settings.get("estimation_table_recipes", {})
 
         if self.enabled:
-
             self.survey_tables = settings.get("survey_tables", {})
             for table_name, table_info in self.survey_tables.items():
                 assert (
@@ -588,7 +595,6 @@ class EstimationManager(object):
         return self.estimating[model_name]
 
     def release(self, estimator):
-
         self.estimating.pop(estimator.model_name)
 
     def get_survey_table(self, table_name):
@@ -602,7 +608,6 @@ class EstimationManager(object):
         return df
 
     def get_survey_values(self, model_values, table_name, column_names):
-
         assert isinstance(
             model_values, (pd.Series, pd.DataFrame, pd.Index)
         ), "get_survey_values model_values has unrecognized type %s" % type(

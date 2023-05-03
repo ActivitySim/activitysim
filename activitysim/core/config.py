@@ -1,12 +1,14 @@
-from __future__ import annotations
-
 # ActivitySim
 # See full license in LICENSE.txt.
-import argparse
+
+from __future__ import annotations
+
 import logging
 import warnings
+from typing import Any
 
 from activitysim.core import workflow
+from activitysim.core.configuration.base import LogitComponentSettings
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +65,9 @@ def get_model_constants(model_settings):
     return model_settings.get("CONSTANTS", {})
 
 
-def get_logit_model_settings(model_settings):
+def get_logit_model_settings(
+    model_settings: LogitComponentSettings | dict[str, Any] | None
+):
     """
     Read nest spec (for nested logit) from model settings file
 
@@ -71,10 +75,12 @@ def get_logit_model_settings(model_settings):
     -------
     nests : dict
         dictionary specifying nesting structure and nesting coefficients
-
-    constants : dict
-        dictionary of constants to add to locals for use by expressions in model spec
     """
+    if isinstance(model_settings, LogitComponentSettings):
+        # all the validation for well formatted settings is handled by pydantic,
+        # so we just return the nests here.
+        return model_settings.NESTS
+
     nests = None
 
     if model_settings is not None:

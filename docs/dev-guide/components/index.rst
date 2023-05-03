@@ -5,6 +5,7 @@ Components
 .. toctree::
    :maxdepth: 1
 
+   free_parking
    trip_destination
 
 

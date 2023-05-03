@@ -20,7 +20,6 @@ def tour_od_choice(
     households: pd.DataFrame,
     land_use: pd.DataFrame,
     network_los: los.Network_LOS,
-    chunk_size,
 ) -> None:
     """Simulates joint origin/destination choice for all tours.
 
@@ -45,8 +44,6 @@ def tour_od_choice(
         lazy-loaded table of stop frequency alternatives, e.g. "1out2in"
     network_los : orca._InjectableFuncWrapper
         lazy-loaded activitysim.los.Network_LOS object
-    chunk_size
-        simulation chunk size, set in main settings.yaml
     """
 
     trace_label = "tour_od_choice"
@@ -56,6 +53,7 @@ def tour_od_choice(
     dest_col_name = model_settings["DEST_COL_NAME"]
     alt_id_col = tour_od.get_od_id_col(origin_col_name, dest_col_name)
     trace_hh_id = state.settings.trace_hh_id
+    chunk_size = state.settings.chunk_size
 
     sample_table_name = model_settings.get("OD_CHOICE_SAMPLE_TABLE_NAME")
     want_sample_table = (

@@ -26,7 +26,9 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def trip_mode_choice(
-    state: workflow.State, trips: pd.DataFrame, network_los: los.Network_LOS
+    state: workflow.State,
+    trips: pd.DataFrame,
+    network_los: los.Network_LOS,
 ) -> None:
     """
     Trip mode choice - compute trip_mode (same values as for tour_mode) for each trip.

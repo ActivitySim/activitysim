@@ -149,7 +149,9 @@ def extend_tour_counts(
 
 @workflow.step
 def non_mandatory_tour_frequency(
-    state: workflow.State, persons: pd.DataFrame, persons_merged: pd.DataFrame
+    state: workflow.State,
+    persons: pd.DataFrame,
+    persons_merged: pd.DataFrame,
 ) -> None:
     """
     This model predicts the frequency of making non-mandatory trips

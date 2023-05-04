@@ -105,7 +105,7 @@ def free_parking(
 
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
-        estimator.write_spec(file_name=model_spec.SPEC)
+        estimator.write_spec(file_name=model_settings.SPEC)
         estimator.write_coefficients(
             coefficients_df, file_name=model_settings.COEFFICIENTS
         )

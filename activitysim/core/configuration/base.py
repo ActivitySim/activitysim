@@ -107,7 +107,7 @@ class LogitNestSpec(PydanticBase):
     """The alternatives within this nest.
 
     These can be either the names of elemental alternatives, or `LogitNestSpec`
-    definitions for more nests.
+    definitions for more nests, or a mixture of these.
     """
 
 
@@ -147,6 +147,31 @@ class LogitComponentSettings(PydanticBase):
     """
 
     NESTS: LogitNestSpec | None = None
+    """Nesting structure for a nested logit model.
+
+    The nesting structure is specified heirarchically from the top, so the
+    value of this field should be the "root" level nest of the nested logit
+    tree, which should contain references to lower level nests and/or the
+    actual alternatives.
+
+    For example, this YAML defines a simple nesting structure for four
+    alternatives (DRIVE, WALK, WALK_TO_TRANSIT, DRIVE_TO_TRANSIT) with the two
+    transit alternatives grouped together in a nest:
+
+    .. code-block:: yaml
+
+        NESTS:
+          name: root
+          coefficient: coef_nest_root
+          alternatives:
+            - DRIVE
+            - WALK
+            - name: TRANSIT
+              coefficient: coef_nest_transit
+              alternatives:
+              - WALK_TO_TRANSIT
+              - DRIVE_TO_TRANSIT
+    """
 
     @validator("NESTS")
     def nests_are_for_nl(cls, nests, values):

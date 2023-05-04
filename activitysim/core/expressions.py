@@ -4,13 +4,26 @@ from __future__ import annotations
 
 import logging
 
-from . import assign, config, simulate, tracing, workflow
-from .util import assign_in_place, parse_suffix_args, suffix_expressions_df_str
+import pandas as pd
+
+from activitysim.core import assign, simulate, tracing, workflow
+from activitysim.core.configuration.base import PydanticBase
+from activitysim.core.util import (
+    assign_in_place,
+    parse_suffix_args,
+    suffix_expressions_df_str,
+)
 
 logger = logging.getLogger(__name__)
 
 
-def compute_columns(state, df, model_settings, locals_dict={}, trace_label=None):
+def compute_columns(
+    state: workflow.State,
+    df: pd.DataFrame,
+    model_settings: str | dict | PydanticBase,
+    locals_dict: dict | None = None,
+    trace_label: str = None,
+) -> pd.DataFrame:
     """
     Evaluate expressions_spec in context of df, with optional additional pipeline tables in locals
 
@@ -25,7 +38,7 @@ def compute_columns(state, df, model_settings, locals_dict={}, trace_label=None)
             TABLES - list of pipeline tables to load and make available as (read only) locals
         str:
             name of yaml file in configs_dir to load dict from
-    locals_dict : dict
+    locals_dict : dict, optional
         dict of locals (e.g. utility functions) to add to the execution environment
     trace_label
 
@@ -35,6 +48,11 @@ def compute_columns(state, df, model_settings, locals_dict={}, trace_label=None)
         one column for each expression (except temps with ALL_CAP target names)
         same index as df
     """
+    if locals_dict is None:
+        locals_dict = {}
+
+    if isinstance(model_settings, PydanticBase):
+        model_settings = model_settings.dict()
 
     if isinstance(model_settings, str):
         model_settings_name = model_settings
@@ -164,7 +182,6 @@ def assign_columns(
 def annotate_preprocessors(
     state: workflow.State, df, locals_dict, skims, model_settings, trace_label
 ):
-
     locals_d = {}
     locals_d.update(locals_dict)
     locals_d.update(skims)
@@ -179,7 +196,6 @@ def annotate_preprocessors(
     simulate.set_skim_wrapper_targets(df, skims)
 
     for model_settings in preprocessor_settings:
-
         results = compute_columns(
             state,
             df=df,
@@ -192,7 +208,6 @@ def annotate_preprocessors(
 
 
 def filter_chooser_columns(choosers, chooser_columns):
-
     missing_columns = [c for c in chooser_columns if c not in choosers]
     if missing_columns:
         logger.debug("filter_chooser_columns missing_columns %s" % missing_columns)

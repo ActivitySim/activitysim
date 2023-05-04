@@ -80,7 +80,7 @@ def read_assignment_spec(
 
     Parameters
     ----------
-    file_name : str
+    file_name : path-like
         Name of a CSV spec file.
     description_name : str, optional
         Name of the column in `fname` that contains the component description.

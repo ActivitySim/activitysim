@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Literal, TypeVar, Union  # noqa: F401
 
 from pydantic import BaseModel as PydanticBase
@@ -11,6 +12,17 @@ PydanticReadableType = TypeVar("PydanticReadableType", bound="PydanticReadable")
 
 
 class PydanticReadable(PydanticBase):
+
+    source_file_paths: list[Path] = None
+    """
+    A list of source files from which these settings were loaded.
+
+    This value should not be set by the user within the YAML settings files,
+    instead it is populated as those files are loaded.  It is primarily
+    provided for debugging purposes, and does not actually affect the operation
+    of any model.
+    """
+
     @classmethod
     def read_settings_file(
         cls: type[PydanticReadableType],

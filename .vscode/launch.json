@@ -20,6 +20,8 @@
                 "activitysim/examples/prototype_mtc/data",
                 "-o",
                 "activitysim/examples/prototype_mtc_extended/output",
+                "--data_model",
+                "activitysim/examples/prototype_mtc_extended/data_model",
             ]
         }
     ]

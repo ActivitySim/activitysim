@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 INJECTABLES = [
     "data_dir",
     "configs_dir",
+    "data_model_dir",
     "output_dir",
     "settings_file_name",
     "imported_extensions",
@@ -50,6 +51,13 @@ def add_run_args(parser, multiprocess=True):
         action="append",
         metavar="PATH",
         help="path to data dir",
+    )
+    parser.add_argument(
+        "--data_model",
+        type=str,
+        action="append",
+        metavar="PATH",
+        help="path to data model dir",
     )
     parser.add_argument(
         "-r", "--resume", type=str, metavar="STEPNAME", help="resume after step"
@@ -163,6 +171,9 @@ def handle_standard_args(args, multiprocess=True):
 
     if args.data:
         inject_arg("data_dir", args.data)
+    
+    if args.data_model:
+        inject_arg("data_model_dir", args.data_model)
 
     if args.output:
         inject_arg("output_dir", args.output)
@@ -188,7 +199,7 @@ def handle_standard_args(args, multiprocess=True):
     if args.households_sample_size is not None:
         config.override_setting("households_sample_size", args.households_sample_size)
 
-    for injectable in ["configs_dir", "data_dir", "output_dir"]:
+    for injectable in ["configs_dir", "data_dir", "output_dir", "data_model_dir"]:
         validate_injectable(injectable)
 
     if args.pipeline:
@@ -372,9 +383,9 @@ def run(args):
     chunk.consolidate_logs()
     mem.consolidate_logs()
 
-    from ..core.flow import TimeLogger
+    # from ..core.flow import TimeLogger
 
-    TimeLogger.aggregate_summary(logger)
+    # TimeLogger.aggregate_summary(logger)
 
     tracing.print_elapsed_time("all models", t0)
 

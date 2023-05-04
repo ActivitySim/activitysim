@@ -81,8 +81,8 @@ class InputChecker:
 
         logger.info("Running %s", self.trace_label)
 
-        self.read_inputs()
-        self.check_inputs()
+        # self.read_inputs()
+        # self.check_inputs()
 
     # TODO: make sure we do not need to set index
     # def read_model_spec(file_name):
@@ -538,4 +538,53 @@ class InputChecker:
 def input_checker():
 
     print("input checker!")
-    InputChecker()
+    ic = InputChecker()
+
+    ic.read_inputs()
+    ic.check_inputs()
+
+
+
+
+
+@inject.step()
+def input_checker_data_model():
+    # from inject.data_model_dir() import enums as e
+
+
+    print(inject.get_injectable('data_model_dir'))
+    data_model_dir = inject.get_injectable('data_model_dir')[0]
+    import sys
+    sys.path.append(data_model_dir)
+
+
+    import enums as e
+    import parameters as p
+    
+    from pydantic import ValidationError
+
+    from input import PersonValidator, HouseholdValidator, TazValidator, Person, Household
+    from input import TravelAnalysisZoneData as InputTAZ
+
+    ic = InputChecker()
+
+    ic.read_inputs()
+    persons = ic.inputs['persons']
+    households = ic.inputs['households']
+
+    h_list = households.to_dict(orient = "records")
+    try:
+        household_validator = HouseholdValidator(list_of_households = h_list)
+    except ValidationError as e:
+        print(e)
+
+    p_list = persons.to_dict(orient = "records")
+    try:
+        person_validator = PersonValidator(list_of_persons = p_list)
+    except ValidationError as e:
+        print(e)
+    
+    
+
+
+

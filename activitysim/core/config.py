@@ -39,6 +39,12 @@ def data_dir():
         raise RuntimeError("'data' directory does not exist")
     return "data"
 
+@inject.injectable(cache=True)
+def data_model_dir():
+    if not os.path.exists("data_model"):
+        raise RuntimeError("'data_model' directory does not exist")
+    return "data_model"
+
 
 @inject.injectable(cache=True)
 def output_dir():

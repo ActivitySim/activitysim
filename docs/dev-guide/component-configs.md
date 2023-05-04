@@ -13,9 +13,8 @@ Individual components each have their own component-level configuration.
     :template: autopydantic.rst
     :recursive:
 
+    PydanticReadable
     LogitComponentSettings
     PreprocessorSettings
     LogitNestSpec
-
-
 ```

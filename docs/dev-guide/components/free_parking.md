@@ -24,7 +24,8 @@ logit model.
 
 ```{eval-rst}
 .. autopydantic_model:: FreeParkingSettings
-    :inherited-members: BaseModel
+    :inherited-members: BaseModel, PydanticReadable
+    :show-inheritance:
 ```
 
 ### Examples

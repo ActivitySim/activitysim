@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 import pandas as pd
+from pydantic import validator
 
 from activitysim.core import (
     config,
@@ -33,6 +34,17 @@ class FreeParkingSettings(PydanticReadable, LogitComponentSettings, extra="forbi
 
     FREE_PARKING_ALT: int
     """The code for free parking."""
+
+    @validator("COEFFICIENT_TEMPLATE")
+    def no_coefficients_template_used_in_this_model(cls, t):
+        """
+        Checks that no coefficients template is provided.
+        """
+        if t is not None:
+            raise ValueError(
+                "COEFFICIENT_TEMPLATE cannot be provided for the free parking model"
+            )
+        return t
 
 
 @workflow.step

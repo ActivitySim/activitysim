@@ -12,6 +12,12 @@ PydanticReadableType = TypeVar("PydanticReadableType", bound="PydanticReadable")
 
 
 class PydanticReadable(PydanticBase):
+    """
+    Base class for `pydantic.BaseModel`s readable from cascading config files.
+
+    Although not formally defined as an abstract base class, there is generally
+    no reason to instantiate a `PydanticReadable` object directly.
+    """
 
     source_file_paths: list[Path] = None
     """
@@ -33,21 +39,44 @@ class PydanticReadable(PydanticBase):
         """
         Load settings from one or more yaml files.
 
-        This method will look for first occurrence of a yaml file named
-        <file_name> in the directories in the `configs_dir` list of
-        `filesystem`, and read settings from that yaml file.
+        This method has been written to allow models to be configured with
+        "settings file inheritance". This allows the user to avoid duplicating
+        settings across multiple related model configurations.  Instead,
+        settings can be written in a "cascading" manner: multiple files can be
+        provided with settings values, and each particular key is set according
+        to the first value found for that key.
 
-        Settings file may contain directives that affect which file settings
-        are returned:
+        For example, suppose a user has a basic model setup with some settings, and
+        they would like to do a model run with all the same settings except with the
+        `foo` setting using a value of `'baz'` instead of the usual value of `'bar'`
+        that is defined in the usual model setup.  They could accomplish this by
+        placing a `file_name` file with *only*
 
-        - inherit_settings (boolean)
-            If found and set to true, this method will backfill settings
-            in the current file with values from the next settings file
-            in configs_dir list (if any)
-        - include_settings: string <include_file_name>
-            Read settings from specified include_file in place of the current
-            file. To avoid confusion, this directive must appear ALONE in the
-            target file, without any additional settings or directives.
+        .. code-block:: yaml
+
+            foo: baz
+            inherit_settings: true
+
+        in the first directory listed in `filesystem.configs_dir`. The
+        `inherit_settings` flag tells the interpreter to search for other
+        matching settings files in the chain of config directories, and to fill
+        in other settings values that are not yet defined, but the `foo: baz` will
+        preempt any other values for `foo` that may be set in those other files.
+        If the `inherit_settings` flag is omitted or set to false, then the
+        search process ends with this file, only the `foo` setting would be
+        defined, and all other settings expected in this file would take on
+        their default values.
+
+        Alternatively, a settings file may include a `include_settings` key,
+
+        .. code-block:: yaml
+
+            include_settings: other-filename.yaml
+
+        with an alternative file name as its value, in which case the method
+        loads values from that other file instead. To avoid confusion, this
+        directive must appear ALONE in the target file, without any additional
+        settings or directives.
 
         Parameters
         ----------

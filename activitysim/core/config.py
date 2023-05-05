@@ -8,7 +8,7 @@ import warnings
 from typing import Any
 
 from activitysim.core import workflow
-from activitysim.core.configuration.base import LogitComponentSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger(__name__)
 

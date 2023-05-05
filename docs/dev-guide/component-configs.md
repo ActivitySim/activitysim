@@ -1,20 +1,20 @@
 (component-config)=
 # Component Configuration
 
-```{eval-rst}
-.. currentmodule:: activitysim.core.configuration.base
-```
-
-Individual components each have their own component-level configuration.
+Individual components each have their own component-level configuration. These
+configuration can include custom component-specific settings, as well as groups
+of settings from these boilerplate base classes:
 
 ```{eval-rst}
+.. currentmodule:: activitysim.core.configuration
 .. autosummary::
     :toctree: _generated
-    :template: autopydantic.rst
+    :template: autopydantic-inherits.rst
     :recursive:
 
-    PydanticReadable
-    LogitComponentSettings
-    PreprocessorSettings
-    LogitNestSpec
+    ~base.PydanticReadable
+    ~base.PreprocessorSettings
+    ~logit.LogitComponentSettings
+    ~logit.TemplatedLogitComponentSettings
+    ~logit.LogitNestSpec
 ```

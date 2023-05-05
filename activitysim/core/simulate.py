@@ -24,7 +24,7 @@ from activitysim.core import (
     util,
     workflow,
 )
-from activitysim.core.configuration.base import LogitComponentSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.estimation import Estimator
 from activitysim.core.simulate_consts import (
     ALT_LOSER_UTIL,

@@ -12,6 +12,7 @@ import yaml
 from activitysim.core import simulate, workflow
 from activitysim.core.configuration.base import PydanticBase
 from activitysim.core.util import reindex
+from activitysim.core.yaml_tools import safe_dump
 
 logger = logging.getLogger("estimation")
 
@@ -256,7 +257,7 @@ class Estimator:
 
         with open(file_path, "w") as f:
             # write ordered dict as array
-            yaml.dump(d, f)
+            safe_dump(d, f)
 
         self.debug("estimate.write_dict: %s" % file_path)
 
@@ -346,7 +347,7 @@ class Estimator:
             )
             assert not os.path.isfile(file_path)
             with open(file_path, "w") as f:
-                yaml.dump(model_settings.dict(), f)
+                safe_dump(model_settings.dict(), f)
         else:
             if "include_settings" in model_settings:
                 file_path = self.output_file_path(
@@ -354,7 +355,7 @@ class Estimator:
                 )
                 assert not os.path.isfile(file_path)
                 with open(file_path, "w") as f:
-                    yaml.dump(model_settings, f)
+                    safe_dump(model_settings, f)
             else:
                 self.copy_model_settings(
                     settings_file_name, bundle_directory=bundle_directory

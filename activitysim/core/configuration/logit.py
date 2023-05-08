@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel as PydanticBase
@@ -34,7 +35,7 @@ class LogitComponentSettings(PydanticBase):
     Base configuration class for ActivitySim components that are logit models.
     """
 
-    SPEC: str
+    SPEC: Path
     """Utility specification filename.
 
     This is sometimes alternatively called the utility expressions calculator
@@ -42,7 +43,7 @@ class LogitComponentSettings(PydanticBase):
     linear-in-parameters utility expression.
     """
 
-    COEFFICIENTS: str
+    COEFFICIENTS: Path
     """Coefficients filename.
 
     This is a CSV file giving named parameters for use in the utility expression.

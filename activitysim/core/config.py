@@ -62,6 +62,8 @@ def get_model_constants(model_settings):
     constants : dict
         dictionary of constants to add to locals for use by expressions in model spec
     """
+    if hasattr(model_settings, "CONSTANTS"):
+        return model_settings.CONSTANTS
     return model_settings.get("CONSTANTS", {})
 
 

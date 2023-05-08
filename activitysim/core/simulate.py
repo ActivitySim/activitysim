@@ -8,6 +8,7 @@ import warnings
 from collections import OrderedDict
 from collections.abc import Callable
 from datetime import timedelta
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -186,13 +187,15 @@ def read_model_coefficients(
     return coefficients
 
 
-@workflow.func
 def spec_for_segment(
     state: workflow.State,
-    model_settings,
+    model_settings: dict | None,
     spec_id: str,
     segment_name: str,
     estimator: Estimator | None,
+    *,
+    spec_file_name: Path | None = None,
+    coefficients_file_name: Path | None = None,
 ) -> pd.DataFrame:
     """
     Select spec for specified segment from omnibus spec containing columns for each segment
@@ -210,7 +213,8 @@ def spec_for_segment(
         canonical spec file with expressions in index and single column with utility coefficients
     """
 
-    spec_file_name = model_settings[spec_id]
+    if spec_file_name is None:
+        spec_file_name = model_settings[spec_id]
     spec = read_model_spec(state.filesystem, file_name=spec_file_name)
 
     if len(spec.columns) > 1:
@@ -221,7 +225,14 @@ def spec_for_segment(
         # doesn't really matter what it is called, but this may catch errors
         assert spec.columns[0] in ["coefficient", segment_name]
 
-    if "COEFFICIENTS" not in model_settings:
+    if (
+        coefficients_file_name is None
+        and isinstance(model_settings, dict)
+        and "COEFFICIENTS" in model_settings
+    ):
+        coefficients_file_name = model_settings["COEFFICIENTS"]
+
+    if coefficients_file_name is None:
         logger.warning(
             f"no coefficient file specified in model_settings for {spec_file_name}"
         )
@@ -231,11 +242,13 @@ def spec_for_segment(
             raise RuntimeError(
                 f"No coefficient file specified for {spec_file_name} "
                 f"but not all spec column values are numeric"
-            )
+            ) from None
 
         return spec
 
-    coefficients = state.filesystem.read_model_coefficients(model_settings)
+    coefficients = read_model_coefficients(
+        state.filesystem, file_name=coefficients_file_name
+    )
 
     spec = eval_coefficients(state, spec, coefficients, estimator)
 

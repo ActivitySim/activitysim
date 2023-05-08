@@ -106,7 +106,8 @@ def read_model_spec(filesystem: configuration.FileSystem, file_name: str):
         The description column is dropped from the returned data and the
         expression values are set as the table index.
     """
-
+    if isinstance(file_name, Path):
+        file_name = str(file_name)
     assert isinstance(file_name, str)
     if not file_name.lower().endswith(".csv"):
         file_name = f"{file_name}.csv"
@@ -411,7 +412,7 @@ def eval_nest_coefficients(nest_spec, coefficients, trace_label):
             if isinstance(coefficient_name, str):
                 assert (
                     coefficient_name in coefficients
-                ), "%s not in nest coefficients" % (coefficient_name,)
+                ), f"{coefficient_name} not in nest coefficients"
                 nest["coefficient"] = coefficients[coefficient_name]
 
             assert "alternatives" in nest
@@ -463,9 +464,9 @@ def eval_coefficients(
     zero_rows = (spec == 0).all(axis=1)
     if zero_rows.any():
         if estimator:
-            logger.debug("keeping %s all-zero rows in SPEC" % (zero_rows.sum(),))
+            logger.debug(f"keeping {zero_rows.sum()} all-zero rows in SPEC")
         else:
-            logger.debug("dropping %s all-zero rows from SPEC" % (zero_rows.sum(),))
+            logger.debug(f"dropping {zero_rows.sum()} all-zero rows from SPEC")
             spec = spec.loc[~zero_rows]
 
     return spec

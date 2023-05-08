@@ -30,9 +30,15 @@ class LogitNestSpec(PydanticBase):
     """
 
 
-class LogitComponentSettings(PydanticBase):
+class _BaseLogitComponentSettings(PydanticBase):
     """
-    Base configuration class for ActivitySim components that are logit models.
+    Base configuration class for components that are logit models.
+
+    These settings are common to all logit models. Component developers
+    should generally prefer using a derived classes that defines a complete
+    logit model such as `LogitComponentSettings`, or a compound component
+    such as `LocationComponentSettings`, which melds together alternative
+    sampling, logsums, and choice.
     """
 
     SPEC: Path
@@ -47,6 +53,15 @@ class LogitComponentSettings(PydanticBase):
     """Coefficients filename.
 
     This is a CSV file giving named parameters for use in the utility expression.
+    """
+
+    CONSTANTS: dict[str, Any] | None = None
+    """Named constants usable in the utility expressions."""
+
+
+class LogitComponentSettings(_BaseLogitComponentSettings):
+    """
+    Base configuration class for components that are individual logit models.
     """
 
     LOGIT_TYPE: Literal["MNL", "NL"] = "MNL"
@@ -98,9 +113,6 @@ class LogitComponentSettings(PydanticBase):
                 raise ValueError("NESTS cannot be provided for a MNL model")
         return nests
 
-    CONSTANTS: dict[str, Any] | None = None
-    """Named constants usable in the utility expressions."""
-
 
 class TemplatedLogitComponentSettings(LogitComponentSettings):
     """
@@ -113,3 +125,18 @@ class TemplatedLogitComponentSettings(LogitComponentSettings):
     For a segmented model component, this maps the named parameters to
     segment-specific names.
     """
+
+
+class LocationComponentSettings(_BaseLogitComponentSettings):
+    """
+    Base configuration class for components that are location choice models.
+    """
+
+    SAMPLE_SPEC: Path
+    """The utility spec giving expressions to use in alternative sampling."""
+
+    SAMPLE_SIZE: int
+    """This many candidate alternatives will be sampled for each choice."""
+
+    LOGSUM_SETTINGS: Path
+    """Settings for the logsum computation."""

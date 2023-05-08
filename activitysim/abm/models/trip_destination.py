@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from pydantic import validator
 
 from activitysim.abm.models.util.school_escort_tours_trips import (
     split_out_school_escorting_trips,
@@ -27,7 +28,7 @@ from activitysim.core import (
     workflow,
 )
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
-from activitysim.core.configuration.logit import LogitComponentSettings
+from activitysim.core.configuration.logit import LocationComponentSettings
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.skim_dictionary import DataFrameMatrix
@@ -44,18 +45,14 @@ ALT_DEST_TAZ = "ALT_DEST_TAZ"
 # DEST_MAZ = 'dest_maz'
 
 
-class TripDestinationSettings(PydanticReadable, LogitComponentSettings, extra="forbid"):
+class TripDestinationSettings(
+    PydanticReadable, LocationComponentSettings, extra="forbid"
+):
     """Settings for the trip_destination component.
 
     .. versionadded:: 1.2
     """
 
-    SAMPLE_SPEC: Path
-    SAMPLE_SIZE: int
-    """This many candidate stop locations will be sampled for each choice."""
-    DESTINATION_SAMPLE_SPEC: Path
-    DESTINATION_SPEC: Path
-    LOGSUM_SETTINGS: Path
     DEST_CHOICE_LOGSUM_COLUMN_NAME: str = None
     DEST_CHOICE_SAMPLE_TABLE_NAME: str = None
     TRIP_ORIGIN: str = "origin"
@@ -67,6 +64,57 @@ class TripDestinationSettings(PydanticReadable, LogitComponentSettings, extra="f
     CLEANUP: bool
     fail_some_trips_for_testing: bool = False
     """This setting is used by testing code to force failed trip_destination."""
+
+    DESTINATION_SAMPLE_SPEC: Path = None
+    """Alias for `SAMPLE_SPEC`.
+
+    .. deprecated:: 1.3
+    """
+
+    @validator("DESTINATION_SAMPLE_SPEC")
+    def DEPRECATE_DESTINATION_SAMPLE_SPEC(cls, x, values):
+        if "SAMPLE_SPEC" in values:
+            if x is not None and x != values["SAMPLE_SPEC"]:
+                raise ValueError(
+                    f"SAMPLE_SPEC does not match DESTINATION_SAMPLE_SPEC "
+                    f"({x!r} != {values['SAMPLE_SPEC']!r})"
+                )
+            return values["SAMPLE_SPEC"]
+        return x
+
+    @validator("SAMPLE_SPEC")
+    def DEPRECATE_DESTINATION_SAMPLE_SPEC_2(cls, x, values):
+        if "DESTINATION_SAMPLE_SPEC" in values:
+            if x != values["DESTINATION_SAMPLE_SPEC"]:
+                raise ValueError(
+                    f"DESTINATION_SAMPLE_SPEC does not match SAMPLE_SPEC "
+                    f"({x!r} != {values['DESTINATION_SAMPLE_SPEC']!r})"
+                )
+        return x
+
+    DESTINATION_SPEC: Path = None
+    """Alias for `SPEC`.
+
+    .. deprecated:: 1.3
+    """
+
+    @validator("DESTINATION_SPEC")
+    def DEPRECATE_DESTINATION_SPEC(cls, x, values):
+        if "SPEC" in values:
+            if x is not None and x != values["SPEC"]:
+                raise ValueError("SPEC does not match DESTINATION_SPEC")
+            return values["SPEC"]
+        return x
+
+    @validator("SPEC")
+    def DEPRECATE_DESTINATION_SPEC_2(cls, x, values):
+        if "DESTINATION_SPEC" in values:
+            if x != values["DESTINATION_SPEC"]:
+                raise ValueError(
+                    f"SPEC does not match DESTINATION_SPEC"
+                    f"({x!r} != {values['DESTINATION_SPEC']!r})"
+                )
+        return x
 
 
 def _destination_sample(
@@ -102,10 +150,10 @@ def _destination_sample(
     spec = simulate.spec_for_segment(
         state,
         None,
-        spec_id="DESTINATION_SAMPLE_SPEC",
+        spec_id="SAMPLE_SPEC",
         segment_name=primary_purpose,
         estimator=estimator,
-        spec_file_name=model_settings.DESTINATION_SAMPLE_SPEC,
+        spec_file_name=model_settings.SAMPLE_SPEC,
         coefficients_file_name=model_settings.COEFFICIENTS,
     )
 
@@ -826,10 +874,10 @@ def trip_destination_simulate(
     spec = simulate.spec_for_segment(
         state,
         None,
-        spec_id="DESTINATION_SPEC",
+        spec_id="SPEC",
         segment_name=primary_purpose,
         estimator=estimator,
-        spec_file_name=model_settings.DESTINATION_SPEC,
+        spec_file_name=model_settings.SPEC,
         coefficients_file_name=model_settings.COEFFICIENTS,
     )
 

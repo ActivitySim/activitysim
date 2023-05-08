@@ -659,6 +659,8 @@ class FileSystem(PydanticBase, validate_assignment=True):
         -------
         dict or validator_class
         """
+        if isinstance(file_name, Path):
+            file_name = str(file_name)
 
         def backfill_settings(settings, backfill):
             new_settings = backfill.copy()

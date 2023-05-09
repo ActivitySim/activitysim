@@ -913,7 +913,7 @@ def run_od_logsums(
         for col in new_cols:
             od_sample[col] = choosers[col]
 
-    logsums = logsum.compute_logsums(
+    logsums = logsum.compute_location_choice_logsums(
         state,
         choosers,
         spec_segment_name,

@@ -12,6 +12,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from activitysim.abm.models.location_choice import MandatoryLocationSettings
 from activitysim.abm.tables.size_terms import size_terms as get_size_terms
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 from activitysim.core import logit, tracing, util, workflow
@@ -92,7 +93,7 @@ class ShadowPriceCalculator:
     def __init__(
         self,
         state: workflow.State,
-        model_settings,
+        model_settings: MandatoryLocationSettings,
         num_processes,
         shared_data=None,
         shared_data_lock=None,
@@ -122,7 +123,7 @@ class ShadowPriceCalculator:
             None  # set by read_saved_shadow_prices if loaded
         )
 
-        self.model_selector = model_settings["MODEL_SELECTOR"]
+        self.model_selector = model_settings.MODEL_SELECTOR
 
         if (self.num_processes > 1) and not state.settings.fail_fast:
             # if we are multiprocessing, then fail_fast should be true or we will wait forever for failed processes
@@ -133,7 +134,7 @@ class ShadowPriceCalculator:
                 "Shadow pricing requires fail_fast setting in multiprocessing mode"
             )
 
-        self.segment_ids = model_settings["SEGMENT_IDS"]
+        self.segment_ids = model_settings.SEGMENT_IDS
 
         # - modeled_size (set by call to set_choices/synchronize_modeled_size)
         self.modeled_size = None
@@ -144,9 +145,7 @@ class ShadowPriceCalculator:
             )
 
             for k in self.shadow_settings:
-                logger.debug(
-                    "shadow_settings %s: %s" % (k, self.shadow_settings.get(k))
-                )
+                logger.debug(f"shadow_settings {k}: {self.shadow_settings.get(k)}")
 
         full_model_run = state.settings.households_sample_size == 0
         if (
@@ -282,7 +281,9 @@ class ShadowPriceCalculator:
                     ), f"{target} is not in landuse columns: {land_use.columns}"
                     self.target[segment] = land_use[target]
 
-    def read_saved_shadow_prices(self, state, model_settings):
+    def read_saved_shadow_prices(
+        self, state, model_settings: MandatoryLocationSettings
+    ):
         """
         Read saved shadow_prices from csv file in data_dir (so-called warm start)
         returns None if no saved shadow price file name specified or named file not found
@@ -299,9 +300,7 @@ class ShadowPriceCalculator:
         shadow_prices = None
 
         # - load saved shadow_prices
-        saved_shadow_price_file_name = model_settings.get(
-            "SAVED_SHADOW_PRICE_TABLE_NAME"
-        )
+        saved_shadow_price_file_name = model_settings.SAVED_SHADOW_PRICE_TABLE_NAME
         if saved_shadow_price_file_name:
             # FIXME - where should we look for this file?
             file_path = state.filesystem.get_data_file_path(
@@ -1162,7 +1161,9 @@ def shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, model_sele
     return np.frombuffer(data.get_obj(), dtype=dtype).reshape(shape), data.get_lock()
 
 
-def load_shadow_price_calculator(state: workflow.State, model_settings):
+def load_shadow_price_calculator(
+    state: workflow.State, model_settings: MandatoryLocationSettings
+):
     """
     Initialize ShadowPriceCalculator for model_selector (e.g. school or workplace)
 
@@ -1171,7 +1172,8 @@ def load_shadow_price_calculator(state: workflow.State, model_settings):
 
     Parameters
     ----------
-    model_settings : dict
+    state : workflow.State
+    model_settings : MandatoryLocationSettings
 
     Returns
     -------
@@ -1180,7 +1182,7 @@ def load_shadow_price_calculator(state: workflow.State, model_settings):
 
     num_processes = state.get_injectable("num_processes", 1)
 
-    model_selector = model_settings["MODEL_SELECTOR"]
+    model_selector = model_settings.MODEL_SELECTOR
 
     # - get shared_data from data_buffers (if multiprocessing)
     data_buffers = state.get_injectable("data_buffers", None)
@@ -1299,26 +1301,28 @@ def _add_size_tables(state, disaggregate_suffixes, scale=True) -> None:
     # since these are scaled to model size, they have to be created while single-process
 
     for model_selector, model_name in shadow_pricing_models.items():
-        model_settings = state.filesystem.read_model_settings(model_name)
+        model_settings = MandatoryLocationSettings.read_settings_file(
+            state.filesystem, model_name
+        )
 
         if suffix is not None and roots:
-            model_settings = util.suffix_tables_in_settings(
-                model_settings, suffix, roots
+            model_settings = MandatoryLocationSettings.parse_obj(
+                util.suffix_tables_in_settings(model_settings.dict(), suffix, roots)
             )
 
-        assert model_selector == model_settings["MODEL_SELECTOR"]
+        assert model_selector == model_settings.MODEL_SELECTOR
 
-        assert (
-            "SEGMENT_IDS" in model_settings
-        ), f"missing SEGMENT_IDS setting in {model_name} model_settings"
-        segment_ids = model_settings["SEGMENT_IDS"]
-        chooser_table_name = model_settings["CHOOSER_TABLE_NAME"]
-        chooser_segment_column = model_settings["CHOOSER_SEGMENT_COLUMN_NAME"]
+        # assert (
+        #     "SEGMENT_IDS" in model_settings
+        # ), f"missing SEGMENT_IDS setting in {model_name} model_settings"
+        segment_ids = model_settings.SEGMENT_IDS
+        chooser_table_name = model_settings.CHOOSER_TABLE_NAME
+        chooser_segment_column = model_settings.CHOOSER_SEGMENT_COLUMN_NAME
 
         choosers_df = state.get_dataframe(chooser_table_name)
-        if "CHOOSER_FILTER_COLUMN_NAME" in model_settings:
+        if model_settings.CHOOSER_FILTER_COLUMN_NAME:
             choosers_df = choosers_df[
-                choosers_df[model_settings["CHOOSER_FILTER_COLUMN_NAME"]] != 0
+                choosers_df[model_settings.CHOOSER_FILTER_COLUMN_NAME] != 0
             ]
 
         # - raw_desired_size
@@ -1430,7 +1434,7 @@ def get_shadow_pricing_info(state):
     }
 
     for k in shadow_pricing_info:
-        logger.debug("shadow_pricing_info %s: %s" % (k, shadow_pricing_info.get(k)))
+        logger.debug(f"shadow_pricing_info {k}: {shadow_pricing_info.get(k)}")
 
     return shadow_pricing_info
 
@@ -1474,7 +1478,7 @@ def get_shadow_pricing_choice_info(state):
 
     for k in shadow_pricing_choice_info:
         logger.debug(
-            "shadow_pricing_choice_info %s: %s" % (k, shadow_pricing_choice_info.get(k))
+            f"shadow_pricing_choice_info {k}: {shadow_pricing_choice_info.get(k)}"
         )
 
     return shadow_pricing_choice_info

@@ -6,6 +6,8 @@ from typing import Any, Literal
 from pydantic import BaseModel as PydanticBase
 from pydantic import validator
 
+from activitysim.core.configuration.base import PydanticReadable
+
 
 class LogitNestSpec(PydanticBase):
     """
@@ -30,7 +32,7 @@ class LogitNestSpec(PydanticBase):
     """
 
 
-class _BaseLogitComponentSettings(PydanticBase):
+class _BaseLogitComponentSettings(PydanticReadable):
     """
     Base configuration class for components that are logit models.
 
@@ -140,3 +142,13 @@ class LocationComponentSettings(_BaseLogitComponentSettings):
 
     LOGSUM_SETTINGS: Path
     """Settings for the logsum computation."""
+
+
+class TourLocationComponentSettings(LocationComponentSettings):
+
+    # Logsum-related settings
+    CHOOSER_ORIG_COL_NAME: str
+    ALT_DEST_COL_NAME: str
+    IN_PERIOD: int | dict[str, int]
+    OUT_PERIOD: int | dict[str, int]
+    LOGSUM_PREPROCESSOR: str = "preprocessor"

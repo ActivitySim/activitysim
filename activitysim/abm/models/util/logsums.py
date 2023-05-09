@@ -4,20 +4,34 @@ from __future__ import annotations
 
 import logging
 
-from activitysim.core import config, expressions, los, simulate, tracing
+import pandas as pd
+
+from activitysim.core import config, expressions, los, simulate, tracing, workflow
+from activitysim.core.configuration import PydanticBase
+from activitysim.core.configuration.logit import TourLocationComponentSettings
 
 logger = logging.getLogger(__name__)
 
 
-def filter_chooser_columns(choosers, logsum_settings, model_settings):
+def filter_chooser_columns(
+    choosers, logsum_settings, model_settings: dict | PydanticBase
+):
 
     chooser_columns = logsum_settings.get("LOGSUM_CHOOSER_COLUMNS", [])
 
     if (
-        "CHOOSER_ORIG_COL_NAME" in model_settings
+        isinstance(model_settings, dict)
+        and "CHOOSER_ORIG_COL_NAME" in model_settings
         and model_settings["CHOOSER_ORIG_COL_NAME"] not in chooser_columns
     ):
         chooser_columns.append(model_settings["CHOOSER_ORIG_COL_NAME"])
+    if (
+        isinstance(model_settings, PydanticBase)
+        and hasattr(model_settings, "CHOOSER_ORIG_COL_NAME")
+        and model_settings.CHOOSER_ORIG_COL_NAME
+        and model_settings.CHOOSER_ORIG_COL_NAME not in chooser_columns
+    ):
+        chooser_columns.append(model_settings.CHOOSER_ORIG_COL_NAME)
 
     missing_columns = [c for c in chooser_columns if c not in choosers]
     if missing_columns:
@@ -32,19 +46,19 @@ def filter_chooser_columns(choosers, logsum_settings, model_settings):
     return choosers
 
 
-def compute_logsums(
-    state,
-    choosers,
+def compute_location_choice_logsums(
+    state: workflow.State,
+    choosers: pd.DataFrame,
     tour_purpose,
     logsum_settings,
-    model_settings,
-    network_los,
-    chunk_size,
-    chunk_tag,
-    trace_label,
-    in_period_col=None,
-    out_period_col=None,
-    duration_col=None,
+    model_settings: TourLocationComponentSettings,
+    network_los: los.Network_LOS,
+    chunk_size: int,
+    chunk_tag: str,
+    trace_label: str,
+    in_period_col: str | None = None,
+    out_period_col: str | None = None,
+    duration_col: str | None = None,
 ):
     """
 
@@ -64,13 +78,15 @@ def compute_logsums(
     logsums: pandas series
         computed logsums with same index as choosers
     """
+    if isinstance(model_settings, dict):
+        model_settings = TourLocationComponentSettings.parse_obj(model_settings)
 
     trace_label = tracing.extend_trace_label(trace_label, "compute_logsums")
-    logger.debug("Running compute_logsums with %d choosers" % choosers.shape[0])
+    logger.debug(f"Running compute_logsums with {choosers.shape[0]:d} choosers")
 
     # compute_logsums needs to know name of dest column in interaction_sample
-    orig_col_name = model_settings["CHOOSER_ORIG_COL_NAME"]
-    dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    orig_col_name = model_settings.CHOOSER_ORIG_COL_NAME
+    dest_col_name = model_settings.ALT_DEST_COL_NAME
 
     # FIXME - are we ok with altering choosers (so caller doesn't have to set these)?
     if (in_period_col is not None) and (out_period_col is not None):
@@ -84,25 +100,25 @@ def compute_logsums(
         "out_period" not in choosers.columns
     ):
         if (
-            type(model_settings["IN_PERIOD"]) is dict
-            and type(model_settings["OUT_PERIOD"]) is dict
+            type(model_settings.IN_PERIOD) is dict
+            and type(model_settings.OUT_PERIOD) is dict
         ):
             if (
-                tour_purpose in model_settings["IN_PERIOD"]
-                and tour_purpose in model_settings["OUT_PERIOD"]
+                tour_purpose in model_settings.IN_PERIOD
+                and tour_purpose in model_settings.OUT_PERIOD
             ):
                 choosers["in_period"] = network_los.skim_time_period_label(
-                    model_settings["IN_PERIOD"][tour_purpose]
+                    model_settings.IN_PERIOD[tour_purpose]
                 )
                 choosers["out_period"] = network_los.skim_time_period_label(
-                    model_settings["OUT_PERIOD"][tour_purpose]
+                    model_settings.OUT_PERIOD[tour_purpose]
                 )
         else:
             choosers["in_period"] = network_los.skim_time_period_label(
-                model_settings["IN_PERIOD"]
+                model_settings.IN_PERIOD
             )
             choosers["out_period"] = network_los.skim_time_period_label(
-                model_settings["OUT_PERIOD"]
+                model_settings.OUT_PERIOD
             )
     else:
         logger.error("Choosers table already has columns 'in_period' and 'out_period'.")
@@ -111,21 +127,19 @@ def compute_logsums(
         choosers["duration"] = choosers[duration_col]
     elif "duration" not in choosers.columns:
         if (
-            type(model_settings["IN_PERIOD"]) is dict
-            and type(model_settings["OUT_PERIOD"]) is dict
+            type(model_settings.IN_PERIOD) is dict
+            and type(model_settings.OUT_PERIOD) is dict
         ):
             if (
-                tour_purpose in model_settings["IN_PERIOD"]
-                and tour_purpose in model_settings["OUT_PERIOD"]
+                tour_purpose in model_settings.IN_PERIOD
+                and tour_purpose in model_settings.OUT_PERIOD
             ):
                 choosers["duration"] = (
-                    model_settings["IN_PERIOD"][tour_purpose]
-                    - model_settings["OUT_PERIOD"][tour_purpose]
+                    model_settings.IN_PERIOD[tour_purpose]
+                    - model_settings.OUT_PERIOD[tour_purpose]
                 )
         else:
-            choosers["duration"] = (
-                model_settings["IN_PERIOD"] - model_settings["OUT_PERIOD"]
-            )
+            choosers["duration"] = model_settings.IN_PERIOD - model_settings.OUT_PERIOD
     else:
         logger.error("Choosers table already has column 'duration'.")
 
@@ -209,7 +223,7 @@ def compute_logsums(
 
     # - run preprocessor to annotate choosers
     # allow specification of alternate preprocessor for nontour choosers
-    preprocessor = model_settings.get("LOGSUM_PREPROCESSOR", "preprocessor")
+    preprocessor = model_settings.LOGSUM_PREPROCESSOR
     preprocessor_settings = logsum_settings[preprocessor]
 
     if preprocessor_settings:

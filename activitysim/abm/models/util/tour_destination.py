@@ -650,7 +650,7 @@ def run_destination_logsums(
     state.tracing.dump_df(DUMP, persons_merged, trace_label, "persons_merged")
     state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
-    logsums = logsum.compute_logsums(
+    logsums = logsum.compute_location_choice_logsums(
         state,
         choosers,
         tour_purpose,

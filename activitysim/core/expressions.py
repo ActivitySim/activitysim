@@ -67,7 +67,7 @@ def compute_columns(
     assert "DF" in model_settings, "Expected to find 'DF' in %s" % model_settings_name
 
     df_name = model_settings.get("DF")
-    helper_table_names = model_settings.get("TABLES", [])
+    helper_table_names = model_settings.get("TABLES") or []
     expressions_spec_name = model_settings.get("SPEC", None)
 
     # Extract suffix for disaggregate accessibilities.

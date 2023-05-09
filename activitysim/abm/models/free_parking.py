@@ -21,7 +21,7 @@ from activitysim.core.configuration.logit import LogitComponentSettings
 logger = logging.getLogger(__name__)
 
 
-class FreeParkingSettings(PydanticReadable, LogitComponentSettings, extra="forbid"):
+class FreeParkingSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `free_parking` component.
     """

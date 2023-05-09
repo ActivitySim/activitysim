@@ -45,9 +45,7 @@ ALT_DEST_TAZ = "ALT_DEST_TAZ"
 # DEST_MAZ = 'dest_maz'
 
 
-class TripDestinationSettings(
-    PydanticReadable, LocationComponentSettings, extra="forbid"
-):
+class TripDestinationSettings(LocationComponentSettings, extra="forbid"):
     """Settings for the trip_destination component.
 
     .. versionadded:: 1.2

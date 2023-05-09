@@ -13,10 +13,7 @@ read_skim_cache: False
 # write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
 write_skim_cache: False
 
-taz_skims: skims.omx
-# taz_skims: 
-#  - peak_skims.omx
-#  - offpeak_skims.omx
+taz_skims: skims*.omx
 
 maz: land_use.csv  
 

@@ -7,7 +7,7 @@ import logging
 import multiprocessing
 import time
 from collections import OrderedDict
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -16,6 +16,7 @@ from activitysim.abm.models.location_choice import MandatoryLocationSettings
 from activitysim.abm.tables.size_terms import size_terms as get_size_terms
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 from activitysim.core import logit, tracing, util, workflow
+from activitysim.core.configuration import PydanticReadable
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
@@ -89,6 +90,59 @@ def size_table_name(model_selector):
     return "%s_destination_size" % model_selector
 
 
+class ShadowPriceSettings(PydanticReadable, extra="forbid"):
+    """Settings used for shadow pricing."""
+
+    shadow_pricing_models: dict[str, str] | None = None
+
+    LOAD_SAVED_SHADOW_PRICES: bool = True
+    """Global switch to enable/disable loading of saved shadow prices.
+
+    This is ignored if global use_shadow_pricing switch is False
+    """
+
+    MAX_ITERATIONS: int = 5
+    """Number of shadow price iterations for cold start."""
+
+    MAX_ITERATIONS_SAVED: int = 1
+    """Number of shadow price iterations for warm start.
+
+    A warm start means saved shadow_prices were found in a file and loaded."""
+
+    SIZE_THRESHOLD: float = 10
+    """ignore criteria for zones smaller than size_threshold"""
+
+    PERCENT_TOLERANCE: float = 5
+    """zone passes if modeled is within percent_tolerance of  predicted_size"""
+
+    FAIL_THRESHOLD: float = 10
+    """max percentage of zones allowed to fail"""
+
+    SHADOW_PRICE_METHOD: Literal["ctramp", "daysim", "simulation"] = "ctramp"
+
+    DAMPING_FACTOR: float = 1
+    """ctramp-style damping factor"""
+
+    SCALE_SIZE_TABLE: bool = False
+
+    DAYSIM_ABSOLUTE_TOLERANCE: float = 50
+    DAYSIM_PERCENT_TOLERANCE: float = 10
+
+    TARGET_THRESHOLD: float = 20
+    """ignore criteria for zones smaller than target_threshold (total employmnet or enrollment)"""
+
+    workplace_segmentation_targets: dict[str, str] | None = None
+    school_segmentation_targets: dict[str, str] | None = None
+
+    WRITE_ITERATION_CHOICES: bool = False
+
+    SEGMENT_TO_NAME: dict[str, str] = {
+        "school": "school_segment",
+        "workplace": "income_segment",
+    }  # pydantic uses deep copy, so mutable default value is ok here
+    """Mapping from model_selector to persons_segment_name."""
+
+
 class ShadowPriceCalculator:
     def __init__(
         self,
@@ -140,18 +194,18 @@ class ShadowPriceCalculator:
         self.modeled_size = None
 
         if self.use_shadow_pricing:
-            self.shadow_settings = state.filesystem.read_model_settings(
-                "shadow_pricing.yaml"
+            self.shadow_settings = ShadowPriceSettings.read_settings_file(
+                state.filesystem, "shadow_pricing.yaml"
             )
 
-            for k in self.shadow_settings:
-                logger.debug(f"shadow_settings {k}: {self.shadow_settings.get(k)}")
+            for k, k_value in self.shadow_settings:
+                logger.debug(f"shadow_settings {k}: {k_value}")
 
         full_model_run = state.settings.households_sample_size == 0
         if (
             self.use_shadow_pricing
             and not full_model_run
-            and self.shadow_settings["SHADOW_PRICE_METHOD"] != "simulation"
+            and self.shadow_settings.SHADOW_PRICE_METHOD != "simulation"
         ):
             # ctramp and daysim methods directly compare desired and modeled size to compute shadow prices.
             # desination size terms are scaled in add_size_tables only for full model runs
@@ -164,7 +218,7 @@ class ShadowPriceCalculator:
         if (
             self.use_shadow_pricing
             and self.model_selector not in ["workplace", "school"]
-            and self.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation"
+            and self.shadow_settings.SHADOW_PRICE_METHOD == "simulation"
         ):
             logger.warning(
                 "Shadow price simulation method is only implemented for workplace and school."
@@ -202,23 +256,21 @@ class ShadowPriceCalculator:
         # - load saved shadow_prices (if available) and set max_iterations accordingly
         if self.use_shadow_pricing:
             self.shadow_prices = None
-            self.shadow_price_method = self.shadow_settings["SHADOW_PRICE_METHOD"]
+            self.shadow_price_method = self.shadow_settings.SHADOW_PRICE_METHOD
             assert self.shadow_price_method in ["daysim", "ctramp", "simulation"]
             # ignore convergence criteria for zones smaller than target_threshold
-            self.target_threshold = self.shadow_settings["TARGET_THRESHOLD"]
+            self.target_threshold = self.shadow_settings.TARGET_THRESHOLD
 
-            if self.shadow_settings["LOAD_SAVED_SHADOW_PRICES"]:
+            if self.shadow_settings.LOAD_SAVED_SHADOW_PRICES:
                 # read_saved_shadow_prices logs error and returns None if file not found
                 self.shadow_prices = self.read_saved_shadow_prices(
                     state, model_settings
                 )
 
             if self.shadow_prices is None:
-                self.max_iterations = self.shadow_settings.get("MAX_ITERATIONS", 5)
+                self.max_iterations = self.shadow_settings.MAX_ITERATIONS
             else:
-                self.max_iterations = self.shadow_settings.get(
-                    "MAX_ITERATIONS_SAVED", 1
-                )
+                self.max_iterations = self.shadow_settings.MAX_ITERATIONS_SAVED
 
             # initial_shadow_price if we did not load
             if self.shadow_prices is None:
@@ -243,18 +295,18 @@ class ShadowPriceCalculator:
 
         if (
             self.use_shadow_pricing
-            and self.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation"
+            and self.shadow_settings.SHADOW_PRICE_METHOD == "simulation"
         ):
             assert self.model_selector in ["workplace", "school"]
             self.target = {}
             land_use = state.get_dataframe("land_use")
 
             if self.model_selector == "workplace":
-                employment_targets = self.shadow_settings[
-                    "workplace_segmentation_targets"
-                ]
+                employment_targets = (
+                    self.shadow_settings.workplace_segmentation_targets or {}
+                )
                 assert (
-                    employment_targets is not None
+                    employment_targets
                 ), "Need to supply workplace_segmentation_targets in shadow_pricing.yaml"
 
                 for segment, target in employment_targets.items():
@@ -267,9 +319,9 @@ class ShadowPriceCalculator:
                     self.target[segment] = land_use[target]
 
             elif self.model_selector == "school":
-                school_targets = self.shadow_settings["school_segmentation_targets"]
+                school_targets = self.shadow_settings.school_segmentation_targets or {}
                 assert (
-                    school_targets is not None
+                    school_targets
                 ), "Need to supply school_segmentation_targets in shadow_pricing.yaml"
 
                 for segment, target in school_targets.items():
@@ -543,17 +595,17 @@ class ShadowPriceCalculator:
 
         # - convergence criteria for check_fit
         # ignore convergence criteria for zones smaller than size_threshold
-        size_threshold = self.shadow_settings["SIZE_THRESHOLD"]
+        size_threshold = self.shadow_settings.SIZE_THRESHOLD
         # zone passes if modeled is within percent_tolerance of  desired_size
-        percent_tolerance = self.shadow_settings["PERCENT_TOLERANCE"]
+        percent_tolerance = self.shadow_settings.PERCENT_TOLERANCE
         # max percentage of zones allowed to fail
-        fail_threshold = self.shadow_settings["FAIL_THRESHOLD"]
+        fail_threshold = self.shadow_settings.FAIL_THRESHOLD
         # option to write out choices by iteration for each person to trace folder
-        write_choices = self.shadow_settings.get("WRITE_ITERATION_CHOICES", False)
+        write_choices = self.shadow_settings.WRITE_ITERATION_CHOICES
         if write_choices:
             self.choices_by_iteration[iteration] = self.choices_synced
 
-        if self.shadow_settings["SHADOW_PRICE_METHOD"] != "simulation":
+        if self.shadow_settings.SHADOW_PRICE_METHOD != "simulation":
             modeled_size = self.modeled_size
             desired_size = self.desired_size
 
@@ -680,7 +732,7 @@ class ShadowPriceCalculator:
 
         assert self.use_shadow_pricing
 
-        shadow_price_method = self.shadow_settings["SHADOW_PRICE_METHOD"]
+        shadow_price_method = self.shadow_settings.SHADOW_PRICE_METHOD
 
         # can't update_shadow_prices until after first iteration
         # modeled_size should have been set by set_choices at end of previous iteration
@@ -696,7 +748,7 @@ class ShadowPriceCalculator:
             // else
             //    shadowPrice *= scaledSize;
             """
-            damping_factor = self.shadow_settings["DAMPING_FACTOR"]
+            damping_factor = self.shadow_settings.DAMPING_FACTOR
             assert 0 < damping_factor <= 1
 
             new_scale_factor = self.desired_size / self.modeled_size
@@ -728,8 +780,8 @@ class ShadowPriceCalculator:
             shadow_price = shadow_price + log(np.maximum(target, 0.01) / np.maximum(modeled, 0.01))
             """
             # FIXME should these be the same as PERCENT_TOLERANCE and FAIL_THRESHOLD above?
-            absolute_tolerance = self.shadow_settings["DAYSIM_ABSOLUTE_TOLERANCE"]
-            percent_tolerance = self.shadow_settings["DAYSIM_PERCENT_TOLERANCE"] / 100.0
+            absolute_tolerance = self.shadow_settings.DAYSIM_ABSOLUTE_TOLERANCE
+            percent_tolerance = self.shadow_settings.DAYSIM_PERCENT_TOLERANCE / 100.0
             assert 0 <= percent_tolerance <= 1
 
             target = np.where(
@@ -772,14 +824,12 @@ class ShadowPriceCalculator:
                 shadow_price_j = -999
                 resimulate n workers from zone j, with n = int(workers_j-emp_j/sum(emp_j*workers_j))
             """
-            percent_tolerance = self.shadow_settings["PERCENT_TOLERANCE"]
+            percent_tolerance = self.shadow_settings.PERCENT_TOLERANCE
             sampled_persons = pd.DataFrame()
             persons_merged = state.get_dataframe("persons_merged")
 
             # need to join the segment to the choices to sample correct persons
-            segment_to_name_dict = self.shadow_settings.get(
-                "", default_segment_to_name_dict
-            )
+            segment_to_name_dict = self.shadow_settings.SEGMENT_TO_NAME
             segment_name = segment_to_name_dict[self.model_selector]
 
             if type(self.choices_synced) != pd.DataFrame:
@@ -866,7 +916,7 @@ class ShadowPriceCalculator:
         utility_adjustment = 0
 
         if self.use_shadow_pricing:
-            shadow_price_method = self.shadow_settings["SHADOW_PRICE_METHOD"]
+            shadow_price_method = self.shadow_settings.SHADOW_PRICE_METHOD
 
             if shadow_price_method == "ctramp":
                 size_term_adjustment = self.shadow_prices[segment]
@@ -1268,8 +1318,10 @@ def _add_size_tables(state, disaggregate_suffixes, scale=True) -> None:
 
     use_shadow_pricing = bool(state.settings.use_shadow_pricing)
 
-    shadow_settings = state.filesystem.read_model_settings("shadow_pricing.yaml")
-    shadow_pricing_models = shadow_settings.get("shadow_pricing_models")
+    shadow_settings = ShadowPriceSettings.read_settings_file(
+        state.filesystem, "shadow_pricing.yaml"
+    )
+    shadow_pricing_models = shadow_settings.shadow_pricing_models
 
     if shadow_pricing_models is None:
         logger.warning(
@@ -1279,7 +1331,7 @@ def _add_size_tables(state, disaggregate_suffixes, scale=True) -> None:
 
     # probably ought not scale if not shadow_pricing (breaks partial sample replicability)
     # but this allows compatability with existing CTRAMP behavior...
-    scale_size_table = shadow_settings.get("SCALE_SIZE_TABLE", False)
+    scale_size_table = shadow_settings.SCALE_SIZE_TABLE
 
     # Suffixes for disaggregate accessibilities
     # Set default here incase None is explicitly passed
@@ -1413,10 +1465,12 @@ def get_shadow_pricing_info(state):
     land_use = state.get_dataframe("land_use")
     size_terms = state.get_injectable("size_terms")
 
-    shadow_settings = state.filesystem.read_model_settings("shadow_pricing.yaml")
+    shadow_settings = ShadowPriceSettings.read_settings_file(
+        state.filesystem, "shadow_pricing.yaml"
+    )
 
     # shadow_pricing_models is dict of {<model_selector>: <model_name>}
-    shadow_pricing_models = shadow_settings.get("shadow_pricing_models", {})
+    shadow_pricing_models = shadow_settings.shadow_pricing_models or {}
 
     blocks = OrderedDict()
     for model_selector in shadow_pricing_models:
@@ -1455,10 +1509,12 @@ def get_shadow_pricing_choice_info(state):
 
     persons = read_input_table(state, "persons")
 
-    shadow_settings = state.filesystem.read_model_settings("shadow_pricing.yaml")
+    shadow_settings = ShadowPriceSettings.read_settings_file(
+        state.filesystem, "shadow_pricing.yaml"
+    )
 
     # shadow_pricing_models is dict of {<model_selector>: <model_name>}
-    shadow_pricing_models = shadow_settings.get("shadow_pricing_models", {})
+    shadow_pricing_models = shadow_settings.shadow_pricing_models or {}
 
     blocks = OrderedDict()
     for model_selector in shadow_pricing_models:

@@ -51,10 +51,14 @@ class _BaseLogitComponentSettings(PydanticReadable):
     linear-in-parameters utility expression.
     """
 
-    COEFFICIENTS: Path
+    COEFFICIENTS: Path | None = None
     """Coefficients filename.
 
     This is a CSV file giving named parameters for use in the utility expression.
+    If it is not provided, then it is assumed that all model coefficients are
+    given explicitly in the `SPEC` as numerical values instead of named parameters.
+    This is perfectly acceptable for use with ActivitySim for typical simulation
+    applications, but may be problematic if used with "estimation mode".
     """
 
     CONSTANTS: dict[str, Any] | None = None

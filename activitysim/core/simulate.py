@@ -143,7 +143,7 @@ def read_model_spec(filesystem: configuration.FileSystem, file_name: str):
 def read_model_coefficients(
     filesystem: configuration.FileSystem,
     model_settings: LogitComponentSettings | dict[str, Any] | None = None,
-    file_name: str | None = None,
+    file_name: Path | str | None = None,
 ) -> pd.DataFrame:
     """
     Read the coefficient file specified by COEFFICIENTS model setting

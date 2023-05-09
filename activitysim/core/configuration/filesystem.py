@@ -526,7 +526,9 @@ class FileSystem(PydanticBase, validate_assignment=True):
         """
         return tuple(self.get_working_subdir(i) for i in self.configs_dir)
 
-    def get_config_file_path(self, file_name, mandatory=True, allow_glob=False) -> Path:
+    def get_config_file_path(
+        self, file_name: Path | str, mandatory: bool = True, allow_glob: bool = False
+    ) -> Path:
         """
         Find the first matching file among config directories.
 

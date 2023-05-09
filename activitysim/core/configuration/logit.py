@@ -6,7 +6,7 @@ from typing import Any, Literal
 from pydantic import BaseModel as PydanticBase
 from pydantic import validator
 
-from activitysim.core.configuration.base import PydanticReadable
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 
 
 class LogitNestSpec(PydanticBase):
@@ -148,7 +148,7 @@ class LocationComponentSettings(_BaseLogitComponentSettings):
     """Settings for the logsum computation."""
 
 
-class TourLocationComponentSettings(LocationComponentSettings):
+class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
 
     # Logsum-related settings
     CHOOSER_ORIG_COL_NAME: str
@@ -156,3 +156,28 @@ class TourLocationComponentSettings(LocationComponentSettings):
     IN_PERIOD: int | dict[str, int]
     OUT_PERIOD: int | dict[str, int]
     LOGSUM_PREPROCESSOR: str = "preprocessor"
+
+    SEGMENTS: list[str] | None = None
+    SIZE_TERM_SELECTOR: str | None = None
+    annotate_tours: PreprocessorSettings | None = None
+
+    CHOOSER_FILTER_COLUMN_NAME: str | None = None
+    DEST_CHOICE_COLUMN_NAME: str | None = None
+    DEST_CHOICE_LOGSUM_COLUMN_NAME: str | None = None
+    DEST_CHOICE_SAMPLE_TABLE_NAME: str | None = None
+    CHOOSER_TABLE_NAME: str | None = None
+    CHOOSER_SEGMENT_COLUMN_NAME: str | None = None
+    SEGMENT_IDS: dict[str, int] | None = None
+    SHADOW_PRICE_TABLE: str | None = None
+    MODELED_SIZE_TABLE: str | None = None
+    annotate_persons: PreprocessorSettings | None = None
+    annotate_households: PreprocessorSettings | None = None
+    SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
+    ALT_DEST_COL_NAME: str
+    LOGSUM_TOUR_PURPOSE: str | dict[str, str] | None = None
+    MODEL_SELECTOR: Literal["workplace", "school", None] = None
+    SAVED_SHADOW_PRICE_TABLE_NAME: str | None = None
+    CHOOSER_ID_COLUMN: str = "person_id"
+
+    ORIG_ZONE_ID: str | None = None
+    """This setting appears to do nothing..."""

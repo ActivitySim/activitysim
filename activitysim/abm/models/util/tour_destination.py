@@ -10,6 +10,7 @@ import pandas as pd
 from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 from activitysim.core import config, los, simulate, tracing, workflow
+from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
@@ -67,7 +68,7 @@ def _destination_sample(
     destination_size_terms,
     skims,
     estimator,
-    model_settings,
+    model_settings: TourLocationComponentSettings,
     alt_dest_col_name,
     chunk_tag,
     trace_label: str,
@@ -75,15 +76,17 @@ def _destination_sample(
 ):
     model_spec = simulate.spec_for_segment(
         state,
-        model_settings,
+        None,
         spec_id="SAMPLE_SPEC",
         segment_name=spec_segment_name,
         estimator=estimator,
+        spec_file_name=model_settings.SAMPLE_SPEC,
+        coefficients_file_name=model_settings.COEFFICIENTS,
     )
 
     logger.info("running %s with %d tours", trace_label, len(choosers))
 
-    sample_size = model_settings["SAMPLE_SIZE"]
+    sample_size = model_settings.SAMPLE_SIZE
     if state.settings.disable_destination_sampling or (
         estimator and estimator.want_unsampled_alternatives
     ):
@@ -100,7 +103,7 @@ def _destination_sample(
         "dest_col_name": skims.dest_key,  # added for sharrow flows
         "timeframe": "timeless",
     }
-    constants = config.get_model_constants(model_settings)
+    constants = model_settings.CONSTANTS
     if constants is not None:
         locals_d.update(constants)
 
@@ -123,7 +126,7 @@ def _destination_sample(
     )
 
     # if special person id is passed
-    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
+    chooser_id_column = model_settings.CHOOSER_ID_COLUMN
 
     # remember person_id in chosen alts so we can merge with persons in subsequent steps
     # (broadcasts person_id onto all alternatives sharing the same tour_id index value)
@@ -136,7 +139,7 @@ def destination_sample(
     state: workflow.State,
     spec_segment_name,
     choosers,
-    model_settings,
+    model_settings: TourLocationComponentSettings,
     network_los,
     destination_size_terms,
     estimator,
@@ -147,7 +150,7 @@ def destination_sample(
 
     # create wrapper with keys for this lookup
     # the skims will be available under the name "skims" for any @ expressions
-    skim_origin_col_name = model_settings["CHOOSER_ORIG_COL_NAME"]
+    skim_origin_col_name = model_settings.CHOOSER_ORIG_COL_NAME
     skim_dest_col_name = destination_size_terms.index.name
     # (logit.interaction_dataset suffixes duplicate chooser column with '_chooser')
     if skim_origin_col_name == skim_dest_col_name:
@@ -157,7 +160,7 @@ def destination_sample(
     skims = skim_dict.wrap(skim_origin_col_name, skim_dest_col_name)
 
     # the name of the dest column to be returned in choices
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
     choices = _destination_sample(
         state,
@@ -460,7 +463,7 @@ def destination_presample(
     state: workflow.State,
     spec_segment_name,
     choosers,
-    model_settings,
+    model_settings: TourLocationComponentSettings,
     network_los,
     destination_size_terms,
     estimator,
@@ -471,14 +474,14 @@ def destination_presample(
 
     logger.info(f"{trace_label} location_presample")
 
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
     assert DEST_TAZ != alt_dest_col_name
 
     MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(
         destination_size_terms, network_los
     )
 
-    orig_maz = model_settings["CHOOSER_ORIG_COL_NAME"]
+    orig_maz = model_settings.CHOOSER_ORIG_COL_NAME
     assert orig_maz in choosers
     if ORIG_TAZ not in choosers:
         choosers[ORIG_TAZ] = network_los.map_maz_to_taz(choosers[orig_maz])
@@ -517,7 +520,7 @@ def run_destination_sample(
     spec_segment_name,
     tours,
     persons_merged,
-    model_settings,
+    model_settings: TourLocationComponentSettings,
     network_los,
     destination_size_terms,
     estimator,
@@ -525,10 +528,10 @@ def run_destination_sample(
     trace_label,
 ):
     # FIXME - MEMORY HACK - only include columns actually used in spec (omit them pre-merge)
-    chooser_columns = model_settings["SIMULATE_CHOOSER_COLUMNS"]
+    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
 
     # if special person id is passed
-    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
+    chooser_id_column = model_settings.CHOOSER_ID_COLUMN
 
     persons_merged = persons_merged[
         [c for c in persons_merged.columns if c in chooser_columns]
@@ -597,7 +600,7 @@ def run_destination_logsums(
     tour_purpose,
     persons_merged,
     destination_sample,
-    model_settings,
+    model_settings: TourLocationComponentSettings,
     network_los,
     chunk_size,
     trace_label,
@@ -624,10 +627,10 @@ def run_destination_logsums(
     """
 
     logsum_settings = state.filesystem.read_model_settings(
-        model_settings["LOGSUM_SETTINGS"]
+        model_settings.LOGSUM_SETTINGS
     )
     # if special person id is passed
-    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
+    chooser_id_column = model_settings.CHOOSER_ID_COLUMN
 
     chunk_tag = "tour_destination.logsums"
 
@@ -674,7 +677,7 @@ def run_destination_simulate(
     persons_merged,
     destination_sample,
     want_logsums,
-    model_settings,
+    model_settings: TourLocationComponentSettings,
     network_los,
     destination_size_terms,
     estimator,
@@ -690,17 +693,19 @@ def run_destination_simulate(
 
     model_spec = simulate.spec_for_segment(
         state,
-        model_settings,
+        None,
         spec_id="SPEC",
         segment_name=spec_segment_name,
         estimator=estimator,
+        spec_file_name=model_settings.SPEC,
+        coefficients_file_name=model_settings.COEFFICIENTS,
     )
 
     # FIXME - MEMORY HACK - only include columns actually used in spec (omit them pre-merge)
-    chooser_columns = model_settings["SIMULATE_CHOOSER_COLUMNS"]
+    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
 
     # if special person id is passed
-    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
+    chooser_id_column = model_settings.CHOOSER_ID_COLUMN
 
     persons_merged = persons_merged[
         [c for c in persons_merged.columns if c in chooser_columns]
@@ -722,8 +727,8 @@ def run_destination_simulate(
     if estimator:
         estimator.write_choosers(choosers)
 
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
-    origin_col_name = model_settings["CHOOSER_ORIG_COL_NAME"]
+    alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
+    origin_col_name = model_settings.CHOOSER_ORIG_COL_NAME
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
     # but we have to merge size_terms column into alt sample list
@@ -733,7 +738,7 @@ def run_destination_simulate(
 
     state.tracing.dump_df(DUMP, destination_sample, trace_label, "alternatives")
 
-    constants = config.get_model_constants(model_settings)
+    constants = model_settings.CONSTANTS
 
     logger.info("Running tour_destination_simulate with %d persons", len(choosers))
 
@@ -788,20 +793,18 @@ def run_tour_destination(
     persons_merged: pd.DataFrame,
     want_logsums: bool,
     want_sample_table: bool,
-    model_settings,
+    model_settings: TourLocationComponentSettings,
     network_los: los.Network_LOS,
     estimator,
     trace_label,
     skip_choice=False,
 ):
-    size_term_calculator = SizeTermCalculator(
-        state, model_settings["SIZE_TERM_SELECTOR"]
-    )
+    size_term_calculator = SizeTermCalculator(state, model_settings.SIZE_TERM_SELECTOR)
 
     # maps segment names to compact (integer) ids
-    segments = model_settings["SEGMENTS"]
+    segments = model_settings.SEGMENTS
 
-    chooser_segment_column = model_settings.get("CHOOSER_SEGMENT_COLUMN_NAME", None)
+    chooser_segment_column = model_settings.CHOOSER_SEGMENT_COLUMN_NAME
     if chooser_segment_column is None:
         assert (
             len(segments) == 1
@@ -879,7 +882,7 @@ def run_tour_destination(
         if want_sample_table:
             # FIXME - sample_table
             location_sample_df.set_index(
-                model_settings["ALT_DEST_COL_NAME"], append=True, inplace=True
+                model_settings.ALT_DEST_COL_NAME, append=True, inplace=True
             )
             sample_list.append(location_sample_df)
         else:

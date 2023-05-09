@@ -12,7 +12,6 @@ from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.models.util import tour_destination
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core import estimation, expressions, los, simulate, tracing, workflow
-from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
@@ -78,7 +77,7 @@ ALT_LOGSUM = "mode_choice_logsum"
 def write_estimation_specs(
     state: workflow.State,
     estimator: estimation.Estimator,
-    model_settings: MandatoryLocationSettings,
+    model_settings: TourLocationComponentSettings,
     settings_file,
 ):
     """
@@ -110,7 +109,7 @@ def _location_sample(
     alternatives,
     skims,
     estimator,
-    model_settings: MandatoryLocationSettings,
+    model_settings: TourLocationComponentSettings,
     alt_dest_col_name,
     chunk_size,
     chunk_tag,
@@ -201,7 +200,7 @@ def location_sample(
     network_los,
     dest_size_terms,
     estimator,
-    model_settings: MandatoryLocationSettings,
+    model_settings: TourLocationComponentSettings,
     chunk_size,
     chunk_tag,
     trace_label,
@@ -246,7 +245,7 @@ def aggregate_size_terms(
     state: workflow.State,
     dest_size_terms,
     network_los: los.Network_LOS,
-    model_settings: MandatoryLocationSettings,
+    model_settings: TourLocationComponentSettings,
 ):
     #
     # aggregate MAZ_size_terms to TAZ_size_terms
@@ -336,7 +335,7 @@ def location_presample(
     network_los,
     dest_size_terms,
     estimator,
-    model_settings: MandatoryLocationSettings,
+    model_settings: TourLocationComponentSettings,
     chunk_size,
     chunk_tag,
     trace_label,
@@ -413,7 +412,7 @@ def run_location_sample(
     network_los,
     dest_size_terms,
     estimator,
-    model_settings: MandatoryLocationSettings,
+    model_settings: TourLocationComponentSettings,
     chunk_size,
     chunk_tag,
     trace_label,
@@ -495,7 +494,7 @@ def run_location_logsums(
     persons_merged_df,
     network_los,
     location_sample_df,
-    model_settings: MandatoryLocationSettings,
+    model_settings: TourLocationComponentSettings,
     chunk_size,
     chunk_tag,
     trace_label,
@@ -570,7 +569,7 @@ def run_location_simulate(
     dest_size_terms,
     want_logsums,
     estimator,
-    model_settings: MandatoryLocationSettings,
+    model_settings: TourLocationComponentSettings,
     chunk_size,
     chunk_tag,
     trace_label,
@@ -677,7 +676,7 @@ def run_location_choice(
     want_logsums,
     want_sample_table,
     estimator,
-    model_settings: MandatoryLocationSettings,
+    model_settings: TourLocationComponentSettings,
     chunk_size,
     chunk_tag,
     trace_label,
@@ -863,7 +862,7 @@ def run_location_choice(
 
 def iterate_location_choice(
     state: workflow.State,
-    model_settings: MandatoryLocationSettings,
+    model_settings: TourLocationComponentSettings,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
     households: pd.DataFrame,
@@ -1080,33 +1079,6 @@ def iterate_location_choice(
     return persons_df
 
 
-class MandatoryLocationSettings(TourLocationComponentSettings, extra="forbid"):
-    """Settings for mandatory location choice components.
-
-    .. versionadded:: 1.3
-
-    These are settings common to both workplace and school location choice
-    components.
-    """
-
-    CHOOSER_FILTER_COLUMN_NAME: str
-    DEST_CHOICE_COLUMN_NAME: str
-    DEST_CHOICE_LOGSUM_COLUMN_NAME: str | None = None
-    DEST_CHOICE_SAMPLE_TABLE_NAME: str | None = None
-    CHOOSER_TABLE_NAME: str
-    CHOOSER_SEGMENT_COLUMN_NAME: str
-    SEGMENT_IDS: dict[str, int]
-    SHADOW_PRICE_TABLE: str | None = None
-    MODELED_SIZE_TABLE: str | None = None
-    annotate_persons: PreprocessorSettings | None = None
-    annotate_households: PreprocessorSettings | None = None
-    SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
-    ALT_DEST_COL_NAME: str
-    LOGSUM_TOUR_PURPOSE: str | dict[str, str]
-    MODEL_SELECTOR: Literal["workplace", "school"]
-    SAVED_SHADOW_PRICE_TABLE_NAME: str | None = None
-
-
 @workflow.step
 def workplace_location(
     state: workflow.State,
@@ -1115,7 +1087,7 @@ def workplace_location(
     households: pd.DataFrame,
     network_los: los.Network_LOS,
     locutor: bool,
-    model_settings: MandatoryLocationSettings | None = None,
+    model_settings: TourLocationComponentSettings | None = None,
     model_settings_file_name: str = "workplace_location.yaml",
     trace_label: str = "workplace_location",
 ) -> None:
@@ -1125,7 +1097,7 @@ def workplace_location(
     iterate_location_choice adds location choice column and annotations to persons table
     """
     if model_settings is None:
-        model_settings = MandatoryLocationSettings.read_settings_file(
+        model_settings = TourLocationComponentSettings.read_settings_file(
             state.filesystem,
             model_settings_file_name,
         )
@@ -1169,7 +1141,7 @@ def school_location(
     households: pd.DataFrame,
     network_los: los.Network_LOS,
     locutor: bool,
-    model_settings: MandatoryLocationSettings | None = None,
+    model_settings: TourLocationComponentSettings | None = None,
     model_settings_file_name: str = "school_location.yaml",
     trace_label: str = "school_location",
 ) -> None:
@@ -1180,7 +1152,7 @@ def school_location(
     """
 
     if model_settings is None:
-        model_settings = MandatoryLocationSettings.read_settings_file(
+        model_settings = TourLocationComponentSettings.read_settings_file(
             state.filesystem,
             model_settings_file_name,
         )

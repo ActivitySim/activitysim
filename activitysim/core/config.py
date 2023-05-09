@@ -5,9 +5,10 @@ from __future__ import annotations
 
 import logging
 import warnings
-from typing import Any
+from typing import Any, TypeVar
 
 from activitysim.core import workflow
+from activitysim.core.configuration.base import PydanticBase
 from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger(__name__)
@@ -35,9 +36,8 @@ def future_model_settings(model_name, model_settings, future_settings):
 
     Returns
     -------
-        dict
-            model_settings with any missing future_settings added
-
+    dict
+        model_settings with any missing future_settings added
     """
     model_settings = model_settings.copy()
     for key, setting in future_settings.items():
@@ -50,6 +50,37 @@ def future_model_settings(model_name, model_settings, future_settings):
             )
             model_settings[key] = setting
 
+    return model_settings
+
+
+T = TypeVar("T", bound=PydanticBase)
+
+
+def future_component_settings(
+    model_name: str, model_settings: T, future_settings: dict
+) -> T:
+    """
+    Warn users of new required model settings, and substitute default values
+
+    Parameters
+    ----------
+    model_name: str
+        name of model
+    model_settings: PydanticBase
+        model_settings from settigns file
+    future_settings: dict
+        default values for new required settings
+    """
+    for key, setting in future_settings.items():
+        if getattr(model_settings, key) is None:
+            warnings.warn(
+                f"Setting '{key}' not found in {model_name} model settings."
+                f"Replacing with default value: {setting}."
+                f"This setting will be required in future versions",
+                FutureWarning,
+                stacklevel=2,
+            )
+            setattr(model_settings, key, setting)
     return model_settings
 
 

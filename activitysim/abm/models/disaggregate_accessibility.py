@@ -14,6 +14,7 @@ from activitysim.abm.models import initialize, location_choice
 from activitysim.abm.models.util import tour_destination
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core import estimation, los, tracing, util, workflow
+from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.expressions import assign_columns
 
 logger = logging.getLogger(__name__)
@@ -575,7 +576,7 @@ class ProtoPop:
 
 
 def get_disaggregate_logsums(
-    state: workflow.State, network_los, chunk_size, trace_hh_id
+    state: workflow.State, network_los: los.Network_LOS, chunk_size: int, trace_hh_id
 ):
     logsums = {}
     persons_merged = state.get_dataframe("proto_persons_merged").sort_index(
@@ -591,9 +592,12 @@ def get_disaggregate_logsums(
         "non_mandatory_tour_destination",
     ]:
         trace_label = tracing.extend_trace_label(model_name, "accessibilities")
-        print("Running model {}".format(trace_label))
-        model_settings = state.filesystem.read_model_settings(model_name + ".yaml")
-        model_settings["SAMPLE_SIZE"] = disagg_model_settings.get(
+        print(f"Running model {trace_label}")
+
+        model_settings = TourLocationComponentSettings.read_settings_file(
+            state.filesystem, model_name + ".yaml"
+        )
+        model_settings.SAMPLE_SIZE = disagg_model_settings.get(
             "DESTINATION_SAMPLE_SIZE"
         )
         estimator = estimation.manager.begin_estimation(state, trace_label)
@@ -605,20 +609,20 @@ def get_disaggregate_logsums(
         # Append table references in settings with "proto_"
         # This avoids having to make duplicate copies of config files for disagg accessibilities
         model_settings = util.suffix_tables_in_settings(model_settings)
-        model_settings["CHOOSER_ID_COLUMN"] = "proto_person_id"
+        model_settings.CHOOSER_ID_COLUMN = "proto_person_id"
 
         # Include the suffix tags to pass onto downstream logsum models (e.g., tour mode choice)
-        if model_settings.get("LOGSUM_SETTINGS", None):
+        if model_settings.LOGSUM_SETTINGS:
             suffixes = util.concat_suffix_dict(disagg_model_settings.get("suffixes"))
-            suffixes.insert(0, model_settings.get("LOGSUM_SETTINGS"))
-            model_settings["LOGSUM_SETTINGS"] = " ".join(suffixes)
+            suffixes.insert(0, str(model_settings.LOGSUM_SETTINGS))
+            model_settings.LOGSUM_SETTINGS = " ".join(suffixes)
 
         if model_name != "non_mandatory_tour_destination":
             spc = shadow_pricing.load_shadow_price_calculator(state, model_settings)
             # explicitly turning off shadow pricing for disaggregate accessibilities
             spc.use_shadow_pricing = False
             # filter to only workers or students
-            chooser_filter_column = model_settings["CHOOSER_FILTER_COLUMN_NAME"]
+            chooser_filter_column = model_settings.CHOOSER_FILTER_COLUMN_NAME
             choosers = persons_merged[persons_merged[chooser_filter_column]]
 
             # run location choice and return logsums

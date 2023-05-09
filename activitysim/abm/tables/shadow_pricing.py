@@ -12,11 +12,11 @@ from typing import Any, Literal
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.location_choice import MandatoryLocationSettings
 from activitysim.abm.tables.size_terms import size_terms as get_size_terms
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 from activitysim.core import logit, tracing, util, workflow
 from activitysim.core.configuration import PydanticReadable
+from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
@@ -147,7 +147,7 @@ class ShadowPriceCalculator:
     def __init__(
         self,
         state: workflow.State,
-        model_settings: MandatoryLocationSettings,
+        model_settings: TourLocationComponentSettings,
         num_processes,
         shared_data=None,
         shared_data_lock=None,
@@ -334,7 +334,7 @@ class ShadowPriceCalculator:
                     self.target[segment] = land_use[target]
 
     def read_saved_shadow_prices(
-        self, state, model_settings: MandatoryLocationSettings
+        self, state, model_settings: TourLocationComponentSettings
     ):
         """
         Read saved shadow_prices from csv file in data_dir (so-called warm start)
@@ -1212,7 +1212,7 @@ def shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, model_sele
 
 
 def load_shadow_price_calculator(
-    state: workflow.State, model_settings: MandatoryLocationSettings
+    state: workflow.State, model_settings: TourLocationComponentSettings
 ):
     """
     Initialize ShadowPriceCalculator for model_selector (e.g. school or workplace)
@@ -1223,12 +1223,14 @@ def load_shadow_price_calculator(
     Parameters
     ----------
     state : workflow.State
-    model_settings : MandatoryLocationSettings
+    model_settings : TourLocationComponentSettings
 
     Returns
     -------
     spc : ShadowPriceCalculator
     """
+    if not isinstance(model_settings, TourLocationComponentSettings):
+        model_settings = TourLocationComponentSettings.parse_obj(model_settings)
 
     num_processes = state.get_injectable("num_processes", 1)
 
@@ -1353,13 +1355,13 @@ def _add_size_tables(state, disaggregate_suffixes, scale=True) -> None:
     # since these are scaled to model size, they have to be created while single-process
 
     for model_selector, model_name in shadow_pricing_models.items():
-        model_settings = MandatoryLocationSettings.read_settings_file(
+        model_settings = TourLocationComponentSettings.read_settings_file(
             state.filesystem, model_name
         )
 
         if suffix is not None and roots:
-            model_settings = MandatoryLocationSettings.parse_obj(
-                util.suffix_tables_in_settings(model_settings.dict(), suffix, roots)
+            model_settings = util.suffix_tables_in_settings(
+                model_settings, suffix, roots
             )
 
         assert model_selector == model_settings.MODEL_SELECTOR

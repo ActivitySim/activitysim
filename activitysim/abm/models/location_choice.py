@@ -284,7 +284,7 @@ def aggregate_size_terms(
 
     spc = shadow_pricing.load_shadow_price_calculator(state, model_settings)
     if spc.use_shadow_pricing and (
-        spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation"
+        spc.shadow_settings.SHADOW_PRICE_METHOD == "simulation"
     ):
         # allow TAZs with at least one underassigned MAZ in them, therefore with a shadowprice larger than -999, to be selected again
         TAZ_size_terms["shadow_price_utility_adjustment"] = np.where(
@@ -941,7 +941,7 @@ def iterate_location_choice(
         if spc.use_shadow_pricing and iteration > 1:
             spc.update_shadow_prices(state)
 
-            if spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation":
+            if spc.shadow_settings.SHADOW_PRICE_METHOD == "simulation":
                 # filter from the sampled persons
                 persons_merged_df_ = persons_merged_df_[
                     persons_merged_df_.index.isin(spc.sampled_persons.index)
@@ -969,7 +969,7 @@ def iterate_location_choice(
         if spc.use_shadow_pricing:
             # handle simulation method
             if (
-                spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation"
+                spc.shadow_settings.SHADOW_PRICE_METHOD == "simulation"
                 and iteration > 1
             ):
                 # if a process ends up with no sampled workers in it, hence an empty choice_df_, then choice_df wil be what it was previously

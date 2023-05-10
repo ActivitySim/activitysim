@@ -1574,7 +1574,7 @@ def trip_destination(
         # Origin is previous destination
         # (leaving first origin alone as it's already set correctly)
         trips_df["origin"] = np.where(
-            (trips_df["trip_num"] == 1) & (trips_df["outbound"] is True),
+            (trips_df["trip_num"] == 1) & (trips_df["outbound"] == 1),
             trips_df["origin"],
             trips_df.groupby("tour_id")["destination"].shift(),
         ).astype(int)

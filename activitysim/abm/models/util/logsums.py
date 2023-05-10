@@ -88,6 +88,9 @@ def compute_location_choice_logsums(
     orig_col_name = model_settings.CHOOSER_ORIG_COL_NAME
     dest_col_name = model_settings.ALT_DEST_COL_NAME
 
+    assert (in_period_col is not None) or (model_settings.IN_PERIOD is not None)
+    assert (out_period_col is not None) or (model_settings.OUT_PERIOD is not None)
+
     # FIXME - are we ok with altering choosers (so caller doesn't have to set these)?
     if (in_period_col is not None) and (out_period_col is not None):
         choosers["in_period"] = network_los.skim_time_period_label(

@@ -61,7 +61,7 @@ class _BaseLogitComponentSettings(PydanticReadable):
     applications, but may be problematic if used with "estimation mode".
     """
 
-    CONSTANTS: dict[str, Any] | None = None
+    CONSTANTS: dict[str, Any] = {}
     """Named constants usable in the utility expressions."""
 
 
@@ -153,8 +153,8 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     # Logsum-related settings
     CHOOSER_ORIG_COL_NAME: str
     ALT_DEST_COL_NAME: str
-    IN_PERIOD: int | dict[str, int]
-    OUT_PERIOD: int | dict[str, int]
+    IN_PERIOD: int | dict[str, int] | None = None
+    OUT_PERIOD: int | dict[str, int] | None = None
     LOGSUM_PREPROCESSOR: str = "preprocessor"
 
     SEGMENTS: list[str] | None = None

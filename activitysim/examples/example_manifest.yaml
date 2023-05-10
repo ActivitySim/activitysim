@@ -514,23 +514,29 @@
     - example_semcog/configs
     - example_semcog/configs_mp
     - example_semcog/output
-    - example_semcog/README.MD # FIXME: skim paths need to be updated
+    - example_semcog/README.MD
     - example_semcog/simulation.py
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims.omx
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims_offpeak.omx
       data/skims.omx
-      efa1f87395df354ccfad7cfe4e67ace96c7ac04fa0290e5e6f8e2593fc0ba6a3
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims2.omx
+      685e93a725e2c04e4b1fc11b92609472c347ce830475448e39b52947fa729d80
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims_peak.omx
       data/skims2.omx
-      3cec3453f12c3f07a19ef896b98da2ab79cbcca8bb541f845f6541bf878feeff
+      f92d924728c3984bc0d960b0258f6a395be5169167ccc88747503a446ff153f9
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/households.csv
       data/households.csv
-      25f5fcabd2953951e0e1cfe3ca2cc8bb4bc63ee11bbdee299a8fc026a775986d
+      34d5db243f7d176c536012f4d475fcc7dc51deb46c070e0e74f5e667578bcd15
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/persons.csv
       data/persons.csv
-      934209ad17b789de07ad601c3f77a905a1c35c4bd7c15c62f088c045b3c64f43
+      d8c7eac449efd57758504ca80cf86f150d232b85d659423baab9d203a47dbb6d
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/land_use.csv
       data/land_use.csv
-      8f9146993bff315afc6ada52182cb3ea719a6a1ed07095b51535bc7c026285f6
+      2e3c5a8b50d638f6956b3c78c9402ce15f3ceaa4cdc5a51d9d802652b6843772
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/maz_to_maz_walk.csv
+      data/maz_to_maz_walk.csv
+      3dd2511cfdac1380653f8cf93a11ee00c625800aad378b46cd1ce191371cec39
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/maz_to_maz_bike.csv
+      data/maz_to_maz_bike.csv
+      b158a181a48723117c86286a2e3041a35a980143d6b767e3f541c28bfbd38dcf
 
 - name: prototype_arc
   description: 36 zone test example for the ARC region

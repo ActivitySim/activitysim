@@ -272,7 +272,10 @@ class Estimator:
 
         if model_settings is not None:
             assert file_name is None
-            file_name = model_settings["COEFFICIENTS"]
+            file_name = (
+                getattr(model_settings, "COEFFICIENTS", None)
+                or model_settings["COEFFICIENTS"]
+            )
 
         assert file_name is not None
 

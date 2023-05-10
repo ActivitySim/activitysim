@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from pydantic import validator
+from pydantic import root_validator
 
 from activitysim.abm.models.util.school_escort_tours_trips import (
     split_out_school_escorting_trips,
@@ -27,7 +28,7 @@ from activitysim.core import (
     tracing,
     workflow,
 )
-from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LocationComponentSettings
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
@@ -63,56 +64,69 @@ class TripDestinationSettings(LocationComponentSettings, extra="forbid"):
     fail_some_trips_for_testing: bool = False
     """This setting is used by testing code to force failed trip_destination."""
 
-    DESTINATION_SAMPLE_SPEC: Path = None
-    """Alias for `SAMPLE_SPEC`.
+    @root_validator(pre=True)
+    def deprecated_destination_prefix(cls, values):
+        replacements = {
+            "DESTINATION_SAMPLE_SPEC": "SAMPLE_SPEC",
+            "DESTINATION_SPEC": "SPEC",
+        }
+        for badkey, goodkey in replacements.items():
+            if badkey in values:
+                if goodkey in values:
+                    if values[badkey] != values[goodkey]:
+                        # both keys are given, with different values -> error
+                        raise ValueError(
+                            f"Deprecated `{badkey}` field must have the "
+                            f"same value as `{goodkey}` if both are provided."
+                        )
+                    else:
+                        # both keys are given, with same values -> warning
+                        warnings.warn(
+                            f"Use of the field `{badkey}` in the "
+                            "trip_destination configuration file is deprecated, use "
+                            f"just `{goodkey}` instead (currently both are given).",
+                            FutureWarning,
+                            stacklevel=2,
+                        )
+                        values.pop(badkey)
+                else:
+                    # only the wrong key is given -> warning
+                    warnings.warn(
+                        f"Use of the field `{badkey}` in the "
+                        "trip_destination configuration file is deprecated, use "
+                        f"`{goodkey}` instead.",
+                        FutureWarning,
+                        stacklevel=2,
+                    )
+                    values[goodkey] = values[badkey]
+                    values.pop(badkey)
+        return values
 
-    .. deprecated:: 1.3
-    """
+    @property
+    def DESTINATION_SAMPLE_SPEC(self) -> Path:
+        """Alias for `SAMPLE_SPEC`.
 
-    @validator("DESTINATION_SAMPLE_SPEC")
-    def DEPRECATE_DESTINATION_SAMPLE_SPEC(cls, x, values):
-        if "SAMPLE_SPEC" in values:
-            if x is not None and x != values["SAMPLE_SPEC"]:
-                raise ValueError(
-                    f"SAMPLE_SPEC does not match DESTINATION_SAMPLE_SPEC "
-                    f"({x!r} != {values['SAMPLE_SPEC']!r})"
-                )
-            return values["SAMPLE_SPEC"]
-        return x
+        .. deprecated:: 1.3
+        """
+        warnings.warn(
+            "DESTINATION_SAMPLE_SPEC is deprecated, use SAMPLE_SPEC",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.SAMPLE_SPEC
 
-    @validator("SAMPLE_SPEC")
-    def DEPRECATE_DESTINATION_SAMPLE_SPEC_2(cls, x, values):
-        if "DESTINATION_SAMPLE_SPEC" in values:
-            if x != values["DESTINATION_SAMPLE_SPEC"]:
-                raise ValueError(
-                    f"DESTINATION_SAMPLE_SPEC does not match SAMPLE_SPEC "
-                    f"({x!r} != {values['DESTINATION_SAMPLE_SPEC']!r})"
-                )
-        return x
+    @property
+    def DESTINATION_SPEC(self) -> Path:
+        """Alias for `SPEC`.
 
-    DESTINATION_SPEC: Path = None
-    """Alias for `SPEC`.
-
-    .. deprecated:: 1.3
-    """
-
-    @validator("DESTINATION_SPEC")
-    def DEPRECATE_DESTINATION_SPEC(cls, x, values):
-        if "SPEC" in values:
-            if x is not None and x != values["SPEC"]:
-                raise ValueError("SPEC does not match DESTINATION_SPEC")
-            return values["SPEC"]
-        return x
-
-    @validator("SPEC")
-    def DEPRECATE_DESTINATION_SPEC_2(cls, x, values):
-        if "DESTINATION_SPEC" in values:
-            if x != values["DESTINATION_SPEC"]:
-                raise ValueError(
-                    f"SPEC does not match DESTINATION_SPEC"
-                    f"({x!r} != {values['DESTINATION_SPEC']!r})"
-                )
-        return x
+        .. deprecated:: 1.3
+        """
+        warnings.warn(
+            "DESTINATION_SPEC is deprecated, use SPEC",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.SPEC
 
 
 def _destination_sample(
@@ -1560,7 +1574,7 @@ def trip_destination(
         # Origin is previous destination
         # (leaving first origin alone as it's already set correctly)
         trips_df["origin"] = np.where(
-            (trips_df["trip_num"] == 1) & (trips_df["outbound"] == True),
+            (trips_df["trip_num"] == 1) & (trips_df["outbound"] is True),
             trips_df["origin"],
             trips_df.groupby("tour_id")["destination"].shift(),
         ).astype(int)

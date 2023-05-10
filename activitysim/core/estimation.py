@@ -466,7 +466,7 @@ class Estimator:
     ):
         if model_settings is not None:
             assert file_name is None
-            file_name = model_settings[tag]
+            file_name = getattr(model_settings, tag, None) or model_settings[tag]
 
         input_path = self.state.filesystem.get_config_file_path(file_name)
 

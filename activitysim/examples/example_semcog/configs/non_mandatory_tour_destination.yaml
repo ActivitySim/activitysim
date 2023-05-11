@@ -55,10 +55,3 @@ CONSTANTS:
   WORK_MED_SEGMENT_ID: 2
   WORK_HIGH_SEGMENT_ID: 3
   WORK_VERYHIGH_SEGMENT_ID: 4
-  
-
-preprocessor:
-  SPEC: non_mandatory_tour_destination_annotate_tours_preprocessor
-  DF: tours
-  TABLES:
-    - persons

@@ -517,10 +517,10 @@
     - example_semcog/README.MD
     - example_semcog/simulation.py
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims_offpeak.omx
-      data/skims.omx
+      data/skims_offpeak.omx
       685e93a725e2c04e4b1fc11b92609472c347ce830475448e39b52947fa729d80
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims_peak.omx
-      data/skims2.omx
+      data/skims_peak.omx
       f92d924728c3984bc0d960b0258f6a395be5169167ccc88747503a446ff153f9
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/households.csv
       data/households.csv

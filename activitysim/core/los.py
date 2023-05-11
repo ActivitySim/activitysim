@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 
 import logging
+import os
 import warnings
 
 import numpy as np

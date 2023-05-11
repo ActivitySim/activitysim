@@ -1,0 +1,6 @@
+Description,Target,Expression
+Person Type,ptype,"reindex(persons.ptype, df.person_id)"
+Trip mode is drive,drive_trip,df.trip_mode <= 8
+Parking segment,parking_segment,setting('segment')
+Parking eligible trip,is_park_eligible,(drive_trip & (df.purpose != "home"))
+Activity duration,activity_duration,df.activity_duration_in_hours

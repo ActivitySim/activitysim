@@ -1,0 +1,5 @@
+Description,Target,Expression
+#,, annotate persons table after annotate_households
+#,, adults get full hh_value_of_time and children get 60%
+,_hh_vot,"reindex(households.hh_value_of_time, persons.household_id)"
+,value_of_time,"_hh_vot.where(persons.age>=18, _hh_vot * 0.667)"

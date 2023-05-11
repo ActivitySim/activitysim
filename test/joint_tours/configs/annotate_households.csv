@@ -1,0 +1,19 @@
+Description,Target,Expression
+#,, annotate households table after import
+,_PERSON_COUNT,"lambda query, persons, households: persons.query(query).groupby('household_id').size().reindex(households.index).fillna(0).astype(np.int8)"
+num_adults,num_adults,"_PERSON_COUNT('adult', persons, households)"
+num_children,num_children,"_PERSON_COUNT('~adult', persons, households)"
+num_travel_active,num_travel_active,persons.travel_active.astype(int).groupby(persons.household_id).sum().reindex(households.index).fillna(0).astype(np.int8)
+num_travel_active_preschoolers,num_travel_active_preschoolers,((persons.ptype == PTYPE_PRESCHOOL) & persons.travel_active).astype(int).groupby(persons.household_id).sum().reindex(households.index).fillna(0).astype(np.int8)
+num_travel_active_non_preschoolers,num_travel_active_non_preschoolers,num_travel_active - num_travel_active_preschoolers
+participates_in_jtf_model,participates_in_jtf_model,(num_travel_active > 1) & (num_travel_active_non_preschoolers > 0)
+number of travel active fulltime workers,num_travel_active_full_time_workers,"_PERSON_COUNT('(ptype == 1) & (cdap_activity != \'H\')', persons, households)"
+number of travel active parttime workers,num_travel_active_part_time_workers,"_PERSON_COUNT('(ptype == 2) & (cdap_activity != \'H\')', persons, households)"
+number of travel active university student,num_travel_active_university_students,"_PERSON_COUNT('(ptype == 3) & (cdap_activity != \'H\')', persons, households)"
+number of travel active non-workers,num_travel_active_non_workers,"_PERSON_COUNT('(ptype == 4) & (cdap_activity != \'H\')', persons, households)"
+number of travel active retirees,num_travel_active_retirees,"_PERSON_COUNT('(ptype == 5) & (cdap_activity != \'H\')', persons, households)"
+number of travel active driving age students,num_travel_active_driving_age_students,"_PERSON_COUNT('(ptype == 6) & (cdap_activity != \'H\')', persons, households)"
+number of travel active pre-driving age school kids,num_travel_active_pre_driving_age_school_kids,"_PERSON_COUNT('(ptype == 7) & (cdap_activity != \'H\')', persons, households)"
+number of travel active pre-school kids,num_travel_active_pre_school_kids,"_PERSON_COUNT('(ptype == 8) & (cdap_activity != \'H\')', persons, households)"
+number of travel active adults,num_travel_active_adults,"_PERSON_COUNT('adult & (cdap_activity != \'H\')', persons, households)"
+number of travel active chilren,num_travel_active_children,"_PERSON_COUNT('~adult & (cdap_activity != \'H\')', persons, households)"

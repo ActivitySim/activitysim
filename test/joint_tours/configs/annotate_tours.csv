@@ -1,0 +1,6 @@
+Description,Target,Expression
+,tour_category,tours.tour_category.str.lower()
+,tour_purpose,tours.tour_purpose.str.lower()
+,tour_type,tours.tour_purpose.str.lower()
+,origin,tours.orig_mgra
+,destination,tours.dest_mgra

@@ -1,0 +1,81 @@
+coefficient_name,value,constrain
+coef_unavailable,-999.00,F
+#,,
+coef_cars1_drivers_1, 2.56,F
+coef_cars1_drivers_2, 2.80,T
+coef_cars1_drivers_3_up, 2.46,F
+coef_cars1_persons_16_17,-0.54,T
+coef_cars1_persons_18_24, 0.276,F
+coef_cars1_persons_25_34, 0,F
+coef_cars1_presence_children_0_4, 0,F
+coef_cars1_presence_children_5_17, 0.323,T
+coef_cars1_num_workers_clip_3,-0.35,T
+coef_cars1_hh_income_0_15k,-2.29,F
+coef_cars1_hh_income_15_35k,-0.96,F
+coef_cars1_hh_income_35_50k, 0,F
+coef_cars1_hh_income_50_75k, 0,T
+coef_cars1_density, 0,T
+coef_cars1_retail_transit,-0.43,F
+coef_cars1_retail_non_motor, 0.117,F
+coef_cars1_auto_time_saving_per_worker, 1.31,F
+coef_cars1_univ_GQ,-3.56,T
+#,,
+coef_cars2_drivers_1, 2.11,F
+coef_cars2_drivers_2, 5.17,F
+coef_cars2_drivers_3_up, 4.71,T
+coef_cars2_persons_16_17,-1.33,F
+coef_cars2_persons_18_24,-0.24,F
+coef_cars2_persons_25_34,-0.26,F
+coef_cars2_presence_children_0_4, 0,F
+coef_cars2_presence_children_5_17, 0.477,F
+coef_cars2_num_workers_clip_3, 0.493,F
+coef_cars2_hh_income_0_15k,-3.79,F
+coef_cars2_hh_income_15_35k,-2.18,F
+coef_cars2_hh_income_35_50k,-0.75,F
+coef_cars2_hh_income_50_75k,-0.54,T
+coef_cars2_density,-0.05,F
+coef_cars2_retail_transit,-0.70,T
+coef_cars2_retail_non_motor, 0,F
+coef_cars2_auto_time_saving_per_worker, 0.901,F
+#,,
+coef_cars3_drivers_1, 1.18,T
+coef_cars3_drivers_2, 4.14,F
+coef_cars3_drivers_3_up, 5.40,F
+coef_cars34_persons_16_17,-1.38,F
+coef_cars34_persons_18_24, 0,F
+coef_cars34_persons_25_34,-0.37,F
+coef_cars34_presence_children_0_4,-0.46,F
+coef_cars34_presence_children_5_17, 0.335,T
+coef_cars3_num_workers_clip_3, 0.742,F
+coef_cars3_hh_income_0_15k,-3.93,F
+coef_cars3_hh_income_15_35k,-2.61,T
+coef_cars3_hh_income_35_50k,-1.04,F
+coef_cars3_hh_income_50_75k,-0.73,F
+coef_cars3_density,-0.53,F
+coef_cars3_retail_transit,-0.79,F
+coef_cars3_retail_non_motor, 0,F
+coef_cars3_auto_time_saving_per_worker, 0.852,F
+#,,
+coef_cars4_drivers_1, 0,F
+coef_cars4_drivers_2, 2.87,F
+coef_cars4_drivers_3_up, 4.52,F
+coef_cars34_persons_16_17,-1.38,F
+coef_cars34_persons_18_24, 0,F
+coef_cars34_persons_25_34,-0.37,F
+coef_cars34_presence_children_0_4,-0.46,T
+coef_cars34_presence_children_5_17, 0.335,F
+coef_cars4_num_workers_clip_3, 0.967,T
+coef_cars4_hh_income_0_15k,-4.25,F
+coef_cars4_hh_income_15_35k,-2.90,F
+coef_cars4_hh_income_35_50k,-1.03,F
+coef_cars4_hh_income_50_75k,-0.74,F
+coef_cars4_density,-0.75,F
+coef_cars4_retail_transit,-0.76,F
+coef_cars4_retail_non_motor, 0,F
+coef_cars4_auto_time_saving_per_worker, 0.669,F
+#,,
+coef_cars1,2.95,F
+coef_cars2,5.33,F
+coef_cars3,4.31,F
+coef_cars4,3.16,F
+coef_detroit,0.25,T

@@ -32,5 +32,6 @@ work_zone_area_type,work_zone_area_type,"reindex(land_use.AreaType, persons.work
 ,work_auto_savings_ratio,"(work_auto_savings / 120.0).clip(-1.0, 1.0)"
 ,umich_student,df.school_zone_id.isin(land_use[land_use.University_Name=='University of Michigan'].index.values)
 ,umich_worker,df.workplace_zone_id.isin(land_use[land_use.University_Name=='University of Michigan'].index.values)
+#,umich_affiliate,"df.get(umich_worker, default=False) | df.get(umich_student, default=False)"
 #,,
 ,dest_hourly_peak_parking_cost,"reindex(land_use.parking_hourly, df.workplace_zone_id)"

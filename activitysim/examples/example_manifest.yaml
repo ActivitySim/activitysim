@@ -488,34 +488,34 @@
       data/final_accessibility.csv
       949994345c9965054be260589fd64079e4032d2e4079e46b9eb9c758a40527c3
 
-- name: example_semcog
+- name: production_semcog
   description: 67 zone test example for the SEMCOG region
-  # activitysim create -e example_semcog -d test_example_semcog
-  # cd test_example_semcog
+  # activitysim create -e production_semcog -d test_production_semcog
+  # cd test_production_semcog
   # python simulation.py -c configs -o output -d data
   # cd ..
   include:
-    - example_semcog/extensions
-    - example_semcog/data
-    - example_semcog/configs
-    - example_semcog/configs_mp
-    - example_semcog/output
-    - example_semcog/README.MD
-    - example_semcog/simulation.py
+    - production_semcog/extensions
+    - production_semcog/data
+    - production_semcog/configs
+    - production_semcog/configs_mp
+    - production_semcog/output
+    - production_semcog/README.MD
+    - production_semcog/simulation.py
 
-- name: example_semcog_full
-  description: 2899 zone full size example for the SEMCOG region
-  # activitysim create -e example_semcog_full -d test_example_semcog_full
-  # cd test_example_semcog_full
+- name: production_semcog_full
+  description: 2899 zone full size production model for the SEMCOG region
+  # activitysim create -e production_semcog_full -d test_production_semcog_full
+  # cd test_production_semcog_full
   # python simulation.py -c configs_mp -c configs -o output -d data
   # cd ..
   include:
-    - example_semcog/extensions
-    - example_semcog/configs
-    - example_semcog/configs_mp
-    - example_semcog/output
-    - example_semcog/README.MD
-    - example_semcog/simulation.py
+    - production_semcog/extensions
+    - production_semcog/configs
+    - production_semcog/configs_mp
+    - production_semcog/output
+    - production_semcog/README.MD
+    - production_semcog/simulation.py
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims_offpeak.omx
       data/skims_offpeak.omx
       685e93a725e2c04e4b1fc11b92609472c347ce830475448e39b52947fa729d80

@@ -53,17 +53,6 @@ COEFFICIENTS: tour_mode_choice_coeffs.csv
 COEFFICIENT_TEMPLATE: tour_mode_choice_coeffs_template.csv
 
 CONSTANTS:
-    # valueOfTime: 8.00
-    # costPerMile: 18.29
-    # costShareSr2: 1.75
-    # costShareSr3: 2.50
-    # waitThresh: 10.00
-    # walkThresh: 1.50
-    # shortWalk: 0.333
-    # longWalk: 0.667
-    # walkSpeed: 3.00
-    # bikeThresh: 6.00
-    # bikeSpeed: 12.00
     maxCbdAreaTypeThresh: 2
     indivTour: 1.00000
     upperEA: 5
@@ -165,11 +154,6 @@ CONSTANTS:
       7: 0.36
       8: 1.0
     transit_subsidy_fare_discount_percent_worktour: 0.9
-
-#    joint_sr2_ASC_no_auto: 0
-#    joint_sr2_ASC_auto_deficient: 0
-#    joint_sr2_ASC_auto_sufficient: 0
-#    joint_drive_transit_ASC_no_auto: 0
 
 # so far, we can use the same spec as for non-joint tours
 preprocessor:

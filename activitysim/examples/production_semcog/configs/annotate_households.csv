@@ -2,7 +2,6 @@ Description,Target,Expression
 #,, annotate households table after import
 ,_PERSON_COUNT,"lambda query, persons, households: persons.query(query).groupby('household_id').size().reindex(households.index).fillna(0).astype(np.int8)"
 #,,FIXME households.income can be negative  - so we clip?
-#,income,households.hincp * households.adjinc/100000
 income,income,households.hincp.fillna(0)
 income_in_thousands,income_in_thousands,(income / 1000).clip(lower=0)
 income_segment,income_segment,"pd.cut(income_in_thousands, bins=[-np.inf, 30, 60, 100, np.inf], labels=[1, 2, 3, 4]).astype(int)"

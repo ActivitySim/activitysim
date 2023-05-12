@@ -180,7 +180,7 @@ jobs:
           - prototype_mtc_extended
           - placeholder_sandag
           - prototype_sandag_xborder
-          - example_semcog
+          - production_semcog
           - prototype_mwcog
           - placeholder_multiple_zone
       fail-fast: false

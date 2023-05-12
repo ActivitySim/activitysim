@@ -148,11 +148,11 @@ class TAZ_Settings(PydanticBase):
 
 
 class MazToMazSettings(PydanticBase, extra="forbid"):
-    tables: list[str]
+    tables: list[str] = []
 
     max_blend_distance: dict[str, float] = None
 
-    blend_distance_skim_name: str = None
+    blend_distance_skim_name: str | None = None
     """The name of the skim table used to blend distances for MAZs."""
 
 
@@ -222,7 +222,7 @@ class NetworkSettings(PydanticReadable, extra="forbid"):
     This file should contain the MAZ ID, TAZ, and land use and other MAZ attributes
     """
 
-    maz_to_maz: MazToMazSettings = None
+    maz_to_maz: MazToMazSettings | None = None
     """Settings to manage maz-to-maz level of service in 2- and 3-zone models."""
 
     #### 3 ZONE ####

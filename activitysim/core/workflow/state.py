@@ -479,9 +479,10 @@ class State:
             if self.filesystem.cache_dir != cache_dir:
                 logger.warning(f"settings file changes cache_dir to {cache_dir}")
                 self.filesystem.cache_dir = cache_dir
-        self.settings: Settings = Settings.parse_obj(raw_settings)
+        settings_class = self.__class__.settings.member_type
+        self.settings: Settings = settings_class.parse_obj(raw_settings)
 
-        extra_settings = set(self.settings.__dict__) - set(Settings.__fields__)
+        extra_settings = set(self.settings.__dict__) - set(settings_class.__fields__)
 
         if extra_settings:
             warnings.warn(

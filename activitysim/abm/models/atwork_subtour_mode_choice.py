@@ -9,6 +9,7 @@ import pandas as pd
 
 from activitysim.abm.models.util.mode import run_tour_mode_choice_simulate
 from activitysim.core import config, estimation, expressions, los, tracing, workflow
+from activitysim.core.configuration.logit import TourModeComponentSettings
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
@@ -20,19 +21,23 @@ def atwork_subtour_mode_choice(
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     network_los: los.Network_LOS,
+    model_settings: TourModeComponentSettings | None = None,
+    model_settings_file_name: str = "tour_mode_choice.yaml",
+    trace_label: str = "atwork_subtour_mode_choice",
 ) -> None:
     """
     At-work subtour mode choice simulate
     """
 
-    trace_label = "atwork_subtour_mode_choice"
-
     trace_hh_id = state.settings.trace_hh_id
 
-    model_settings_file_name = "tour_mode_choice.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = TourModeComponentSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
-    logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
+    logsum_column_name = model_settings.MODE_CHOICE_LOGSUM_COLUMN_NAME
     mode_column_name = "tour_mode"
 
     subtours = tours[tours.tour_category == "atwork"]
@@ -57,7 +62,7 @@ def atwork_subtour_mode_choice(
     )
 
     constants = {}
-    constants.update(config.get_model_constants(model_settings))
+    constants.update(model_settings.CONSTANTS)
 
     skim_dict = network_los.get_default_skim_dict()
 
@@ -149,7 +154,7 @@ def atwork_subtour_mode_choice(
 
     # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
     if network_los.zone_system == los.THREE_ZONE:
-        tvpb_mode_path_types = model_settings.get("tvpb_mode_path_types")
+        tvpb_mode_path_types = model_settings.tvpb_mode_path_types
         for mode, path_types in tvpb_mode_path_types.items():
             for direction, skim in zip(
                 ["od", "do"], [tvpb_logsum_odt, tvpb_logsum_dot]
@@ -189,12 +194,12 @@ def atwork_subtour_mode_choice(
     state.add_table("tours", tours)
 
     # - annotate tours table
-    if model_settings.get("annotate_tours"):
+    if model_settings.annotate_tours:
         tours = state.get_dataframe("tours")
         expressions.assign_columns(
             state,
             df=tours,
-            model_settings=model_settings.get("annotate_tours"),
+            model_settings=model_settings.annotate_tours,
             trace_label=tracing.extend_trace_label(trace_label, "annotate_tours"),
         )
         state.add_table("tours", tours)

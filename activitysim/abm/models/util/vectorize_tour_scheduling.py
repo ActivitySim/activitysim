@@ -138,8 +138,14 @@ def _compute_logsums(
 
         # - run preprocessor to annotate choosers
         # allow specification of alternate preprocessor for nontour choosers
-        preprocessor = model_settings.get("LOGSUM_PREPROCESSOR", "preprocessor")
-        preprocessor_settings = logsum_settings[preprocessor]
+        try:
+            preprocessor = model_settings.LOGSUM_PREPROCESSOR
+        except AttributeError:
+            preprocessor = model_settings.get("LOGSUM_PREPROCESSOR", "preprocessor")
+        preprocessor_settings = (
+            getattr(logsum_settings, preprocessor, None)
+            or logsum_settings[preprocessor]
+        )
 
         if preprocessor_settings:
             simulate.set_skim_wrapper_targets(choosers, skims)

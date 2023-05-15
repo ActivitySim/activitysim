@@ -16,8 +16,10 @@ logger = logging.getLogger(__name__)
 def filter_chooser_columns(
     choosers, logsum_settings, model_settings: dict | PydanticBase
 ):
-
-    chooser_columns = logsum_settings.get("LOGSUM_CHOOSER_COLUMNS", [])
+    try:
+        chooser_columns = logsum_settings.LOGSUM_CHOOSER_COLUMNS
+    except AttributeError:
+        chooser_columns = logsum_settings.get("LOGSUM_CHOOSER_COLUMNS", [])
 
     if (
         isinstance(model_settings, dict)
@@ -227,10 +229,11 @@ def compute_location_choice_logsums(
     # - run preprocessor to annotate choosers
     # allow specification of alternate preprocessor for nontour choosers
     preprocessor = model_settings.LOGSUM_PREPROCESSOR
-    preprocessor_settings = logsum_settings[preprocessor]
+    preprocessor_settings = (
+        getattr(logsum_settings, preprocessor, None) or logsum_settings[preprocessor]
+    )
 
     if preprocessor_settings:
-
         simulate.set_skim_wrapper_targets(choosers, skims)
 
         expressions.assign_columns(

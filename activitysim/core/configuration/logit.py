@@ -17,7 +17,7 @@ class LogitNestSpec(PydanticBase):
     name: str
     """A descriptive name for this nest."""
 
-    coefficient: str
+    coefficient: str | float
     """The named parameter to be used as the logsum coefficient.
 
     This named parameter should appear in the logit models's `COEFFICIENTS`
@@ -149,7 +149,6 @@ class LocationComponentSettings(_BaseLogitComponentSettings):
 
 
 class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
-
     # Logsum-related settings
     CHOOSER_ORIG_COL_NAME: str
     ALT_DEST_COL_NAME: str
@@ -181,3 +180,17 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
 
     ORIG_ZONE_ID: str | None = None
     """This setting appears to do nothing..."""
+
+
+class TourModeComponentSettings(TemplatedLogitComponentSettings, extra="forbid"):
+    MODE_CHOICE_LOGSUM_COLUMN_NAME: str | None = None
+    use_TVPB_constants: bool = True
+    COMPUTE_TRIP_MODE_CHOICE_LOGSUMS: bool = False
+    tvpb_mode_path_types: dict[str, Any] | None = None
+    FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH: bool = True
+    annotate_tours: PreprocessorSettings | None = None
+    preprocessor: PreprocessorSettings | list[PreprocessorSettings] | None = None
+    nontour_preprocessor: PreprocessorSettings | list[
+        PreprocessorSettings
+    ] | None = None
+    LOGSUM_CHOOSER_COLUMNS: list[str] = []

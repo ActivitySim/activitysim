@@ -819,7 +819,7 @@ class FileSystem(PydanticBase, validate_assignment=True):
         # in the legacy implementation, this function has a default mandatory=False
         return self.read_settings_file(file_name, mandatory=mandatory)
 
-    def read_model_spec(self, file_name: str):
+    def read_model_spec(self, file_name: Path | str):
         from activitysim.core import simulate
 
         return simulate.read_model_spec(self, file_name)
@@ -835,7 +835,9 @@ class FileSystem(PydanticBase, validate_assignment=True):
             self, model_settings=model_settings, file_name=file_name
         )
 
-    def get_segment_coefficients(self, model_settings, segment_name):
+    def get_segment_coefficients(
+        self, model_settings: PydanticBase | dict, segment_name: str
+    ):
         from activitysim.core import simulate
 
         return simulate.get_segment_coefficients(self, model_settings, segment_name)

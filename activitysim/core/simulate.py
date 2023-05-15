@@ -25,7 +25,8 @@ from activitysim.core import (
     util,
     workflow,
 )
-from activitysim.core.configuration.logit import LogitComponentSettings
+from activitysim.core.configuration.base import PydanticBase
+from activitysim.core.configuration.logit import LogitComponentSettings, LogitNestSpec
 from activitysim.core.estimation import Estimator
 from activitysim.core.simulate_consts import (
     ALT_LOSER_UTIL,
@@ -75,7 +76,7 @@ def read_model_alts(state: workflow.State, file_name, set_index=None):
     return df
 
 
-def read_model_spec(filesystem: configuration.FileSystem, file_name: str):
+def read_model_spec(filesystem: configuration.FileSystem, file_name: Path | str):
     """
     Read a CSV model specification into a Pandas DataFrame or Series.
 
@@ -321,7 +322,9 @@ def dump_mapped_coefficients(state: workflow.State, model_settings):
 
 
 def get_segment_coefficients(
-    filesystem: configuration.FileSystem, model_settings, segment_name
+    filesystem: configuration.FileSystem,
+    model_settings: PydanticBase | dict,
+    segment_name: str,
 ):
     """
     Return a dict mapping generic coefficient names to segment-specific coefficient values
@@ -353,6 +356,8 @@ def get_segment_coefficients(
         ...
 
     """
+    if isinstance(model_settings, PydanticBase):
+        model_settings = model_settings.dict()
 
     if "COEFFICIENTS" in model_settings and "COEFFICIENT_TEMPLATE" in model_settings:
         legacy = False
@@ -404,8 +409,10 @@ def get_segment_coefficients(
     return coefficients_dict
 
 
-def eval_nest_coefficients(nest_spec, coefficients, trace_label):
-    def replace_coefficients(nest):
+def eval_nest_coefficients(
+    nest_spec: LogitNestSpec | dict, coefficients: dict, trace_label: str
+) -> LogitNestSpec:
+    def replace_coefficients(nest: LogitNestSpec):
         if isinstance(nest, dict):
             assert "coefficient" in nest
             coefficient_name = nest["coefficient"]
@@ -417,12 +424,25 @@ def eval_nest_coefficients(nest_spec, coefficients, trace_label):
 
             assert "alternatives" in nest
             for alternative in nest["alternatives"]:
-                if isinstance(alternative, dict):
+                if isinstance(alternative, dict | LogitNestSpec):
+                    replace_coefficients(alternative)
+        elif isinstance(nest, LogitNestSpec):
+            if isinstance(nest.coefficient, str):
+                assert (
+                    nest.coefficient in coefficients
+                ), f"{nest.coefficient} not in nest coefficients"
+                nest.coefficient = coefficients[nest.coefficient]
+
+            for alternative in nest.alternatives:
+                if isinstance(alternative, dict | LogitNestSpec):
                     replace_coefficients(alternative)
 
     if isinstance(coefficients, pd.DataFrame):
         assert "value" in coefficients.columns
         coefficients = coefficients["value"].to_dict()
+
+    if not isinstance(nest_spec, LogitNestSpec):
+        nest_spec = LogitNestSpec.parse_obj(nest_spec)
 
     replace_coefficients(nest_spec)
 
@@ -1402,7 +1422,6 @@ def eval_nl(
     return choices
 
 
-@workflow.func
 def _simple_simulate(
     state: workflow.State,
     choosers,

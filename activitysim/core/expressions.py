@@ -7,7 +7,7 @@ import logging
 import pandas as pd
 
 from activitysim.core import assign, simulate, tracing, workflow
-from activitysim.core.configuration.base import PydanticBase
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticBase
 from activitysim.core.util import (
     assign_in_place,
     parse_suffix_args,
@@ -180,26 +180,34 @@ def assign_columns(
 
 
 def annotate_preprocessors(
-    state: workflow.State, df, locals_dict, skims, model_settings, trace_label
+    state: workflow.State,
+    df: pd.DataFrame,
+    locals_dict,
+    skims,
+    model_settings: PydanticBase | dict,
+    trace_label: str,
 ):
     locals_d = {}
     locals_d.update(locals_dict)
     locals_d.update(skims)
 
-    preprocessor_settings = model_settings.get("preprocessor", [])
+    try:
+        preprocessor_settings = model_settings.preprocessor
+    except AttributeError:
+        preprocessor_settings = model_settings.get("preprocessor", [])
     if preprocessor_settings is None:
         preprocessor_settings = []
     if not isinstance(preprocessor_settings, list):
-        assert isinstance(preprocessor_settings, dict)
+        assert isinstance(preprocessor_settings, dict | PreprocessorSettings)
         preprocessor_settings = [preprocessor_settings]
 
     simulate.set_skim_wrapper_targets(df, skims)
 
-    for model_settings in preprocessor_settings:
+    for preproc_settings in preprocessor_settings:
         results = compute_columns(
             state,
             df=df,
-            model_settings=model_settings,
+            model_settings=preproc_settings,
             locals_dict=locals_d,
             trace_label=trace_label,
         )

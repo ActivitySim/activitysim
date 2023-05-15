@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import logging
-from builtins import object
 
 import numpy as np
 import pandas as pd
 
 from activitysim.core import tracing, workflow
 from activitysim.core.choosing import choice_maker
+from activitysim.core.configuration.logit import LogitNestSpec
 
 logger = logging.getLogger(__name__)
 
@@ -366,7 +366,7 @@ def interaction_dataset(
     return alts_sample
 
 
-class Nest(object):
+class Nest:
     """
     Data for a nest-logit node or leaf
 
@@ -411,15 +411,14 @@ class Nest(object):
         return ["leaf", "node"]
 
 
-def validate_nest_spec(nest_spec, trace_label):
+def validate_nest_spec(nest_spec: dict | LogitNestSpec, trace_label: str):
 
     keys = []
     duplicates = []
     for nest in each_nest(nest_spec):
         if nest.name in keys:
             logger.error(
-                "validate_nest_spec:duplicate nest key '%s' in nest spec - %s"
-                % (nest.name, trace_label)
+                f"validate_nest_spec:duplicate nest key '{nest.name}' in nest spec - {trace_label}"
             )
             duplicates.append(nest.name)
 
@@ -428,12 +427,11 @@ def validate_nest_spec(nest_spec, trace_label):
 
     if duplicates:
         raise RuntimeError(
-            "validate_nest_spec:duplicate nest key/s '%s' in nest spec - %s"
-            % (duplicates, trace_label)
+            f"validate_nest_spec:duplicate nest key/s '{duplicates}' in nest spec - {trace_label}"
         )
 
 
-def _each_nest(spec, parent_nest, post_order):
+def _each_nest(spec: LogitNestSpec, parent_nest, post_order):
     """
     Iterate over each nest or leaf node in the tree (of subtree)
 
@@ -441,7 +439,7 @@ def _each_nest(spec, parent_nest, post_order):
 
     Parameters
     ----------
-    spec : dict
+    spec : LogitNestSpec
         Nest spec dict tree (or subtree when recursing) from the model spec yaml file
     parent_nest : Nest
         nest of parent node (passed to accumulate level, ancestors, and product_of_coefficients)
@@ -451,7 +449,7 @@ def _each_nest(spec, parent_nest, post_order):
 
     Yields
     ------
-        spec_node : dict
+        spec_node : LogitNestSpec
             Nest tree spec dict for this node subtree
         nest : Nest
             Nest object with info about the current node (nest or leaf)
@@ -460,18 +458,20 @@ def _each_nest(spec, parent_nest, post_order):
 
     level = parent_nest.level + 1
 
-    if isinstance(spec, dict):
-        name = spec["name"]
-        coefficient = spec["coefficient"]
+    if isinstance(spec, LogitNestSpec):
+        name = spec.name
+        coefficient = spec.coefficient
         assert isinstance(
-            coefficient, (int, float)
-        ), "Coefficient '%s' (%s) not a number" % (
-            name,
-            coefficient,
-        )  # forgot to eval coefficient?
-        alternatives = [
-            a["name"] if isinstance(a, dict) else a for a in spec["alternatives"]
-        ]
+            coefficient, int | float
+        ), f"Coefficient '{name}' ({coefficient}) not a number"  # forgot to eval coefficient?
+        alternatives = []
+        for a in spec.alternatives:
+            if isinstance(a, dict):
+                alternatives.append(a["name"])
+            elif isinstance(a, LogitNestSpec):
+                alternatives.append(a.name)
+            else:
+                alternatives.append(a)
 
         nest = Nest(name=name)
         nest.level = parent_nest.level + 1
@@ -484,7 +484,7 @@ def _each_nest(spec, parent_nest, post_order):
             yield spec, nest
 
         # recursively iterate the list of alternatives
-        for alternative in spec["alternatives"]:
+        for alternative in spec.alternatives:
             for sub_node, sub_nest in _each_nest(alternative, nest, post_order):
                 yield sub_node, sub_nest
 
@@ -502,13 +502,13 @@ def _each_nest(spec, parent_nest, post_order):
         yield spec, nest
 
 
-def each_nest(nest_spec, type=None, post_order=False):
+def each_nest(nest_spec: dict | LogitNestSpec, type=None, post_order=False):
     """
     Iterate over each nest or leaf node in the tree (of subtree)
 
     Parameters
     ----------
-    nest_spec : dict
+    nest_spec : dict or LogitNestSpec
         Nest tree dict from the model spec yaml file
     type : str
         Nest class type to yield
@@ -527,7 +527,10 @@ def each_nest(nest_spec, type=None, post_order=False):
     if type is not None and type not in Nest.nest_types():
         raise RuntimeError("Unknown nest type '%s' in call to each_nest" % type)
 
-    for node, nest in _each_nest(nest_spec, parent_nest=Nest(), post_order=post_order):
+    if isinstance(nest_spec, dict):
+        nest_spec = LogitNestSpec.parse_obj(nest_spec)
+
+    for _node, nest in _each_nest(nest_spec, parent_nest=Nest(), post_order=post_order):
         if type is None or (type == nest.type):
             yield nest
 

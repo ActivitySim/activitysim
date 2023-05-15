@@ -20,8 +20,8 @@ class LogitNestSpec(PydanticBase):
     coefficient: str | float
     """The named parameter to be used as the logsum coefficient.
 
-    This named parameter should appear in the logit models's `COEFFICIENTS`
-    file.
+    If given as a string, this named parameter should appear in the
+    logit models's `COEFFICIENTS` file.
     """
 
     alternatives: list[LogitNestSpec | str]
@@ -30,6 +30,17 @@ class LogitNestSpec(PydanticBase):
     These can be either the names of elemental alternatives, or `LogitNestSpec`
     definitions for more nests, or a mixture of these.
     """
+
+    @validator("coefficient")
+    def prefer_float_to_str(cls, coefficient_value):
+        """
+        Convert string values to float directly if possible.
+        """
+        try:
+            coefficient_value = float(coefficient_value)
+        except ValueError:
+            pass
+        return coefficient_value
 
 
 class _BaseLogitComponentSettings(PydanticReadable):

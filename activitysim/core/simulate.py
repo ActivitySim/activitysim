@@ -26,7 +26,11 @@ from activitysim.core import (
     workflow,
 )
 from activitysim.core.configuration.base import PydanticBase
-from activitysim.core.configuration.logit import LogitComponentSettings, LogitNestSpec
+from activitysim.core.configuration.logit import (
+    LogitComponentSettings,
+    LogitNestSpec,
+    TemplatedLogitComponentSettings,
+)
 from activitysim.core.estimation import Estimator
 from activitysim.core.simulate_consts import (
     ALT_LOSER_UTIL,
@@ -258,19 +262,22 @@ def spec_for_segment(
 
 
 def read_model_coefficient_template(
-    filesystem: configuration.FileSystem, model_settings
+    filesystem: configuration.FileSystem,
+    model_settings: dict | TemplatedLogitComponentSettings,
 ):
     """
     Read the coefficient template specified by COEFFICIENT_TEMPLATE model setting
     """
 
-    assert (
-        "COEFFICIENT_TEMPLATE" in model_settings
-    ), "'COEFFICIENT_TEMPLATE' not in model_settings in %s" % model_settings.get(
-        "source_file_paths"
-    )
-
-    coefficients_file_name = model_settings["COEFFICIENT_TEMPLATE"]
+    if isinstance(model_settings, dict):
+        assert (
+            "COEFFICIENT_TEMPLATE" in model_settings
+        ), "'COEFFICIENT_TEMPLATE' not in model_settings in %s" % model_settings.get(
+            "source_file_paths"
+        )
+        coefficients_file_name = model_settings["COEFFICIENT_TEMPLATE"]
+    else:
+        coefficients_file_name = model_settings.COEFFICIENT_TEMPLATE
 
     file_path = filesystem.get_config_file_path(coefficients_file_name)
     try:

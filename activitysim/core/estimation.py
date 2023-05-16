@@ -293,6 +293,8 @@ class Estimator:
     def write_coefficients_template(self, model_settings):
         assert self.estimating
 
+        if isinstance(model_settings, PydanticBase):
+            model_settings = model_settings.dict()
         coefficients_df = simulate.read_model_coefficient_template(
             self.state.filesystem, model_settings
         )

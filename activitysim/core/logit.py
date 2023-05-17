@@ -132,6 +132,7 @@ def utils_to_probs(
     allow_zero_probs=False,
     trace_choosers=None,
     overflow_protection: bool = True,
+    return_logsums: bool = False,
 ):
     """
     Convert a table of utilities to probabilities.
@@ -200,7 +201,10 @@ def utils_to_probs(
 
     if overflow_protection:
         # exponentiated utils will overflow, downshift them
-        utils_arr -= utils_arr.max(1, keepdims=True)
+        shifts = utils_arr.max(1, keepdims=True)
+        utils_arr -= shifts
+    else:
+        shifts = None
 
     if not exponentiated:
         # TODO: reduce memory usage by exponentiating in-place.
@@ -215,6 +219,15 @@ def utils_to_probs(
     np.putmask(utils_arr, utils_arr <= EXP_UTIL_MIN, 0)
 
     arr_sum = utils_arr.sum(axis=1)
+
+    if return_logsums:
+        with np.errstate(divide="ignore" if allow_zero_probs else "warn"):
+            logsums = np.log(arr_sum)
+        if shifts is not None:
+            logsums += np.squeeze(shifts, 1)
+        logsums = pd.Series(logsums, index=utils.index)
+    else:
+        logsums = None
 
     if not allow_zero_probs:
         zero_probs = arr_sum == 0.0
@@ -253,6 +266,8 @@ def utils_to_probs(
 
     probs = pd.DataFrame(utils_arr, columns=utils.columns, index=utils.index)
 
+    if return_logsums:
+        return probs, logsums
     return probs
 
 

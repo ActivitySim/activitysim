@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from builtins import object
 
 import numpy as np
@@ -182,7 +183,22 @@ def utils_to_probs(
     # utils_arr = utils.values.astype('float')
     utils_arr = utils.values
 
-    if overflow_protection or (utils_arr.dtype == np.float32 and utils_arr.max() > 85):
+    if allow_zero_probs:
+        if overflow_protection:
+            warnings.warn(
+                "cannot set overflow_protection with allow_zero_probs", stacklevel=2
+            )
+            overflow_protection = utils_arr.dtype == np.float32 and utils_arr.max() > 85
+            if overflow_protection:
+                raise ValueError(
+                    "cannot prevent expected overflow with allow_zero_probs"
+                )
+    else:
+        overflow_protection = overflow_protection or (
+            utils_arr.dtype == np.float32 and utils_arr.max() > 85
+        )
+
+    if overflow_protection:
         # exponentiated utils will overflow, downshift them
         utils_arr -= utils_arr.max(1, keepdims=True)
 

@@ -254,6 +254,7 @@ def _interaction_sample_simulate(
         allow_zero_probs=allow_zero_probs,
         trace_label=trace_label,
         trace_choosers=choosers,
+        overflow_protection=not allow_zero_probs,
     )
     chunk_sizer.log_df(trace_label, "probs", probs)
 

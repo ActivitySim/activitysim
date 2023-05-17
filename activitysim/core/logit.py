@@ -130,6 +130,7 @@ def utils_to_probs(
     exponentiated=False,
     allow_zero_probs=False,
     trace_choosers=None,
+    overflow_protection: bool = True,
 ):
     """
     Convert a table of utilities to probabilities.
@@ -155,6 +156,20 @@ def utils_to_probs(
         by report_bad_choices because it can't deduce hh_id from the interaction_dataset
         which is indexed on index values from alternatives df
 
+    overflow_protection : bool, default True
+        Always shift utility values such that the maximum utility in each row is
+        zero.  This constant per-row shift should not fundamentally alter the
+        computed probabilities, but will ensure that an overflow does not occur
+        that will create infinite or NaN values.  This will also provide effective
+        protection against underflow; extremely rare probabilities will round to
+        zero, but by definition they are extremely rare and losing them entirely
+        should not impact the simulation in a measureable fashion, and at least one
+        (and sometimes only one) alternative is guaranteed to have non-zero
+        probability, as long as at least one alternative has a finite utility value.
+        If utility values are certain to be well-behaved and non-extreme, enabling
+        overflow_protection will have no benefit but impose a modest computational
+        overhead cost.
+
     Returns
     -------
     probs : pandas.DataFrame
@@ -167,7 +182,7 @@ def utils_to_probs(
     # utils_arr = utils.values.astype('float')
     utils_arr = utils.values
 
-    if utils_arr.dtype == np.float32 and utils_arr.max() > 85:
+    if overflow_protection or (utils_arr.dtype == np.float32 and utils_arr.max() > 85):
         # exponentiated utils will overflow, downshift them
         utils_arr -= utils_arr.max(1, keepdims=True)
 

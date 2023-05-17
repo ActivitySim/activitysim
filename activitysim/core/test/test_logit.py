@@ -87,7 +87,10 @@ def test_utils_to_probs_raises():
 
     with pytest.raises(RuntimeError) as excinfo:
         logit.utils_to_probs(
-            state, pd.DataFrame([[-999, -999, -999, -999]], index=idx), trace_label=None
+            state,
+            pd.DataFrame([[-999, -999, -999, -999]], index=idx),
+            trace_label=None,
+            overflow_protection=False,
         )
     assert "all probabilities are zero" in str(excinfo.value)
 

@@ -1,0 +1,15 @@
+Description,Target,Expression
+# make expressions are consistent with reference bins,,
+departure_reference_bin,departureRefBin,9
+arrival_reference_bin,arrivalRefBin,29
+duration_reference_bin,durationRefBin,20
+departure_shift,departureLinearShift1,"(9-df.start)*(df.start<=9) + (df.start-9)*(df.start>9)"
+arrival_shift,arrivalLinearShift1,"(29-df.end)*(df.end<=29) + (df.end-29)*(df.end>29)"
+duration_shift,durationShift,"(20-df.duration)*(df.duration<=20) + (df.duration-20)*(df.duration>20)"
+# school specific bins
+departure_reference_bin_school,departureRefBin_school,9
+arrival_reference_bin_school,arrivalRefBin_school,29
+duration_reference_bin_school,durationRefBin_school,16
+departure_shift_school,departureLinearShift1_school,"(9-df.start)*(df.start<=9) + (df.start-9)*(df.start>9)"
+arrival_shift_school,arrivalLinearShift1_school,"(29-df.end)*(df.end<=29) + (df.end-29)*(df.end>29)"
+duration_shift_school,durationShift_school,"(16-df.duration)*(df.duration<=16) + (df.duration-16)*(df.duration>16)"

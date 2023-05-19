@@ -1,0 +1,10 @@
+Description,Target,Expression
+#,, annotate persons table after mandatory_tour_frequency model has run
+,_PERSON_TOUR_COUNT,"lambda exp, persons, tours: tours.query(exp).groupby('person_id').size().reindex(persons.index).fillna(0).astype(np.int8)"
+,_Q,"lambda s: ""'{}'"".format(s)"
+work_and_school_and_worker,work_and_school_and_worker,(persons.mandatory_tour_frequency == 'work_and_school') & persons.is_worker
+work_and_school_and_student,work_and_school_and_student,(persons.mandatory_tour_frequency == 'work_and_school') & persons.is_student
+number of mandatory tours for each person,num_mand,"_PERSON_TOUR_COUNT('tour_category==%s' % _Q('mandatory'), persons, tours).fillna(0)"
+number of work tours for each person,num_work_tours,"_PERSON_TOUR_COUNT('tour_type==%s' % _Q('work'), persons, tours).fillna(0)"
+presence of pre school kid with mandatory tours,has_pre_school_child_with_mandatory,"other_than(persons.household_id, (persons.ptype == 8) & (num_mand > 0))"
+presense of driving age school children with mandatory tours,has_driving_age_child_with_mandatory,"other_than(persons.household_id, (persons.ptype == 6) & (num_mand > 0))"

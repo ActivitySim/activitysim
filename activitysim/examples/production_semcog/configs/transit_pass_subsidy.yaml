@@ -1,0 +1,7 @@
+
+SPEC: transit_pass_subsidy.csv
+COEFFICIENTS: transit_pass_subsidy_coeffs.csv
+
+#LOGIT_TYPE: NL
+LOGIT_TYPE: MNL
+

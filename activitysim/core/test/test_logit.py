@@ -81,13 +81,19 @@ def test_utils_to_probs_raises():
     idx = pd.Index(name="household_id", data=[1])
     with pytest.raises(RuntimeError) as excinfo:
         logit.utils_to_probs(
-            state, pd.DataFrame([[1, 2, np.inf, 3]], index=idx), trace_label=None
+            state,
+            pd.DataFrame([[1, 2, np.inf, 3]], index=idx),
+            trace_label=None,
+            overflow_protection=False,
         )
     assert "infinite exponentiated utilities" in str(excinfo.value)
 
     with pytest.raises(RuntimeError) as excinfo:
         logit.utils_to_probs(
-            state, pd.DataFrame([[-999, -999, -999, -999]], index=idx), trace_label=None
+            state,
+            pd.DataFrame([[-999, -999, -999, -999]], index=idx),
+            trace_label=None,
+            overflow_protection=False,
         )
     assert "all probabilities are zero" in str(excinfo.value)
 

@@ -1080,6 +1080,7 @@ def compute_nested_probabilities(
             trace_label=trace_label,
             exponentiated=True,
             allow_zero_probs=True,
+            overflow_protection=False,
         )
 
         nested_probabilities = pd.concat([nested_probabilities, probs], axis=1)

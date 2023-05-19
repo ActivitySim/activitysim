@@ -1,0 +1,20 @@
+# These same settings also apply to trip_destination_univ_zone_override
+
+# if you want to save the original school zone, specify a column name for the persons table
+# this column name is used to select major university students in downstream models (stop_freq)
+ORIGINAL_ZONE_COL_NAME: original_school_zone_id
+
+LANDUSE_UNIV_ENROL_COL_NAME: Univ_Enrollment
+# Colunn in the landuse file containing the university codes
+LANDUSE_UNIV_CODE_COL_NAME: University_Name
+# Specify which university codes should be resampled
+UNIV_CODES_TO_OVERRIDE:
+  - University of Michigan
+
+# trip_destination_univ_zone_override specific option
+# trip purpose to re-sample
+TRIP_UNIVERSITY_PURPOSE: univ
+# dictionary to map tour modes for tours that had a zone re-sampled
+# e.g. walk tours -> walk-transit tours to allow for use of transit
+# if left blank, no override occurs
+TOUR_MODE_OVERRIDE_DICT: {'WALK': 'WALK_LOC'}

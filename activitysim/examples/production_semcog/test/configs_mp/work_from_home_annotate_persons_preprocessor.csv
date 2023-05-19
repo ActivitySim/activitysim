@@ -1,0 +1,3 @@
+Description,Target,Expression
+,female_worker_with_preschool_child,"df.sex==2 & other_than(df.household_id, df.ptype == PTYPE_SCHOOL)"
+,nonworking_adult_in_hh,"other_than(df.household_id, df.ptype == PTYPE_NONWORK)"

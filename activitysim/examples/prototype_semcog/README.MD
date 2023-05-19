@@ -1,1 +1,0 @@
-### SEMCOG Example

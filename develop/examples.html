@@ -9,7 +9,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Examples &#8212; ActivitySim 1.2.1.dev13+g372f943c</title>
+    <title>Examples &#8212; ActivitySim 1.2.1.dev14+g41d89618</title>
   
   
   
@@ -113,7 +113,7 @@
   
   
   
-    <p class="title logo__title">ActivitySim 1.2.1.dev13+g372f943c</p>
+    <p class="title logo__title">ActivitySim 1.2.1.dev14+g41d89618</p>
   
 </a></div>
     
@@ -420,10 +420,10 @@ strongly cautioned not to use them for any policy or planning purpose.</p></li>
 <td><p>1</p></td>
 <td><p>In development</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#prototype-semcog"><span class="std std-ref">prototype_semcog</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#example-semcog"><span class="std std-ref">example_semcog</span></a></p></td>
 <td><p>SEMCOG agency example</p></td>
 <td><p>1</p></td>
-<td><p>In development</p></td>
+<td><p>In production</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#placeholder-psrc"><span class="std std-ref">placeholder_psrc</span></a></p></td>
 <td><p>PSRC agency example</p></td>
@@ -1105,7 +1105,7 @@ Python/pandas/numpy expressions, alternatives, and other settings used by each m
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the <code class="docutils literal notranslate"><span class="pre">non_mandatory_tour_frequency_alternatives.csv</span></code> file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The  set of files for the prototype_mtc are below.  The
-<a class="reference internal" href="#prototype-arc"><span class="std std-ref">prototype_arc</span></a>, <a class="reference internal" href="#prototype-semcog"><span class="std std-ref">prototype_semcog</span></a>, and <a class="reference internal" href="#prototype-mtc-extended"><span class="std std-ref">prototype_mtc_extended</span></a> examples added additional submodels.</p>
+<a class="reference internal" href="#prototype-arc"><span class="std std-ref">prototype_arc</span></a>, <a class="reference internal" href="#example-semcog"><span class="std std-ref">example_semcog</span></a>, and <a class="reference internal" href="#prototype-mtc-extended"><span class="std std-ref">prototype_mtc_extended</span></a> examples added additional submodels.</p>
 <table class="table">
 <colgroup>
 <col style="width: 41%" />
@@ -1458,13 +1458,13 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </pre></div>
 </div>
 <p>These model steps must be registered Inject steps, as noted below.  If you provide a <code class="docutils literal notranslate"><span class="pre">resume_after</span></code>
-argument to <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.run()</span></code></a> the pipeliner will load checkpointed tables from the checkpoint store
+argument to <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.run()</span></code> the pipeliner will load checkpointed tables from the checkpoint store
 and resume pipeline processing on the next model step after the specified checkpoint.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">resume_after</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="c1">#resume_after = &#39;school_location&#39;</span>
 </pre></div>
 </div>
-<p>The model is run by calling the <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.run()</span></code></a> method.</p>
+<p>The model is run by calling the <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.run()</span></code> method.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">_MODELS</span><span class="p">,</span> <span class="n">resume_after</span><span class="o">=</span><span class="n">resume_after</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1555,7 +1555,7 @@ runtimes and machine resources.</p></li>
 <p>The key output of ActivitySim is the HDF5 data pipeline file <code class="docutils literal notranslate"><span class="pre">outputs\pipeline.h5</span></code>.  By default, this datastore file
 contains a copy of each data table after each model step in which the table was modified.</p>
 <p>The example also writes the final tables to CSV files by using the <code class="docutils literal notranslate"><span class="pre">write_tables</span></code> step.  This step calls
-<a class="reference internal" href="core.html#activitysim.core.pipeline.get_table" title="activitysim.core.pipeline.get_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.get_table()</span></code></a> to get a pandas DataFrame and write a CSV file for each table
+<code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.get_table()</span></code> to get a pandas DataFrame and write a CSV file for each table
 specified in <code class="docutils literal notranslate"><span class="pre">output_tables</span></code> in the settings.yaml file.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">output_tables</span><span class="p">:</span>
   <span class="n">h5_store</span><span class="p">:</span> <span class="kc">False</span>
@@ -2258,13 +2258,13 @@ submodel <a class="reference internal" href="#sub-model-spec-files"><span class=
 for running prototype_arc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
 </section>
 </section>
-<section id="prototype-semcog">
-<span id="id18"></span><h2>prototype_semcog<a class="headerlink" href="#prototype-semcog" title="Permalink to this headline">#</a></h2>
+<section id="example-semcog">
+<span id="id18"></span><h2>example_semcog<a class="headerlink" href="#example-semcog" title="Permalink to this headline">#</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This example is in development</p>
 </div>
-<p>The prototype_semcog added a <a class="reference internal" href="models.html#work-from-home"><span class="std std-ref">Work From Home</span></a>, <a class="reference internal" href="models.html#telecommute-frequency"><span class="std std-ref">Telecommute Frequency</span></a>, <a class="reference internal" href="models.html#transit-pass-subsidy"><span class="std std-ref">Transit Pass Subsidy</span></a>
+<p>The example_semcog added a <a class="reference internal" href="models.html#work-from-home"><span class="std std-ref">Work From Home</span></a>, <a class="reference internal" href="models.html#telecommute-frequency"><span class="std std-ref">Telecommute Frequency</span></a>, <a class="reference internal" href="models.html#transit-pass-subsidy"><span class="std std-ref">Transit Pass Subsidy</span></a>
 and <a class="reference internal" href="models.html#transit-pass-ownership"><span class="std std-ref">Transit Pass Ownership</span></a> submodel.  These submodel specification files are below, and are in addition to the <a class="reference internal" href="#prototype-mtc"><span class="std std-ref">prototype_mtc</span></a>
 submodel <a class="reference internal" href="#sub-model-spec-files"><span class="std std-ref">Sub-Model Specification Files</span></a>.  These submodels were added to prototype_semcog as extensions, which is a way for users to add
 submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through
@@ -2317,11 +2317,25 @@ in order to load the extensions folder.</p>
 </tr>
 </tbody>
 </table>
+<p>Additional extensions were included specifically as part of the example_semcog model to deal with the unique travel of
+university students attending the University of Michigan (UofM).  First off, UofM students have their school zones resampled
+weighted by enrollment. This happens after both school location choice in the university_location_zone_override model and
+after university trip destination choice in the trip_destination_univ_zone_override model. Next, parking trips are handled
+explicitly by first choosing a parking location if the trip destination is in a UofM zone. Parking locations are selected
+proportionally to the parking lot size as part of the parking_location_choice_at_university. Finally explicit trips are
+inserted into the trips table to and from the parking lot locations in the stop_frequency_university_parking model.
+While a persons vehicle is parked, trip mode choice treats the tour mode as walk-transit to determine trip mode availability
+until the person returns back to their car.  For more information, please see SEMCOG’s final model documentation and the
+SEMCOG model user quide.</p>
+<p>These submodels were added to example_semcog as extensions, which is a way for users to add
+submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through
+the <cite>models</cite> settings.  However, the model must be run with the <cite>simulation.py</cite> script instead of the command line interface
+in order to load the extensions folder.</p>
 </section>
 <section id="id19">
 <h3>Example<a class="headerlink" href="#id19" title="Permalink to this headline">#</a></h3>
 <p>See example commands in <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
-for running prototype_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
+for running example_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
 </section>
 </section>
 <section id="placeholder-psrc">
@@ -2499,7 +2513,7 @@ for running prototype_mwcog.  For optimal performance, configure multiprocessing
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">Example</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prototype-semcog">prototype_semcog</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-semcog">example_semcog</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-semcog-sub-model-specification-files">Example SEMCOG Sub-Model Specification Files</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">Example</a></li>
 </ul>
@@ -2554,7 +2568,7 @@ for running prototype_mwcog.  For optimal performance, configure multiprocessing
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.1.dev13+g372f943c, documentation last updated Apr 11, 2023.<br/>
+ActivitySim 1.2.1.dev14+g41d89618, documentation last updated May 19, 2023.<br/>
 </p></div>
       
         <div class="footer-item">

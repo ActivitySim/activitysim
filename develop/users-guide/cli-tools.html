@@ -9,7 +9,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Command Line Tools &#8212; ActivitySim 1.2.1.dev13+g372f943c</title>
+    <title>Command Line Tools &#8212; ActivitySim 1.2.1.dev14+g41d89618</title>
   
   
   
@@ -113,7 +113,7 @@
   
   
   
-    <p class="title logo__title">ActivitySim 1.2.1.dev13+g372f943c</p>
+    <p class="title logo__title">ActivitySim 1.2.1.dev14+g41d89618</p>
   
 </a></div>
     
@@ -352,106 +352,9 @@ document.write(`
 <h1>Command Line Tools<a class="headerlink" href="#command-line-tools" title="Permalink to this headline">#</a></h1>
 <section id="activitysim-run">
 <h2>activitysim run<a class="headerlink" href="#activitysim-run" title="Permalink to this headline">#</a></h2>
-<p><blockquote>
-<div><p>Run the models. Specify a project folder using the ‘–working_dir’ option,
-or point to the config, data, and output folders directly with
-‘–config’, ‘–data’, and ‘–output’. Both ‘–config’ and ‘–data’ can be
-specified multiple times. Directories listed first take precedence.</p>
-<dl class="simple">
-<dt>returns:</dt><dd><p>int: sys.exit exit code</p>
-</dd>
-</dl>
-</div></blockquote>
-</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">PATH</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">STEPNAME</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">FILE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">FILE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">g</span> <span class="n">BYTES</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">--</span><span class="n">chunk_training_mode</span> <span class="n">CHUNK_TRAINING_MODE</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">--</span><span class="n">households_sample_size</span> <span class="n">N</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">fast</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">PATH</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="p">[</span><span class="n">N</span><span class="p">]]</span>
-</pre></div>
-</div>
-<section id="named-arguments">
-<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">#</a></h3>
-<dl class="option-list">
-<dt><kbd>-w, --working_dir</kbd></dt>
-<dd><p>path to example/project directory (default: /home/runner/work/activitysim/activitysim/docs)</p>
-</dd>
-<dt><kbd>-c, --config</kbd></dt>
-<dd><p>path to config dir</p>
-</dd>
-<dt><kbd>-o, --output</kbd></dt>
-<dd><p>path to output dir</p>
-</dd>
-<dt><kbd>-d, --data</kbd></dt>
-<dd><p>path to data dir</p>
-</dd>
-<dt><kbd>-r, --resume</kbd></dt>
-<dd><p>resume after step</p>
-</dd>
-<dt><kbd>-p, --pipeline</kbd></dt>
-<dd><p>pipeline file name</p>
-</dd>
-<dt><kbd>-s, --settings_file</kbd></dt>
-<dd><p>settings file name</p>
-</dd>
-<dt><kbd>-g, --chunk_size</kbd></dt>
-<dd><p>chunk size</p>
-</dd>
-<dt><kbd>--chunk_training_mode</kbd></dt>
-<dd><p>chunk training mode, one of [training, adaptive, production, disabled]</p>
-</dd>
-<dt><kbd>--households_sample_size</kbd></dt>
-<dd><p>households sample size</p>
-</dd>
-<dt><kbd>--fast</kbd></dt>
-<dd><p>Do not limit process to one thread. Can make single process runs faster, but will cause thrashing on MP runs.</p>
-<p>Default: False</p>
-</dd>
-<dt><kbd>-e, --ext</kbd></dt>
-<dd><p>Package of extension modules to load. Use of this option is not generally secure.</p>
-</dd>
-<dt><kbd>-m, --multiprocess</kbd></dt>
-<dd><p>run multiprocess. Adds configs_mp settings by default. Optionally give a number of processes, which will override the settings file.</p>
-<p>Default: False</p>
-</dd>
-</dl>
-</section>
 </section>
 <section id="activitysim-create">
 <h2>activitysim create<a class="headerlink" href="#activitysim-create" title="Permalink to this headline">#</a></h2>
-<p><blockquote>
-<div><p>Create a new ActivitySim configuration from an existing template.</p>
-<p>Use the -l flag to view a list of example configurations, then
-copy to your own working directory. These new project files can
-be run with the ‘run’ command.</p>
-</div></blockquote>
-</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">activitysim</span> <span class="n">create</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">(</span><span class="o">-</span><span class="n">l</span> <span class="o">|</span> <span class="o">-</span><span class="n">e</span> <span class="n">PATH</span><span class="p">)</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">link</span><span class="p">]</span>
-</pre></div>
-</div>
-<section id="named-arguments">
-<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">#</a></h3>
-<dl class="option-list">
-<dt><kbd>-l, --list</kbd></dt>
-<dd><p>list available example directories and exit</p>
-<p>Default: False</p>
-</dd>
-<dt><kbd>-e, --example</kbd></dt>
-<dd><p>example directory to copy</p>
-</dd>
-<dt><kbd>-d, --destination</kbd></dt>
-<dd><p>Path to new project directory.  If this directory already exists, the
-newly created example will be copied to a subdirectory within the
-existing directory, and named according to the example name.  Otherwise,
-a new directory is created with this name and the newly created example
-will be copied directly into it.</p>
-</dd>
-<dt><kbd>--link</kbd></dt>
-<dd><p>cache and reuse downloaded files via symlinking</p>
-<p>Default: False</p>
-</dd>
-</dl>
-</section>
 </section>
 </section>
 
@@ -502,14 +405,8 @@ will be copied directly into it.</p>
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim-run">activitysim run</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#named-arguments">Named Arguments</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim-create">activitysim create</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#named-arguments">Named Arguments</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim-run">activitysim run</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim-create">activitysim create</a></li>
 </ul>
   </nav></div>
 
@@ -544,7 +441,7 @@ will be copied directly into it.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.1.dev13+g372f943c, documentation last updated Apr 11, 2023.<br/>
+ActivitySim 1.2.1.dev14+g41d89618, documentation last updated May 19, 2023.<br/>
 </p></div>
       
         <div class="footer-item">

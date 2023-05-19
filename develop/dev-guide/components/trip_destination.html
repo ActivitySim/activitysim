@@ -9,7 +9,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Trip Destination &#8212; ActivitySim 1.2.1.dev13+g372f943c</title>
+    <title>Trip Destination &#8212; ActivitySim 1.2.1.dev14+g41d89618</title>
   
   
   
@@ -113,7 +113,7 @@
   
   
   
-    <p class="title logo__title">ActivitySim 1.2.1.dev13+g372f943c</p>
+    <p class="title logo__title">ActivitySim 1.2.1.dev14+g41d89618</p>
   
 </a></div>
     
@@ -383,7 +383,7 @@ impedance between the first stop on the return leg and the tour origin, and so o
 <p>Trip location choice for <a class="reference internal" href="../../examples.html#multiple-zone-systems"><span class="std std-ref">two- and three-zone</span></a> models
 uses <a class="reference internal" href="../../examples.html#presampling"><span class="std std-ref">presampling</span></a> by default.</p>
 <p>The main interface to the trip destination choice model is the
-<a class="reference internal" href="#activitysim.abm.models.trip_destination.trip_destination" title="activitysim.abm.models.trip_destination.trip_destination"><span class="xref myst py py-func">trip_destination</span></a> function.
+<span class="xref myst">trip_destination</span> function.
 This function is registered as an Inject step in the example Pipeline.
 See <a class="reference internal" href="../../examples.html#writing-logsums"><span class="std std-ref">writing_logsums</span></a> for how to write logsums for estimation.</p>
 <div class="admonition note">
@@ -394,129 +394,6 @@ See <a class="reference internal" href="../../examples.html#writing-logsums"><sp
 </section>
 <section id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">#</a></h2>
-<dl class="py class pydantic_model">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings">
-<em class="property"><span class="pre">settings</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">TripDestinationSettings</span></span><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings" title="Permalink to this definition">#</a></dt>
-<dd><p>Settings for the trip_destination component.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 1.2.</span></p>
-</div>
-<p>Note that this implementation is presently used only for generating
-documentation, but future work may migrate the settings implementation to
-actually use this pydantic code to validate the settings before running
-the model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Fields</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.ALT_DEST_COL_NAME" title="activitysim.abm.models.trip_destination.TripDestinationSettings.ALT_DEST_COL_NAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ALT_DEST_COL_NAME</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.CLEANUP" title="activitysim.abm.models.trip_destination.TripDestinationSettings.CLEANUP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CLEANUP</span> <span class="pre">(bool)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.COEFFICIENTS" title="activitysim.abm.models.trip_destination.TripDestinationSettings.COEFFICIENTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">COEFFICIENTS</span> <span class="pre">(pathlib.Path)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.CONSTANTS" title="activitysim.abm.models.trip_destination.TripDestinationSettings.CONSTANTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CONSTANTS</span> <span class="pre">(dict[str,</span> <span class="pre">typing.Any])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DESTINATION_SAMPLE_SPEC" title="activitysim.abm.models.trip_destination.TripDestinationSettings.DESTINATION_SAMPLE_SPEC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DESTINATION_SAMPLE_SPEC</span> <span class="pre">(pathlib.Path)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DESTINATION_SPEC" title="activitysim.abm.models.trip_destination.TripDestinationSettings.DESTINATION_SPEC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DESTINATION_SPEC</span> <span class="pre">(pathlib.Path)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DEST_CHOICE_LOGSUM_COLUMN_NAME" title="activitysim.abm.models.trip_destination.TripDestinationSettings.DEST_CHOICE_LOGSUM_COLUMN_NAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEST_CHOICE_LOGSUM_COLUMN_NAME</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DEST_CHOICE_SAMPLE_TABLE_NAME" title="activitysim.abm.models.trip_destination.TripDestinationSettings.DEST_CHOICE_SAMPLE_TABLE_NAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEST_CHOICE_SAMPLE_TABLE_NAME</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.LOGSUM_SETTINGS" title="activitysim.abm.models.trip_destination.TripDestinationSettings.LOGSUM_SETTINGS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGSUM_SETTINGS</span> <span class="pre">(pathlib.Path)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.PRIMARY_DEST" title="activitysim.abm.models.trip_destination.TripDestinationSettings.PRIMARY_DEST"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PRIMARY_DEST</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS" title="activitysim.abm.models.trip_destination.TripDestinationSettings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS</span> <span class="pre">(list[str])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.SAMPLE_SIZE" title="activitysim.abm.models.trip_destination.TripDestinationSettings.SAMPLE_SIZE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SAMPLE_SIZE</span> <span class="pre">(int)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.SAMPLE_SPEC" title="activitysim.abm.models.trip_destination.TripDestinationSettings.SAMPLE_SPEC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SAMPLE_SPEC</span> <span class="pre">(pathlib.Path)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.SPEC" title="activitysim.abm.models.trip_destination.TripDestinationSettings.SPEC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPEC</span> <span class="pre">(pathlib.Path)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.TRIP_ORIGIN" title="activitysim.abm.models.trip_destination.TripDestinationSettings.TRIP_ORIGIN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRIP_ORIGIN</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.fail_some_trips_for_testing" title="activitysim.abm.models.trip_destination.TripDestinationSettings.fail_some_trips_for_testing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fail_some_trips_for_testing</span> <span class="pre">(bool)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.preprocessor" title="activitysim.abm.models.trip_destination.TripDestinationSettings.preprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocessor</span> <span class="pre">(Any)</span></code></a></p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.ALT_DEST_COL_NAME">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ALT_DEST_COL_NAME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'dest_taz'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.ALT_DEST_COL_NAME" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.CLEANUP">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CLEANUP</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.CLEANUP" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.COEFFICIENTS">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">COEFFICIENTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pathlib.Path</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.COEFFICIENTS" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.CONSTANTS">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CONSTANTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.CONSTANTS" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.DESTINATION_SAMPLE_SPEC">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DESTINATION_SAMPLE_SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pathlib.Path</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DESTINATION_SAMPLE_SPEC" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.DESTINATION_SPEC">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DESTINATION_SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pathlib.Path</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DESTINATION_SPEC" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.DEST_CHOICE_LOGSUM_COLUMN_NAME">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DEST_CHOICE_LOGSUM_COLUMN_NAME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DEST_CHOICE_LOGSUM_COLUMN_NAME" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.DEST_CHOICE_SAMPLE_TABLE_NAME">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DEST_CHOICE_SAMPLE_TABLE_NAME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DEST_CHOICE_SAMPLE_TABLE_NAME" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.LOGSUM_SETTINGS">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LOGSUM_SETTINGS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pathlib.Path</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.LOGSUM_SETTINGS" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.PRIMARY_DEST">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PRIMARY_DEST</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'tour_leg_dest'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.PRIMARY_DEST" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.SAMPLE_SIZE">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SAMPLE_SIZE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.SAMPLE_SIZE" title="Permalink to this definition">#</a></dt>
-<dd><p>This many candidate stop locations will be sampled for each choice.</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.SAMPLE_SPEC">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SAMPLE_SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pathlib.Path</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.SAMPLE_SPEC" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.SPEC">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pathlib.Path</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.SPEC" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.TRIP_ORIGIN">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TRIP_ORIGIN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'origin'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.TRIP_ORIGIN" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.fail_some_trips_for_testing">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fail_some_trips_for_testing</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.fail_some_trips_for_testing" title="Permalink to this definition">#</a></dt>
-<dd><p>This setting is used by testing code to force failed trip_destination.</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.preprocessor">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">preprocessor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.preprocessor" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
 <section id="examples">
 <h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
@@ -527,42 +404,13 @@ the model.</p>
 </section>
 <section id="implementation">
 <h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">#</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.trip_destination">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">trip_destination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trips</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tours_merged</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_hh_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.trip_destination" title="Permalink to this definition">#</a></dt>
-<dd><p>Choose a destination for all intermediate trips based on trip purpose.</p>
-<p>The trip (or stop) location choice model predicts the location of trips
-(or stops) along the tour other than the primary destination. This model is
-structured as a multinomial logit model using a zone attraction size
-variable and route deviation measure as impedance. The alternatives are
-sampled from the full set of zones, subject to availability of a zonal
-attraction size term (i.e., it is non-zero). The sampling mechanism is also
-usually based on accessibility between tour origin and primary destination,
-and can be subject to certain rules based on tour mode.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>trips</strong><span class="classifier">orca.DataFrameWrapper</span></dt><dd><p>The trips table.  This table is edited in-place to add the trip
-destinations.</p>
-</dd>
-<dt><strong>tours_merged</strong><span class="classifier">orca.DataFrameWrapper</span></dt><dd><p>The tours table, with columns merge from persons and households as well.</p>
-</dd>
-<dt><strong>chunk_size</strong><span class="classifier">int</span></dt><dd><p>If non-zero, iterate over trips using this chunk size.</p>
-</dd>
-<dt><strong>trace_hh_id</strong><span class="classifier">int or list[int]</span></dt><dd><p>Generate trace output for these households.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="context-variables">
 <h2>Context Variables<a class="headerlink" href="#context-variables" title="Permalink to this headline">#</a></h2>
 <p>The following variables are made available for use in this component’s utility
 specifications:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">network_los</span></code> (<a class="reference internal" href="../../core.html#activitysim.core.los.Network_LOS" title="activitysim.core.los.Network_LOS"><span class="xref myst py py-class">Network_LOS</span></a>): A reference
+<li><p><code class="docutils literal notranslate"><span class="pre">network_los</span></code> (<span class="xref myst">Network_LOS</span>): A reference
 to the main network_los object for this model.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">size_terms</span></code> (<a class="reference internal" href="../../core.html#activitysim.core.skim_dictionary.DataFrameMatrix" title="activitysim.core.skim_dictionary.DataFrameMatrix"><span class="xref myst py py-class">DataFrameMatrix</span></a>):
 This DataFrameMatrix offers a specialized two-dimension lookup wrapper
@@ -577,27 +425,27 @@ with rows for zones and columns for trip purposes.  This is just the
 raw data underneath the <code class="docutils literal notranslate"><span class="pre">size_terms</span></code> value above.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">timeframe</span></code> (str): Contains the constant value “trip”.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">odt_skims</span></code> (<a class="reference internal" href="../../core.html#activitysim.core.skim_dictionary.Skim3dWrapper" title="activitysim.core.skim_dictionary.Skim3dWrapper"><span class="xref myst py py-class">Skim3dWrapper</span></a>
-or <a class="reference internal" href="../skim-dataset.html#activitysim.core.skim_dataset.DatasetWrapper" title="activitysim.core.skim_dataset.DatasetWrapper"><span class="xref myst py py-class">DatasetWrapper</span></a>): Skims
+or <span class="xref myst">DatasetWrapper</span>): Skims
 giving the LOS characteristics from the fixed trip origin to each
 alternative destination, by time period.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dot_skims</span></code> (<a class="reference internal" href="../../core.html#activitysim.core.skim_dictionary.Skim3dWrapper" title="activitysim.core.skim_dictionary.Skim3dWrapper"><span class="xref myst py py-class">Skim3dWrapper</span></a>
-or <a class="reference internal" href="../skim-dataset.html#activitysim.core.skim_dataset.DatasetWrapper" title="activitysim.core.skim_dataset.DatasetWrapper"><span class="xref myst py py-class">DatasetWrapper</span></a>): Skims giving the LOS
+or <span class="xref myst">DatasetWrapper</span>): Skims giving the LOS
 characteristics from each alternative destination backwards to the
 fixed trip origin, by time period.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dpt_skims</span></code> (<a class="reference internal" href="../../core.html#activitysim.core.skim_dictionary.Skim3dWrapper" title="activitysim.core.skim_dictionary.Skim3dWrapper"><span class="xref myst py py-class">Skim3dWrapper</span></a>
-or <a class="reference internal" href="../skim-dataset.html#activitysim.core.skim_dataset.DatasetWrapper" title="activitysim.core.skim_dataset.DatasetWrapper"><span class="xref myst py py-class">DatasetWrapper</span></a>): Skims giving the LOS
+or <span class="xref myst">DatasetWrapper</span>): Skims giving the LOS
 characteristics from each alternative destination to the tour final
 destination, by time period.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">pdt_skims</span></code> (<a class="reference internal" href="../../core.html#activitysim.core.skim_dictionary.Skim3dWrapper" title="activitysim.core.skim_dictionary.Skim3dWrapper"><span class="xref myst py py-class">Skim3dWrapper</span></a>
-or <a class="reference internal" href="../skim-dataset.html#activitysim.core.skim_dataset.DatasetWrapper" title="activitysim.core.skim_dataset.DatasetWrapper"><span class="xref myst py py-class">DatasetWrapper</span></a>): Skims giving the LOS
+or <span class="xref myst">DatasetWrapper</span>): Skims giving the LOS
 characteristics backwards to each alternative destination from the tour
 final destination, by time period.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">od_skims</span></code> (<a class="reference internal" href="../../core.html#activitysim.core.skim_dictionary.SkimWrapper" title="activitysim.core.skim_dictionary.SkimWrapper"><span class="xref myst py py-class">SkimWrapper</span></a>
-or <a class="reference internal" href="../skim-dataset.html#activitysim.core.skim_dataset.DatasetWrapper" title="activitysim.core.skim_dataset.DatasetWrapper"><span class="xref myst py py-class">DatasetWrapper</span></a>): Skims giving the LOS
+or <span class="xref myst">DatasetWrapper</span>): Skims giving the LOS
 characteristics from the fixed trip origin to each alternative
 destination.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dpt_skims</span></code> (<a class="reference internal" href="../../core.html#activitysim.core.skim_dictionary.SkimWrapper" title="activitysim.core.skim_dictionary.SkimWrapper"><span class="xref myst py py-class">SkimWrapper</span></a>
-or <a class="reference internal" href="../skim-dataset.html#activitysim.core.skim_dataset.DatasetWrapper" title="activitysim.core.skim_dataset.DatasetWrapper"><span class="xref myst py py-class">DatasetWrapper</span></a>): Skims giving the LOS
+or <span class="xref myst">DatasetWrapper</span>): Skims giving the LOS
 characteristics from each alternative destination to the tour final
 destination.</p></li>
 </ul>
@@ -612,65 +460,6 @@ only for 3-zone models:</p>
 </section>
 <section id="additional-related-functions">
 <h2>Additional Related Functions<a class="headerlink" href="#additional-related-functions" title="Permalink to this headline">#</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.trip_destination_sample">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">trip_destination_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">primary_purpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_term_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_hotel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_hh_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.trip_destination_sample" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><dl>
-<dt>destination_sample: pandas.dataframe</dt><dd><p>choices_df from interaction_sample with (up to) sample_size alts for each chooser row
-index (non unique) is trip_id from trips (duplicated for each alt)
-and columns dest_zone_id, prob, and pick_count</p>
-<dl class="simple">
-<dt>dest_zone_id: int</dt><dd><p>alt identifier from alternatives[&lt;alt_col_name&gt;]</p>
-</dd>
-<dt>prob: float</dt><dd><p>the probability of the chosen alternative</p>
-</dd>
-<dt>pick_count<span class="classifier">int</span></dt><dd><p>number of duplicate picks for chooser, alt</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.compute_logsums">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">compute_logsums</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">primary_purpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tours_merged</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_hotel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.compute_logsums" title="Permalink to this definition">#</a></dt>
-<dd><p>Calculate mode choice logsums using the same recipe as for trip_mode_choice, but do it twice
-for each alternative since we need out-of-direction logsum
-(i.e . origin to alt_dest, and alt_dest to half-tour destination)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><dl class="simple">
-<dt>adds od_logsum and dp_logsum columns to trips (in place)</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.compute_ood_logsums">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">compute_ood_logsums</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logsum_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nest_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logsum_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">od_skims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.compute_ood_logsums" title="Permalink to this definition">#</a></dt>
-<dd><p>Compute one (of two) out-of-direction logsums for destination alternatives</p>
-<p>Will either be trip_origin -&gt; alt_dest or alt_dest -&gt; primary_dest</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.trip_destination_simulate">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">trip_destination_simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">primary_purpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_term_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_hotel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_hh_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.trip_destination_simulate" title="Permalink to this definition">#</a></dt>
-<dd><p>Chose destination from destination_sample (with od_logsum and dp_logsum columns added)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><dl class="simple">
-<dt>choices - pandas.Series</dt><dd><p>destination alt chosen</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 </section>
 
@@ -763,7 +552,7 @@ for each alternative since we need out-of-direction logsum
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.1.dev13+g372f943c, documentation last updated Apr 11, 2023.<br/>
+ActivitySim 1.2.1.dev14+g41d89618, documentation last updated May 19, 2023.<br/>
 </p></div>
       
         <div class="footer-item">

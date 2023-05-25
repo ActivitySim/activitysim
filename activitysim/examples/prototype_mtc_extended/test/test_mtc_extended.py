@@ -35,7 +35,7 @@ def _test_prototype_mtc_extended(
         if sharrow:
             regress_suffix += "-sharrow"
 
-        output_dir = "output"
+        output_dir = f"output_{int(sharrow)}{int(shadow_pricing)}"
         regress_trips_df = pd.read_csv(
             test_path(f"regress/final_trips{regress_suffix}.csv")
         )
@@ -112,7 +112,7 @@ def _test_prototype_mtc_extended(
             "-d",
             example_mtc_path("data"),
             "-o",
-            test_path("output"),
+            test_path(f"output_{int(sharrow)}{int(shadow_pricing)}"),
         ]
     )
     if os.environ.get("GITHUB_ACTIONS") == "true":

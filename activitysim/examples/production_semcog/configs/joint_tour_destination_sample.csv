@@ -1,0 +1,13 @@
+Description,Expression,escort,shopping,eatout,othmaint,social,othdiscr
+local_dist,_DIST@skims['DIST'],1,1,1,1,1,1
+util_dist,@_DIST,coef_dist_escort,coef_dist_shopping,coef_dist_eatout,coef_dist_othmaint,coef_dist_social,coef_dist_othdiscr
+util_dist_squared,"@(_DIST).clip(0,20)**2",coef_dist_squared_escort,coef_dist_squared_shopping,coef_dist_squared_eatout,coef_dist_squared_othmaint,,coef_dist_squared_othdiscr
+util_dist_cubed,"@(_DIST).clip(0,20)**3",coef_dist_cubed_escort,coef_dist_cubed_shopping,coef_dist_cubed_eatout,coef_dist_cubed_othmaint,,coef_dist_cubed_othdiscr
+util_dist_logged,@(_DIST).apply(np.log1p),coef_dist_logged_escort,coef_dist_logged_shopping,coef_dist_logged_eatout,coef_dist_logged_othmaint,coef_dist_logged_social,coef_dist_logged_othdiscr
+util_dist_low,@(df['income_segment']==WORK_LOW_SEGMENT_ID) * _DIST,0,0,0,0,0,0
+util_dist_med,@(df['income_segment']==WORK_MED_SEGMENT_ID) * _DIST,0,0,0,coef_dist_med_inc_othmaint,0,coef_dist_med_inc_othdiscr
+util_dist_high,@(df['income_segment']==WORK_HIGH_SEGMENT_ID) * _DIST,0,0,0,coef_dist_high_inc_othmaint,0,0
+util_dist_hh_child,@(df['num_children']>0) * _DIST,coef_dist_hh_child_escort,0,coef_dist_hh_child_eatout,0,coef_dist_hh_child_social,coef_dist_hh_child_othdiscr
+util_dist_joint_tour,@(df['tour_type']=='joint') * _DIST,0,coef_dist_joint_tour_shopping,0,0,coef_dist_joint_tour_social,coef_dist_joint_tour_othdiscr
+Size variable,@df['size_term'].apply(np.log1p),1,1,1,1,1,1
+No attractions,@df['size_term']==0,-999,-999,-999,-999,-999,-999

@@ -1,0 +1,28 @@
+Description,value,coefficient_name
+Number of HH Persons,-0.24,coef_number_of_hh_persons
+Number of Students in HH,0.19,coef_number_of_students_in_hh
+Dummy for all stops made by transit,-0.7,coef_dummy_for_all_stops_made_by_transit
+Dummy for walking to all stops,-1.91,coef_dummy_for_walking_to_all_stops
+Number of work tours undertaken by the person,-0.29,coef_number_of_work_tours_undertaken_by_the_person
+Number of escort tours tours undertaken by the person,-0.15,coef_number_of_escort_tours_tours_undertaken_by_the_person
+Dummy for the duration of the tour being equal or greater than or equal to 9 hours ,0.59,coef_dummy_for_the_duration_of_the_tour_being_equal_or_greater_than_or_equal_to_9_hours_
+dummy for distance less than 5 Miles,0.32,coef_dummy_for_distance_less_than_5_miles
+dummy for distance in miles,0.01,coef_dummy_for_distance_in_miles
+No stops if tour mode is driveTransit,-999.0,coef_no_stops_if_tour_mode_is_drivetransit
+Alternative specific constant for return  stops,-0.968,coef_alternative_specific_constant_for_return_stops_0out_1in
+Alternative specific constant for return  stops on joint tours,-1.329,coef_alternative_specific_constant_for_return_stops_on_joint_tours_0out_1in
+Alternative specific constant for return  stops,-2.41,coef_alternative_specific_constant_for_return_stops_0out_2in
+Alternative specific constant for the total number of stops,0.0,coef_alternative_specific_constant_for_the_total_number_of_stops_0out_2in
+Alternative specific constant for return  stops on joint tours,-2.7960000000000003,coef_alternative_specific_constant_for_return_stops_on_joint_tours_0out_2in
+Alternative specific constant for the total number of stops on joint tours,0.0,coef_alternative_specific_constant_for_the_total_number_of_stops_on_joint_tours_0out_2in
+Alternative specific constant for return  stops,-3.0239999999999996,coef_alternative_specific_constant_for_return_stops_0out_3in
+Alternative specific constant for return  stops on joint tours,-3.3789999999999996,coef_alternative_specific_constant_for_return_stops_on_joint_tours_0out_3in
+Alternative specific constant for outbound stops,-2.173,coef_alternative_specific_constant_for_outbound_stops_1out_0in
+Alternative specific constant for outbound stops on joint tours,-1.7830000000000001,coef_alternative_specific_constant_for_outbound_stops_on_joint_tours_1out_0in
+Alternative specific constant for the total number of stops on joint tours,0.518,coef_alternative_specific_constant_for_the_total_number_of_stops_on_joint_tours_1out_3in
+Alternative specific constant for outbound stops,-4.294,coef_alternative_specific_constant_for_outbound_stops_2out_0in
+Alternative specific constant for outbound stops on joint tours,-4.067,coef_alternative_specific_constant_for_outbound_stops_on_joint_tours_2out_0in
+Alternative specific constant for the total number of stops,-1.807,coef_alternative_specific_constant_for_the_total_number_of_stops_2out_3in
+Alternative specific constant for the total number of stops on joint tours,1.4969999999999999,coef_alternative_specific_constant_for_the_total_number_of_stops_on_joint_tours_2out_3in
+Alternative specific constant for outbound stops,-4.758,coef_alternative_specific_constant_for_outbound_stops_3out_0in
+Alternative specific constant for outbound stops on joint tours,-4.998,coef_alternative_specific_constant_for_outbound_stops_on_joint_tours_3out_0in

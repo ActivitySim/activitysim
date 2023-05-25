@@ -1,0 +1,4 @@
+Description,Target,Expression
+,workplace_county_id,"reindex(land_use.COUNTY, persons.workplace_zone_id)"
+,parking_hourly," reindex(land_use.parking_hourly,  persons.workplace_zone_id)"
+,parking_daily,"reindex(land_use.parking_daily, persons.workplace_zone_id)"

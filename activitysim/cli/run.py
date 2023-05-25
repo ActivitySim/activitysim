@@ -181,7 +181,8 @@ def handle_standard_args(state: workflow.State, args, multiprocess=True):
     try:
         state.load_settings()
     except Exception as err:
-        logger.exception("erroro")
+        logger.exception(f"Error {err} in loading settings")
+        raise
 
     if args.multiprocess:
         if "configs_mp" not in state.filesystem.configs_dir:

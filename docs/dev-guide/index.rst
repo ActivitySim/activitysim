@@ -28,6 +28,7 @@ Contents
    skim-dataset
    checkpointing
    workflows
+   logging
    ../development
    ../models
    components/index

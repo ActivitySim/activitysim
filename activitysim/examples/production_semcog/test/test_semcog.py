@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
@@ -6,13 +8,6 @@ import subprocess
 import pandas as pd
 import pandas.testing as pdt
 import pkg_resources
-
-from activitysim.core import inject
-
-
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
 
 
 def run_test_semcog(multiprocess=False):

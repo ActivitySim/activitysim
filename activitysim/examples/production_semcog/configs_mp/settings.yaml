@@ -1,4 +1,4 @@
-# Configs File with Sample Rate set by Model Runner 
+# Configs File with Sample Rate set by Model Runner
 inherit_settings: True
 # raise error if any sub-process fails without waiting for others to complete
 fail_fast: True
@@ -68,7 +68,7 @@ models:
   - write_trip_matrices
 
 
-multiprocess_steps:  
+multiprocess_steps:
   - name: mp_initialize
     begin: initialize_landuse
   - name: mp_accessibility
@@ -77,7 +77,7 @@ multiprocess_steps:
     slice:
       tables:
         - accessibility
-      except: True
+      exclude: True
   - name: mp_households
     begin: school_location
     slice:

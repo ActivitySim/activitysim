@@ -146,7 +146,16 @@ class OutputTables(PydanticBase):
 
 
 class MultiprocessStepSlice(PydanticBase, extra="forbid"):
-    """Instructions on how to slice tables for each subprocess."""
+    """
+    Instructions on how to slice tables for each subprocess.
+
+    .. versionchanged:: 1.3
+
+        In ActivitySim versions 1.2 and earlier, slicing instructions for
+        multiprocess steps allowed for an "except" instruction, which has
+        been renamed to be "exclude" to avoid problems from using a reserved
+        Python keyword.
+    """
 
     tables: list[str]
     """
@@ -174,7 +183,7 @@ class MultiprocessStepSlice(PydanticBase, extra="forbid"):
     `tables`.
 
     Note in ActivitySim versions 1.2 and earlier, this option was named "except"
-    instead of "exclude", but that is a reserved python keywork and cannot be
+    instead of "exclude", but that is a reserved python keyword and cannot be
     used as a Pydantic field name.
     """
 

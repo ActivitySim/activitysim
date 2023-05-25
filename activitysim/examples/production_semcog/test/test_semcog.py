@@ -6,8 +6,9 @@ import os
 import subprocess
 
 import pandas as pd
-import pandas.testing as pdt
 import pkg_resources
+
+from activitysim.core.test._tools import assert_frame_substantively_equal
 
 
 def run_test_semcog(multiprocess=False):
@@ -19,9 +20,13 @@ def run_test_semcog(multiprocess=False):
         return os.path.join(os.path.dirname(__file__), dirname)
 
     def regress():
-        regress_trips_df = pd.read_csv(test_path("regress/final_trips.csv"))
-        final_trips_df = pd.read_csv(test_path("output/final_trips.csv"))
-        pdt.assert_frame_equal(final_trips_df, regress_trips_df)
+        regress_trips_df = pd.read_csv(
+            test_path("regress/final_trips.csv"), dtype={"depart": int}
+        )
+        final_trips_df = pd.read_csv(
+            test_path("output/final_trips.csv"), dtype={"depart": int}
+        )
+        assert_frame_substantively_equal(final_trips_df, regress_trips_df)
 
     file_path = os.path.join(os.path.dirname(__file__), "../simulation.py")
 

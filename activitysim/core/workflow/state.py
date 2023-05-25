@@ -17,6 +17,7 @@ import xarray as xr
 from pypyr.context import Context
 from sharrow.dataset import construct as _dataset_construct
 
+import activitysim.core.random
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
 from activitysim.core.exceptions import StateAccessError
 from activitysim.core.workflow.checkpoint import LAST_CHECKPOINT, Checkpoints
@@ -840,7 +841,7 @@ class State:
     add_injectable = set  # legacy function name
     """Alias for :meth:`State.set`."""
 
-    def rng(self):
+    def rng(self) -> activitysim.core.random.Random:
         if "prng" not in self._context:
             self._initialize_prng()
         return self._context["prng"]
@@ -862,7 +863,7 @@ class State:
             file.close()
         self.open_files.clear()
 
-    def get_rn_generator(self):
+    def get_rn_generator(self) -> activitysim.core.random.Random:
         """
         Return the singleton random number object
 

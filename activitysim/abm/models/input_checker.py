@@ -33,6 +33,8 @@ import warnings
 # from simpledbf import Dbf5
 
 import pandas as pd
+import numpy as np
+import pandera as pa
 
 from activitysim.core import config, inject
 
@@ -45,6 +47,8 @@ warnings.filterwarnings("ignore")
 _join = os.path.join
 _dir = os.path.dirname
 
+global TABLE_STORE
+TABLE_STORE = {}
 
 class InputChecker:
     def __init__(self):
@@ -545,44 +549,37 @@ def input_checker():
 
 
 
-
-
 @inject.step()
 def input_checker_data_model():
-    # from inject.data_model_dir() import enums as e
-
 
     print(inject.get_injectable('data_model_dir'))
     data_model_dir = inject.get_injectable('data_model_dir')[0]
     import sys
     sys.path.append(data_model_dir)
-
-
-    import enums as e
-    import parameters as p
     
-    from pydantic import ValidationError
-
-    from input import PersonValidator, HouseholdValidator, TazValidator, Person, Household
-    from input import TravelAnalysisZoneData as InputTAZ
-
     ic = InputChecker()
 
     ic.read_inputs()
     persons = ic.inputs['persons']
     households = ic.inputs['households']
 
-    h_list = households.to_dict(orient = "records")
-    try:
-        household_validator = HouseholdValidator(list_of_households = h_list)
-    except ValidationError as e:
-        print(e)
+    TABLE_STORE['households'] = households
+    TABLE_STORE['persons'] = persons
 
-    p_list = persons.to_dict(orient = "records")
-    try:
-        person_validator = PersonValidator(list_of_persons = p_list)
-    except ValidationError as e:
-        print(e)
+    # import the datamodel.input.py after the TABLE_STORE is initialized so functions have access to the variable
+    import input as dm_input
+
+    dm_input.Person.validate(persons, lazy=True)
+    dm_input.Household.validate(households, lazy=True)
+
+    print("finished!")
+
+    # catch and print warnings
+    # with warnings.catch_warnings(record=True) as caught_warnings:
+    #     warnings.simplefilter("always")
+    #     validated_df = schema(df)
+    #     for warning in caught_warnings:
+    #         print(warning.message)
     
     
 

@@ -84,5 +84,3 @@ output_tables:
       decode_columns:
         home_zone_id: land_use.zone_id
         TAZ: land_use_taz.TAZ
-
-# recode_pipeline_columns: False

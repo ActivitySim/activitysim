@@ -189,3 +189,5 @@ household_median_value_of_time:
   2: 8.81
   3: 10.44
   4: 12.86
+
+recode_pipeline_columns: True

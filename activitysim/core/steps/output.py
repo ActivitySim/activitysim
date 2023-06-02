@@ -334,11 +334,15 @@ def write_tables(state: workflow.State) -> None:
                         logger.debug(
                             f"write_tables sorting {table_name} on columns {sort_columns}"
                         )
-                    else:
+                    elif dt_index_name is not None:
                         logger.debug(
                             f"write_tables sorting {table_name} on unrecognized index {dt_index_name}"
                         )
                         dt = dt.sort_by(dt_index_name)
+                    else:
+                        logger.debug(
+                            f"write_tables not sorting {table_name}, no named index"
+                        )
 
         if state.settings.recode_pipeline_columns:
             for colname, decode_instruction in table_decode_cols.items():

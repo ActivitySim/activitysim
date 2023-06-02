@@ -314,6 +314,8 @@ class State:
             self.default_settings()
         if settings:
             for k, v in settings.items():
+                if k not in self.settings.__fields__:
+                    raise KeyError(f"no field {k!r} in {type(self.settings)}")
                 setattr(self.settings, k, v)
         return self
 

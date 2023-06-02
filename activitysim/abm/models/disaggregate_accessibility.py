@@ -91,7 +91,7 @@ class ProtoPop:
         add_size_tables = self.model_settings.get("add_size_tables", True)
         if add_size_tables:
             # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
-            shadow_pricing._add_size_tables(
+            shadow_pricing.add_size_tables(
                 state, self.model_settings.get("suffixes"), scale=False
             )
 
@@ -757,13 +757,6 @@ def compute_disaggregate_accessibility(
 
     logsums["proto_disaggregate_accessibility"] = access_df
 
-    # Drop any tables prematurely created
-    for tablename in [
-        "school_destination_size",
-        "workplace_destination_size",
-    ]:
-        state.drop_table(tablename)
-
     for ch in list(state.get_rn_generator().channels.keys()):
         state.get_rn_generator().drop_channel(ch)
 
@@ -775,10 +768,6 @@ def compute_disaggregate_accessibility(
     for name in list(state.existing_table_status):
         if name not in tables_prior:
             state.drop_table(name)
-    # orca._TABLES.clear()
-    # for name, func in inject._DECORATED_TABLES.items():
-    #     logger.debug("reinject decorated table %s" % name)
-    #     orca.add_table(name, func)
 
     # Inject accessibility results into pipeline
     for k, df in logsums.items():

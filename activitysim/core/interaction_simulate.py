@@ -89,7 +89,6 @@ def eval_interaction_utilities(
     trace_eval_results = None
 
     with chunk.chunk_log(state, trace_label) as chunk_sizer:
-
         assert len(spec.columns) == 1
 
         # avoid altering caller's passed-in locals_d parameter (they may be looping)
@@ -105,7 +104,6 @@ def eval_interaction_utilities(
         locals_d["df"] = df
 
         if sharrow_enabled:
-
             from .flow import apply_flow
 
             spec_sh = spec.copy()
@@ -257,10 +255,8 @@ def eval_interaction_utilities(
 
             for expr, label, coefficient in zip(exprs, labels, spec.iloc[:, 0]):
                 try:
-
                     # - allow temps of form _od_DIST@od_skim['DIST']
                     if expr.startswith("_"):
-
                         target = expr[: expr.index("@")]
                         rhs = expr[expr.index("@") + 1 :]
                         v = to_series(eval(rhs, globals(), locals_d))
@@ -309,12 +305,10 @@ def eval_interaction_utilities(
                     utility = (v * coefficient).astype("float")
 
                     if log_alt_losers:
-
                         assert ALT_CHOOSER_ID in df
                         max_utils_by_chooser = utility.groupby(df[ALT_CHOOSER_ID]).max()
 
                         if (max_utils_by_chooser < simulate.ALT_LOSER_UTIL).any():
-
                             losers = max_utils_by_chooser[
                                 max_utils_by_chooser < simulate.ALT_LOSER_UTIL
                             ]
@@ -333,7 +327,6 @@ def eval_interaction_utilities(
                     utilities.utility.values[:] += utility
 
                     if trace_eval_results is not None:
-
                         # expressions should have been uniquified when spec was read
                         # (though we could do it here if need be...)
                         # expr = assign.uniquify_key(trace_eval_results, expr, template="{} # ({})")
@@ -353,6 +346,13 @@ def eval_interaction_utilities(
                     logger.exception(
                         f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}"
                     )
+                    if isinstance(
+                        err, AssertionError
+                    ) and "od pairs not in skim" in str(err):
+                        logger.warning(
+                            f"recode_pipeline_columns is set to {state.settings.recode_pipeline_columns}, "
+                            f"you may want to check this"
+                        )
                     raise err
 
             if estimator:
@@ -482,7 +482,6 @@ def eval_interaction_utilities(
             timelogger.mark("sharrow interact trace", True, logger, trace_label)
 
         if sharrow_enabled == "test":
-
             try:
                 if sh_util is not None:
                     np.testing.assert_allclose(
@@ -735,7 +734,6 @@ def _interaction_simulate(
         or (sharrow_enabled == "test")
         or interaction_utilities is None
     ):
-
         interaction_df = logit.interaction_dataset(
             state,
             choosers,
@@ -885,7 +883,6 @@ def interaction_simulate(
     trace_choice_name=None,
     estimator=None,
 ):
-
     """
     Run a simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
@@ -946,7 +943,6 @@ def interaction_simulate(
         chunk_trace_label,
         chunk_sizer,
     ) in chunk.adaptive_chunked_choosers(state, choosers, trace_label):
-
         choices = _interaction_simulate(
             state,
             chooser_chunk,

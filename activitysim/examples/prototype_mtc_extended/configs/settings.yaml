@@ -35,7 +35,7 @@ input_table_list:
       - HHT
       - auto_ownership
       - num_workers
-      - hinccat1
+      # - hinccat1
   #
   # persons (table index 'person_id')
   #
@@ -52,8 +52,8 @@ input_table_list:
       - pemploy
       - pstudent
       - ptype
-      - GRADE
-      - WEEKS
+      # - GRADE
+      # - WEEKS
   #
   # land_use (table index 'zone_id')
   #

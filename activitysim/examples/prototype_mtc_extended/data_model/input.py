@@ -4,11 +4,19 @@ Data Model for ActivitySim Inputs
 Instructions: customize these example values for your own ActivitySim implementation
 """
 from typing import List, Optional
+import os, sys, logging
 
 from pydantic import BaseModel, validator
 import pandera as pa
 import numpy as np
 import pandas as pd
+import openmatrix as omx
+
+# for skim name parsing
+import re
+import csv
+
+from activitysim.core import config, inject, simulate
 
 import enums as e
 from parameters import Parameters
@@ -17,105 +25,7 @@ p = Parameters()
 
 from activitysim.abm.models.input_checker import TABLE_STORE
 
-
-# class TravelAnalysisZoneData(BaseModel):
-#     """
-#     TAZ or socio-economic data. Customize as needed for your application.
-#     """
-
-#     id: int
-#     centroid_latitude: Optional[float]
-#     centroid_longitude: Optional[float]
-#     households: float
-#     household_population: float
-#     employment_agriculture: float
-#     employment_mining: float
-#     employment_utilities: float
-#     employment_construction: float
-#     employment_manufacturing: float
-#     employment_wholesale: float
-#     employment_retail: float
-#     employment_transport: float
-#     employment_communication: float
-#     employment_finance: float
-#     employment_rental: float
-#     employment_professional: float
-#     employment_administrative: float
-#     employment_education: float
-#     employment_health: float
-#     employment_social: float
-#     employment_accommodation: float
-#     employment_public_administration: float
-#     employment_other: float
-#     enrollment_secondary: float
-#     enrollment_primary: float
-#     enrollment_tertiary: float
-#     parking_cost_per_hour_usd2019: float
-#     area_type: e.AreaType
-#     valid_values_for_internal_travel: Optional[List[int]] = range(
-#         1, p.maximum_internal_zone_number
-#     )
-
-#     @property
-#     def employment_total(self) -> float:
-#         """
-#         This is an example of how to compute a new variable from the variables defined above.
-#         In this case `employment_total` is the sum across employment categories.
-#         Modify as needed and add other variables as desired.
-#         """
-#         return (
-#             self.employment_agriculture
-#             + self.employment_mining
-#             + self.employment_construction
-#             + self.employment_manufacturing
-#             + self.employment_wholesale
-#             + self.employment_retail
-#             + self.employment_transport
-#             + self.employment_communication
-#             + self.employment_finance
-#             + self.employment_rental
-#             + self.employment_professional
-#             + self.employment_administrative
-#             + self.employment_education
-#             + self.employment_health
-#             + self.employment_social
-#             + self.employment_accommodation
-#             + self.employment_public_administration
-#             + self.employment_other
-#         )
-
-#     @validator("parking_cost_per_hour_usd2019")
-#     def parking_cost_is_too_high(cls, value):
-#         """
-#         This is an example of of a custom validation method. In this case,
-#         the method returns an error if `parking_cost_per_hour_usd2019` is higher than
-#         the value set in the `parameters` file.
-#         """
-#         if value > p.maximum_parking_cost_per_hour:
-#             raise ValueError("Parking cost too high")
-#         return value
-
-    # @validator("new_validator_example")
-    # def define_something(cls, value):
-
-
-class Person(pa.DataFrameModel):
-    """
-    Person data from PopulationSim and input to ActivitySim.
-    Customize as needed for your application.
-    """
-
-    person_id: np.int32 = pa.Field(unique=True, ge=0, coerce=True)
-    household_id: np.int32 = pa.Field(nullable=False, coerce=True)
-    age: np.int8 = pa.Field(ge=0, le=100, coerce=True)
-    sex: np.int8 = pa.Field(isin=e.Gender, coerce=True)
-    ptype: np.int8 = pa.Field(isin=e.PersonType, coerce=True)
-
-    @pa.dataframe_check(name="all persons in household")
-    def check_persons_in_households(cls, persons: pd.DataFrame):
-        households = TABLE_STORE['households']
-        return persons.household_id.isin(households.household_id).all()
-
+logger = logging.getLogger(__name__)
 
 
 class Household(pa.DataFrameModel):
@@ -127,18 +37,129 @@ class Household(pa.DataFrameModel):
     household_id: int = pa.Field(unique=True, gt=0)
     home_zone_id: int = pa.Field(ge=0)
     hhsize: int = pa.Field(gt=0)
-    income: int = pa.Field(ge=0)
-    hinccat1: int = pa.Field(ge=0)
+    income: int = pa.Field(ge=0, raise_warning=True)
     auto_ownership: int = pa.Field(ge=0, le=6)
     HHT: int = pa.Field(ge=0) # FIXME add to enums
 
-    @pa.dataframe_check(name='Income category matches income')
-    def income_matches_category(cls, households: pd.DataFrame):
-        inc_cat = pd.cut(households.income, bins=[-np.inf, 20000, 50000, 100000, np.inf], labels=[1, 2, 3, 4], right=False).astype(int)
-        return ((inc_cat == households.hinccat1) | (households.income == 0)).all()
-    
-    @pa.dataframe_check(name="Household size equals the number of persons")
+    @pa.dataframe_check(name="Household size equals the number of persons?")
     def check_persons_per_household(cls, households: pd.DataFrame):
         persons = TABLE_STORE['persons']
         hhsize = persons.groupby('household_id')['person_id'].count().reindex(households.household_id)
         return (hhsize.values == households.hhsize.values).all()
+
+
+class Person(pa.DataFrameModel):
+    """
+    Person data from PopulationSim and input to ActivitySim.
+    Customize as needed for your application.
+    """
+
+    person_id: int = pa.Field(unique=True, ge=0)
+    household_id: int = pa.Field(nullable=False)
+    age: int = pa.Field(ge=0, le=100)
+    sex: int = pa.Field(isin=e.Gender)
+    ptype: int = pa.Field(isin=e.PersonType)
+
+    @pa.dataframe_check(name="All persons in households table?")
+    def check_persons_in_households(cls, persons: pd.DataFrame):
+        households = TABLE_STORE['households']
+        return persons.household_id.isin(households.household_id)
+    
+    @pa.dataframe_check(name="Every household has a person?")
+    def check_households_have_persons(cls, persons: pd.DataFrame):
+        households = TABLE_STORE['households']
+        return households.household_id.isin(persons.household_id)
+
+
+class Landuse(pa.DataFrameModel):
+    """
+    Land use data.
+    Customize as needed for your application.
+
+    Fields checked include:
+    zone_id: TAZ of the zone
+    DISTRICT: District the zone relies in
+    SD: Super District
+    COUNTY: County of zone, see enums.County
+    TOTHH: Total households
+    TOTEMP: Total Employment
+    RETEMPN: Retail trade employment
+    FPSEMPN: Financial and processional services employment
+    HEREMPN: Health, educational, and recreational service employment
+    OTHEMPN: Other employment
+    AGREMPN: Agricultural and natural resources employment
+    MWTEMPN: Manufacturing, wholesale trade, and transporation employment
+
+    """
+
+    zone_id: int = pa.Field(unique=True, ge=0)
+    DISTRICT: int = pa.Field(ge=0)
+    SD: int = pa.Field(ge=0)
+    county_id: int = pa.Field(isin=e.County)
+    area_type: int = pa.Field(isin=e.AreaType)
+    TOTHH: int = pa.Field(ge=0)
+    TOTEMP: int = pa.Field(ge=0)
+    RETEMPN: int = pa.Field(ge=0)
+    FPSEMPN: int = pa.Field(ge=0)
+    HEREMPN: int = pa.Field(ge=0)
+    OTHEMPN: int = pa.Field(ge=0)
+    AGREMPN: int = pa.Field(ge=0)
+    MWTEMPN: int = pa.Field(ge=0)
+
+    @pa.dataframe_check(name="Total employment is sum of employment categories?")
+    def check_persons_in_households(cls, land_use: pd.DataFrame):
+        tot_emp = land_use[["RETEMPN", "FPSEMPN", "HEREMPN", "OTHEMPN", "AGREMPN", "MWTEMPN"]].sum(axis=1)
+        return (tot_emp == land_use.TOTEMP).all()
+    
+
+
+    
+    @pa.dataframe_check(name="Dummy to check literally anything!")
+    def dummy_example(cls, land_use: pd.DataFrame):
+        return True
+    
+    @pa.dataframe_check(name="All skims in File?", raise_warning=True)
+    def check_all_skims_exist(cls, land_use: pd.DataFrame):
+
+        # FIXME code duplicated from skim_dict_factory.py but need to copy here to not load skim data
+        los_settings = config.read_settings_file("network_los.yaml")
+        omx_file_paths = config.expand_input_file_list(los_settings['taz_skims']['omx'])
+        omx_manifest = dict()
+
+        # FIXME getting numpy deprication warning from below omx read
+        import warnings
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+        for omx_file_path in omx_file_paths:
+            with omx.open_file(omx_file_path, mode="r") as omx_file:
+                for skim_name in omx_file.listMatrices():
+                        omx_manifest[skim_name] = omx_file_path
+        
+        omx_keys = []
+        for skim_name in omx_manifest.keys():
+            key1, sep, key2 = skim_name.partition("__")
+            omx_keys.append(key1)
+
+        tour_mode_choice_spec = config.read_settings_file('tour_mode_choice.yaml')['SPEC']
+        skim_names = extract_skim_names(config.config_file_path(tour_mode_choice_spec))
+
+        # Adding breaking change!
+        skim_names.append('break')
+
+        missing_skims = [skim_name for skim_name in skim_names if skim_name not in omx_keys]
+        if len(missing_skims) > 0:
+            logger.warning(f"Missing skims {missing_skims} found in {tour_mode_choice_spec}")
+
+        return len(missing_skims) == 0
+
+
+def extract_skim_names(file_path):
+    skim_names = []
+    
+    with open(file_path) as csvfile:
+        csv_reader = csv.reader(csvfile)
+        for row in csv_reader:
+            row_string = ','.join(row)
+            matches = re.findall(r"skims\[['\"]([^'\"]+)['\"]\]", row_string)
+            skim_names.extend(matches)
+    
+    return skim_names

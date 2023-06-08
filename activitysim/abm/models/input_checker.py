@@ -29,9 +29,6 @@ import numpy as np
 import pandas as pd
 import datetime
 import warnings
-
-# from simpledbf import Dbf5
-
 import pandas as pd
 import numpy as np
 import pandera as pa
@@ -52,8 +49,6 @@ TABLE_STORE = {}
 
 class InputChecker:
     def __init__(self):
-        # project_dir = _dir(_m.Modeller().desktop.project.path)
-        # self.path = _dir(project_dir)
         self.input_checker_path = ""
         self.inputs_list_path = ""
         self.prop_input_paths = {}
@@ -116,20 +111,13 @@ class InputChecker:
                     df = pd.read_csv(_join(self.path, input_path))
                     self.inputs[table_name] = df
                     print(" - " + table_name + " added")
-                else:
-                    dbf = Dbf5(_join(_dir(self.path), input_path))
-                    df = dbf.to_dataframe()
-                    self.inputs[table_name] = df
-                    print(" - " + table_name + " added")
-
-
 
 @inject.step()
 def input_checker_data_model():
 
     print(inject.get_injectable('data_model_dir'))
     data_model_dir = inject.get_injectable('data_model_dir')[0]
-    import sys
+    
     sys.path.append(data_model_dir)
     
     ic = InputChecker()

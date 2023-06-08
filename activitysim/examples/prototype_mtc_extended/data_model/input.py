@@ -19,9 +19,6 @@ import csv
 from activitysim.core import config, inject, simulate
 
 import enums as e
-from parameters import Parameters
-
-p = Parameters()
 
 from activitysim.abm.models.input_checker import TABLE_STORE
 
@@ -113,7 +110,7 @@ class Landuse(pa.DataFrameModel):
     
 
 
-    
+
     @pa.dataframe_check(name="Dummy to check literally anything!")
     def dummy_example(cls, land_use: pd.DataFrame):
         return True

@@ -84,7 +84,7 @@ class AreaType(IntEnum):
 
 class County(IntEnum):
     """
-    Provide an integer mapping for area type, which serves as a proxy for urban form.
+    Provide an integer mapping for county in which a landuse zone resides.
     """
 
     SAN_FRANSISCO = 1
@@ -96,6 +96,20 @@ class County(IntEnum):
     NAPA = 7
     SONOMA = 8
     MARIN = 9
+
+
+class HHT(IntEnum):
+    """
+    Provide an integer mapping for household/family type.
+    """
+
+    FAMILY_MARRIED_COUPLE = 1
+    FAMILY_MALE_HOUSEHOLDER_NO_WIFE = 2
+    FAMILY_FEMANLE_HOUSEHOLDER_NO_HUSBAND = 3
+    NON_FAMILY_MALE_ALONE = 4
+    NON_FAMILY_MALE_NOT_ALONE = 5
+    NON_FAMILY_FEMALE_ALONE = 6
+    NON_FAMILY_FEMALE_NOT_ALONE = 7
 
 
 # class Mode(IntEnum):

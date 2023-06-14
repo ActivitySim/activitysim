@@ -36,7 +36,8 @@ class Household(pa.DataFrameModel):
     hhsize: int = pa.Field(gt=0)
     income: int = pa.Field(ge=0, raise_warning=True)
     auto_ownership: int = pa.Field(ge=0, le=6)
-    HHT: int = pa.Field(ge=0) # FIXME add to enums
+    HHT: int = pa.Field(isin=e.HHT, raise_warning=True)
+    # dummy: int = pa.Field()
 
     @pa.dataframe_check(name="Household size equals the number of persons?")
     def check_persons_per_household(cls, households: pd.DataFrame):
@@ -73,7 +74,6 @@ class Landuse(pa.DataFrameModel):
     Land use data.
     Customize as needed for your application.
 
-    Fields checked include:
     zone_id: TAZ of the zone
     DISTRICT: District the zone relies in
     SD: Super District
@@ -140,7 +140,7 @@ class Landuse(pa.DataFrameModel):
         skim_names = extract_skim_names(config.config_file_path(tour_mode_choice_spec))
 
         # Adding breaking change!
-        skim_names.append('break')
+        # skim_names.append('break')
 
         missing_skims = [skim_name for skim_name in skim_names if skim_name not in omx_keys]
         if len(missing_skims) > 0:

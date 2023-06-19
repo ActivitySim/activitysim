@@ -686,30 +686,6 @@ def log_rss(state: workflow.State, trace_label: str, force=False):
             c.check_local_hwm(state, hwm_trace_label, rss, uss, total_bytes=None)
 
 
-def log_df(state: workflow.State, trace_label: str, table_name: str, df: pd.DataFrame):
-    if chunk_training_mode(state) in (MODE_PRODUCTION, MODE_CHUNKLESS):
-        return
-
-    assert len(CHUNK_LEDGERS) > 0, f"log_df called without current chunker."
-
-    op = "del" if df is None else "add"
-    hwm_trace_label = f"{trace_label}.{op}.{table_name}"
-
-    rss, uss = mem.trace_memory_info(hwm_trace_label, state=state)
-
-    cur_chunker = CHUNK_LEDGERS[-1]
-
-    # registers this df and recalc total_bytes
-    cur_chunker.log_df(table_name, df)
-
-    total_bytes = sum([c.total_bytes for c in CHUNK_LEDGERS])
-
-    # check local hwm for all ledgers
-    with ledger_lock:
-        for c in CHUNK_LEDGERS:
-            c.check_local_hwm(state, hwm_trace_label, rss, uss, total_bytes)
-
-
 class MemMonitor(threading.Thread):
     def __init__(
         self, state: workflow.State, trace_label: str, stop_snooping: threading.Event

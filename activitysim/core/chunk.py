@@ -1177,7 +1177,7 @@ def adaptive_chunked_choosers(
     trace_label: str,
     chunk_tag: str = None,
     *,
-    chunk_size:int|None=None,
+    chunk_size: int | None = None,
 ):
     # generator to iterate over choosers
 
@@ -1249,7 +1249,7 @@ def adaptive_chunked_choosers_and_alts(
     alternatives: pd.DataFrame,
     trace_label: str,
     chunk_tag: str = None,
-    chunk_size: int|None = None,
+    chunk_size: int | None = None,
 ):
     """
     generator to iterate over choosers and alternatives in chunk_size chunks

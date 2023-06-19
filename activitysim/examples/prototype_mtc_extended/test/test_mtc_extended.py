@@ -244,7 +244,7 @@ def test_prototype_mtc_extended_progressive():
 
 @pytest.mark.parametrize(
     "chunksize",
-    [ 2, 200_000_000],
+    [2, 200_000_000],
 )
 def test_prototype_mtc_extended_with_chunking(chunksize):
     import activitysim.abm  # register components
@@ -296,7 +296,6 @@ def test_prototype_mtc_extended_with_chunking(chunksize):
 
 
 if __name__ == "__main__":
-
     test_prototype_mtc_extended()
     test_prototype_mtc_extended_sharrow()
     test_prototype_mtc_extended_mp()

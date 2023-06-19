@@ -738,8 +738,7 @@ class ChunkSizer:
 
             if self.depth > 1:
                 # nested chunkers should be unchunked
-                if chunk_size:
-                    assert chunk_size == 0
+                assert chunk_size == 0
 
                 # if we are in a nested call, then we must be in the scope of active Ledger
                 # so any rss accumulated so far should be attributed to the parent active ledger
@@ -752,9 +751,6 @@ class ChunkSizer:
         else:
             self.rss, self.uss = 0, 0
             # config.override_setting("chunk_size", 0)
-            print(
-                f"@@@@@@@@@@@@@@@@@@ ChunkSizer.chunk_training_mode = {self.chunk_training_mode}"
-            )
             return
 
         min_chunk_ratio = min_available_chunk_ratio(self.state)

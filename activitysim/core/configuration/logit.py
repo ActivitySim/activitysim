@@ -43,7 +43,7 @@ class LogitNestSpec(PydanticBase):
         return coefficient_value
 
 
-class _BaseLogitComponentSettings(PydanticReadable):
+class BaseLogitComponentSettings(PydanticReadable):
     """
     Base configuration class for components that are logit models.
 
@@ -76,7 +76,7 @@ class _BaseLogitComponentSettings(PydanticReadable):
     """Named constants usable in the utility expressions."""
 
 
-class LogitComponentSettings(_BaseLogitComponentSettings):
+class LogitComponentSettings(BaseLogitComponentSettings):
     """
     Base configuration class for components that are individual logit models.
     """
@@ -144,7 +144,7 @@ class TemplatedLogitComponentSettings(LogitComponentSettings):
     """
 
 
-class LocationComponentSettings(_BaseLogitComponentSettings):
+class LocationComponentSettings(BaseLogitComponentSettings):
     """
     Base configuration class for components that are location choice models.
     """

@@ -433,7 +433,7 @@ def interaction_sample_simulate(
         chunk_trace_label,
         chunk_sizer,
     ) in chunk.adaptive_chunked_choosers_and_alts(
-        state, choosers, alternatives, trace_label, chunk_tag
+        state, choosers, alternatives, trace_label, chunk_tag, chunk_size=chunk_size
     ):
         choices = _interaction_sample_simulate(
             state,

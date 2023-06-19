@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import datetime
 import glob
 import logging
@@ -15,7 +17,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from activitysim.core import config, configuration, mem, tracing, util, workflow
+from activitysim.core import configuration, mem, tracing, util, workflow
 from activitysim.core.util import GB
 
 logger = logging.getLogger(__name__)
@@ -316,7 +318,7 @@ def consolidate_logs(state: workflow.State):
             )
         else:
             cache_dir_output_path = os.path.join(
-                config.get_cache_dir(), CACHE_FILE_NAME
+                state.filesystem.get_cache_dir(), CACHE_FILE_NAME
             )
             logger.debug(
                 f"chunk.consolidate_logs writing chunk cache to {cache_dir_output_path}"
@@ -348,7 +350,9 @@ class ChunkHistorian:
             # already loaded, nothing to do
             return
 
-        chunk_cache_path = os.path.join(config.get_cache_dir(), CACHE_FILE_NAME)
+        chunk_cache_path = os.path.join(
+            state.filesystem.get_cache_dir(), CACHE_FILE_NAME
+        )
 
         logger.debug(
             f"ChunkHistorian load_cached_history chunk_cache_path {chunk_cache_path}"
@@ -533,7 +537,7 @@ class ChunkLedger(object):
             f"ChunkLedger.close hwm_uss {self.hwm_uss['value']} {self.hwm_uss['info']}"
         )
 
-    def log_df(self, state: workflow.State, table_name, df):
+    def log_df(self, state: workflow.State, table_name: str, df):
         def size_it(df):
             if isinstance(df, pd.Series):
                 elements = util.iprod(df.shape)
@@ -596,7 +600,12 @@ class ChunkLedger(object):
         self.total_bytes = sum(self.tables.values())
 
     def check_local_hwm(
-        self, state: workflow.State, hwm_trace_label, rss, uss, total_bytes
+        self,
+        state: workflow.State,
+        hwm_trace_label: str,
+        rss: int,
+        uss: int,
+        total_bytes: int,
     ):
         assert chunk_training_mode(state) not in (MODE_PRODUCTION, MODE_CHUNKLESS)
 
@@ -674,7 +683,7 @@ def log_rss(state: workflow.State, trace_label: str, force=False):
     # check local hwm for all ledgers
     with ledger_lock:
         for c in CHUNK_LEDGERS:
-            c.check_local_hwm(hwm_trace_label, rss, uss, total_bytes=None)
+            c.check_local_hwm(state, hwm_trace_label, rss, uss, total_bytes=None)
 
 
 def log_df(state: workflow.State, trace_label: str, table_name: str, df: pd.DataFrame):
@@ -698,19 +707,22 @@ def log_df(state: workflow.State, trace_label: str, table_name: str, df: pd.Data
     # check local hwm for all ledgers
     with ledger_lock:
         for c in CHUNK_LEDGERS:
-            c.check_local_hwm(hwm_trace_label, rss, uss, total_bytes)
+            c.check_local_hwm(state, hwm_trace_label, rss, uss, total_bytes)
 
 
 class MemMonitor(threading.Thread):
-    def __init__(self, trace_label, stop_snooping):
+    def __init__(
+        self, state: workflow.State, trace_label: str, stop_snooping: threading.Event
+    ):
         self.trace_label = trace_label
         self.stop_snooping = stop_snooping
+        self.state = state
         threading.Thread.__init__(self)
 
     def run(self):
-        log_rss(self.trace_label)
+        log_rss(self.state, self.trace_label)
         while not self.stop_snooping.wait(timeout=mem.MEM_SNOOP_TICK_LEN):
-            log_rss(self.trace_label)
+            log_rss(self.state, self.trace_label)
 
 
 class ChunkSizer:
@@ -728,6 +740,18 @@ class ChunkSizer:
         self.state = state
         self.depth = len(CHUNK_SIZERS) + 1
         self.chunk_training_mode = chunk_training_mode
+        self.chunk_tag = chunk_tag
+        self.trace_label = trace_label
+        self.chunk_size = chunk_size
+        self.num_choosers = num_choosers
+        self.rows_processed = 0
+        self.initial_row_size = 0
+        self.rows_per_chunk = 0
+        self.chunk_ledger = None
+        self.history = {}
+        self.cum_rows = 0
+        self.cum_overhead = {m: 0 for m in METRICS}
+        self.headroom = None
 
         if self.chunk_training_mode != MODE_CHUNKLESS:
             if chunk_metric(self.state) == USS:
@@ -738,7 +762,8 @@ class ChunkSizer:
 
             if self.depth > 1:
                 # nested chunkers should be unchunked
-                assert chunk_size == 0
+                if chunk_size:
+                    assert chunk_size == 0
 
                 # if we are in a nested call, then we must be in the scope of active Ledger
                 # so any rss accumulated so far should be attributed to the parent active ledger
@@ -751,28 +776,16 @@ class ChunkSizer:
         else:
             self.rss, self.uss = 0, 0
             # config.override_setting("chunk_size", 0)
+            print(
+                f"@@@@@@@@@@@@@@@@@@ ChunkSizer.chunk_training_mode = {self.chunk_training_mode}"
+            )
             return
-
-        self.chunk_tag = chunk_tag
-        self.trace_label = trace_label
-        self.chunk_size = chunk_size
-
-        self.num_choosers = num_choosers
-        self.rows_processed = 0
 
         min_chunk_ratio = min_available_chunk_ratio(self.state)
         assert (
             0 <= min_chunk_ratio <= 1
         ), f"min_chunk_ratio setting {min_chunk_ratio} is not in range [0..1]"
         self.min_chunk_size = chunk_size * min_chunk_ratio
-
-        self.initial_row_size = 0
-        self.rows_per_chunk = 0
-        self.chunk_ledger = None
-        self.history = {}
-
-        self.cum_rows = 0
-        self.cum_overhead = {m: 0 for m in METRICS}
 
         # if production mode, to reduce volatility, initialize cum_overhead and cum_rows from cache
         if self.chunk_training_mode in [MODE_ADAPTIVE, MODE_PRODUCTION]:
@@ -1010,6 +1023,8 @@ class ChunkSizer:
         # reality check - there should be one ledger per sizer
         assert len(CHUNK_LEDGERS) == len(CHUNK_SIZERS)
 
+        stop_snooping = None
+
         try:
             # all calls to log_df within this block will be directed to top level chunk_ledger
             # and passed on down the stack to the base to support hwm tallies
@@ -1017,7 +1032,7 @@ class ChunkSizer:
             # if this is a base chunk_sizer (and ledger) then start a thread to monitor rss usage
             if (len(CHUNK_LEDGERS) == 1) and ENABLE_MEMORY_MONITOR:
                 stop_snooping = threading.Event()
-                mem_monitor = MemMonitor(self.trace_label, stop_snooping)
+                mem_monitor = MemMonitor(self.state, self.trace_label, stop_snooping)
                 mem_monitor.start()
 
             log_rss(
@@ -1034,7 +1049,8 @@ class ChunkSizer:
                     logger.error(f"mem_monitor for {self.trace_label} died!")
                     raise RuntimeError("bug")
 
-                stop_snooping.set()
+                if stop_snooping is not None:
+                    stop_snooping.set()
                 while mem_monitor.is_alive():
                     logger.debug(
                         f"{self.trace_label} waiting for mem_monitor thread to terminate"
@@ -1046,7 +1062,7 @@ class ChunkSizer:
                 CHUNK_LEDGERS.pop()
                 self.chunk_ledger = None
 
-    def log_rss(self, trace_label, force=False):
+    def log_rss(self, trace_label: str, force: bool = False):
         if self.chunk_training_mode == MODE_CHUNKLESS:
             # no memory tracing at all in chunkless mode
             return
@@ -1066,9 +1082,11 @@ class ChunkSizer:
         # check local hwm for all ledgers
         with ledger_lock:
             for c in CHUNK_LEDGERS:
-                c.check_local_hwm(hwm_trace_label, rss, uss, total_bytes=None)
+                c.check_local_hwm(
+                    self.state, hwm_trace_label, rss, uss, total_bytes=None
+                )
 
-    def log_df(self, trace_label, table_name, df):
+    def log_df(self, trace_label: str, table_name: str, df: pd.DataFrame):
         if self.chunk_training_mode in (MODE_PRODUCTION, MODE_CHUNKLESS):
             return
 
@@ -1082,14 +1100,14 @@ class ChunkSizer:
         cur_chunker = CHUNK_LEDGERS[-1]
 
         # registers this df and recalc total_bytes
-        cur_chunker.log_df(table_name, df)
+        cur_chunker.log_df(self.state, table_name, df)
 
         total_bytes = sum([c.total_bytes for c in CHUNK_LEDGERS])
 
         # check local hwm for all ledgers
         with ledger_lock:
             for c in CHUNK_LEDGERS:
-                c.check_local_hwm(hwm_trace_label, rss, uss, total_bytes)
+                c.check_local_hwm(self.state, hwm_trace_label, rss, uss, total_bytes)
 
 
 @contextmanager
@@ -1121,6 +1139,8 @@ def chunk_log(state: workflow.State, trace_label, chunk_tag=None, base=False):
         yield ChunkSizer(state, "chunkless", trace_label, 0, 0, _chunk_training_mode)
         return
 
+    if base != (len(CHUNK_SIZERS) == 0):
+        raise AssertionError
     assert base == (len(CHUNK_SIZERS) == 0)
 
     trace_label = f"{trace_label}.chunk_log"
@@ -1156,6 +1176,8 @@ def adaptive_chunked_choosers(
     choosers: pd.DataFrame,
     trace_label: str,
     chunk_tag: str = None,
+    *,
+    chunk_size:int|None=None,
 ):
     # generator to iterate over choosers
 
@@ -1170,7 +1192,8 @@ def adaptive_chunked_choosers(
         return
 
     chunk_tag = chunk_tag or trace_label
-    chunk_size = state.settings.chunk_size
+    if chunk_size is None:
+        chunk_size = state.settings.chunk_size
 
     num_choosers = len(choosers.index)
     assert num_choosers > 0
@@ -1180,7 +1203,14 @@ def adaptive_chunked_choosers(
         f"{trace_label} Running adaptive_chunked_choosers with {num_choosers} choosers"
     )
 
-    chunk_sizer = ChunkSizer(state, chunk_tag, trace_label, num_choosers, chunk_size)
+    chunk_sizer = ChunkSizer(
+        state,
+        chunk_tag,
+        trace_label,
+        num_choosers,
+        chunk_size,
+        chunk_training_mode=state.settings.chunk_training_mode,
+    )
 
     rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()
 
@@ -1219,6 +1249,7 @@ def adaptive_chunked_choosers_and_alts(
     alternatives: pd.DataFrame,
     trace_label: str,
     chunk_tag: str = None,
+    chunk_size: int|None = None,
 ):
     """
     generator to iterate over choosers and alternatives in chunk_size chunks
@@ -1239,7 +1270,6 @@ def adaptive_chunked_choosers_and_alts(
     choosers
     alternatives : pandas DataFrame
         sample alternatives including pick_count column in same order as choosers
-    rows_per_chunk : int
 
     Yields
     ------
@@ -1292,8 +1322,16 @@ def adaptive_chunked_choosers_and_alts(
         f"with {num_choosers} choosers and {num_alternatives} alternatives"
     )
 
-    chunk_size = state.settings.chunk_size
-    chunk_sizer = ChunkSizer(state, chunk_tag, trace_label, num_choosers, chunk_size)
+    if chunk_size is None:
+        chunk_size = state.settings.chunk_size
+    chunk_sizer = ChunkSizer(
+        state,
+        chunk_tag,
+        trace_label,
+        num_choosers,
+        chunk_size,
+        chunk_training_mode=state.settings.chunk_training_mode,
+    )
     rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()
     assert (rows_per_chunk > 0) and (rows_per_chunk <= num_choosers)
 
@@ -1376,7 +1414,14 @@ def adaptive_chunked_choosers_by_chunk_id(
     assert num_choosers > 0
 
     chunk_size = state.settings.chunk_size
-    chunk_sizer = ChunkSizer(chunk_tag, trace_label, num_choosers, chunk_size)
+    chunk_sizer = ChunkSizer(
+        state,
+        chunk_tag,
+        trace_label,
+        num_choosers,
+        chunk_size,
+        chunk_training_mode=state.settings.chunk_training_mode,
+    )
 
     rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()
 

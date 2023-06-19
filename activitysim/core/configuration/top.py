@@ -355,6 +355,11 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     Default number of rows to use in initial chunking.
     """
 
+    min_available_chunk_ratio: float = 0.05
+    """
+    minimum fraction of total chunk_size to reserve for adaptive chunking
+    """
+
     checkpoints: Union[bool, list] = True
     """
     When to write checkpoint (intermediate table states) to disk.

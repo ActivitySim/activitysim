@@ -9,6 +9,7 @@ import pandas as pd
 
 from activitysim.core import util, workflow
 from activitysim.core.configuration import InputTable
+from activitysim.core.exceptions import MissingInputTableDefinition
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ def read_input_table(state: workflow.State, tablename, required=True):
         df = read_from_table_info(table_info, state)
     else:
         if required:
-            raise RuntimeError(
+            raise MissingInputTableDefinition(
                 f"could not find info for for tablename {tablename} in settings file"
             )
         df = None

@@ -52,3 +52,7 @@ class MissingNameError(KeyError):
 
 class ReadOnlyError(IOError):
     """This object is read-only."""
+
+
+class MissingInputTableDefinition(RuntimeError):
+    """An input table definition was expected but not found."""

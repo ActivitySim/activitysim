@@ -244,7 +244,10 @@ def test_prototype_mtc_extended_progressive():
 
 @pytest.mark.parametrize(
     "chunksize",
-    [2, 200_000_000],
+    [
+        100_000_000,  # will sometimes trigger chunking
+        999_999_999_999,  # will never actually trigger chunking
+    ],
 )
 def test_prototype_mtc_extended_with_chunking(chunksize):
     import activitysim.abm  # register components

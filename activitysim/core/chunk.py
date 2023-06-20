@@ -710,7 +710,8 @@ class ChunkSizer:
         chunk_training_mode="disabled",
     ):
         self.state = state
-        self.depth = len(state.chunk.CHUNK_SIZERS) + 1
+        if state is not None:
+            self.depth = len(state.chunk.CHUNK_SIZERS) + 1
         self.chunk_training_mode = chunk_training_mode
         self.chunk_tag = chunk_tag
         self.trace_label = trace_label

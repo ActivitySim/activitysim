@@ -21,6 +21,7 @@ import activitysim.core.random
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
 from activitysim.core.exceptions import StateAccessError
 from activitysim.core.workflow.checkpoint import LAST_CHECKPOINT, Checkpoints
+from activitysim.core.workflow.chunking import Chunking
 from activitysim.core.workflow.dataset import Datasets
 from activitysim.core.workflow.extending import Extend
 from activitysim.core.workflow.logging import Logging
@@ -255,6 +256,7 @@ class State:
     extend = Extend()
     report = Reporting()
     dataset = Datasets()
+    chunk = Chunking()
 
     @property
     def this_step(self):

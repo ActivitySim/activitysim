@@ -534,7 +534,7 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     developer-only feature for testing and development.
     """
 
-    recode_pipeline_columns: bool = True
+    recode_pipeline_columns: bool = False
     """
     Apply recoding instructions on input and final output for pipeline tables.
 

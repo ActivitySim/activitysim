@@ -216,6 +216,28 @@ For models with utility expressions that include a lot of string comparisons,
 been updated) sharrow can be disabled by setting `sharrow_skip: true` in the
 component's configuration yaml file.
 
+### Multiprocessing Performance
+
+Sharrow leverages a number of performance enhancing techniques, including
+parallelization of various computations. This multi-threading can provide significant
+benefits within a single-process, but if enabled alongside ActivitySim's multiprocessing
+paradigm, the multi-threading does more harm than good, as too many threads will
+compete for limited computational resources. To avoid this, the user should completely
+disable multi-threading and rely exclusively on multiprocessing to generate parallelism.
+This can be done by setting a number of thread-limiting environment variables before
+running Python, or immediately at the start of a Python script before ActivitySim
+is loaded:
+
+```python
+import os
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["NUMBA_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+```
+
 ### Limited Tracing and Estimation Mode Capabilities
 
 When running sharrow-optimized code, large parts of certain calculations are routed

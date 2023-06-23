@@ -264,14 +264,15 @@ care.  When an expression is evaluated in the legacy implementation, the additio
 of two boolean values will be processed according to numpy logic, such that:
 
 ```python
-True + True == True
-True + False == True
-False + True == True
-False + False == False
+np.array([True]) + np.array([True]) == np.array([True])
+np.array([True]) + np.array([False]) == np.array([True])
+np.array([False]) + np.array([True]) == np.array([True])
+np.array([False]) + np.array([False]) == np.array([False])
 ```
 
 When the same expression is evaluated using sharrow, the expression is evaluated
-using Pythonesque rules, such that logical values are first upcast to integers, giving:
+using Pythonesque rules, such that logical values are implicitly upcast to integers,
+giving:
 
 ```python
 True + True == 2

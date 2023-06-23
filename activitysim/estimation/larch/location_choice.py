@@ -89,7 +89,9 @@ def location_choice_model(
 
     # read alternative values either as csv or feather file
     alt_values_fea_file = alt_values_file.replace(".csv", ".fea")
-    if os.path.exists(os.path.join(edb_directory, alt_values_fea_file.format(name=name))):
+    if os.path.exists(
+        os.path.join(edb_directory, alt_values_fea_file.format(name=name))
+    ):
         alt_values = _read_feather(alt_values_fea_file)
     else:
         alt_values = _read_csv(alt_values_file)
@@ -183,12 +185,14 @@ def location_choice_model(
 
     def split(a, n):
         k, m = divmod(len(a), n)
-        return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
+        return (a[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)] for i in range(n))
 
     # process x_ca with cv_to_ca with or without chunking
     x_ca_pickle_file = "{name}_x_ca.pkl"
     if chunking_size == None:
-        x_ca = cv_to_ca(alt_values.set_index([chooser_index_name, alt_values.columns[1]]))
+        x_ca = cv_to_ca(
+            alt_values.set_index([chooser_index_name, alt_values.columns[1]])
+        )
     elif _file_exists(x_ca_pickle_file):
         # if pickle file from previous x_ca processing exist, load it to save time
         time_start = datetime.now()
@@ -207,7 +211,8 @@ def location_choice_model(
         for chunk_ids in split_ids:
             alt_values_i = alt_values[alt_values["person_id"].isin(chunk_ids)]
             x_ca_i = cv_to_ca(
-                alt_values_i.set_index([chooser_index_name, alt_values_i.columns[1]]))
+                alt_values_i.set_index([chooser_index_name, alt_values_i.columns[1]])
+            )
             x_ca_list.append(x_ca_i)
             print(
                 f"\rx_ca_i compute done for chunk {i}/{num_chunks} - time elapsed {(datetime.now() - time_start).total_seconds()}"
@@ -217,7 +222,8 @@ def location_choice_model(
         # save final x_ca result as pickle file to save time for future data loading
         _to_pickle(df=x_ca, filename=x_ca_pickle_file)
         print(
-            f"x_ca compute done - time elapsed {(datetime.now() - time_start).total_seconds()}")
+            f"x_ca compute done - time elapsed {(datetime.now() - time_start).total_seconds()}"
+        )
 
     if CHOOSER_SEGMENT_COLUMN_NAME is not None:
         # label segments with names

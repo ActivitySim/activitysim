@@ -256,6 +256,43 @@ Similar constraints apply to estimation mode, as complete estimation mode output
 capabilities are not yet integrated with the sharrow engine.  Estimation mode remains
 fully available when running with sharrow disabled.
 
+
+### Arithmetic on Logical Values
+
+In expressions written in specification files, boolean values must be treated with
+care.  When an expression is evaluated in the legacy implementation, the addition
+of two boolean values will be processed according to numpy logic, such that:
+
+```python
+True + True == True
+True + False == True
+False + True == True
+False + False == False
+```
+
+When the same expression is evaluated using sharrow, the expression is evaluated
+using Pythonesque rules, such that logical values are first upcast to integers, giving:
+
+```python
+True + True == 2
+True + False == 1
+False + True == 1
+False + False == 0
+```
+
+If this value is later upcast to a number and used in a mathematical calculation
+(e.g. multiplied by a float-valued coefficient), obviously the results will vary,
+as in the first case the result is never other than 1 or 0, but in the latter case
+the result can also be 2.  This mismatch can be readily avoided by wrapping the
+term in an extra logic gate, which will evaluate the same in both environments:
+
+```python
+(True + True)>0 == True
+(True + False)>0 == True
+(False + True)>0 == True
+(False + False)>0 == False
+```
+
 (digital-encoding)=
 ## Digital Encoding
 

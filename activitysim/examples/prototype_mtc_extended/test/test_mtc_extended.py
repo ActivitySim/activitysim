@@ -10,6 +10,7 @@ from pathlib import Path
 import pandas as pd
 import pandas.testing as pdt
 import pkg_resources
+import pytest
 
 from activitysim.core import configuration, test, workflow
 
@@ -263,8 +264,63 @@ def test_prototype_mtc_extended_progressive():
             print(f"> prototype_mtc_extended {step_name}: ok")
 
 
-if __name__ == "__main__":
+@pytest.mark.parametrize(
+    "chunksize",
+    [
+        100_000_000,  # will sometimes trigger chunking
+        999_999_999_999,  # will never actually trigger chunking
+    ],
+)
+def test_prototype_mtc_extended_with_chunking(chunksize):
+    import activitysim.abm  # register components
 
+    state = workflow.create_example("prototype_mtc_extended", temp=True)
+
+    state.settings.households_sample_size = 10
+    state.settings.use_shadow_pricing = False
+    state.settings.want_dest_choice_sample_tables = False
+    state.settings.want_dest_choice_presampling = True
+    state.settings.recode_pipeline_columns = False
+    state.settings.output_tables = configuration.OutputTables(
+        h5_store=False,
+        action="include",
+        prefix="final_",
+        sort=True,
+        tables=[
+            configuration.OutputTable(
+                tablename="trips",
+                decode_columns=dict(
+                    origin="land_use.zone_id", destination="land_use.zone_id"
+                ),
+            ),
+            "vehicles",
+            "proto_disaggregate_accessibility",
+        ],
+    )
+    state.settings.chunk_size = chunksize
+    state.settings.chunk_training_mode = "training"
+
+    assert state.settings.models == EXPECTED_MODELS
+    assert state.settings.sharrow == False
+    assert state.settings.chunk_size == chunksize
+
+    for step_name in EXPECTED_MODELS:
+        state.run.by_name(step_name)
+        try:
+            state.checkpoint.check_against(
+                Path(__file__).parent.joinpath(
+                    "prototype_mtc_extended_reference_pipeline.zip"
+                ),
+                checkpoint_name=step_name,
+            )
+        except Exception:
+            print(f"> prototype_mtc_extended {step_name}: ERROR")
+            raise
+        else:
+            print(f"> prototype_mtc_extended {step_name}: ok")
+
+
+if __name__ == "__main__":
     test_prototype_mtc_extended()
     test_prototype_mtc_extended_sharrow()
     test_prototype_mtc_extended_mp()

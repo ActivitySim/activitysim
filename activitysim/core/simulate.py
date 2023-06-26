@@ -1953,7 +1953,9 @@ def simple_simulate_logsums(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(state, choosers, trace_label, chunk_tag):
+    ) in chunk.adaptive_chunked_choosers(
+        state, choosers, trace_label, chunk_tag, chunk_size=chunk_size
+    ):
         logsums = _simple_simulate_logsums(
             state,
             chooser_chunk,

@@ -69,7 +69,7 @@ class FromState:
             when optimizing models for production and this type checking should
             not be relied on as a runtime feature. If not given, member_type is
             read from the accessor's type annotation (if applicable).
-        default_init : bool
+        default_init : bool or callable
             When set to true, if this context value is accessed and it has not
             already been set, it is automatically initialized with the default
             value (i.e. via a no-argument constructor) for the given type.
@@ -105,7 +105,10 @@ class FromState:
                 # typical but does happen when Sphinx generates documentation
                 return self
             if self._default_init:
-                instance._obj._context[self.name] = self.member_type()
+                if callable(self._default_init):
+                    instance._obj._context[self.name] = self._default_init()
+                else:
+                    instance._obj._context[self.name] = self.member_type()
                 return instance._obj._context[self.name]
             elif self._default_value != NO_DEFAULT:
                 instance._obj._context[self.name] = self._default_value

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import glob
 import logging
@@ -11,6 +13,7 @@ from stat import ST_MTIME
 import numpy as np
 import pandas as pd
 
+import activitysim.core.skim_dataset  # noqa: F401
 from activitysim import __version__
 from activitysim.core import tracing, workflow
 from activitysim.core.simulate_consts import SPEC_EXPRESSION_NAME, SPEC_LABEL_NAME

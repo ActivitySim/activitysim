@@ -648,7 +648,7 @@ def build_cdap_joint_spec(
             coefficient = row.coefficient
             if dependency_name in ["M_px", "N_px", "H_px"]:
                 if "_pxprod" in expression:
-                    prod_conds = row.Expression.split("|")
+                    prod_conds = [j.strip() for j in row.Expression.split("|")]
                     expanded_expressions = [
                         tup
                         for tup in itertools.product(

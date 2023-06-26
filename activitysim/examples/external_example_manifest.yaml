@@ -39,5 +39,5 @@ legacy_mtc_skims:
   name: legacy_mtc/skims.zarr
 
 prototype_psrc_in_development:
-  url: https://github.com/jpn--/psrc_activitysim/archive/refs/tags/v23.04.16.tar.gz
-  sha256: ba1e767cf07812b14156c13a42aa2641a7f046280a3ffe77f6672eafd1d619d6
+  url: https://github.com/jpn--/psrc_activitysim/archive/refs/tags/v23.06.21.tar.gz
+  sha256: 2241816746559cd13d125e59a80deb1bf144519fec41383c891ff1fe28d7b5a2

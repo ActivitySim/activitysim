@@ -20,20 +20,37 @@ execution, and we would like to move away from that.
 Instead of allowing arbitrary code to be loaded into and modify the logging configuration,
 there are just a few particular ActivitySim functions are exposed.
 
-## Log file location for multiprocessing
+## Log file locations
 
-When subprocesses are running, you may want each to write a log to a unique
-subprocess-specific directory.  To do so, set the `filename` for the appropriate
-handler not to a string, but to a mapping with a `get_log_file_path` key, like this:
+As noted above, the logging configuration implementation relies heavily on the
+standard Python logging library, which by default knows nothing about ActivitySim
+or its typical layout of output files, including placement of logs in a designated
+output directory.  Therefore, if you set the filename of a logging FileHandler to
+just a string like this:
+
+```yaml
+logfile:
+  class: logging.FileHandler
+  filename: just-a-file-name.log
+```
+
+then that file will be created in the Python current working directory (typically
+wherever you invoked the script) and not in your designated output directory.
+To fix this and write the log into your designated output directory, you can use
+`get_log_file_path` as an intervening key in the configuration between the
+`filename` key and the desired value, like this:
 
 ```yaml
 logfile:
   class: logging.FileHandler
   filename:
-    get_log_file_path: 'my-file-name.log'
+    get_log_file_path: my-file-name.log
 ```
 
-The log file will then be created in (or relative to) the process' log file directory,
+This special formatting will be pre-processed by ActivitySim before configuring
+the logging, so that the file will be created in your designated output directory.
+This also works when subprocesses are running, in which case the log file will
+then be created in (or relative to) the process' log file directory,
 not in (or relative to) the main output directory.
 
 ## Identifying Subprocesses

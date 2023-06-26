@@ -21,6 +21,7 @@ import activitysim.core.random
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
 from activitysim.core.exceptions import StateAccessError
 from activitysim.core.workflow.checkpoint import LAST_CHECKPOINT, Checkpoints
+from activitysim.core.workflow.chunking import Chunking
 from activitysim.core.workflow.dataset import Datasets
 from activitysim.core.workflow.extending import Extend
 from activitysim.core.workflow.logging import Logging
@@ -255,6 +256,7 @@ class State:
     extend = Extend()
     report = Reporting()
     dataset = Datasets()
+    chunk = Chunking()
 
     @property
     def this_step(self):
@@ -1113,7 +1115,28 @@ class State:
             file_name = f"{prefix}-{file_name}"
         return self.filesystem.get_output_dir().joinpath(file_name)
 
-    def get_log_file_path(self, file_name: str, prefix=True) -> Path:
+    def get_log_file_path(self, file_name: str, prefix: bool = True) -> Path:
+        """
+        Get the log file path for this process.
+
+        This method is not purely a pass-through to this state's `filesystem`,
+        as it also potentially adds a prefix to the filename based on the state.
+
+        Parameters
+        ----------
+        file_name : str
+            The name of the desired log file.
+        prefix : bool, default True
+            Whether to add a prefix to the desired log file name. This is
+            simply a boolean flag for whether to add the prefix, the actual
+            value of the prefix id drawn from the "log_file_prefix" key within
+            this state.  If that key is not set, no prefix is added regardless
+            of the value of this argument.
+
+        Returns
+        -------
+        Path
+        """
         prefix = prefix and self.get_injectable("log_file_prefix", None)
         if prefix:
             file_name = f"{prefix}-{file_name}"

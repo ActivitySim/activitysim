@@ -134,7 +134,7 @@ def compute_utilities_for_attribute_tuple(
 
     # choosers_df is pretty big and was custom made for compute_utilities but we don't need to chunk_log it
     # since it is created outside of adaptive_chunked_choosers and so will show up in baseline
-    assert not chunk.chunk_logging()  # otherwise we should chunk_log this
+    assert not chunk.chunk_logging(state)  # otherwise we should chunk_log this
 
     chunk_tag = "initialize_tvpb"  # all attribute_combinations can use same cached data for row_size calc
 

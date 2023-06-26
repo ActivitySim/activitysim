@@ -672,13 +672,13 @@ def run_destination_logsums(
 
 def run_destination_simulate(
     state: workflow.State,
-    spec_segment_name,
-    tours,
-    persons_merged,
+    spec_segment_name: str,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
     destination_sample,
-    want_logsums,
+    want_logsums: bool,
     model_settings: TourLocationComponentSettings,
-    network_los,
+    network_los: los.Network_LOS,
     destination_size_terms,
     estimator,
     chunk_size,

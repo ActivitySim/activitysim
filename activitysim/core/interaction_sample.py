@@ -531,6 +531,7 @@ def interaction_sample(
 
     Parameters
     ----------
+    state : State
     choosers : pandas.DataFrame
         DataFrame of choosers
     alternatives : pandas.DataFrame

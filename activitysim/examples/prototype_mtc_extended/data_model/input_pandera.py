@@ -20,7 +20,7 @@ from activitysim.core import config, inject, simulate
 
 import enums as e
 
-from activitysim.abm.models.input_checker import TABLE_STORE
+from activitysim.abm.models.input_checker import TABLE_STORE, ValidationWarning
 
 logger = logging.getLogger(__name__)
 
@@ -102,14 +102,14 @@ class Landuse(pa.DataFrameModel):
     OTHEMPN: int = pa.Field(ge=0)
     AGREMPN: int = pa.Field(ge=0)
     MWTEMPN: int = pa.Field(ge=0)
+    bug: str = pa.Field()
+    bug_warning: str = pa.Field(raise_warning=True)
 
     @pa.dataframe_check(name="Total employment is sum of employment categories?")
     def check_persons_in_households(cls, land_use: pd.DataFrame):
         tot_emp = land_use[["RETEMPN", "FPSEMPN", "HEREMPN", "OTHEMPN", "AGREMPN", "MWTEMPN"]].sum(axis=1)
         return (tot_emp == land_use.TOTEMP).all()
     
-
-
 
     @pa.dataframe_check(name="Dummy to check literally anything!")
     def dummy_example(cls, land_use: pd.DataFrame):

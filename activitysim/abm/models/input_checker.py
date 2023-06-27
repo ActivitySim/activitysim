@@ -32,6 +32,9 @@ import warnings
 import pandas as pd
 import numpy as np
 import pandera as pa
+import pydantic
+import time
+from collections import defaultdict
 
 from activitysim.core import config, inject
 
@@ -47,104 +50,211 @@ _dir = os.path.dirname
 global TABLE_STORE
 TABLE_STORE = {}
 
-class InputChecker:
-    def __init__(self):
-        self.input_checker_path = ""
-        self.inputs_list_path = ""
-        self.prop_input_paths = {}
-        self.inputs_list = pd.DataFrame()
-        self.inputs = {}
-        self.results = {}
-        self.result_list = {}
-        self.problem_ids = {}
-        self.report_stat = {}
-        self.num_fatal = int()
-        self.num_warning = int()
-        self.num_logical = int()
+class ValidationWarning(UserWarning):
+    pass
 
-        self.trace_label = "input_checker"
-        self.model_settings_file_name = "input_checker.yaml"
-        model_settings = config.read_model_settings(self.model_settings_file_name)
+def create_table_store(input_checker_settings):
+    """
+    creating a global variable called TABLE_STORE to be able to access
+    all tables at any point in the input checker python code
 
-        # input_item_list = self.read_model_spec(file_name=model_settings["INPUT_ITEM_LIST"])
-        # model_spec = self.read_model_spec(file_name=model_settings["SPEC"])
+    FIXME: can we do this better with the state object?
+    """
+    # looping through all tables listed in input_checker.yaml
+    for table_settings in input_checker_settings['table_list']:
+        table_name = table_settings['name']
+        logger.info("reading in table for input checking: %s" % table_name)
 
-        # TEMP fix for now since the read_model_spec is not working for some reason
-        file_name = model_settings["INPUT_ITEM_LIST"]
-        file_path = config.config_file_path(file_name)
-        self.inputs_list = pd.read_csv(file_path, comment="#")
+        # read with ActivitySim's input reader if ActivitySim input
+        if table_settings['is_activitysim_input']:
+            table = read_input_table(table_name).reset_index()
 
-        file_name = model_settings["SPEC"]
-        file_path = config.config_file_path(file_name)
-        self.input_checker_spec = pd.read_csv(file_path, comment="#")
+        # otherwise read csv file directly with pandas
+        else:
+            path = table_settings.get('path', None)
+            if path:
+                table = pd.read_csv(os.path.join(path, table_name))
+            else:
+                table = pd.read_csv(config.data_file_path(table_name))
 
-        logger.info("Running %s", self.trace_label)
+        # add pandas dataframes to TABLE_STORE dictionary with table name as key
+        TABLE_STORE[table_name] = table
 
 
-    def read_inputs(self):
+def add_child_to_parent_list(pydantic_lists, parent_table_name, children_settings):
+    """
+    Code to efficiently add children to the parent list.
 
-        self.inputs["persons"] = read_input_table("persons")
-        self.inputs["persons"].reset_index(inplace=True)
-        self.inputs["households"] = read_input_table("households")
-        self.inputs["households"].reset_index(inplace=True)
-        self.inputs["land_use"] = read_input_table("land_use")
-        self.inputs["land_use"].reset_index(inplace=True)
+    If "parent" is household and "child" is persons, the following code is equivalent to:
+    for household in h_list:
+        person_list = []
+        for person in p_list:
+            if household["household_id"] == person["household_id"]:
+                person_list.append(person)
+        household["persons"] = person_list
+    """
+    child_table_name = children_settings['table_name']
+    child_variable_name = children_settings['child_name']
+    merge_variable = children_settings['merged_on']
 
-        # check to see if input list has any additional files to read in
-        if not self.inputs_list.empty:
-            self.inputs_list = self.inputs_list.loc[
-                [not i for i in (self.inputs_list["Input_Table"].str.startswith("#"))]
-            ]
+    # need to create child list if it does not yet exist
+    if child_table_name not in pydantic_lists.keys():
+        pydantic_lists[child_table_name] = TABLE_STORE[child_table_name].to_dict(orient='records')
+    
+    child_list = pydantic_lists[child_table_name]
+    parent_list = pydantic_lists[parent_table_name]
 
-            for _, row in self.inputs_list.iterrows():
+    logger.info(f"Adding {child_table_name} to {parent_table_name} based on {merge_variable}")
+    
+    parent_children = defaultdict(list)
+    for child in child_list:
+        children = child[merge_variable]
+        parent_children[children].append(child)
 
-                print("Adding Input: " + row["Input_Table"])
+    for parent in parent_list:
+        children = parent[merge_variable]
+        parent[child_variable_name] = parent_children.get(children, [])
 
-                table_name = row["Input_Table"]
-                column_map = row["Column_Map"]
-                fields_to_export = row["Fields"].split(",")
+    pydantic_lists[parent_table_name] = parent_list
 
-                # TOFIX: inpit path is not set; dbf5 is not working
-                input_path = self.prop_input_paths[table_name]
-                input_ext = os.path.splitext(input_path)[1]
-                if input_ext == ".csv":
-                    df = pd.read_csv(_join(self.path, input_path))
-                    self.inputs[table_name] = df
-                    print(" - " + table_name + " added")
+    return pydantic_lists
+
+
+def validate_with_pandera(pandera_checker, table_name, validation_settings, v_errors, v_warnings):
+    """
+    Validating with pandera.  Grabs the relevant class for the table and runs the validate() function.
+
+    Structure of the code is as follows:
+    households = pd.DataFrame()
+    in pandera_checker:
+        class Household(pa.DataFrameModel)...
+    validator_class = pandera_checker.Household()
+    validator_class.validate(households)
+
+    Warnings & errors are captured and written out in full after all tables are checked.
+    """
+    
+    validator_class = getattr(pandera_checker, validation_settings['class'])
+    try:
+        with warnings.catch_warnings(record=True) as caught_warnings:
+            warnings.simplefilter("always")
+            validator_class.validate(TABLE_STORE[table_name])
+            v_warnings[table_name] = caught_warnings
+    except pa.errors.SchemaError as e:
+        v_errors[table_name].append(e)
+
+    return v_errors, v_warnings
+
+
+def validate_with_pydantic(pydantic_checker, table_name, validation_settings, v_errors, v_warnings, pydantic_lists):
+    """
+    Validing table wiht pydantic. Uses a helper class to perform the validation.
+
+    Strucutre of the code is as follows:
+    households = pd.DataFrame()
+    in pydantic_checker:
+        class Household(pydantic.BaseModel)...
+        class HouseholdValidator(pydantic.BaseModel) list_of_households...
+    validator_class = pydantic_checker.HouseholdValidator()
+    h_list = households.to_dict() with optional addition of child class (aka Persons)
+    validator_class(list_of_households=h_list)
+
+    Warnings & errors are captured and written out in full after all tables are checked.
+    """
+    if table_name not in pydantic_lists.keys():
+        pydantic_lists[table_name] = TABLE_STORE[table_name].to_dict(orient='records')
+
+    if validation_settings.get('children') is not None:
+        # FIXME need to add functionality for if there are multiple children
+        pydantic_lists = add_child_to_parent_list(
+            pydantic_lists, table_name, validation_settings['children']
+        )
+
+    validator_class = getattr(pydantic_checker, validation_settings['helper_class'])
+
+    attr = validation_settings['helper_class_attribute']
+
+    try:
+        validator_instance = validator_class(**{attr: pydantic_lists[table_name]})
+    except pydantic.error_wrappers.ValidationError as e:
+        v_errors[table_name].append(e)
+    except ValidationWarning as w:
+        v_warnings[table_name].append(w)
+
+    return v_errors, v_warnings, pydantic_lists
+
+
+def report_errors(input_checker_settings, v_warnings, v_errors):
+    kill_run = False
+    for table_settings in input_checker_settings['table_list']:
+        table_name = table_settings['name']
+        errors = v_errors[table_name]
+        if len(errors) > 0:
+            kill_run = True
+            logger.error(f"Encountered {len(errors)} errors in table {table_name}")
+            [print(error) for error in errors]
+        
+        warns = v_warnings[table_name]
+        if len(warns) > 0:
+            logger.warn(f"Encountered {len(warns)} warnings in table {table_name}")
+            [print(warn) for warn in warns]
+
+    return kill_run
+
 
 @inject.step()
 def input_checker_data_model():
+
+    input_checker_settings = config.read_model_settings(
+            "input_checker.yaml", mandatory=True
+    )
+
+    pydantic_checker_file = input_checker_settings['input_checker_code'].get('pydantic')
+    pandera_checker_file = input_checker_settings['input_checker_code'].get('pandera')
+
+    assert (pydantic_checker_file is not None) | (pandera_checker_file is not None), \
+        "Need to specify the `pydantic` or `pandera` options for the `input_checker` setting"
+
 
     print(inject.get_injectable('data_model_dir'))
     data_model_dir = inject.get_injectable('data_model_dir')[0]
     
     sys.path.append(data_model_dir)
     
-    ic = InputChecker()
-
-    # load specified tables
-    ic.read_inputs()
-
-    for table_name, table in ic.inputs.items():
-        # add to global table store for easy access
-        # FIXME replace with the state object
-        TABLE_STORE[table_name] = table
+    create_table_store(input_checker_settings)
         
 
     # import the datamodel.input.py after the TABLE_STORE is initialized so functions have access to the variable
-    import input as dm_input
+    pandera_checker = __import__(pandera_checker_file)
+    pydantic_checker = __import__(pydantic_checker_file)
 
-    with warnings.catch_warnings(record=True) as caught_warnings:
-        warnings.simplefilter("always")
-        dm_input.Person.validate(TABLE_STORE['persons'], lazy=True)
-        dm_input.Household.validate(TABLE_STORE['households'], lazy=True)
-        dm_input.Landuse.validate(TABLE_STORE['land_use'], lazy=True)
-        for warning in caught_warnings:
-            print(warning.message)
+    v_errors = {}
+    v_warnings = {}
+    pydantic_lists = {}
 
-    print("Input Checker Finished!")
-    
-    
+    for table_settings in input_checker_settings['table_list']:
+        validation_settings = table_settings['validation']
+        table_name = table_settings['name']
+
+        # initializing validation error and warning tracking
+        v_errors[table_name] = []
+        v_warnings[table_name] = []
+
+        assert validation_settings['method'] in ["pandera", "pydantic"]
+
+        if validation_settings['method'] == 'pandera':
+            logger.info(f"performing Pandera check on {table_settings['name']}")
+            v_errors, v_warnings = validate_with_pandera(
+                pandera_checker, table_name, validation_settings, v_errors, v_warnings)
+
+        if validation_settings['method'] == 'pydantic':
+            logger.info(f"performing Pydantic check on {table_settings['name']}")
+            v_errors, v_warnings, pydantic_lists = validate_with_pydantic(
+                pydantic_checker, table_name, validation_settings, v_errors, v_warnings, pydantic_lists)
 
 
+    kill_run = report_errors(input_checker_settings, v_warnings, v_errors)
 
+    if kill_run:
+        logger.error("Run would be killed due to input checker failure!!")
+        # raise RuntimeError("Encountered error in input checker, see input_checker.log for details")

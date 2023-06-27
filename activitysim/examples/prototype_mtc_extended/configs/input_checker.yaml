@@ -1,3 +1,60 @@
+input_checker_code:
+  pydantic: input_pydantic
+  pandera: input_pandera
+  # path: data_model_dir # optional: if missing, will search in data_model_dir
 
-INPUT_ITEM_LIST: input_checker_list.csv 
-SPEC: input_checks.csv
+table_list:
+# --------- pydantic examples ----------
+  - name: households
+    is_activitysim_input: True  # will load via ActivitySim's built-in reader and apply column transformations
+    validation:
+      method: pydantic
+      class: Household
+      helper_class: HouseholdValidator
+      helper_class_attribute: list_of_households
+      children:
+        table_name: persons
+        child_name: persons  # Household class has variable "persons: list[Person]"
+        merged_on: household_id
+
+  - name: persons
+    is_activitysim_input: True  # will load via ActivitySim's built-in reader and apply column transformations
+    validation:
+      method: pydantic
+      class: Person
+      helper_class: PersonValidator
+      helper_class_attribute: list_of_persons
+
+  - name: land_use
+    is_activitysim_input: True # will load via ActivitySim's built-in reader and apply column transformations
+    validation:
+      method: pydantic
+      class: Landuse
+      helper_class: TazValidator
+      helper_class_attribute: list_of_zones
+
+# ------- pandera examples ----------
+  # - name: households
+  #   is_activitysim_input: True  # will load via ActivitySim's built-in reader and apply column transformations
+  #   validation:
+  #     method: pandera
+  #     class: Household
+
+  # - name: persons
+  #   is_activitysim_input: True  # will load via ActivitySim's built-in reader and apply column transformations
+  #   validation:
+  #     method: pandera
+  #     class: Person
+
+  # - name: land_use
+  #   is_activitysim_input: True # will load via ActivitySim's built-in reader and apply column transformations
+  #   validation:
+  #     method: pandera
+  #     class: Landuse
+      
+  # - name: network_links
+  #   # path: 
+  #   is_activitysim_input: False # will read raw table with pandas.read_csv
+  #   validation:
+  #     class: NetworkLinks
+  #     method: pandera

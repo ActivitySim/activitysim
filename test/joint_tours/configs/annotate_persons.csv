@@ -1,0 +1,16 @@
+Description,Target,Expression
+#,, annotate persons table after import
+,ptype,0
+,ptype,"np.where(persons.type == 'Full-time worker', 1, ptype)"
+,ptype,"np.where(persons.type == 'Part-time worker', 2, ptype)"
+,ptype,"np.where(persons.type == 'University student', 3, ptype)"
+,ptype,"np.where(persons.type == 'Non-worker', 4, ptype)"
+,ptype,"np.where(persons.type == 'Retired', 5, ptype)"
+,ptype,"np.where(persons.type == 'Student of driving age', 6, ptype)"
+,ptype,"np.where(persons.type == 'Student of non-driving age', 7, ptype)"
+,ptype,"np.where(persons.type == 'Child too young for school', 8, ptype)"
+home_zone_id,home_zone_id,"reindex(households.home_zone_id, persons.household_id)"
+travel_active,travel_active,persons.cdap_activity != CDAP_ACTIVITY_HOME
+# adult is needed as it's harded coded in activitysim core overlap.py
+adult,adult,ptype<=6
+child,child,ptype>6

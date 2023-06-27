@@ -1,0 +1,13 @@
+Description,Target,Expression
+,_P_OVERLAPS,person_time_window_overlap(persons)
+,time_window_overlap_adult,"reindex(_P_OVERLAPS.aa, participants.person_id)"
+,time_window_overlap_child,"reindex(_P_OVERLAPS.cc, participants.person_id)"
+,time_window_overlap_adult_child,"reindex(_P_OVERLAPS.ac, participants.person_id)"
+logTimeWindowOverlapAdult,log_time_window_overlap_adult,np.log1p(time_window_overlap_adult)
+logTimeWindowOverlapChild,log_time_window_overlap_child,np.log1p(time_window_overlap_child)
+logTimeWindowOverlapAdultChild,log_time_window_overlap_adult_child,np.log1p(time_window_overlap_adult_child)
+#,,
+,_JOINT_TOURS,tours[tours.tour_category=='joint']
+,num_hh_joint_tours,"reindex_i(_JOINT_TOURS.groupby('household_id').size(), participants.household_id)"
+#,,
+,person_is_preschool,participants.ptype == 8

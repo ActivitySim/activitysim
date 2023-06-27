@@ -232,7 +232,6 @@ def run_parking_destination(
 
     alt_column_filter_name = model_settings.get("ALTERNATIVE_FILTER_COLUMN_NAME")
     alternatives = land_use[land_use[alt_column_filter_name]]
-
     alternatives.index.name = parking_location_column_name
 
     choices_list = []

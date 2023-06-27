@@ -1,0 +1,22 @@
+Label,description,Expression,dependency,coefficient
+,constant - joint tour,1,,-3.1506
+,joint tour for hhsize 2,hhsize==2,,0.331420519
+,joint tour for hhsize 3,hhsize==3,,0.360848095
+,joint tour for hhsize 4,hhsize==4,,-0.118640717
+,joint tour for hhsize 5+,hhsize>=5,,-0.053509306
+,person x is adult and DAP is M,ptype_px<7,M_px,0.008
+,person x is adult and DAP is N,ptype_px<7,N_px,1.2557
+,person x is kid and DAP is M,ptype_px>6,M_px,0.1088
+,person x is kid and DAP is N,ptype_px>6,N_px,1.6898
+,Accessibility to retail employment/Non-Mandatory Attractions for Joint Tour,(autos_p1<num_workers_p1)*nonmandatory_hov0_accessibility_p1,,0.055031985
+,Accessibility to retail employment/Non-Mandatory Attractions for Joint Tour,(autos_p1==num_workers_p1)*nonmandatory_hov1_accessibility_p1,,0.055031985
+,Accessibility to retail employment/Non-Mandatory Attractions for Joint Tour,(autos_p1>num_workers_p1)*nonmandatory_hov2_accessibility_p1,,0.055031985
+,Income less than $30k,income_p1<30000,,-0.192506367
+,Income between $60k and $100k,(income_p1>=60000)&(income_p1<=100000),,0.104325349
+,Income more than $100k,income_p1>100000,,0.104325349
+,No Car Households,autos_p1==0,,0
+,Cars Less than Workers,autos_p1<num_workers_p1,,0.088402389
+,Cars More than Workers,autos_p1>num_workers_p1,,-0.005896499
+,Constant - Joint Tour - MTC TM2 Calibration,1,,-0.5918
+,WorkAccessForMandatoryDap,WorkLocationLogsum_px,M_px,0.17217579
+,If All Adults stay at Home/ None of the Adults have Dap 1 or 2,ptype_pxprod<7|ptype_pxprod>6,H_px,-0.988838929

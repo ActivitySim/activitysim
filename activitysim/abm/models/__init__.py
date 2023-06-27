@@ -21,6 +21,7 @@ from . import (
     joint_tour_frequency,
     joint_tour_participation,
     joint_tour_scheduling,
+    joint_tour_frequency_composition,
     location_choice,
     mandatory_scheduling,
     mandatory_tour_frequency,

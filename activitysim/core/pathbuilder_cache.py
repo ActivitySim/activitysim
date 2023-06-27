@@ -9,6 +9,7 @@ from contextlib import contextmanager
 
 import numpy as np
 import pandas as pd
+import psutil
 
 from activitysim.core import config, inject, simulate, util
 

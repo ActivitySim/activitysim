@@ -1,0 +1,13 @@
+Description,Target,Expression
+#,, annotate households table after import
+,_PERSON_COUNT,"lambda query, persons, households: persons.query(query).groupby('household_id').size().reindex(households.index).fillna(0).astype(np.int8)"
+number of fulltime workers,num_full_time_workers,"_PERSON_COUNT('ptype == 1', persons, households)"
+number of parttime workers,num_part_time_workers,"_PERSON_COUNT('ptype == 2', persons, households)"
+number of university student,num_university_students,"_PERSON_COUNT('ptype == 3', persons, households)"
+number of non-workers,num_non_workers,"_PERSON_COUNT('ptype == 4', persons, households)"
+number of retirees,num_retirees,"_PERSON_COUNT('ptype == 5', persons, households)"
+number of driving age students,num_driving_age_students,"_PERSON_COUNT('ptype == 6', persons, households)"
+number of pre-driving age school kids,num_pre_driving_age_school_kids,"_PERSON_COUNT('ptype == 7', persons, households)"
+number of pre-school kids,num_pre_school_kids,"_PERSON_COUNT('ptype == 8', persons, households)"
+number of pre-driving age school kids who go out,num_pre_driving_age_school_kids_go_out,"_PERSON_COUNT('(ptype == 7) & (cdap_activity != \'H\')', persons, households)"
+number of pre-school kids who go out,num_pre_school_kids_go_out,"_PERSON_COUNT('(ptype == 8) & (cdap_activity != \'H\')', persons, households)"

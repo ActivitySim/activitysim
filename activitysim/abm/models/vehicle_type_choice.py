@@ -124,7 +124,7 @@ def annotate_vehicle_type_choice_persons(model_settings, trace_label):
         model_settings=model_settings.get("annotate_persons"),
         trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
     )
-    pipeline.replace_table("persons", households)
+    pipeline.replace_table("persons", persons)
 
 
 def annotate_vehicle_type_choice_vehicles(model_settings, trace_label):
@@ -214,9 +214,14 @@ def construct_model_alternatives(model_settings, alts_cats_dict, vehicle_type_da
             alts_wide._merge == "left_only", ["body_type", "fuel_type", "age"]
         ]
 
-        assert (
-            len(missing_alts) == 0
-        ), f"missing vehicle data for alternatives:\n {missing_alts}"
+        if model_settings.get("REQUIRE_DATA_FOR_ALL_ALTS", False):
+            # fail if alternative does not have an associated record in the data
+            assert (
+                len(missing_alts) == 0
+            ), f"missing vehicle data for alternatives:\n {missing_alts}"
+        else:
+            # eliminate alternatives if no vehicle type data
+            alts_wide = alts_wide[alts_wide._merge != "left_only"]
         alts_wide.drop(columns="_merge", inplace=True)
 
     # converting age to integer to allow interactions in utilities

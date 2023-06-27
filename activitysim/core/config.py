@@ -756,6 +756,14 @@ def filter_warnings():
     else:
         warnings.filterwarnings("default", category=CacheMissWarning)
 
+    # beginning from PR #660 (after 1.2.0), a FutureWarning is emitted when the trip
+    # scheduling component lacks a logic_version setting
+    warnings.filterwarnings(
+        "ignore",
+        category=FutureWarning,
+        message="The trip_scheduling component now has a logic_version setting.*",
+    )
+
 
 def handle_standard_args(parser=None):
 

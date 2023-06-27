@@ -1,0 +1,5 @@
+coefficient_name,value,constrain
+coef_unavailable,-9999,T
+coef_walk_distance,-11.8,F
+coef_cost_work_trip,-0.0072,F
+coef_cost_other_trip,-0.0041,F

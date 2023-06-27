@@ -1,0 +1,35 @@
+LOGIT_TYPE: MNL
+
+SPEC: joint_tour_frequency_composition.csv
+COEFFICIENTS: joint_tour_frequency_composition_coeffs.csv
+
+preprocessor:
+  SPEC: joint_tour_frequency_composition_annotate_households_preprocessor.csv
+  DF: households
+  TABLES:
+    - persons
+
+ALTS_PREPROCESSOR:
+  SPEC: joint_tour_frequency_composition_annotate_alt_preprocessor.csv
+  DF: alt_tdd
+
+# define the structure of alternative table
+ALTS_TABLE_STRUCTURE:
+  PURPOSE:
+    COLUMNS:
+      - purpose1
+      - purpose2
+    VALUE_MAP:
+      5: shopping
+      6: othmaint
+      7: eatout
+      8: social
+      9: othdiscr
+  COMPOSITION:
+    COLUMNS:
+      - party1
+      - party2
+    VALUE_MAP:
+      1: adults
+      2: children
+      3: mixed

@@ -41,8 +41,12 @@ class Household(pa.DataFrameModel):
 
     @pa.dataframe_check(name="Household size equals the number of persons?")
     def check_persons_per_household(cls, households: pd.DataFrame):
-        persons = TABLE_STORE['persons']
-        hhsize = persons.groupby('household_id')['person_id'].count().reindex(households.household_id)
+        persons = TABLE_STORE["persons"]
+        hhsize = (
+            persons.groupby("household_id")["person_id"]
+            .count()
+            .reindex(households.household_id)
+        )
         return (hhsize.values == households.hhsize.values).all()
 
 
@@ -60,12 +64,12 @@ class Person(pa.DataFrameModel):
 
     @pa.dataframe_check(name="All persons in households table?")
     def check_persons_in_households(cls, persons: pd.DataFrame):
-        households = TABLE_STORE['households']
+        households = TABLE_STORE["households"]
         return persons.household_id.isin(households.household_id)
-    
+
     @pa.dataframe_check(name="Every household has a person?")
     def check_households_have_persons(cls, persons: pd.DataFrame):
-        households = TABLE_STORE['households']
+        households = TABLE_STORE["households"]
         return households.household_id.isin(persons.household_id)
 
 
@@ -107,56 +111,64 @@ class Landuse(pa.DataFrameModel):
 
     @pa.dataframe_check(name="Total employment is sum of employment categories?")
     def check_persons_in_households(cls, land_use: pd.DataFrame):
-        tot_emp = land_use[["RETEMPN", "FPSEMPN", "HEREMPN", "OTHEMPN", "AGREMPN", "MWTEMPN"]].sum(axis=1)
+        tot_emp = land_use[
+            ["RETEMPN", "FPSEMPN", "HEREMPN", "OTHEMPN", "AGREMPN", "MWTEMPN"]
+        ].sum(axis=1)
         return (tot_emp == land_use.TOTEMP).all()
-    
 
     @pa.dataframe_check(name="Dummy to check literally anything!")
     def dummy_example(cls, land_use: pd.DataFrame):
         return True
-    
+
     @pa.dataframe_check(name="All skims in File?", raise_warning=True)
     def check_all_skims_exist(cls, land_use: pd.DataFrame):
 
         # FIXME code duplicated from skim_dict_factory.py but need to copy here to not load skim data
         los_settings = config.read_settings_file("network_los.yaml")
-        omx_file_paths = config.expand_input_file_list(los_settings['taz_skims']['omx'])
+        omx_file_paths = config.expand_input_file_list(los_settings["taz_skims"]["omx"])
         omx_manifest = dict()
 
         # FIXME getting numpy deprication warning from below omx read
         import warnings
+
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         for omx_file_path in omx_file_paths:
             with omx.open_file(omx_file_path, mode="r") as omx_file:
                 for skim_name in omx_file.listMatrices():
-                        omx_manifest[skim_name] = omx_file_path
-        
+                    omx_manifest[skim_name] = omx_file_path
+
         omx_keys = []
         for skim_name in omx_manifest.keys():
             key1, sep, key2 = skim_name.partition("__")
             omx_keys.append(key1)
 
-        tour_mode_choice_spec = config.read_settings_file('tour_mode_choice.yaml')['SPEC']
+        tour_mode_choice_spec = config.read_settings_file("tour_mode_choice.yaml")[
+            "SPEC"
+        ]
         skim_names = extract_skim_names(config.config_file_path(tour_mode_choice_spec))
 
         # Adding breaking change!
         # skim_names.append('break')
 
-        missing_skims = [skim_name for skim_name in skim_names if skim_name not in omx_keys]
+        missing_skims = [
+            skim_name for skim_name in skim_names if skim_name not in omx_keys
+        ]
         if len(missing_skims) > 0:
-            logger.warning(f"Missing skims {missing_skims} found in {tour_mode_choice_spec}")
+            logger.warning(
+                f"Missing skims {missing_skims} found in {tour_mode_choice_spec}"
+            )
 
         return len(missing_skims) == 0
 
 
 def extract_skim_names(file_path):
     skim_names = []
-    
+
     with open(file_path) as csvfile:
         csv_reader = csv.reader(csvfile)
         for row in csv_reader:
-            row_string = ','.join(row)
+            row_string = ",".join(row)
             matches = re.findall(r"skims\[['\"]([^'\"]+)['\"]\]", row_string)
             skim_names.extend(matches)
-    
+
     return skim_names

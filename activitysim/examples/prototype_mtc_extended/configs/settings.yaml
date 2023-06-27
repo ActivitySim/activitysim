@@ -186,46 +186,46 @@ checkpoints: True
 
 models:
   - input_checker_data_model
-  # ## Disaggregate Accessibility steps
-  # - initialize_proto_population # Separate step so proto tables can be split for multiprocess.
-  # - compute_disaggregate_accessibility
-  # ## Main model steps
-  # - initialize_landuse
-  # - initialize_households
-  # - compute_accessibility
-  # - school_location
-  # - workplace_location
-  # - auto_ownership_simulate
-  # - vehicle_type_choice
-  # - free_parking
-  # - cdap_simulate
-  # - mandatory_tour_frequency
-  # - mandatory_tour_scheduling
-  # - school_escorting
-  # - joint_tour_frequency
-  # - joint_tour_composition
-  # - joint_tour_participation
-  # - joint_tour_destination
-  # - joint_tour_scheduling
-  # - non_mandatory_tour_frequency
-  # - non_mandatory_tour_destination
-  # - non_mandatory_tour_scheduling
-  # - vehicle_allocation
-  # - tour_mode_choice_simulate
-  # - atwork_subtour_frequency
-  # - atwork_subtour_destination
-  # - atwork_subtour_scheduling
-  # - atwork_subtour_mode_choice
-  # - stop_frequency
-  # - trip_purpose
-  # - trip_destination
-  # - trip_purpose_and_destination
-  # - trip_scheduling
-  # - trip_mode_choice
-  # - write_data_dictionary
-  # - track_skim_usage
-  # - write_trip_matrices
-  # - write_tables
+  ## Disaggregate Accessibility steps
+  - initialize_proto_population # Separate step so proto tables can be split for multiprocess.
+  - compute_disaggregate_accessibility
+  ## Main model steps
+  - initialize_landuse
+  - initialize_households
+  - compute_accessibility
+  - school_location
+  - workplace_location
+  - auto_ownership_simulate
+  - vehicle_type_choice
+  - free_parking
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - school_escorting
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - joint_tour_destination
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - vehicle_allocation
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
+  - write_data_dictionary
+  - track_skim_usage
+  - write_trip_matrices
+  - write_tables
 
 output_tables:
   h5_store: False

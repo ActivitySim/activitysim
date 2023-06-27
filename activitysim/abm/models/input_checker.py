@@ -50,8 +50,10 @@ _dir = os.path.dirname
 global TABLE_STORE
 TABLE_STORE = {}
 
+
 class ValidationWarning(UserWarning):
     pass
+
 
 def create_table_store(input_checker_settings):
     """
@@ -61,17 +63,17 @@ def create_table_store(input_checker_settings):
     FIXME: can we do this better with the state object?
     """
     # looping through all tables listed in input_checker.yaml
-    for table_settings in input_checker_settings['table_list']:
-        table_name = table_settings['name']
+    for table_settings in input_checker_settings["table_list"]:
+        table_name = table_settings["name"]
         logger.info("reading in table for input checking: %s" % table_name)
 
         # read with ActivitySim's input reader if ActivitySim input
-        if table_settings['is_activitysim_input']:
+        if table_settings["is_activitysim_input"]:
             table = read_input_table(table_name).reset_index()
 
         # otherwise read csv file directly with pandas
         else:
-            path = table_settings.get('path', None)
+            path = table_settings.get("path", None)
             if path:
                 table = pd.read_csv(os.path.join(path, table_name))
             else:
@@ -93,19 +95,23 @@ def add_child_to_parent_list(pydantic_lists, parent_table_name, children_setting
                 person_list.append(person)
         household["persons"] = person_list
     """
-    child_table_name = children_settings['table_name']
-    child_variable_name = children_settings['child_name']
-    merge_variable = children_settings['merged_on']
+    child_table_name = children_settings["table_name"]
+    child_variable_name = children_settings["child_name"]
+    merge_variable = children_settings["merged_on"]
 
     # need to create child list if it does not yet exist
     if child_table_name not in pydantic_lists.keys():
-        pydantic_lists[child_table_name] = TABLE_STORE[child_table_name].to_dict(orient='records')
-    
+        pydantic_lists[child_table_name] = TABLE_STORE[child_table_name].to_dict(
+            orient="records"
+        )
+
     child_list = pydantic_lists[child_table_name]
     parent_list = pydantic_lists[parent_table_name]
 
-    logger.info(f"Adding {child_table_name} to {parent_table_name} based on {merge_variable}")
-    
+    logger.info(
+        f"Adding {child_table_name} to {parent_table_name} based on {merge_variable}"
+    )
+
     parent_children = defaultdict(list)
     for child in child_list:
         children = child[merge_variable]
@@ -120,7 +126,9 @@ def add_child_to_parent_list(pydantic_lists, parent_table_name, children_setting
     return pydantic_lists
 
 
-def validate_with_pandera(pandera_checker, table_name, validation_settings, v_errors, v_warnings):
+def validate_with_pandera(
+    pandera_checker, table_name, validation_settings, v_errors, v_warnings
+):
     """
     Validating with pandera.  Grabs the relevant class for the table and runs the validate() function.
 
@@ -133,8 +141,8 @@ def validate_with_pandera(pandera_checker, table_name, validation_settings, v_er
 
     Warnings & errors are captured and written out in full after all tables are checked.
     """
-    
-    validator_class = getattr(pandera_checker, validation_settings['class'])
+
+    validator_class = getattr(pandera_checker, validation_settings["class"])
     try:
         with warnings.catch_warnings(record=True) as caught_warnings:
             warnings.simplefilter("always")
@@ -146,7 +154,14 @@ def validate_with_pandera(pandera_checker, table_name, validation_settings, v_er
     return v_errors, v_warnings
 
 
-def validate_with_pydantic(pydantic_checker, table_name, validation_settings, v_errors, v_warnings, pydantic_lists):
+def validate_with_pydantic(
+    pydantic_checker,
+    table_name,
+    validation_settings,
+    v_errors,
+    v_warnings,
+    pydantic_lists,
+):
     """
     Validing table wiht pydantic. Uses a helper class to perform the validation.
 
@@ -162,17 +177,17 @@ def validate_with_pydantic(pydantic_checker, table_name, validation_settings, v_
     Warnings & errors are captured and written out in full after all tables are checked.
     """
     if table_name not in pydantic_lists.keys():
-        pydantic_lists[table_name] = TABLE_STORE[table_name].to_dict(orient='records')
+        pydantic_lists[table_name] = TABLE_STORE[table_name].to_dict(orient="records")
 
-    if validation_settings.get('children') is not None:
+    if validation_settings.get("children") is not None:
         # FIXME need to add functionality for if there are multiple children
         pydantic_lists = add_child_to_parent_list(
-            pydantic_lists, table_name, validation_settings['children']
+            pydantic_lists, table_name, validation_settings["children"]
         )
 
-    validator_class = getattr(pydantic_checker, validation_settings['helper_class'])
+    validator_class = getattr(pydantic_checker, validation_settings["helper_class"])
 
-    attr = validation_settings['helper_class_attribute']
+    attr = validation_settings["helper_class_attribute"]
 
     try:
         validator_instance = validator_class(**{attr: pydantic_lists[table_name]})
@@ -186,14 +201,14 @@ def validate_with_pydantic(pydantic_checker, table_name, validation_settings, v_
 
 def report_errors(input_checker_settings, v_warnings, v_errors):
     kill_run = False
-    for table_settings in input_checker_settings['table_list']:
-        table_name = table_settings['name']
+    for table_settings in input_checker_settings["table_list"]:
+        table_name = table_settings["name"]
         errors = v_errors[table_name]
         if len(errors) > 0:
             kill_run = True
             logger.error(f"Encountered {len(errors)} errors in table {table_name}")
             [print(error) for error in errors]
-        
+
         warns = v_warnings[table_name]
         if len(warns) > 0:
             logger.warn(f"Encountered {len(warns)} warnings in table {table_name}")
@@ -206,23 +221,22 @@ def report_errors(input_checker_settings, v_warnings, v_errors):
 def input_checker_data_model():
 
     input_checker_settings = config.read_model_settings(
-            "input_checker.yaml", mandatory=True
+        "input_checker.yaml", mandatory=True
     )
 
-    pydantic_checker_file = input_checker_settings['input_checker_code'].get('pydantic')
-    pandera_checker_file = input_checker_settings['input_checker_code'].get('pandera')
+    pydantic_checker_file = input_checker_settings["input_checker_code"].get("pydantic")
+    pandera_checker_file = input_checker_settings["input_checker_code"].get("pandera")
 
-    assert (pydantic_checker_file is not None) | (pandera_checker_file is not None), \
-        "Need to specify the `pydantic` or `pandera` options for the `input_checker` setting"
+    assert (pydantic_checker_file is not None) | (
+        pandera_checker_file is not None
+    ), "Need to specify the `pydantic` or `pandera` options for the `input_checker` setting"
 
+    print(inject.get_injectable("data_model_dir"))
+    data_model_dir = inject.get_injectable("data_model_dir")[0]
 
-    print(inject.get_injectable('data_model_dir'))
-    data_model_dir = inject.get_injectable('data_model_dir')[0]
-    
     sys.path.append(data_model_dir)
-    
+
     create_table_store(input_checker_settings)
-        
 
     # import the datamodel.input.py after the TABLE_STORE is initialized so functions have access to the variable
     pandera_checker = __import__(pandera_checker_file)
@@ -232,26 +246,32 @@ def input_checker_data_model():
     v_warnings = {}
     pydantic_lists = {}
 
-    for table_settings in input_checker_settings['table_list']:
-        validation_settings = table_settings['validation']
-        table_name = table_settings['name']
+    for table_settings in input_checker_settings["table_list"]:
+        validation_settings = table_settings["validation"]
+        table_name = table_settings["name"]
 
         # initializing validation error and warning tracking
         v_errors[table_name] = []
         v_warnings[table_name] = []
 
-        assert validation_settings['method'] in ["pandera", "pydantic"]
+        assert validation_settings["method"] in ["pandera", "pydantic"]
 
-        if validation_settings['method'] == 'pandera':
+        if validation_settings["method"] == "pandera":
             logger.info(f"performing Pandera check on {table_settings['name']}")
             v_errors, v_warnings = validate_with_pandera(
-                pandera_checker, table_name, validation_settings, v_errors, v_warnings)
+                pandera_checker, table_name, validation_settings, v_errors, v_warnings
+            )
 
-        if validation_settings['method'] == 'pydantic':
+        if validation_settings["method"] == "pydantic":
             logger.info(f"performing Pydantic check on {table_settings['name']}")
             v_errors, v_warnings, pydantic_lists = validate_with_pydantic(
-                pydantic_checker, table_name, validation_settings, v_errors, v_warnings, pydantic_lists)
-
+                pydantic_checker,
+                table_name,
+                validation_settings,
+                v_errors,
+                v_warnings,
+                pydantic_lists,
+            )
 
     kill_run = report_errors(input_checker_settings, v_warnings, v_errors)
 

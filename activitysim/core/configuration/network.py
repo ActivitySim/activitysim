@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
+from pydantic import PositiveInt
+
 from activitysim.core.configuration.base import (
     Any,
     PydanticBase,
@@ -156,6 +158,32 @@ class MazToMazSettings(PydanticBase, extra="forbid"):
     """The name of the skim table used to blend distances for MAZs."""
 
 
+class TimeSettings(PydanticReadable, extra="forbid"):
+    """
+    Settings to describe discrete time.
+    """
+
+    time_window: PositiveInt = 1440
+    """total duration (in minutes) of the modeled time span."""
+
+    period_minutes: PositiveInt = 60
+    """length of time (in minutes) each model time period represents.
+
+    Must be whole factor of ``time_window``."""
+
+    periods: list[int]
+    """Breakpoints that define the aggregate periods for skims and assignment.
+
+    The first value should be zero and the last value should equal `time_window`
+    divided by `period_minutes`.  The intervals between these various values
+    represent the skimmed time periods, so this list should be one longer than
+    that of `labels`.
+    """
+
+    labels: list[str]
+    """Labels to define names for aggregate periods for skims and assignment"""
+
+
 class NetworkSettings(PydanticReadable, extra="forbid"):
     """
     Network level of service and skims settings
@@ -188,14 +216,8 @@ class NetworkSettings(PydanticReadable, extra="forbid"):
     TAZ_Settings class, which allows for ZARR transformation and pre-processing.
     """
 
-    skim_time_periods: dict
-    """time period upper bound values and labels
-
-    * ``time_window`` - total duration (in minutes) of the modeled time span (Default: 1440 minutes (24 hours))
-    * ``period_minutes`` - length of time (in minutes) each model time period represents. Must be whole factor of ``time_window``. (Default: 60 minutes)
-    * ``periods`` - Breakpoints that define the aggregate periods for skims and assignment
-    * ``labels`` - Labels to define names for aggregate periods for skims and assignment
-    """
+    skim_time_periods: TimeSettings
+    """How to discretize time in this model."""
 
     read_skim_cache: bool = False
     """Read cached skims (using numpy memmap) from output directory.

@@ -451,7 +451,7 @@ def _use_existing_backing_if_valid(backing, omx_file_paths, skim_tag):
 
 
 def _dedupe_time_periods(network_los_preload):
-    raw_time_periods = network_los_preload.los_settings.skim_time_periods["labels"]
+    raw_time_periods = network_los_preload.los_settings.skim_time_periods.labels
     # deduplicate time period names
     time_periods = []
     for t in raw_time_periods:

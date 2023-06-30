@@ -21,6 +21,7 @@ dependencies:
 - platformdirs = 3.2.*
 - psutil = 5.9.*
 - pyarrow = 11.*
+- pydantic = 1.10.*
 - pypyr = 5.8.*
 - pytables >= 3.5.1,<3.7  # orca's constraint
 - pytest = 7.2.*

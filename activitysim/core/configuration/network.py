@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Literal
 
-from pydantic import PositiveInt
+from pydantic import PositiveInt, root_validator
 
 from activitysim.core.configuration.base import (
     Any,
@@ -182,6 +183,18 @@ class TimeSettings(PydanticReadable, extra="forbid"):
 
     labels: list[str]
     """Labels to define names for aggregate periods for skims and assignment"""
+
+    @root_validator(pre=True)
+    def hours_deprecated(cls, data):
+        if "hours" in data:
+            data["periods"] = data.pop("hours")
+            warnings.warn(
+                "support for `skim_time_periods` key `hours` will be removed in "
+                "future verions. Use `periods` instead",
+                FutureWarning,
+                stacklevel=2,
+            )
+        return data
 
 
 class NetworkSettings(PydanticReadable, extra="forbid"):

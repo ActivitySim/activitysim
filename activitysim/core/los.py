@@ -208,7 +208,6 @@ class Network_LOS(object):
 
         # validate skim_time_periods
         self.skim_time_periods = self.setting("skim_time_periods")
-        assert {"periods", "labels"}.issubset(set(self.skim_time_periods.keys()))
 
     def load_skim_info(self):
         """

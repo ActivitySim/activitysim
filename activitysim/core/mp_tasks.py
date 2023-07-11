@@ -197,7 +197,6 @@ buffers. This is not very extensible and should be generalized.
 
 
 def log(msg, level, write_to_log_file=True):
-
     process_name = multiprocessing.current_process().name
 
     if not write_to_log_file:
@@ -229,7 +228,6 @@ def error(msg, write_to_log_file=True):
 
 
 def exception(msg, write_to_log_file=True):
-
     process_name = multiprocessing.current_process().name
 
     if not write_to_log_file:
@@ -414,7 +412,6 @@ def build_slice_rules(slice_info, pipeline_tables):
     # build slice rules for loaded tables
     slice_rules = OrderedDict()
     for table_name, df in tables.items():
-
         rule = {}
         if table_name == primary_slicer:
             # slice primary apportion table
@@ -527,7 +524,6 @@ def apportion_pipeline(sub_proc_names, step_info):
     # - allocate sliced tables for each sub_proc
     num_sub_procs = len(sub_proc_names)
     for i in range(num_sub_procs):
-
         # use well-known pipeline file name
         process_name = sub_proc_names[i]
         pipeline_path = config.build_output_file_path(
@@ -541,17 +537,14 @@ def apportion_pipeline(sub_proc_names, step_info):
             pass
 
         with pd.HDFStore(pipeline_path, mode="a") as pipeline_store:
-
             # remember sliced_tables so we can cascade slicing to other tables
             sliced_tables = {}
 
             # - for each table in pipeline
             for table_name, rule in slice_rules.items():
-
                 df = tables[table_name]
 
                 if rule["slice_by"] is not None and num_sub_procs > len(df):
-
                     # almost certainly a configuration error
                     raise RuntimeError(
                         f"apportion_pipeline: multiprocess step {multiprocess_step_name} "
@@ -634,7 +627,6 @@ def coalesce_pipelines(sub_proc_names, slice_info):
     )
 
     with pd.HDFStore(pipeline_path, mode="r") as pipeline_store:
-
         # hdf5_keys is a dict mapping table_name to pipeline hdf5_key
         checkpoint_name, hdf5_keys = pipeline_table_keys(pipeline_store)
 
@@ -738,7 +730,6 @@ def setup_injectables_and_logging(injectables, locutor=True):
         from activitysim import abm  # noqa: F401
 
     try:
-
         for k, v in injectables.items():
             inject.add_injectable(k, v)
 
@@ -780,7 +771,6 @@ def setup_injectables_and_logging(injectables, locutor=True):
 
 
 def adjust_chunk_size_for_shared_memory(chunk_size, data_buffers, num_processes):
-
     # even if there is only one subprocess,
     # we are separate from parent who allocated the shared memory
     # so we still need to compensate for it
@@ -872,7 +862,6 @@ def run_simulation(queue, step_info, resume_after, shared_data_buffer):
 
     t0 = tracing.print_elapsed_time()
     for model in models:
-
         t1 = tracing.print_elapsed_time()
 
         try:
@@ -920,7 +909,6 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
     )
 
     try:
-
         if step_info["num_processes"] > 1:
             pipeline_prefix = multiprocessing.current_process().name
             logger.debug(f"injecting pipeline_file_prefix '{pipeline_prefix}'")
@@ -1453,7 +1441,7 @@ def run_multiprocess(injectables):
     mem.trace_memory_info("allocate_shared_shadow_pricing_buffers_choice.completed")
 
     start_time = time.time()
-    if sharrow_enabled:        
+    if sharrow_enabled:
         shared_data_buffers["skim_dataset"] = "sh.Dataset:skim_dataset"
 
         # Loading skim_dataset must be done in the main process, not a subprocess,
@@ -1484,7 +1472,6 @@ def run_multiprocess(injectables):
 
     # - for each step in run list
     for step_info in run_list["multiprocess_steps"]:
-
         step_name = step_info["name"]
 
         num_processes = step_info["num_processes"]
@@ -1598,7 +1585,6 @@ def get_breadcrumbs(run_list):
 
     # if resume_after is specified by name
     if resume_after != LAST_CHECKPOINT:
-
         # breadcrumbs for steps from previous run
         previous_steps = list(breadcrumbs.keys())
 
@@ -1724,7 +1710,6 @@ def get_run_list():
         )
 
     if multiprocess:
-
         if not multiprocess_steps:
             raise RuntimeError(
                 "multiprocess setting is %s but no multiprocess_steps setting"

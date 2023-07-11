@@ -1452,8 +1452,8 @@ def run_multiprocess(injectables):
     t0 = tracing.print_elapsed_time("allocate shared shadow_pricing choice buffer", t0)
     mem.trace_memory_info("allocate_shared_shadow_pricing_buffers_choice.completed")
 
-    if sharrow_enabled:
-        start_time = time.time()
+    start_time = time.time()
+    if sharrow_enabled:        
         shared_data_buffers["skim_dataset"] = "sh.Dataset:skim_dataset"
 
         # Loading skim_dataset must be done in the main process, not a subprocess,
@@ -1469,7 +1469,6 @@ def run_multiprocess(injectables):
     # - mp_setup_skims
     else:  # not sharrow_enabled
         if len(shared_data_buffers) > 0:
-            start_time = time.time()
             run_sub_task(
                 multiprocessing.Process(
                     target=mp_setup_skims,

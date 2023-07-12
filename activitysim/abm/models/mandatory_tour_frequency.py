@@ -23,7 +23,9 @@ def add_null_results(state, trace_label, mandatory_tour_frequency_settings):
     logger.info("Skipping %s: add_null_results", trace_label)
 
     persons = state.get_dataframe("persons")
-    persons["mandatory_tour_frequency"] = ""
+    persons["mandatory_tour_frequency"] = pd.categorical(
+        "", categories=["", "work1", "work2", "school1", "school2", "work_and_school"], ordered=False
+    )
 
     tours = pd.DataFrame()
     tours["tour_category"] = None
@@ -110,6 +112,8 @@ def mandatory_tour_frequency(
 
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
+    cat_type = pd.api.types.CategoricalDtype(["", "work1", "work2", "school1", "school2", "work_and_school"], ordered=False)
+    choices = choices.astype(cat_type)
 
     if estimator:
         estimator.write_choices(choices)

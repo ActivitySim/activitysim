@@ -1300,7 +1300,7 @@ def run_trip_destination(
 
             # - choose destination for nth_trips, segmented by primary_purpose
             choices_list = []
-            for primary_purpose, trips_segment in nth_trips.groupby("primary_purpose"):
+            for primary_purpose, trips_segment in nth_trips.groupby("primary_purpose", observed=True):
                 choices, destination_sample = choose_trip_destination(
                     state,
                     primary_purpose,

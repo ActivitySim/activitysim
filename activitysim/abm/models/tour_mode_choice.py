@@ -314,7 +314,7 @@ def tour_mode_choice_simulate(
 
     choices_list = []
     for tour_purpose, tours_segment in primary_tours_merged.groupby(
-        segment_column_name
+        segment_column_name, observed=True
     ):
         logger.info(
             "tour_mode_choice_simulate tour_type '%s' (%s tours)"

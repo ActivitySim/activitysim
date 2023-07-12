@@ -57,6 +57,8 @@ def create_tours(tour_counts, tour_category, parent_col="person_id"):
     # reformat with the columns given below
     tours = tour_counts.stack().reset_index()
     tours.columns = [parent_col, "tour_type", "tour_type_count"]
+    cat_tour_type = pd.api.types.CategoricalDtype(["work","school","univ","escort","eatout","shopping","social","othmaint","othdiscr", "eat", "business","maint", "atwork"], ordered=False)
+    tours["tour_type"] = tours["tour_type"].astype(cat_tour_type)
 
     """
         <parent_col> tour_type  tour_type_count
@@ -99,6 +101,8 @@ def create_tours(tour_counts, tour_category, parent_col="person_id"):
     # do not enforce this here, other categories are possible
     # assert tour_category in ["mandatory", "non_mandatory", "atwork", "joint"]
     tours["tour_category"] = tour_category
+    cat_tour_category = pd.api.types.CategoricalDtype(["mandatory","joint","non_mandatory","atwork"], ordered=False)
+    tours["tour_category"] = tours["tour_category"].astype(cat_tour_category)
 
     # for joint tours, the correct number will be filled in after participation step
     tours["number_of_participants"] = 1

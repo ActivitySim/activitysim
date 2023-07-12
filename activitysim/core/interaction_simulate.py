@@ -12,6 +12,10 @@ from typing import Mapping
 import numpy as np
 import pandas as pd
 
+import psutil
+import os
+import io
+
 from . import chunk, config, logit, simulate, tracing, workflow
 
 logger = logging.getLogger(__name__)
@@ -75,6 +79,25 @@ def eval_interaction_utilities(
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utils")
     logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
+
+    logger.info("Writing out interaction df info")
+
+    buffer = io.StringIO()
+    df.info(memory_usage = 'deep', buf=buffer)
+    s = buffer.getvalue()
+    with open(os.path.join(state.filesystem.output_dir, trace_label+".interaction_df.info.txt"), "w", encoding="utf-8") as f:
+        f.write(s)
+
+    df.memory_usage(deep = True).to_csv(
+        os.path.join(state.filesystem.output_dir, trace_label+".interaction_df.memory_usage_deep.txt")
+    )
+
+    df.memory_usage().to_csv(
+        os.path.join(state.filesystem.output_dir, trace_label+".interaction_df.memory_usage.txt")
+    )
+
+    process = psutil.Process(os.getpid())
+    logger.info("PID RSS when writing out interaction df info: %s" % process.memory_info().rss)
 
     sharrow_enabled = state.settings.sharrow
 

@@ -620,21 +620,16 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     rng_base_seed: Union[int, None] = 0
     """Base seed for pseudo-random number generator."""
 
-    duplicate_step_execution: Literal["raise", "warn", "allow"] = "raise"
+    duplicate_step_execution: Literal["error", "allow"] = "error"
     """
     How activitysim should handle attempts to re-run a step with the same name.
 
     .. versionadded:: 1.3
 
-    * "raise"
+    * "error"
         Attempts to re-run a step that has already been run and
         checkpointed will raise a `RuntimeError`, halting model execution.
         This is the default if no value is given.
-    * "warn"
-        Attempts to re-run a step that has already been run and
-        checkpointed will be trigger a warning message and that particular step
-        will not be (re)executed, but overall model execution will be allowed to
-        continue.
     * "allow"
         Attempts to re-run a step are allowed, potentially overwriting
         the results from the previous time that step was run.

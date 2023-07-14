@@ -37,27 +37,6 @@ def get_override_or_formatted_or_default(
         return get_formatted_or_default(self, key, default)
 
 
-# def _create_step(step_name, step_func):
-#     # the module version of each step is for pypyr, and it always mutates
-#     # context in-place instead of making updates to copies
-#     from .steps import _create_module, _STEP_LIBRARY
-#     _create_module(f"{__package__}.{step_name}", {"run_step": step_func})
-#     _STEP_LIBRARY[step_name] = step_func
-#
-#
-# def run_named_step(name, context):
-#     from .steps import _STEP_LIBRARY
-#     try:
-#         step_func = _STEP_LIBRARY[name]
-#     except KeyError:
-#         logger.error(f"Unknown step {name}, the known steps are:")
-#         for n in sorted(_STEP_LIBRARY.keys()):
-#             logger.error(f" - {n}")
-#         raise
-#     step_func(context)
-#     return context
-
-
 def is_notebook() -> bool:
     try:
         shell = get_ipython().__class__.__name__

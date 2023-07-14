@@ -11,6 +11,8 @@ import pandas as pd
 from activitysim.core import workflow
 from activitysim.core.exceptions import MissingInputTableDefinition
 from activitysim.core.input import read_input_table
+from activitysim.core.los import Network_LOS
+from activitysim.core.skim_dictionary import SkimDict
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +80,14 @@ def land_use_taz(state: workflow.State):
     buffer = io.StringIO()
     df.info(buf=buffer)
     logger.debug("land_use_taz.info:\n" + buffer.getvalue())
+
+    # check that the number of rows in land_use_taz matches the number of zones in the skims
+    network_los: Network_LOS = state.get("network_los")
+    skims = network_los.get_skim_dict("taz")
+    if isinstance(skims, SkimDict):
+        assert len(skims.zone_ids) == len(df)
+    else:  # SkimDataset
+        assert len(skims.dataset.indexes["otaz"]) == len(df)
 
     # replace table function with dataframe
     state.add_table("land_use_taz", df)

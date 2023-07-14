@@ -138,10 +138,11 @@ def filter_warnings(state=None):
 
     # beginning pandas version 1.3, various places emit a PerformanceWarning that is
     # caught in the "strict" filter above, but which are currently unavoidable for complex models.
-    # These warning are left as warnings as an invitation for future enhancement.
+    # Turning this filter back to "default" could be a good helper for finding places to
+    # look for future performance enhancements.
     from pandas.errors import PerformanceWarning
 
-    warnings.filterwarnings("default", category=PerformanceWarning)
+    warnings.filterwarnings("ignore", category=PerformanceWarning)
 
     # pandas 1.5
     # beginning in pandas version 1.5, a new warning is emitted when a column is set via iloc

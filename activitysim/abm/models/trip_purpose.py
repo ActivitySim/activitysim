@@ -163,6 +163,7 @@ def choose_intermediate_trip_purpose(
         state.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
 
     choices = choices.map(pd.Series(purpose_cols))
+    choices = choices.astype(trips["primary_purpose"].dtype)
     return choices
 
 
@@ -210,14 +211,17 @@ def run_trip_purpose(state: workflow.State, trips_df, estimator, trace_label):
     # - last trip of outbound tour gets primary_purpose
     last_trip = trips_df.trip_num == trips_df.trip_count
     purpose = trips_df.primary_purpose[last_trip & trips_df.outbound]
+    print(purpose.value_counts(dropna = False))
     result_list.append(purpose)
     logger.info("assign purpose to %s last outbound trips", purpose.shape[0])
 
     # - last trip of inbound tour gets home (or work for atwork subtours)
     purpose = trips_df.primary_purpose[last_trip & ~trips_df.outbound]
+    print(purpose.value_counts(dropna = False))
     purpose = pd.Series(
         np.where(purpose == "atwork", "work", "home"), index=purpose.index
-    )
+    ).astype(trips_df.primary_purpose.dtype)
+    print(purpose.value_counts(dropna = False))
     result_list.append(purpose)
     logger.info("assign purpose to %s last inbound trips", purpose.shape[0])
 
@@ -255,7 +259,7 @@ def run_trip_purpose(state: workflow.State, trips_df, estimator, trace_label):
             trace_label=chunk_trace_label,
             chunk_sizer=chunk_sizer,
         )
-
+        print(choices.value_counts(dropna = False))
         result_list.append(choices)
 
         chunk_sizer.log_df(trace_label, f"result_list", result_list)

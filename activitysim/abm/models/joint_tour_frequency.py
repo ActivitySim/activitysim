@@ -98,6 +98,8 @@ def joint_tour_frequency(
 
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
+    cat_type = pd.api.types.CategoricalDtype(["0_tours","1_Shop","1_Main","1_Eat","1_Visit","1_Disc","2_SS","2_SM","2_SE","2_SV","2_SD","2_MM","2_ME","2_MV","2_MD","2_EE","2_EV","2_ED","2_VV","2_VD","2_DD"], ordered=False)
+    choices = choices.astype(cat_type)
 
     if estimator:
         estimator.write_choices(choices)
@@ -130,7 +132,7 @@ def joint_tour_frequency(
     # we expect there to be an alt with no tours - which we can use to backfill non-travelers
     no_tours_alt = (alternatives.sum(axis=1) == 0).index[0]
     households["joint_tour_frequency"] = (
-        choices.reindex(households.index).fillna(no_tours_alt).astype(str)
+        choices.reindex(households.index).fillna(no_tours_alt)
     )
 
     households["num_hh_joint_tours"] = (

@@ -351,6 +351,9 @@ def assign_in_place(df, df2):
                         "assign_in_place changed dtype %s of column %s to %s"
                         % (old_dtype, c, df[c].dtype)
                     )
+            
+            if isinstance(old_dtype, pd.api.types.CategoricalDtype):
+                continue
 
             # if both df and df2 column were ints, but result is not
             if (

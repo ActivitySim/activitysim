@@ -83,6 +83,8 @@ def mode_choice_simulate(
     choices[mode_column_name] = choices[mode_column_name].map(
         dict(list(zip(list(range(len(alts))), alts)))
     )
+    cat_type = pd.api.types.CategoricalDtype(alts.tolist() + [""], ordered=False)
+    choices[mode_column_name] = choices[mode_column_name].astype(cat_type)
 
     return choices
 
@@ -131,8 +133,9 @@ def run_tour_mode_choice_simulate(
     assert ("in_period" not in choosers) and ("out_period" not in choosers)
     in_time = skims["in_time_col_name"]
     out_time = skims["out_time_col_name"]
-    choosers["in_period"] = network_los.skim_time_period_label(choosers[in_time])
-    choosers["out_period"] = network_los.skim_time_period_label(choosers[out_time])
+    time_cat_type = pd.api.types.CategoricalDtype(list(set(network_los.skim_time_periods["labels"])), ordered=False)
+    choosers["in_period"] = network_los.skim_time_period_label(choosers[in_time]).astype(time_cat_type)
+    choosers["out_period"] = network_los.skim_time_period_label(choosers[out_time]).astype(time_cat_type)
 
     expressions.annotate_preprocessors(
         state, choosers, locals_dict, skims, model_settings, trace_label

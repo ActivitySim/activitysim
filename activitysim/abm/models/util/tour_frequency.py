@@ -57,7 +57,7 @@ def create_tours(tour_counts, tour_category, parent_col="person_id"):
     # reformat with the columns given below
     tours = tour_counts.stack().reset_index()
     tours.columns = [parent_col, "tour_type", "tour_type_count"]
-    cat_tour_type = pd.api.types.CategoricalDtype(["work","school","univ","escort","eatout","shopping","social","othmaint","othdiscr", "eat", "business","maint", "atwork"], ordered=False)
+    cat_tour_type = pd.api.types.CategoricalDtype(["work","school","univ","escort","eatout","shopping","social","othmaint","othdiscr", "eat", "business","maint", "atwork", "home"], ordered=False)
     tours["tour_type"] = tours["tour_type"].astype(cat_tour_type)
 
     """
@@ -697,6 +697,8 @@ def create_joint_tours(
     tours_purp.columns = [parent_col, "tour_id_temp", "tour_type"]
     tours_purp["tour_id_temp"] = range(1, 1 + len(tours_purp))
     tours_purp["tour_type"] = tours_purp["tour_type"].map(tour_type_dict)
+    cat_tour_type = pd.api.types.CategoricalDtype(["work","school","univ","escort","eatout","shopping","social","othmaint","othdiscr", "eat", "business","maint", "atwork", "home"], ordered=False)
+    tours_purp["tour_type"] = tours_purp["tour_type"].astype(cat_tour_type)
 
     """
         <parent_col> tour_id_temp  tour_type
@@ -715,6 +717,8 @@ def create_joint_tours(
     tours_comp.columns = [parent_col, "tour_id_temp", "composition"]
     tours_comp["tour_id_temp"] = range(1, 1 + len(tours_comp))
     tours_comp["composition"] = tours_comp["composition"].map(tour_comp_dict)
+    cat_tour_comp = pd.api.types.CategoricalDtype(["adults","children","mixed"], ordered=False)
+    tours_comp["composition"] = tours_comp["composition"].astype(cat_tour_comp)
 
     """
         <parent_col> tour_id_temp  tour_composition
@@ -756,6 +760,8 @@ def create_joint_tours(
     # set these here to ensure consistency across different tour categories
     assert tour_category in ["mandatory", "non_mandatory", "atwork", "joint"]
     tours["tour_category"] = tour_category
+    cat_tour_category = pd.api.types.CategoricalDtype(["mandatory","joint","non_mandatory","atwork"], ordered=False)
+    tours["tour_category"] = tours["tour_category"].astype(cat_tour_category)
 
     # for joint tours, the correct number will be filled in after participation step
     tours["number_of_participants"] = 1

@@ -168,6 +168,7 @@ def initialize_from_tours(
     """
 
     OUTBOUND_ALT = "out"
+    direction_cat_type = pd.api.types.CategoricalDtype(["out","in"], ordered=False)
     assert OUTBOUND_ALT in stop_frequency_alts.columns
 
     # get the actual alternatives for each person - have to go back to the

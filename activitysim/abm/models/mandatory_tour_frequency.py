@@ -147,7 +147,7 @@ def mandatory_tour_frequency(
 
     # need to reindex as we only handled persons with cdap_activity == 'M'
     persons["mandatory_tour_frequency"] = (
-        choices.reindex(persons.index).fillna("").astype(str)
+        choices.reindex(persons.index).fillna("")
     )
 
     expressions.assign_columns(

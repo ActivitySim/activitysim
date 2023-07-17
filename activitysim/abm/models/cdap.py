@@ -206,6 +206,8 @@ def cdap_simulate(
         estimator.end_estimation()
 
     choices = choices.reindex(persons.index)
+    cap_cat_type = pd.api.types.CategoricalDtype(["", "M", "N", "H"], ordered=False)
+    choices = choices.astype(cap_cat_type)
     persons["cdap_activity"] = choices
 
     expressions.assign_columns(

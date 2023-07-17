@@ -90,7 +90,7 @@ def get_tour_satisfaction(candidates, participate):
 
         x = (
             candidates[cols]
-            .groupby(["tour_id", "composition"])
+            .groupby(["tour_id", "composition"], observed=True)
             .agg(
                 participants=("adult", "size"),
                 adults=("adult", "sum"),

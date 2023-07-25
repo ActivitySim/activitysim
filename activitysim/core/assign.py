@@ -358,17 +358,21 @@ def assign_variables(
             globals_dict = {}
             expr_values = to_series(eval(expression, globals_dict, _locals_dict))
 
-            if (
-                sharrow_enabled
-                and np.issubdtype(expr_values.dtype, np.floating)
-                and expr_values.dtype.itemsize < 4
-            ):
-                # promote to float32, numba is not presently compatible with
-                # any float less than 32 (i.e., float16)
-                # see https://github.com/numba/numba/issues/4402
-                # note this only applies to floats, signed and unsigned
-                # integers are readily supported down to 1 byte
-                expr_values = expr_values.astype(np.float32)
+            if sharrow_enabled:
+                if isinstance(expr_values.dtype, pd.api.types.CategoricalDtype):
+                    None
+                elif(
+                    np.issubdtype(expr_values.dtype, np.floating)
+                    and expr_values.dtype.itemsize < 4
+                ):
+                    # promote to float32, numba is not presently compatible with
+                    # any float less than 32 (i.e., float16)
+                    # see https://github.com/numba/numba/issues/4402
+                    # note this only applies to floats, signed and unsigned
+                    # integers are readily supported down to 1 byte
+                    expr_values = expr_values.astype(np.float32)
+                else:
+                    None
 
             np.seterr(**save_err)
             np.seterrcall(saved_handler)

@@ -9,7 +9,7 @@ channels:
 - conda-forge
 - nodefaults
 dependencies:
-- python=3.9
+- python=3.10
 - pip
 - asv  # for benchmarking
 - black >= 22.0,<23
@@ -55,9 +55,10 @@ dependencies:
 - requests = 2.28.*
 - rich = 13.3.*
 - ruby  # required for benchmarking pre-commit hooks
+- ruff
 - setuptools_scm
 - scikit-learn = 1.2.*
-- sharrow >= 2.5.2
+- sharrow >= 2.6.0
 - simwrapper > 1.7
 - snakeviz  # for profiling
 - sphinx = 6.1.*
@@ -66,6 +67,7 @@ dependencies:
 - xarray = 2023.2.*
 - xmle
 - zarr = 2.14.*
+- zstandard
 
 - pip:
   - autodoc_pydantic

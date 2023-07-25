@@ -1,5 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
 
 import argparse
 import collections
@@ -7,12 +8,17 @@ import itertools
 import logging
 import os
 from builtins import zip
+from collections.abc import Iterable
 from operator import itemgetter
+from pathlib import Path
 
 import cytoolz as tz
 import cytoolz.curried
 import numpy as np
 import pandas as pd
+import pyarrow as pa
+import pyarrow.csv as csv
+import pyarrow.parquet as pq
 import yaml
 
 logger = logging.getLogger(__name__)
@@ -468,3 +474,59 @@ def nearest_node_index(node, nodes):
     deltas = nodes - node
     dist_2 = np.einsum("ij,ij->i", deltas, deltas)
     return np.argmin(dist_2)
+
+
+def read_csv(filename):
+    """Simple read of a CSV file, much faster than pandas.read_csv"""
+    return csv.read_csv(filename).to_pandas()
+
+
+def to_csv(df, filename, index=False):
+    """Simple write of a CSV file, much faster than pandas.DataFrame.to_csv"""
+    filename = Path(filename)
+    if filename.suffix == ".gz":
+        with pa.CompressedOutputStream(filename, "gzip") as out:
+            csv.write_csv(pa.Table.from_pandas(df, preserve_index=index), out)
+    else:
+        csv.write_csv(pa.Table.from_pandas(df, preserve_index=index), filename)
+
+
+def read_parquet(filename):
+    """Simple read of a parquet file"""
+    return pq.read_table(filename).to_pandas()
+
+
+def to_parquet(df, filename, index=False):
+    filename = Path(filename)
+    pq.write_table(pa.Table.from_pandas(df, preserve_index=index), filename)
+
+
+def latest_file_modification_time(filenames: Iterable[Path]):
+    """Find the most recent file modification time."""
+    return max(os.path.getmtime(filename) for filename in filenames)
+
+
+def oldest_file_modification_time(filenames: Iterable[Path]):
+    """Find the least recent file modification time."""
+    return min(os.path.getmtime(filename) for filename in filenames)
+
+
+def zarr_file_modification_time(zarr_dir: Path):
+    """Find the most recent file modification time inside a zarr dir."""
+    t = 0
+    for dirpath, dirnames, filenames in os.walk(zarr_dir):
+        if os.path.basename(dirpath).startswith(".git"):
+            continue
+        for n in range(len(dirnames) - 1, -1, -1):
+            if dirnames[n].startswith(".git"):
+                dirnames.pop(n)
+        for f in filenames:
+            if f.startswith(".git") or f == ".DS_Store":
+                continue
+            finame = Path(os.path.join(dirpath, f))
+            file_time = os.path.getmtime(finame)
+            if file_time > t:
+                t = file_time
+    if t == 0:
+        raise FileNotFoundError(zarr_dir)
+    return t

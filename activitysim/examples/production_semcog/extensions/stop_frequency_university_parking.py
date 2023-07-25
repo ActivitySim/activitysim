@@ -1,24 +1,23 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import pipeline
-from activitysim.core import simulate
-from activitysim.core import inject
-from activitysim.core import expressions
+from activitysim.core import tracing, workflow
 
 # from .util import estimation
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def stop_frequency_university_parking(trips, tours, chunk_size, trace_hh_id):
+@workflow.step
+def stop_frequency_university_parking(
+    state: workflow.State, trips: pd.DataFrame, tours: pd.DataFrame
+):
     """
     This model inserts parking trips on drive tours that include university parking as determined in the
     parking_location_choice_at_university model.  Parking trips are added to the trip table before
@@ -31,11 +30,8 @@ def stop_frequency_university_parking(trips, tours, chunk_size, trace_hh_id):
     trace_label = "stop_frequency_university_parking"
     model_settings_file_name = "stop_frequency_university_parking.yaml"
 
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
     parking_name = model_settings["PARKING_TRIP_NAME"]
-
-    trips = trips.to_frame()
-    tours = tours.to_frame()
 
     tours_with_parking = tours[tours["univ_parking_zone_id"].notna()]
 
@@ -43,7 +39,6 @@ def stop_frequency_university_parking(trips, tours, chunk_size, trace_hh_id):
     trips_without_parking = trips[~trips.tour_id.isin(tours_with_parking.index)]
 
     if len(trip_choosers) > 0:
-
         trip_choosers = pd.merge(
             trip_choosers.reset_index(),
             tours_with_parking["univ_parking_zone_id"].reset_index(),
@@ -192,11 +187,11 @@ def stop_frequency_university_parking(trips, tours, chunk_size, trace_hh_id):
 
     trips.set_index("trip_id", inplace=True, verify_integrity=True)
 
-    pipeline.replace_table("trips", trips)
+    state.add_table("trips", trips)
     # since new trips were added inbetween other trips on the tour, the trip_id's changed
     # resetting random number generator for trips... does this have unintended consequences?
-    pipeline.get_rn_generator().drop_channel("trips")
-    pipeline.get_rn_generator().add_channel("trips", trips)
+    state.get_rn_generator().drop_channel("trips")
+    state.get_rn_generator().add_channel("trips", trips)
 
     tracing.print_summary(
         "stop_frequency_university_parking trip purposes",
@@ -204,5 +199,5 @@ def stop_frequency_university_parking(trips, tours, chunk_size, trace_hh_id):
         value_counts=True,
     )
 
-    if trace_hh_id:
-        tracing.trace_df(trips, label=trace_label, warn_if_empty=True)
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(trips, label=trace_label, warn_if_empty=True)

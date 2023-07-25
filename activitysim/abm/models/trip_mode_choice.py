@@ -1,33 +1,33 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
 
 import logging
 
 import numpy as np
 import pandas as pd
 
+from activitysim.abm.models.util import annotate, school_escort_tours_trips
+from activitysim.abm.models.util.mode import mode_choice_simulate
 from activitysim.core import (
-    assign,
     chunk,
     config,
+    estimation,
     expressions,
-    inject,
     los,
-    pipeline,
     simulate,
     tracing,
+    workflow,
 )
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 from activitysim.core.util import assign_in_place
-
-from .util import estimation, annotate, school_escort_tours_trips
-from .util.mode import mode_choice_simulate
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
+@workflow.step
+def trip_mode_choice(
+    state: workflow.State, trips: pd.DataFrame, network_los: los.Network_LOS
+) -> None:
     """
     Trip mode choice - compute trip_mode (same values as for tour_mode) for each trip.
 
@@ -39,12 +39,12 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
 
     trace_label = "trip_mode_choice"
     model_settings_file_name = "trip_mode_choice.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
     mode_column_name = "trip_mode"
 
-    trips_df = trips.to_frame()
+    trips_df = trips
     logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
 
     # give trip mode choice the option to run without calling tours_merged. Useful for xborder
@@ -56,7 +56,7 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
         if col not in trips_df.columns
     ]
     if len(tours_cols) > 0:
-        tours_merged = inject.get_table("tours_merged").to_frame(columns=tours_cols)
+        tours_merged = state.get_dataframe("tours_merged", columns=tours_cols)
     else:
         tours_merged = pd.DataFrame()
 
@@ -152,24 +152,23 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
 
     # don't create estimation data bundle if trip mode choice is being called
     # from another model step (e.g. tour mode choice logsum creation)
-    if pipeline._PIPELINE.rng().step_name != "trip_mode_choice":
+    if state.current_model_name != "trip_mode_choice":
         estimator = None
     else:
-        estimator = estimation.manager.begin_estimation("trip_mode_choice")
+        estimator = estimation.manager.begin_estimation(state, "trip_mode_choice")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         estimator.write_coefficients_template(model_settings=model_settings)
         estimator.write_spec(model_settings)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
     nest_spec = config.get_logit_model_settings(model_settings)
     cols_to_keep = model_settings.get("CHOOSER_COLS_TO_KEEP", None)
 
     choices_list = []
     cols_to_keep_list = []
     for primary_purpose, trips_segment in trips_merged.groupby("primary_purpose"):
-
         segment_trace_label = tracing.extend_trace_label(trace_label, primary_purpose)
 
         logger.info(
@@ -187,7 +186,7 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
             tvpb_logsum_odt.extend_trace_label(primary_purpose)
             # tvpb_logsum_dot.extend_trace_label(primary_purpose)
 
-        coefficients = simulate.get_segment_coefficients(
+        coefficients = state.filesystem.get_segment_coefficients(
             model_settings, primary_purpose
         )
 
@@ -202,10 +201,17 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
         # have to initialize chunker for preprocessing in order to access
         # tvpb logsum terms in preprocessor expressions.
         with chunk.chunk_log(
-            tracing.extend_trace_label(trace_label, "preprocessing"), base=True
+            state,
+            tracing.extend_trace_label(trace_label, "preprocessing"),
+            base=True,
         ):
             expressions.annotate_preprocessors(
-                trips_segment, locals_dict, skims, model_settings, segment_trace_label
+                state,
+                trips_segment,
+                locals_dict,
+                skims,
+                model_settings,
+                segment_trace_label,
             )
 
         if estimator:
@@ -216,14 +222,14 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
         locals_dict["timeframe"] = "trip"
 
         choices = mode_choice_simulate(
+            state,
             choosers=trips_segment,
-            spec=simulate.eval_coefficients(model_spec, coefficients, estimator),
+            spec=simulate.eval_coefficients(state, model_spec, coefficients, estimator),
             nest_spec=simulate.eval_nest_coefficients(
                 nest_spec, coefficients, segment_trace_label
             ),
             skims=skims,
             locals_d=locals_dict,
-            chunk_size=chunk_size,
             mode_column_name=mode_column_name,
             logsum_column_name=logsum_column_name,
             trace_label=segment_trace_label,
@@ -231,9 +237,9 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
             estimator=estimator,
         )
 
-        if trace_hh_id:
+        if state.settings.trace_hh_id:
             # trace the coefficients
-            tracing.trace_df(
+            state.tracing.trace_df(
                 pd.Series(locals_dict),
                 label=tracing.extend_trace_label(segment_trace_label, "constants"),
                 transpose=False,
@@ -243,7 +249,7 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
             # so we can trace with annotations
             assign_in_place(trips_segment, choices)
 
-            tracing.trace_df(
+            state.tracing.trace_df(
                 trips_segment,
                 label=tracing.extend_trace_label(segment_trace_label, "trip_mode"),
                 slicer="tour_id",
@@ -265,10 +271,8 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
 
     # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
     if network_los.zone_system == los.THREE_ZONE:
-
         tvpb_mode_path_types = model_settings.get("tvpb_mode_path_types")
         for mode, path_type in tvpb_mode_path_types.items():
-
             skim_cache = tvpb_logsum_odt.cache[path_type]
 
             for c in skim_cache:
@@ -288,8 +292,7 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
         )
         estimator.write_override_choices(choices_df.trip_mode)
         estimator.end_estimation()
-    trips_df = trips.to_frame()
-
+    trips_df = trips
     # adding columns from the chooser table to include in final output
     if len(cols_to_keep_list) > 0:
         cols_to_keep_df = pd.concat(cols_to_keep_list)
@@ -297,12 +300,12 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
 
     assign_in_place(trips_df, choices_df)
 
-    if pipeline.is_table("school_escort_tours") & model_settings.get(
+    if state.is_table("school_escort_tours") & model_settings.get(
         "FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH", True
     ):
         trips_df = (
             school_escort_tours_trips.force_escortee_trip_modes_to_match_chauffeur(
-                trips_df
+                state, trips_df
             )
         )
 
@@ -314,13 +317,13 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
 
     assert not trips_df[mode_column_name].isnull().any()
 
-    pipeline.replace_table("trips", trips_df)
+    state.add_table("trips", trips_df)
 
     if model_settings.get("annotate_trips"):
-        annotate.annotate_trips(model_settings, trace_label, locals_dict)
+        annotate.annotate_trips(state, model_settings, trace_label, locals_dict)
 
-    if trace_hh_id:
-        tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             trips_df,
             label=tracing.extend_trace_label(trace_label, "trip_mode"),
             slicer="trip_id",

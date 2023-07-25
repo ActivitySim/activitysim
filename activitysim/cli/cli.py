@@ -1,5 +1,15 @@
 import argparse
 
+from activitysim import __version__
+
+text_art = """
+   ___      __  _      _ __       _____
+  / _ |____/ /_(_)  __(_) /___ __/ __(_)_ _
+ / __ / __/ __/ / |/ / / __/ // /\ \/ /  ' \   {}
+/_/ |_\__/\__/_/|___/_/\__/\_, /___/_/_/_/_/
+                          /___/
+"""
+
 
 class CLI:
     def __init__(self, version, description):
@@ -24,5 +34,6 @@ class CLI:
         subparser.set_defaults(afunc=exec_func)
 
     def execute(self):
+        print(text_art.format(__version__))
         args = self.parser.parse_args()
         return args.afunc(args)

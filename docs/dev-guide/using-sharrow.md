@@ -216,6 +216,28 @@ For models with utility expressions that include a lot of string comparisons,
 been updated) sharrow can be disabled by setting `sharrow_skip: true` in the
 component's configuration yaml file.
 
+### Multiprocessing Performance
+
+Sharrow leverages a number of performance enhancing techniques, including
+parallelization of various computations. This multi-threading can provide significant
+benefits within a single-process, but if enabled alongside ActivitySim's multiprocessing
+paradigm, the multi-threading does more harm than good, as too many threads will
+compete for limited computational resources. To avoid this, the user should completely
+disable multi-threading and rely exclusively on multiprocessing to generate parallelism.
+This can be done by setting a number of thread-limiting environment variables before
+running Python, or immediately at the start of a Python script before ActivitySim
+is loaded:
+
+```python
+import os
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["NUMBA_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+```
+
 ### Limited Tracing and Estimation Mode Capabilities
 
 When running sharrow-optimized code, large parts of certain calculations are routed
@@ -233,6 +255,44 @@ needed.
 Similar constraints apply to estimation mode, as complete estimation mode output
 capabilities are not yet integrated with the sharrow engine.  Estimation mode remains
 fully available when running with sharrow disabled.
+
+
+### Arithmetic on Logical Values
+
+In expressions written in specification files, boolean values must be treated with
+care.  When an expression is evaluated in the legacy implementation, the addition
+of two boolean values will be processed according to numpy logic, such that:
+
+```python
+np.array([True]) + np.array([True]) == np.array([True])
+np.array([True]) + np.array([False]) == np.array([True])
+np.array([False]) + np.array([True]) == np.array([True])
+np.array([False]) + np.array([False]) == np.array([False])
+```
+
+When the same expression is evaluated using sharrow, the expression is evaluated
+using Pythonesque rules, such that logical values are implicitly upcast to integers,
+giving:
+
+```python
+True + True == 2
+True + False == 1
+False + True == 1
+False + False == 0
+```
+
+If this value is later upcast to a number and used in a mathematical calculation
+(e.g. multiplied by a float-valued coefficient), obviously the results will vary,
+as in the first case the result is never other than 1 or 0, but in the latter case
+the result can also be 2.  This mismatch can be readily avoided by wrapping the
+term in an extra logic gate, which will evaluate the same in both environments:
+
+```python
+(True + True)>0 == True
+(True + False)>0 == True
+(False + True)>0 == True
+(False + False)>0 == False
+```
 
 (digital-encoding)=
 ## Digital Encoding

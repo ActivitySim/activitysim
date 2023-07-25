@@ -36,7 +36,7 @@ want_dest_choice_sample_tables: False
 
 # - tracing
 #trace_hh_id:
-trace_od:
+trace_od: [2,2]
 
 # to resume after last successful checkpoint, specify resume_after: _
 #resume_after: trip_purpose_and_destination
@@ -89,7 +89,7 @@ multiprocess_steps:
       tables:
         - accessibility
       # don't slice any tables not explicitly listed above in slice.tables
-      except: True
+      exclude: True
   - name: mp_households
     begin: school_location
     slice:
@@ -98,4 +98,3 @@ multiprocess_steps:
         - persons
   - name: mp_summarize
     begin: write_data_dictionary
-

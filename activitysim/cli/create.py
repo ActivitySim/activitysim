@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 import glob
 import hashlib
 import logging
 import os
 import shutil
 import sys
+import tarfile
+import zipfile
 from pathlib import Path
 
 import pkg_resources
@@ -72,7 +76,6 @@ def create(args):
     """
 
     if args.list:
-
         list_examples()
         return 0
 
@@ -98,7 +101,12 @@ def list_examples():
 
 
 def get_example(
-    example_name, destination, benchmarking=False, optimize=True, link=True
+    example_name,
+    destination,
+    benchmarking=False,
+    optimize=True,
+    link=True,
+    with_subdirs=False,
 ):
     """
     Copy project data to user-specified directory.
@@ -110,13 +118,12 @@ def get_example(
 
     Parameters
     ----------
-
     example_name: str, name of the example to copy.
         Options can be found via list_examples()
     destination: name of target directory to copy files to.
-        If the target directory already exists, project files
-        will be copied into a subdirectory with the same name
-        as the example
+        If the target directory does not exist, it is created.
+        Project files will then be copied into a subdirectory
+        with the same name as the example
     benchmarking: bool
     optimize: bool
     link: bool or path-like
@@ -125,14 +132,25 @@ def get_example(
         value, then a cache directory is created using in a location
         selected by the platformdirs library (or, if not installed,
         linking is skipped.)
+    with_subdirs: bool, default False
+        Also return any instructions about sub-directories.
+
+    Returns
+    -------
+    Path or (Path, dict)
+        The path to the location where the example was installed, and
+        optionally also a mapping of example subdirectory locations.
     """
     if example_name not in EXAMPLES:
         sys.exit(f"error: could not find example '{example_name}'")
 
     if os.path.isdir(destination):
         dest_path = os.path.join(destination, example_name)
+    elif os.path.isfile(destination):
+        raise FileExistsError(destination)
     else:
-        dest_path = destination
+        os.makedirs(destination)
+        dest_path = os.path.join(destination, example_name)
 
     example = EXAMPLES[example_name]
     itemlist = example.get("include", [])
@@ -140,7 +158,6 @@ def get_example(
         itemlist.extend(example.get("benchmarking", []))
 
     for item in itemlist:
-
         # split include string into source/destination paths
         items = item.split()
         assets = items[0]
@@ -155,7 +172,9 @@ def get_example(
             sha256 = None
 
         if assets.startswith("http"):
-            download_asset(assets, target_path, sha256, link=link)
+            download_asset(
+                assets, target_path, sha256, link=link, base_path=destination
+            )
 
         else:
             for asset_path in glob.glob(_example_path(assets)):
@@ -180,9 +199,18 @@ def get_example(
     if instructions:
         print(instructions)
 
+    if with_subdirs:
+        subdirs = example.get("subdirs", {})
+        subdirs.setdefault("configs_dir", ("configs",))
+        subdirs.setdefault("data_dir", ("data",))
+        subdirs.setdefault("output_dir", "output")
+
+        return Path(dest_path), subdirs
+    else:
+        return Path(dest_path)
+
 
 def copy_asset(asset_path, target_path, dirs_exist_ok=False):
-
     print(f"copying {os.path.basename(asset_path)} ...")
     sys.stdout.flush()
     if os.path.isdir(asset_path):
@@ -196,16 +224,98 @@ def copy_asset(asset_path, target_path, dirs_exist_ok=False):
         shutil.copy(asset_path, target_path)
 
 
-def download_asset(url, target_path, sha256=None, link=True):
-    if link:
-        if not isinstance(link, (str, Path)):
+def _decompress_archive(archive_path: Path, target_location: Path):
+    # decompress archive file into working directory
+    if archive_path.suffixes[-2:] == [".tar", ".gz"]:
+        with tarfile.open(archive_path) as tfile:
+            common_prefix = os.path.commonprefix(tfile.getnames())
+            if common_prefix in {"", ".", "./", None}:
+                working_dir = target_location
+                working_dir.mkdir(parents=True, exist_ok=True)
+                working_subdir = working_dir
+            else:
+                working_subdir = target_location.joinpath(common_prefix)
+            tfile.extractall(working_dir)
+    elif archive_path.suffixes[-2:] == [".tar", ".zst"]:
+        working_dir = target_location
+        try:
+            working_dir.mkdir(parents=True, exist_ok=True)
+        except FileExistsError:
+            pass
+        working_subdir = working_dir
+        from sharrow.utils.tar_zst import extract_zst
+
+        extract_zst(archive_path, working_dir)
+    elif archive_path.suffix == ".zip":
+        with zipfile.ZipFile(archive_path, "r") as zf:
+            common_prefix = os.path.commonprefix(zf.namelist())
+            if common_prefix in {"", ".", "./", None}:
+                working_dir = target_location
+                working_dir.mkdir(parents=True, exist_ok=True)
+                working_subdir = working_dir
+            else:
+                working_subdir = target_location.joinpath(common_prefix)
+            zf.extractall(working_dir)
+    else:
+        raise ValueError(f"unknown archive file type {''.join(archive_path.suffixes)}")
+    return working_subdir
+
+
+def download_asset(
+    url: str,
+    target_path: str,
+    sha256: str = None,
+    link: bool = True,
+    base_path: str | None = None,
+    unpack: str | None = None,
+):
+    """
+    Download assets (extra files) associated with examples.
+
+    Parameters
+    ----------
+    url : str
+        The URL to download.
+    target_path : str
+        The location where the asset should be made available. The raw asset
+        file is not necessarily stored here, as it may be stored in a cache
+        directory and symlinked here instead (see `link`).
+    sha256 : str, optional
+        Checksum for the file.  If there is already a cached file and the
+        checksum matches, it is not re-downloaded and the cached version is
+        used.  Otherwise, the file is downloaded, and if the downloaded file's
+        checksum does not match, an error is raised.
+    link : bool, default True
+        Download the raw asset to a cache location, and then symlink to the
+        desired `target_path` location.  Note symlinks may not work on Windows
+        so the file will still be stored in the cache but it will be *copied*
+        instead of linked.
+    base_path : str, optional
+        Give the base directory for the example.
+    unpack : str, optional
+        If the asset is an archive file (.zip, .tar.gz, or .tar.zst), it
+        will be decompressed into this location.
+    """
+    if isinstance(target_path, Path):
+        target_path = str(target_path)
+    original_target_path = target_path
+    if link or unpack:
+        original_target_path = target_path
+        if base_path is not None and os.path.isabs(target_path):
+            target_path = os.path.relpath(target_path, base_path)
+        if base_path is not None:
+            if unpack:
+                if os.path.isabs(unpack):
+                    unpack = os.path.relpath(unpack, base_path)
+                else:
+                    unpack = os.path.join(base_path, unpack)
+        if not isinstance(link, str | Path):
             try:
                 import platformdirs
             except ImportError:
                 link = False
             else:
                 link = platformdirs.user_data_dir("ActivitySim")
-        original_target_path = target_path
         target_path = os.path.join(link, target_path)
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
     if url.endswith(".gz") and not target_path.endswith(".gz"):
@@ -249,11 +359,10 @@ def download_asset(url, target_path, sha256=None, link=True):
             )
         elif not sha256:
             print(f"|  computed checksum {computed_sha256}")
-    if link:
-        os.makedirs(
-            os.path.dirname(os.path.normpath(original_target_path)),
-            exist_ok=True,
-        )
+    if link or unpack:
+        target_dir = os.path.dirname(os.path.normpath(original_target_path))
+        if target_dir:
+            os.makedirs(target_dir, exist_ok=True)
 
         # check if the original_target_path exists and if so check if it is the correct file
         if os.path.isfile(os.path.normpath(original_target_path)):
@@ -263,22 +372,29 @@ def download_asset(url, target_path, sha256=None, link=True):
             if existing_sha256 != sha256:
                 os.unlink(os.path.normpath(original_target_path))
 
-        # if the original_target_path exists now it is the correct file, keep it
-        if not os.path.isfile(os.path.normpath(original_target_path)):
-            try:
-                os.symlink(
-                    os.path.normpath(target_path),
-                    os.path.normpath(original_target_path),
-                )
-            except OSError:
-                # permission errors likely foil symlinking on windows
-                shutil.copy(
-                    os.path.normpath(target_path),
-                    os.path.normpath(original_target_path),
-                )
-                print(f"|    copied to {os.path.normpath(original_target_path)}")
-            else:
-                print(f"| symlinked to {os.path.normpath(original_target_path)}")
+        if unpack:
+            _decompress_archive(
+                Path(os.path.normpath(target_path)),
+                Path(os.path.normpath(unpack)),
+            )
+            print(f"|  unpacked to {os.path.normpath(unpack)}")
+        elif link:
+            # if the original_target_path exists now it is the correct file, keep it
+            if not os.path.isfile(os.path.normpath(original_target_path)):
+                try:
+                    os.symlink(
+                        os.path.normpath(target_path),
+                        os.path.normpath(original_target_path),
+                    )
+                except OSError:
+                    # permission errors likely foil symlinking on windows
+                    shutil.copy(
+                        os.path.normpath(target_path),
+                        os.path.normpath(original_target_path),
+                    )
+                    print(f"|    copied to {os.path.normpath(original_target_path)}")
+                else:
+                    print(f"| symlinked to {os.path.normpath(original_target_path)}")
 
 
 def sha256_checksum(filename, block_size=65536):

@@ -2,7 +2,7 @@
 How the System Works
 ====================
 
-This page describes how the software works, how multiprocessing works, and the primary example model data schema.  The code snippets below may not exactly match the latest version of the software, but they are close enough to illustrate how the system works.  
+This page describes how the software works, how multiprocessing works, and the primary example model data schema.  The code snippets below may not exactly match the latest version of the software, but they are close enough to illustrate how the system works.
 
 .. _how_the_system_works:
 
@@ -209,7 +209,7 @@ as well.  The various calls also setup logging, tracing, stable random number ma
 
     if trace_hh_id:
         tracing.register_traceable_table('persons', df)
-        tracing.trace_df(df, "raw.persons", warn_if_empty=True)
+        whale.trace_df(df, "raw.persons", warn_if_empty=True)
 
     return df
 
@@ -1355,7 +1355,7 @@ Skims are named <PATH TYPE>_<MEASURE>__<TIME PERIOD>:
   * SOVTOLL - SOV toll
   * HOV2TOLL - HOV2 toll
   * HOV3TOLL - HOV3 toll
-  
+
 * Transit paths:
 
   * Walk access and walk egress - WLK_COM_WLK, WLK_EXP_WLK, WLK_HVY_WLK, WLK_LOC_WLK, WLK_LRF_WLK

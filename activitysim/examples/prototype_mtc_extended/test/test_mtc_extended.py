@@ -1,19 +1,18 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 import pandas as pd
 import pandas.testing as pdt
 import pkg_resources
+import pytest
 
-from activitysim.core import inject
-
-
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
+from activitysim.core import configuration, test, workflow
 
 
 def _test_prototype_mtc_extended(
@@ -37,7 +36,7 @@ def _test_prototype_mtc_extended(
         if sharrow:
             regress_suffix += "-sharrow"
 
-        output_dir = "output"
+        output_dir = f"output_{int(sharrow)}{int(shadow_pricing)}"
         regress_trips_df = pd.read_csv(
             test_path(f"regress/final_trips{regress_suffix}.csv")
         )
@@ -63,12 +62,19 @@ def _test_prototype_mtc_extended(
                 if i not in regress_accessibility_df.columns
             ]
         )
-        pdt.assert_frame_equal(
-            final_accessibiliy_df, regress_accessibility_df, rtol=1.0e-4
+        test.assert_frame_substantively_equal(
+            final_accessibiliy_df,
+            regress_accessibility_df,
+            rtol=1.0e-4,
+            check_dtype=False,
         )
 
-        pdt.assert_frame_equal(final_trips_df, regress_trips_df, rtol=1.0e-4)
-        pdt.assert_frame_equal(final_vehicles_df, regress_vehicles_df, rtol=1.0e-4)
+        test.assert_frame_substantively_equal(
+            final_trips_df, regress_trips_df, rtol=1.0e-4
+        )
+        test.assert_frame_substantively_equal(
+            final_vehicles_df, regress_vehicles_df, rtol=1.0e-4
+        )
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
     shadowprice_configs = (
@@ -107,7 +113,7 @@ def _test_prototype_mtc_extended(
             "-d",
             example_mtc_path("data"),
             "-o",
-            test_path("output"),
+            test_path(f"output_{int(sharrow)}{int(shadow_pricing)}"),
         ]
     )
     if os.environ.get("GITHUB_ACTIONS") == "true":
@@ -146,8 +152,153 @@ def test_prototype_mtc_extended_mp_shadow_pricing():
     _test_prototype_mtc_extended(multiprocess=True, sharrow=False, shadow_pricing=True)
 
 
-if __name__ == "__main__":
+EXPECTED_MODELS = [
+    "initialize_proto_population",
+    "compute_disaggregate_accessibility",
+    "initialize_landuse",
+    "initialize_households",
+    "compute_accessibility",
+    "school_location",
+    "workplace_location",
+    "auto_ownership_simulate",
+    "vehicle_type_choice",
+    "free_parking",
+    "cdap_simulate",
+    "mandatory_tour_frequency",
+    "mandatory_tour_scheduling",
+    "school_escorting",
+    "joint_tour_frequency",
+    "joint_tour_composition",
+    "joint_tour_participation",
+    "joint_tour_destination",
+    "joint_tour_scheduling",
+    "non_mandatory_tour_frequency",
+    "non_mandatory_tour_destination",
+    "non_mandatory_tour_scheduling",
+    "vehicle_allocation",
+    "tour_mode_choice_simulate",
+    "atwork_subtour_frequency",
+    "atwork_subtour_destination",
+    "atwork_subtour_scheduling",
+    "atwork_subtour_mode_choice",
+    "stop_frequency",
+    "trip_purpose",
+    "trip_destination",
+    "trip_purpose_and_destination",
+    "trip_scheduling",
+    "trip_mode_choice",
+    "write_data_dictionary",
+    "track_skim_usage",
+    "write_trip_matrices",
+    "write_tables",
+]
 
+
+@test.run_if_exists("prototype_mtc_extended_reference_pipeline.zip")
+def test_prototype_mtc_extended_progressive():
+    import activitysim.abm  # register components
+
+    state = workflow.create_example("prototype_mtc_extended", temp=True)
+
+    state.settings.households_sample_size = 10
+    state.settings.use_shadow_pricing = False
+    state.settings.want_dest_choice_sample_tables = False
+    state.settings.want_dest_choice_presampling = True
+    state.settings.recode_pipeline_columns = False
+    state.settings.output_tables = configuration.OutputTables(
+        h5_store=False,
+        action="include",
+        prefix="final_",
+        sort=True,
+        tables=[
+            configuration.OutputTable(
+                tablename="trips",
+                decode_columns=dict(
+                    origin="land_use.zone_id", destination="land_use.zone_id"
+                ),
+            ),
+            "vehicles",
+            "proto_disaggregate_accessibility",
+        ],
+    )
+
+    assert state.settings.models == EXPECTED_MODELS
+    assert state.settings.chunk_size == 0
+    assert state.settings.sharrow == False
+
+    for step_name in EXPECTED_MODELS:
+        state.run.by_name(step_name)
+        try:
+            state.checkpoint.check_against(
+                Path(__file__).parent.joinpath(
+                    "prototype_mtc_extended_reference_pipeline.zip"
+                ),
+                checkpoint_name=step_name,
+            )
+        except Exception:
+            print(f"> prototype_mtc_extended {step_name}: ERROR")
+            raise
+        else:
+            print(f"> prototype_mtc_extended {step_name}: ok")
+
+
+@pytest.mark.parametrize(
+    "chunksize",
+    [
+        100_000_000,  # will sometimes trigger chunking
+        999_999_999_999,  # will never actually trigger chunking
+    ],
+)
+def test_prototype_mtc_extended_with_chunking(chunksize):
+    import activitysim.abm  # register components
+
+    state = workflow.create_example("prototype_mtc_extended", temp=True)
+
+    state.settings.households_sample_size = 10
+    state.settings.use_shadow_pricing = False
+    state.settings.want_dest_choice_sample_tables = False
+    state.settings.want_dest_choice_presampling = True
+    state.settings.recode_pipeline_columns = False
+    state.settings.output_tables = configuration.OutputTables(
+        h5_store=False,
+        action="include",
+        prefix="final_",
+        sort=True,
+        tables=[
+            configuration.OutputTable(
+                tablename="trips",
+                decode_columns=dict(
+                    origin="land_use.zone_id", destination="land_use.zone_id"
+                ),
+            ),
+            "vehicles",
+            "proto_disaggregate_accessibility",
+        ],
+    )
+    state.settings.chunk_size = chunksize
+    state.settings.chunk_training_mode = "training"
+
+    assert state.settings.models == EXPECTED_MODELS
+    assert state.settings.sharrow == False
+    assert state.settings.chunk_size == chunksize
+
+    for step_name in EXPECTED_MODELS:
+        state.run.by_name(step_name)
+        try:
+            state.checkpoint.check_against(
+                Path(__file__).parent.joinpath(
+                    "prototype_mtc_extended_reference_pipeline.zip"
+                ),
+                checkpoint_name=step_name,
+            )
+        except Exception:
+            print(f"> prototype_mtc_extended {step_name}: ERROR")
+            raise
+        else:
+            print(f"> prototype_mtc_extended {step_name}: ok")
+
+
+if __name__ == "__main__":
     test_prototype_mtc_extended()
     test_prototype_mtc_extended_sharrow()
     test_prototype_mtc_extended_mp()

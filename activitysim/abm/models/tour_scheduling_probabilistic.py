@@ -1,33 +1,30 @@
 # ActivitySim
 # See full license in LICENSE.txt
+from __future__ import annotations
 
 import logging
 
-import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util import estimation
-from activitysim.core import chunk, config, inject, logit, pipeline, tracing
-from activitysim.core.util import reindex
-
-from .util import probabilistic_scheduling as ps
+from activitysim.abm.models.util import probabilistic_scheduling as ps
+from activitysim.core import chunk, estimation, workflow
 
 logger = logging.getLogger(__name__)
 
 
 def run_tour_scheduling_probabilistic(
-    tours_df,
-    scheduling_probs,
-    probs_join_cols,
-    depart_alt_base,
-    chunk_size,
-    trace_label,
-    trace_hh_id,
+    state: workflow.State,
+    tours_df: pd.DataFrame,
+    scheduling_probs: pd.DataFrame,
+    probs_join_cols: str | list[str],
+    depart_alt_base: int,
+    trace_label: str,
 ):
     """Make probabilistic tour scheduling choices in chunks
 
     Parameters
     ----------
+    state: workflow.State
     tours_df : pandas.DataFrame
         table of tours
     scheduling_probs : pandas.DataFrame
@@ -37,12 +34,8 @@ def run_tour_scheduling_probabilistic(
     depart_alt_base : int
         int to add to probs column index to get time period it represents.
         e.g. depart_alt_base = 5 means first column (column 0) represents 5 am
-    chunk_size : int
-        size of chooser chunks, set in main settings.yaml
     trace_label : str
         label to append to tracing logs and table names
-    trace_hh_id : int
-        households to trace
 
     Returns
     -------
@@ -50,10 +43,14 @@ def run_tour_scheduling_probabilistic(
         series of chosen alternative indices for each chooser
     """
     result_list = []
-    for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
-        tours_df, chunk_size, trace_label, trace_label
-    ):
+    for (
+        i,
+        chooser_chunk,
+        chunk_trace_label,
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers(state, tours_df, trace_label, trace_label):
         choices = ps.make_scheduling_choices(
+            state,
             chooser_chunk,
             "departure",
             scheduling_probs,
@@ -62,9 +59,9 @@ def run_tour_scheduling_probabilistic(
             first_trip_in_leg=False,
             report_failed_trips=True,
             trace_label=chunk_trace_label,
-            trace_hh_id=trace_hh_id,
             trace_choice_col_name="depart_return",
             clip_earliest_latest=False,
+            chunk_sizer=chunk_sizer,
         )
         result_list.append(choices)
 
@@ -72,8 +69,8 @@ def run_tour_scheduling_probabilistic(
     return choices
 
 
-@inject.step()
-def tour_scheduling_probabilistic(tours, chunk_size, trace_hh_id):
+@workflow.step
+def tour_scheduling_probabilistic(state: workflow.State, tours: pd.DataFrame) -> None:
     """Makes tour departure and arrival choices by sampling from a probability lookup table
 
     This model samples tour scheduling choices from an exogenously defined probability
@@ -83,7 +80,7 @@ def tour_scheduling_probabilistic(tours, chunk_size, trace_hh_id):
 
     Parameters
     ----------
-    tours :  orca.DataFrameWrapper
+    tours : DataFrame
         lazy-loaded table of tours
     chunk_size :  int
         size of chooser chunks, defined in main settings.yaml
@@ -94,16 +91,20 @@ def tour_scheduling_probabilistic(tours, chunk_size, trace_hh_id):
 
     trace_label = "tour_scheduling_probabilistic"
     model_settings_file_name = "tour_scheduling_probabilistic.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
     depart_alt_base = model_settings.get("depart_alt_base", 0)
-    scheduling_probs_filepath = config.config_file_path(model_settings["PROBS_SPEC"])
+    scheduling_probs_filepath = state.filesystem.get_config_file_path(
+        model_settings["PROBS_SPEC"]
+    )
     scheduling_probs = pd.read_csv(scheduling_probs_filepath)
     probs_join_cols = model_settings["PROBS_JOIN_COLS"]
-    tours_df = tours.to_frame()
+    tours_df = tours
 
     # trip_scheduling is a probabilistic model ane we don't support estimation,
     # but we do need to override choices in estimation mode
-    estimator = estimation.manager.begin_estimation("tour_scheduling_probabilistic")
+    estimator = estimation.manager.begin_estimation(
+        state, "tour_scheduling_probabilistic"
+    )
     if estimator:
         estimator.write_spec(model_settings, tag="PROBS_SPEC")
         estimator.write_model_settings(model_settings, model_settings_file_name)
@@ -111,13 +112,12 @@ def tour_scheduling_probabilistic(tours, chunk_size, trace_hh_id):
         estimator.write_choosers(tours_df[chooser_cols_for_estimation])
 
     choices = run_tour_scheduling_probabilistic(
+        state,
         tours_df,
         scheduling_probs,
         probs_join_cols,
         depart_alt_base,
-        chunk_size,
         trace_label,
-        trace_hh_id,
     )
 
     # convert alt index choices to depart/return times
@@ -150,4 +150,4 @@ def tour_scheduling_probabilistic(tours, chunk_size, trace_hh_id):
     assert not tours_df["end"].isnull().any()
     assert not tours_df["duration"].isnull().any()
 
-    pipeline.replace_table("tours", tours_df)
+    state.add_table("tours", tours_df)

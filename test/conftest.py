@@ -1,44 +1,68 @@
-import os
+from __future__ import annotations
 
-import orca
+import os
+from pathlib import Path
+
 import pandas as pd
 import pytest
-from activitysim.core import pipeline
+
+from activitysim.core import workflow
 from activitysim.core.los import Network_LOS as los
 
 
 @pytest.fixture(scope="module")
-def initialize_pipeline(
-    module: str, tables: dict[str, str], initialize_network_los: bool
-) -> pipeline.Pipeline:
-    test_dir = os.path.join("test", module)
-    configs_dir = os.path.join(test_dir, "configs")
-    data_dir = os.path.join(test_dir, "data")
-    output_dir = os.path.join(test_dir, "output")
+def tmp_path_module(request, tmp_path_factory):
+    """A tmpdir fixture for the module scope. Persists throughout the module."""
+    return tmp_path_factory.mktemp(request.module.__name__)
 
-    if os.path.isdir(configs_dir):
-        orca.add_injectable("configs_dir", configs_dir)
 
-    if os.path.isdir(data_dir):
-        orca.add_injectable("data_dir", data_dir)
+def _initialize_pipeline(
+    module: str,
+    tables: dict[str, str],
+    initialize_network_los: bool,
+    load_checkpoint: str = None,
+    *,
+    prepared_module_inputs: Path,
+) -> workflow.State:
+    local_dir = Path(__file__).parent
 
-    if os.path.isdir(test_dir):
-        if not os.path.isdir(output_dir):
-            os.mkdir(output_dir)
-        orca.add_injectable("output_dir", output_dir)
+    module_test_dir = local_dir.joinpath(module)
+    configs_dir = module_test_dir.joinpath("configs")
+    data_dir = module_test_dir.joinpath("data")
+    output_dir = module_test_dir.joinpath("output")
+
+    state = workflow.State.make_default(
+        configs_dir=(configs_dir,),
+        data_dir=(data_dir,),
+        output_dir=output_dir,
+    )
+
+    assert not (load_checkpoint and tables)
 
     # Read in the input test dataframes
     for dataframe_name, idx_name in tables.items():
-        df = pd.read_csv(
-            os.path.join("test", module, "data", f"{dataframe_name}.csv"),
-            index_col=idx_name,
-        )
-        orca.add_table(dataframe_name, df)
+        if prepared_module_inputs.joinpath(f"{dataframe_name}.csv").exists():
+            df = pd.read_csv(
+                prepared_module_inputs.joinpath(f"{dataframe_name}.csv"),
+                index_col=idx_name,
+            )
+        elif prepared_module_inputs.joinpath(f"{dataframe_name}.csv.gz").exists():
+            df = pd.read_csv(
+                prepared_module_inputs.joinpath(f"{dataframe_name}.csv.gz"),
+            )
+            try:
+                df = df.set_index(idx_name)
+            except Exception:
+                print(df.info(1))
+                raise
+        else:
+            raise FileNotFoundError(data_dir.joinpath(f"{dataframe_name}.csv"))
+        state.add_table(dataframe_name, df)
 
     if initialize_network_los:
-        net_los = los()
+        net_los = los(state)
         net_los.load_data()
-        orca.add_injectable("network_los", net_los)
+        state.add_injectable("network_los", net_los)
 
     # Add an output directory in current working directory if it's not already there
     try:
@@ -47,59 +71,45 @@ def initialize_pipeline(
         # directory already exists
         pass
 
-    # Add the dataframes to the pipeline
-    pipeline.open_pipeline()
-    pipeline.add_checkpoint(module)
-    pipeline.close_pipeline()
+    if load_checkpoint:
+        state.checkpoint.restore(resume_after=load_checkpoint)
+    else:
+        # Add the dataframes to the pipeline
+        state.checkpoint.open_store()
+        state.checkpoint.add(module)
 
     # By convention, this method needs to yield something
-    yield pipeline._PIPELINE
+    yield state
 
-    if pipeline.is_open():
-        pipeline.close_pipeline()
+    state.close_pipeline()
+
+
+@pytest.fixture(scope="module")
+def initialize_pipeline(
+    module: str,
+    tables: dict[str, str],
+    initialize_network_los: bool,
+    prepare_module_inputs: Path,
+) -> workflow.State:
+    yield from _initialize_pipeline(
+        module,
+        tables,
+        initialize_network_los,
+        prepared_module_inputs=prepare_module_inputs,
+    )
 
 
 @pytest.fixture(scope="module")
 def reconnect_pipeline(
-    module: str, initialize_network_los: bool, load_checkpoint: str
-) -> pipeline.Pipeline:
-    test_dir = os.path.join("test", module)
-    configs_dir = os.path.join(test_dir, "configs")
-    data_dir = os.path.join(test_dir, "data")
-    output_dir = os.path.join(test_dir, "output")
-
-    if os.path.isdir(configs_dir):
-        orca.add_injectable("configs_dir", configs_dir)
-
-    if os.path.isdir(data_dir):
-        orca.add_injectable("data_dir", data_dir)
-
-    if os.path.isdir(test_dir):
-        if not os.path.isdir(output_dir):
-            os.mkdir(output_dir)
-        orca.add_injectable("output_dir", output_dir)
-
-    # Read in the existing pipeline
-    orca.add_injectable("pipeline_file_path", output_dir)
-
-    if initialize_network_los:
-        net_los = los()
-        net_los.load_data()
-        orca.add_injectable("network_los", net_los)
-
-    # Add an output directory in current working directory if it's not already there
-    try:
-        os.makedirs("output")
-    except FileExistsError:
-        # directory already exists
-        pass
-
-    pipeline.open_pipeline(resume_after=load_checkpoint)
-    pipeline.add_checkpoint(module)
-    pipeline.close_pipeline()
-    # By convention, this method needs to yield something
-    yield pipeline._PIPELINE
-
-    # pytest teardown code
-    if pipeline.is_open():
-        pipeline.close_pipeline()
+    module: str,
+    initialize_network_los: bool,
+    load_checkpoint: str,
+    prepare_module_inputs: Path,
+) -> workflow.State:
+    yield from _initialize_pipeline(
+        module,
+        {},
+        initialize_network_los,
+        load_checkpoint,
+        prepared_module_inputs=prepare_module_inputs,
+    )

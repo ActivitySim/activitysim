@@ -1,10 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
+import warnings
+from typing import Optional
 
 import pandas as pd
 
-from activitysim.core import config, expressions, simulate, tracing
+from activitysim.core import config, expressions, simulate, workflow
+from activitysim.core.estimation import Estimator
 
 """
 At this time, these utilities are mostly for transforming the mode choice
@@ -16,18 +21,18 @@ logger = logging.getLogger(__name__)
 
 
 def mode_choice_simulate(
-    choosers,
-    spec,
+    state: workflow.State,
+    choosers: pd.DataFrame,
+    spec: pd.DataFrame,
     nest_spec,
     skims,
     locals_d,
-    chunk_size,
     mode_column_name,
     logsum_column_name,
-    trace_label,
+    trace_label: str,
     trace_choice_name,
     trace_column_names=None,
-    estimator=None,
+    estimator: Optional[Estimator] = None,
 ):
     """
     common method for  both tour_mode_choice and trip_mode_choice
@@ -53,12 +58,12 @@ def mode_choice_simulate(
     want_logsums = logsum_column_name is not None
 
     choices = simulate.simple_simulate(
+        state,
         choosers=choosers,
         spec=spec,
         nest_spec=nest_spec,
         skims=skims,
         locals_d=locals_d,
-        chunk_size=chunk_size,
         want_logsums=want_logsums,
         trace_label=trace_label,
         trace_choice_name=trace_choice_name,
@@ -83,6 +88,7 @@ def mode_choice_simulate(
 
 
 def run_tour_mode_choice_simulate(
+    state: workflow.State,
     choosers,
     tour_purpose,
     model_settings,
@@ -92,7 +98,6 @@ def run_tour_mode_choice_simulate(
     skims,
     constants,
     estimator,
-    chunk_size,
     trace_label=None,
     trace_choice_name=None,
 ):
@@ -103,10 +108,12 @@ def run_tour_mode_choice_simulate(
     you want to use in the evaluation of variables.
     """
 
-    spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients = simulate.get_segment_coefficients(model_settings, tour_purpose)
+    spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients = state.filesystem.get_segment_coefficients(
+        model_settings, tour_purpose
+    )
 
-    spec = simulate.eval_coefficients(spec, coefficients, estimator)
+    spec = simulate.eval_coefficients(state, spec, coefficients, estimator)
 
     nest_spec = config.get_logit_model_settings(model_settings)
     nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)
@@ -128,11 +135,14 @@ def run_tour_mode_choice_simulate(
     choosers["out_period"] = network_los.skim_time_period_label(choosers[out_time])
 
     expressions.annotate_preprocessors(
-        choosers, locals_dict, skims, model_settings, trace_label
+        state, choosers, locals_dict, skims, model_settings, trace_label
     )
 
     trace_column_names = choosers.index.name
-    assert trace_column_names == "tour_id"
+    if trace_column_names != "tour_id":
+        # TODO suppress this warning?  It should not be relevant in regular
+        #      activitysim models, but could be annoying in extensions.
+        warnings.warn(f"trace_column_names is {trace_column_names!r} not 'tour_id'")
     if trace_column_names not in choosers:
         choosers[trace_column_names] = choosers.index
 
@@ -141,12 +151,12 @@ def run_tour_mode_choice_simulate(
         estimator.write_choosers(choosers)
 
     choices = mode_choice_simulate(
+        state,
         choosers=choosers,
         spec=spec,
         nest_spec=nest_spec,
         skims=skims,
         locals_d=locals_dict,
-        chunk_size=chunk_size,
         mode_column_name=mode_column_name,
         logsum_column_name=logsum_column_name,
         trace_label=trace_label,

@@ -5,7 +5,7 @@ import sys
 def prog():
 
     from activitysim import __doc__, __version__, workflows
-    from activitysim.cli import CLI, benchmark, create, run
+    from activitysim.cli import CLI, benchmark, create, exercise, run
 
     asim = CLI(version=__version__, description=__doc__)
     asim.add_subcommand(
@@ -31,6 +31,12 @@ def prog():
         args_func=lambda x: None,
         exec_func=workflows.main,
         description=workflows.main.__doc__,
+    )
+    asim.add_subcommand(
+        name="test",
+        args_func=exercise.add_exercise_args,
+        exec_func=exercise.main,
+        description=exercise.main.__doc__,
     )
     return asim
 

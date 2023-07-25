@@ -1,26 +1,41 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
+import numba as nb
 import numpy as np
 import pandas as pd
 
-from activitysim.core import assign, chunk, config, inject, los, mem, pipeline, tracing
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
+from activitysim.core import assign, chunk, los, workflow
 
 logger = logging.getLogger(__name__)
 
 
+@nb.njit
+def _accumulate_accessibility(arr, orig_zone_count, dest_zone_count):
+    assert arr.size == orig_zone_count * dest_zone_count
+    arr2 = arr.reshape((orig_zone_count, dest_zone_count))
+    result = np.empty((orig_zone_count,), dtype=arr.dtype)
+    for o in range(orig_zone_count):
+        x = 0
+        for d in range(dest_zone_count):
+            x += arr2[o, d]
+        result[o] = np.log1p(x)
+    return result
+
+
 def compute_accessibilities_for_zones(
+    state,
     accessibility_df,
     land_use_df,
     assignment_spec,
     constants,
     network_los,
-    trace_od,
     trace_label,
+    chunk_sizer,
 ):
-
     orig_zones = accessibility_df.index.values
     dest_zones = land_use_df.index.values
 
@@ -33,23 +48,29 @@ def compute_accessibilities_for_zones(
     )
 
     # create OD dataframe
-    od_df = pd.DataFrame(
-        data={
-            "orig": np.repeat(orig_zones, dest_zone_count),
-            "dest": np.tile(dest_zones, orig_zone_count),
-        }
-    )
+    od_data = {
+        "orig": np.repeat(orig_zones, dest_zone_count),
+        "dest": np.tile(dest_zones, orig_zone_count),
+    }
+    # previously, the land use was added to the dataframe via pd.merge
+    # but the merge is expensive and unnecessary as we can just tile.
+    logger.debug(f"{trace_label}: tiling land_use_columns into od_data")
+    for c in land_use_df.columns:
+        od_data[c] = np.tile(land_use_df[c].to_numpy(), orig_zone_count)
+    logger.debug(f"{trace_label}: converting od_data to DataFrame")
+    od_df = pd.DataFrame(od_data)
+    logger.debug(f"{trace_label}: dropping od_data")
+    del od_data
+    logger.debug(f"{trace_label}: dropping od_data complete")
 
+    trace_od = state.settings.trace_od
     if trace_od:
         trace_orig, trace_dest = trace_od
         trace_od_rows = (od_df.orig == trace_orig) & (od_df.dest == trace_dest)
     else:
         trace_od_rows = None
 
-    # merge land_use_columns into od_df
-    logger.info(f"{trace_label}: merge land_use_columns into od_df")
-    od_df = pd.merge(od_df, land_use_df, left_on="dest", right_index=True).sort_index()
-    chunk.log_df(trace_label, "od_df", od_df)
+    chunk_sizer.log_df(trace_label, "od_df", od_df)
 
     locals_d = {
         "log": np.log,
@@ -59,6 +80,7 @@ def compute_accessibilities_for_zones(
     locals_d.update(constants)
 
     skim_dict = network_los.get_default_skim_dict()
+    # FIXME: because od_df is so huge, next two lines use a fair bit of memory
     locals_d["skim_od"] = skim_dict.wrap("orig", "dest").set_df(od_df)
     locals_d["skim_do"] = skim_dict.wrap("dest", "orig").set_df(od_df)
 
@@ -67,36 +89,40 @@ def compute_accessibilities_for_zones(
 
     logger.info(f"{trace_label}: assign.assign_variables")
     results, trace_results, trace_assigned_locals = assign.assign_variables(
+        state,
         assignment_spec,
         od_df,
         locals_d,
         trace_rows=trace_od_rows,
         trace_label=trace_label,
-        chunk_log=True,
+        chunk_log=chunk_sizer,
     )
 
-    chunk.log_df(trace_label, "results", results)
+    chunk_sizer.log_df(trace_label, "results", results)
     logger.info(f"{trace_label}: have results")
 
     # accessibility_df = accessibility_df.copy()
+    accessibility_new_columns = {}
     for column in results.columns:
-        data = np.asanyarray(results[column])
-        data.shape = (orig_zone_count, dest_zone_count)  # (o,d)
-        accessibility_df[column] = np.log(np.sum(data, axis=1) + 1)
+        logger.info(f"{trace_label}: aggregating column {column}")
+        accessibility_new_columns[column] = _accumulate_accessibility(
+            results[column].to_numpy(), orig_zone_count, dest_zone_count
+        )
+    logger.info(f"{trace_label}: completed aggregating")
+    accessibility_df = accessibility_df.assign(**accessibility_new_columns)
+    logger.info(f"{trace_label}: completed aggregating info df")
 
     if trace_od:
-
         if not trace_od_rows.any():
             logger.warning(
                 f"trace_od not found origin = {trace_orig}, dest = {trace_dest}"
             )
         else:
-
             # add OD columns to trace results
             df = pd.concat([od_df[trace_od_rows], trace_results], axis=1)
 
             # dump the trace results table (with _temp variables) to aid debugging
-            tracing.trace_df(
+            state.tracing.trace_df(
                 df,
                 label="accessibility",
                 index_label="skim_offset",
@@ -105,16 +131,20 @@ def compute_accessibilities_for_zones(
             )
 
             if trace_assigned_locals:
-                tracing.write_csv(
+                state.tracing.write_csv(
                     trace_assigned_locals, file_name="accessibility_locals"
                 )
 
     return accessibility_df
 
 
-@inject.step()
-def compute_accessibility(land_use, accessibility, network_los, chunk_size, trace_od):
-
+@workflow.step
+def compute_accessibility(
+    state: workflow.State,
+    land_use: pd.DataFrame,
+    accessibility: pd.DataFrame,
+    network_los: los.Network_LOS,
+) -> None:
     """
     Compute accessibility for each zone in land use file using expressions from accessibility_spec
 
@@ -132,23 +162,23 @@ def compute_accessibility(land_use, accessibility, network_los, chunk_size, trac
     """
 
     trace_label = "compute_accessibility"
-    model_settings = config.read_model_settings("accessibility.yaml")
+    model_settings = state.filesystem.read_model_settings("accessibility.yaml")
     assignment_spec = assign.read_assignment_spec(
-        config.config_file_path("accessibility.csv")
+        state.filesystem.get_config_file_path("accessibility.csv")
     )
 
-    accessibility_df = accessibility.to_frame()
+    accessibility_df = accessibility
     if len(accessibility_df.columns) > 0:
         logger.warning(
             f"accessibility table is not empty. Columns:{list(accessibility_df.columns)}"
         )
-        raise RuntimeError(f"accessibility table is not empty.")
+        raise RuntimeError("accessibility table is not empty.")
 
-    constants = config.get_model_constants(model_settings)
+    constants = model_settings.get("CONSTANTS", {})
 
     # only include the land_use columns needed by spec, as specified by land_use_columns model_setting
     land_use_columns = model_settings.get("land_use_columns", [])
-    land_use_df = land_use.to_frame()
+    land_use_df = land_use
     land_use_df = land_use_df[land_use_columns]
 
     logger.info(
@@ -157,18 +187,22 @@ def compute_accessibility(land_use, accessibility, network_los, chunk_size, trac
 
     accessibilities_list = []
 
-    for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
-        accessibility_df, chunk_size, trace_label
-    ):
+    for (
+        i,
+        chooser_chunk,
+        chunk_trace_label,
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers(state, accessibility_df, trace_label):
 
         accessibilities = compute_accessibilities_for_zones(
+            state,
             chooser_chunk,
             land_use_df,
             assignment_spec,
             constants,
             network_los,
-            trace_od,
             trace_label,
+            chunk_sizer,
         )
         accessibilities_list.append(accessibilities)
 
@@ -177,4 +211,4 @@ def compute_accessibility(land_use, accessibility, network_los, chunk_size, trac
     logger.info(f"{trace_label} computed accessibilities {accessibility_df.shape}")
 
     # - write table to pipeline
-    pipeline.replace_table("accessibility", accessibility_df)
+    state.add_table("accessibility", accessibility_df)

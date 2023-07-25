@@ -28,7 +28,8 @@ logging:
 
     logfile:
       class: logging.FileHandler
-      filename: !!python/object/apply:activitysim.core.config.log_file_path ['xasim.log']
+      filename:
+        get_log_file_path: 'xasim.log'
       mode: w
       formatter: simpleFormatter
       level: NOTSET
@@ -51,4 +52,3 @@ logging:
       class: logging.Formatter
       format: '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
       datefmt: '%d/%m/%Y %H:%M:%S'
-

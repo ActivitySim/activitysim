@@ -1,17 +1,19 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
 
-from activitysim.core import inject
+from activitysim.core import workflow
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
 
 
-@inject.table()
-def accessibility(land_use):
+@workflow.table
+def accessibility(state: workflow.State):
     """
     If 'accessibility' is in input_tables list, then read it in,
     otherwise create skeleton table with same index as landuse.
@@ -23,7 +25,8 @@ def accessibility(land_use):
     otherwise it will simply be replaced when accessibility model is run
     """
 
-    accessibility_df = read_input_table("accessibility", required=False)
+    land_use = state.get_dataframe("land_use")
+    accessibility_df = read_input_table(state, "accessibility", required=False)
 
     if accessibility_df is None:
         accessibility_df = pd.DataFrame(index=land_use.index)
@@ -33,24 +36,22 @@ def accessibility(land_use):
     else:
         try:
             assert accessibility_df.sort_index().index.equals(
-                land_use.to_frame().sort_index().index
+                land_use.sort_index().index
             ), f"loaded accessibility table index does not match index of land_use table"
         except AssertionError:
-            land_use_index = land_use.to_frame().index
-            if f"_original_{land_use_index.name}" in land_use.to_frame():
-                land_use_zone_ids = land_use.to_frame()[
-                    f"_original_{land_use_index.name}"
-                ]
+            land_use_index = land_use.index
+            if f"_original_{land_use_index.name}" in land_use:
+                land_use_zone_ids = land_use[f"_original_{land_use_index.name}"]
                 remapper = dict(zip(land_use_zone_ids, land_use_zone_ids.index))
                 accessibility_df.index = accessibility_df.index.map(remapper.get)
                 assert accessibility_df.sort_index().index.equals(
-                    land_use.to_frame().sort_index().index
+                    land_use.sort_index().index
                 ), f"loaded accessibility table index does not match index of land_use table"
             else:
                 raise
         logger.info("loaded land_use %s" % (accessibility_df.shape,))
 
     # replace table function with dataframe
-    inject.add_table("accessibility", accessibility_df)
+    state.add_table("accessibility", accessibility_df)
 
     return accessibility_df

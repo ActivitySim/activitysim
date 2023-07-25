@@ -83,7 +83,7 @@ def eval_interaction_utilities(
     logger.info("Writing out interaction df info")
 
     buffer = io.StringIO()
-    df.info(memory_usage = 'deep', buf=buffer)
+    df.info(memory_usage = 'deep', buf=buffer, verbose=True, show_counts=True)
     s = buffer.getvalue()
     with open(os.path.join(state.filesystem.output_dir, trace_label+".interaction_df.info.txt"), "w", encoding="utf-8") as f:
         f.write(s)

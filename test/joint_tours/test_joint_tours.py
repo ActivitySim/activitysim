@@ -9,7 +9,7 @@ import pytest
 from numpy import dot
 from numpy.linalg import norm
 
-# import models is necessary to initalize the model steps with orca
+# import models is necessary to initalize the model steps
 from activitysim.abm import models  # noqa: F401
 from activitysim.core import workflow
 from activitysim.core.util import read_csv, to_csv

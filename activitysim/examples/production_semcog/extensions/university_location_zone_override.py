@@ -108,7 +108,7 @@ def university_location_zone_override(
     done to replicate the fact that university students can have classes all over campus.
 
     The main interface to this model is the university_location_zone_override() function.
-    This function is registered as an orca step in the example Pipeline.
+    This function is registered as a step in the example Pipeline.
     """
 
     trace_label = "university_location_zone_override"
@@ -171,7 +171,7 @@ def trip_destination_univ_zone_override(
     already handled in university_location_zone_override.
 
     The main interface to this model is the trip_destination_univ_zone_override() function.
-    This function is registered as an orca step in the example Pipeline.
+    This function is registered as a step in the example Pipeline.
     """
 
     trace_label = "trip_destination_univ_zone_override"

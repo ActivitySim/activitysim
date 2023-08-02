@@ -849,11 +849,18 @@ def trip_destination_simulate(
 
     skims = skim_hotel.sample_skims(presample=False)
 
-    if not np.issubdtype(trips["trip_period"].dtype, np.integer):
+    if isinstance(trips["trip_period"].dtype, pd.api.types.CategoricalDtype):
         if hasattr(skims["odt_skims"], "map_time_periods"):
             trip_period_idx = skims["odt_skims"].map_time_periods(trips)
             if trip_period_idx is not None:
                 trips["trip_period"] = trip_period_idx
+    elif not np.issubdtype(trips["trip_period"].dtype, np.integer):
+        if hasattr(skims["odt_skims"], "map_time_periods"):
+            trip_period_idx = skims["odt_skims"].map_time_periods(trips)
+            if trip_period_idx is not None:
+                trips["trip_period"] = trip_period_idx
+    else:
+        None
 
     locals_dict = config.get_model_constants(model_settings).copy()
     locals_dict.update(
@@ -1287,7 +1294,7 @@ def run_trip_destination(
                     trace_label=nth_trace_label,
                 )
 
-            if not np.issubdtype(nth_trips["trip_period"].dtype, np.integer):
+            if isinstance(nth_trips["trip_period"].dtype, pd.api.types.CategoricalDtype):
                 skims = network_los.get_default_skim_dict()
                 if hasattr(skims, "map_time_periods_from_series"):
                     trip_period_idx = skims.map_time_periods_from_series(
@@ -1295,6 +1302,16 @@ def run_trip_destination(
                     )
                     if trip_period_idx is not None:
                         nth_trips["trip_period"] = trip_period_idx
+            elif not np.issubdtype(nth_trips["trip_period"].dtype, np.integer):
+                skims = network_los.get_default_skim_dict()
+                if hasattr(skims, "map_time_periods_from_series"):
+                    trip_period_idx = skims.map_time_periods_from_series(
+                        nth_trips["trip_period"]
+                    )
+                    if trip_period_idx is not None:
+                        nth_trips["trip_period"] = trip_period_idx
+            else:
+                None
 
             logger.info("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])
 

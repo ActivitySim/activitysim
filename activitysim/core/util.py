@@ -374,6 +374,10 @@ def assign_in_place(df, df2):
 
     df[new_columns] = df2[new_columns]
 
+    for c in new_columns:
+        if pd.api.types.is_object_dtype(df[c]):
+            df[c] = df[c].astype("category")
+            
 
 def df_from_dict(values, index=None):
 

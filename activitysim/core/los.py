@@ -487,6 +487,18 @@ class Network_LOS(object):
             else:
                 self.skim_dicts["tap"] = self.get_skim_dict("tap")
 
+        # check that the number of rows in land_use_taz matches the number of zones in the skims
+        if "land_use_taz" in self.state:
+            skims = self.get_skim_dict("taz")
+            if hasattr(skims, "zone_ids"):  # SkimDict
+                assert len(skims.zone_ids) == len(
+                    self.state.get_dataframe("land_use_taz")
+                )
+            else:  # SkimDataset
+                assert len(skims.dataset.indexes["otaz"]) == len(
+                    self.state.get_dataframe("land_use_taz")
+                )
+
     def create_skim_dict(self, skim_tag, _override_offset_int=None):
         """
         Create a new SkimDict of type specified by skim_tag (e.g. 'taz', 'maz' or 'tap')

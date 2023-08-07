@@ -316,7 +316,7 @@ def iterate_vehicle_type_choice(
     locals_dict : dict
         additional variables available when writing expressions
     estimator : Estimator object
-    chunk_size : orca.injectable
+    chunk_size : int
     trace_label : str
 
     Returns
@@ -516,9 +516,9 @@ def vehicle_type_choice(
 
     Parameters
     ----------
-    persons : orca.DataFrameWrapper
-    households : orca.DataFrameWrapper
-    vehicles : orca.DataFrameWrapper
+    persons : pd.DataFrame
+    households : pd.DataFrame
+    vehicles : pd.DataFrame
     vehicles_merged : DataFrame
     """
     trace_label = "vehicle_type_choice"

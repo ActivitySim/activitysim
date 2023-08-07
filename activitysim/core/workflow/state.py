@@ -989,7 +989,7 @@ class State:
         Return pandas dataframe corresponding to table_name
 
         if checkpoint_name is None, return the current (most recent) version of the table.
-        The table can be a checkpointed table or any registered orca table (e.g. function table)
+        The table can be a checkpointed table or any registered table (e.g. function table)
 
         if checkpoint_name is specified, return table as it was at that checkpoint
         (the most recently checkpointed version of the table at or before checkpoint_name)
@@ -1061,7 +1061,7 @@ class State:
         Parameters
         ----------
         table_name : str
-            orca/inject table name
+            potentially existing table name
         df : pandas DataFrame
         """
         assert axis in [0, 1]
@@ -1098,7 +1098,7 @@ class State:
 
     def drop_table(self, table_name):
         if self.is_table(table_name):
-            logger.debug("drop_table dropping orca table '%s'" % table_name)
+            logger.debug("drop_table dropping table '%s'" % table_name)
             self._context.pop(table_name, None)
             self.existing_table_status.pop(table_name)
 

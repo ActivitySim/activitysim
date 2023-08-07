@@ -11,6 +11,8 @@ import pandas as pd
 from activitysim.core import workflow
 from activitysim.core.exceptions import MissingInputTableDefinition
 from activitysim.core.input import read_input_table
+from activitysim.core.los import Network_LOS
+from activitysim.core.skim_dictionary import SkimDict
 
 logger = logging.getLogger(__name__)
 

@@ -29,6 +29,14 @@ class Household(pa.DataFrameModel):
     """
     Household data from PopulationSim and input to ActivitySim.
     Customize as needed for your application.
+
+    Fields:
+    household_id: unique number identifying each household
+    home_zone_id: zone number where household resides, MAZ in two zone systems, TAZ in one zone
+    hhsize: number of people in the household
+    income: Annual income in $
+    auto_ownership: Seeding for initial number of autos owned by the household
+    HHT: Household type, see enums.HHT
     """
 
     household_id: int = pa.Field(unique=True, gt=0)
@@ -37,7 +45,6 @@ class Household(pa.DataFrameModel):
     income: int = pa.Field(ge=0, raise_warning=True)
     auto_ownership: int = pa.Field(ge=0, le=6)
     HHT: int = pa.Field(isin=e.HHT, raise_warning=True)
-    # dummy: int = pa.Field()
 
     @pa.dataframe_check(name="Household size equals the number of persons?")
     def check_persons_per_household(cls, households: pd.DataFrame):

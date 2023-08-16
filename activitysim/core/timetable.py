@@ -1,5 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
 
 import logging
 from builtins import object, range
@@ -8,7 +9,7 @@ import numba as nb
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, pipeline
+from activitysim.core import chunk, configuration, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -352,7 +353,7 @@ class TimeTable(object):
         self.checkpoint_df = None
 
         # series to map window row index value to window row's ordinal index
-        from ..core.fast_mapping import FastMapping
+        from activitysim.core.fast_mapping import FastMapping
 
         self.window_row_ix = FastMapping(
             pd.Series(list(range(len(windows_df.index))), index=windows_df.index)
@@ -378,6 +379,9 @@ class TimeTable(object):
         # we want range index so we can use raw numpy
         assert (tdd_alts_df.index == list(range(tdd_alts_df.shape[0]))).all()
         self.tdd_footprints = np.asanyarray([list(r) for r in w_strings]).astype(int)
+
+        # by default, do not attach state to this object.
+        self.state = None
 
     def begin_transaction(self, transaction_loggers):
         """
@@ -411,6 +415,10 @@ class TimeTable(object):
             tt_windows=self.windows,
         )
 
+    def attach_state(self, state: workflow.State):
+        self.state = state
+        return self
+
     def slice_windows_by_row_id(self, window_row_ids):
         """
         return windows array slice containing rows for specified window_row_ids
@@ -442,7 +450,7 @@ class TimeTable(object):
         # assert (self.windows_df.values == self.windows).all()
         return self.windows_df
 
-    def replace_table(self):
+    def replace_table(self, state: workflow.State):
         """
         Save or replace windows_df  DataFrame to pipeline with saved table name
         (specified when object instantiated.)
@@ -464,7 +472,7 @@ class TimeTable(object):
 
         # get windows_df from bottleneck function in case updates to self.person_window
         # do not write through to pandas dataframe
-        pipeline.replace_table(self.windows_table_name, self.get_windows_df())
+        state.add_table(self.windows_table_name, self.get_windows_df())
 
     def tour_available(self, window_row_ids, tdds):
         """
@@ -632,7 +640,7 @@ class TimeTable(object):
         assert len(window_row_ids) == len(periods)
 
         trace_label = "tt.adjacent_window_run_length"
-        with chunk.chunk_log(trace_label):
+        with chunk.chunk_log(self.state, trace_label) as chunk_sizer:
             available_run_length = _available_run_length_2(
                 self.windows,
                 self.window_row_ix._mapper,
@@ -642,7 +650,9 @@ class TimeTable(object):
                 periods.to_numpy(),
             )
 
-            chunk.log_df(trace_label, "available_run_length", available_run_length)
+            chunk_sizer.log_df(
+                trace_label, "available_run_length", available_run_length
+            )
 
         return pd.Series(available_run_length, index=window_row_ids.index)
 

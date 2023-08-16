@@ -1,19 +1,32 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
+from activitysim.abm.models.util import cdap
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    simulate,
+    tracing,
+    workflow,
+)
 from activitysim.core.util import reindex
-
-from .util import cdap, estimation
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def cdap_simulate(persons_merged, persons, households, chunk_size, trace_hh_id):
+@workflow.step
+def cdap_simulate(
+    state: workflow.State,
+    persons_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+    households: pd.DataFrame,
+) -> None:
     """
     CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
     high-level activity pattern for each person, in a coordinated way with other
@@ -25,20 +38,21 @@ def cdap_simulate(persons_merged, persons, households, chunk_size, trace_hh_id):
     """
 
     trace_label = "cdap"
-    model_settings = config.read_model_settings("cdap.yaml")
+    model_settings = state.filesystem.read_model_settings("cdap.yaml")
+    trace_hh_id = state.settings.trace_hh_id
     person_type_map = model_settings.get("PERSON_TYPE_MAP", None)
     assert (
         person_type_map is not None
-    ), f"Expected to find PERSON_TYPE_MAP setting in cdap.yaml"
-    estimator = estimation.manager.begin_estimation("cdap")
+    ), "Expected to find PERSON_TYPE_MAP setting in cdap.yaml"
+    estimator = estimation.manager.begin_estimation(state, "cdap")
 
-    cdap_indiv_spec = simulate.read_model_spec(
+    cdap_indiv_spec = state.filesystem.read_model_spec(
         file_name=model_settings["INDIV_AND_HHSIZE1_SPEC"]
     )
 
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     cdap_indiv_spec = simulate.eval_coefficients(
-        cdap_indiv_spec, coefficients_df, estimator
+        state, cdap_indiv_spec, coefficients_df, estimator
     )
 
     # Rules and coefficients for generating interaction specs for different household sizes
@@ -46,7 +60,8 @@ def cdap_simulate(persons_merged, persons, households, chunk_size, trace_hh_id):
         "INTERACTION_COEFFICIENTS", "cdap_interaction_coefficients.csv"
     )
     cdap_interaction_coefficients = pd.read_csv(
-        config.config_file_path(interaction_coefficients_file_name), comment="#"
+        state.filesystem.get_config_file_path(interaction_coefficients_file_name),
+        comment="#",
     )
 
     # replace cdap_interaction_coefficients coefficient labels with numeric values
@@ -74,7 +89,7 @@ def cdap_simulate(persons_merged, persons, households, chunk_size, trace_hh_id):
     EXCEPT that the values computed are relative proportions, not utilities
     (i.e. values are not exponentiated before being normalized to probabilities summing to 1.0)
     """
-    cdap_fixed_relative_proportions = simulate.read_model_spec(
+    cdap_fixed_relative_proportions = state.filesystem.read_model_spec(
         file_name=model_settings["FIXED_RELATIVE_PROPORTIONS_SPEC"]
     )
 
@@ -86,10 +101,9 @@ def cdap_simulate(persons_merged, persons, households, chunk_size, trace_hh_id):
             "JOINT_TOUR_COEFFICIENTS", "cdap_joint_tour_coefficients.csv"
         )
         cdap_joint_tour_coefficients = pd.read_csv(
-            config.config_file_path(joint_tour_coefficients_file_name), comment="#"
+            state.filesystem.get_config_file_path(joint_tour_coefficients_file_name),
+            comment="#",
         )
-
-    persons_merged = persons_merged.to_frame()
 
     # add tour-based chunk_id so we can chunk all trips in tour together
     assert "chunk_id" not in persons_merged.columns
@@ -113,24 +127,27 @@ def cdap_simulate(persons_merged, persons, households, chunk_size, trace_hh_id):
     logger.info("Pre-building cdap specs")
     for hhsize in range(2, cdap.MAX_HHSIZE + 1):
         spec = cdap.build_cdap_spec(
+            state,
             cdap_interaction_coefficients,
             hhsize,
             cache=True,
             joint_tour_alt=add_joint_tour_utility,
         )
-        if inject.get_injectable("locutor", False):
+        if state.get_injectable("locutor", False):
             spec.to_csv(
-                config.output_file_path("cdap_spec_%s.csv" % hhsize), index=True
+                state.get_output_file_path(f"cdap_spec_{hhsize}.csv"), index=True
             )
         if add_joint_tour_utility:
             # build cdap joint tour spec
             # joint_spec_dependency = spec.loc[[c for c in spec.index if c.startswith(('M_p', 'N_p', 'H_p'))]]
             joint_spec = cdap.build_cdap_joint_spec(
-                cdap_joint_tour_coefficients, hhsize, cache=True
+                state, cdap_joint_tour_coefficients, hhsize, cache=True
             )
-            if inject.get_injectable("locutor", False):
+            if state.get_injectable("locutor", False):
                 joint_spec.to_csv(
-                    config.output_file_path("cdap_joint_spec_%s.csv" % hhsize),
+                    state.get_output_file_path(
+                        f"cdap_joint_spec_{hhsize}.csv",
+                    ),
                     index=True,
                 )
 
@@ -149,36 +166,37 @@ def cdap_simulate(persons_merged, persons, households, chunk_size, trace_hh_id):
         )
         estimator.write_choosers(persons_merged)
         for hhsize in range(2, cdap.MAX_HHSIZE + 1):
-            spec = cdap.get_cached_spec(hhsize)
+            spec = cdap.get_cached_spec(state, hhsize)
             estimator.write_table(spec, "spec_%s" % hhsize, append=False)
 
     logger.info("Running cdap_simulate with %d persons", len(persons_merged.index))
 
     if add_joint_tour_utility:
         choices, hh_joint = cdap.run_cdap(
+            state,
             persons=persons_merged,
             person_type_map=person_type_map,
             cdap_indiv_spec=cdap_indiv_spec,
             cdap_interaction_coefficients=cdap_interaction_coefficients,
             cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,
             locals_d=constants,
-            chunk_size=chunk_size,
+            chunk_size=state.settings.chunk_size,
             trace_hh_id=trace_hh_id,
             trace_label=trace_label,
             add_joint_tour_utility=add_joint_tour_utility,
         )
     else:
         choices = cdap.run_cdap(
+            state,
             persons=persons_merged,
             person_type_map=person_type_map,
             cdap_indiv_spec=cdap_indiv_spec,
             cdap_interaction_coefficients=cdap_interaction_coefficients,
             cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,
             locals_d=constants,
-            chunk_size=chunk_size,
+            chunk_size=state.settings.chunk_size,
             trace_hh_id=trace_hh_id,
             trace_label=trace_label,
-            add_joint_tour_utility=add_joint_tour_utility,
         )
 
     if estimator:
@@ -187,33 +205,30 @@ def cdap_simulate(persons_merged, persons, households, chunk_size, trace_hh_id):
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    # - assign results to persons table and annotate
-    persons = persons.to_frame()
-
     choices = choices.reindex(persons.index)
     persons["cdap_activity"] = choices
 
     expressions.assign_columns(
+        state,
         df=persons,
         model_settings=model_settings.get("annotate_persons"),
         trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
     )
 
-    pipeline.replace_table("persons", persons)
+    state.add_table("persons", persons)
 
     # - annotate households table
-    households = households.to_frame()
-
     if add_joint_tour_utility:
         hh_joint = hh_joint.reindex(households.index)
         households["has_joint_tour"] = hh_joint
 
     expressions.assign_columns(
+        state,
         df=households,
         model_settings=model_settings.get("annotate_households"),
         trace_label=tracing.extend_trace_label(trace_label, "annotate_households"),
     )
-    pipeline.replace_table("households", households)
+    state.add_table("households", households)
 
     tracing.print_summary("cdap_activity", persons.cdap_activity, value_counts=True)
     logger.info(

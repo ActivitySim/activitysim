@@ -105,7 +105,7 @@ multiprocess_steps:
       tables:
         - accessibility
       # don't slice any tables not explicitly listed above in slice.tables
-      except: True # This is needed after disaggregate accessibilities, otherwise it will return empty logsums tables
+      exclude: True # This is needed after disaggregate accessibilities, otherwise it will return empty logsums tables
   - name: mp_simulate
     begin: school_location
     slice:

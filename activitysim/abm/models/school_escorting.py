@@ -1,15 +1,23 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
+from activitysim.abm.models.util import school_escort_tours_trips
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    simulate,
+    tracing,
+    workflow,
+)
 from activitysim.core.interaction_simulate import interaction_simulate
 from activitysim.core.util import reindex
-
-from .util import estimation, school_escort_tours_trips
 
 logger = logging.getLogger(__name__)
 
@@ -326,10 +334,14 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     return bundles
 
 
-@inject.step()
+@workflow.step
 def school_escorting(
-    households, households_merged, persons, tours, chunk_size, trace_hh_id
-):
+    state: workflow.State,
+    households: pd.DataFrame,
+    households_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+    tours: pd.DataFrame,
+) -> None:
     """
     school escorting model
 
@@ -355,14 +367,10 @@ def school_escorting(
     """
     trace_label = "school_escorting_simulate"
     model_settings_file_name = "school_escorting.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    trace_hh_id = state.settings.trace_hh_id
 
-    persons = persons.to_frame()
-    households = households.to_frame()
-    households_merged = households_merged.to_frame()
-    tours = tours.to_frame()
-
-    alts = simulate.read_model_alts(model_settings["ALTS"], set_index="Alt")
+    alts = simulate.read_model_alts(state, model_settings["ALTS"], set_index="Alt")
 
     households_merged, participant_columns = determine_escorting_participants(
         households_merged, persons, model_settings
@@ -379,16 +387,18 @@ def school_escorting(
     choices = None
     for stage_num, stage in enumerate(school_escorting_stages):
         stage_trace_label = trace_label + "_" + stage
-        estimator = estimation.manager.begin_estimation("school_escorting_" + stage)
+        estimator = estimation.manager.begin_estimation(
+            state, "school_escorting_" + stage
+        )
 
-        model_spec_raw = simulate.read_model_spec(
+        model_spec_raw = state.filesystem.read_model_spec(
             file_name=model_settings[stage.upper() + "_SPEC"]
         )
-        coefficients_df = simulate.read_model_coefficients(
+        coefficients_df = state.filesystem.read_model_coefficients(
             file_name=model_settings[stage.upper() + "_COEFFICIENTS"]
         )
         model_spec = simulate.eval_coefficients(
-            model_spec_raw, coefficients_df, estimator
+            state, model_spec_raw, coefficients_df, estimator
         )
 
         # allow for skipping sharrow entirely in this model with `sharrow_skip: true`
@@ -426,6 +436,7 @@ def school_escorting(
         preprocessor_settings = model_settings.get("preprocessor_" + stage, None)
         if preprocessor_settings:
             expressions.assign_columns(
+                state,
                 df=choosers,
                 model_settings=preprocessor_settings,
                 locals_dict=locals_dict,
@@ -438,15 +449,16 @@ def school_escorting(
             estimator.write_coefficients(coefficients_df, model_settings)
             estimator.write_choosers(choosers)
 
-        log_alt_losers = config.setting("log_alt_losers", False)
+        log_alt_losers = state.settings.log_alt_losers
 
         choices = interaction_simulate(
+            state,
             choosers=choosers,
             alternatives=alts,
             spec=model_spec,
             log_alt_losers=log_alt_losers,
             locals_d=locals_dict,
-            chunk_size=chunk_size,
+            chunk_size=state.settings.chunk_size,
             trace_label=stage_trace_label,
             trace_choice_name="school_escorting_" + "stage",
             estimator=estimator,
@@ -470,7 +482,9 @@ def school_escorting(
         )
 
         if trace_hh_id:
-            tracing.trace_df(households, label=escorting_choice, warn_if_empty=True)
+            state.tracing.trace_df(
+                households, label=escorting_choice, warn_if_empty=True
+            )
 
         if stage_num >= 1:
             choosers["Alt"] = choices
@@ -493,7 +507,7 @@ def school_escorting(
     )
 
     school_escort_tours = school_escort_tours_trips.create_pure_school_escort_tours(
-        escort_bundles
+        state, escort_bundles
     )
     chauf_tour_id_map = {
         v: k for k, v in school_escort_tours["bundle_id"].to_dict().items()
@@ -506,7 +520,7 @@ def school_escorting(
 
     tours = school_escort_tours_trips.add_pure_escort_tours(tours, school_escort_tours)
     tours = school_escort_tours_trips.process_tours_after_escorting_model(
-        escort_bundles, tours
+        state, escort_bundles, tours
     )
 
     school_escort_trips = school_escort_tours_trips.create_school_escort_trips(
@@ -514,17 +528,17 @@ def school_escorting(
     )
 
     # update pipeline
-    pipeline.replace_table("households", households)
-    pipeline.replace_table("tours", tours)
-    pipeline.get_rn_generator().drop_channel("tours")
-    pipeline.get_rn_generator().add_channel("tours", tours)
-    pipeline.replace_table("escort_bundles", escort_bundles)
+    state.add_table("households", households)
+    state.add_table("tours", tours)
+    state.get_rn_generator().drop_channel("tours")
+    state.get_rn_generator().add_channel("tours", tours)
+    state.add_table("escort_bundles", escort_bundles)
     # save school escorting tours and trips in pipeline so we can overwrite results from downstream models
-    pipeline.replace_table("school_escort_tours", school_escort_tours)
-    pipeline.replace_table("school_escort_trips", school_escort_trips)
+    state.add_table("school_escort_tours", school_escort_tours)
+    state.add_table("school_escort_trips", school_escort_trips)
 
     # updating timetable object with pure escort tours so joint tours do not schedule ontop
-    timetable = inject.get_injectable("timetable")
+    timetable = state.get_injectable("timetable")
 
     # Need to do this such that only one person is in nth_tours
     # thus, looping through tour_category and tour_num
@@ -538,4 +552,4 @@ def school_escorting(
                 window_row_ids=nth_tours["person_id"], tdds=nth_tours["tdd"]
             )
 
-    timetable.replace_table()
+    timetable.replace_table(state)

@@ -28,7 +28,8 @@ logging:
 
     logfile:
       class: logging.FileHandler
-      filename: !!python/object/apply:activitysim.core.config.log_file_path ['activitysim.log']
+      filename:
+        get_log_file_path: 'activitysim.log'
       mode: w
       formatter: fileFormatter
       level: NOTSET
@@ -38,20 +39,21 @@ logging:
       stream: ext://sys.stdout
       formatter: simpleFormatter
       #level: WARNING
-      level: !!python/object/apply:activitysim.core.mp_tasks.if_sub_task [WARNING, NOTSET]
+      level:
+        if_sub_task: WARNING
+        if_not_sub_task: NOTSET
 
   formatters:
 
     simpleFormatter:
       class: logging.Formatter
       #format: '%(processName)-10s %(levelname)s - %(name)s - %(message)s'
-      format: !!python/object/apply:activitysim.core.mp_tasks.if_sub_task [
-        '%(processName)-10s %(levelname)s - %(name)s - %(message)s',
-        '%(levelname)s - %(name)s - %(message)s']
+      format:
+        if_sub_task: '%(processName)-10s %(levelname)s - %(name)s - %(message)s'
+        if_not_sub_task: '%(levelname)s - %(name)s - %(message)s'
       datefmt: '%d/%m/%Y %H:%M:%S'
 
     fileFormatter:
       class: logging.Formatter
       format: '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
       datefmt: '%d/%m/%Y %H:%M:%S'
-

@@ -40,7 +40,8 @@ logging:
 
     logfile:
       class: logging.FileHandler
-      filename: !!python/object/apply:activitysim.core.config.log_file_path ['activitysim.log']
+      filename:
+        get_log_file_path: 'activitysim.log'
       mode: w
       formatter: fileFormatter
       level: NOTSET
@@ -48,7 +49,9 @@ logging:
     console:
       class: logging.StreamHandler
       stream: ext://sys.stdout
-      level: !!python/object/apply:activitysim.core.mp_tasks.if_sub_task [WARNING, NOTSET]
+      level:
+        if_sub_task: WARNING
+        if_not_sub_task: NOTSET
       formatter: elapsedFormatter
 
   formatters:

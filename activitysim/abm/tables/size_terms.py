@@ -1,18 +1,19 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
-import numpy as np
 import pandas as pd
 
-from activitysim.core import config, inject
+from activitysim.core import workflow
 
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable(cache=True)
-def size_terms():
-    f = config.config_file_path("destination_choice_size_terms.csv")
+@workflow.cached_object
+def size_terms(state: workflow.State):
+    f = state.filesystem.get_config_file_path("destination_choice_size_terms.csv")
     return pd.read_csv(f, comment="#", index_col="segment")
 
 
@@ -57,7 +58,7 @@ def tour_destination_size_terms(land_use, size_terms, model_selector):
 
      Parameters
      ----------
-     land_use - pipeline table
+     land_use - pd.DataFrame
      size_terms - pipeline table
      model_selector - str
 
@@ -77,8 +78,6 @@ def tour_destination_size_terms(land_use, size_terms, model_selector):
          2      1991.00000     824.500  1759.000  2420.0000 ...
      ...
     """
-
-    land_use = land_use.to_frame()
 
     # don't count on land_use being sorted by index
     if not land_use.index.is_monotonic_increasing:

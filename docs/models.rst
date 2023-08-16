@@ -102,7 +102,7 @@ Core Table: ``skims`` | Result Table: ``accessibility`` | Skims Keys: ``O-D, D-O
 .. _disaggregate_accessibility:
 
 Disaggregate Accessibility
---------------
+--------------------------
 
 The disaggregate accessibility model is an extension of the base accessibility model.
 While the base accessibility model is based on a mode-specific decay function and uses fixed market
@@ -738,7 +738,7 @@ changes in the following model configuration files for models downstream of the 
 |                                                                    | - Do not schedule over other school escort tours                 |
 +--------------------------------------------------------------------+------------------------------------------------------------------+
 |  - `tour_mode_choice_annotate_choosers_preprocessor.csv`           |  - count number of escortees on tour by parsing the              |
-|  - `tour_mode_choice.csv`                                          |  ``escort_participants`` column                                  |
+|  - `tour_mode_choice.csv`                                          |    ``escort_participants`` column                                |
 |                                                                    |  - set mode choice availability based on number of escortees     |
 |                                                                    |                                                                  |
 +--------------------------------------------------------------------+------------------------------------------------------------------+
@@ -748,7 +748,7 @@ changes in the following model configuration files for models downstream of the 
 | - `stop_frequency_escort.csv`                                      |                                                                  |
 +--------------------------------------------------------------------+------------------------------------------------------------------+
 |  - `trip_mode_choice_annotate_trips_preprocessor.csv`              |  - count number of escortees on trip by parsing the              |
-|  - `trip_mode_choice.csv`                                          |  ``escort_participants`` column                                  |
+|  - `trip_mode_choice.csv`                                          |    ``escort_participants`` column                                |
 |                                                                    |  - set mode choice availability based on number of escortees     |
 |                                                                    |                                                                  |
 +--------------------------------------------------------------------+------------------------------------------------------------------+
@@ -1244,11 +1244,13 @@ version 2 (see warning about logic versions, below).
 
 An example of trip scheduling in relative mode is included in the :ref:`prototype_mwcog` example.  In this example, trip
 scheduling probabilities are indexed by the following columns:
+
   * periods_left_min: the minimum bin for the number of time periods left on the tour.
   * periods_left_max: the maximum bin for the number of time periods left on the tour.  This is the same as periods_left_min until the final time period bin.
   * outbound: whether the trip occurs on the outbound leg of a tour.
   * tour_purpose_grouped: Tour purpose grouped into mandatory and non-mandatory categories
   * half_tour_stops_remaining_grouped: The number of stops remaining on the half tour with the categories of 0 and 1+
+
 Each of these variables are listed as merge columns in the trip_scheduling.yaml file and are declared in the trip scheduling preprocessor.
 The variables above attempt to balance the statistics available for probability creation with the amount of segmentation of trip characteristics.
 
@@ -1452,7 +1454,7 @@ Estimation
 
 See :ref:`estimation` for more information.
 
-.. automodule:: activitysim.abm.models.util.estimation
+.. automodule:: activitysim.core.estimation
    :members:
 
 Logsums

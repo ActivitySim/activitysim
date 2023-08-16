@@ -48,6 +48,10 @@
     - prototype_mtc_extended/configs_mp
     - prototype_mtc_extended/output
     - prototype_mtc_extended/README.MD
+  subdirs:
+    configs_dir:
+      - configs_extended/configs
+      - configs
 
 - name: prototype_mtc_extended_full
   description: Prototype MTC example model using data from the full 1475-zone MTC region with 2.8M households and 7.5M persons
@@ -126,6 +130,11 @@
       data_sf/skims.omx
       579d6007266db3b055d0f9e4814004f4d5ccfae27a36e40f4881e3662bc3d3f1
     - prototype_mtc/output
+  subdirs:
+    configs_dir:
+      - configs_estimation/configs
+      - configs
+    data_dir: data_sf
 
 - name: placeholder_2_zone
   description: 2 zone system test example based on prototype MTC
@@ -741,6 +750,12 @@
     - placeholder_sandag/configs_3_zone
     - placeholder_sandag/configs_skip_accessibility
     - placeholder_sandag/output_3
+  subdirs:
+    configs_dir:
+      - configs_3_zone
+      - prototype_mtc/configs
+    data_dir: data_3
+    output_dir: output_3
 
 - name: placeholder_sandag_3_zone_full
   description: full 3-zone example for the SANDAG region

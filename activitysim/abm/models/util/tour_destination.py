@@ -1,34 +1,34 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
 import pandas as pd
 
+from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
-from activitysim.core import config, inject, los, pipeline, simulate, tracing
+from activitysim.core import config, los, simulate, tracing, workflow
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
-
-from . import logsums as logsum
 
 logger = logging.getLogger(__name__)
 DUMP = False
 
 
-class SizeTermCalculator(object):
+class SizeTermCalculator:
     """
     convenience object to provide size_terms for a selector (e.g. non_mandatory)
     for various segments (e.g. tour_type or purpose)
     returns size terms for specified segment in df or series form
     """
 
-    def __init__(self, size_term_selector):
-
+    def __init__(self, state: workflow.State, size_term_selector):
         # do this once so they can request size_terms for various segments (tour_type or purpose)
-        land_use = inject.get_table("land_use")
-        size_terms = inject.get_injectable("size_terms")
+        land_use = state.get_dataframe("land_use")
+        size_terms = state.get_injectable("size_terms")
         self.destination_size_terms = tour_destination_size_terms(
             land_use, size_terms, size_term_selector
         )
@@ -59,27 +59,22 @@ class SizeTermCalculator(object):
 
         return size_terms
 
-    # def dest_size_terms_series(self, segment_name):
-    #     # return size terms as as series
-    #     # convenient (and no copy overhead) if reindexing and assigning into alts column
-    #     return self.destination_size_terms[segment_name]
-
 
 def _destination_sample(
-    spec_segment_name,
-    choosers,
+    state: workflow.State,
+    spec_segment_name: str,
+    choosers: pd.DataFrame,
     destination_size_terms,
     skims,
     estimator,
     model_settings,
     alt_dest_col_name,
-    chunk_size,
     chunk_tag,
-    trace_label,
+    trace_label: str,
     zone_layer=None,
 ):
-
     model_spec = simulate.spec_for_segment(
+        state,
         model_settings,
         spec_id="SAMPLE_SPEC",
         segment_name=spec_segment_name,
@@ -89,7 +84,7 @@ def _destination_sample(
     logger.info("running %s with %d tours", trace_label, len(choosers))
 
     sample_size = model_settings["SAMPLE_SIZE"]
-    if config.setting("disable_destination_sampling", False) or (
+    if state.settings.disable_destination_sampling or (
         estimator and estimator.want_unsampled_alternatives
     ):
         # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
@@ -109,9 +104,10 @@ def _destination_sample(
     if constants is not None:
         locals_d.update(constants)
 
-    log_alt_losers = config.setting("log_alt_losers", False)
+    log_alt_losers = state.settings.log_alt_losers
 
     choices = interaction_sample(
+        state,
         choosers,
         alternatives=destination_size_terms,
         sample_size=sample_size,
@@ -120,7 +116,7 @@ def _destination_sample(
         spec=model_spec,
         skims=skims,
         locals_d=locals_d,
-        chunk_size=chunk_size,
+        chunk_size=state.settings.chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer=zone_layer,
@@ -137,6 +133,7 @@ def _destination_sample(
 
 
 def destination_sample(
+    state: workflow.State,
     spec_segment_name,
     choosers,
     model_settings,
@@ -146,7 +143,6 @@ def destination_sample(
     chunk_size,
     trace_label,
 ):
-
     chunk_tag = "tour_destination.sample"
 
     # create wrapper with keys for this lookup
@@ -164,6 +160,7 @@ def destination_sample(
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
     choices = _destination_sample(
+        state,
         spec_segment_name,
         choosers,
         destination_size_terms,
@@ -171,7 +168,6 @@ def destination_sample(
         estimator,
         model_settings,
         alt_dest_col_name,
-        chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
     )
@@ -229,7 +225,7 @@ def aggregate_size_terms(dest_size_terms, network_los):
     return MAZ_size_terms, TAZ_size_terms
 
 
-def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
+def choose_MAZ_for_TAZ(state: workflow.State, taz_sample, MAZ_size_terms, trace_label):
     """
     Convert taz_sample table with TAZ zone sample choices to a table with a MAZ zone chosen for each TAZ
     choose MAZ probabilistically (proportionally by size_term) from set of MAZ zones in parent TAZ
@@ -251,8 +247,8 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
     # 542963          53  0.004224           2      13243
     # 542963          59  0.008628           1      13243
 
-    trace_hh_id = inject.get_injectable("trace_hh_id", None)
-    have_trace_targets = trace_hh_id and tracing.has_trace_targets(taz_sample)
+    trace_hh_id = state.settings.trace_hh_id
+    have_trace_targets = trace_hh_id and state.tracing.has_trace_targets(taz_sample)
     if have_trace_targets:
         trace_label = tracing.extend_trace_label(trace_label, "choose_MAZ_for_TAZ")
 
@@ -262,8 +258,8 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
         assert CHOOSER_ID is not None
 
         # write taz choices, pick_counts, probs
-        trace_targets = tracing.trace_targets(taz_sample)
-        tracing.trace_df(
+        trace_targets = state.tracing.trace_targets(taz_sample)
+        state.tracing.trace_df(
             taz_sample[trace_targets],
             label=tracing.extend_trace_label(trace_label, "taz_sample"),
             transpose=False,
@@ -331,9 +327,11 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
     if have_trace_targets:
         # write maz_sizes: maz_sizes[index,tour_id,dest_TAZ,zone_id,size_term]
 
-        maz_sizes_trace_targets = tracing.trace_targets(maz_sizes, slicer=CHOOSER_ID)
+        maz_sizes_trace_targets = state.tracing.trace_targets(
+            maz_sizes, slicer=CHOOSER_ID
+        )
         trace_maz_sizes = maz_sizes[maz_sizes_trace_targets]
-        tracing.trace_df(
+        state.tracing.trace_df(
             trace_maz_sizes,
             label=tracing.extend_trace_label(trace_label, "maz_sizes"),
             transpose=False,
@@ -364,7 +362,7 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
     maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
     assert maz_probs.shape == (num_choosers * taz_sample_size, max_maz_count)
 
-    rands = pipeline.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
+    rands = state.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
     rands = rands.reshape(-1, 1)
     assert len(rands) == num_choosers * taz_sample_size
     assert len(rands) == maz_probs.shape[0]
@@ -382,12 +380,11 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
     taz_choices["prob"] = taz_choices["TAZ_prob"] * taz_choices["MAZ_prob"]
 
     if have_trace_targets:
-
-        taz_choices_trace_targets = tracing.trace_targets(
+        taz_choices_trace_targets = state.tracing.trace_targets(
             taz_choices, slicer=CHOOSER_ID
         )
         trace_taz_choices_df = taz_choices[taz_choices_trace_targets]
-        tracing.trace_df(
+        state.tracing.trace_df(
             trace_taz_choices_df,
             label=tracing.extend_trace_label(trace_label, "taz_choices"),
             transpose=False,
@@ -413,7 +410,7 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        tracing.trace_df(
+        state.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_alts"),
             transpose=False,
@@ -429,7 +426,7 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        tracing.trace_df(
+        state.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_size_terms"),
             transpose=False,
@@ -443,7 +440,7 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
         )
         df = pd.concat([lhs_df, df], axis=1)
         df["rand"] = rands[taz_choices_trace_targets]
-        tracing.trace_df(
+        state.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_probs"),
             transpose=False,
@@ -460,16 +457,15 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
 
 
 def destination_presample(
+    state: workflow.State,
     spec_segment_name,
     choosers,
     model_settings,
     network_los,
     destination_size_terms,
     estimator,
-    chunk_size,
     trace_label,
 ):
-
     trace_label = tracing.extend_trace_label(trace_label, "presample")
     chunk_tag = "tour_destination.presample"
 
@@ -494,6 +490,7 @@ def destination_presample(
     skims = skim_dict.wrap(ORIG_TAZ, DEST_TAZ)
 
     taz_sample = _destination_sample(
+        state,
         spec_segment_name,
         choosers,
         TAZ_size_terms,
@@ -501,14 +498,13 @@ def destination_presample(
         estimator,
         model_settings,
         DEST_TAZ,
-        chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer="taz",
     )
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
-    maz_choices = choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label)
+    maz_choices = choose_MAZ_for_TAZ(state, taz_sample, MAZ_size_terms, trace_label)
 
     assert DEST_MAZ in maz_choices
     maz_choices = maz_choices.rename(columns={DEST_MAZ: alt_dest_col_name})
@@ -517,6 +513,7 @@ def destination_presample(
 
 
 def run_destination_sample(
+    state,
     spec_segment_name,
     tours,
     persons_merged,
@@ -527,7 +524,6 @@ def run_destination_sample(
     chunk_size,
     trace_label,
 ):
-
     # FIXME - MEMORY HACK - only include columns actually used in spec (omit them pre-merge)
     chooser_columns = model_settings["SIMULATE_CHOOSER_COLUMNS"]
 
@@ -553,7 +549,7 @@ def run_destination_sample(
 
     # by default, enable presampling for multizone systems, unless they disable it in settings file
     pre_sample_taz = not (network_los.zone_system == los.ONE_ZONE)
-    if pre_sample_taz and not config.setting("want_dest_choice_presampling", True):
+    if pre_sample_taz and not state.settings.want_dest_choice_presampling:
         pre_sample_taz = False
         logger.info(
             f"Disabled destination zone presampling for {trace_label} "
@@ -561,24 +557,24 @@ def run_destination_sample(
         )
 
     if pre_sample_taz:
-
         logger.info(
             "Running %s destination_presample with %d tours" % (trace_label, len(tours))
         )
 
         choices = destination_presample(
+            state,
             spec_segment_name,
             choosers,
             model_settings,
             network_los,
             destination_size_terms,
             estimator,
-            chunk_size,
             trace_label,
         )
 
     else:
         choices = destination_sample(
+            state,
             spec_segment_name,
             choosers,
             model_settings,
@@ -597,6 +593,7 @@ def run_destination_sample(
 
 
 def run_destination_logsums(
+    state: workflow.State,
     tour_purpose,
     persons_merged,
     destination_sample,
@@ -626,7 +623,9 @@ def run_destination_logsums(
     +-----------+--------------+----------------+------------+----------------+
     """
 
-    logsum_settings = config.read_model_settings(model_settings["LOGSUM_SETTINGS"])
+    logsum_settings = state.filesystem.read_model_settings(
+        model_settings["LOGSUM_SETTINGS"]
+    )
     # if special person id is passed
     chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
 
@@ -648,10 +647,11 @@ def run_destination_logsums(
 
     logger.info("Running %s with %s rows", trace_label, len(choosers))
 
-    tracing.dump_df(DUMP, persons_merged, trace_label, "persons_merged")
-    tracing.dump_df(DUMP, choosers, trace_label, "choosers")
+    state.tracing.dump_df(DUMP, persons_merged, trace_label, "persons_merged")
+    state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
     logsums = logsum.compute_logsums(
+        state,
         choosers,
         tour_purpose,
         logsum_settings,
@@ -668,6 +668,7 @@ def run_destination_logsums(
 
 
 def run_destination_simulate(
+    state: workflow.State,
     spec_segment_name,
     tours,
     persons_merged,
@@ -688,6 +689,7 @@ def run_destination_simulate(
     chunk_tag = "tour_destination.simulate"
 
     model_spec = simulate.spec_for_segment(
+        state,
         model_settings,
         spec_id="SPEC",
         segment_name=spec_segment_name,
@@ -729,7 +731,7 @@ def run_destination_simulate(
         destination_size_terms.size_term, destination_sample[alt_dest_col_name]
     )
 
-    tracing.dump_df(DUMP, destination_sample, trace_label, "alternatives")
+    state.tracing.dump_df(DUMP, destination_sample, trace_label, "alternatives")
 
     constants = config.get_model_constants(model_settings)
 
@@ -750,11 +752,12 @@ def run_destination_simulate(
     if constants is not None:
         locals_d.update(constants)
 
-    tracing.dump_df(DUMP, choosers, trace_label, "choosers")
+    state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
-    log_alt_losers = config.setting("log_alt_losers", False)
+    log_alt_losers = state.settings.log_alt_losers
 
     choices = interaction_sample_simulate(
+        state,
         choosers,
         destination_sample,
         spec=model_spec,
@@ -780,20 +783,20 @@ def run_destination_simulate(
 
 
 def run_tour_destination(
-    tours,
-    persons_merged,
-    want_logsums,
-    want_sample_table,
+    state: workflow.State,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    want_logsums: bool,
+    want_sample_table: bool,
     model_settings,
-    network_los,
+    network_los: los.Network_LOS,
     estimator,
-    chunk_size,
-    trace_hh_id,
     trace_label,
     skip_choice=False,
 ):
-
-    size_term_calculator = SizeTermCalculator(model_settings["SIZE_TERM_SELECTOR"])
+    size_term_calculator = SizeTermCalculator(
+        state, model_settings["SIZE_TERM_SELECTOR"]
+    )
 
     # maps segment names to compact (integer) ids
     segments = model_settings["SEGMENTS"]
@@ -807,7 +810,6 @@ def run_tour_destination(
     choices_list = []
     sample_list = []
     for segment_name in segments:
-
         segment_trace_label = tracing.extend_trace_label(trace_label, segment_name)
 
         if chooser_segment_column is not None:
@@ -829,6 +831,7 @@ def run_tour_destination(
         # - destination_sample
         spec_segment_name = segment_name  # spec_segment_name is segment_name
         location_sample_df = run_destination_sample(
+            state,
             spec_segment_name,
             choosers,
             persons_merged,
@@ -836,25 +839,27 @@ def run_tour_destination(
             network_los,
             segment_destination_size_terms,
             estimator,
-            chunk_size=chunk_size,
+            chunk_size=state.settings.chunk_size,
             trace_label=tracing.extend_trace_label(segment_trace_label, "sample"),
         )
 
         # - destination_logsums
         tour_purpose = segment_name  # tour_purpose is segment_name
         location_sample_df = run_destination_logsums(
+            state,
             tour_purpose,
             persons_merged,
             location_sample_df,
             model_settings,
             network_los,
-            chunk_size=chunk_size,
+            chunk_size=state.settings.chunk_size,
             trace_label=tracing.extend_trace_label(segment_trace_label, "logsums"),
         )
 
         # - destination_simulate
         spec_segment_name = segment_name  # spec_segment_name is segment_name
         choices = run_destination_simulate(
+            state,
             spec_segment_name,
             choosers,
             persons_merged,
@@ -864,7 +869,7 @@ def run_tour_destination(
             network_los=network_los,
             destination_size_terms=segment_destination_size_terms,
             estimator=estimator,
-            chunk_size=chunk_size,
+            chunk_size=state.settings.chunk_size,
             trace_label=tracing.extend_trace_label(segment_trace_label, "simulate"),
             skip_choice=skip_choice,
         )

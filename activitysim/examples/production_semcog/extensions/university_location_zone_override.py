@@ -1,15 +1,13 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import pipeline
-from activitysim.core import inject
-from activitysim.core import logit
+from activitysim.core import logit, tracing, workflow
 
 # from .util import estimation
 
@@ -17,7 +15,11 @@ logger = logging.getLogger(__name__)
 
 
 def resample_school_zones(
-    choosers, land_use, model_settings, col_to_override="school_zone_id"
+    state: workflow.State,
+    choosers: pd.DataFrame,
+    land_use: pd.DataFrame,
+    model_settings: dict,
+    col_to_override: str = "school_zone_id",
 ):
     """
     Re-samples the university school zone based only on enrollment. Can apply to the original school
@@ -86,16 +88,19 @@ def resample_school_zones(
         probs.set_index(choosers[choosers_to_override].index, inplace=True)
 
         # making stable choices using ActivitySim's random number generator
-        choices, rands = logit.make_choices(probs)
+        choices, rands = logit.make_choices(state, probs)
         choices = choices.map(pd.Series(probs.columns))
         choosers.loc[choosers_to_override, "univ_parking_zone_id"] = choices
 
     return choosers
 
 
-@inject.step()
+@workflow.step
 def university_location_zone_override(
-    persons_merged, persons, land_use, chunk_size, trace_hh_id
+    state: workflow.State,
+    persons_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+    land_use: pd.DataFrame,
 ):
     """
     This model overrides the school taz for students attending large universities.  New school tazs
@@ -109,10 +114,10 @@ def university_location_zone_override(
     trace_label = "university_location_zone_override"
     model_settings_file_name = "university_location_zone_override.yaml"
 
-    choosers = persons.to_frame()
-    land_use_df = land_use.to_frame()
+    choosers = persons
+    land_use_df = land_use
 
-    univ_school_seg = config.read_model_settings("constants.yaml")[
+    univ_school_seg = state.filesystem.read_model_settings("constants.yaml")[
         "SCHOOL_SEGMENT_UNIV"
     ]
     choosers = choosers[
@@ -121,14 +126,13 @@ def university_location_zone_override(
 
     logger.info("Running %s for %d university students", trace_label, len(choosers))
 
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     choosers = resample_school_zones(
-        choosers, land_use_df, model_settings, col_to_override="school_zone_id"
+        state, choosers, land_use_df, model_settings, col_to_override="school_zone_id"
     )
 
     # Overriding school_zone_id in persons table
-    persons = persons.to_frame()
     persons.loc[persons.index.isin(choosers.index), "school_zone_id"] = choosers[
         "school_zone_id"
     ].astype(int)
@@ -140,7 +144,7 @@ def university_location_zone_override(
             persons.index.isin(choosers.index), original_zone_col_name
         ] = choosers[original_zone_col_name]
 
-    pipeline.replace_table("persons", persons)
+    state.add_table("persons", persons)
 
     tracing.print_summary(
         "university_location_zone_override choices",
@@ -148,13 +152,16 @@ def university_location_zone_override(
         value_counts=True,
     )
 
-    if trace_hh_id:
-        tracing.trace_df(persons, label=trace_label, warn_if_empty=True)
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)
 
 
-@inject.step()
+@workflow.step
 def trip_destination_univ_zone_override(
-    trips, tours, land_use, chunk_size, trace_hh_id
+    state: workflow.State,
+    trips: pd.DataFrame,
+    tours: pd.DataFrame,
+    land_use: pd.DataFrame,
 ):
     """
     This model overrides the university trip destination zone for students attending large universities.
@@ -169,13 +176,13 @@ def trip_destination_univ_zone_override(
 
     trace_label = "trip_destination_univ_zone_override"
     model_settings_file_name = "university_location_zone_override.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
     univ_purpose = model_settings["TRIP_UNIVERSITY_PURPOSE"]
     tour_mode_override_dict = model_settings["TOUR_MODE_OVERRIDE_DICT"]
 
-    choosers = trips.to_frame()
-    land_use_df = land_use.to_frame()
-    tours = tours.to_frame()
+    choosers = trips.copy()  # will edit choosers below adding temp "is_primary_trip"
+    # TODO do we really want a copy here? probably not
+    land_use_df = land_use
 
     # primary trips are outbound trips where the next trip is not outbound
     choosers["is_primary_trip"] = np.where(
@@ -207,11 +214,10 @@ def trip_destination_univ_zone_override(
     logger.info("Running %s for %d university students", trace_label, len(choosers))
 
     choosers = resample_school_zones(
-        choosers, land_use_df, model_settings, col_to_override="destination"
+        state, choosers, land_use_df, model_settings, col_to_override="destination"
     )
 
     # Overriding school_zone_id in persons table
-    trips = trips.to_frame()
     trips.loc[trips.index.isin(choosers.index), "destination"] = choosers[
         "destination"
     ].astype(int)
@@ -235,8 +241,8 @@ def trip_destination_univ_zone_override(
             original_zone_col_name
         ]
 
-    pipeline.replace_table("trips", trips)
-    pipeline.replace_table("tours", tours)
+    state.add_table("trips", trips)
+    state.add_table("tours", tours)
 
     tracing.print_summary(
         "trip_destination_univ_zone_override for zones",
@@ -244,5 +250,5 @@ def trip_destination_univ_zone_override(
         value_counts=True,
     )
 
-    if trace_hh_id:
-        tracing.trace_df(trips, label=trace_label, warn_if_empty=True)
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(trips, label=trace_label, warn_if_empty=True)

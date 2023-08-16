@@ -25,7 +25,9 @@ Contents
 
    ../gettingstarted
    cli-tools
+   notebook
    ../examples
+   external-examples
    configuration
    ../cli
    ../estimation

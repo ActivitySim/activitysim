@@ -33,14 +33,16 @@ logging:
 
     elogfile:
       class: logging.FileHandler
-      filename: !!python/object/apply:activitysim.core.config.log_file_path ['estimation.log']
+      filename:
+        get_log_file_path: 'estimation.log'
       mode: w
       formatter: fileFormatter
       level: NOTSET
 
     logfile:
       class: logging.FileHandler
-      filename: !!python/object/apply:activitysim.core.config.log_file_path ['activitysim.log']
+      filename:
+        get_log_file_path: 'activitysim.log'
       mode: w
       formatter: fileFormatter
       level: NOTSET
@@ -63,4 +65,3 @@ logging:
       class: logging.Formatter
       format: '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
       datefmt: '%d/%m/%Y %H:%M:%S'
-

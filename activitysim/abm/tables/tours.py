@@ -1,15 +1,23 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
-from activitysim.core import inject
+import pandas as pd
+
+from activitysim.abm.tables.util import simple_table_join
+from activitysim.core import workflow
 
 logger = logging.getLogger(__name__)
 
 
-@inject.table()
-def tours_merged(tours, persons_merged):
-    return inject.merge_tables(tours.name, tables=[tours, persons_merged])
-
-
-inject.broadcast("persons_merged", "tours", cast_index=True, onto_on="person_id")
+@workflow.temp_table
+def tours_merged(
+    state: workflow.State, tours: pd.DataFrame, persons_merged: pd.DataFrame
+):
+    return simple_table_join(
+        tours,
+        persons_merged,
+        left_on="person_id",
+    )

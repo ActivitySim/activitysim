@@ -35,7 +35,6 @@ input_table_list:
       - HHT
       - auto_ownership
       - num_workers
-      - hinccat1
   #
   # persons (table index 'person_id')
   #
@@ -52,8 +51,6 @@ input_table_list:
       - pemploy
       - pstudent
       - ptype
-      - GRADE
-      - weeks
   #
   # land_use (table index 'zone_id')
   #
@@ -93,7 +90,6 @@ input_table_list:
 
 # convert input CSVs to HDF5 format and save to outputs directory
 # create_input_store: True
-recode_pipeline_columns: True
 
 #input_store: ../output/input_data.h5
 

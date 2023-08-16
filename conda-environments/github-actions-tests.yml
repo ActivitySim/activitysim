@@ -17,6 +17,7 @@ dependencies:
 - numpy = 1.23.*
 - openmatrix = 0.3.*
 - orca = 1.8
+- pandera >= 0.15
 - pandas = 1.4.*
 - platformdirs = 3.2.*
 - psutil = 5.9.*

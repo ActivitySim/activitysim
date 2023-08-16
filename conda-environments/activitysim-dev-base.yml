@@ -43,6 +43,7 @@ dependencies:
 - openmatrix = 0.3.*
 - orca = 1.8
 - pandas = 1.4.*
+- pandera >= 0.15
 - platformdirs = 3.2.*
 - pre-commit
 - psutil = 5.9.*

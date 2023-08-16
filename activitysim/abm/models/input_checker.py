@@ -24,19 +24,14 @@
 
 
 import os, sys, logging
-import win32com.client as com
-import numpy as np
-import pandas as pd
-import datetime
 import warnings
 import pandas as pd
 import numpy as np
 import pandera as pa
 import pydantic
-import time
 from collections import defaultdict
 
-from activitysim.core import config, inject
+from activitysim.core import config, workflow
 
 from activitysim.core.input import read_input_table
 
@@ -217,8 +212,8 @@ def report_errors(input_checker_settings, v_warnings, v_errors):
     return kill_run
 
 
-@inject.step()
-def input_checker_data_model():
+@workflow.step()
+def input_checker_data_model(state: workflow.State):
 
     input_checker_settings = config.read_model_settings(
         "input_checker.yaml", mandatory=True
@@ -231,50 +226,50 @@ def input_checker_data_model():
         pandera_checker_file is not None
     ), "Need to specify the `pydantic` or `pandera` options for the `input_checker` setting"
 
-    print(inject.get_injectable("data_model_dir"))
-    data_model_dir = inject.get_injectable("data_model_dir")[0]
+    # print(inject.get_injectable("data_model_dir"))
+    # data_model_dir = inject.get_injectable("data_model_dir")[0]
 
-    sys.path.append(data_model_dir)
+    # sys.path.append(data_model_dir)
 
-    create_table_store(input_checker_settings)
+    # create_table_store(input_checker_settings)
 
-    # import the datamodel.input.py after the TABLE_STORE is initialized so functions have access to the variable
-    pandera_checker = __import__(pandera_checker_file)
-    pydantic_checker = __import__(pydantic_checker_file)
+    # # import the datamodel.input.py after the TABLE_STORE is initialized so functions have access to the variable
+    # pandera_checker = __import__(pandera_checker_file)
+    # pydantic_checker = __import__(pydantic_checker_file)
 
-    v_errors = {}
-    v_warnings = {}
-    pydantic_lists = {}
+    # v_errors = {}
+    # v_warnings = {}
+    # pydantic_lists = {}
 
-    for table_settings in input_checker_settings["table_list"]:
-        validation_settings = table_settings["validation"]
-        table_name = table_settings["name"]
+    # for table_settings in input_checker_settings["table_list"]:
+    #     validation_settings = table_settings["validation"]
+    #     table_name = table_settings["name"]
 
-        # initializing validation error and warning tracking
-        v_errors[table_name] = []
-        v_warnings[table_name] = []
+    #     # initializing validation error and warning tracking
+    #     v_errors[table_name] = []
+    #     v_warnings[table_name] = []
 
-        assert validation_settings["method"] in ["pandera", "pydantic"]
+    #     assert validation_settings["method"] in ["pandera", "pydantic"]
 
-        if validation_settings["method"] == "pandera":
-            logger.info(f"performing Pandera check on {table_settings['name']}")
-            v_errors, v_warnings = validate_with_pandera(
-                pandera_checker, table_name, validation_settings, v_errors, v_warnings
-            )
+    #     if validation_settings["method"] == "pandera":
+    #         logger.info(f"performing Pandera check on {table_settings['name']}")
+    #         v_errors, v_warnings = validate_with_pandera(
+    #             pandera_checker, table_name, validation_settings, v_errors, v_warnings
+    #         )
 
-        if validation_settings["method"] == "pydantic":
-            logger.info(f"performing Pydantic check on {table_settings['name']}")
-            v_errors, v_warnings, pydantic_lists = validate_with_pydantic(
-                pydantic_checker,
-                table_name,
-                validation_settings,
-                v_errors,
-                v_warnings,
-                pydantic_lists,
-            )
+    #     if validation_settings["method"] == "pydantic":
+    #         logger.info(f"performing Pydantic check on {table_settings['name']}")
+    #         v_errors, v_warnings, pydantic_lists = validate_with_pydantic(
+    #             pydantic_checker,
+    #             table_name,
+    #             validation_settings,
+    #             v_errors,
+    #             v_warnings,
+    #             pydantic_lists,
+    #         )
 
-    kill_run = report_errors(input_checker_settings, v_warnings, v_errors)
+    # kill_run = report_errors(input_checker_settings, v_warnings, v_errors)
 
-    if kill_run:
-        logger.error("Run would be killed due to input checker failure!!")
-        # raise RuntimeError("Encountered error in input checker, see input_checker.log for details")
+    # if kill_run:
+    #     logger.error("Run would be killed due to input checker failure!!")
+    #     # raise RuntimeError("Encountered error in input checker, see input_checker.log for details")

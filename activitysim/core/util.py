@@ -20,6 +20,9 @@ import pyarrow as pa
 import pyarrow.csv as csv
 import pyarrow.parquet as pq
 import yaml
+import numbers
+
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -313,7 +316,7 @@ def quick_loc_series(loc_list, target_series):
     return df.right
 
 
-def assign_in_place(df, df2):
+def assign_in_place(df, df2, downcast_float=False):
     """
     update existing row values in df from df2, adding columns to df if they are not there
 
@@ -323,6 +326,8 @@ def assign_in_place(df, df2):
         assignment left-hand-side (dest)
     df2: pd.DataFrame
         assignment right-hand-side (source)
+    downcast_float: bool
+        if True, downcast float columns if possible
     Returns
     -------
 
@@ -377,7 +382,70 @@ def assign_in_place(df, df2):
     for c in new_columns:
         if pd.api.types.is_object_dtype(df[c]):
             df[c] = df[c].astype("category")
-            
+
+    auto_opt_pd_dtypes(df, downcast_float, inplace=True)
+
+
+def auto_opt_pd_dtypes(df_: pd.DataFrame, downcast_float=False, inplace=False) -> Optional[pd.DataFrame]:
+    """
+    Automatically downcast Number dtypes for minimal possible,
+    will not touch other (datetime, str, object, etc)
+
+    Parameters
+    ----------
+    df_ : pd.DataFrame
+        assignment left-hand-side (dest)
+    downcast_float: bool
+        if True, downcast float columns if possible
+    inplace: bool
+        if False, will return a copy of input dataset
+    
+    Returns
+    -------
+        `None` if `inplace=True` or dataframe if `inplace=False`
+
+    """
+    df = df_ if inplace else df_.copy()
+        
+    for col in df.columns:
+        dtype = df[col].dtype
+        if "density" in col:
+            None
+        # Skip optimizing floats for precision concerns
+        if pd.api.types.is_float_dtype(dtype):
+            if not downcast_float:
+                continue
+            else:
+                # there is a bug in pandas to_numeric
+                # when convert int and floats gt 16777216
+                # https://github.com/pandas-dev/pandas/issues/43693
+                # https://github.com/pandas-dev/pandas/issues/23676#issuecomment-438488603
+                if df[col].max() >= 16777216:
+                    continue
+                else:
+                    df[col] = pd.to_numeric(df[col], downcast='float')
+        # Skip if the column is already categorical
+        if pd.api.types.is_categorical_dtype(dtype):
+            continue
+        # Handle integer types
+        if pd.api.types.is_integer_dtype(dtype):
+            # there is a bug in pandas to_numeric
+            # when convert int and floats gt 16777216
+            # https://github.com/pandas-dev/pandas/issues/43693
+            # https://github.com/pandas-dev/pandas/issues/23676#issuecomment-438488603
+            if df[col].max() >= 16777216:
+                continue
+            # else:
+            #     df[col] = pd.to_numeric(df[col], downcast='integer')
+            #     continue
+            if df[col].min() >= 0:
+                df[col] = pd.to_numeric(df[col], downcast='unsigned')
+            else:
+                df[col] = pd.to_numeric(df[col], downcast='integer')
+    
+    if not inplace:
+        return df
+          
 
 def df_from_dict(values, index=None):
 

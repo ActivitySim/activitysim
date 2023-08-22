@@ -536,6 +536,12 @@ def recompute_tour_count_statistics(state: workflow.State):
     tours["tour_num"] = grouped.cumcount() + 1
     tours["tour_count"] = tours["tour_num"] + grouped.cumcount(ascending=False)
 
+    # downcast
+    tours["tour_count"] = tours["tour_count"].astype("int8")
+    tours["tour_num"] = tours["tour_num"].astype("int8")
+    tours["tour_type_num"] = tours["tour_type_num"].astype("int8")
+    tours["tour_type_count"] = tours["tour_type_count"].astype("int8")
+
     state.add_table("tours", tours)
 
 

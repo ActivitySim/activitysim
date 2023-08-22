@@ -110,6 +110,13 @@ def create_tours(tour_counts, tour_category, parent_col="person_id"):
     # index is arbitrary but don't want any duplicates in index
     tours.reset_index(drop=True, inplace=True)
 
+    # downcast
+    tours["tour_count"] = tours["tour_count"].astype("int8")
+    tours["tour_num"] = tours["tour_num"].astype("int8")
+    tours["tour_type_num"] = tours["tour_type_num"].astype("int8")
+    tours["tour_type_count"] = tours["tour_type_count"].astype("int8")
+    tours["number_of_participants"] = tours["number_of_participants"].astype("int8")
+
     return tours
 
 
@@ -768,5 +775,12 @@ def create_joint_tours(
 
     # index is arbitrary but don't want any duplicates in index
     tours.reset_index(drop=True, inplace=True)
+
+    # downcast
+    tours["tour_count"] = tours["tour_count"].astype("int8")
+    tours["tour_num"] = tours["tour_num"].astype("int8")
+    tours["tour_type_num"] = tours["tour_type_num"].astype("int8")
+    tours["tour_type_count"] = tours["tour_type_count"].astype("int8")
+    tours["number_of_participants"] = tours["number_of_participants"].astype("int8")
 
     return tours

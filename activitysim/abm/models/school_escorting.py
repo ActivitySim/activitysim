@@ -64,9 +64,9 @@ def determine_escorting_participants(choosers, persons, model_settings):
     ]
 
     chaperones["chaperone_weight"] = (
-        (persontype_weight * chaperones[ptype_col])
-        + (gender_weight * np.where(chaperones[sex_col] == 1, 1, 2))
-        + (age_weight * np.where(chaperones[age_col] > 25, 1, 0))
+        (persontype_weight * chaperones[ptype_col].astype("int64"))
+        + (gender_weight * np.where(chaperones[sex_col].astype("int64") == 1, 1, 2))
+        + (age_weight * np.where(chaperones[age_col].astype("int64") > 25, 1, 0))
     )
 
     chaperones["chaperone_num"] = (

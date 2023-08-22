@@ -435,13 +435,15 @@ def auto_opt_pd_dtypes(df_: pd.DataFrame, downcast_float=False, inplace=False) -
             # https://github.com/pandas-dev/pandas/issues/23676#issuecomment-438488603
             if df[col].max() >= 16777216:
                 continue
-            # else:
-            #     df[col] = pd.to_numeric(df[col], downcast='integer')
-            #     continue
-            if df[col].min() >= 0:
-                df[col] = pd.to_numeric(df[col], downcast='unsigned')
             else:
                 df[col] = pd.to_numeric(df[col], downcast='integer')
+                continue
+            # there are calcualtions in asim that expect results in negative values
+            # operations on two unsigned types will not produce negative values
+            # if df[col].min() >= 0:
+            #     df[col] = pd.to_numeric(df[col], downcast='unsigned')
+            # else:
+            #     df[col] = pd.to_numeric(df[col], downcast='integer')
     
     if not inplace:
         return df

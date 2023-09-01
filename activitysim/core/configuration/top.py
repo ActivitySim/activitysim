@@ -276,7 +276,7 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     If omitted, no tracing is written out
     """
 
-    trace_od: tuple[int, int]  | None = None
+    trace_od: tuple[int, int] | None = None
     """
     Trace origin, destination pair in accessibility calculation
 

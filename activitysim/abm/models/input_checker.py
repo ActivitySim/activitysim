@@ -66,15 +66,15 @@ def create_table_store(state, input_checker_settings):
         else:
             path = table_settings.get("path", None)
             if path:
-                table = pd.read_csv(os.path.join(path, table_name + '.csv'))
+                table = pd.read_csv(os.path.join(path, table_name + ".csv"))
             else:
                 table = pd.read_csv(state.filesystem.get_data_file_path(table_name))
 
         # add pandas dataframes to TABLE_STORE dictionary with table name as key
         TABLE_STORE[table_name] = table
-    
+
     # FIXME: need to have state object available in the input checker. Is there a better way to pass this?
-    TABLE_STORE['state'] = state
+    TABLE_STORE["state"] = state
 
 
 def add_child_to_parent_list(pydantic_lists, parent_table_name, children_settings):
@@ -163,7 +163,7 @@ def validate_with_pydantic(
     """
     Validing table wiht pydantic. Uses a helper class to perform the validation.
 
-    FIXME: Not fully built out!! Went with Pandera instead of pydantic, 
+    FIXME: Not fully built out!! Went with Pandera instead of pydantic,
            but leaving this in for future development
 
     Strucutre of the code is as follows:
@@ -196,14 +196,14 @@ def validate_with_pydantic(
         v_errors[table_name].append(e)
     # FIXME need to implement validation warning
     # except ValidationWarning as w:
-        # v_warnings[table_name].append(w)
+    # v_warnings[table_name].append(w)
 
     return v_errors, v_warnings, pydantic_lists
 
 
 def report_errors(state, input_checker_settings, v_warnings, v_errors):
     # creating a new log file to report out warnings and errors
-    out_log_file = state.get_log_file_path('input_checker.log')
+    out_log_file = state.get_log_file_path("input_checker.log")
     if os.path.exists(out_log_file):
         os.remove(out_log_file)
 
@@ -226,8 +226,8 @@ def report_errors(state, input_checker_settings, v_warnings, v_errors):
             logger.info(msg)
 
         # printing to input_checker.log file
-        print(msg, file=open(out_log_file, 'a'))
-    
+        print(msg, file=open(out_log_file, "a"))
+
     # now reporting details to just input_checker.log
     input_check_failure = False
     # looping through each input table first
@@ -238,16 +238,16 @@ def report_errors(state, input_checker_settings, v_warnings, v_errors):
         errors = v_errors[table_name]
         if len(errors) > 0:
             input_check_failure = True
-            print(f"{table_name} errors:", file=open(out_log_file, 'a'))
-            [print(error, file=open(out_log_file, 'a')) for error in errors]
-            print("\n", file=open(out_log_file, 'a'))
+            print(f"{table_name} errors:", file=open(out_log_file, "a"))
+            [print(error, file=open(out_log_file, "a")) for error in errors]
+            print("\n", file=open(out_log_file, "a"))
 
         # printing out any warnings
         warns = v_warnings[table_name]
         if len(warns) > 0:
-            print(f"{table_name} warnings:", file=open(out_log_file, 'a'))
-            [print(warn, file=open(out_log_file, 'a')) for warn in warns]
-            print("\n", file=open(out_log_file, 'a'))
+            print(f"{table_name} warnings:", file=open(out_log_file, "a"))
+            [print(warn, file=open(out_log_file, "a")) for warn in warns]
+            print("\n", file=open(out_log_file, "a"))
 
     if (len(v_warnings) > 0) | (len(v_errors) > 0):
         logger.info("See the input_checker.log for full details on errors and warnings")
@@ -262,7 +262,9 @@ def input_checker(state: workflow.State):
         "input_checker.yaml", mandatory=True
     )
 
-    input_checker_file = input_checker_settings.get("input_checker_code", "input_checks.py")
+    input_checker_file = input_checker_settings.get(
+        "input_checker_code", "input_checks.py"
+    )
 
     data_model_dir = state.get_injectable("data_model_dir")[0]
     logger.info("Data model directory:", data_model_dir)
@@ -274,8 +276,9 @@ def input_checker(state: workflow.State):
 
     input_checker_file_full = os.path.join(data_model_dir, input_checker_file)
 
-    assert os.path.exists(input_checker_file_full), \
-        f"Cannot find input checker file {input_checker_file} in data_model_dir {data_model_dir}"
+    assert os.path.exists(
+        input_checker_file_full
+    ), f"Cannot find input checker file {input_checker_file} in data_model_dir {data_model_dir}"
 
     create_table_store(state, input_checker_settings)
 
@@ -315,7 +318,9 @@ def input_checker(state: workflow.State):
                 pydantic_lists,
             )
 
-    input_check_failure = report_errors(state, input_checker_settings, v_warnings, v_errors)
+    input_check_failure = report_errors(
+        state, input_checker_settings, v_warnings, v_errors
+    )
 
     # free memory from input checker tables
     for key, value in TABLE_STORE.items():

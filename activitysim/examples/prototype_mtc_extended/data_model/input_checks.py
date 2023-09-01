@@ -59,7 +59,7 @@ class Household(pa.DataFrameModel):
     @pa.dataframe_check(name="Example setup of a passing check.")
     def dummy_example(cls, land_use: pd.DataFrame):
         return True
-    
+
     @pa.dataframe_check(name="Example of a failed warning check.", raise_warning=True)
     def dummy_warning_example(cls, land_use: pd.DataFrame):
         return False
@@ -121,7 +121,6 @@ class Landuse(pa.DataFrameModel):
     OTHEMPN: int = pa.Field(ge=0)
     AGREMPN: int = pa.Field(ge=0)
     MWTEMPN: int = pa.Field(ge=0)
-    
 
     @pa.dataframe_check(name="Total employment is sum of employment categories?")
     def check_tot_employment(cls, land_use: pd.DataFrame):
@@ -129,6 +128,7 @@ class Landuse(pa.DataFrameModel):
             ["RETEMPN", "FPSEMPN", "HEREMPN", "OTHEMPN", "AGREMPN", "MWTEMPN"]
         ].sum(axis=1)
         return (tot_emp == land_use.TOTEMP).all()
+
 
 class NetworkLinks(pa.DataFrameModel):
     """
@@ -142,7 +142,7 @@ class NetworkLinks(pa.DataFrameModel):
     BA_LANES: number of lanes in the B-node to A-node direction
     FENAME: street name
     """
-    
+
     ID: int = pa.Field(unique=True, ge=0)
     Dir: int = pa.Field(isin=[-1, 0, 1])
     Length: float = pa.Field(ge=0)
@@ -152,11 +152,13 @@ class NetworkLinks(pa.DataFrameModel):
 
     @pa.dataframe_check(name="All skims in File?", raise_warning=True)
     def check_all_skims_exist(cls, land_use: pd.DataFrame):
-        state = TABLE_STORE['state']
+        state = TABLE_STORE["state"]
 
         # code duplicated from skim_dict_factory.py but need to copy here to not load skim data
         los_settings = state.filesystem.read_settings_file("network_los.yaml")
-        omx_file_paths = state.filesystem.expand_input_file_list(los_settings["taz_skims"]["omx"])
+        omx_file_paths = state.filesystem.expand_input_file_list(
+            los_settings["taz_skims"]["omx"]
+        )
         omx_manifest = dict()
 
         # FIXME getting numpy deprication warning from below omx read
@@ -173,10 +175,9 @@ class NetworkLinks(pa.DataFrameModel):
             key1, sep, key2 = skim_name.partition("__")
             omx_keys.append(key1)
 
-        
-        tour_mode_choice_spec = state.filesystem.read_settings_file("tour_mode_choice.yaml")[
-            "SPEC"
-        ]
+        tour_mode_choice_spec = state.filesystem.read_settings_file(
+            "tour_mode_choice.yaml"
+        )["SPEC"]
 
         def extract_skim_names(file_path):
             """
@@ -195,10 +196,12 @@ class NetworkLinks(pa.DataFrameModel):
 
             return skim_names
 
-        skim_names = extract_skim_names(state.filesystem.get_config_file_path(tour_mode_choice_spec))
+        skim_names = extract_skim_names(
+            state.filesystem.get_config_file_path(tour_mode_choice_spec)
+        )
 
         # Adding breaking change for testing!
-        skim_names.append('break')
+        skim_names.append("break")
 
         missing_skims = [
             skim_name for skim_name in skim_names if skim_name not in omx_keys

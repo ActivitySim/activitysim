@@ -328,5 +328,7 @@ def input_checker(state: workflow.State):
     TABLE_STORE.clear()
 
     if input_check_failure:
-        logger.error("Run would be killed due to input checker failure!!")
-        # raise RuntimeError("Encountered error in input checker, see input_checker.log for details")
+        logger.error("Run is killed due to input checker failure!!")
+        raise RuntimeError(
+            "Encountered error in input checker, see input_checker.log for details"
+        )

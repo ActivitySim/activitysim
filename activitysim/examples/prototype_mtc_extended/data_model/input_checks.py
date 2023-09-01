@@ -16,11 +16,11 @@ import openmatrix as omx
 import re
 import csv
 
-from activitysim.core import config, inject, simulate
+from activitysim.core import config
 
 import enums as e
 
-from activitysim.abm.models.input_checker import TABLE_STORE, ValidationWarning
+from activitysim.abm.models.input_checker import TABLE_STORE
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,14 @@ class Household(pa.DataFrameModel):
             .reindex(households.household_id)
         )
         return (hhsize.values == households.hhsize.values).all()
+
+    @pa.dataframe_check(name="Example setup of a passing check.")
+    def dummy_example(cls, land_use: pd.DataFrame):
+        return True
+    
+    @pa.dataframe_check(name="Example of a failed warning check.", raise_warning=True)
+    def dummy_warning_example(cls, land_use: pd.DataFrame):
+        return False
 
 
 class Person(pa.DataFrameModel):
@@ -113,26 +121,42 @@ class Landuse(pa.DataFrameModel):
     OTHEMPN: int = pa.Field(ge=0)
     AGREMPN: int = pa.Field(ge=0)
     MWTEMPN: int = pa.Field(ge=0)
-    bug: str = pa.Field()
-    bug_warning: str = pa.Field(raise_warning=True)
+    
 
     @pa.dataframe_check(name="Total employment is sum of employment categories?")
-    def check_persons_in_households(cls, land_use: pd.DataFrame):
+    def check_tot_employment(cls, land_use: pd.DataFrame):
         tot_emp = land_use[
             ["RETEMPN", "FPSEMPN", "HEREMPN", "OTHEMPN", "AGREMPN", "MWTEMPN"]
         ].sum(axis=1)
         return (tot_emp == land_use.TOTEMP).all()
 
-    @pa.dataframe_check(name="Dummy to check literally anything!")
-    def dummy_example(cls, land_use: pd.DataFrame):
-        return True
+class NetworkLinks(pa.DataFrameModel):
+    """
+    Example Network data.
+    Only including some columns here for illustrative purposes.
+
+    ID: network link ID
+    Dir: Direction
+    Length: length of link in miles
+    AB_LANES: number of lanes in the A-node to B-node direction
+    BA_LANES: number of lanes in the B-node to A-node direction
+    FENAME: street name
+    """
+    
+    ID: int = pa.Field(unique=True, ge=0)
+    Dir: int = pa.Field(isin=[-1, 0, 1])
+    Length: float = pa.Field(ge=0)
+    AB_LANES: int = pa.Field(ge=0, le=10)
+    BA_LANES: int = pa.Field(ge=0, le=10)
+    FENAME: str = pa.Field()
 
     @pa.dataframe_check(name="All skims in File?", raise_warning=True)
     def check_all_skims_exist(cls, land_use: pd.DataFrame):
+        state = TABLE_STORE['state']
 
-        # FIXME code duplicated from skim_dict_factory.py but need to copy here to not load skim data
-        los_settings = config.read_settings_file("network_los.yaml")
-        omx_file_paths = config.expand_input_file_list(los_settings["taz_skims"]["omx"])
+        # code duplicated from skim_dict_factory.py but need to copy here to not load skim data
+        los_settings = state.filesystem.read_settings_file("network_los.yaml")
+        omx_file_paths = state.filesystem.expand_input_file_list(los_settings["taz_skims"]["omx"])
         omx_manifest = dict()
 
         # FIXME getting numpy deprication warning from below omx read
@@ -149,13 +173,32 @@ class Landuse(pa.DataFrameModel):
             key1, sep, key2 = skim_name.partition("__")
             omx_keys.append(key1)
 
-        tour_mode_choice_spec = config.read_settings_file("tour_mode_choice.yaml")[
+        
+        tour_mode_choice_spec = state.filesystem.read_settings_file("tour_mode_choice.yaml")[
             "SPEC"
         ]
-        skim_names = extract_skim_names(config.config_file_path(tour_mode_choice_spec))
 
-        # Adding breaking change!
-        # skim_names.append('break')
+        def extract_skim_names(file_path):
+            """
+            Helper function to grab the names of the matrices from a given file_path.
+
+            e.g. grabbing 'DRIVEALONE_TIME' from instance of skims['DRIVEALONE_TIME'] in tour_mode_choice.csv
+            """
+            skim_names = []
+
+            with open(file_path) as csvfile:
+                csv_reader = csv.reader(csvfile)
+                for row in csv_reader:
+                    row_string = ",".join(row)
+                    matches = re.findall(r"skims\[['\"]([^'\"]+)['\"]\]", row_string)
+                    skim_names.extend(matches)
+
+            return skim_names
+
+        skim_names = extract_skim_names(state.filesystem.get_config_file_path(tour_mode_choice_spec))
+
+        # Adding breaking change for testing!
+        skim_names.append('break')
 
         missing_skims = [
             skim_name for skim_name in skim_names if skim_name not in omx_keys
@@ -166,16 +209,3 @@ class Landuse(pa.DataFrameModel):
             )
 
         return len(missing_skims) == 0
-
-
-def extract_skim_names(file_path):
-    skim_names = []
-
-    with open(file_path) as csvfile:
-        csv_reader = csv.reader(csvfile)
-        for row in csv_reader:
-            row_string = ",".join(row)
-            matches = re.findall(r"skims\[['\"]([^'\"]+)['\"]\]", row_string)
-            skim_names.extend(matches)
-
-    return skim_names

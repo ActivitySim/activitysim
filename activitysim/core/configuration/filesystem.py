@@ -61,6 +61,20 @@ class FileSystem(PydanticBase, validate_assignment=True):
                 raise ValueError(f"data directory {d_full} does not exist")
         return data_dir
 
+    data_model_dir: tuple[Path, ...] = ("data_model",)
+    """
+    Name of the data model directory.
+    """
+
+    @validator("data_model_dir")
+    def data_model_dirs_must_exist(cls, data_model_dir, values):
+        working_dir = values.get("working_dir", None) or Path.cwd()
+        for d in data_model_dir:
+            d_full = working_dir.joinpath(d)
+            if not d_full.exists():
+                raise ValueError(f"data model directory {d_full} does not exist")
+        return data_model_dir
+
     output_dir: Path = "output"
     """
     Name of the output directory.
@@ -112,6 +126,7 @@ class FileSystem(PydanticBase, validate_assignment=True):
         _parse_arg("settings_file_name", "settings_file")
         _parse_arg("configs_dir", "config")
         _parse_arg("data_dir", "data")
+        _parse_arg("data_model_dir", "data_model")
         _parse_arg("output_dir", "output")
 
         return self

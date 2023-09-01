@@ -1,60 +1,61 @@
-input_checker_code:
-  pydantic: input_pydantic
-  pandera: input_pandera
-  # path: data_model_dir # optional: if missing, will search in data_model_dir
+# name of input checker python file where input checks are listed
+# should exist in the data_model directory
+input_checker_code: input_checks.py
 
+
+# ------- checking with pandera examples ----------
 table_list:
-# --------- pydantic examples ----------
   - name: households
     is_activitysim_input: True  # will load via ActivitySim's built-in reader and apply column transformations
     validation:
-      method: pydantic
+      method: pandera
       class: Household
-      helper_class: HouseholdValidator
-      helper_class_attribute: list_of_households
-      children:
-        table_name: persons
-        child_name: persons  # Household class has variable "persons: list[Person]"
-        merged_on: household_id
 
   - name: persons
     is_activitysim_input: True  # will load via ActivitySim's built-in reader and apply column transformations
     validation:
-      method: pydantic
+      method: pandera
       class: Person
-      helper_class: PersonValidator
-      helper_class_attribute: list_of_persons
 
   - name: land_use
     is_activitysim_input: True # will load via ActivitySim's built-in reader and apply column transformations
     validation:
-      method: pydantic
+      method: pandera
       class: Landuse
-      helper_class: TazValidator
-      helper_class_attribute: list_of_zones
+      
+  - name: example_hwy_data
+    path: activitysim\examples\prototype_mtc_extended\test\additional_data\
+    is_activitysim_input: False # will read raw table with pandas.read_csv from above path
+    validation:
+      class: NetworkLinks
+      method: pandera
 
-# ------- pandera examples ----------
+# --------- pydantic examples ----------
+# WARNING: Still in development!
   # - name: households
   #   is_activitysim_input: True  # will load via ActivitySim's built-in reader and apply column transformations
   #   validation:
-  #     method: pandera
+  #     method: pydantic
   #     class: Household
+  #     helper_class: HouseholdValidator
+  #     helper_class_attribute: list_of_households
+  #     children:
+  #       table_name: persons
+  #       child_name: persons  # Household class has variable "persons: list[Person]"
+  #       merged_on: household_id
 
   # - name: persons
   #   is_activitysim_input: True  # will load via ActivitySim's built-in reader and apply column transformations
   #   validation:
-  #     method: pandera
+  #     method: pydantic
   #     class: Person
+  #     helper_class: PersonValidator
+  #     helper_class_attribute: list_of_persons
 
   # - name: land_use
   #   is_activitysim_input: True # will load via ActivitySim's built-in reader and apply column transformations
   #   validation:
-  #     method: pandera
+  #     method: pydantic
   #     class: Landuse
-      
-  # - name: network_links
-  #   # path: 
-  #   is_activitysim_input: False # will read raw table with pandas.read_csv
-  #   validation:
-  #     class: NetworkLinks
-  #     method: pandera
+  #     helper_class: TazValidator
+  #     helper_class_attribute: list_of_zones

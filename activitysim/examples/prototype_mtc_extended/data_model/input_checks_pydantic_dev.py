@@ -12,12 +12,6 @@ import numpy as np
 import pandas as pd
 import openmatrix as omx
 
-# for skim name parsing
-import re
-import csv
-
-from activitysim.core import config, inject, simulate
-
 import enums as e
 
 from activitysim.abm.models.input_checker import TABLE_STORE

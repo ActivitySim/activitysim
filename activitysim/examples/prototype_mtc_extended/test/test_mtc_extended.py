@@ -114,6 +114,8 @@ def _test_prototype_mtc_extended(
             example_mtc_path("data"),
             "-o",
             test_path(f"output_{int(sharrow)}{int(shadow_pricing)}"),
+            "--data_model",
+            example_path("data_model"),
         ]
     )
     if os.environ.get("GITHUB_ACTIONS") == "true":

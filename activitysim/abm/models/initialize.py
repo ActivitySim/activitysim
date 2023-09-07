@@ -26,7 +26,11 @@ DEFAULT_TABLE_LIST = [
 logger = logging.getLogger(__name__)
 
 
-def annotate_tables(state: workflow.State, model_settings, trace_label, chunk_sizer):
+def annotate_tables(
+        state: workflow.State,
+        model_settings,
+        trace_label,
+        chunk_sizer):
     """
 
     Parameters

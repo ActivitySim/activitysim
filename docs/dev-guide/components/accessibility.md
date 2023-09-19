@@ -58,6 +58,10 @@ function.  This function is registered as an Inject step in the example Pipeline
 
 ### Examples
 
+- [Prototype MTC](https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/configs/accessibility.yaml)
+- [Prototype ARC](https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_arc/configs/accessibility.yaml)
+
+
 ## Implementation
 
 ```{eval-rst}

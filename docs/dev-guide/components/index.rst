@@ -3,10 +3,15 @@ Components
 ==========
 
 .. toctree::
-   :maxdepth: 1
+    :maxdepth: 1
 
-   free_parking
-   trip_destination
+    accessibility
+    auto_ownership
+    free_parking
+    school_location_choice
+    trip_destination
+    work_from_home
+    work_location_choice
 
 
 

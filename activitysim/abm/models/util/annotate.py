@@ -1,9 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
 from __future__ import annotations
 
 import logging
+
+import pandas as pd
 
 from activitysim.core import expressions, tracing, workflow
 from activitysim.core.configuration import PydanticBase

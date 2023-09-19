@@ -129,6 +129,7 @@ class TripDestinationSettings(LocationComponentSettings, extra="forbid"):
         return self.SPEC
 
 
+@workflow.func
 def _destination_sample(
     state: workflow.State,
     primary_purpose,
@@ -218,6 +219,7 @@ def _destination_sample(
     return choices
 
 
+@workflow.func
 def destination_sample(
     state: workflow.State,
     primary_purpose,
@@ -521,6 +523,7 @@ def choose_MAZ_for_TAZ(
     return taz_choices
 
 
+@workflow.func
 def destination_presample(
     state: workflow.State,
     primary_purpose,
@@ -669,6 +672,7 @@ def trip_destination_sample(
     return choices
 
 
+@workflow.func
 def compute_ood_logsums(
     state: workflow.State,
     choosers,
@@ -960,6 +964,7 @@ def trip_destination_simulate(
     return destinations
 
 
+@workflow.func
 def choose_trip_destination(
     state: workflow.State,
     primary_purpose,
@@ -1184,6 +1189,7 @@ class SkimHotel:
         return skims
 
 
+@workflow.func
 def run_trip_destination(
     state: workflow.State,
     trips: pd.DataFrame,

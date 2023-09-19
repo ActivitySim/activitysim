@@ -139,9 +139,6 @@ def _location_sample(
 
     sample_size = model_settings.SAMPLE_SIZE
 
-    if "sched" in trace_label:
-        print()
-
     if state.settings.disable_destination_sampling or (
         estimator and estimator.want_unsampled_alternatives
     ):

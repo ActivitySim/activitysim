@@ -1430,6 +1430,7 @@ def eval_nl(
     return choices
 
 
+@workflow.func
 def _simple_simulate(
     state: workflow.State,
     choosers,

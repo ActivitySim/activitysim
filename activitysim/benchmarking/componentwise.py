@@ -181,7 +181,7 @@ def run_component(state, component_name):
 def teardown_component(state, component_name):
     logger.info("teardown_component: %s", component_name)
 
-    # use the pipeline module to clear out all the orca tables, so
+    # use the pipeline module to clear out all the tables, so
     # the next benchmark run has a clean slate.
     # anything needed should be reloaded from the pipeline checkpoint file
     pipeline_tables = state.registered_tables()

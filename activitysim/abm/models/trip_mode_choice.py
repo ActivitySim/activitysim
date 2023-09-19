@@ -80,7 +80,7 @@ def trip_mode_choice(
 
     orig_col = "origin"
     dest_col = "destination"
-    min_per_period = network_los.skim_time_periods["period_minutes"]
+    min_per_period = network_los.skim_time_periods.period_minutes
     periods_per_hour = 60 / min_per_period
 
     constants = {}

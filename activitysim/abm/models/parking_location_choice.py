@@ -310,7 +310,7 @@ def parking_location(
     proposed_trip_departure_period = model_settings["TRIP_DEPARTURE_PERIOD"]
     # TODO: the number of skim time periods should be more readily available than this
     n_skim_time_periods = np.unique(
-        network_los.los_settings.skim_time_periods["labels"]
+        network_los.los_settings.skim_time_periods.labels
     ).size
     if trips_merged_df[proposed_trip_departure_period].max() > n_skim_time_periods:
         # max proposed_trip_departure_period is out of range,

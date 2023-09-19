@@ -6,16 +6,14 @@ import shutil
 from pathlib import Path
 
 import numpy as np
-import orca
 import pandas as pd
 import pytest
 import yaml
 from numpy import dot
 from numpy.linalg import norm
 
-# import models is necessary to initalize the model steps with orca
+# import models is necessary to initalize the model steps
 from activitysim.abm import models
-from activitysim.abm.models.util import estimation
 from activitysim.core import config, simulate, tracing, workflow
 from activitysim.core.util import read_csv, to_csv
 

@@ -334,7 +334,7 @@ class ShadowPriceCalculator:
                     self.target[segment] = land_use[target]
 
     def read_saved_shadow_prices(
-        self, state, model_settings: TourLocationComponentSettings
+        self, state: workflow.State, model_settings: TourLocationComponentSettings
     ):
         """
         Read saved shadow_prices from csv file in data_dir (so-called warm start)

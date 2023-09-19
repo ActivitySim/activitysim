@@ -35,17 +35,15 @@ def tour_od_choice(
 
     Parameters
     ----------
-    tours : orca.DataFrameWrapper
+    tours : pd.DataFrame
         lazy-loaded tours table
-    persons : orca.DataFrameWrapper
+    persons : pd.DataFrame
         lazy-loaded persons table
-    households : orca.DataFrameWrapper
+    households : pd.DataFrame
         lazy-loaded households table
-    land_use : orca.DataFrameWrapper
+    land_use : pd.DataFrame
         lazy-loaded land use data table
-    stop_frequency_alts : orca.DataFrameWrapper
-        lazy-loaded table of stop frequency alternatives, e.g. "1out2in"
-    network_los : orca._InjectableFuncWrapper
+    network_los : los.Network_LOS
         lazy-loaded activitysim.los.Network_LOS object
     """
     if model_settings is None:

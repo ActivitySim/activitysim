@@ -187,19 +187,6 @@ class Network_LOS(object):
 
         # validate skim_time_periods
         self.skim_time_periods = self.state.network_settings.skim_time_periods
-        if "hours" in self.skim_time_periods:
-            self.skim_time_periods["periods"] = self.skim_time_periods.pop("hours")
-            warnings.warn(
-                "support for `skim_time_periods` key `hours` will be removed in "
-                "future verions. Use `periods` instead",
-                FutureWarning,
-            )
-        assert (
-            "periods" in self.skim_time_periods
-        ), "'periods' key not found in network_los.skim_time_periods"
-        assert (
-            "labels" in self.skim_time_periods
-        ), "'labels' key not found in network_los.skim_time_periods"
 
         self.zone_system = self.setting("zone_system")
         assert self.zone_system in [
@@ -221,7 +208,6 @@ class Network_LOS(object):
 
         # validate skim_time_periods
         self.skim_time_periods = self.setting("skim_time_periods")
-        assert {"periods", "labels"}.issubset(set(self.skim_time_periods.keys()))
 
     def load_skim_info(self):
         """
@@ -500,6 +486,18 @@ class Network_LOS(object):
                 ).any()
             else:
                 self.skim_dicts["tap"] = self.get_skim_dict("tap")
+
+        # check that the number of rows in land_use_taz matches the number of zones in the skims
+        if "land_use_taz" in self.state:
+            skims = self.get_skim_dict("taz")
+            if hasattr(skims, "zone_ids"):  # SkimDict
+                assert len(skims.zone_ids) == len(
+                    self.state.get_dataframe("land_use_taz")
+                )
+            else:  # SkimDataset
+                assert len(skims.dataset.indexes["otaz"]) == len(
+                    self.state.get_dataframe("land_use_taz")
+                )
 
     def create_skim_dict(self, skim_tag, _override_offset_int=None):
         """
@@ -852,10 +850,10 @@ class Network_LOS(object):
         ), "'skim_time_periods' setting not found."
 
         # Default to 60 minute time periods
-        period_minutes = self.skim_time_periods.get("period_minutes", 60)
+        period_minutes = self.skim_time_periods.period_minutes
 
         # Default to a day
-        model_time_window_min = self.skim_time_periods.get("time_window", 1440)
+        model_time_window_min = self.skim_time_periods.time_window
 
         # Check to make sure the intervals result in no remainder time through 24 hour day
         assert 0 == model_time_window_min % period_minutes
@@ -866,25 +864,25 @@ class Network_LOS(object):
             bin = (
                 np.digitize(
                     [time_period % total_periods],
-                    self.skim_time_periods["periods"],
+                    self.skim_time_periods.periods,
                     right=True,
                 )[0]
                 - 1
             )
             if fillna is not None:
-                default = self.skim_time_periods["labels"][fillna]
-                result = self.skim_time_periods["labels"].get(bin, default=default)
+                default = self.skim_time_periods.labels[fillna]
+                result = self.skim_time_periods.labels.get(bin, default=default)
             else:
-                result = self.skim_time_periods["labels"][bin]
+                result = self.skim_time_periods.labels[bin]
         else:
             result = pd.cut(
                 time_period,
-                self.skim_time_periods["periods"],
-                labels=self.skim_time_periods["labels"],
+                self.skim_time_periods.periods,
+                labels=self.skim_time_periods.labels,
                 ordered=False,
             )
             if fillna is not None:
-                default = self.skim_time_periods["labels"][fillna]
+                default = self.skim_time_periods.labels[fillna]
                 result = result.fillna(default)
             result = result.astype(str)
 

@@ -817,7 +817,7 @@ class Checkpoints(StateAccessor):
                 table_name, checkpoint_name=last_checkpoint[table_name], store=store
             )
             logger.info("load_checkpoint table %s %s" % (table_name, df.shape))
-            # register it as an orca table
+            # register it as an workflow table
             self._obj.add_table(table_name, df)
             loaded_tables[table_name] = df
             if table_name == "land_use" and "_original_zone_id" in df.columns:
@@ -1144,7 +1144,7 @@ class Checkpoints(StateAccessor):
         Return pandas dataframe corresponding to table_name
 
         if checkpoint_name is None, return the current (most recent) version of the table.
-        The table can be a checkpointed table or any registered orca table (e.g. function table)
+        The table can be a checkpointed table or any registered table (e.g. function table)
 
         if checkpoint_name is specified, return table as it was at that checkpoint
         (the most recently checkpointed version of the table at or before checkpoint_name)

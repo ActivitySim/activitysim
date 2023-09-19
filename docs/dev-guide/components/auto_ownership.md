@@ -14,7 +14,7 @@ The primary model components are household demographics, zonal density, and acce
 - *Core Table*: `households`
 - *Result Field*: `auto_owenership`
 
-This model is structured as nested logit model.
+This model is typically structured as multinomial logit model.
 
 ## Configuration
 

@@ -14,7 +14,7 @@ from activitysim.core.configuration.logit import LogitComponentSettings
 logger = logging.getLogger(__name__)
 
 
-class AutoOwnershipSettings(PydanticReadable):
+class AutoOwnershipSettings(LogitComponentSettings):
     """
     Settings for the `auto_ownership` component.
     """

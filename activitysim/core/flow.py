@@ -822,6 +822,7 @@ def apply_flow(
                     logger.error(f"error in apply_flow: {err!s}")
                     if required:
                         raise
+                    flow.tree = None
                     return None, flow
                 raise
             except Exception as err:
@@ -833,4 +834,5 @@ def apply_flow(
                 # Detecting compilation activity when in production mode is a bug
                 # that should be investigated.
                 tracing.timing_notes.add(f"compiled:{flow.name}")
+            flow.tree = None
             return flow_result, flow

@@ -902,7 +902,7 @@ class Network_LOS(object):
                 result = pd.Series(
                     data=result,
                     index=broadcast_to,
-                    dtype=time_label_dtype,
+                    dtype=time_label_dtype if as_cat else str,
                 )
         else:
             result = pd.cut(

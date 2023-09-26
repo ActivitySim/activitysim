@@ -845,7 +845,9 @@ class Network_LOS(object):
 
         return s.values
 
-    def skim_time_period_label(self, time_period, fillna=None):
+    def skim_time_period_label(
+        self, time_period, fillna=None, as_cat=False, broadcast_to=None
+    ):
         """
         convert time period times to skim time period labels (e.g. 9 -> 'AM')
 
@@ -888,6 +890,12 @@ class Network_LOS(object):
                 result = self.skim_time_periods["labels"].get(bin, default=default)
             else:
                 result = self.skim_time_periods["labels"][bin]
+            if broadcast_to is not None and as_cat:
+                result = pd.Series(
+                    data=result,
+                    index=broadcast_to,
+                    dtype=self.skim_dicts["taz"].time_label_dtype,
+                )
         else:
             result = pd.cut(
                 time_period,
@@ -898,8 +906,10 @@ class Network_LOS(object):
             if fillna is not None:
                 default = self.skim_time_periods["labels"][fillna]
                 result = result.fillna(default)
-            result = result.astype(str)
-
+            if as_cat:
+                result = result.astype(self.skim_dicts["taz"].time_label_dtype)
+            else:
+                result = result.astype(str)
         return result
 
     def get_tazs(self, state):

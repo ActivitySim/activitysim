@@ -877,9 +877,9 @@ class Network_LOS(object):
 
         try:
             time_label_dtype = self.skim_dicts["taz"].time_label_dtype
-        except AttributeError:
-            # if using old SkimDict instead of SkimDataset, this labeling
-            # shortcut is unavailable.
+        except (KeyError, AttributeError):
+            # if the "taz" skim_dict is missing, or if using old SkimDict
+            # instead of SkimDataset, this labeling shortcut is unavailable.
             time_label_dtype = str
             as_cat = False
 

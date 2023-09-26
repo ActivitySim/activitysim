@@ -875,6 +875,14 @@ class Network_LOS(object):
         assert 0 == model_time_window_min % period_minutes
         total_periods = model_time_window_min / period_minutes
 
+        try:
+            time_label_dtype = self.skim_dicts["taz"].time_label_dtype
+        except AttributeError:
+            # if using old SkimDict instead of SkimDataset, this labeling
+            # shortcut is unavailable.
+            time_label_dtype = str
+            as_cat = False
+
         # FIXME - eventually test and use np version always?
         if np.isscalar(time_period):
             bin = (
@@ -890,11 +898,11 @@ class Network_LOS(object):
                 result = self.skim_time_periods["labels"].get(bin, default=default)
             else:
                 result = self.skim_time_periods["labels"][bin]
-            if broadcast_to is not None and as_cat:
+            if broadcast_to is not None:
                 result = pd.Series(
                     data=result,
                     index=broadcast_to,
-                    dtype=self.skim_dicts["taz"].time_label_dtype,
+                    dtype=time_label_dtype,
                 )
         else:
             result = pd.cut(
@@ -907,7 +915,7 @@ class Network_LOS(object):
                 default = self.skim_time_periods["labels"][fillna]
                 result = result.fillna(default)
             if as_cat:
-                result = result.astype(self.skim_dicts["taz"].time_label_dtype)
+                result = result.astype(time_label_dtype)
             else:
                 result = result.astype(str)
         return result

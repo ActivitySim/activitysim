@@ -774,6 +774,9 @@ def apply_flow(
         it ever again, but having a reference to it available later can be useful
         in debugging and tracing.  Flows are cached and reused anyway, so it is
         generally not important to delete this at any point to free resources.
+    tree : sharrow.DataTree
+        The tree data used to compute the flow result.  It is seperate from the
+        flow to prevent it from being cached with the flow.
     """
     if sh is None:
         return None, None
@@ -800,7 +803,7 @@ def apply_flow(
                 logger.error(f"error in apply_flow: {err!s}")
                 if required:
                     raise
-                return None, None
+                return None, None, None
             else:
                 raise
         with logtime(f"{flow.name}.load", trace_label or ""):
@@ -822,8 +825,9 @@ def apply_flow(
                     logger.error(f"error in apply_flow: {err!s}")
                     if required:
                         raise
+                    tree = flow.tree
                     flow.tree = None
-                    return None, flow
+                    return None, flow, tree
                 raise
             except Exception as err:
                 logger.error(f"error in apply_flow: {err!s}")
@@ -834,5 +838,6 @@ def apply_flow(
                 # Detecting compilation activity when in production mode is a bug
                 # that should be investigated.
                 tracing.timing_notes.add(f"compiled:{flow.name}")
+            tree = flow.tree
             flow.tree = None
-            return flow_result, flow
+            return flow_result, flow, tree

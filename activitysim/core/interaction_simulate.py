@@ -171,7 +171,7 @@ def eval_interaction_utilities(
 
             timelogger.mark("sharrow preamble", True, logger, trace_label)
 
-            sh_util, sh_flow = apply_flow(
+            sh_util, sh_flow, sh_tree = apply_flow(
                 state,
                 spec_sh,
                 df,

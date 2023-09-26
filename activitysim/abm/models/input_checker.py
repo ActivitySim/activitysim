@@ -143,8 +143,8 @@ def validate_with_pandera(
     with warnings.catch_warnings(record=True) as caught_warnings:
         warnings.simplefilter("always")
         try:
-            validator_class.validate(TABLE_STORE[table_name])
-        except pa.errors.SchemaError as e:
+            validator_class.validate(TABLE_STORE[table_name], lazy=True)
+        except pa.errors.SchemaErrors as e:
             v_errors[table_name].append(e)
         for warning in caught_warnings:
             v_warnings[table_name].append(warning.message)
@@ -239,7 +239,10 @@ def report_errors(state, input_checker_settings, v_warnings, v_errors):
         if len(errors) > 0:
             input_check_failure = True
             print(f"{table_name} errors:", file=open(out_log_file, "a"))
-            [print(error, file=open(out_log_file, "a")) for error in errors]
+            [
+                print(str(error).split("Usage Tip")[0], file=open(out_log_file, "a"))
+                for error in errors
+            ]
             print("\n", file=open(out_log_file, "a"))
 
         # printing out any warnings

@@ -45,6 +45,8 @@ class Household(pa.DataFrameModel):
     income: int = pa.Field(ge=0, raise_warning=True)
     auto_ownership: int = pa.Field(ge=0, le=6)
     HHT: int = pa.Field(isin=e.HHT, raise_warning=True)
+    bug1: int
+    bug2: int
 
     @pa.dataframe_check(name="Household size equals the number of persons?")
     def check_persons_per_household(cls, households: pd.DataFrame):
@@ -56,12 +58,17 @@ class Household(pa.DataFrameModel):
         )
         return (hhsize.values == households.hhsize.values).all()
 
+    @pa.dataframe_check(name="home_zone_id in landuse file?")
+    def check_home_zone_in_landuse(cls, households: pd.DataFrame):
+        land_use = TABLE_STORE["land_use"]
+        return households.home_zone_id.isin(land_use.zone_id).all()
+
     @pa.dataframe_check(name="Example setup of a passing check.")
-    def dummy_example(cls, land_use: pd.DataFrame):
+    def dummy_example(cls, households: pd.DataFrame):
         return True
 
     @pa.dataframe_check(name="Example of a failed warning check.", raise_warning=True)
-    def dummy_warning_example(cls, land_use: pd.DataFrame):
+    def dummy_warning_example(cls, households: pd.DataFrame):
         return False
 
 

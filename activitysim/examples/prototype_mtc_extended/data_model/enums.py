@@ -103,6 +103,7 @@ class HHT(IntEnum):
     Provide an integer mapping for household/family type.
     """
 
+    GROUP_QUARTERS = 0
     FAMILY_MARRIED_COUPLE = 1
     FAMILY_MALE_HOUSEHOLDER_NO_WIFE = 2
     FAMILY_FEMANLE_HOUSEHOLDER_NO_HUSBAND = 3

@@ -146,9 +146,19 @@ def validate_with_pandera(
             validator_class.validate(TABLE_STORE[table_name], lazy=True)
         except pa.errors.SchemaErrors as e:
             v_errors[table_name].append(e)
-        for warning in caught_warnings:
-            v_warnings[table_name].append(warning.message)
 
+        for warning in caught_warnings:
+            if 'dataframe validator' in str(warning.message):
+                v_warnings[table_name].append(
+                    'Failed dataframe validator: '+
+                    str(warning.message).split('\n')[-1])
+            elif 'element-wise validator' in str(warning.message):
+                v_warnings[table_name].append(
+                    'Failed element-wise validator: <'+
+                    ' '.join(str(warning.message).split('\n')[0].split(' ')[1:3])+'\n\t'+
+                    '\n\t'.join(str(warning.message).split('\n')[1:])
+                    )
+     
     return v_errors, v_warnings
 
 
@@ -215,7 +225,7 @@ def report_errors(state, input_checker_settings, v_warnings, v_errors):
         errors = v_errors[table_name]
         warns = v_warnings[table_name]
 
-        msg = f"Encountered {len(errors)} errors and {len(warns)} warnings in table {table_name}"
+        msg = f"Encountered {sum(len(entry.schema_errors) for entry in errors)} errors and {len(warns)} warnings in table {table_name}"
 
         # first printing to activitysim log file
         if len(errors) > 0:
@@ -239,11 +249,16 @@ def report_errors(state, input_checker_settings, v_warnings, v_errors):
         if len(errors) > 0:
             input_check_failure = True
             print(f"{table_name} errors:", file=open(out_log_file, "a"))
-            [
-                print(str(error).split("Usage Tip")[0], file=open(out_log_file, "a"))
-                for error in errors
-            ]
-            print("\n", file=open(out_log_file, "a"))
+
+            for error_group in errors:
+                print('Error Counts\n------------',file=open(out_log_file,'a'))
+                for error_type in error_group.error_counts:
+                    print(f"{error_type}\t{error_group.error_counts[error_type]}",file=open(out_log_file,'a'))
+                print("\n", file=open(out_log_file, "a"))
+
+                for error in error_group.schema_errors:
+                    print(str(error),file=open(out_log_file,'a'))
+                    print("\n", file=open(out_log_file, "a"))
 
         # printing out any warnings
         warns = v_warnings[table_name]

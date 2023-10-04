@@ -45,6 +45,9 @@ _dir = os.path.dirname
 global TABLE_STORE
 TABLE_STORE = {}
 
+global queued_messages
+queued_messages = []
+
 
 def create_table_store(state, input_checker_settings):
     """
@@ -148,17 +151,19 @@ def validate_with_pandera(
             v_errors[table_name].append(e)
 
         for warning in caught_warnings:
-            if 'dataframe validator' in str(warning.message):
+            if "dataframe validator" in str(warning.message):
                 v_warnings[table_name].append(
-                    'Failed dataframe validator: '+
-                    str(warning.message).split('\n')[-1])
-            elif 'element-wise validator' in str(warning.message):
+                    "Failed dataframe validator: "
+                    + str(warning.message).split("\n")[-1]
+                )
+            elif "element-wise validator" in str(warning.message):
                 v_warnings[table_name].append(
-                    'Failed element-wise validator: <'+
-                    ' '.join(str(warning.message).split('\n')[0].split(' ')[1:3])+'\n\t'+
-                    '\n\t'.join(str(warning.message).split('\n')[1:])
-                    )
-     
+                    "Failed element-wise validator: <"
+                    + " ".join(str(warning.message).split("\n")[0].split(" ")[1:3])
+                    + "\n\t"
+                    + "\n\t".join(str(warning.message).split("\n")[1:])
+                )
+
     return v_errors, v_warnings
 
 
@@ -251,13 +256,16 @@ def report_errors(state, input_checker_settings, v_warnings, v_errors):
             print(f"{table_name} errors:", file=open(out_log_file, "a"))
 
             for error_group in errors:
-                print('Error Counts\n------------',file=open(out_log_file,'a'))
+                print("Error Counts\n------------", file=open(out_log_file, "a"))
                 for error_type in error_group.error_counts:
-                    print(f"{error_type}\t{error_group.error_counts[error_type]}",file=open(out_log_file,'a'))
+                    print(
+                        f"{error_type}\t{error_group.error_counts[error_type]}",
+                        file=open(out_log_file, "a"),
+                    )
                 print("\n", file=open(out_log_file, "a"))
 
                 for error in error_group.schema_errors:
-                    print(str(error),file=open(out_log_file,'a'))
+                    print(str(error), file=open(out_log_file, "a"))
                     print("\n", file=open(out_log_file, "a"))
 
         # printing out any warnings
@@ -271,6 +279,21 @@ def report_errors(state, input_checker_settings, v_warnings, v_errors):
         logger.info("See the input_checker.log for full details on errors and warnings")
 
     return input_check_failure
+
+
+def append_to_logfile(text: str):
+    """
+    Queue additional messages to append to the log file
+
+    Messages are queued, then written after all errors/warnings
+    """
+    try:
+        text = str(text)
+    except TypeError as e:
+        raise RuntimeError(
+            "append_to_logfile attempting to coerce text failed - not a string"
+        )
+    queued_messages.append(text)
 
 
 @workflow.step()
@@ -339,6 +362,14 @@ def input_checker(state: workflow.State):
     input_check_failure = report_errors(
         state, input_checker_settings, v_warnings, v_errors
     )
+
+    if len(queued_messages) > 0:
+        print(
+            "Additional messages\n-------------------",
+            file=open(state.get_log_file_path("input_checker.log"), "a"),
+        )
+        for msg in queued_messages:
+            print(msg, file=open(state.get_log_file_path("input_checker.log"), "a"))
 
     # free memory from input checker tables
     for key, value in TABLE_STORE.items():

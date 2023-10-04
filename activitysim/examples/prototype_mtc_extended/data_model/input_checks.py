@@ -20,7 +20,7 @@ from activitysim.core import config
 
 import enums as e
 
-from activitysim.abm.models.input_checker import TABLE_STORE
+from activitysim.abm.models.input_checker import TABLE_STORE, append_to_logfile
 
 logger = logging.getLogger(__name__)
 

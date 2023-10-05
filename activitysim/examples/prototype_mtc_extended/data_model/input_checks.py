@@ -48,7 +48,9 @@ class Household(pa.DataFrameModel):
     bug1: int
     bug2: int
 
-    @pa.dataframe_check(name="Household size equals the number of persons?")
+    @pa.dataframe_check(
+        name="Do household sizes equal the number of persons in that household?"
+    )
     def check_persons_per_household(cls, households: pd.DataFrame):
         persons = TABLE_STORE["persons"]
         hhsize = (
@@ -58,12 +60,14 @@ class Household(pa.DataFrameModel):
         )
         return (hhsize.values == households.hhsize.values).all()
 
-    @pa.dataframe_check(name="home_zone_id in landuse file?")
+    @pa.dataframe_check(
+        name="Are all households' home_zone_ids found in the landuse file?"
+    )
     def check_home_zone_in_landuse(cls, households: pd.DataFrame):
         land_use = TABLE_STORE["land_use"]
         return households.home_zone_id.isin(land_use.zone_id).all()
 
-    @pa.dataframe_check(name="Example setup of a passing check.")
+    @pa.dataframe_check(name="Example setup of a passing error check.")
     def dummy_example(cls, households: pd.DataFrame):
         return True
 
@@ -80,16 +84,18 @@ class Person(pa.DataFrameModel):
 
     person_id: int = pa.Field(unique=True, ge=0)
     household_id: int = pa.Field(nullable=False)
-    age: int = pa.Field(ge=0, le=100)
+    age: int = pa.Field(ge=5, le=100)
     sex: int = pa.Field(isin=e.Gender)
     ptype: int = pa.Field(isin=e.PersonType)
 
-    @pa.dataframe_check(name="All persons in households table?")
+    @pa.dataframe_check(
+        name="Do each persons' household IDs exist in the households table?"
+    )
     def check_persons_in_households(cls, persons: pd.DataFrame):
         households = TABLE_STORE["households"]
         return persons.household_id.isin(households.household_id)
 
-    @pa.dataframe_check(name="Every household has a person?")
+    @pa.dataframe_check(name="Does every household ID have a matching person ID?")
     def check_households_have_persons(cls, persons: pd.DataFrame):
         households = TABLE_STORE["households"]
         return households.household_id.isin(persons.household_id)
@@ -129,7 +135,9 @@ class Landuse(pa.DataFrameModel):
     AGREMPN: int = pa.Field(ge=0)
     MWTEMPN: int = pa.Field(ge=0)
 
-    @pa.dataframe_check(name="Total employment is sum of employment categories?")
+    @pa.dataframe_check(
+        name="Is total employment equal to the sum of all employment categories?"
+    )
     def check_tot_employment(cls, land_use: pd.DataFrame):
         tot_emp = land_use[
             ["RETEMPN", "FPSEMPN", "HEREMPN", "OTHEMPN", "AGREMPN", "MWTEMPN"]
@@ -157,7 +165,10 @@ class NetworkLinks(pa.DataFrameModel):
     BA_LANES: int = pa.Field(ge=0, le=10)
     FENAME: str = pa.Field()
 
-    @pa.dataframe_check(name="All skims in File?", raise_warning=True)
+    @pa.dataframe_check(
+        name="Are all skims listed in the tour mode choice config found in the taz_skims OMX file?",
+        raise_warning=True,
+    )
     def check_all_skims_exist(cls, land_use: pd.DataFrame):
         state = TABLE_STORE["state"]
 

@@ -195,7 +195,9 @@ def dedupe_alt_tdd(state: workflow.State, alt_tdd, tour_purpose, trace_label):
         state, tracing.extend_trace_label(trace_label, "dedupe_alt_tdd")
     ) as chunk_sizer:
         if tdd_segments is not None:
-            tdd_segments["time_period"] = tdd_segments["time_period"].astype(alt_tdd["out_period"].dtype)
+            tdd_segments["time_period"] = tdd_segments["time_period"].astype(
+                alt_tdd["out_period"].dtype
+            )
 
             dedupe_columns = ["out_period", "in_period"]
 
@@ -339,9 +341,16 @@ def compute_tour_scheduling_logsums(
     # FIXME:MEMORY
     #  These two lines each generate a massive array of strings,
     #  using a bunch of RAM and slowing things down.
-    time_cat_type = pd.api.types.CategoricalDtype(list(OrderedDict.fromkeys(network_los.skim_time_periods["labels"])), ordered=True)
-    alt_tdd["out_period"] = network_los.skim_time_period_label(alt_tdd["start"]).astype(time_cat_type)
-    alt_tdd["in_period"] = network_los.skim_time_period_label(alt_tdd["end"]).astype(time_cat_type)
+    time_cat_type = pd.api.types.CategoricalDtype(
+        list(OrderedDict.fromkeys(network_los.skim_time_periods["labels"])),
+        ordered=True,
+    )
+    alt_tdd["out_period"] = network_los.skim_time_period_label(alt_tdd["start"]).astype(
+        time_cat_type
+    )
+    alt_tdd["in_period"] = network_los.skim_time_period_label(alt_tdd["end"]).astype(
+        time_cat_type
+    )
 
     alt_tdd["duration"] = alt_tdd["end"] - alt_tdd["start"]
 

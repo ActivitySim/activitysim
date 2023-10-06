@@ -83,21 +83,35 @@ def eval_interaction_utilities(
     logger.info("Writing out interaction df info")
 
     buffer = io.StringIO()
-    df.info(memory_usage = 'deep', buf=buffer, verbose=True, show_counts=True)
+    df.info(memory_usage="deep", buf=buffer, verbose=True, show_counts=True)
     s = buffer.getvalue()
-    with open(os.path.join(state.filesystem.output_dir, trace_label+".interaction_df.info.txt"), "w", encoding="utf-8") as f:
+    with open(
+        os.path.join(
+            state.filesystem.output_dir, trace_label + ".interaction_df.info.txt"
+        ),
+        "w",
+        encoding="utf-8",
+    ) as f:
         f.write(s)
 
-    df.memory_usage(deep = True).to_csv(
-        os.path.join(state.filesystem.output_dir, trace_label+".interaction_df.memory_usage_deep.txt")
+    df.memory_usage(deep=True).to_csv(
+        os.path.join(
+            state.filesystem.output_dir,
+            trace_label + ".interaction_df.memory_usage_deep.txt",
+        )
     )
 
     df.memory_usage().to_csv(
-        os.path.join(state.filesystem.output_dir, trace_label+".interaction_df.memory_usage.txt")
+        os.path.join(
+            state.filesystem.output_dir,
+            trace_label + ".interaction_df.memory_usage.txt",
+        )
     )
 
     process = psutil.Process(os.getpid())
-    logger.info("PID RSS when writing out interaction df info: %s" % process.memory_info().rss)
+    logger.info(
+        "PID RSS when writing out interaction df info: %s" % process.memory_info().rss
+    )
 
     sharrow_enabled = state.settings.sharrow
 

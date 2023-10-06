@@ -361,7 +361,7 @@ def assign_variables(
             if sharrow_enabled:
                 if isinstance(expr_values.dtype, pd.api.types.CategoricalDtype):
                     None
-                elif(
+                elif (
                     np.issubdtype(expr_values.dtype, np.floating)
                     and expr_values.dtype.itemsize < 4
                 ):

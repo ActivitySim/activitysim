@@ -167,7 +167,9 @@ def stop_frequency(
 
         # convert indexes to alternative names
         choices = pd.Series(segment_spec.columns[choices.values], index=choices.index)
-        cat_type = pd.api.types.CategoricalDtype(segment_spec.columns.tolist(), ordered=False)
+        cat_type = pd.api.types.CategoricalDtype(
+            segment_spec.columns.tolist(), ordered=False
+        )
         choices = choices.astype(cat_type)
 
         if estimator:

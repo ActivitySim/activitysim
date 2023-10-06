@@ -1294,7 +1294,9 @@ def run_trip_destination(
                     trace_label=nth_trace_label,
                 )
 
-            if isinstance(nth_trips["trip_period"].dtype, pd.api.types.CategoricalDtype):
+            if isinstance(
+                nth_trips["trip_period"].dtype, pd.api.types.CategoricalDtype
+            ):
                 skims = network_los.get_default_skim_dict()
                 if hasattr(skims, "map_time_periods_from_series"):
                     trip_period_idx = skims.map_time_periods_from_series(
@@ -1317,7 +1319,9 @@ def run_trip_destination(
 
             # - choose destination for nth_trips, segmented by primary_purpose
             choices_list = []
-            for primary_purpose, trips_segment in nth_trips.groupby("primary_purpose", observed=True):
+            for primary_purpose, trips_segment in nth_trips.groupby(
+                "primary_purpose", observed=True
+            ):
                 choices, destination_sample = choose_trip_destination(
                     state,
                     primary_purpose,

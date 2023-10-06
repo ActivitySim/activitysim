@@ -69,7 +69,9 @@ def create_logsum_trips(
     pandas.DataFrame
         Table of trips: 2 per tour, with O/D and purpose inherited from tour
     """
-    stop_freq_cat_type = pd.api.types.CategoricalDtype(["", "work1", "work2", "school1", "school2", "work_and_school"], ordered=False)
+    stop_freq_cat_type = pd.api.types.CategoricalDtype(
+        ["", "work1", "work2", "school1", "school2", "work_and_school"], ordered=False
+    )
     stop_frequency_alts = state.get_injectable("stop_frequency_alts")
     stop_freq = "0out_0in"  # no intermediate stops
     tours["stop_frequency"] = stop_freq
@@ -77,7 +79,7 @@ def create_logsum_trips(
     tours["primary_purpose"] = tours["tour_purpose"]
     trips = trip.initialize_from_tours(state, tours, stop_frequency_alts)
     trips["stop_frequency"] = stop_freq
-    
+
     outbound = trips["outbound"]
     trips["depart"] = reindex(tours.start, trips.tour_id)
     trips.loc[~outbound, "depart"] = reindex(tours.end, trips.loc[~outbound, "tour_id"])

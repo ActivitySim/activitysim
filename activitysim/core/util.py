@@ -356,7 +356,7 @@ def assign_in_place(df, df2, downcast_float=False):
                         "assign_in_place changed dtype %s of column %s to %s"
                         % (old_dtype, c, df[c].dtype)
                     )
-            
+
             if isinstance(old_dtype, pd.api.types.CategoricalDtype):
                 continue
 
@@ -386,7 +386,9 @@ def assign_in_place(df, df2, downcast_float=False):
     auto_opt_pd_dtypes(df, downcast_float, inplace=True)
 
 
-def auto_opt_pd_dtypes(df_: pd.DataFrame, downcast_float=False, inplace=False) -> Optional[pd.DataFrame]:
+def auto_opt_pd_dtypes(
+    df_: pd.DataFrame, downcast_float=False, inplace=False
+) -> Optional[pd.DataFrame]:
     """
     Automatically downcast Number dtypes for minimal possible,
     will not touch other (datetime, str, object, etc)
@@ -399,14 +401,14 @@ def auto_opt_pd_dtypes(df_: pd.DataFrame, downcast_float=False, inplace=False) -
         if True, downcast float columns if possible
     inplace: bool
         if False, will return a copy of input dataset
-    
+
     Returns
     -------
         `None` if `inplace=True` or dataframe if `inplace=False`
 
     """
     df = df_ if inplace else df_.copy()
-        
+
     for col in df.columns:
         dtype = df[col].dtype
         # Skip optimizing floats for precision concerns
@@ -421,7 +423,7 @@ def auto_opt_pd_dtypes(df_: pd.DataFrame, downcast_float=False, inplace=False) -
                 if df[col].max() >= 16777216:
                     continue
                 else:
-                    df[col] = pd.to_numeric(df[col], downcast='float')
+                    df[col] = pd.to_numeric(df[col], downcast="float")
         # Skip if the column is already categorical
         if pd.api.types.is_categorical_dtype(dtype):
             continue
@@ -434,7 +436,7 @@ def auto_opt_pd_dtypes(df_: pd.DataFrame, downcast_float=False, inplace=False) -
             if df[col].max() >= 16777216:
                 continue
             else:
-                df[col] = pd.to_numeric(df[col], downcast='integer')
+                df[col] = pd.to_numeric(df[col], downcast="integer")
                 continue
             # there are calcualtions in asim that expect results in negative values
             # operations on two unsigned types will not produce negative values
@@ -442,10 +444,10 @@ def auto_opt_pd_dtypes(df_: pd.DataFrame, downcast_float=False, inplace=False) -
             #     df[col] = pd.to_numeric(df[col], downcast='unsigned')
             # else:
             #     df[col] = pd.to_numeric(df[col], downcast='integer')
-    
+
     if not inplace:
         return df
-          
+
 
 def df_from_dict(values, index=None):
 

@@ -22,10 +22,15 @@ logger = logging.getLogger(__name__)
 
 def add_null_results(state, trace_label, tours):
     logger.info("Skipping %s: add_null_results", trace_label)
-    cat_type = pd.api.types.CategoricalDtype(["", "no_subtours","eat","business1","maint","business2","eat_business"], ordered=False)
+    cat_type = pd.api.types.CategoricalDtype(
+        ["", "no_subtours", "eat", "business1", "maint", "business2", "eat_business"],
+        ordered=False,
+    )
     choices = choices.astype(cat_type)
     tours["atwork_subtour_frequency"] = ""
-    tours["atwork_subtour_frequency"] = tours["atwork_subtour_frequency"].astype(cat_type)
+    tours["atwork_subtour_frequency"] = tours["atwork_subtour_frequency"].astype(
+        cat_type
+    )
     state.add_table("tours", tours)
 
 
@@ -103,7 +108,10 @@ def atwork_subtour_frequency(
 
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
-    cat_type = pd.api.types.CategoricalDtype(["", "no_subtours","eat","business1","maint","business2","eat_business"], ordered=False)
+    cat_type = pd.api.types.CategoricalDtype(
+        ["", "no_subtours", "eat", "business1", "maint", "business2", "eat_business"],
+        ordered=False,
+    )
     choices = choices.astype(cat_type)
 
     if estimator:

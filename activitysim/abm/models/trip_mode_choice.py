@@ -168,7 +168,9 @@ def trip_mode_choice(
 
     choices_list = []
     cols_to_keep_list = []
-    for primary_purpose, trips_segment in trips_merged.groupby("primary_purpose", observed=True):
+    for primary_purpose, trips_segment in trips_merged.groupby(
+        "primary_purpose", observed=True
+    ):
         segment_trace_label = tracing.extend_trace_label(trace_label, primary_purpose)
 
         logger.info(

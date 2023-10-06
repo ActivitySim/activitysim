@@ -86,7 +86,10 @@ def telecommute_frequency(
     )
 
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
-    telecommute_frequency_cat = pd.api.types.CategoricalDtype(["", "No_Telecommute","1_day_week","2_3_days_week","4_days_week"], ordered=False)
+    telecommute_frequency_cat = pd.api.types.CategoricalDtype(
+        ["", "No_Telecommute", "1_day_week", "2_3_days_week", "4_days_week"],
+        ordered=False,
+    )
     choices = choices.astype(telecommute_frequency_cat)
 
     if estimator:
@@ -97,9 +100,7 @@ def telecommute_frequency(
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    persons["telecommute_frequency"] = (
-        choices.reindex(persons.index).fillna("")
-    )
+    persons["telecommute_frequency"] = choices.reindex(persons.index).fillna("")
 
     state.add_table("persons", persons)
 

@@ -24,7 +24,9 @@ def add_null_results(state, trace_label, mandatory_tour_frequency_settings):
 
     persons = state.get_dataframe("persons")
     persons["mandatory_tour_frequency"] = pd.categorical(
-        "", categories=["", "work1", "work2", "school1", "school2", "work_and_school"], ordered=False
+        "",
+        categories=["", "work1", "work2", "school1", "school2", "work_and_school"],
+        ordered=False,
     )
 
     tours = pd.DataFrame()
@@ -112,7 +114,9 @@ def mandatory_tour_frequency(
 
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
-    cat_type = pd.api.types.CategoricalDtype(["", "work1", "work2", "school1", "school2", "work_and_school"], ordered=False)
+    cat_type = pd.api.types.CategoricalDtype(
+        ["", "work1", "work2", "school1", "school2", "work_and_school"], ordered=False
+    )
     choices = choices.astype(cat_type)
 
     if estimator:
@@ -146,9 +150,7 @@ def mandatory_tour_frequency(
     persons = state.get_dataframe("persons")
 
     # need to reindex as we only handled persons with cdap_activity == 'M'
-    persons["mandatory_tour_frequency"] = (
-        choices.reindex(persons.index).fillna("")
-    )
+    persons["mandatory_tour_frequency"] = choices.reindex(persons.index).fillna("")
 
     expressions.assign_columns(
         state,

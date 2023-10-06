@@ -426,12 +426,14 @@ def eval_interaction_utilities(
         #
         if sh_flow is not None and trace_rows is not None and trace_rows.any():
             assert type(trace_rows) == np.ndarray
+            logger.info("sh_flow load dataarray")
             sh_utility_fat = sh_flow.load_dataarray(
                 # sh_flow.tree.replace_datasets(
                 #     df=df.iloc[trace_rows],
                 # ),
                 dtype=np.float32,
             )
+            logger.info("finish sh_flow load dataarray")
             sh_utility_fat = sh_utility_fat[trace_rows, :]
             sh_utility_fat = sh_utility_fat.to_dataframe("vals")
             try:

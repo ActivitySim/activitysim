@@ -409,8 +409,6 @@ def auto_opt_pd_dtypes(df_: pd.DataFrame, downcast_float=False, inplace=False) -
         
     for col in df.columns:
         dtype = df[col].dtype
-        if "density" in col:
-            None
         # Skip optimizing floats for precision concerns
         if pd.api.types.is_float_dtype(dtype):
             if not downcast_float:

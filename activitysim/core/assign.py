@@ -396,7 +396,8 @@ def assign_variables(
 
         # just keeping track of temps so we can chunk.log_df
         if is_temp(target):
-            temps[target] = expr_values
+            if chunk_log:
+                temps[target] = expr_values
         else:
             variables[target] = expr_values
 

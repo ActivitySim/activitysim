@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 from __future__ import annotations
+from collections import OrderedDict
 
 import logging
 
@@ -143,13 +144,18 @@ def _compute_logsums(
 
         if preprocessor_settings:
             simulate.set_skim_wrapper_targets(choosers, skims)
-
+            logger.info(
+                f"{trace_label} start preprocessing prior to compute_logsums for {choosers.shape[0]} choosers {alt_tdd.shape[0]} alts"
+            )
             expressions.assign_columns(
                 state,
                 df=choosers,
                 model_settings=preprocessor_settings,
                 locals_dict=locals_dict,
                 trace_label=trace_label,
+            )
+            logger.info(
+                f"{trace_label} end preprocessing prior to compute_logsums for {choosers.shape[0]} choosers {alt_tdd.shape[0]} alts"
             )
 
         # - compute logsums
@@ -333,7 +339,7 @@ def compute_tour_scheduling_logsums(
     # FIXME:MEMORY
     #  These two lines each generate a massive array of strings,
     #  using a bunch of RAM and slowing things down.
-    time_cat_type = pd.api.types.CategoricalDtype(list(set(network_los.skim_time_periods["labels"])), ordered=False)
+    time_cat_type = pd.api.types.CategoricalDtype(list(OrderedDict.fromkeys(network_los.skim_time_periods["labels"])), ordered=True)
     alt_tdd["out_period"] = network_los.skim_time_period_label(alt_tdd["start"]).astype(time_cat_type)
     alt_tdd["in_period"] = network_los.skim_time_period_label(alt_tdd["end"]).astype(time_cat_type)
 

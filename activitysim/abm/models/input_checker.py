@@ -36,6 +36,7 @@ from activitysim.core import workflow
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
+file_logger = logger.getChild("logfile")
 
 # warnings.filterwarnings("ignore")
 
@@ -45,8 +46,10 @@ _dir = os.path.dirname
 global TABLE_STORE
 TABLE_STORE = {}
 
-global queued_messages
-queued_messages = []
+_log_infos = {}
+
+global cur_table
+cur_table = None
 
 
 def create_table_store(state, input_checker_settings):
@@ -75,6 +78,7 @@ def create_table_store(state, input_checker_settings):
 
         # add pandas dataframes to TABLE_STORE dictionary with table name as key
         TABLE_STORE[table_name] = table
+        _log_infos[table_name] = list()
 
     # FIXME: need to have state object available in the input checker. Is there a better way to pass this?
     TABLE_STORE["state"] = state
@@ -217,10 +221,6 @@ def validate_with_pydantic(
 
 
 def report_errors(state, input_checker_settings, v_warnings, v_errors):
-    # creating a new log file to report out warnings and errors
-    out_log_file = state.get_log_file_path("input_checker.log")
-    if os.path.exists(out_log_file):
-        os.remove(out_log_file)
 
     # logging overall statistics first before printing details
     for table_settings in input_checker_settings["table_list"]:
@@ -241,7 +241,8 @@ def report_errors(state, input_checker_settings, v_warnings, v_errors):
             logger.info(msg)
 
         # printing to input_checker.log file
-        print(msg, file=open(out_log_file, "a"))
+        file_logger.info(msg)
+    file_logger.info("\n")
 
     # now reporting details to just input_checker.log
     input_check_failure = False
@@ -249,31 +250,47 @@ def report_errors(state, input_checker_settings, v_warnings, v_errors):
     for table_settings in input_checker_settings["table_list"]:
         table_name = table_settings["name"]
 
+        if (
+            len(v_errors[table_name]) > 0
+            or len(v_warnings[table_name]) > 0
+            or len(_log_infos[table_name]) > 0
+        ):
+            file_logger.info("#" * (len(table_name) + 4))
+            file_logger.info("  " + table_name)
+            file_logger.info("#" * (len(table_name) + 4))
+
         # printing out any errors
         errors = v_errors[table_name]
         if len(errors) > 0:
             input_check_failure = True
-            print(f"{table_name} errors:", file=open(out_log_file, "a"))
+            file_logger.error(f"{table_name} errors:")
 
             for error_group in errors:
-                print("Error Counts\n------------", file=open(out_log_file, "a"))
+                file_logger.error("Error Counts\n------------")
                 for error_type in error_group.error_counts:
-                    print(
-                        f"{error_type}\t{error_group.error_counts[error_type]}",
-                        file=open(out_log_file, "a"),
+                    file_logger.error(
+                        f"{error_type}\t{error_group.error_counts[error_type]}\n",
                     )
-                print("\n", file=open(out_log_file, "a"))
 
                 for error in error_group.schema_errors:
-                    print(str(error), file=open(out_log_file, "a"))
-                    print("\n", file=open(out_log_file, "a"))
+                    file_logger.error(str(error) + "\n")
 
         # printing out any warnings
         warns = v_warnings[table_name]
         if len(warns) > 0:
-            print(f"{table_name} warnings:", file=open(out_log_file, "a"))
-            [print(warn, file=open(out_log_file, "a")) for warn in warns]
-            print("\n", file=open(out_log_file, "a"))
+            file_logger.warning(f"{table_name} warnings:")
+
+            for warn in warns:
+                file_logger.warning(warn)
+            file_logger.warning("\n")
+
+        infos = _log_infos[table_name]
+        if len(infos) > 0:
+            file_logger.info(f"{table_name} additional messages:")
+
+            for info in infos:
+                file_logger.info(info)
+            file_logger.info("\n")
 
     if (len(v_warnings) > 0) | (len(v_errors) > 0):
         logger.info("See the input_checker.log for full details on errors and warnings")
@@ -281,23 +298,20 @@ def report_errors(state, input_checker_settings, v_warnings, v_errors):
     return input_check_failure
 
 
-def append_to_logfile(text: str):
-    """
-    Queue additional messages to append to the log file
-
-    Messages are queued, then written after all errors/warnings
-    """
-    try:
-        text = str(text)
-    except TypeError as e:
-        raise RuntimeError(
-            "append_to_logfile attempting to coerce text failed - not a string"
-        )
-    queued_messages.append(text)
+def log_info(text: str):
+    _log_infos[cur_table].append(text)
 
 
 @workflow.step()
 def input_checker(state: workflow.State):
+
+    # creating a new log file to report out warnings and errors
+    out_log_file = state.get_log_file_path("input_checker.log")
+    if os.path.exists(out_log_file):
+        os.remove(out_log_file)
+
+    file_logger.addHandler(logging.FileHandler(out_log_file))
+    file_logger.propagate = False
 
     input_checker_settings = state.filesystem.read_model_settings(
         "input_checker.yaml", mandatory=True
@@ -335,7 +349,8 @@ def input_checker(state: workflow.State):
     for table_settings in input_checker_settings["table_list"]:
         validation_settings = table_settings["validation"]
         table_name = table_settings["name"]
-
+        global cur_table
+        cur_table = table_name
         # initializing validation error and warning tracking
         v_errors[table_name] = []
         v_warnings[table_name] = []
@@ -362,14 +377,6 @@ def input_checker(state: workflow.State):
     input_check_failure = report_errors(
         state, input_checker_settings, v_warnings, v_errors
     )
-
-    if len(queued_messages) > 0:
-        print(
-            "Additional messages\n-------------------",
-            file=open(state.get_log_file_path("input_checker.log"), "a"),
-        )
-        for msg in queued_messages:
-            print(msg, file=open(state.get_log_file_path("input_checker.log"), "a"))
 
     # free memory from input checker tables
     for key, value in TABLE_STORE.items():

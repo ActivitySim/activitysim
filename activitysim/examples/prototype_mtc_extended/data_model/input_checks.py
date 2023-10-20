@@ -20,7 +20,7 @@ from activitysim.core import config
 
 import enums as e
 
-from activitysim.abm.models.input_checker import TABLE_STORE, append_to_logfile
+from activitysim.abm.models.input_checker import TABLE_STORE, log_info
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +58,7 @@ class Household(pa.DataFrameModel):
             .count()
             .reindex(households.household_id)
         )
+        log_info("test logging info")
         return (hhsize.values == households.hhsize.values).all()
 
     @pa.dataframe_check(

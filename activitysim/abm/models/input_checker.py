@@ -1,28 +1,3 @@
-# //////////////////////////////////////////////////////////////////////////////
-# ////                                                                       ///
-# //// Copyright RSG, 2019-2020.                                             ///
-# //// Rights to use and modify are granted to the                           ///
-# //// San Diego Association of Governments and partner agencies.            ///
-# //// This copyright notice must be preserved.                              ///
-# ////                                                                       ///
-# //// import/input_checker.py                                               ///
-# ////                                                                       ///
-# ////                                                                       ///
-# ////                                                                       ///
-# ////                                                                       ///
-# //////////////////////////////////////////////////////////////////////////////
-#
-# Reviews all inputs to ActivitySim for possible issues that will result in model errors
-#
-#
-# Files referenced:
-# 	input_checker\config\input_checker_spec.csv
-# 	input_checker\config\inputs_list.csv
-#
-# Script example:
-# python C:\ABM_runs\maint_2020_RSG\Tasks\input_checker\emme_toolbox\emme\toolbox\import\input_checker.py
-
-
 import os, sys, logging
 import warnings
 import pandas as pd
@@ -37,11 +12,6 @@ from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
 file_logger = logger.getChild("logfile")
-
-# warnings.filterwarnings("ignore")
-
-_join = os.path.join
-_dir = os.path.dirname
 
 global TABLE_STORE
 TABLE_STORE = {}
@@ -82,6 +52,48 @@ def create_table_store(state, input_checker_settings):
 
     # FIXME: need to have state object available in the input checker. Is there a better way to pass this?
     TABLE_STORE["state"] = state
+
+
+def validate_with_pandera(
+    input_checker, table_name, validation_settings, v_errors, v_warnings
+):
+    """
+    Validating with pandera.  Grabs the relevant class for the table and runs the validate() function.
+
+    Structure of the code is as follows:
+    households = pd.DataFrame()
+    in input_checker:
+        class Household(pa.DataFrameModel)...
+    validator_class = input_checker.Household()
+    validator_class.validate(households)
+
+    Warnings & errors are captured and written out in full after all tables are checked.
+    """
+
+    validator_class = getattr(input_checker, validation_settings["class"])
+
+    with warnings.catch_warnings(record=True) as caught_warnings:
+        warnings.simplefilter("always")
+        try:
+            validator_class.validate(TABLE_STORE[table_name], lazy=True)
+        except pa.errors.SchemaErrors as e:
+            v_errors[table_name].append(e)
+
+        for warning in caught_warnings:
+            if "dataframe validator" in str(warning.message):
+                v_warnings[table_name].append(
+                    "Failed dataframe validator: "
+                    + str(warning.message).split("\n")[-1]
+                )
+            elif "element-wise validator" in str(warning.message):
+                v_warnings[table_name].append(
+                    "Failed element-wise validator: <"
+                    + " ".join(str(warning.message).split("\n")[0].split(" ")[1:3])
+                    + "\n\t"
+                    + "\n\t".join(str(warning.message).split("\n")[1:])
+                )
+
+    return v_errors, v_warnings
 
 
 def add_child_to_parent_list(pydantic_lists, parent_table_name, children_settings):
@@ -127,48 +139,6 @@ def add_child_to_parent_list(pydantic_lists, parent_table_name, children_setting
     pydantic_lists[parent_table_name] = parent_list
 
     return pydantic_lists
-
-
-def validate_with_pandera(
-    input_checker, table_name, validation_settings, v_errors, v_warnings
-):
-    """
-    Validating with pandera.  Grabs the relevant class for the table and runs the validate() function.
-
-    Structure of the code is as follows:
-    households = pd.DataFrame()
-    in input_checker:
-        class Household(pa.DataFrameModel)...
-    validator_class = input_checker.Household()
-    validator_class.validate(households)
-
-    Warnings & errors are captured and written out in full after all tables are checked.
-    """
-
-    validator_class = getattr(input_checker, validation_settings["class"])
-
-    with warnings.catch_warnings(record=True) as caught_warnings:
-        warnings.simplefilter("always")
-        try:
-            validator_class.validate(TABLE_STORE[table_name], lazy=True)
-        except pa.errors.SchemaErrors as e:
-            v_errors[table_name].append(e)
-
-        for warning in caught_warnings:
-            if "dataframe validator" in str(warning.message):
-                v_warnings[table_name].append(
-                    "Failed dataframe validator: "
-                    + str(warning.message).split("\n")[-1]
-                )
-            elif "element-wise validator" in str(warning.message):
-                v_warnings[table_name].append(
-                    "Failed element-wise validator: <"
-                    + " ".join(str(warning.message).split("\n")[0].split(" ")[1:3])
-                    + "\n\t"
-                    + "\n\t".join(str(warning.message).split("\n")[1:])
-                )
-
-    return v_errors, v_warnings
 
 
 def validate_with_pydantic(
@@ -304,6 +274,18 @@ def log_info(text: str):
 
 @workflow.step()
 def input_checker(state: workflow.State):
+    """
+    Input checker model is designed to be a stand-alone model that gets run at the
+    start of each ActivitySim run to quickly check the inputs for potential errors.
+
+    Users are able to write python code built on the pandera package to perform the checks.
+    The ActivitySim code written in this module then imports the data according to the user
+    specification and the input checks and passes them to pandera.
+
+    Pandera will output warnings and errors which are captured and written to the input_checker.log file.
+    Additional info can be written to the output log file from the user by calling the log_info() inside
+    their input checking code.  See the ActivitySim model documentation for more detailed user instructions.
+    """
 
     # creating a new log file to report out warnings and errors
     out_log_file = state.get_log_file_path("input_checker.log")
@@ -349,8 +331,12 @@ def input_checker(state: workflow.State):
     for table_settings in input_checker_settings["table_list"]:
         validation_settings = table_settings["validation"]
         table_name = table_settings["name"]
+
+        # creating current table global so that logger can access automatically without the
+        # user having to specify when calling log_info
         global cur_table
         cur_table = table_name
+
         # initializing validation error and warning tracking
         v_errors[table_name] = []
         v_warnings[table_name] = []

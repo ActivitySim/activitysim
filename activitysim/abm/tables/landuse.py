@@ -23,12 +23,16 @@ def land_use(state: workflow.State):
 
     sharrow_enabled = state.settings.sharrow
     if sharrow_enabled:
+        err_msg = (
+            "a zero-based land_use index is required for sharrow,\n"
+            "try adding `recode_pipeline_columns: true` to your settings file."
+        )
         # when using sharrow, the land use file must be organized (either in raw
         # form or via recoding) so that the index is zero-based and contiguous
-        assert df.index.is_monotonic_increasing
-        assert df.index[0] == 0
-        assert df.index[-1] == len(df.index) - 1
-        assert df.index.dtype.kind == "i"
+        assert df.index.is_monotonic_increasing, err_msg
+        assert df.index[0] == 0, err_msg
+        assert df.index[-1] == len(df.index) - 1, err_msg
+        assert df.index.dtype.kind == "i", err_msg
 
     # try to make life easy for everybody by keeping everything in canonical order
     # but as long as coalesce_pipeline doesn't sort tables it coalesces, it might not stay in order

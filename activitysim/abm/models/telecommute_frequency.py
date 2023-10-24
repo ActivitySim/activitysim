@@ -22,7 +22,7 @@ logger = logging.getLogger("activitysim")
 
 class TelecommuteFrequencySettings(BaseLogitComponentSettings):
     """
-    Settings for the `free_parking` component.
+    Settings for the `telecommute_frequency` component.
     """
 
     preprocessor: PreprocessorSettings | None = None

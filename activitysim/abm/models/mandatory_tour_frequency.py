@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import pandas as pd
 
@@ -15,6 +16,7 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 
 logger = logging.getLogger(__name__)
 
@@ -42,20 +44,43 @@ def add_null_results(state, trace_label, mandatory_tour_frequency_settings):
     state.add_table("persons", persons)
 
 
+class MandatoryTourFrequencySettings(PydanticReadable):
+    """
+    Settings for the `mandatory_tour_frequency` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    SPEC: str = "mandatory_tour_frequency.csv"
+    """Filename for the accessibility specification (csv) file."""
+
+    COEFFICIENTS: str = "mandatory_tour_frequency_coefficients.csv"
+    """Filename for the mandatory tour frequency coefficients (csv) file."""
+
+    annotate_persons: dict[str, Any] = {}
+
+
 @workflow.step
 def mandatory_tour_frequency(
     state: workflow.State,
     persons_merged: pd.DataFrame,
+    model_settings: MandatoryTourFrequencySettings | None = None,
+    model_settings_file_name: str = "mandatory_tour_frequency.yaml",
+    trace_label: str = "mandatory_tour_frequency",
 ) -> None:
     """
     This model predicts the frequency of making mandatory trips (see the
     alternatives above) - these trips include work and school in some combination.
     """
-    trace_label = "mandatory_tour_frequency"
-    model_settings_file_name = "mandatory_tour_frequency.yaml"
+
     trace_hh_id = state.settings.trace_hh_id
 
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = MandatoryTourFrequencySettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
     choosers = persons_merged
     # filter based on results of CDAP
@@ -68,7 +93,7 @@ def mandatory_tour_frequency(
         return
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         locals_dict = {}
 
@@ -82,7 +107,7 @@ def mandatory_tour_frequency(
 
     estimator = estimation.manager.begin_estimation(state, "mandatory_tour_frequency")
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec, coefficients_df, estimator
@@ -149,7 +174,7 @@ def mandatory_tour_frequency(
     expressions.assign_columns(
         state,
         df=persons,
-        model_settings=model_settings.get("annotate_persons"),
+        model_settings=model_settings.annotate_persons,
         trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
     )
 

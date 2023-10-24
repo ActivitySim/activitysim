@@ -107,7 +107,7 @@ class InitializeLanduseSettings(PydanticReadable):
 @workflow.step
 def initialize_landuse(
     state: workflow.State,
-    model_settings: InitialiseLanduseSettings | None = None,
+    model_settings: InitializeLanduseSettings | None = None,
     model_settings_file_name: str = "initialize_landuse.yaml",
     trace_label: str = "initialize_landuse",
 ) -> None:

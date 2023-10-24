@@ -19,9 +19,27 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
+
+
+class TripModeChoiceSettings(LogitComponentSettings):
+    """
+    Settings for the `trip_mode_choice` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    MODE_CHOICE_LOGSUM_COLUMN_NAME: str = "mode_choice_logsum"
+    """Column name of the mode choice logsum"""
+
+    TOURS_MERGED_CHOOSER_COLUMNS: list[str] | None = None
+    """List of columns to be filtered from the dataframe to reduce memory
+    needs filter chooser table to these fields"""
 
 
 @workflow.step
@@ -29,6 +47,9 @@ def trip_mode_choice(
     state: workflow.State,
     trips: pd.DataFrame,
     network_los: los.Network_LOS,
+    model_settings: TripModeChoiceSettings | None = None,
+    model_settings_file_name: str = "trip_mode_choice.yaml",
+    trace_label: str = "trip_mode_choice",
 ) -> None:
     """
     Trip mode choice - compute trip_mode (same values as for tour_mode) for each trip.
@@ -39,11 +60,13 @@ def trip_mode_choice(
     Adds trip_mode column to trip table
     """
 
-    trace_label = "trip_mode_choice"
-    model_settings_file_name = "trip_mode_choice.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = TripModeChoiceSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
-    logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
+    logsum_column_name = model_settings.MODE_CHOICE_LOGSUM_COLUMN_NAME
     mode_column_name = "trip_mode"
 
     trips_df = trips
@@ -54,7 +77,7 @@ def trip_mode_choice(
     # needed by tour_merged (e.g. home_zone_id) exist
     tours_cols = [
         col
-        for col in model_settings["TOURS_MERGED_CHOOSER_COLUMNS"]
+        for col in model_settings.TOURS_MERGED_CHOOSER_COLUMNS
         if col not in trips_df.columns
     ]
     if len(tours_cols) > 0:

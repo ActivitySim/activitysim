@@ -13,6 +13,7 @@ from activitysim.abm.models.util.vectorize_tour_scheduling import (
 from activitysim.core import config, estimation, expressions, simulate
 from activitysim.core import timetable as tt
 from activitysim.core import tracing, workflow
+from activitysim.core.configuration.base import PydanticReadable
 from activitysim.core.skim_dataset import SkimDataset
 from activitysim.core.skim_dictionary import SkimDict
 from activitysim.core.util import assign_in_place
@@ -22,6 +23,15 @@ logger = logging.getLogger(__name__)
 DUMP = False
 
 
+class AtworkSubtourSchedulingSettings(PydanticReadable):
+    """
+    Settings for the `atwork_subtour_scheduling` component.
+    """
+
+    sharrow_skip: bool = True
+    """Skip Sharow"""  # TODO Check this again
+
+
 @workflow.step
 def atwork_subtour_scheduling(
     state: workflow.State,
@@ -29,13 +39,14 @@ def atwork_subtour_scheduling(
     persons_merged: pd.DataFrame,
     tdd_alts: pd.DataFrame,
     skim_dict: SkimDict | SkimDataset,
+    model_settings: AtworkSubtourSchedulingSettings | None = None,
+    model_settings_file_name: str = "tour_scheduling_atwork.yaml",
+    trace_label: str = "atwork_subtour_scheduling",
 ) -> None:
     """
     This model predicts the departure time and duration of each activity for at work subtours tours
     """
 
-    trace_label = "atwork_subtour_scheduling"
-    model_settings_file_name = "tour_scheduling_atwork.yaml"
     trace_hh_id = state.settings.trace_hh_id
     subtours = tours[tours.tour_category == "atwork"]
 
@@ -44,11 +55,16 @@ def atwork_subtour_scheduling(
         tracing.no_results(trace_label)
         return
 
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = AtworkSubtourSchedulingSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
+
     estimator = estimation.manager.begin_estimation(state, "atwork_subtour_scheduling")
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
-    sharrow_skip = model_settings.get("sharrow_skip")
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
+    sharrow_skip = model_settings.sharrow_skip
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec, coefficients_df, estimator

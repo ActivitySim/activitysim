@@ -13,6 +13,7 @@ from activitysim.abm.models.util.trip import (
     get_time_windows,
 )
 from activitysim.core import chunk, expressions, simulate, tracing, workflow
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.interaction_sample_simulate import _interaction_sample_simulate
 from activitysim.core.skim_dataset import SkimDataset
 from activitysim.core.skim_dictionary import SkimDict
@@ -323,15 +324,32 @@ def run_trip_scheduling_choice(
     return tours
 
 
+class TripSchedulingChoiceSettings(PydanticReadable):
+    """
+    Settings for the `trip_scheduling_choice` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+
 @workflow.step
 def trip_scheduling_choice(
     state: workflow.State,
     trips: pd.DataFrame,
     tours: pd.DataFrame,
     skim_dict: SkimDict | SkimDataset,
+    model_settings: TripSchedulingChoiceSettings | None = None,
+    model_settings_file_name: str = "trip_scheduling_choice.yaml",
+    trace_label: str = "trip_scheduling_choice",
 ) -> None:
-    trace_label = "trip_scheduling_choice"
-    model_settings = state.filesystem.read_model_settings("trip_scheduling_choice.yaml")
+
+    if model_settings is None:
+        model_settings = TripSchedulingChoiceSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
+
     spec = get_spec_for_segment(state, model_settings, "SPECIFICATION", "stage_one")
 
     trips_df = trips
@@ -364,7 +382,7 @@ def trip_scheduling_choice(
         .reindex(tours.index)
     )
 
-    preprocessor_settings = model_settings.get("PREPROCESSOR", None)
+    preprocessor_settings = model_settings.preprocessor
 
     # hack: preprocessor adds origin column in place if it does not exist already
     od_skim_stack_wrapper = skim_dict.wrap("origin", "destination")

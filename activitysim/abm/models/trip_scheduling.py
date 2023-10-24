@@ -15,6 +15,7 @@ from activitysim.abm.models.util.school_escort_tours_trips import (
 )
 from activitysim.abm.models.util.trip import cleanup_failed_trips, failed_trip_cohorts
 from activitysim.core import chunk, config, estimation, expressions, tracing, workflow
+from activitysim.core.configuration.base import PydanticReadable
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
@@ -429,11 +430,36 @@ def run_trip_scheduling(
     return choices
 
 
+class TripSchedulingSettings(PydanticReadable):
+    """
+    Settings for the `trip_scheduling` component.
+    """
+
+    PROBS_SPEC: str = "trip_scheduling_probs.csv"
+    """Filename for the trip scheduling probabilities (.csv) file."""
+
+    COEFFICIENTS: str = "trip_scheduling_coefficients.csv"
+    """Filename for the trip scheduling coefficients file"""
+
+    FAILFIX: str = "choose_most_initial"
+    """ """
+
+    MAX_ITERATIONS: int = 1
+    """Maximum iterations."""
+
+    DEPART_ALT_BASE: int = 5
+    """Integer to add to probs column index to get time period it represents.
+    e.g. depart_alt_base = 5 means first column (column 0) represents 5 am"""
+
+
 @workflow.step(copy_tables=False)
 def trip_scheduling(
     state: workflow.State,
     trips: pd.DataFrame,
     tours: pd.DataFrame,
+    model_settings: TripSchedulingSettings | None = None,
+    model_settings_file_name: str = "trip_scheduling.yaml",
+    trace_label: str = "trip_scheduling",
 ) -> None:
     """
     Trip scheduling assigns depart times for trips within the start, end limits of the tour.
@@ -480,9 +506,12 @@ def trip_scheduling(
     Which option is applied is determined by the FAILFIX model setting
 
     """
-    trace_label = "trip_scheduling"
-    model_settings_file_name = "trip_scheduling.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+
+    if model_settings is None:
+        model_settings = TripSchedulingSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
     trips_df = trips.copy()
 
@@ -517,7 +546,7 @@ def trip_scheduling(
         ]
         estimator.write_choosers(trips_df[chooser_cols_for_estimation])
 
-    probs_spec_file = model_settings.get("PROBS_SPEC", "trip_scheduling_probs.csv")
+    probs_spec_file = model_settings.PROBS_SPEC
     probs_spec = pd.read_csv(
         state.filesystem.get_config_file_path(probs_spec_file), comment="#"
     )
@@ -532,9 +561,9 @@ def trip_scheduling(
     )
 
     assert "DEPART_ALT_BASE" in model_settings
-    failfix = model_settings.get(FAILFIX, FAILFIX_DEFAULT)
+    failfix = model_settings.FAILFIX
 
-    max_iterations = model_settings.get("MAX_ITERATIONS", 1)
+    max_iterations = model_settings.MAX_ITERATIONS
     assert max_iterations > 0
 
     choices_list = []

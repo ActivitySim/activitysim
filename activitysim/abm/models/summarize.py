@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core import expressions, workflow
+from activitysim.core.configuration.base import PydanticReadable
 from activitysim.core.los import Network_LOS
 
 logger = logging.getLogger(__name__)
@@ -200,6 +201,21 @@ def manual_breaks(
         return bins
 
 
+class SummarizeSettings(PydanticReadable):
+    """
+    Settings for the `summarize` component.
+    """
+
+    SPECIFICATION: str = "summarize.csv"
+    """Filename for the summarize specification (csv) file."""
+
+    OUTPUT: str = "summarize"
+    """Output folder name."""
+
+    EXPORT_PIPELINE_TABLES: bool = True
+    """To export pipeline tables for expression development."""
+
+
 @workflow.step
 def summarize(
     state: workflow.State,
@@ -211,6 +227,9 @@ def summarize(
     trips: pd.DataFrame,
     tours_merged: pd.DataFrame,
     land_use: pd.DataFrame,
+    model_settings: SummarizeSettings | None = None,
+    model_settings_file_name: str = "summarize.yaml",
+    trace_label: str = "summarize",
 ) -> None:
     """
     A standard model that uses expression files to summarize pipeline tables for vizualization.
@@ -224,17 +243,20 @@ def summarize(
     Outputs a seperate csv summary file for each expression;
     outputs starting with '_' are saved as temporary local variables.
     """
-    trace_label = "summarize"
-    model_settings_file_name = "summarize.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+
+    if model_settings is None:
+        model_settings = SummarizeSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
     output_location = (
-        model_settings["OUTPUT"] if "OUTPUT" in model_settings else "summaries"
+        model_settings.OUTPUT if "OUTPUT" in model_settings else "summaries"
     )
     os.makedirs(state.get_output_file_path(output_location), exist_ok=True)
 
     spec = pd.read_csv(
-        state.filesystem.get_config_file_path(model_settings["SPECIFICATION"]),
+        state.filesystem.get_config_file_path(model_settings.SPECIFICATION),
         comment="#",
     )
 
@@ -311,7 +333,7 @@ def summarize(
                         )
 
     # Output pipeline tables for expression development
-    if model_settings["EXPORT_PIPELINE_TABLES"] is True:
+    if model_settings.EXPORT_PIPELINE_TABLES is True:
         pipeline_table_dir = os.path.join(output_location, "pipeline_tables")
         os.makedirs(state.get_output_file_path(pipeline_table_dir), exist_ok=True)
         for name, df in locals_d.items():

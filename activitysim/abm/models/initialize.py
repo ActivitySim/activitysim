@@ -8,6 +8,7 @@ import warnings
 
 from activitysim.abm.tables import disaggregate_accessibility, shadow_pricing
 from activitysim.core import chunk, expressions, tracing, workflow
+from activitysim.core.configuration.base import PydanticReadable
 
 # We are using the naming conventions in the mtc_asim.h5 example
 # file for our default list. This provides backwards compatibility
@@ -97,8 +98,19 @@ def annotate_tables(state: workflow.State, model_settings, trace_label, chunk_si
         chunk_sizer.log_df(trace_label, tablename, None)
 
 
+class InitializeLanduseSettings(PydanticReadable):
+    """
+    Settings for the `initialize_landuse` component.
+    """
+
+
 @workflow.step
-def initialize_landuse(state: workflow.State) -> None:
+def initialize_landuse(
+    state: workflow.State,
+    model_settings: InitialiseLanduseSettings | None = None,
+    model_settings_file_name: str = "initialize_landuse.yaml",
+    trace_label: str = "initialize_landuse",
+) -> None:
     """
     Initialize the land use table.
 
@@ -110,19 +122,22 @@ def initialize_landuse(state: workflow.State) -> None:
     -------
     ?
     """
-    trace_label = "initialize_landuse"
-    settings_filename = "initialize_landuse.yaml"
+    # trace_label = "initialize_landuse"
+    # settings_filename = "initialize_landuse.yaml"
 
     with chunk.chunk_log(state, trace_label, base=True) as chunk_sizer:
-        model_settings = state.filesystem.read_settings_file(
-            settings_filename, mandatory=True
-        )
+        if model_settings is None:
+            model_settings = InitializeLanduseSettings.read_settings_file(
+                state.filesystem,
+                model_settings_file_name,
+                mandatory=True,
+            )
 
-        annotate_tables(state, model_settings, trace_label, chunk_sizer)
+            annotate_tables(state, model_settings, trace_label, chunk_sizer)
 
-        # instantiate accessibility (must be checkpointed to be be used to slice accessibility)
-        accessibility = state.get_dataframe("accessibility")
-        chunk_sizer.log_df(trace_label, "accessibility", accessibility)
+            # instantiate accessibility (must be checkpointed to be be used to slice accessibility)
+            accessibility = state.get_dataframe("accessibility")
+            chunk_sizer.log_df(trace_label, "accessibility", accessibility)
 
 
 @workflow.step

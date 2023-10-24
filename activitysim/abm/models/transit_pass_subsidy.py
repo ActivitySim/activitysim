@@ -50,7 +50,6 @@ def transit_pass_subsidy(
     choosers = persons_merged
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
     estimator = estimation.manager.begin_estimation(state, "transit_pass_subsidy")
 
     constants = config.get_model_constants(model_settings)

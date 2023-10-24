@@ -19,9 +19,6 @@ class AutoOwnershipSettings(LogitComponentSettings):
     Settings for the `auto_ownership` component.
     """
 
-    SPEC: str = "auto_ownership.csv"
-    """Filename for the auto ownership specification (csv) file."""
-
 
 @workflow.step
 def auto_ownership_simulate(

@@ -28,7 +28,7 @@ class WorkFromHomeSettings(LogitComponentSettings, extra="forbid"):
 
     preprocessor: PreprocessorSettings | None = None
     WORK_FROM_HOME_ALT: int
-    WORK_FROM_HOME_ITERATIONS: int
+    WORK_FROM_HOME_ITERATIONS: int | None = None
     CHOOSER_FILTER_COLUMN_NAME: str = "is_worker"
     WORK_FROM_HOME_CHOOSER_FILTER: str = None
     WORK_FROM_HOME_COEFFICIENT_CONSTANT: float = None

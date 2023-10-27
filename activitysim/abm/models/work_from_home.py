@@ -35,7 +35,7 @@ class WorkFromHomeSettings(LogitComponentSettings, extra="forbid"):
     WORK_FROM_HOME_ITERATIONS: int | None = None
     """Setting to specify the number of iterations."""
 
-    CHOOSER_FILTER_COLUMN_NAME: str = "is_worker" | None
+    CHOOSER_FILTER_COLUMN_NAME: str = None
     """Column name in the dataframe to represent worker."""
 
     WORK_FROM_HOME_CHOOSER_FILTER: str = None

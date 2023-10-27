@@ -27,15 +27,37 @@ class WorkFromHomeSettings(LogitComponentSettings, extra="forbid"):
     """
 
     preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
     WORK_FROM_HOME_ALT: int
-    WORK_FROM_HOME_ITERATIONS: int
-    CHOOSER_FILTER_COLUMN_NAME: str = "is_worker"
+    """ """  # TODO
+
+    WORK_FROM_HOME_ITERATIONS: int | None = None
+    """Setting to specify the number of iterations."""
+
+    CHOOSER_FILTER_COLUMN_NAME: str = "is_worker" | None
+    """Column name in the dataframe to represent worker."""
+
     WORK_FROM_HOME_CHOOSER_FILTER: str = None
+    """Setting to filter work from home chooser."""
+
     WORK_FROM_HOME_COEFFICIENT_CONSTANT: float = None
+    """Setting to set the work from home coefficient."""
+
     WORK_FROM_HOME_TARGET_PERCENT: float = None
+    """Setting to set work from target percent."""
+
     WORK_FROM_HOME_TARGET_PERCENT_TOLERANCE: float = None
+    """Setting to set work from home target percent tolerance."""
+
     sharrow_skip: bool = False
-    DEST_CHOICE_COLUMN_NAME: str = "workplace_zone_id"
+    """Setting to skip sharrow."""
+
+    DEST_CHOICE_COLUMN_NAME: str = "workplace_zone_id" | None
+    """Column name in persons dataframe to specify the workplace zone id. """
+
+    SPEC: str = "work_from_home.csv"
+    """Filename for the accessibility specification (csv) file."""
 
 
 @workflow.step
@@ -60,7 +82,6 @@ def work_from_home(
         )
 
     choosers = persons_merged
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
     chooser_filter_column_name = model_settings.CHOOSER_FILTER_COLUMN_NAME
     choosers = choosers[choosers[chooser_filter_column_name]]
     logger.info("Running %s with %d persons", trace_label, len(choosers))

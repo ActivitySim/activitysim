@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import pandas as pd
 
@@ -16,9 +17,27 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
+
+
+class StopFrequencySettings(LogitComponentSettings, extra="forbid"):
+    """
+    Settings for the `free_parking` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    SPEC_SEGMENTS: dict[str, Any] = {}
+    # TODO Check this again
+
+    SEGMENT_COL: str = "primary_purpose"
+
+    # CONSTANTS TODO Check this again
 
 
 @workflow.step
@@ -28,6 +47,9 @@ def stop_frequency(
     tours_merged: pd.DataFrame,
     stop_frequency_alts: pd.DataFrame,
     network_los: los.Network_LOS,
+    model_settings: StopFrequencySettings | None = None,
+    model_settings_file_name: str = "stop_frequency.yaml",
+    trace_label: str = "stop_frequency",
 ) -> None:
     """
     stop frequency model
@@ -55,11 +77,13 @@ def stop_frequency(
 
     """
 
-    trace_label = "stop_frequency"
-    model_settings_file_name = "stop_frequency.yaml"
     trace_hh_id = state.settings.trace_hh_id
 
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = StopFrequencySettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
     assert not tours_merged.household_id.isnull().any()
     assert not (tours_merged.origin == -1).any()
@@ -69,7 +93,7 @@ def stop_frequency(
     constants = config.get_model_constants(model_settings)
 
     # - run preprocessor to annotate tours_merged
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         # hack: preprocessor adds origin column in place if it does not exist already
         assert "origin" in tours_merged
@@ -99,11 +123,11 @@ def stop_frequency(
         "stop_frequency segments", tours_merged.primary_purpose, value_counts=True
     )
 
-    spec_segments = model_settings.get("SPEC_SEGMENTS")
+    spec_segments = model_settings.SPEC_SEGMENTS
     assert (
         spec_segments is not None
     ), f"SPEC_SEGMENTS setting not found in model settings: {model_settings_file_name}"
-    segment_col = model_settings.get("SEGMENT_COL")
+    segment_col = model_settings.SEGMENT_COL
     assert (
         segment_col is not None
     ), f"SEGMENT_COL setting not found in model settings: {model_settings_file_name}"

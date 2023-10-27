@@ -16,6 +16,8 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place
@@ -281,6 +283,21 @@ def run_parking_destination(
     return trips[parking_location_column_name], save_sample_df
 
 
+class ParkingLocationSettings(LogitComponentSettings, extra="forbid"):
+    """
+    Settings for the `parking_location` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    ALT_DEST_COL_NAME: str = "parking_zone"
+    """Parking destination column name."""
+
+    TRIP_DEPARTURE_PERIOD: str = "stop_period"
+    """Trip departure time period."""
+
+
 @workflow.step
 def parking_location(
     state: workflow.State,
@@ -288,26 +305,31 @@ def parking_location(
     trips_merged: pd.DataFrame,
     land_use: pd.DataFrame,
     network_los: los.Network_LOS,
+    model_settings: ParkingLocationSettings | None = None,
+    model_settings_file_name: str = "parking_location_choice.yaml",
+    trace_label: str = "parking_location",
 ) -> None:
     """
     Given a set of trips, each trip needs to have a parking location if
     it is eligible for remote parking.
     """
 
-    trace_label = "parking_location"
-    model_settings = state.filesystem.read_model_settings(
-        "parking_location_choice.yaml"
-    )
-    trace_hh_id = state.settings.trace_hh_id
-    alt_destination_col_name = model_settings["ALT_DEST_COL_NAME"]
+    if model_settings is None:
+        model_settings = ParkingLocationSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
-    preprocessor_settings = model_settings.get("PREPROCESSOR", None)
+    trace_hh_id = state.settings.trace_hh_id
+    alt_destination_col_name = model_settings.ALT_DEST_COL_NAME
+
+    preprocessor_settings = model_settings.preprocessor
 
     trips_df = trips
     trips_merged_df = trips_merged
     land_use_df = land_use
 
-    proposed_trip_departure_period = model_settings["TRIP_DEPARTURE_PERIOD"]
+    proposed_trip_departure_period = model_settings.TRIP_DEPARTURE_PERIOD
     # TODO: the number of skim time periods should be more readily available than this
     n_skim_time_periods = np.unique(
         network_los.los_settings.skim_time_periods.labels

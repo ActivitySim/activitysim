@@ -9,8 +9,22 @@ import openmatrix as omx
 import pandas as pd
 
 from activitysim.core import config, expressions, los, workflow
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger(__name__)
+
+
+class WriteTripMatricesSettings(PydanticReadable):
+    """
+    Settings for the `write_trip_matrices` component.
+    """
+
+    SAVE_TRIPS_TABLE: bool = False
+    """Save trip tables"""
+
+    HH_EXPANSION_WEIGHT_COL: str = "sample_rate"
+    """Column represents the sampling rate of households"""
 
 
 @workflow.step(copy_tables=["trips"])
@@ -18,6 +32,8 @@ def write_trip_matrices(
     state: workflow.State,
     network_los: los.Network_LOS,
     trips: pd.DataFrame,
+    model_settings: WriteTripMatricesSettings | None = None,
+    model_settings_file_name: str = "write_trip_matrices.yaml",
 ) -> None:
     """
     Write trip matrices step.
@@ -46,10 +62,15 @@ def write_trip_matrices(
         )
         return
 
-    model_settings = state.filesystem.read_model_settings("write_trip_matrices.yaml")
+    if model_settings is None:
+        model_settings = WriteTripMatricesSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
+
     trips_df = annotate_trips(state, trips, network_los, model_settings)
 
-    if bool(model_settings.get("SAVE_TRIPS_TABLE")):
+    if model_settings.SAVE_TRIPS_TABLE:
         state.add_table("trips", trips_df)
 
     if "parking_location" in state.settings.models:
@@ -72,7 +93,7 @@ def write_trip_matrices(
         )
 
         # use the average household weight for all trips in the origin destination pair
-        hh_weight_col = model_settings.get("HH_EXPANSION_WEIGHT_COL")
+        hh_weight_col = model_settings.HH_EXPANSION_WEIGHT_COL
         aggregate_weight = (
             trips_df[["origin", "destination", hh_weight_col]]
             .groupby(["origin", "destination"], sort=False)
@@ -116,7 +137,7 @@ def write_trip_matrices(
         )
 
         # use the average household weight for all trips in the origin destination pair
-        hh_weight_col = model_settings.get("HH_EXPANSION_WEIGHT_COL")
+        hh_weight_col = model_settings.HH_EXPANSION_WEIGHT_COL
         aggregate_weight = (
             trips_df[["otaz", "dtaz", hh_weight_col]]
             .groupby(["otaz", "dtaz"], sort=False)
@@ -164,7 +185,7 @@ def write_trip_matrices(
         )
 
         # use the average household weight for all trips in the origin destination pair
-        hh_weight_col = model_settings.get("HH_EXPANSION_WEIGHT_COL")
+        hh_weight_col = model_settings.HH_EXPANSION_WEIGHT_COL
         aggregate_weight = (
             trips_df[["otaz", "dtaz", hh_weight_col]]
             .groupby(["otaz", "dtaz"], sort=False)
@@ -201,7 +222,7 @@ def write_trip_matrices(
         )
 
         # use the average household weight for all trips in the origin destination pair
-        hh_weight_col = model_settings.get("HH_EXPANSION_WEIGHT_COL")
+        hh_weight_col = model_settings.HH_EXPANSION_WEIGHT_COL
         aggregate_weight = (
             trips_df[["btap", "atap", hh_weight_col]]
             .groupby(["btap", "atap"], sort=False)

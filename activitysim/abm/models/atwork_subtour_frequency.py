@@ -16,6 +16,8 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +28,23 @@ def add_null_results(state, trace_label, tours):
     state.add_table("tours", tours)
 
 
+class AtworkSubtourFrequencySettings(LogitComponentSettings, extra="forbid"):
+    """
+    Settings for the `atwork_subtour_frequency` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+
 @workflow.step
 def atwork_subtour_frequency(
     state: workflow.State,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
+    model_settings: AtworkSubtourFrequencySettings | None = None,
+    model_settings_file_name: str = "atwork_subtour_frequency.yaml",
+    trace_label: str = "atwork_subtour_frequency",
 ) -> None:
     """
     This model predicts the frequency of making at-work subtour tours
@@ -38,8 +52,6 @@ def atwork_subtour_frequency(
     configured by the user).
     """
 
-    trace_label = "atwork_subtour_frequency"
-    model_settings_file_name = "atwork_subtour_frequency.yaml"
     trace_hh_id = state.settings.trace_hh_id
     work_tours = tours[tours.tour_type == "work"]
 
@@ -48,10 +60,15 @@ def atwork_subtour_frequency(
         add_null_results(state, trace_label, tours)
         return
 
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = AtworkSubtourFrequencySettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
+
     estimator = estimation.manager.begin_estimation(state, "atwork_subtour_frequency")
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec, coefficients_df, estimator
@@ -72,7 +89,7 @@ def atwork_subtour_frequency(
     constants = config.get_model_constants(model_settings)
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         expressions.assign_columns(
             state,

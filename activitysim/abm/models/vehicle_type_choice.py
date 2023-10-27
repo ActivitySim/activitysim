@@ -18,6 +18,7 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_simulate import interaction_simulate
 
 logger = logging.getLogger(__name__)
@@ -473,6 +474,12 @@ def iterate_vehicle_type_choice(
     return all_choices, all_choosers
 
 
+class VehicleTypeChoiceSettings(LogitComponentSettings):
+    """
+    Settings for the `vehicle_type_choice` component.
+    """
+
+
 @workflow.step
 def vehicle_type_choice(
     state: workflow.State,
@@ -480,6 +487,9 @@ def vehicle_type_choice(
     households: pd.DataFrame,
     vehicles: pd.DataFrame,
     vehicles_merged: pd.DataFrame,
+    model_settings: VehicleTypeChoiceSettings | None = None,
+    model_settings_file_name: str = "vehicle_type_choice.yaml",
+    trace_label: str = "vehicle_type_choice",
 ) -> None:
     """Assign a vehicle type to each vehicle in the `vehicles` table.
 
@@ -519,15 +529,20 @@ def vehicle_type_choice(
     persons : pd.DataFrame
     households : pd.DataFrame
     vehicles : pd.DataFrame
-    vehicles_merged : DataFrame
+    vehicles_merged :pd. DataFrame
+    model_settings : class specifying the model settings
+    model_settings_file_name: filename of the model settings file
+    trace_label: trace label of the vehicle type choice model
     """
-    trace_label = "vehicle_type_choice"
-    model_settings_file_name = "vehicle_type_choice.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = VehicleTypeChoiceSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
     estimator = estimation.manager.begin_estimation(state, "vehicle_type")
 
-    model_spec_raw = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec_raw = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec_raw, coefficients_df, estimator

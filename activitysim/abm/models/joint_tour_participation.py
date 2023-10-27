@@ -18,6 +18,8 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.util import assign_in_place, reindex
 
 logger = logging.getLogger(__name__)
@@ -294,18 +296,33 @@ def add_null_results(state, model_settings, trace_label):
     annotate_jtp(state, model_settings, trace_label)
 
 
+class JointTourParticipationSettings(LogitComponentSettings, extra="forbid"):
+    """
+    Settings for the `joint_tour_participation` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+
 @workflow.step
 def joint_tour_participation(
     state: workflow.State,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
+    model_settings: JointTourParticipationSettings | None = None,
+    model_settings_file_name: str = "joint_tour_participation.yaml",
+    trace_label: str = "joint_tour_participation",
 ) -> None:
     """
     Predicts for each eligible person to participate or not participate in each joint tour.
     """
-    trace_label = "joint_tour_participation"
-    model_settings_file_name = "joint_tour_participation.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+
+    if model_settings is None:
+        model_settings = JointTourParticipationSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
     trace_hh_id = state.settings.trace_hh_id
 
     joint_tours = tours[tours.tour_category == "joint"]
@@ -326,7 +343,7 @@ def joint_tour_participation(
     )
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         locals_dict = {
             "person_time_window_overlap": lambda x: person_time_window_overlap(
@@ -347,7 +364,7 @@ def joint_tour_participation(
 
     estimator = estimation.manager.begin_estimation(state, "joint_tour_participation")
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec, coefficients_df, estimator
@@ -383,7 +400,7 @@ def joint_tour_participation(
     )
 
     # choice is boolean (participate or not)
-    choice_col = model_settings.get("participation_choice", "participate")
+    choice_col = model_settings.get("participation_choice", "participate")  # TODO
     assert (
         choice_col in model_spec.columns
     ), "couldn't find participation choice column '%s' in spec"

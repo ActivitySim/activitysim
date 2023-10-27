@@ -14,8 +14,19 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import BaseLogitComponentSettings
 
 logger = logging.getLogger("activitysim")
+
+
+class TelecommuteFrequencySettings(BaseLogitComponentSettings):
+    """
+    Settings for the `telecommute_frequency` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
 
 
 @workflow.step
@@ -23,6 +34,9 @@ def telecommute_frequency(
     state: workflow.State,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
+    model_settings: TelecommuteFrequencySettings | None = None,
+    model_settings_file_name: str = "telecommute_frequency.yaml",
+    trace_label: str = "telecommute_frequency",
 ) -> None:
     """
     This model predicts the frequency of telecommute for a person (worker) who
@@ -32,21 +46,23 @@ def telecommute_frequency(
     office during a week.
     """
 
-    trace_label = "telecommute_frequency"
-    model_settings_file_name = "telecommute_frequency.yaml"
+    if model_settings is None:
+        model_settings = TelecommuteFrequencySettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
     choosers = persons_merged
     choosers = choosers[choosers.workplace_zone_id > -1]
 
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
     estimator = estimation.manager.begin_estimation(state, "telecommute_frequency")
 
     constants = config.get_model_constants(model_settings)
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         locals_d = {}
         if constants is not None:
@@ -60,7 +76,7 @@ def telecommute_frequency(
             trace_label=trace_label,
         )
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec, coefficients_df, estimator

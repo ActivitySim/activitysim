@@ -35,7 +35,7 @@ class WorkFromHomeSettings(LogitComponentSettings, extra="forbid"):
     WORK_FROM_HOME_ITERATIONS: int | None = None
     """Setting to specify the number of iterations."""
 
-    CHOOSER_FILTER_COLUMN_NAME: str = None
+    CHOOSER_FILTER_COLUMN_NAME: str = "is_worker"
     """Column name in the dataframe to represent worker."""
 
     WORK_FROM_HOME_CHOOSER_FILTER: str = None
@@ -53,7 +53,7 @@ class WorkFromHomeSettings(LogitComponentSettings, extra="forbid"):
     sharrow_skip: bool = False
     """Setting to skip sharrow."""
 
-    DEST_CHOICE_COLUMN_NAME: str = "workplace_zone_id" | None
+    DEST_CHOICE_COLUMN_NAME: str = "workplace_zone_id"
     """Column name in persons dataframe to specify the workplace zone id. """
 
     SPEC: str = "work_from_home.csv"

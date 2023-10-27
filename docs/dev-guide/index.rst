@@ -35,3 +35,4 @@ Contents
    components/index
    ../core
    ../benchmarking
+   build-docs

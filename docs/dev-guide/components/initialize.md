@@ -11,9 +11,9 @@ value-of-time.  This step also pre-loads the land_use, households, persons, and 
 random seeds are set differently for each step and therefore the sampling of households depends on which step
 they are initially loaded in.
 
-The main interface to the initialize land use step is the :py:func:`~activitysim.abm.models.initialize.initialize_landuse`
-function. The main interface to the initialize household step is the :py:func:`~activitysim.abm.models.initialize.initialize_households`
-function.  The main interface to the initialize tours step is the :py:func:`~activitysim.abm.models.initialize_tours.initialize_tours`
+The main interface to the initialize land use step is the [initialize_landuse](activitysim.abm.models.initialize.initialize_landuse)
+function. The main interface to the initialize household step is the [initialize_households](activitysim.abm.models.initialize.initialize_households)
+function.  The main interface to the initialize tours step is the [initialize_tours](activitysim.abm.models.initialize_tours.initialize_tours)
 function.  These functions are registered as Inject steps in the example Pipeline.
 
 

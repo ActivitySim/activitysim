@@ -16,7 +16,7 @@ At-work subtour location choice for [multiple_zone_systems](multiple_zone_system
 The main interface to the at-work subtour destination model is the
 [atwork_subtour_destination](ctivitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination)
 function.  This function is registered as an Inject step in the example Pipeline.
-[writing_logsums]`writing_logsums` for how to write logsums for estimation.
+[writing_logsums](writing_logsums) for how to write logsums for estimation.
 
 ## Structure
 

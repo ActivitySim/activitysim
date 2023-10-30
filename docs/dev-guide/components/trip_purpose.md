@@ -28,7 +28,7 @@ function.  This function is registered as an Inject step in the example Pipeline
     :show-inheritance:
 ```
 
-### note::
+### Note
 Trip purpose and trip destination choice can be run iteratively together [trip_purpose_and_destination_model](activitysim.abm.models.trip_purpose_and_destination.py)
 
 ### Examples

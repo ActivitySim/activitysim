@@ -14,7 +14,6 @@ The initialize LOS model does two things:
 
 The main interface to the initialize LOS step is the [initialize_los](activitysim.abm.models.initialize_los.initialize_los)
 function.  The main interface to the initialize TVPB step is the [initialize_tvpb](activitysim.abm.models.initialize_los.initialize_tvpb)
-
 function.  These functions are registered as Inject steps in the example Pipeline.
 
 

@@ -4,14 +4,20 @@ Components
 
 .. toctree::
     :maxdepth: 1
-
-    accessibility
-    auto_ownership
-    free_parking
-    school_location_choice
-    trip_destination
-    work_from_home
-    work_location_choice
+   
+   initialize
+   initialize_los
+   initialize_tours
+   accessibility
+   auto_ownership
+   disaggregate_accessibility
+   free_parking   
+   school_location_choice
+   transit_pass_ownership
+   transit_pass_subsidy
+   trip_destination
+   work_from_home
+   work_location_choice
 
 
 

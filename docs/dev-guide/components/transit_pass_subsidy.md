@@ -1,8 +1,8 @@
-(component-free-parking)=
+(component-transit-pass-subsidy)=
 # Transit Pass Subsidy
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.free_parking
+.. currentmodule:: activitysim.abm.models.transit_pass_subsidy
 ```
 
 The transit pass subsidy model is a component of the transit fare discount model, which models persons who purchase or are

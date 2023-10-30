@@ -10,7 +10,7 @@ observed frequency distribution.  The distribution is segmented by tour purpose,
 direction and person type. Work tours are also segmented by departure or arrival time period.
 
 The main interface to the trip purpose model is the
-[trip_purpose](activitysim.abm.models.trip_purpose)
+[trip_purpose](activitysim.abm.models.trip_purpose.trip_purpose)
 function.  This function is registered as an Inject step in the example Pipeline.
 
 

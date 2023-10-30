@@ -19,11 +19,6 @@ function.  These functions are registered as Inject steps in the example Pipelin
 
 
 
-### Examples
-
-- [Prototype MTC](https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/configs/free_parking.yaml)
-- [Prototype ARC](https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_arc/configs/free_parking.yaml)
-
 ## Implementation
 
 ```{eval-rst}

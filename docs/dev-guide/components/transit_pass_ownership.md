@@ -16,6 +16,9 @@ The main interface to the transit pass ownership model is the
 :py:func:`~activitysim.abm.models.transit_pass_ownership` function.  This
 function is registered as an Inject step in the example Pipeline.
 
+This model generates only True or False outcomes, and is structured as a binary
+logit model.
+
 ## Structure
 
 - *Configuration File*: `transit_pass_ownership.yaml`
@@ -29,15 +32,15 @@ function is registered as an Inject step in the example Pipeline.
 ## Configuration
 
 ```{eval-rst}
-.. autopydantic_model:: FreeParkingSettings
+.. autopydantic_model:: TransitPassOwnershipSettings
     :inherited-members: BaseModel, PydanticReadable
     :show-inheritance:
 ```
 
 ### Examples
 
-- [Prototype MTC](https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/configs/free_parking.yaml)
-- [Prototype ARC](https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_arc/configs/free_parking.yaml)
+- [Prototype SEMCOG](https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_semcog/configs/transit_pass_ownership.yaml)
+- [Prototype MWCOG](https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mwcog/configs/transit_pass_ownership.yaml)
 
 ## Implementation
 

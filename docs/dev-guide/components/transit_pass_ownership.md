@@ -8,12 +8,12 @@
 
 The transit fare discount is defined as persons who purchase or are
 provided a transit pass.  The transit fare discount consists of two submodels - this
-transit pass ownership model and a person :ref:`transit_pass_subsidy` model. The
+transit pass ownership model and a person [transit_pass_subsidy](transit_pass_subsidy) model. The
 result of this model can be used to condition downstream models such as the tour and trip
 mode choice models via fare discount adjustments.
 
 The main interface to the transit pass ownership model is the
-:py:func:`~activitysim.abm.models.transit_pass_ownership` function.  This
+[transit_pass_ownership](activitysim.abm.models.transit_pass_ownership) function.  This
 function is registered as an Inject step in the example Pipeline.
 
 This model generates only True or False outcomes, and is structured as a binary
@@ -24,9 +24,6 @@ logit model.
 - *Configuration File*: `transit_pass_ownership.yaml`
 - *Core Table*: `persons`
 - *Result Field*: `transit_pass_ownership`
-- *Skim Keys*: NA
-
-
 
 
 ## Configuration

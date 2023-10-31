@@ -1,7 +1,5 @@
 (component-transit-pass-ownership)=
 # Transit Pass Ownership
-
-
 ```{eval-rst}
 .. currentmodule:: activitysim.abm.models.transit_pass_ownership
 ```
@@ -24,7 +22,6 @@ logit model.
 - *Configuration File*: `transit_pass_ownership.yaml`
 - *Core Table*: `persons`
 - *Result Field*: `transit_pass_ownership`
-
 
 ## Configuration
 

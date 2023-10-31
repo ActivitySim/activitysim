@@ -46,7 +46,7 @@ def annotate_tables(state: workflow.State, model_settings, trace_label, chunk_si
 
     chunk_sizer.log_rss(trace_label)
 
-    annotate_tables = model_settings.get("annotate_tables", [])
+    annotate_tables = model_settings.annotate_tables
 
     if not annotate_tables:
         logger.warning(
@@ -103,6 +103,8 @@ class InitializeLanduseSettings(PydanticReadable):
     Settings for the `initialize_landuse` component.
     """
 
+    annotate_tables: list[str] | None = None
+
 
 @workflow.step
 def initialize_landuse(
@@ -133,11 +135,11 @@ def initialize_landuse(
                 mandatory=True,
             )
 
-            annotate_tables(state, model_settings, trace_label, chunk_sizer)
+        annotate_tables(state, model_settings, trace_label, chunk_sizer)
 
-            # instantiate accessibility (must be checkpointed to be be used to slice accessibility)
-            accessibility = state.get_dataframe("accessibility")
-            chunk_sizer.log_df(trace_label, "accessibility", accessibility)
+        # instantiate accessibility (must be checkpointed to be be used to slice accessibility)
+        accessibility = state.get_dataframe("accessibility")
+        chunk_sizer.log_df(trace_label, "accessibility", accessibility)
 
 
 @workflow.step

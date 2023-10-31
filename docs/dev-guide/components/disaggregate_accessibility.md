@@ -103,5 +103,5 @@ into the pipeline and initialized with the initialize_household model step.
 ## Implementation
 
 ```{eval-rst}
-.. autofunction:: disaggregate-accessibility
+.. autofunction:: disaggregate_accessibility
 ```

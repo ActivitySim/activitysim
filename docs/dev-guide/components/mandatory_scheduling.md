@@ -12,8 +12,8 @@ combination, demographics, and time pattern characteristics such as the time win
 from previously scheduled tours. This model uses person :ref:`time_windows`.
 
 
-.. note::
-   For ``prototype_mtc``, the modeled time periods for all submodels are hourly from 3 am to 3 am the next day, and any times before 5 am are shifted to time period 5, and any times after 11 pm are shifted to time period 23.
+## note:
+   For `prototype_mtc`, the modeled time periods for all submodels are hourly from 3 am to 3 am the next day, and any times before 5 am are shifted to time period 5, and any times after 11 pm are shifted to time period 23.
 
 
 If ``tour_departure_and_duration_segments.csv`` is included in the configs, then the model
@@ -26,7 +26,7 @@ sufficient for tour scheduling.  By reusing the 6 am to 3 pm mode choice logsum,
 significant runtime.
 
 The main interface to the mandatory tour purpose scheduling model is the
-:py:func:`~activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling`
+[mandatory_tour_scheduling](activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling)
 function.  This function is registered as an Inject step in the example Pipeline
 
 ## Structure

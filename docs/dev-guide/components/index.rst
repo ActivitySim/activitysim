@@ -4,7 +4,6 @@ Components
 
 .. toctree::
     :maxdepth: 1
-   
    initialize
    initialize_los
    initialize_tours
@@ -23,9 +22,23 @@ Components
    transit_pass_ownership
    transit_pass_subsidy
    trip_destination
+   school_location_choice
    work_from_home
    work_location_choice
-
+   tour_mode_choice
+   atwork_subtour_frequency
+   atwork_subtour_destination
+   atwork_subtour_scheduling
+   atwork_subtour_mode_choice
+   stop_frequency
+   trip_purpose
+   trip_destination
+   trip_purpose_and_destination
+   trip_scheduling_choice
+   trip_departure_choice
+   trip_mode_choice
+   parking_location_choice
+   write_trip_matrices
 
 
 .. note::

@@ -11,7 +11,7 @@ are demographics, accessibility-based parameters such as drive time to work, and
 automobile ownership.  It also creates mandatory tours in the data pipeline.
 
 The main interface to the mandatory tour purpose frequency model is the
-:py:func:`~activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency`
+[mandatory_tour_frequency](activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency)
 function.  This function is registered as an Inject step in the example Pipeline.
 
 ## Structure

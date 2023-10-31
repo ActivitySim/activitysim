@@ -7,13 +7,13 @@
 
 The transit pass subsidy model is a component of the transit fare discount model, which models persons who purchase or are
 provided a transit pass.  The transit fare discount consists of two submodels - this
-transit pass subsidy model and a person :ref:`transit_pass_ownership` model.  The
+transit pass subsidy model and a person [transit_pass_ownership](transit_pass_ownership) model.  The
 result of this model can be used to condition downstream models such as the
-person :ref:`transit_pass_ownership` model and the tour and trip mode choice models
+person [transit_pass_ownership](transit_pass_ownership) model and the tour and trip mode choice models
 via fare discount adjustments.
 
 The main interface to the transit pass subsidy model is the
-:py:func:`~activitysim.abm.models.transit_pass_subsidy` function.  This
+[transit_pass_subsidy](activitysim.abm.models.transit_pass_subsidy) function.  This
 function is registered as an Inject step in the example Pipeline.
 
 ## Structure
@@ -21,9 +21,6 @@ function is registered as an Inject step in the example Pipeline.
 - *Configuration File*: `transit_pass_subsidy.yaml`
 - *Core Table*: `persons`
 - *Result Field*: `transit_pass_subsidy`
-
-
-
 
 ## Configuration
 

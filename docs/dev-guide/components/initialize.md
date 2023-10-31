@@ -1,5 +1,5 @@
 (component-initialize)=
-# Initialize
+# Initialize 
 
 ```{eval-rst}
 .. currentmodule:: activitysim.abm.models.initialize

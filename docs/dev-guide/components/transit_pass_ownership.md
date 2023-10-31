@@ -1,6 +1,5 @@
 (component-transit-pass-ownership)=
 # Transit Pass Ownership
-
 ```{eval-rst}
 .. currentmodule:: activitysim.abm.models.transit_pass_ownership
 ```

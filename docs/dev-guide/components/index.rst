@@ -14,6 +14,8 @@ Components
    telecommute_frequency
    cdap
    mandatory_tour_frequency
+   school_escorting
+   joint_tour_composition
    mandatory_scheduling
    disaggregate_accessibility
    free_parking   

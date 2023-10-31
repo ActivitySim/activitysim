@@ -7,7 +7,7 @@
 
 Telecommuting is defined as workers who work from home instead of going to work. It only applies to
 workers with a regular workplace outside of home. The telecommute model consists of two
-submodels - a person :ref:`work_from_home` model and this person telecommute frequency model.
+submodels - a person [work_from_home](work_from_home) model and this person telecommute frequency model.
 
 For all workers that work out of the home, the telecommute models predicts the
 level of telecommuting. The model alternatives are the frequency of telecommuting in

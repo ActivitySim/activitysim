@@ -14,7 +14,7 @@ level of telecommuting. The model alternatives are the frequency of telecommutin
 days per week (0 days, 1 day, 2 to 3 days, 4+ days).
 
 The main interface to the work from home model is the
-:py:func:`~activitysim.abm.models.telecommute_frequency` function.  This
+[telecommute_frequency](activitysim.abm.models.telecommute_frequency) function.  This
 function is registered as an Inject step in the example Pipeline.
 
 ## Structure

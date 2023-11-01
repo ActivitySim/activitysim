@@ -5,7 +5,7 @@
 .. currentmodule:: activitysim.abm.models.non_mandatory_scheduling
 ```
 The non-mandatory tour scheduling model selects a tour departure and duration period (and therefore a start and end
-period as well) for each non-mandatory tour.  This model uses person :ref:`time_windows`.  Includes support
+period as well) for each non-mandatory tour.  This model uses person [time_windows](time_windows).  Includes support
 for [representative_logsums](representative_logsums).
 
 The main interface to the non-mandatory tour purpose scheduling model is the

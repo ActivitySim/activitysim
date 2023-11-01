@@ -13,6 +13,14 @@ Components
    telecommute_frequency
    cdap
    mandatory_tour_frequency
+   school_escorting
+   joint_tour_composition 
+   joint_tour_participation
+   joint_tour_destination   
+   joint_tour_scheduling
+   non_mandatory_tour_frequency
+   non_mandatory_destination
+   non_mandatory_scheduling  
    mandatory_scheduling
    disaggregate_accessibility
    free_parking   

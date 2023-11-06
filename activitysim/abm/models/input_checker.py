@@ -80,18 +80,7 @@ def validate_with_pandera(
             v_errors[table_name].append(e)
 
         for warning in caught_warnings:
-            if "dataframe validator" in str(warning.message):
-                v_warnings[table_name].append(
-                    "Failed dataframe validator: "
-                    + str(warning.message).split("\n")[-1]
-                )
-            elif "element-wise validator" in str(warning.message):
-                v_warnings[table_name].append(
-                    "Failed element-wise validator: <"
-                    + " ".join(str(warning.message).split("\n")[0].split(" ")[1:3])
-                    + "\n\t"
-                    + "\n\t".join(str(warning.message).split("\n")[1:])
-                )
+            v_warnings[table_name].append(warning)
 
     return v_errors, v_warnings
 
@@ -233,7 +222,7 @@ def report_errors(state, input_checker_settings, v_warnings, v_errors):
         errors = v_errors[table_name]
         if len(errors) > 0:
             input_check_failure = True
-            file_logger.error(f"{table_name} errors:")
+            file_logger.error(f"\n{table_name} errors:\n"+("-"*(8+len(table_name))))
 
             for error_group in errors:
                 file_logger.error("Error Counts\n------------")
@@ -243,20 +232,67 @@ def report_errors(state, input_checker_settings, v_warnings, v_errors):
                     )
 
                 for error in error_group.schema_errors:
-                    file_logger.error(str(error) + "\n")
+                    if "dataframe validator" in str(error):
+                        file_logger.error(
+                            "Failed dataframe validator: "
+                            + str(error).split("\n")[-1]
+                        )
+                    elif "element-wise validator" in str(error):
+                        if "DataFrameSchema" in str(error):
+                            file_logger.error(
+                                "Failed element-wise validator: <"
+                                + str(error).split('\n')[0].split(" ")[1]
+                                + table_name + ")>\n\t"
+                                + str(error).split('failure cases:\n')[0].split('\n')[-2]
+                                + "\n\tfailure cases:\n\t"
+                                + '\n\t'.join(str(error).split('failure cases:\n')[1].split('\n'))
+                            )
+                        else:
+                            file_logger.error(
+                                "Failed element-wise validator: <"
+                                + " ".join(str(error).split("\n")[0].split(" ")[1:3])
+                                + "\n\t"
+                                + "\n\t".join(str(error).split("\n")[1:])
+                            )
+                    else:
+                        file_logger.error(str(error))
+                    file_logger.error('\n')
 
         # printing out any warnings
         warns = v_warnings[table_name]
         if len(warns) > 0:
-            file_logger.warning(f"{table_name} warnings:")
+            file_logger.warning(f"\n{table_name} warnings:\n"+("-"*(10+len(table_name))))
 
             for warn in warns:
-                file_logger.warning(warn)
+                if "dataframe validator" in str(warn.message):
+                    file_logger.warning(
+                        "Failed dataframe validator: "
+                        + str(warn.message).split("\n")[-1]
+                    )
+                elif "element-wise validator" in str(warn.message):
+                    if "DataFrameSchema" in str(warn.message):
+                        file_logger.warning(
+                            "Failed element-wise validator: <"
+                            + str(warn.message).split('\n')[0].split(" ")[1]
+                            + table_name + ")>\n\t"
+                            + str(warn.message).split('failure cases:\n')[0].split('\n')[-2]
+                            + "\n\tfailure cases:\n\t"
+                            + '\n\t'.join(str(warn.message).split('failure cases:\n')[1].split('\n'))
+                        )
+                    else:
+                        file_logger.warning(
+                            "Failed element-wise validator: <"
+                            + " ".join(str(warn.message).split("\n")[0].split(" ")[1:3])
+                            + "\n\t"
+                            + "\n\t".join(str(warn.message).split("\n")[1:])
+                        )
+                else:
+                    file_logger.warning(warn)
             file_logger.warning("\n")
 
         infos = _log_infos[table_name]
         if len(infos) > 0:
-            file_logger.info(f"{table_name} additional messages:")
+            file_logger.info(f"\n{table_name} additional messages:\n"+("-"*(21+len(table_name))))
 
             for info in infos:
                 file_logger.info(info)

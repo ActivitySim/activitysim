@@ -30,7 +30,7 @@ class WorkFromHomeSettings(LogitComponentSettings, extra="forbid"):
     """Setting for the preprocessor."""
 
     WORK_FROM_HOME_ALT: int
-    """ """  # TODO
+    """Value that specify if the person is working from home"""  # TODO
 
     WORK_FROM_HOME_ITERATIONS: int | None = None
     """Setting to specify the number of iterations."""

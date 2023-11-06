@@ -9,8 +9,8 @@ Write open matrix (OMX) trip matrices for assignment.  Reads the trips table pos
 to code additional data fields, with one data fields for each matrix specified.  The matrices are scaled by a
 household level expansion factor, which is the household sample rate by default, which is calculated when
 households are read in at the beginning of a model run.  The main interface to write trip
-matrices is the [write_trip_matrices](activitysim.abm.models.trip_matrices.write_trip_matrices) function.  This function
-is registered as an Inject step in the example Pipeline.
+matrices is the [write_trip_matrices](activitysim.abm.models.trip_matrices.write_trip_matrices) function.
+This function is registered as an Inject step in the example Pipeline.
 
 ## Structure
 

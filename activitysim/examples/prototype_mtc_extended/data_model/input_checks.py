@@ -50,7 +50,7 @@ class Household(pa.DataFrameModel):
 
     @pa.dataframe_check(
         name="Do household sizes equal the number of persons in that household?",
-        raise_warning=True
+        raise_warning=True,
     )
     def check_persons_per_household(cls, households: pd.DataFrame):
         persons = TABLE_STORE["persons"]
@@ -60,7 +60,9 @@ class Household(pa.DataFrameModel):
             .reindex(households.household_id)
         )
         log_info("test logging info")
-        return (hhsize == households.set_index('household_id').hhsize).reindex(households.index)
+        return (hhsize == households.set_index("household_id").hhsize).reindex(
+            households.index
+        )
 
     @pa.dataframe_check(
         name="Are all households' home_zone_ids found in the landuse file?"
@@ -76,23 +78,24 @@ class Household(pa.DataFrameModel):
     @pa.dataframe_check(name="Example of a failed warning check.", raise_warning=True)
     def dummy_warning_example(cls, households: pd.DataFrame):
         return False
-    
+
     @pa.dataframe_check(
-            name="Household workers equals number of workers in persons table?",
-            raise_warning=True
+        name="Household workers equals number of workers in persons table?",
+        raise_warning=True,
+    )
+    def check_workers_per_household(cls, households: pd.DataFrame):
+        persons = TABLE_STORE["persons"]
+        num_workers = (
+            persons[persons.pemploy.isin([1, 2])]  # count full- and part-time workers
+            .groupby("household_id")
+            .count()
+            .pemploy.reindex(households.household_id)
+            .fillna(0)
         )
-    def check_workers_per_household(cls,households: pd.DataFrame):
-        persons = TABLE_STORE['persons']
-        num_workers = persons[
-                persons.pemploy.isin([1,2]) # count full- and part-time workers
-            ].groupby(
-                'household_id'
-            ).count().pemploy.reindex(
-                households.household_id
-            ).fillna(0)
-        
-        return (num_workers == households.set_index('household_id').num_workers).reindex(households.index)
-    
+
+        return (
+            num_workers == households.set_index("household_id").num_workers
+        ).reindex(households.index)
 
 
 class Person(pa.DataFrameModel):
@@ -118,54 +121,41 @@ class Person(pa.DataFrameModel):
     def check_households_have_persons(cls, persons: pd.DataFrame):
         households = TABLE_STORE["households"]
         return households.household_id.isin(persons.household_id)
-    
-    @pa.dataframe_check(
-        name="Are all workers' and college students' ages >=18?",
-        raise_warning=True
-    )
-    def check_worker_college_student_age(cls,persons:pd.DataFrame):
-        return (~persons.ptype.isin([1,2,3])) | (persons.age >=18)
 
     @pa.dataframe_check(
-        name="Are all non-workers' ages in [18,65)?",
-        raise_warning=True
+        name="Are all workers' and college students' ages >=18?", raise_warning=True
     )
-    def check_nonworker_age(cls,persons:pd.DataFrame):
-        return (~(persons.ptype == 4)) | (
-            (persons.age >=18) &
-            (persons.age < 65)
-            )
-    
-    @pa.dataframe_check(
-        name="Are all retirees' ages >=65?",
-        raise_warning=True
-    )
-    def check_retiree_age(cls,persons:pd.DataFrame):
-        return (~(persons.ptype == 5)) | (persons.age >=65)
+    def check_worker_college_student_age(cls, persons: pd.DataFrame):
+        return (~persons.ptype.isin([1, 2, 3])) | (persons.age >= 18)
 
     @pa.dataframe_check(
-        name="Are all driving age students' ages in [16,18)?",
-        raise_warning=True
+        name="Are all non-workers' ages in [18,65)?", raise_warning=True
     )
-    def check_driving_student_age(cls,persons:pd.DataFrame):
-        return (~(persons.ptype == 6)) | (persons.age.isin(range(16,18)))
+    def check_nonworker_age(cls, persons: pd.DataFrame):
+        return (~(persons.ptype == 4)) | ((persons.age >= 18) & (persons.age < 65))
+
+    @pa.dataframe_check(name="Are all retirees' ages >=65?", raise_warning=True)
+    def check_retiree_age(cls, persons: pd.DataFrame):
+        return (~(persons.ptype == 5)) | (persons.age >= 65)
 
     @pa.dataframe_check(
-        name="Are all non-driving age students' ages in [6,17)?",
-        raise_warning=True
+        name="Are all driving age students' ages in [16,18)?", raise_warning=True
     )
-    def check_nondriving_student_age(cls,persons:pd.DataFrame):
-        return (~(persons.ptype == 7)) | (persons.age.isin(range(6,17)))
+    def check_driving_student_age(cls, persons: pd.DataFrame):
+        return (~(persons.ptype == 6)) | (persons.age.isin(range(16, 18)))
 
     @pa.dataframe_check(
-        name="Are all preschool children's ages in [0,6)?",
-        raise_warning=True
+        name="Are all non-driving age students' ages in [6,17)?", raise_warning=True
     )
-    def check_preschooler_student_age(cls,persons:pd.DataFrame):
-        return (~(persons.ptype == 8)) | (persons.age.isin(range(0,6)))
+    def check_nondriving_student_age(cls, persons: pd.DataFrame):
+        return (~(persons.ptype == 7)) | (persons.age.isin(range(6, 17)))
 
-    
-    
+    @pa.dataframe_check(
+        name="Are all preschool children's ages in [0,6)?", raise_warning=True
+    )
+    def check_preschooler_student_age(cls, persons: pd.DataFrame):
+        return (~(persons.ptype == 8)) | (persons.age.isin(range(0, 6)))
+
 
 class Landuse(pa.DataFrameModel):
     """
@@ -209,29 +199,34 @@ class Landuse(pa.DataFrameModel):
             ["RETEMPN", "FPSEMPN", "HEREMPN", "OTHEMPN", "AGREMPN", "MWTEMPN"]
         ].sum(axis=1)
         return (tot_emp == land_use.TOTEMP).reindex(land_use.index)
-    
+
     @pa.dataframe_check(
         name="Do zones' total HH equal number of HH in households table?",
-        raise_warning=True
+        raise_warning=True,
     )
     def check_hh_per_zone(cls, land_use: pd.DataFrame):
-        households = TABLE_STORE['households']
-        num_hh = households.groupby('home_zone_id').household_id.nunique().reindex(land_use.zone_id).fillna(0)
-        return (land_use.set_index('zone_id').TOTHH == num_hh).reindex(land_use.index)
-    
+        households = TABLE_STORE["households"]
+        num_hh = (
+            households.groupby("home_zone_id")
+            .household_id.nunique()
+            .reindex(land_use.zone_id)
+            .fillna(0)
+        )
+        return (land_use.set_index("zone_id").TOTHH == num_hh).reindex(land_use.index)
+
     @pa.dataframe_check(
         name="Do zones' populations equal number of people in persons table?",
-        raise_warning=True
+        raise_warning=True,
     )
     def check_pop_per_zone(cls, land_use: pd.DataFrame):
-        persons = TABLE_STORE['persons']
-        households = TABLE_STORE['households']
+        persons = TABLE_STORE["persons"]
+        households = TABLE_STORE["households"]
         pop = persons.groupby(
             persons.household_id.map(
-                lambda hhid: households.set_index('household_id').home_zone_id[hhid]
+                lambda hhid: households.set_index("household_id").home_zone_id[hhid]
             )
         ).person_id.nunique()
-        return (pop == land_use.set_index('zone_id').TOTPOP).reindex(land_use.index)
+        return (pop == land_use.set_index("zone_id").TOTPOP).reindex(land_use.index)
 
 
 class NetworkLinks(pa.DataFrameModel):

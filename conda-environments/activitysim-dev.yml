@@ -70,5 +70,5 @@ dependencies:
 - zstandard
 
 - pip:
-  - autodoc_pydantic
+  - autodoc_pydantic >=1.9,<2.0
   - -e ..

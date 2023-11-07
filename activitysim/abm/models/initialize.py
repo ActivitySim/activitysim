@@ -10,6 +10,7 @@ from typing import Any
 from activitysim.abm.tables import disaggregate_accessibility, shadow_pricing
 from activitysim.core import chunk, expressions, tracing, workflow
 from activitysim.core.configuration.base import PydanticReadable
+from activitysim.core.configuration.logit import PreprocessorSettings
 
 # We are using the naming conventions in the mtc_asim.h5 example
 # file for our default list. This provides backwards compatibility
@@ -100,12 +101,18 @@ def annotate_tables(state: workflow.State, model_settings, trace_label, chunk_si
         chunk_sizer.log_df(trace_label, tablename, None)
 
 
+class AnnotateTableSettings(PydanticReadable):
+    tablename: str
+    annotate: PreprocessorSettings
+    column_map: dict[str, str] | None = None
+
+
 class InitializeLanduseSettings(PydanticReadable):
     """
     Settings for the `initialize_landuse` component.
     """
 
-    annotate_tables: list[str] | None = None
+    annotate_tables: list[AnnotateTableSettings] | None = None
 
 
 @workflow.step

@@ -2,7 +2,7 @@
 # Write Trip Matrices
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.trip_matrices.py
+.. currentmodule:: activitysim.abm.models.trip_matrices
 ```
 
 Write open matrix (OMX) trip matrices for assignment.  Reads the trips table post preprocessor and run expressions

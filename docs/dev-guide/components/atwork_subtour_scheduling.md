@@ -2,7 +2,7 @@
 # At-work Subtour Scheduling
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.atwork_subtour_scheduling.py
+.. currentmodule:: activitysim.abm.models.atwork_subtour_scheduling
 ```
 
 The at-work subtours scheduling model selects a tour departure and duration period (and therefore a start and end

@@ -39,15 +39,6 @@ function.  This function is registered as an Inject step in the example Pipeline
 This model generates only True or False outcomes, and is structured as a binary
 logit model.
 
-
-## Configuration
-
-```{eval-rst}
-.. autopydantic_model:: MandatoryTourSchedulingSettings
-    :inherited-members: BaseModel, PydanticReadable
-    :show-inheritance:
-```
-
 ### Examples
 
 - [Prototype MTC](https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/configs/mandatory_tour_scheduling.yaml)

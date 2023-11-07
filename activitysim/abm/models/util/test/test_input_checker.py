@@ -14,14 +14,14 @@ import pandera as pa
 from activitysim.abm.models.input_checker import validate_with_pandera, TABLE_STORE
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="class")
 def v_errors():
     v_errors = {}
     v_errors["households"] = []
     return v_errors
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="class")
 def v_warnings():
     v_warnings = {}
     v_warnings["households"] = []

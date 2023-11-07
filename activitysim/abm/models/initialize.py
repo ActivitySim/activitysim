@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import warnings
+from typing import Any
 
 from activitysim.abm.tables import disaggregate_accessibility, shadow_pricing
 from activitysim.core import chunk, expressions, tracing, workflow
@@ -103,7 +104,7 @@ class InitializeLanduseSettings(PydanticReadable):
     Settings for the `initialize_landuse` component.
     """
 
-    annotate_tables: list[str] | None = None
+    annotate_tables: dict[str, Any] = {}  # list[str] | None = None
 
 
 @workflow.step

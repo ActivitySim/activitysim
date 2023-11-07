@@ -155,6 +155,7 @@ def test_prototype_mtc_extended_mp_shadow_pricing():
 
 
 EXPECTED_MODELS = [
+    "input_checker",
     "initialize_proto_population",
     "compute_disaggregate_accessibility",
     "initialize_landuse",

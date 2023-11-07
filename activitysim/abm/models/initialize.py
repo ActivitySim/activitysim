@@ -48,6 +48,7 @@ def annotate_tables(state: workflow.State, model_settings, trace_label, chunk_si
     chunk_sizer.log_rss(trace_label)
 
     annotate_tables = model_settings.annotate_tables
+    print(annotate_tables)
 
     if not annotate_tables:
         logger.warning(
@@ -104,7 +105,7 @@ class InitializeLanduseSettings(PydanticReadable):
     Settings for the `initialize_landuse` component.
     """
 
-    annotate_tables: dict[str, Any] = {}  # list[str] | None = None
+    annotate_tables: list[str] | None = None
 
 
 @workflow.step

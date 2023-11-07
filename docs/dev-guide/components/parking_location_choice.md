@@ -7,7 +7,7 @@
 
 The parking location choice model selects a parking location for specified trips. While the model does not
 require parking location be applied to any specific set of trips, it is usually applied for drive trips to
-specific zones (e.g., CBD ) in the model.
+specific zones (e.g., CBD) in the model.
 
 The model provides provides a filter for both the eligible choosers and eligible parking location zone. The
 trips dataframe is the chooser of this model. The zone selection filter is applied to the land use zones

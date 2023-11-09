@@ -2,7 +2,7 @@
 # Trip Purpose
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.trip_purpose.py
+.. currentmodule:: activitysim.abm.models.trip_purpose
 ```
 
 For trip other than the last trip outbound or inbound, assign a purpose based on an
@@ -41,4 +41,6 @@ Trip purpose and trip destination choice can be run iteratively together [trip_p
 
 ```{eval-rst}
 .. autofunction:: trip_purpose
+.. autofunction:: choose_intermediate_trip_purpose
+.. autofunction:: run_trip_purpose
 ```

@@ -73,4 +73,6 @@ is registered as an Inject step, and it is available from the pipeline.
 
 ```{eval-rst}
 .. autofunction:: parking_location
+.. autofunction:: wrap_skims
+.. autofunction:: parking_destination_simulate
 ```

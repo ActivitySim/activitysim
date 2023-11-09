@@ -42,4 +42,5 @@ function.  This function is registered as an Inject step in the example Pipeline
 
 ```{eval-rst}
 .. autofunction:: non_mandatory_tour_frequency
+.. autofunction:: extend_tour_counts
 ```

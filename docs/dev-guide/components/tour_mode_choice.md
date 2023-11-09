@@ -60,5 +60,9 @@ See [writing_logsums](writing_logsums) for how to write logsums for estimation.
 ## Implementation
 
 ```{eval-rst}
-.. autofunction:: tour_mode_choice
+.. autofunction:: tour_mode_choice_simulate
+.. autofunction:: create_logsum_trips
+.. autofunction:: append_tour_leg_trip_mode_choice_logsums
+.. autofunction:: get_trip_mc_logsums_for_all_modes
+.. autofunction:: get_trip_mc_logsums_for_all_modes
 ```

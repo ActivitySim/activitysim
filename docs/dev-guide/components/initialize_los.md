@@ -20,4 +20,6 @@ function.  These functions are registered as Inject steps in the example Pipelin
 
 ```{eval-rst}
 .. autofunction:: initialize_los
+.. autofunction:: compute_utilities_for_attribute_tuple
+.. autofunction:: initialize_tvpb
 ```

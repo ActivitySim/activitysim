@@ -42,7 +42,15 @@ def create_table_store(state, input_checker_settings):
         else:
             path = table_settings.get("path", None)
             if path:
-                table = pd.read_csv(os.path.join(path, table_name + ".csv"))
+                if os.path.isabs(path):
+                    table = pd.read_csv(os.path.join(path, table_name + ".csv"))
+                else:
+                    for directory in state.filesystem.get_data_dir():
+                        file = os.path.join(directory, path, table_name + ".csv")
+                        if os.path.exists(file):
+                            table = pd.read_csv(file)
+                            break
+
             else:
                 table = pd.read_csv(state.filesystem.get_data_file_path(table_name))
 
@@ -365,7 +373,11 @@ def input_checker(state: workflow.State):
     # Can't just import input_checker because enums.py also needs to be recognized.
     sys.path.append(str(data_model_dir))
 
-    input_checker_file_full = os.path.join(data_model_dir, input_checker_file)
+    input_checker_file_full = os.path.join(
+        state.filesystem.working_dir if state.filesystem.working_dir else ".",
+        data_model_dir,
+        input_checker_file,
+    )
 
     assert os.path.exists(
         input_checker_file_full
@@ -374,7 +386,11 @@ def input_checker(state: workflow.State):
     create_table_store(state, input_checker_settings)
 
     # import the input checker code after the TABLE_STORE is initialized so functions have access to the variable
+    prior_dir = os.getcwd()
+    if state.filesystem.working_dir:
+        os.chdir(state.filesystem.working_dir)
     input_checker = __import__(os.path.splitext(input_checker_file)[0])
+    os.chdir(prior_dir)
 
     # intializing data objects for errors, warnings, and pydantic data
     v_errors = {}

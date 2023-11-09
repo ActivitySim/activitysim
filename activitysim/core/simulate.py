@@ -159,7 +159,10 @@ def read_model_coefficients(
         assert file_name is not None
     else:
         assert file_name is None
-        if isinstance(model_settings, LogitComponentSettings):
+        if isinstance(model_settings, LogitComponentSettings) or (
+            isinstance(model_settings, PydanticBase)
+            and hasattr(model_settings, "COEFFICIENTS")
+        ):
             file_name = model_settings.COEFFICIENTS
         else:
             assert (

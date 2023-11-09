@@ -57,7 +57,7 @@ class MandatoryTourFrequencySettings(LogitComponentSettings):
     preprocessor: PreprocessorSettings | None = None
     """Setting for the preprocessor."""
 
-    annotate_persons: dict[str, Any] = {}
+    annotate_persons: PreprocessorSettings | None = None
 
 
 @workflow.step

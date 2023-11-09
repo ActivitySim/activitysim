@@ -26,7 +26,7 @@ for how to write logsums for estimation.
 ## Configuration
 
 ```{eval-rst}
-.. autopydantic_model:: NonMandatoryDestinationSettings
+.. autopydantic_model:: TourLocationComponentSettings
     :inherited-members: BaseModel, PydanticReadable
     :show-inheritance:
 ```

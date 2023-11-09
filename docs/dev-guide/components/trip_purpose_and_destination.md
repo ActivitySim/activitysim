@@ -2,7 +2,7 @@
 # Trip Purpose and Destination
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.trip_purpose_and_destination.py
+.. currentmodule:: activitysim.abm.models.trip_purpose_and_destination
 ```
 
 After running trip purpose and trip destination separately, the two model can be ran together in an iterative fashion on

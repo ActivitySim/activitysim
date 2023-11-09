@@ -2,7 +2,7 @@
 # Tour Mode Choice
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.tour_mode_choice.py
+.. currentmodule:: activitysim.abm.models.tour_mode_choice
 ```
 
 The mandatory, non-mandatory, and joint tour mode choice model assigns to each tour the "primary" mode that

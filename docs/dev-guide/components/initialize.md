@@ -1,5 +1,5 @@
 (component-initialize)=
-# Initialize 
+# Initialize
 
 ```{eval-rst}
 .. currentmodule:: activitysim.abm.models.initialize
@@ -20,5 +20,6 @@ function.  These functions are registered as Inject steps in the example Pipelin
 ## Implementation
 
 ```{eval-rst}
-.. autofunction:: initialize
+.. autofunction:: initialize_landuse
+.. autofunction:: initialize_households
 ```

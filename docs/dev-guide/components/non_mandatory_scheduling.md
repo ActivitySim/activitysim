@@ -19,16 +19,6 @@ function.  This function is registered as an Inject step in the example Pipeline
 - *Result Field*: `start, end, duration`
 - *Skims Keys*: `TAZ, destination, MD time period, MD time period`
 
-
-
-## Configuration
-
-```{eval-rst}
-.. autopydantic_model:: NonMandatorySchedulingSettings
-    :inherited-members: BaseModel, PydanticReadable
-    :show-inheritance:
-```
-
 ### Examples
 
 - [Prototype ARC](https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_arc/configs/non_mandatory_tour_scheduling.yaml)

@@ -2,7 +2,7 @@
 # Trip Scheduling Choice
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.trip_scheduling_choice.py
+.. currentmodule:: activitysim.abm.models.trip_scheduling_choice
 ```
 
 This model uses a logit-based formulation to determine potential trip windows for the three

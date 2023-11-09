@@ -37,8 +37,6 @@ This function is registered as an Inject step in the example Pipeline.  See [wri
 
 ```{eval-rst}
 .. autopydantic_model:: TourLocationComponentSettings
-    :inherited-members: BaseModel, PydanticReadable
-    :show-inheritance:
 ```
 
 ### Examples
@@ -50,5 +48,5 @@ This function is registered as an Inject step in the example Pipeline.  See [wri
 ## Implementation
 
 ```{eval-rst}
-.. autofunction:: location_choice
+.. autofunction:: workplace_location
 ```

@@ -2,7 +2,7 @@
 # At-work Subtours Frequency
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.atwork_subtour_frequency.py
+.. currentmodule:: activitysim.abm.models.atwork_subtour_frequency
 ```
 
 The at-work subtour frequency model selects the number of at-work subtours made for each work tour.

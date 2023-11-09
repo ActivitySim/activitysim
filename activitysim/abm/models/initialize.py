@@ -5,10 +5,12 @@ from __future__ import annotations
 import logging
 import os
 import warnings
+from typing import Any
 
 from activitysim.abm.tables import disaggregate_accessibility, shadow_pricing
 from activitysim.core import chunk, expressions, tracing, workflow
 from activitysim.core.configuration.base import PydanticReadable
+from activitysim.core.configuration.logit import PreprocessorSettings
 
 # We are using the naming conventions in the mtc_asim.h5 example
 # file for our default list. This provides backwards compatibility
@@ -47,6 +49,7 @@ def annotate_tables(state: workflow.State, model_settings, trace_label, chunk_si
     chunk_sizer.log_rss(trace_label)
 
     annotate_tables = model_settings.annotate_tables
+    print(annotate_tables)
 
     if not annotate_tables:
         logger.warning(
@@ -60,7 +63,7 @@ def annotate_tables(state: workflow.State, model_settings, trace_label, chunk_si
     t0 = tracing.print_elapsed_time()
 
     for table_info in annotate_tables:
-        tablename = table_info["tablename"]
+        tablename = table_info.tablename
 
         chunk_sizer.log_rss(f"{trace_label}.pre-get_table.{tablename}")
 
@@ -68,7 +71,7 @@ def annotate_tables(state: workflow.State, model_settings, trace_label, chunk_si
         chunk_sizer.log_df(trace_label, tablename, df)
 
         # - rename columns
-        column_map = table_info.get("column_map", None)
+        column_map = table_info.column_map
         if column_map:
             warnings.warn(
                 f"Setting 'column_map' has been changed to 'rename_columns'. "
@@ -80,11 +83,9 @@ def annotate_tables(state: workflow.State, model_settings, trace_label, chunk_si
             df.rename(columns=column_map, inplace=True)
 
         # - annotate
-        annotate = table_info.get("annotate", None)
+        annotate = table_info.annotate
         if annotate:
-            logger.info(
-                f"{trace_label} - annotating {tablename} SPEC {annotate['SPEC']}"
-            )
+            logger.info(f"{trace_label} - annotating {tablename} SPEC {annotate.SPEC}")
             expressions.assign_columns(
                 state, df=df, model_settings=annotate, trace_label=trace_label
             )
@@ -98,18 +99,24 @@ def annotate_tables(state: workflow.State, model_settings, trace_label, chunk_si
         chunk_sizer.log_df(trace_label, tablename, None)
 
 
-class InitializeLanduseSettings(PydanticReadable):
+class AnnotateTableSettings(PydanticReadable):
+    tablename: str
+    annotate: PreprocessorSettings
+    column_map: dict[str, str] | None = None
+
+
+class InitializeTableSettings(PydanticReadable):
     """
     Settings for the `initialize_landuse` component.
     """
 
-    annotate_tables: list[str] | None = None
+    annotate_tables: list[AnnotateTableSettings] | None = None
 
 
 @workflow.step
 def initialize_landuse(
     state: workflow.State,
-    model_settings: InitializeLanduseSettings | None = None,
+    model_settings: InitializeTableSettings | None = None,
     model_settings_file_name: str = "initialize_landuse.yaml",
     trace_label: str = "initialize_landuse",
 ) -> None:
@@ -129,7 +136,7 @@ def initialize_landuse(
 
     with chunk.chunk_log(state, trace_label, base=True) as chunk_sizer:
         if model_settings is None:
-            model_settings = InitializeLanduseSettings.read_settings_file(
+            model_settings = InitializeTableSettings.read_settings_file(
                 state.filesystem,
                 model_settings_file_name,
                 mandatory=True,
@@ -143,8 +150,11 @@ def initialize_landuse(
 
 
 @workflow.step
-def initialize_households(state: workflow.State) -> None:
-    trace_label = "initialize_households"
+def initialize_households(
+    state: workflow.State,
+    model_settings_file_name: str = "initialize_households.yaml",
+    trace_label: str = "initialize_households",
+) -> None:
 
     with chunk.chunk_log(state, trace_label, base=True) as chunk_sizer:
         chunk_sizer.log_rss(f"{trace_label}.inside-yield")
@@ -161,19 +171,12 @@ def initialize_households(state: workflow.State) -> None:
         del persons
         chunk_sizer.log_df(trace_label, "persons", None)
 
-        model_settings = state.filesystem.read_settings_file(
-            "initialize_households.yaml", mandatory=True
+        model_settings = InitializeTableSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+            mandatory=True,
         )
         annotate_tables(state, model_settings, trace_label, chunk_sizer)
-
-        # - initialize shadow_pricing size tables after annotating household and person tables
-        # since these are scaled to model size, they have to be created while single-process
-        # this can now be called as a stand alone model step instead, add_size_tables
-        add_size_tables = model_settings.get("add_size_tables", True)
-        if add_size_tables:
-            # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
-            suffixes = disaggregate_accessibility.disaggregate_suffixes(state)
-            shadow_pricing.add_size_tables(state, suffixes)
 
         # - preload person_windows
         person_windows = state.get_dataframe("person_windows")

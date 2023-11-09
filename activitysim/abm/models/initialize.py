@@ -111,6 +111,7 @@ class InitializeTableSettings(PydanticReadable):
     """
 
     annotate_tables: list[AnnotateTableSettings] | None = None
+    add_size_tables: bool = True
 
 
 @workflow.step
@@ -177,6 +178,15 @@ def initialize_households(
             mandatory=True,
         )
         annotate_tables(state, model_settings, trace_label, chunk_sizer)
+
+        # - initialize shadow_pricing size tables after annotating household and person tables
+        # since these are scaled to model size, they have to be created while single-process
+        # this can now be called as a stand alone model step instead, add_size_tables
+        add_size_tables = model_settings.add_size_tables
+        if add_size_tables:
+            # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
+            suffixes = disaggregate_accessibility.disaggregate_suffixes(state)
+            shadow_pricing.add_size_tables(state, suffixes)
 
         # - preload person_windows
         person_windows = state.get_dataframe("person_windows")

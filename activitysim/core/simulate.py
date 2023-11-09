@@ -14,9 +14,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.mandatory_tour_frequency import (
-    MandatoryTourFrequencySettings,
-)
 from activitysim.core import (
     assign,
     chunk,
@@ -150,10 +147,7 @@ def read_model_spec(filesystem: configuration.FileSystem, file_name: Path | str)
 
 def read_model_coefficients(
     filesystem: configuration.FileSystem,
-    model_settings: LogitComponentSettings
-    | MandatoryTourFrequencySettings
-    | dict[str, Any]
-    | None = None,
+    model_settings: LogitComponentSettings | dict[str, Any] | None = None,
     file_name: Path | str | None = None,
 ) -> pd.DataFrame:
     """
@@ -165,9 +159,7 @@ def read_model_coefficients(
         assert file_name is not None
     else:
         assert file_name is None
-        if isinstance(model_settings, LogitComponentSettings) | isinstance(
-            model_settings, MandatoryTourFrequencySettings
-        ):
+        if isinstance(model_settings, LogitComponentSettings):
             file_name = model_settings.COEFFICIENTS
         else:
             assert (

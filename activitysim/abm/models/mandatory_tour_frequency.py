@@ -16,7 +16,7 @@ from activitysim.core import (
     tracing,
     workflow,
 )
-from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.base import MandatoryTourFrequencySettings
 
 logger = logging.getLogger(__name__)
 
@@ -42,23 +42,6 @@ def add_null_results(state, trace_label, mandatory_tour_frequency_settings):
     )
 
     state.add_table("persons", persons)
-
-
-class MandatoryTourFrequencySettings(PydanticReadable):
-    """
-    Settings for the `mandatory_tour_frequency` component.
-    """
-
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
-
-    SPEC: str = "mandatory_tour_frequency.csv"
-    """Filename for the accessibility specification (csv) file."""
-
-    COEFFICIENTS: str = "mandatory_tour_frequency_coefficients.csv"
-    """Filename for the mandatory tour frequency coefficients (csv) file."""
-
-    annotate_persons: dict[str, Any] = {}
 
 
 @workflow.step

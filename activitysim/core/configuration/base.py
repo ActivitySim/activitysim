@@ -114,3 +114,20 @@ class PreprocessorSettings(PydanticBase):
 
     DF: str
     TABLES: list[str] | None
+
+
+class MandatoryTourFrequencySettings(PydanticReadable):
+    """
+    Settings for the `mandatory_tour_frequency` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    SPEC: str = "mandatory_tour_frequency.csv"
+    """Filename for the accessibility specification (csv) file."""
+
+    COEFFICIENTS: str = "mandatory_tour_frequency_coefficients.csv"
+    """Filename for the mandatory tour frequency coefficients (csv) file."""
+
+    annotate_persons: dict[str, Any] = {}

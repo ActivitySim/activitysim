@@ -25,10 +25,7 @@ from activitysim.core import (
     util,
     workflow,
 )
-from activitysim.core.configuration.base import (
-    MandatoryTourFrequencySettings,
-    PydanticBase,
-)
+from activitysim.core.configuration.base import PydanticBase
 from activitysim.core.configuration.logit import (
     LogitComponentSettings,
     LogitNestSpec,
@@ -150,10 +147,7 @@ def read_model_spec(filesystem: configuration.FileSystem, file_name: Path | str)
 
 def read_model_coefficients(
     filesystem: configuration.FileSystem,
-    model_settings: LogitComponentSettings
-    | MandatoryTourFrequencySettings
-    | dict[str, Any]
-    | None = None,
+    model_settings: LogitComponentSettings | dict[str, Any] | None = None,
     file_name: Path | str | None = None,
 ) -> pd.DataFrame:
     """
@@ -165,8 +159,9 @@ def read_model_coefficients(
         assert file_name is not None
     else:
         assert file_name is None
-        if isinstance(model_settings, LogitComponentSettings) | isinstance(
-            model_settings, MandatoryTourFrequencySettings
+        if isinstance(model_settings, LogitComponentSettings) or (
+            isinstance(model_settings, PydanticBase)
+            and hasattr(model_settings, "COEFFICIENTS")
         ):
             file_name = model_settings.COEFFICIENTS
         else:

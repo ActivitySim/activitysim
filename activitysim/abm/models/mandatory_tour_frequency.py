@@ -16,7 +16,12 @@ from activitysim.core import (
     tracing,
     workflow,
 )
-from activitysim.core.configuration.base import MandatoryTourFrequencySettings
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import (
+    BaseLogitComponentSettings,
+    LogitComponentSettings,
+    PreprocessorSettings,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +47,17 @@ def add_null_results(state, trace_label, mandatory_tour_frequency_settings):
     )
 
     state.add_table("persons", persons)
+
+
+class MandatoryTourFrequencySettings(LogitComponentSettings):
+    """
+    Settings for the `mandatory_tour_frequency` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    annotate_persons: PreprocessorSettings | None = None
 
 
 @workflow.step

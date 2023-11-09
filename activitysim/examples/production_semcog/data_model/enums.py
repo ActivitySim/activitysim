@@ -81,6 +81,7 @@ class AreaType(IntEnum):
     SUBURBAN = 4
     RURAL = 5
 
+
 class HHT(IntEnum):
     """
     Provide an integer mapping for household/family type.

@@ -24,6 +24,7 @@ from activitysim.abm.models.input_checker import TABLE_STORE, log_info
 
 # logger = logging.getLogger(__name__)
 
+
 class Household(pa.DataFrameModel):
     """
     Household data from PopulationSim and input to ActivitySim.
@@ -37,21 +38,26 @@ class Household(pa.DataFrameModel):
     auto_ownership: Seeding for initial number of autos owned by the household
     HHT: Household type, see enums.HHT
     """
+
     # auto_ownership: int = pa.Field(ge=0, le=6)
     household_id: int = pa.Field(unique=True, gt=0)
-    age_of_head: int = pa.Field(ge=0,coerce=True)
-    auto_ownership: int = pa.Field(isin=(list([-9] + list(range(0, 7)))),coerce=True) #cars
-    hhsize: int = pa.Field(gt=0) #persons
-    race_id: int = pa.Field(gt=0, le=4,coerce=True)
-    children: int = pa.Field(ge=0,raise_warning=True,coerce=True)
+    age_of_head: int = pa.Field(ge=0, coerce=True)
+    auto_ownership: int = pa.Field(
+        isin=(list([-9] + list(range(0, 7)))), coerce=True
+    )  # cars
+    hhsize: int = pa.Field(gt=0)  # persons
+    race_id: int = pa.Field(gt=0, le=4, coerce=True)
+    children: int = pa.Field(ge=0, raise_warning=True, coerce=True)
     type: int = pa.Field(gt=0)
     hincp: float
-    adjinc: int = pa.Field(ge=0,raise_warning=True)
+    adjinc: int = pa.Field(ge=0, raise_warning=True)
     hht: int = pa.Field(isin=e.HHT, raise_warning=True, coerce=True)
-    home_zone_id: int = pa.Field(gt=0,nullable=False, coerce=True)
-    TAZ: int = pa.Field(gt=0,nullable=False, coerce=True)
+    home_zone_id: int = pa.Field(gt=0, nullable=False, coerce=True)
+    TAZ: int = pa.Field(gt=0, nullable=False, coerce=True)
 
-    @pa.dataframe_check(name="Household size equals the number of persons?", raise_warning=True)
+    @pa.dataframe_check(
+        name="Household size equals the number of persons?", raise_warning=True
+    )
     def check_persons_per_household(cls, households: pd.DataFrame):
         persons = TABLE_STORE["persons"]
         hhsize = (
@@ -59,55 +65,51 @@ class Household(pa.DataFrameModel):
             .count()
             .reindex(households.household_id)
         )
-        mismatched_indices = (hhsize != households.set_index('household_id').hhsize)
-        mismatched_cases = households.set_index('household_id').loc[mismatched_indices]
+        mismatched_indices = hhsize != households.set_index("household_id").hhsize
+        mismatched_cases = households.set_index("household_id").loc[mismatched_indices]
         if len(mismatched_cases) > 0:
             log_info(
                 f"Household size dose not equal the number of persons at \n{mismatched_cases}.\n"
-            )   
+            )
         else:
-             log_info(
-                f"Household size equals the number of persons.\n"
-            )               
+            log_info(f"Household size equals the number of persons.\n")
         return ~mismatched_indices
-        
+
     @pa.dataframe_check(name="taz in landuse file?", raise_warning=True)
     def check_home_zone_in_landuse(cls, households: pd.DataFrame):
         land_use = TABLE_STORE["land_use"]
         # Perform the check as before
         result = households.TAZ.isin(land_use.TAZ).all()
-        output = households[~households['TAZ'].isin(land_use['TAZ'])]['TAZ'].tolist()               
+        output = households[~households["TAZ"].isin(land_use["TAZ"])]["TAZ"].tolist()
         if result != True:
-            log_info(
-                f"Tazes are not in landuse file at \n{output}.\n"
-            )   
+            log_info(f"Tazes are not in landuse file at \n{output}.\n")
         else:
-             log_info(
-                f"All tazes are in landuse file.\n"
-            )            
+            log_info(f"All tazes are in landuse file.\n")
         return result
-        
-    @pa.dataframe_check(name="Household children equals the number of child (age<=17) in persons?", raise_warning=True)
+
+    @pa.dataframe_check(
+        name="Household children equals the number of child (age<=17) in persons?",
+        raise_warning=True,
+    )
     def check_children_per_household(cls, households: pd.DataFrame):
-        persons = TABLE_STORE["persons"]     
+        persons = TABLE_STORE["persons"]
         children = (
-            persons[persons['age'] <= 17]  # Filter rows where 'age' <= 17
-            .groupby('household_id')  # Group by 'householder' column
+            persons[persons["age"] <= 17]  # Filter rows where 'age' <= 17
+            .groupby("household_id")  # Group by 'householder' column
             .size()  # Count the number of rows in each group
             .reindex(households.household_id)  # Reindex based on household IDs
             .fillna(0)  # Fill NaN values with 0 if there are no matching groups
         )
-        mismatched_indices = (children != households.set_index('household_id').children)
-        mismatched_cases = households.set_index('household_id').loc[mismatched_indices]
+        mismatched_indices = children != households.set_index("household_id").children
+        mismatched_cases = households.set_index("household_id").loc[mismatched_indices]
         if len(mismatched_cases) > 0:
             log_info(
                 f"Household children dose not equal the number of children in persons at \n{mismatched_cases}.\n"
-            )   
+            )
         else:
-             log_info(
-                f"Household children equals the number of children in persons.\n"
-            )         
-        return ~mismatched_indices            
+            log_info(f"Household children equals the number of children in persons.\n")
+        return ~mismatched_indices
+
 
 class Person(pa.DataFrameModel):
     """
@@ -117,7 +119,7 @@ class Person(pa.DataFrameModel):
 
     person_id: int = pa.Field(unique=True, gt=0)
     relate: int = pa.Field(ge=0, le=17)
-    age: int = pa.Field(ge=0, le=100,coerce=True)
+    age: int = pa.Field(ge=0, le=100, coerce=True)
     sex: int = pa.Field(ge=1, le=2)
     race_id: int = pa.Field(gt=0, le=4)
     member_id: int = pa.Field(gt=0)
@@ -128,38 +130,37 @@ class Person(pa.DataFrameModel):
     schg: float = pa.Field(isin=(set([-9.0] + [float(x) for x in range(0, 17)])))
     mil: float = pa.Field(isin=(set([-9.0] + [float(x) for x in range(0, 5)])))
     naicsp: str
-    industry: int = pa.Field(isin=(set([-9.0] + [float(x) for x in range(0, 19)])), coerce=True)
+    industry: int = pa.Field(
+        isin=(set([-9.0] + [float(x) for x in range(0, 19)])), coerce=True
+    )
     zone_id: int = pa.Field(gt=0, nullable=False, coerce=True)
 
     @pa.dataframe_check(name="All person's households in households table?")
     def check_persons_in_households(cls, persons: pd.DataFrame):
         households = TABLE_STORE["households"]
         result = persons.household_id.isin(households.household_id)
-        output = persons[~persons['household_id'].isin(households['household_id'])]['household_id'].tolist()
+        output = persons[~persons["household_id"].isin(households["household_id"])][
+            "household_id"
+        ].tolist()
         if len(output) > 0:
-            log_info(
-                f"Person's household are not in households table at \n{output}.\n"
-            )   
+            log_info(f"Person's household are not in households table at \n{output}.\n")
         else:
-             log_info(
-                f"All person's households are in households table.\n"
-            )            
+            log_info(f"All person's households are in households table.\n")
         return result
 
     @pa.dataframe_check(name="Every household has a person?")
     def check_households_have_persons(cls, persons: pd.DataFrame):
-        households = TABLE_STORE["households"]    
+        households = TABLE_STORE["households"]
         result = households.household_id.isin(persons.household_id).all()
-        output = households[~households['household_id'].isin(persons['household_id'])]['household_id'].tolist()
+        output = households[~households["household_id"].isin(persons["household_id"])][
+            "household_id"
+        ].tolist()
         if result != True:
-            log_info(
-                f"Household does not have a person at \n{output}.\n"
-            )   
+            log_info(f"Household does not have a person at \n{output}.\n")
         else:
-             log_info(
-                f"Every household has a person.\n"
-            )            
-        return result   
+            log_info(f"Every household has a person.\n")
+        return result
+
 
 class Landuse(pa.DataFrameModel):
     """
@@ -186,94 +187,107 @@ class Landuse(pa.DataFrameModel):
     tot_hhs: float = pa.Field(ge=0, nullable=False, coerce=True)
     hhs_pop: float = pa.Field(ge=0, coerce=True)
     grppop: float = pa.Field(ge=0, coerce=True)
-    tot_pop: float = pa.Field(ge=0, coerce=True )
-    #enrollment_k_8: is_numeric = pa.Field(ge=0)
+    tot_pop: float = pa.Field(ge=0, coerce=True)
+    # enrollment_k_8: is_numeric = pa.Field(ge=0)
     K_8: float = pa.Field(ge=0, coerce=True)
     G9_12: float = pa.Field(ge=0, coerce=True)
-    e01_nrm: float = pa.Field(ge=0,coerce=True)
-    e02_constr: float = pa.Field(ge=0,coerce=True)
-    e03_manuf: float = pa.Field(ge=0,coerce=True)
-    e04_whole: float = pa.Field(ge=0,coerce=True)
-    e05_retail: float = pa.Field(ge=0,coerce=True)
-    e06_trans: float = pa.Field(ge=0,coerce=True)
-    e07_utility: float = pa.Field(ge=0,coerce=True)
-    e08_infor: float = pa.Field(ge=0,coerce=True)
-    e09_finan: float = pa.Field(ge=0,coerce=True)
-    e10_pstsvc: float = pa.Field(ge=0,coerce=True)
-    e11_compmgt: float = pa.Field(ge=0,coerce=True)
-    e12_admsvc: float = pa.Field(ge=0,coerce=True)
-    e13_edusvc: float = pa.Field(ge=0,coerce=True)
-    e14_medfac: float = pa.Field(ge=0,coerce=True)
-    e15_hospit: float = pa.Field(ge=0,coerce=True)
-    e16_leisure: float = pa.Field(ge=0,coerce=True)
-    e17_othsvc: float = pa.Field(ge=0,coerce=True)
-    e18_pubadm: float = pa.Field(ge=0,coerce=True)
-    tot_emp: float = pa.Field(ge=0,coerce=True)
+    e01_nrm: float = pa.Field(ge=0, coerce=True)
+    e02_constr: float = pa.Field(ge=0, coerce=True)
+    e03_manuf: float = pa.Field(ge=0, coerce=True)
+    e04_whole: float = pa.Field(ge=0, coerce=True)
+    e05_retail: float = pa.Field(ge=0, coerce=True)
+    e06_trans: float = pa.Field(ge=0, coerce=True)
+    e07_utility: float = pa.Field(ge=0, coerce=True)
+    e08_infor: float = pa.Field(ge=0, coerce=True)
+    e09_finan: float = pa.Field(ge=0, coerce=True)
+    e10_pstsvc: float = pa.Field(ge=0, coerce=True)
+    e11_compmgt: float = pa.Field(ge=0, coerce=True)
+    e12_admsvc: float = pa.Field(ge=0, coerce=True)
+    e13_edusvc: float = pa.Field(ge=0, coerce=True)
+    e14_medfac: float = pa.Field(ge=0, coerce=True)
+    e15_hospit: float = pa.Field(ge=0, coerce=True)
+    e16_leisure: float = pa.Field(ge=0, coerce=True)
+    e17_othsvc: float = pa.Field(ge=0, coerce=True)
+    e18_pubadm: float = pa.Field(ge=0, coerce=True)
+    tot_emp: float = pa.Field(ge=0, coerce=True)
 
     @pa.dataframe_check(name="Total employment is sum of employment categories?")
     def check_tot_employment(cls, land_use: pd.DataFrame):
         tot_emp = land_use[
-            ["e01_nrm","e02_constr","e03_manuf","e04_whole","e05_retail","e06_trans",\
-            "e07_utility","e08_infor","e09_finan","e10_pstsvc","e11_compmgt","e12_admsvc"\
-            ,"e13_edusvc","e14_medfac","e15_hospit","e16_leisure","e17_othsvc","e18_pubadm"]
+            [
+                "e01_nrm",
+                "e02_constr",
+                "e03_manuf",
+                "e04_whole",
+                "e05_retail",
+                "e06_trans",
+                "e07_utility",
+                "e08_infor",
+                "e09_finan",
+                "e10_pstsvc",
+                "e11_compmgt",
+                "e12_admsvc",
+                "e13_edusvc",
+                "e14_medfac",
+                "e15_hospit",
+                "e16_leisure",
+                "e17_othsvc",
+                "e18_pubadm",
+            ]
         ].sum(axis=1)
-        result = (tot_emp == land_use.tot_emp).all()  
-        output = land_use.loc[~(tot_emp == land_use.tot_emp), 'zone_id'].tolist()
+        result = (tot_emp == land_use.tot_emp).all()
+        output = land_use.loc[~(tot_emp == land_use.tot_emp), "zone_id"].tolist()
         if len(output) > 0:
             log_info(
                 f"Total employment is not sum of 18 employment categories at zone_id \n{output}.\n."
             )
         else:
-            log_info(
-                f"Total employment is sum of 18 employment categories.\n"
-            )            
+            log_info(f"Total employment is sum of 18 employment categories.\n")
         return tot_emp == land_use.tot_emp
 
     @pa.dataframe_check(name="Zonal households equals the number of households?")
     def check_hh_per_zone(cls, land_use: pd.DataFrame):
-        land_use = land_use.sort_values(by='zone_id', ascending=True)
-        households = TABLE_STORE["households"]     
-        households = households[households['hht'] > 0]
+        land_use = land_use.sort_values(by="zone_id", ascending=True)
+        households = TABLE_STORE["households"]
+        households = households[households["hht"] > 0]
         hh = (
             households.groupby("home_zone_id")["household_id"]
             .nunique()
             .reset_index(name="count")  # Rename the result column to "count"
-        )                          
-        hh = hh.set_index('home_zone_id').reindex(land_use.zone_id).fillna(0) 
-        mismatched_indices = (hh["count"] != land_use.set_index('zone_id')["tot_hhs"])
+        )
+        hh = hh.set_index("home_zone_id").reindex(land_use.zone_id).fillna(0)
+        mismatched_indices = hh["count"] != land_use.set_index("zone_id")["tot_hhs"]
         mismatched_cases = hh.loc[mismatched_indices]
         if len(mismatched_cases) > 0:
             log_info(
                 f"Zonal households does not equal the number of households at \n{mismatched_cases}.\n"
             )
         else:
-            log_info(
-                f"Zonal households equals the number of households.\n"
-            )
-        return ~mismatched_indices   
+            log_info(f"Zonal households equals the number of households.\n")
+        return ~mismatched_indices
 
     @pa.dataframe_check(name="Zonal pop equals the number of persons?")
     def check_pop_per_zone(cls, land_use: pd.DataFrame):
-        land_use = land_use.sort_values(by='zone_id', ascending=True)
-        persons = TABLE_STORE["persons"]     
+        land_use = land_use.sort_values(by="zone_id", ascending=True)
+        persons = TABLE_STORE["persons"]
         persons = (
             persons.groupby("maz_seqid")["person_id"]
             .nunique()
             .reset_index(name="count")  # Rename the result column to "count"
-        )                               
-        persons = persons.set_index('maz_seqid').reindex(land_use.zone_id).fillna(0)
-        
-        mismatched_indices = (persons["count"] != land_use.set_index('zone_id')["tot_pop"])
+        )
+        persons = persons.set_index("maz_seqid").reindex(land_use.zone_id).fillna(0)
+
+        mismatched_indices = (
+            persons["count"] != land_use.set_index("zone_id")["tot_pop"]
+        )
         mismatched_cases = persons.loc[mismatched_indices]
         if len(mismatched_cases) > 0:
             log_info(
                 f"Zonal pop does not equal the number of persons at \n{mismatched_cases}.\n"
-            )   
+            )
         else:
-             log_info(
-                f"Zonal pop equals the number of persons.\n"
-            )            
-        return persons['count'] == land_use.set_index('zone_id').tot_pop   
+            log_info(f"Zonal pop equals the number of persons.\n")
+        return persons["count"] == land_use.set_index("zone_id").tot_pop
 
 
 class NetworkLinks(pa.DataFrameModel):
@@ -301,7 +315,7 @@ class NetworkLinks(pa.DataFrameModel):
         state = TABLE_STORE["state"]
 
         # code duplicated from skim_dict_factory.py but need to copy here to not load skim data
-        los_settings = state.filesystem.read_settings_file("network_los.yaml")     
+        los_settings = state.filesystem.read_settings_file("network_los.yaml")
         omx_file_paths = state.filesystem.expand_input_file_list(
             los_settings["taz_skims"]
         )
@@ -348,8 +362,6 @@ class NetworkLinks(pa.DataFrameModel):
             skim_name for skim_name in skim_names if skim_name not in omx_keys
         ]
         if len(missing_skims) > 0:
-            log_info(
-                f"Missing skims {missing_skims} found in {tour_mode_choice_spec}"
-            )
-        result = (len(missing_skims) == 0) 
+            log_info(f"Missing skims {missing_skims} found in {tour_mode_choice_spec}")
+        result = len(missing_skims) == 0
         return len(missing_skims) == 0

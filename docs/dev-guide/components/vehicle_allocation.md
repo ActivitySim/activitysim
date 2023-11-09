@@ -44,4 +44,6 @@ selected vehicle to be used in two separate tours at the same time.
 
 ```{eval-rst}
 .. autofunction:: vehicle_allocation
+.. autofunction:: annotate_vehicle_allocation
+.. autofunction:: get_skim_dict
 ```

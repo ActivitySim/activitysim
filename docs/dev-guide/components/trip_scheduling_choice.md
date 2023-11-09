@@ -34,4 +34,10 @@ main components of a tour.
 
 ```{eval-rst}
 .. autofunction:: trip_scheduling_choice
+.. autofunction:: generate_schedule_alternatives
+.. autofunction:: no_stops_patterns
+.. autofunction:: stop_one_way_only_patterns
+.. autofunction:: stop_two_way_only_patterns
+.. autofunction:: get_pattern_index_and_arrays
+.. autofunction:: get_spec_for_segment
 ```

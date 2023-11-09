@@ -49,5 +49,5 @@ at [cdap](activitysim.abm.models.util.cdap) and contains CDAP model logic.
 ## Implementation
 
 ```{eval-rst}
-.. autofunction:: cdap
+.. autofunction:: cdap_simulate
 ```

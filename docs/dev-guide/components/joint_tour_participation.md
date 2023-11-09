@@ -43,4 +43,5 @@ function.  This function is registered as an Inject step in the example Pipeline
 
 ```{eval-rst}
 .. autofunction:: joint_tour_participation
+.. autofunction:: participants_chooser
 ```

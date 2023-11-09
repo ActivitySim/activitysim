@@ -15,7 +15,6 @@ function.  This function is registered as an Inject step in the example Pipeline
 
 ## Structure
 
-
 - *Core Table*: `trips`
 - *Result Field*: `purpose, destination`
 - *Skims Keys*: `origin, (tour primary) destination, dest_taz, trip_period`

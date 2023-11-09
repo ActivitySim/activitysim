@@ -270,19 +270,27 @@ def participants_chooser(
     return choices, rands
 
 
-def annotate_jtp(state: workflow.State, model_settings, trace_label):
+def annotate_jtp(
+    state: workflow.State,
+    model_settings: JointTourParticipationSettings,
+    trace_label: str,
+):
     # - annotate persons
     persons = state.get_dataframe("persons")
     expressions.assign_columns(
         state,
         df=persons,
-        model_settings=model_settings.get("annotate_persons"),
+        model_settings=model_settings.annotate_persons,
         trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
     )
     state.add_table("persons", persons)
 
 
-def add_null_results(state, model_settings, trace_label):
+def add_null_results(
+    state: workflow.State,
+    model_settings: JointTourParticipationSettings,
+    trace_label: str,
+):
     logger.info("Skipping %s: joint tours", trace_label)
     # participants table is used downstream in non-joint tour expressions
 
@@ -303,6 +311,11 @@ class JointTourParticipationSettings(LogitComponentSettings, extra="forbid"):
 
     preprocessor: PreprocessorSettings | None = None
     """Setting for the preprocessor."""
+
+    annotate_persons: PreprocessorSettings | None = None
+    """Instructions for annotating the persons table."""
+
+    participation_choice: str = "participate"
 
 
 @workflow.step
@@ -400,7 +413,7 @@ def joint_tour_participation(
     )
 
     # choice is boolean (participate or not)
-    choice_col = model_settings.get("participation_choice", "participate")  # TODO
+    choice_col = model_settings.participation_choice
     assert (
         choice_col in model_spec.columns
     ), "couldn't find participation choice column '%s' in spec"

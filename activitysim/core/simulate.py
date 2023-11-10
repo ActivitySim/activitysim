@@ -27,6 +27,7 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.base import PydanticBase
 from activitysim.core.configuration.logit import (
+    BaseLogitComponentSettings,
     LogitComponentSettings,
     LogitNestSpec,
     TemplatedLogitComponentSettings,
@@ -147,7 +148,7 @@ def read_model_spec(filesystem: configuration.FileSystem, file_name: Path | str)
 
 def read_model_coefficients(
     filesystem: configuration.FileSystem,
-    model_settings: LogitComponentSettings | dict[str, Any] | None = None,
+    model_settings: BaseLogitComponentSettings | dict[str, Any] | None = None,
     file_name: Path | str | None = None,
 ) -> pd.DataFrame:
     """
@@ -159,7 +160,7 @@ def read_model_coefficients(
         assert file_name is not None
     else:
         assert file_name is None
-        if isinstance(model_settings, LogitComponentSettings) or (
+        if isinstance(model_settings, BaseLogitComponentSettings) or (
             isinstance(model_settings, PydanticBase)
             and hasattr(model_settings, "COEFFICIENTS")
         ):

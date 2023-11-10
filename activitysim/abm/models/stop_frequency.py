@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from pathlib import Path
+from typing import Any, Literal
 
 import pandas as pd
 
@@ -24,20 +25,44 @@ from activitysim.core.util import assign_in_place
 logger = logging.getLogger(__name__)
 
 
+class StopFrequencySpecSegmentSettings(LogitComponentSettings, extra="allow"):
+    # this class specifically allows "extra" settings because ActivitySim
+    # is set up to have the name of the segment column be identified with
+    # an arbitrary key.
+    SPEC: Path
+    COEFFICIENTS: Path
+
+
 class StopFrequencySettings(LogitComponentSettings, extra="forbid"):
     """
-    Settings for the `free_parking` component.
+    Settings for the stop frequency component.
+    """
+
+    LOGIT_TYPE: Literal["MNL"] = "MNL"
+    """Logit model mathematical form.
+
+    * "MNL"
+        Multinomial logit model.
     """
 
     preprocessor: PreprocessorSettings | None = None
     """Setting for the preprocessor."""
 
-    SPEC_SEGMENTS: dict[str, Any] = {}
-    # TODO Check this again
+    SPEC_SEGMENTS: list[StopFrequencySpecSegmentSettings] = {}
+
+    SPEC: Path | None = None
+    """Utility specification filename.
+
+    This is sometimes alternatively called the utility expressions calculator
+    (UEC). It is a CSV file giving all the functions for the terms of a
+    linear-in-parameters utility expression.  If SPEC_SEGMENTS is given, then
+    this unsegmented SPEC should be omitted.
+    """
 
     SEGMENT_COL: str = "primary_purpose"
 
-    # CONSTANTS TODO Check this again
+    CONSTANTS: dict[str, Any] = {}
+    """Named constants usable in the utility expressions."""
 
 
 @workflow.step
@@ -136,8 +161,7 @@ def stop_frequency(
 
     choices_list = []
     for segment_settings in spec_segments:
-        segment_name = segment_settings[segment_col]
-        segment_value = segment_settings[segment_col]
+        segment_name = segment_value = getattr(segment_settings, segment_col)
 
         chooser_segment = tours_merged[tours_merged[segment_col] == segment_value]
 
@@ -153,16 +177,14 @@ def stop_frequency(
             state, model_name=segment_name, bundle_name="stop_frequency"
         )
 
-        segment_spec = state.filesystem.read_model_spec(
-            file_name=segment_settings["SPEC"]
-        )
+        segment_spec = state.filesystem.read_model_spec(file_name=segment_settings.SPEC)
         assert segment_spec is not None, (
             "spec for segment_type %s not found" % segment_name
         )
 
-        coefficients_file_name = segment_settings["COEFFICIENTS"]
+        coefficients_file_name = segment_settings.COEFFICIENTS
         coefficients_df = state.filesystem.read_model_coefficients(
-            file_name=coefficients_file_name
+            file_name=str(coefficients_file_name)
         )
         segment_spec = simulate.eval_coefficients(
             state, segment_spec, coefficients_df, estimator

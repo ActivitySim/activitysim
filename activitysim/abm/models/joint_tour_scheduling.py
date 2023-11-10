@@ -7,6 +7,7 @@ import logging
 import pandas as pd
 
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
+    TourSchedulingSettings,
     vectorize_joint_tour_scheduling,
 )
 from activitysim.core import (
@@ -24,16 +25,17 @@ from activitysim.core.util import assign_in_place, reindex
 logger = logging.getLogger(__name__)
 
 
-class JointTourSchedulingSettings(LogitComponentSettings, extra="forbid"):
-    """
-    Settings for the `joint_tour_scheduling` component.
-    """
-
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
-
-    sharrow_skip: bool = False
-    """Setting to skip sharrow"""
+# class JointTourSchedulingSettings(LogitComponentSettings, extra="forbid"):
+#     """
+#     Settings for the `joint_tour_scheduling` component.
+#     """
+#
+#     preprocessor: PreprocessorSettings | None = None
+#     """Setting for the preprocessor."""
+#
+#     sharrow_skip: bool = False
+#     """Setting to skip sharrow"""
+#
 
 
 @workflow.step
@@ -42,7 +44,7 @@ def joint_tour_scheduling(
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     tdd_alts: pd.DataFrame,
-    model_settings: JointTourSchedulingSettings | None = None,
+    model_settings: TourSchedulingSettings | None = None,
     model_settings_file_name: str = "joint_tour_scheduling.yaml",
     trace_label: str = "joint_tour_scheduling",
 ) -> None:
@@ -51,7 +53,7 @@ def joint_tour_scheduling(
     """
 
     if model_settings is None:
-        model_settings = JointTourSchedulingSettings.read_settings_file(
+        model_settings = TourSchedulingSettings.read_settings_file(
             state.filesystem,
             model_settings_file_name,
         )

@@ -75,6 +75,9 @@ class BaseLogitComponentSettings(PydanticReadable):
     CONSTANTS: dict[str, Any] = {}
     """Named constants usable in the utility expressions."""
 
+    sharrow_skip: bool = False
+    """Skip sharrow when evaluating this component."""
+
 
 class LogitComponentSettings(BaseLogitComponentSettings):
     """

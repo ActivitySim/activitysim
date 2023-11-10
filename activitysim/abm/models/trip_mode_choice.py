@@ -45,6 +45,8 @@ class TripModeChoiceSettings(TemplatedLogitComponentSettings, extra="forbid"):
     CHOOSER_COLS_TO_KEEP: list[str] = []
 
     tvpb_mode_path_types: dict[str, Any] = {}
+    TVPB_recipe: str = "tour_mode_choice"
+    use_TVPB_constants: bool = True
 
     FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH: bool = True
 
@@ -152,7 +154,7 @@ def trip_mode_choice(
     if network_los.zone_system == los.THREE_ZONE:
         # fixme - is this a lightweight object?
         tvpb = network_los.tvpb
-        tvpb_recipe = model_settings.get("TVPB_recipe", "tour_mode_choice")
+        tvpb_recipe = model_settings.TVPB_recipe
         tvpb_logsum_odt = tvpb.wrap_logsum(
             orig_key=orig_col,
             dest_key=dest_col,
@@ -179,7 +181,7 @@ def trip_mode_choice(
         # the tvpb will still use the constants as defined in the recipe
         # specified above in `tvpb.wrap_logsum()` but they will not be used
         # in the trip mode choice expressions.
-        if model_settings.get("use_TVPB_constants", True):
+        if model_settings.use_TVPB_constants:
             constants.update(
                 network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
             )

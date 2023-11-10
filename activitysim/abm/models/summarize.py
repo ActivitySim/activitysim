@@ -201,7 +201,7 @@ def manual_breaks(
         return bins
 
 
-class SummarizeSettings(PydanticReadable, extra="forbid"):
+class SummarizeSettings(PydanticReadable, extra="allow"):
     """
     Settings for the `summarize` component.
     """
@@ -252,9 +252,7 @@ def summarize(
             model_settings_file_name,
         )
 
-    output_location = (
-        model_settings.OUTPUT if "OUTPUT" in model_settings else "summaries"
-    )
+    output_location = model_settings.OUTPUT
     os.makedirs(state.get_output_file_path(output_location), exist_ok=True)
 
     spec = pd.read_csv(
@@ -271,7 +269,7 @@ def summarize(
         tours_merged.drop(columns=["person_id", "household_id"]),
         left_on="tour_id",
         right_index=True,
-        suffixes=["_trip", "_tour"],
+        suffixes=("_trip", "_tour"),
         how="left",
     )
 
@@ -296,8 +294,8 @@ def summarize(
     )
 
     for table_name, df in locals_d.items():
-        if table_name in model_settings:
-            meta = model_settings[table_name]
+        if hasattr(model_settings, table_name):
+            meta = getattr(model_settings, table_name)
             df = eval(table_name)
 
             if "AGGREGATE" in meta and meta["AGGREGATE"]:

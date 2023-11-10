@@ -193,16 +193,16 @@ def get_pattern_index_and_arrays(tour_indexes, durations, one_way=True):
     return indexes, patterns, pattern_sizes
 
 
-def get_spec_for_segment(state: workflow.State, model_settings, spec_name, segment):
+def get_spec_for_segment(state: workflow.State, model_settings_spec_name, segment):
     """
     Read in the model spec
     :param model_settings: model settings file
-    :param spec_name: name of the key in the settings file
+    :param model_settings_spec_name: name of the key in the settings file
     :param segment: which segment of the spec file do you want to read
     :return: array of utility equations
     """
 
-    omnibus_spec = state.filesystem.read_model_spec(file_name=model_settings[spec_name])
+    omnibus_spec = state.filesystem.read_model_spec(file_name=model_settings_spec_name)
 
     spec = omnibus_spec[[segment]]
 
@@ -332,6 +332,9 @@ class TripSchedulingChoiceSettings(PydanticReadable):
     preprocessor: PreprocessorSettings | None = None
     """Setting for the preprocessor."""
 
+    SPECIFICATION: str
+    """file name of specification file"""
+
 
 @workflow.step
 def trip_scheduling_choice(
@@ -350,7 +353,7 @@ def trip_scheduling_choice(
             model_settings_file_name,
         )
 
-    spec = get_spec_for_segment(state, model_settings, "SPECIFICATION", "stage_one")
+    spec = get_spec_for_segment(state, model_settings.SPECIFICATION, "stage_one")
 
     trips_df = trips
     tours_df = tours

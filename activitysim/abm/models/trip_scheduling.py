@@ -567,7 +567,6 @@ def trip_scheduling(
         pd.Series(list(range(len(tours))), tours.index), trips_df.tour_id
     )
 
-    assert model_settings.DEPART_ALT_BASE
     failfix = model_settings.FAILFIX
 
     max_iterations = model_settings.MAX_ITERATIONS

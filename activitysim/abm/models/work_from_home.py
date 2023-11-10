@@ -32,7 +32,7 @@ class WorkFromHomeSettings(LogitComponentSettings, extra="forbid"):
     WORK_FROM_HOME_ALT: int
     """Value that specify if the person is working from home"""  # TODO
 
-    WORK_FROM_HOME_ITERATIONS: int | None = None
+    WORK_FROM_HOME_ITERATIONS: int = 1
     """Setting to specify the number of iterations."""
 
     CHOOSER_FILTER_COLUMN_NAME: str = "is_worker"

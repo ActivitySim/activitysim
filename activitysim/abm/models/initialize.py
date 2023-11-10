@@ -35,7 +35,7 @@ def annotate_tables(state: workflow.State, model_settings, trace_label, chunk_si
     Parameters
     ----------
     state : workflow.State
-    model_settings :
+    model_settings : PydanticReadable
     trace_label : str
     chunk_sizer : ChunkSizer
 
@@ -110,7 +110,7 @@ class InitializeTableSettings(PydanticReadable):
     Settings for the `initialize_landuse` component.
     """
 
-    annotate_tables: list[AnnotateTableSettings] | None = None
+    annotate_tables: list[AnnotateTableSettings] = []
 
 
 @workflow.step

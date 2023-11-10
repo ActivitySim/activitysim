@@ -981,7 +981,7 @@ def vectorize_tour_scheduling(
     spec : DataFrame
         The spec which will be passed to interaction_simulate.
         (or dict of specs keyed on tour_type if tour_types is not None)
-    model_settings : LOGSUM_SETTINGS
+    model_settings : TourSchedulingSettings
 
     Returns
     -------

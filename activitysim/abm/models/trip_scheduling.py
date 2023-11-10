@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import warnings
 from builtins import range
-from typing import List, Literal
+from typing import Any, List, Literal
 
 import numpy as np
 import pandas as pd
@@ -455,6 +455,8 @@ class TripSchedulingSettings(PydanticReadable):
     preprocessor: PreprocessorSettings | None = None
 
     logic_version: int | None = None
+
+    CONSTANTS: dict[str, Any] = {}
 
 
 @workflow.step(copy_tables=False)

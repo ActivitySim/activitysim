@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -20,13 +21,13 @@ from activitysim.core import (
     workflow,
 )
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
-from activitysim.core.configuration.logit import LogitComponentSettings
+from activitysim.core.configuration.logit import TemplatedLogitComponentSettings
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
 
 
-class TripModeChoiceSettings(LogitComponentSettings):
+class TripModeChoiceSettings(TemplatedLogitComponentSettings, extra="forbid"):
     """
     Settings for the `trip_mode_choice` component.
     """
@@ -40,6 +41,14 @@ class TripModeChoiceSettings(LogitComponentSettings):
     TOURS_MERGED_CHOOSER_COLUMNS: list[str] | None = None
     """List of columns to be filtered from the dataframe to reduce memory
     needs filter chooser table to these fields"""
+
+    CHOOSER_COLS_TO_KEEP: list[str] = []
+
+    tvpb_mode_path_types: dict[str, Any] = {}
+
+    FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH: bool = True
+
+    annotate_trips: PreprocessorSettings | None = None
 
 
 @workflow.step
@@ -187,9 +196,9 @@ def trip_mode_choice(
         estimator.write_spec(model_settings)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     nest_spec = config.get_logit_model_settings(model_settings)
-    cols_to_keep = model_settings.get("CHOOSER_COLS_TO_KEEP", None)
+    cols_to_keep = model_settings.CHOOSER_COLS_TO_KEEP
 
     choices_list = []
     cols_to_keep_list = []
@@ -296,7 +305,7 @@ def trip_mode_choice(
 
     # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
     if network_los.zone_system == los.THREE_ZONE:
-        tvpb_mode_path_types = model_settings.get("tvpb_mode_path_types")
+        tvpb_mode_path_types = model_settings.tvpb_mode_path_types
         for mode, path_type in tvpb_mode_path_types.items():
             skim_cache = tvpb_logsum_odt.cache[path_type]
 
@@ -325,8 +334,9 @@ def trip_mode_choice(
 
     assign_in_place(trips_df, choices_df)
 
-    if state.is_table("school_escort_tours") & model_settings.get(
-        "FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH", True
+    if (
+        state.is_table("school_escort_tours")
+        & model_settings.FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH
     ):
         trips_df = (
             school_escort_tours_trips.force_escortee_trip_modes_to_match_chauffeur(
@@ -344,7 +354,7 @@ def trip_mode_choice(
 
     state.add_table("trips", trips_df)
 
-    if model_settings.get("annotate_trips"):
+    if model_settings.annotate_trips:
         annotate.annotate_trips(state, model_settings, trace_label, locals_dict)
 
     if state.settings.trace_hh_id:

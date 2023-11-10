@@ -397,9 +397,17 @@ def get_segment_coefficients(
         omnibus_coefficients = pd.read_csv(
             legacy_coeffs_file_path, comment="#", index_col="coefficient_name"
         )
+        try:
+            omnibus_coefficients_segment_name = omnibus_coefficients[segment_name]
+        except KeyError as err:
+            logger.error(f"No key {segment_name} found!")
+            possible_keys = "\n- ".join(omnibus_coefficients.keys())
+            logger.error(f"possible keys include: \n- {possible_keys}")
+            raise
         coefficients_dict = assign.evaluate_constants(
-            omnibus_coefficients[segment_name], constants=constants
+            omnibus_coefficients_segment_name, constants=constants
         )
+
     else:
         coefficients_df = filesystem.read_model_coefficients(model_settings)
         template_df = read_model_coefficient_template(filesystem, model_settings)

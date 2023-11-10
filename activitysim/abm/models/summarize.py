@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core import expressions, workflow
-from activitysim.core.configuration.base import PydanticReadable
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.los import Network_LOS
 
 logger = logging.getLogger(__name__)
@@ -201,7 +201,7 @@ def manual_breaks(
         return bins
 
 
-class SummarizeSettings(PydanticReadable):
+class SummarizeSettings(PydanticReadable, extra="forbid"):
     """
     Settings for the `summarize` component.
     """
@@ -214,6 +214,8 @@ class SummarizeSettings(PydanticReadable):
 
     EXPORT_PIPELINE_TABLES: bool = True
     """To export pipeline tables for expression development."""
+
+    preprocessor: PreprocessorSettings | None = None
 
 
 @workflow.step

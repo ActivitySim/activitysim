@@ -28,7 +28,6 @@ from activitysim.core import (
 from activitysim.core.configuration.base import PydanticBase
 from activitysim.core.configuration.logit import (
     BaseLogitComponentSettings,
-    LogitComponentSettings,
     LogitNestSpec,
     TemplatedLogitComponentSettings,
 )
@@ -370,7 +369,12 @@ def get_segment_coefficients(
     if isinstance(model_settings, PydanticBase):
         model_settings = model_settings.dict()
 
-    if "COEFFICIENTS" in model_settings and "COEFFICIENT_TEMPLATE" in model_settings:
+    if (
+        "COEFFICIENTS" in model_settings
+        and "COEFFICIENT_TEMPLATE" in model_settings
+        and model_settings["COEFFICIENTS"] is not None
+        and model_settings["COEFFICIENT_TEMPLATE"] is not None
+    ):
         legacy = False
     elif "COEFFICIENTS" in model_settings:
         legacy = "COEFFICIENTS"
@@ -399,7 +403,7 @@ def get_segment_coefficients(
         )
         try:
             omnibus_coefficients_segment_name = omnibus_coefficients[segment_name]
-        except KeyError as err:
+        except KeyError:
             logger.error(f"No key {segment_name} found!")
             possible_keys = "\n- ".join(omnibus_coefficients.keys())
             logger.error(f"possible keys include: \n- {possible_keys}")
@@ -783,7 +787,7 @@ def eval_utilities(
             misses = np.where(~np.isclose(sh_util, utilities.values, rtol=1e-2, atol=0))
             _sh_util_miss1 = sh_util[tuple(m[0] for m in misses)]
             _u_miss1 = utilities.values[tuple(m[0] for m in misses)]
-            diff = _sh_util_miss1 - _u_miss1
+            _sh_util_miss1 - _u_miss1
             if len(misses[0]) > sh_util.size * 0.01:
                 print(
                     f"big problem: {len(misses[0])} missed close values "
@@ -1590,7 +1594,7 @@ def simple_simulate(
     result_list = []
     # segment by person type and pick the right spec for each person type
     for (
-        i,
+        _i,
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
@@ -1644,7 +1648,7 @@ def simple_simulate_by_chunk_id(
     choices = None
     result_list = []
     for (
-        i,
+        _i,
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
@@ -1962,7 +1966,7 @@ def simple_simulate_logsums(
     result_list = []
     # segment by person type and pick the right spec for each person type
     for (
-        i,
+        _i,
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,

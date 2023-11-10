@@ -52,6 +52,10 @@ class TripModeChoiceSettings(TemplatedLogitComponentSettings, extra="forbid"):
 
     annotate_trips: PreprocessorSettings | None = None
 
+    LEGACY_COEFFICIENTS: str | None = None
+
+    REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS: list[str] | None = None
+
 
 @workflow.step
 def trip_mode_choice(

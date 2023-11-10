@@ -14,13 +14,13 @@ from activitysim.core import (
     tracing,
     workflow,
 )
-from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
-from activitysim.core.configuration.logit import BaseLogitComponentSettings
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger("activitysim")
 
 
-class TelecommuteFrequencySettings(BaseLogitComponentSettings):
+class TelecommuteFrequencySettings(LogitComponentSettings):
     """
     Settings for the `telecommute_frequency` component.
     """

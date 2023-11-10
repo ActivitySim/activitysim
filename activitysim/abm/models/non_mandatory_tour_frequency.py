@@ -175,7 +175,7 @@ class NonMandatoryTourFrequencySettings(LogitComponentSettings):
     """Preprocessor settings to annotate persons"""
 
     annotate_tours: PreprocessorSettings | None = None
-    """Preprocessor settings to annotate persons"""
+    """Preprocessor settings to annotate tours"""
 
 
 @workflow.step

@@ -99,6 +99,9 @@ class VehicleAllocationSettings(LogitComponentSettings, extra="forbid"):
     if not supplied, will default to only one occupancy level of 1
     """
 
+    annotate_tours: PreprocessorSettings | None = None
+    """Preprocessor settings to annotate tours"""
+
 
 @workflow.step
 def vehicle_allocation(

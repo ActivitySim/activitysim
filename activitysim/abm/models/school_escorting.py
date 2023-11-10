@@ -382,6 +382,20 @@ class SchoolEscortSettings(BaseLogitComponentSettings):
 
     SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
 
+    SPEC: None = None
+    """The school escort model does not use this setting."""
+
+    OUTBOUND_SPEC: str = "school_escorting_outbound.csv"
+    OUTBOUND_COEFFICIENTS: str = "school_escorting_coefficients_outbound.csv"
+    INBOUND_SPEC: str = "school_escorting_inbound.csv"
+    INBOUND_COEFFICIENTS: str = "school_escorting_coefficients_inbound.csv"
+    OUTBOUND_COND_SPEC: str = "school_escorting_outbound_cond.csv"
+    OUTBOUND_COND_COEFFICIENTS: str = "school_escorting_coefficients_outbound_cond.csv"
+
+    preprocessor_outbound: PreprocessorSettings | None = None
+    preprocessor_inbound: PreprocessorSettings | None = None
+    preprocessor_outbound_cond: PreprocessorSettings | None = None
+
 
 @workflow.step
 def school_escorting(

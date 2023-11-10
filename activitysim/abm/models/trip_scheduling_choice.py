@@ -199,7 +199,6 @@ def get_spec_for_segment(
     """
     Read in the model spec
     :param model_settings: model settings file
-    :param spec_name: name of the key in the settings file
     :param segment: which segment of the spec file do you want to read
     :return: array of utility equations
     """
@@ -333,10 +332,11 @@ class TripSchedulingChoiceSettings(PydanticReadable, extra="forbid"):
     Settings for the `trip_scheduling_choice` component.
     """
 
-    SPECIFICATION: str
-
     PREPROCESSOR: PreprocessorSettings | None = None
     """Setting for the preprocessor."""
+
+    SPECIFICATION: str
+    """file name of specification file"""
 
 
 @workflow.step

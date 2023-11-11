@@ -21,26 +21,28 @@ from activitysim.core.configuration.logit import LogitComponentSettings
 logger = logging.getLogger(__name__)
 
 
-def annotate_vehicle_allocation(state: workflow.State, model_settings, trace_label):
+def annotate_vehicle_allocation(
+    state: workflow.State, model_settings: VehicleAllocationSettings, trace_label: str
+):
     """
     Add columns to the tours table in the pipeline according to spec.
 
     Parameters
     ----------
-    model_settings : dict
+    model_settings : VehicleAllocationSettings
     trace_label : str
     """
     tours = state.get_dataframe("tours")
     expressions.assign_columns(
         state,
         df=tours,
-        model_settings=model_settings.get("annotate_tours"),
+        model_settings=model_settings.annotate_tours,
         trace_label=tracing.extend_trace_label(trace_label, "annotate_tours"),
     )
     state.add_table("tours", tours)
 
 
-def get_skim_dict(network_los, choosers):
+def get_skim_dict(network_los: los.Network_LOS, choosers: pd.DataFrame):
     """
     Returns a dictionary of skim wrappers to use in expression writing.
 

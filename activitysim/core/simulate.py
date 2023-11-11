@@ -376,7 +376,9 @@ def get_segment_coefficients(
         and model_settings["COEFFICIENT_TEMPLATE"] is not None
     ):
         legacy = False
-    elif "COEFFICIENTS" in model_settings:
+    elif (
+        "COEFFICIENTS" in model_settings and model_settings["COEFFICIENTS"] is not None
+    ):
         legacy = "COEFFICIENTS"
         warnings.warn(
             "Support for COEFFICIENTS without COEFFICIENT_TEMPLATE in model settings file will be removed."

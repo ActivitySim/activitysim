@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -168,6 +169,7 @@ class TripPurposeSettings(PydanticReadable):
     PROBS_SPEC: str = "trip_purpose_probs.csv"
     preprocessor: PreprocessorSettings | None = None
     use_depart_time: bool = True
+    CONSTANTS: dict[str, Any] = {}
 
 
 def run_trip_purpose(

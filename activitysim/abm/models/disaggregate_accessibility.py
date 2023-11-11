@@ -49,12 +49,12 @@ class DisaggregateAccessibilityAnnotateSettings(PydanticReadable, extra="forbid"
 
 
 class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
-    suffixes: DisaggregateAccessibilitySuffixes = {"SUFFIX": None, "ROOTS": []}
+    suffixes: DisaggregateAccessibilitySuffixes = DisaggregateAccessibilitySuffixes()
     ORIGIN_SAMPLE_SIZE: int | float = 0
     DESTINATION_SAMPLE_SIZE: int | float = 0
     BASE_RANDOM_SEED: int = 0
     add_size_tables: bool = True
-    zone_id_names: dict[str, str] = {}
+    zone_id_names: dict[str, str] = {"index_col": "zone_id"}
     ORIGIN_SAMPLE_METHOD: Literal[
         None, "full", "uniform", "uniform-taz", "kmeans"
     ] = None
@@ -589,7 +589,7 @@ class ProtoPop:
                 df=df,
                 model_settings={
                     **annot.annotate.dict(),
-                    **self.model_settings.suffixes,
+                    **self.model_settings.suffixes.dict(),
                 },
                 trace_label=tracing.extend_trace_label("ProtoPop.annotate", tablename),
             )

@@ -229,6 +229,12 @@ def dedupe_alt_tdd(state: workflow.State, alt_tdd, tour_purpose, trace_label):
 
     logger.info("tdd_alt_segments specified for representative logsums")
 
+    if tdd_segments is not None:
+        # apply categorical dtypes
+        tdd_segments["time_period"] = tdd_segments["time_period"].astype(
+            alt_tdd["out_period"].dtype
+        )
+
     with chunk.chunk_log(
         state, tracing.extend_trace_label(trace_label, "dedupe_alt_tdd")
     ) as chunk_sizer:
@@ -372,11 +378,12 @@ def compute_tour_scheduling_logsums(
     assert "out_period" not in alt_tdd
     assert "in_period" not in alt_tdd
 
-    # FIXME:MEMORY
-    #  These two lines each generate a massive array of strings,
-    #  using a bunch of RAM and slowing things down.
-    alt_tdd["out_period"] = network_los.skim_time_period_label(alt_tdd["start"])
-    alt_tdd["in_period"] = network_los.skim_time_period_label(alt_tdd["end"])
+    alt_tdd["out_period"] = network_los.skim_time_period_label(
+        alt_tdd["start"], as_cat=True
+    )
+    alt_tdd["in_period"] = network_los.skim_time_period_label(
+        alt_tdd["end"], as_cat=True
+    )
 
     alt_tdd["duration"] = alt_tdd["end"] - alt_tdd["start"]
 
@@ -427,17 +434,28 @@ def compute_tour_scheduling_logsums(
 
         # tracing.log_runtime(model_name=trace_label, start_time=t0)
 
-        # redupe - join the alt_tdd_period logsums to alt_tdd to get logsums for alt_tdd
-        logsums = (
-            pd.merge(
-                alt_tdd.reset_index(),
-                deduped_alt_tdds.reset_index(),
-                on=[index_name] + redupe_columns,
-                how="left",
-            )
-            .set_index(index_name)
-            .logsums
-        )
+        logsums = pd.Series(data=0, index=alt_tdd.index, dtype=np.float64)
+        left_on = [alt_tdd.index]
+        right_on = [deduped_alt_tdds.index]
+        for i in redupe_columns:
+            if (
+                alt_tdd[i].dtype == "category"
+                and alt_tdd[i].dtype.ordered
+                and alt_tdd[i].dtype == deduped_alt_tdds[i].dtype
+            ):
+                left_on += [alt_tdd[i].cat.codes]
+                right_on += [deduped_alt_tdds[i].cat.codes]
+            else:
+                left_on += [alt_tdd[i].to_numpy()]
+                right_on += [deduped_alt_tdds[i].to_numpy()]
+
+        logsums.iloc[:] = pd.merge(
+            pd.DataFrame(index=alt_tdd.index),
+            deduped_alt_tdds.logsums,
+            left_on=left_on,
+            right_on=right_on,
+            how="left",
+        ).logsums.to_numpy()
         chunk_sizer.log_df(trace_label, "logsums", logsums)
 
         del deduped_alt_tdds

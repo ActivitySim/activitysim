@@ -113,7 +113,7 @@ def trip_mode_choice(
     # setup skim keys
     assert "trip_period" not in trips_merged
     trips_merged["trip_period"] = network_los.skim_time_period_label(
-        trips_merged.depart
+        trips_merged.depart, as_cat=True
     )
 
     orig_col = "origin"

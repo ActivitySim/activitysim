@@ -171,7 +171,7 @@ def eval_interaction_utilities(
 
             timelogger.mark("sharrow preamble", True, logger, trace_label)
 
-            sh_util, sh_flow = apply_flow(
+            sh_util, sh_flow, sh_tree = apply_flow(
                 state,
                 spec_sh,
                 df,
@@ -187,10 +187,13 @@ def eval_interaction_utilities(
                     index=df.index if extra_data is None else None,
                 )
                 chunk_sizer.log_df(trace_label, "sh_util", None)  # hand off to caller
+                if sharrow_enabled != "test":
+                    # if not testing sharrow, we are done with this object now.
+                    del sh_util
 
             timelogger.mark("sharrow flow", True, logger, trace_label)
         else:
-            sh_util, sh_flow = None, None
+            sh_util, sh_flow, sh_tree = None, None, None
             timelogger.mark("sharrow flow", False)
 
         if (
@@ -404,9 +407,9 @@ def eval_interaction_utilities(
         if sh_flow is not None and trace_rows is not None and trace_rows.any():
             assert type(trace_rows) == np.ndarray
             sh_utility_fat = sh_flow.load_dataarray(
-                # sh_flow.tree.replace_datasets(
-                #     df=df.iloc[trace_rows],
-                # ),
+                sh_tree.replace_datasets(
+                    df=df.iloc[trace_rows],
+                ),
                 dtype=np.float32,
             )
             sh_utility_fat = sh_utility_fat[trace_rows, :]

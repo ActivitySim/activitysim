@@ -56,7 +56,11 @@ def create_table_store(state, input_checker_settings):
             else:
                 table = pd.read_csv(state.filesystem.get_data_file_path(table_name))
         if table is None:
-            raise FileNotFoundError(f"Input table {table_name} could not be found"+f"\nPath: {path}" if path else '')
+            raise FileNotFoundError(
+                f"Input table {table_name} could not be found" + f"\nPath: {path}"
+                if path
+                else ""
+            )
         # add pandas dataframes to TABLE_STORE dictionary with table name as key
         TABLE_STORE[table_name] = table
         _log_infos[table_name] = list()

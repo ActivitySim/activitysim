@@ -14,18 +14,12 @@ from activitysim.core.configuration.logit import LogitComponentSettings
 logger = logging.getLogger(__name__)
 
 
-class AutoOwnershipSettings(LogitComponentSettings):
-    """
-    Settings for the `auto_ownership` component.
-    """
-
-
 @workflow.step
 def auto_ownership_simulate(
     state: workflow.State,
     households: pd.DataFrame,
     households_merged: pd.DataFrame,
-    model_settings: AutoOwnershipSettings | None = None,
+    model_settings: LogitComponentSettings | None = None,
     model_settings_file_name: str = "auto_ownership.yaml",
     trace_label: str = "auto_ownership_simulate",
     trace_hh_id: bool = False,

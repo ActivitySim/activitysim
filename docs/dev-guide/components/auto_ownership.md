@@ -19,7 +19,7 @@ This model is typically structured as multinomial logit model.
 ## Configuration
 
 ```{eval-rst}
-.. autopydantic_model:: LogitComponentSettings
+.. autopydantic_model:: AutoOwnershipSettings
     :inherited-members: BaseModel, PydanticReadable
     :show-inheritance:
 ```

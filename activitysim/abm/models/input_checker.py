@@ -46,6 +46,8 @@ def create_table_store(state, input_checker_settings):
             if path:
                 if os.path.isabs(path):
                     table = pd.read_csv(os.path.join(path, table_name + ".csv"))
+                elif os.path.exists(os.path.join(os.getcwd(), table_name + ".csv")):
+                    table = pd.read_csv(os.path.join(os.getcwd(), table_name + ".csv"))
                 else:
                     for directory in state.filesystem.get_data_dir():
                         file = os.path.join(directory, path, table_name + ".csv")

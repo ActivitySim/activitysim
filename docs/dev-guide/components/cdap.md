@@ -36,7 +36,7 @@ at [cdap](activitysim.abm.models.util.cdap) and contains CDAP model logic.
 ## Configuration
 
 ```{eval-rst}
-.. autopydantic_model:: CDAPSettings
+.. autopydantic_model:: CdapSettings
     :inherited-members: BaseModel, PydanticReadable
     :show-inheritance:
 ```

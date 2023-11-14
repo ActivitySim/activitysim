@@ -2,7 +2,7 @@
 # Vehicle Type Choice
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.vehicle_type_choice
+.. currentmodule:: activitysim.abm.models.vehicle_type_choice
 ```
 
 The vehicle type choice model selects a vehicle type for each household vehicle. A vehicle type

@@ -56,7 +56,11 @@ def create_table_store(state, input_checker_settings):
                             break
 
             else:
-                table = pd.read_csv(state.filesystem.get_data_file_path(table_name))
+                table = pd.read_csv(
+                    state.filesystem.get_data_file_path(
+                        table_name, alternative_suffixes=[".csv"]
+                    )
+                )
         if table is None:
             raise FileNotFoundError(
                 f"Input table {table_name} could not be found" + f"\nPath: {path}"

@@ -260,7 +260,7 @@ class NetworkLinks(pa.DataFrameModel):
         # code duplicated from skim_dict_factory.py but need to copy here to not load skim data
         los_settings = state.filesystem.read_settings_file("network_los.yaml")
         omx_file_paths = state.filesystem.expand_input_file_list(
-            los_settings["taz_skims"]
+            los_settings["taz_skims"]["omx"]
         )
         omx_manifest = dict()
 

@@ -22,24 +22,26 @@ import enums as e
 
 from activitysim.abm.models.input_checker import TABLE_STORE, log_info
 
-# logger = logging.getLogger(__name__)
-
 
 class Household(pa.DataFrameModel):
     """
     Household data from PopulationSim and input to ActivitySim.
-    Customize as needed for your application.
 
     Fields:
     household_id: unique number identifying each household
-    home_zone_id: zone number where household resides, MAZ in two zone systems, TAZ in one zone
-    hhsize: number of people in the household
-    income: Annual income in $
+    age_of_head: age of the head of household
     auto_ownership: Seeding for initial number of autos owned by the household
+    hhsize: number of people in the household
+    race_id:
+    children: Number of children in household
+    home_zone_id: zone number where household resides, MAZ in two zone systems, TAZ in one zone
+    income: Annual income in $
+    adjinc: Adjusted income
     HHT: Household type, see enums.HHT
+    home_zone_id: MAZ of household
+    TAZ: TAZ of household
     """
 
-    # auto_ownership: int = pa.Field(ge=0, le=6)
     household_id: int = pa.Field(unique=True, gt=0)
     age_of_head: int = pa.Field(ge=0, coerce=True)
     auto_ownership: int = pa.Field(
@@ -69,7 +71,7 @@ class Household(pa.DataFrameModel):
         mismatched_cases = households.set_index("household_id").loc[mismatched_indices]
         if len(mismatched_cases) > 0:
             log_info(
-                f"Household size dose not equal the number of persons at \n{mismatched_cases}.\n"
+                f"Household size does not equal the number of persons at \n{mismatched_cases}.\n"
             )
         else:
             log_info(f"Household size equals the number of persons.\n")
@@ -104,7 +106,7 @@ class Household(pa.DataFrameModel):
         mismatched_cases = households.set_index("household_id").loc[mismatched_indices]
         if len(mismatched_cases) > 0:
             log_info(
-                f"Household children dose not equal the number of children in persons at \n{mismatched_cases}.\n"
+                f"Household children does not equal the number of children in persons at \n{mismatched_cases}.\n"
             )
         else:
             log_info(f"Household children equals the number of children in persons.\n")
@@ -115,6 +117,22 @@ class Person(pa.DataFrameModel):
     """
     Person data from PopulationSim and input to ActivitySim.
     Customize as needed for your application.
+
+    person_id: unique person identification number
+    relate:
+    age: person age
+    sex: person sex
+    race_id: person race
+    member_id: person number in the household
+    household_id: household identification number
+    esr: Employment status recode (from PUMS)
+    wkhp: Usual hours worked per week past 12 months (from PUMS)
+    wkw: Weeks worked during past 12 months (from PUMS)
+    schg: Grade Level Attending (from PUMS)
+    mil: Military Service (from PUMS)
+    naicsp: North American Industry Classification System recode (from PUMS)
+    industry: Employment industry
+    zone_id: MAZ of the household
     """
 
     person_id: int = pa.Field(unique=True, gt=0)
@@ -124,7 +142,7 @@ class Person(pa.DataFrameModel):
     race_id: int = pa.Field(gt=0, le=4)
     member_id: int = pa.Field(gt=0)
     household_id: int = pa.Field(nullable=False)
-    esr: float = pa.Field(isin=(set([-9.0] + [float(x) for x in range(1, 7)])))
+    esr: float = pa.Field(isin=e.ESR)
     wkhp: float = pa.Field(isin=(set([-9.0] + [float(x) for x in range(0, 100)])))
     wkw: float = pa.Field(isin=(set([-9.0] + [float(x) for x in range(0, 7)])))
     schg: float = pa.Field(isin=(set([-9.0] + [float(x) for x in range(0, 17)])))
@@ -165,20 +183,35 @@ class Person(pa.DataFrameModel):
 class Landuse(pa.DataFrameModel):
     """
     Land use data.
-    Customize as needed for your application.
 
-    zone_id: TAZ of the zone
-    DISTRICT: District the zone relies in
-    SD: Super District
-    COUNTY: County of zone, see enums.County
-    TOTHH: Total households
-    TOTEMP: Total Employment
-    RETEMPN: Retail trade employment
-    FPSEMPN: Financial and processional services employment
-    HEREMPN: Health, educational, and recreational service employment
-    OTHEMPN: Other employment
-    AGREMPN: Agricultural and natural resources employment
-    MWTEMPN: Manufacturing, wholesale trade, and transporation employment
+    zone_id: MAZ ID
+    tot_acres: Acres of the zone
+    TAZ: TAZ ID
+    tot_hhs: Number of households
+    hhs_pop: Non-Group Quarters population
+    grppop: Group-Quarters population
+    tot_pop: Total population
+    K_8: Preschool through 8th grade enrollment
+    G9_12: High school enrollment
+    e01_nrm:
+    e02_constr: contrsruction employment
+    e03_manuf: manufacturing employment
+    e04_whole: wholsesale employment
+    e05_retail: retail employment
+    e06_trans: transportation employment
+    e07_utility: Utility employment
+    e08_infor: information services employment
+    e09_finan: financial services employment
+    e10_pstsvc: postal services employment(?)
+    e11_compmgt: management services employment
+    e12_admsvc: administrative services employment
+    e13_edusvc: educational services employment
+    e14_medfac: medical employment
+    e15_hospit: hospital employment
+    e16_leisure: leisure employment
+    e17_othsvc: other services employment
+    e18_pubadm: public administration employment
+    tot_emp: total employment
     """
 
     zone_id: int = pa.Field(gt=0, le=22818, nullable=False)
@@ -188,7 +221,6 @@ class Landuse(pa.DataFrameModel):
     hhs_pop: float = pa.Field(ge=0, coerce=True)
     grppop: float = pa.Field(ge=0, coerce=True)
     tot_pop: float = pa.Field(ge=0, coerce=True)
-    # enrollment_k_8: is_numeric = pa.Field(ge=0)
     K_8: float = pa.Field(ge=0, coerce=True)
     G9_12: float = pa.Field(ge=0, coerce=True)
     e01_nrm: float = pa.Field(ge=0, coerce=True)
@@ -355,13 +387,11 @@ class NetworkLinks(pa.DataFrameModel):
             state.filesystem.get_config_file_path(tour_mode_choice_spec)
         )
 
-        # Adding breaking change for testing!
-        skim_names.append("break")
-
         missing_skims = [
             skim_name for skim_name in skim_names if skim_name not in omx_keys
         ]
         if len(missing_skims) > 0:
             log_info(f"Missing skims {missing_skims} found in {tour_mode_choice_spec}")
-        result = len(missing_skims) == 0
+        else:
+            log_info(f"Found all skimms in {tour_mode_choice_spec}")
         return len(missing_skims) == 0

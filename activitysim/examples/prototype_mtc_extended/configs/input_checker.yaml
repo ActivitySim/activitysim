@@ -24,7 +24,7 @@ table_list:
       class: Landuse
       
   - name: example_hwy_data
-    path: ../../prototype_mtc_extended/test/additional_data
+    path: ../../prototype_mtc_extended/test/additional_data # must be absolute path or relative path.  Can also omit if supplied in a data directory
     is_activitysim_input: False # will read raw table with pandas.read_csv from above path relative to a data directory
     validation:
       class: NetworkLinks

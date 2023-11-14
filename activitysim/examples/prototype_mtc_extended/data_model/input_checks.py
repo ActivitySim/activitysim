@@ -45,8 +45,6 @@ class Household(pa.DataFrameModel):
     income: int = pa.Field(ge=0, raise_warning=True)
     auto_ownership: int = pa.Field(ge=0, le=6)
     HHT: int = pa.Field(isin=e.HHT, raise_warning=True)
-    # bug1: int
-    # bug2: int
 
     @pa.dataframe_check(
         name="Do household sizes equal the number of persons in that household?",
@@ -102,6 +100,12 @@ class Person(pa.DataFrameModel):
     """
     Person data from PopulationSim and input to ActivitySim.
     Customize as needed for your application.
+
+    person_id: Unique person ID
+    household_id: household ID of the person
+    age: Person age
+    sex: Person sex (see enums.py::Gender)
+    ptype: Person type (see enums.py::PersonType)
     """
 
     person_id: int = pa.Field(unique=True, ge=0)
@@ -249,29 +253,21 @@ class NetworkLinks(pa.DataFrameModel):
     BA_LANES: int = pa.Field(ge=0, le=10)
     FENAME: str = pa.Field()
 
-    @pa.dataframe_check(
-        name="Are all skims listed in the tour mode choice config found in the taz_skims OMX file?",
-        raise_warning=True,
-    )
+    @pa.dataframe_check(name="All skims in File?", raise_warning=True)
     def check_all_skims_exist(cls, land_use: pd.DataFrame):
         state = TABLE_STORE["state"]
 
         # code duplicated from skim_dict_factory.py but need to copy here to not load skim data
         los_settings = state.filesystem.read_settings_file("network_los.yaml")
         omx_file_paths = state.filesystem.expand_input_file_list(
-            los_settings["taz_skims"]["omx"]
+            los_settings["taz_skims"]
         )
         omx_manifest = dict()
 
-        # FIXME getting numpy deprication warning from below omx read
-        import warnings
-
-        # warnings.filterwarnings("ignore", category=DeprecationWarning)
         for omx_file_path in omx_file_paths:
             with omx.open_file(omx_file_path, mode="r") as omx_file:
                 for skim_name in omx_file.listMatrices():
                     omx_manifest[skim_name] = omx_file_path
-
         omx_keys = []
         for skim_name in omx_manifest.keys():
             key1, sep, key2 = skim_name.partition("__")
@@ -302,15 +298,11 @@ class NetworkLinks(pa.DataFrameModel):
             state.filesystem.get_config_file_path(tour_mode_choice_spec)
         )
 
-        # Adding breaking change for testing!
-        skim_names.append("break")
-
         missing_skims = [
             skim_name for skim_name in skim_names if skim_name not in omx_keys
         ]
         if len(missing_skims) > 0:
-            logger.warning(
-                f"Missing skims {missing_skims} found in {tour_mode_choice_spec}"
-            )
-
+            log_info(f"Missing skims {missing_skims} found in {tour_mode_choice_spec}")
+        else:
+            log_info(f"Found all skimms in {tour_mode_choice_spec}")
         return len(missing_skims) == 0

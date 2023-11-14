@@ -31,18 +31,20 @@ If any checks fail, ActivitySim will crash and direct you to the output input_ch
 will provide details of the checks that did not pass. The user can also setup checks to output
 warnings instead of fatal errors. Warning details will be output to the input_checker.log file for
 user review and documentation. Syntax examples for both errors and warnings are demonstrated in the
-:ref:`prototype_mtc_extended` example.
+:ref:`prototype_mtc_extended` and :ref:`production_semcog` examples.
 
 Setup steps for new users:
-  * Copy the data_model directory in the :ref:`prototype_mtc_extended` example folder to your setup
-    space. You will need the enums.py and input_checks.py scripts. The additional
-    input_checks_pydantic_dev.py script is there for future development and can be discarded.
-  * Modify enums.py to be consistent with your implementation by changing / adding / removing variable
-    definitions.
+  * Copy the data_model directory in the :ref:`prototype_mtc_extended` or
+    :ref:`production_semcog` example folder to your setup space. You will need the enums.py and
+    input_checks.py scripts. The additional input_checks_pydantic_dev.py script in
+    :ref:`prototype_mtc_extended` is there for future development and can be discarded.
   * Modify the input_checker.py to be consistent with your input data. This can include changing
     variable names and adding or removing checks.  The amount and types of checks to perform are
     completely up to you! Syntax is shown for many different checks in the example.
-  * Copy the input_checker.yaml script from :ref:`prototype_mtc_extended` into your configs
+  * Modify enums.py to be consistent with your implesmentation by changing / adding / removing variable
+    definitions.
+  * Copy the input_checker.yaml script from :ref:`prototype_mtc_extended` or
+    :ref:`production_semcog` configs into your configs
     directory. Update the list of data tables you would like to check in the input_checker.yaml
     file. The "validator_class" option should correspond to the name of the corresponding class in
     the input_checker.py file you modified in the above step.
@@ -50,6 +52,9 @@ Setup steps for new users:
     model run. When running activitysim, you will also need to include the name of the data_model
     directory from the first step, e.g. activitysim run -c configs -d data -o outout --data_model
     data_model.
+
+.. note::
+   If you are running ActivitySim with the input checker module active, you must supply a --data_model argument that points to where the input_checks.py file exists!
 
 .. automodule:: activitysim.abm.models.input_checker
    :members:

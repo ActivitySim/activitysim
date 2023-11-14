@@ -40,25 +40,22 @@ logsums shown as separate columns.
 The disaggregate accessibility model is run as a model step in the model list.
 There are two necessary steps:
 
-* ``- initialize_proto_population`` 
-* ``- compute_disaggregate_accessibility``
+* `initialize_proto_population`
+* `compute_disaggregate_accessibility`
 
 The reason the steps must be separate is to enable multiprocessing.
 The proto-population must be fully generated and initialized before activitysim
 slices the tables into separate threads. These steps must also occur before
 initialize_households in order to avoid conflict with the shadow_pricing model.
 
-
 The model steps can be run either as part the activitysim model run, or setup
 to run as a standalone run to pre-computing the accessibility values.
 For standalone implementations, the final_disaggregate_accessibility.csv is read
 into the pipeline and initialized with the initialize_household model step.
 
-
-
 - *Configuration File*: `disaggregate_accessibility.yaml`
 - *Core Table*:  Users define the variables to be generated for 'PROTO_HOUSEHOLDS', 'PROTO_PERSONS', and 'PROTO_TOURS' tables. These tables must include all basic fields necessary for running the actual model. Additional fields can be annotated in pre-processing using the annotation settings of this file.
-- *Variables*:  
+- *Variables*:
     - VARIABLES - The base variable, must be a value or a list. Results in the cartesian product (all non-repeating combinations) of the fields.
     - mapped_fields [optional] - For non-combinatorial fields, users can map a variable to the fields generated in VARIABLES (e.g., income category bins mapped to median dollar values).
     - filter_rows [optional] - Users can also filter rows using pandas expressions if specific variable combinations are not desired.
@@ -81,10 +78,7 @@ into the pipeline and initialized with the initialize_household model step.
 
     - "uniform" - Unweighted sample of N zones independent of each other.
 
-    - "uniform-taz" - Unweighted sample of 1 zone per taz up to the N samples specified. 
-
-
-
+    - "uniform-taz" - Unweighted sample of 1 zone per taz up to the N samples specified.
 
 
 ## Configuration

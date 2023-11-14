@@ -19,6 +19,7 @@ person ids for each person on the tour.
 The main interface to the joint tour participation model is the
 [joint_tour_participation](activitysim.abm.models.joint_tour_participation.joint_tour_participation)
 function.  This function is registered as an Inject step in the example Pipeline.
+
 ## Structure
 
 - *Configuration File*: `joint_tour_participation.yaml`

@@ -40,7 +40,34 @@ class DisaggregateAccessibilityTableSettings(PydanticReadable, extra="forbid"):
     zone_col: str | None = None
     rename_columns: dict[str, str] = {}
     VARIABLES: dict[str, int | list[int]]
-    mapped_fields: dict[str, dict]
+    """
+    Base value(s) for each variable.
+
+    Results in the cartesian product (all non-repeating combinations) of the
+    fields.
+    """
+
+    mapped_fields: dict[str, dict] = {}
+    """
+    Maps variables to the fields generated in VARIABLES.
+
+    For non-combinatorial fields, users can map a variable to the fields generated
+    in VARIABLES (e.g., income category bins mapped to median dollar values).
+    """
+
+    filter_rows: list[str] = []
+    """
+    filter rows using pandas expressions.
+
+    Users can also filter rows using these expressions if specific variable
+    combinations are not desired.
+    """
+
+    JOIN_ON: Any = None
+    """
+    The persons variable to join the tours to (e.g., person_number).
+    This is required only for PROTO_TOURS
+    """
 
 
 class DisaggregateAccessibilityAnnotateSettings(PydanticReadable, extra="forbid"):
@@ -51,18 +78,90 @@ class DisaggregateAccessibilityAnnotateSettings(PydanticReadable, extra="forbid"
 class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
     suffixes: DisaggregateAccessibilitySuffixes = DisaggregateAccessibilitySuffixes()
     ORIGIN_SAMPLE_SIZE: float | int = 0
+    """
+    The number of sampled origins where logsum is calculated.
+
+    Setting this to zero implies sampling all zones.
+
+    Origins without a logsum will draw from the nearest zone with a logsum. This
+    parameter is useful for systems with a large number of zones with similar
+    accessibility. Fractional values less than 1 will be interpreted as a percentage,
+    e.g., 0.5 = 50% sample.
+    """
     DESTINATION_SAMPLE_SIZE: float | int = 0
+    """
+    Number of destination zone alternatives sampled for calculating the destination logsum.
+
+    Setting this to zero implies sampling all zones.
+
+    Decimal values < 1 will be interpreted as a percentage, e.g., 0.5 = 50% sample.
+    """
+
     BASE_RANDOM_SEED: int = 0
     add_size_tables: bool = True
     zone_id_names: dict[str, str] = {"index_col": "zone_id"}
     ORIGIN_SAMPLE_METHOD: Literal[
         None, "full", "uniform", "uniform-taz", "kmeans"
     ] = None
+    """
+    The method in which origins are sampled.
+
+    Population weighted sampling can be TAZ-based or "TAZ-agnostic" using KMeans
+    clustering. The potential advantage of KMeans is to provide a more geographically
+    even spread of MAZs sampled that do not rely on TAZ hierarchies. Unweighted
+    sampling is also possible using 'uniform' and 'uniform-taz'.
+
+    - None [Default] - Sample zones weighted by population, ensuring at least
+      one TAZ is sampled per MAZ. If n-samples > n-tazs then sample 1 MAZ from
+      each TAZ until n-remaining-samples < n-tazs, then sample n-remaining-samples
+      TAZs and sample an MAZ within each of those TAZs. If n-samples < n-tazs, then
+      it proceeds to the above 'then' condition.
+
+    - "kmeans" - K-Means clustering is performed on the zone centroids (must be
+      provided as maz_centroids.csv), weighted by population. The clustering yields
+      k XY coordinates weighted by zone population for n-samples = k-clusters
+      specified. Once k new cluster centroids are found, these are then approximated
+      into the nearest available zone centroid and used to calculate accessibilities
+      on. By default, the k-means method is run on 10 different initial cluster
+      seeds (n_init) using using [k-means++ seeding algorithm](https://en.wikipedia.org/wiki/K-means%2B%2B).
+      The k-means method runs for max_iter iterations (default=300).
+
+    - "uniform" - Unweighted sample of N zones independent of each other.
+
+    - "uniform-taz" - Unweighted sample of 1 zone per taz up to the N samples
+      specified.
+    """
+
     ORIGIN_WEIGHTING_COLUMN: str
-    CREATE_TABLES: dict[str, Any] = {}
+    CREATE_TABLES: dict[str, DisaggregateAccessibilityTableSettings | str] = {}
     MERGE_ON: dict[str, list[str]]
+    """
+    Field to merge the proto-population logsums onto the full synthetic population/
+
+    The proto-population should be designed such that the logsums are able to be
+    joined exactly on these variables specified to the full population.
+    Users specify the to join on using:
+
+    - by: An exact merge will be attempted using these discrete variables.
+    - asof [optional]: The model can peform an "asof" join for continuous variables,
+      which finds the nearest value. This method should not be necessary since
+      synthetic populations are all discrete.
+    - method [optional]: Optional join method can be "soft", default is None. For
+      cases where a full inner join is not possible, a Naive Bayes clustering method
+      is fast but discretely constrained method. The proto-population is treated as
+      the "training data" to match the synthetic population value to the best possible
+      proto-population candidate. The Some refinement may be necessary to make this
+      procedure work.
+    """
+
     FROM_TEMPLATES: bool = False
-    annotate_proto_tables: list[DisaggregateAccessibilityAnnotateSettings]
+    annotate_proto_tables: list[DisaggregateAccessibilityAnnotateSettings] = []
+    """
+    Allows modification of the proto-population.
+
+    Annotation configurations are available here, if users wish to modify the
+    proto-population beyond basic generation in the YAML.
+    """
     NEAREST_METHOD: str = "skims"
 
 

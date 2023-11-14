@@ -29,7 +29,7 @@ function.  This function is registered as an Inject step in the example Pipeline
 ## Configuration
 
 ```{eval-rst}
-.. autopydantic_model:: JointTourSchedulingSettings
+.. autopydantic_model:: TourSchedulingSettings
     :inherited-members: BaseModel, PydanticReadable
     :show-inheritance:
 ```

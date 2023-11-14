@@ -2,7 +2,7 @@
 # Auto Ownership
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.auto_owenership
+.. currentmodule:: activitysim.abm.models.auto_ownership
 ```
 
 The auto ownership model selects a number of autos for each household in the simulation.

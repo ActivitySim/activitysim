@@ -126,14 +126,7 @@ def initialize_landuse(
     Parameters
     ----------
     state : State
-
-    Returns
-    -------
-    ?
     """
-    # trace_label = "initialize_landuse"
-    # settings_filename = "initialize_landuse.yaml"
-
     with chunk.chunk_log(state, trace_label, base=True) as chunk_sizer:
         if model_settings is None:
             model_settings = InitializeTableSettings.read_settings_file(

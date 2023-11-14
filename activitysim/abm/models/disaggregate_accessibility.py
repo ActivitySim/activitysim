@@ -281,7 +281,7 @@ class ProtoPop:
         # zone_cols = self.model_settings["zone_id_names"].get("zone_group_cols", default_zone_col)
         id_col = self.model_settings.zone_id_names.get("index_col", "zone_id")
         method = self.model_settings.ORIGIN_SAMPLE_METHOD
-        n_samples = self.model_settings.ORIGIN_SAMPLE_SIZE
+        n_samples = int(self.model_settings.ORIGIN_SAMPLE_SIZE)
 
         # Get weights, need to get households first to get persons merged.
         # Note: This will cause empty zones to be excluded. Which is intended, but just know that.
@@ -474,21 +474,26 @@ class ProtoPop:
             params["proto_households"]["zone_col"] = "home_zone_id"
         else:
             assert all(
-                [True for k, v in create_tables.items() if "VARIABLES" in v.keys()]
+                [
+                    True
+                    for k, v in create_tables.items()
+                    if isinstance(v, DisaggregateAccessibilityTableSettings)
+                ]
             )
             for name, table in create_tables.items():
+                assert isinstance(table, DisaggregateAccessibilityTableSettings)
                 # Ensure table variables are all lists
                 params[name.lower()] = {
                     "variables": {
                         k: (v if isinstance(v, list) else [v])
-                        for k, v in table["VARIABLES"].items()
+                        for k, v in table.VARIABLES.items()
                     },
-                    "mapped": table.get("mapped_fields", []),
-                    "filter": table.get("filter_rows", []),
-                    "join_on": table.get("JOIN_ON", []),
-                    "index_col": table.get("index_col", []),
-                    "zone_col": table.get("zone_col", []),
-                    "rename_columns": table.get("rename_columns", []),
+                    "mapped": table.mapped_fields,
+                    "filter": table.filter_rows,
+                    "join_on": table.JOIN_ON,
+                    "index_col": table.index_col,
+                    "zone_col": table.zone_col,
+                    "rename_columns": table.rename_columns,
                 }
 
                 # Add zones to households dicts as vary_on variable

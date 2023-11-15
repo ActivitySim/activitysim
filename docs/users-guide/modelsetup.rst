@@ -2,17 +2,110 @@
 Model Setup
 ===========
 
-This page describes how to get started with ActivitySim.
+This page describes the system requirements and installation procedures to set up ActivitySim.
 
 .. note::
    ActivitySim is under active development
 
 
-.. index:: installation
 
+Quick Reference
+---------------
+This section briefly describes the quickest way to install and start running ActivitySim. This section assumes the user is more experienced in running travel demand models and proficient in Python, but has not used ActivitySim or has not used recent versions of ActivitySim. More detailed instructions for installing and running ActivitySim are also available in this Users Guide.
+
+* :ref:`Pre-packaged Installer`
+* Placeholder (Edit model input files, configs, as needed)
+* Placeholder (Run from command line or Jupyter notebook)
+
+System Requirements
+-------------------
+
+This section highlights the software requirements for any implementation, as well as hardware recommendations.
+
+Hardware
+________
+
+The computing hardware required to run a model implemented in the ActivitySim framework generally depends on:
+
+* The number of households to be simulated for disaggregate model steps
+* The number of model zones (for each zone system) for aggregate model steps
+* The number and size of network skims by mode and time-of-day
+* The number of zone systems, see :ref:`multiple_zone_systems`
+* The desired runtimes
+
+ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
+data access time in order to minimize runtime.  For example, the prototype MTC example model has 2.7 million
+households, 7.5 million people, 1475 zones, 826 network skims and has been run between one hour and one day depending
+on the amount of RAM and number of processors allocated.  See :ref:`multiprocessing` and :ref:`chunk_size` for more information.
+
+As an example, the SEMCOG ABM (<todo: insert reference>) runs on a windows machine, with the minimum and recommended system specification as follows:
+
+* Minimum Specification:
+   + Operating System: 64-bit Windows 7, 64-bit Windows 8 (8.1) or 64-bit Windows 10
+   + Processor: 8-core CPU processor
+   + Memory: 128 GB RAM
+   + Disk space: 150 GB
+
+* Recommended Specification:
+   + Operating System: 64-bit Windows 7, 64-bit Windows 8 (8.1), 64-bit Windows 10, or 64-bit Windows 11
+   + Processor: Intel CPU Xeon Gold / AMD CPU Threadripper Pro (12+ cores)
+   + Memory: 256 GB RAM
+   + Disk space: 150 GB
+
+
+.. note::
+   in general, more CPU cores and RAM will result in faster run times.
+   ActivitySim has also been run in the cloud, on both Windows and Linux using
+   `Microsoft Azure <https://azure.microsoft.com/en-us/>`__.  Example configurations,
+   scripts, and runtimes are in the <todo: cross-ref> ``other_resources\example_azure`` folder.
+
+
+Software
+________
+
+Activitysim is implemented in the Python programming language. It also uses several open source Python packages such as pandas, numpy, pytables, openmatrix etc. Hence it is recommended that you install and use a *conda* package manager for your system.
+One easy way to do so is by using
+`Mambaforge <https://github.com/conda-forge/miniforge#mambaforge>`__.
+Mamba is a free open source cross-platform package manager that runs on
+Windows, OS X and Linux and is fully compatible with conda packages.  It is
+also usually substantially faster than conda itself. Instructions to install mambaforge can be found `here <https://mamba.readthedocs.io/en/latest/mamba-installation.html#mamba-install>`__. Installers for different Operating Systems can be found `here <https://github.com/conda-forge/miniforge#miniforge3>`__.
+
+Alternatively, if you prefer a package installer backed by corporate tech
+support available (for a fee) as necessary, you can install
+`Anaconda 64bit Python 3 <https://www.anaconda.com/distribution/>`__,
+although you should consult the `terms of service <https://www.anaconda.com/terms-of-service>`__
+for this product and ensure you qualify since businesses and
+governments with over 200 employees do not qualify for free usage.
+If you're using `conda` instead of `mamba`, just replace every call to
+`mamba` below with `conda`, as they share the same user interface and most
+command formats.
+
+If you access the internet from behind a firewall, then you may need to
+configure your proxy server. To do so, create a `.condarc` file in your
+home installation folder, such as:
+
+::
+
+  proxy_servers:
+    http: http://myproxy.org:8080
+    https: https://myproxy.org:8080
+  ssl_verify: false
+
+
+
+Installing ActivitySim
+----------------------
+
+There are multiple ways to install the ActivitySim codebase:
+
+1. Using a :ref:`Pre-packaged Installer` (recommended for users who do not need to change the Python code)
+
+2. Using a :ref:`Python package manager like mamba <Using mamba package manager>` (recommended for users who need to change/customize the Python code)
+
+3. Using :ref:`pip - Python's standard package manager <Using *pip* - Python's standard package manager>`
 
 Pre-packaged Installer
-----------------------
+______________________
 
 Begining with version 1.2, ActivitySim is now available for Windows via a
 pre-packaged installer.  This installer provides everything you need to run
@@ -36,39 +129,17 @@ Once the install is complete, ActivitySim can be run directly from any command
 prompt by running `<install_location>/Scripts/ActivitySim.exe`.
 
 
-Installation
-------------
+Using *mamba* package manager
+_____________________________
 
-1. It is recommended that you install and use a *conda* package manager
-for your system. One easy way to do so is by using
-`Mambaforge <https://github.com/conda-forge/miniforge#mambaforge>`__.
-Mamba is a free open source cross-platform package manager that runs on
-Windows, OS X and Linux and is fully compatible with conda packages.  It is
-also usually substantially faster than conda itself.
+This method is recommended for ActivitySim users who also wish to customize the Python code to run their models. The steps involved are described as follows:
 
-Alternatively, if you prefer a package installer backed by corporate tech
-support available (for a fee) as necessary, you can install
-`Anaconda 64bit Python 3 <https://www.anaconda.com/distribution/>`__,
-although you should consult the `terms of service <https://www.anaconda.com/terms-of-service>`__
-for this product and ensure you qualify since businesses and
-governments with over 200 employees do not qualify for free usage.
-If you're using `conda` instead of `mamba`, just replace every call to
-`mamba` below with `conda`, as they share the same user interface and most
-command formats.
 
-2. If you access the internet from behind a firewall, then you may need to
-configure your proxy server. To do so, create a `.condarc` file in your
-home installation folder, such as:
 
-::
+1. Install the *mamba* package manager as described in the :ref:`Software Requirements <Software>` subsection.
 
-  proxy_servers:
-    http: http://myproxy.org:8080
-    https: https://myproxy.org:8080
-  ssl_verify: false
-
-3. Create a conda environment (basically a Python install just for this project)
-using conda Prompt (on Windows) or the terminal (macOS or Linux)::
+2. Create a conda environment (basically a Python install just for this project)
+using mambaforge prompt or conda prompt depending on the package manager you use (on Windows) or the terminal (macOS or Linux)::
 
   mamba create -n asim python=3.9 activitysim -c conda-forge --override-channels
 
@@ -108,21 +179,25 @@ can run the shortcut command
 
   mamba env create activitysim/ASIM -n asim
 
-4. To use the **asim** environment, you need to activate it
+3. To use the **asim** environment, you need to activate it
 
 ::
 
   conda activate asim
 
 The activation of the correct environment needs to be done every time you
-start a new session (e.g. opening a new conda Prompt window).  Note that
-the *activate* and *deactivate* commands to start and stop using environments
-are called as `conda` even if you are otherwise using `mamba`.
+start a new session (e.g. opening a new conda Prompt window).
 
-Alternative Installation Methods
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. note::
 
-If you prefer to install ActivitySim without conda, it is possible to
+  The *activate* and *deactivate* commands to start and stop using environments
+  are called as `conda` even if you are otherwise using `mamba`. mamba is a drop-in replacement and uses the same commands and configuration options as conda.
+  You can swap almost all commands between conda & mamba. For more details, refer to `the mamba user guide <https://mamba.readthedocs.io/en/latest/user_guide/mamba.html>`__.
+
+Using *pip* - Python's standard package manager
+_______________________________________________
+
+If you prefer to install ActivitySim without a package manager like *mamba* or *conda*, it is possible to
 do so with pip, although you may find it more difficult to get all of the
 required dependencies installed correctly.  If you can use conda for
 the dependencies, you can get most of the libraries you need from there::
@@ -133,7 +208,7 @@ the dependencies, you can get most of the libraries you need from there::
   # required for ActivitySim version 1.0.1 and earlier
   pip install zbox
 
-And then simply install just activitysim with pip.
+And then simply install activitysim with pip.
 
 ::
 
@@ -169,94 +244,5 @@ ActivitySim itself in editable mode as described above.
   install 64 bit Anaconda, which contains many of the libraries upon which
   ActivitySim depends + some handy Python installation management tools.
 
-  Anaconda includes the ``conda`` command line tool, which does a number of useful
-  things, including creating `environments <http://conda.pydata.org/docs/using/envs.html>`__
-  (i.e. stand-alone Python installations/instances/sandboxes) that are the recommended
-  way to work with multiple versions of Python on one machine.  Using conda
-  environments keeps multiple Python setups from conflicting with one another.
 
-  You need to activate the activitysim environment each time you start a new command
-  session.  You can remove an environment with ``conda remove -n asim --all`` and
-  check the current active environment with ``conda info -e``.
 
-  For more information on Anaconda, see Anaconda's `getting started
-  <https://docs.anaconda.com/anaconda/user-guide/getting-started>`__ guide.
-
-Run the Primary Example
------------------------
-
-ActivitySim includes a :ref:`cli` for creating examples and running the model.
-
-To setup and run the primary example (see :ref:`examples`), do the following:
-
-* Open a command prompt
-* If you installed ActivitySim using conda environments, activate the conda
-  environment with ActivitySim installed (i.e. ``conda activate asim``)
-* Or, if you used the :ref:`pre-packaged installer<Pre-packaged Installer>`,
-  replace all the commands below that call ``activitysim ...`` with the complete
-  path to your installed location, which is probably something
-  like ``c:\programdata\activitysim\scripts\activitysim.exe``.
-* Type ``activitysim create -e prototype_mtc -d test_prototype_mtc`` to copy
-  the very small prototype_mtc example to a new test_prototype_mtc directory
-* Change to the test_prototype_mtc directory
-* Type ``activitysim run -c configs -o output -d data`` to run the example
-* Review the outputs in the output directory
-
-.. note::
-   Common configuration settings can be overridden at runtime.  See ``activitysim -h``, ``activitysim create -h`` and ``activitysim run -h``.
-   ActivitySim model runs can be configured with settings file inheritance to avoid duplicating settings across model configurations.  See :ref:`cli` for more information.
-
-Additional examples, including the full scale prototype MTC regional demand model, estimation integration examples, multiple zone system examples,
-and examples for agency partners are available for creation by typing ``activitysim create -l``.  To create these examples, ActivitySim downloads the (large) input files from
-the `ActivitySim resources <https://github.com/rsginc/activitysim_resources>`__ repository.  See :ref:`examples` for more information.
-
-Try the Notebooks
------------------
-
-ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book with interactive examples.  To run a Jupyter notebook, do the following:
-
-* Open a conda prompt and activate the conda environment with ActivitySim installed
-* If needed, ``conda install jupyterlab`` so you can run jupyter notebooks
-* Type ``jupyter notebook`` to launch the web-based notebook manager
-* Navigate to the ``examples/prototype_mtc/notebooks`` folder and select a notebook to learn more:
-
-  * `Getting started <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/getting_started.ipynb/>`__
-  * `Summarizing results <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/summarizing_results.ipynb/>`__
-  * `Testing a change in auto ownership <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/change_in_auto_ownership.ipynb/>`__
-  * `Adding TNCs <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/adding_tncs.ipynb/>`__
-  * `Memory usage <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/memory_usage.ipynb/>`__
-
-Hardware
---------
-
-The computing hardware required to run a model implemented in the ActivitySim framework generally depends on:
-
-* The number of households to be simulated for disaggregate model steps
-* The number of model zones (for each zone system) for aggregate model steps
-* The number and size of network skims by mode and time-of-day
-* The number of zone systems, see :ref:`multiple_zone_systems`
-* The desired runtimes
-
-ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
-data access time in order to minimize runtime.  For example, the prototype MTC example model has 2.7 million
-households, 7.5 million people, 1475 zones, 826 network skims and has been run between one hour and one day depending
-on the amount of RAM and number of processors allocated.  See :ref:`multiprocessing` and :ref:`chunk_size` for more information.
-
-.. note::
-   ActivitySim has been run in the cloud, on both Windows and Linux using
-   `Microsoft Azure <https://azure.microsoft.com/en-us/>`__.  Example configurations,
-   scripts, and runtimes are in the ``other_resources\example_azure`` folder.
-
-.. _mkl_settings :
-
-MKL Settings
-~~~~~~~~~~~~
-
-Anaconda Python on Windows uses the `Intel Math Kernel Library <https://software.intel.com/en-us/mkl>`__ for
-many of its computationally intensive low-level C/C++ calculations.  By default, MKL threads many of its routines
-in order to be performant out-of-the-box.  However, for ActivitySim multiprocessing, which processes households in
-parallel since they are largely independent of one another, it can be advantageous to override threading within
-processes and instead let ActivitySim run each process with one computing core or thread.  In order to do so,
-override the MKL number of threads setting via a system environment variable that is set before running the model.
-In practice, this means before running the model, first set the MKL number of threads variable via the command
-line as follows: ``SET MKL_NUM_THREADS=1``

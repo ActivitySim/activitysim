@@ -47,6 +47,7 @@ extensions = [
     "sphinx_autosummary_accessors",
     "sphinx_remove_toctrees",
     "sphinx_copybutton",
+    "sphinx.ext.autosectionlabel"
 ]
 
 remove_from_toctrees = [

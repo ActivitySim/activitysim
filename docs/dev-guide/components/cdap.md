@@ -21,22 +21,22 @@ The CDAP model is a sequence of vectorized table operations:
 * repeat for households size 2, 3, 4, and 5. Each model is independent of one another.
 
 The main interface to the CDAP model is the [run_cdap](activitysim.abm.models.util.cdap.run_cdap)
-function.  This function is called by the Inject step ``cdap_simulate`` which is
+function.  This function is called by the Inject step `cdap_simulate` which is
 registered as an Inject step in the example Pipeline.  There are two cdap class definitions in
-ActivitySim.  The first is at :py:func:`~activitysim.abm.models.cdap` and contains the Inject
+ActivitySim.  The first is at [cdap](activitysim.abm.models.cdap) and contains the Inject
 wrapper for running it as part of the model pipeline.  The second is
 at [cdap](activitysim.abm.models.util.cdap) and contains CDAP model logic.
+
 ## Structure
 
 - *Configuration File*: `cdap.yaml`
 - *Core Table*: `persons`
 - *Result Field*: `cdap_activity`
 
-
 ## Configuration
 
 ```{eval-rst}
-.. autopydantic_model:: CDAPSettings
+.. autopydantic_model:: CdapSettings
     :inherited-members: BaseModel, PydanticReadable
     :show-inheritance:
 ```
@@ -49,5 +49,5 @@ at [cdap](activitysim.abm.models.util.cdap) and contains CDAP model logic.
 ## Implementation
 
 ```{eval-rst}
-.. autofunction:: cdap
+.. autofunction:: cdap_simulate
 ```

@@ -19,6 +19,8 @@ class AutoOwnershipSettings(LogitComponentSettings):
     Settings for the `auto_ownership` component.
     """
 
+    # This model is relatively simple and has no unique settings
+
 
 @workflow.step
 def auto_ownership_simulate(

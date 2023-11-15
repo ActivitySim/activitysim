@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import random
 from functools import reduce
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -14,36 +15,186 @@ from activitysim.abm.models import initialize, location_choice
 from activitysim.abm.models.util import tour_destination
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core import estimation, los, tracing, util, workflow
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.expressions import assign_columns
 
 logger = logging.getLogger(__name__)
 
 
-def read_disaggregate_accessibility_yaml(state: workflow.State, file_name):
+class DisaggregateAccessibilitySuffixes(PydanticReadable):
+    SUFFIX: str = "proto_"
+    ROOTS: list[str] = [
+        "persons",
+        "households",
+        "tours",
+        "persons_merged",
+        "person_id",
+        "household_id",
+        "tour_id",
+    ]
+
+
+class DisaggregateAccessibilityTableSettings(PydanticReadable, extra="forbid"):
+    index_col: str | None = None
+    zone_col: str | None = None
+    rename_columns: dict[str, str] = {}
+    VARIABLES: dict[str, int | list[int]]
+    """
+    Base value(s) for each variable.
+
+    Results in the cartesian product (all non-repeating combinations) of the
+    fields.
+    """
+
+    mapped_fields: dict[str, dict] = {}
+    """
+    Maps variables to the fields generated in VARIABLES.
+
+    For non-combinatorial fields, users can map a variable to the fields generated
+    in VARIABLES (e.g., income category bins mapped to median dollar values).
+    """
+
+    filter_rows: list[str] = []
+    """
+    filter rows using pandas expressions.
+
+    Users can also filter rows using these expressions if specific variable
+    combinations are not desired.
+    """
+
+    JOIN_ON: Any = None
+    """
+    The persons variable to join the tours to (e.g., person_number).
+    This is required only for PROTO_TOURS
+    """
+
+
+class DisaggregateAccessibilityAnnotateSettings(PydanticReadable, extra="forbid"):
+    tablename: str
+    annotate: PreprocessorSettings
+
+
+class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
+    suffixes: DisaggregateAccessibilitySuffixes = DisaggregateAccessibilitySuffixes()
+    ORIGIN_SAMPLE_SIZE: float | int = 0
+    """
+    The number of sampled origins where logsum is calculated.
+
+    Setting this to zero implies sampling all zones.
+
+    Origins without a logsum will draw from the nearest zone with a logsum. This
+    parameter is useful for systems with a large number of zones with similar
+    accessibility. Fractional values less than 1 will be interpreted as a percentage,
+    e.g., 0.5 = 50% sample.
+    """
+    DESTINATION_SAMPLE_SIZE: float | int = 0
+    """
+    Number of destination zone alternatives sampled for calculating the destination logsum.
+
+    Setting this to zero implies sampling all zones.
+
+    Decimal values < 1 will be interpreted as a percentage, e.g., 0.5 = 50% sample.
+    """
+
+    BASE_RANDOM_SEED: int = 0
+    add_size_tables: bool = True
+    zone_id_names: dict[str, str] = {"index_col": "zone_id"}
+    ORIGIN_SAMPLE_METHOD: Literal[
+        None, "full", "uniform", "uniform-taz", "kmeans"
+    ] = None
+    """
+    The method in which origins are sampled.
+
+    Population weighted sampling can be TAZ-based or "TAZ-agnostic" using KMeans
+    clustering. The potential advantage of KMeans is to provide a more geographically
+    even spread of MAZs sampled that do not rely on TAZ hierarchies. Unweighted
+    sampling is also possible using 'uniform' and 'uniform-taz'.
+
+    - None [Default] - Sample zones weighted by population, ensuring at least
+      one TAZ is sampled per MAZ. If n-samples > n-tazs then sample 1 MAZ from
+      each TAZ until n-remaining-samples < n-tazs, then sample n-remaining-samples
+      TAZs and sample an MAZ within each of those TAZs. If n-samples < n-tazs, then
+      it proceeds to the above 'then' condition.
+
+    - "kmeans" - K-Means clustering is performed on the zone centroids (must be
+      provided as maz_centroids.csv), weighted by population. The clustering yields
+      k XY coordinates weighted by zone population for n-samples = k-clusters
+      specified. Once k new cluster centroids are found, these are then approximated
+      into the nearest available zone centroid and used to calculate accessibilities
+      on. By default, the k-means method is run on 10 different initial cluster
+      seeds (n_init) using using [k-means++ seeding algorithm](https://en.wikipedia.org/wiki/K-means%2B%2B).
+      The k-means method runs for max_iter iterations (default=300).
+
+    - "uniform" - Unweighted sample of N zones independent of each other.
+
+    - "uniform-taz" - Unweighted sample of 1 zone per taz up to the N samples
+      specified.
+    """
+
+    ORIGIN_WEIGHTING_COLUMN: str
+    CREATE_TABLES: dict[str, DisaggregateAccessibilityTableSettings | str] = {}
+    MERGE_ON: dict[str, list[str]]
+    """
+    Field to merge the proto-population logsums onto the full synthetic population/
+
+    The proto-population should be designed such that the logsums are able to be
+    joined exactly on these variables specified to the full population.
+    Users specify the to join on using:
+
+    - by: An exact merge will be attempted using these discrete variables.
+    - asof [optional]: The model can peform an "asof" join for continuous variables,
+      which finds the nearest value. This method should not be necessary since
+      synthetic populations are all discrete.
+    - method [optional]: Optional join method can be "soft", default is None. For
+      cases where a full inner join is not possible, a Naive Bayes clustering method
+      is fast but discretely constrained method. The proto-population is treated as
+      the "training data" to match the synthetic population value to the best possible
+      proto-population candidate. The Some refinement may be necessary to make this
+      procedure work.
+    """
+
+    FROM_TEMPLATES: bool = False
+    annotate_proto_tables: list[DisaggregateAccessibilityAnnotateSettings] = []
+    """
+    Allows modification of the proto-population.
+
+    Annotation configurations are available here, if users wish to modify the
+    proto-population beyond basic generation in the YAML.
+    """
+    NEAREST_METHOD: str = "skims"
+
+
+def read_disaggregate_accessibility_yaml(
+    state: workflow.State, file_name
+) -> DisaggregateAccessibilitySettings:
     """
     Adds in default table suffixes 'proto_' if not defined in the settings file
     """
-    model_settings = state.filesystem.read_model_settings(file_name)
-    if not model_settings.get("suffixes"):
-        model_settings["suffixes"] = {
-            "SUFFIX": "proto_",
-            "ROOTS": [
-                "persons",
-                "households",
-                "tours",
-                "persons_merged",
-                "person_id",
-                "household_id",
-                "tour_id",
-            ],
-        }
+    model_settings = DisaggregateAccessibilitySettings.read_settings_file(
+        state.filesystem, file_name
+    )
+    # if not model_settings.get("suffixes"):
+    #     model_settings["suffixes"] = {
+    #         "SUFFIX": "proto_",
+    #         "ROOTS": [
+    #             "persons",
+    #             "households",
+    #             "tours",
+    #             "persons_merged",
+    #             "person_id",
+    #             "household_id",
+    #             "tour_id",
+    #         ],
+    #     }
     # Convert decimal sample rate to integer sample size
     for sample in ["ORIGIN_SAMPLE_SIZE", "DESTINATION_SAMPLE_SIZE"]:
-        size = model_settings.get(sample, 0)
+        size = getattr(model_settings, sample)
         if size > 0 and size < 1:
-            model_settings[sample] = round(
-                size * len(state.get_dataframe("land_use").index)
+            setattr(
+                model_settings,
+                sample,
+                round(size * len(state.get_dataframe("land_use").index)),
             )
 
     return model_settings
@@ -66,19 +217,16 @@ class ProtoPop:
         )
 
         # Random seed
-        self.seed = self.model_settings.get("BASE_RANDOM_SEED", 0) + len(
-            self.land_use.index
-        )
+        self.seed = self.model_settings.BASE_RANDOM_SEED + len(self.land_use.index)
 
         # Generation
         self.params = self.read_table_settings()
         self.create_proto_pop()
         logger.info(
-            "Created a proto-population with %s households across %s origin zones to %s possible destination zones"
-            % (
+            "Created a proto-population with {} households across {} origin zones to {} possible destination zones".format(
                 len(self.proto_pop["proto_households"]),
                 len(self.proto_pop["proto_households"].home_zone_id.unique()),
-                self.model_settings["DESTINATION_SAMPLE_SIZE"],
+                self.model_settings.DESTINATION_SAMPLE_SIZE,
             )
         )
         self.inject_tables(state)
@@ -88,11 +236,11 @@ class ProtoPop:
         # - initialize shadow_pricing size tables after annotating household and person tables
         # since these are scaled to model size, they have to be created while single-process
         # this can now be called as a standalone model step instead, add_size_tables
-        add_size_tables = self.model_settings.get("add_size_tables", True)
+        add_size_tables = self.model_settings.add_size_tables
         if add_size_tables:
             # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
             shadow_pricing.add_size_tables(
-                state, self.model_settings.get("suffixes"), scale=False
+                state, self.model_settings.suffixes.dict(), scale=False
             )
 
     def zone_sampler(self):
@@ -131,14 +279,14 @@ class ProtoPop:
 
         # default_zone_col = 'TAZ' if not (self.network_los.zone_system == los.ONE_ZONE) else 'zone_id'
         # zone_cols = self.model_settings["zone_id_names"].get("zone_group_cols", default_zone_col)
-        id_col = self.model_settings["zone_id_names"].get("index_col", "zone_id")
-        method = self.model_settings.get("ORIGIN_SAMPLE_METHOD")
-        n_samples = self.model_settings.get("ORIGIN_SAMPLE_SIZE", 0)
+        id_col = self.model_settings.zone_id_names.get("index_col", "zone_id")
+        method = self.model_settings.ORIGIN_SAMPLE_METHOD
+        n_samples = int(self.model_settings.ORIGIN_SAMPLE_SIZE)
 
         # Get weights, need to get households first to get persons merged.
         # Note: This will cause empty zones to be excluded. Which is intended, but just know that.
         zone_weights = self.land_use[
-            self.model_settings["ORIGIN_WEIGHTING_COLUMN"]
+            self.model_settings.ORIGIN_WEIGHTING_COLUMN
         ].to_frame("weight")
         zone_weights = zone_weights[zone_weights.weight != 0]
 
@@ -177,12 +325,12 @@ class ProtoPop:
             # Join the land_use pop on centroids,
             # this also filter only zones we need (relevant if running scaled model)
             centroids_df = centroids_df.join(
-                self.land_use[self.model_settings["ORIGIN_WEIGHTING_COLUMN"]],
+                self.land_use[self.model_settings.ORIGIN_WEIGHTING_COLUMN],
                 how="inner",
             )
             xy_list = list(centroids_df[["X", "Y"]].itertuples(index=False, name=None))
             xy_weights = np.array(
-                centroids_df[self.model_settings["ORIGIN_WEIGHTING_COLUMN"]]
+                centroids_df[self.model_settings.ORIGIN_WEIGHTING_COLUMN]
             )
 
             # Initializer k-means class
@@ -303,14 +451,9 @@ class ProtoPop:
     def read_table_settings(self):
         # Check if setup properly
 
-        assert "CREATE_TABLES" in self.model_settings.keys()
-
         # Set zone_id name if not already specified
-        self.model_settings["zone_id_names"] = self.model_settings.get(
-            "zone_id_names", {"index_col": "zone_id"}
-        )
-        create_tables = self.model_settings.get("CREATE_TABLES")
-        from_templates = self.model_settings.get("FROM_TEMPLATES", False)
+        create_tables = self.model_settings.CREATE_TABLES
+        from_templates = self.model_settings.FROM_TEMPLATES
         zone_list = self.zone_sampler()
         params = {}
 
@@ -331,21 +474,26 @@ class ProtoPop:
             params["proto_households"]["zone_col"] = "home_zone_id"
         else:
             assert all(
-                [True for k, v in create_tables.items() if "VARIABLES" in v.keys()]
+                [
+                    True
+                    for k, v in create_tables.items()
+                    if isinstance(v, DisaggregateAccessibilityTableSettings)
+                ]
             )
             for name, table in create_tables.items():
+                assert isinstance(table, DisaggregateAccessibilityTableSettings)
                 # Ensure table variables are all lists
                 params[name.lower()] = {
                     "variables": {
                         k: (v if isinstance(v, list) else [v])
-                        for k, v in table["VARIABLES"].items()
+                        for k, v in table.VARIABLES.items()
                     },
-                    "mapped": table.get("mapped_fields", []),
-                    "filter": table.get("filter_rows", []),
-                    "join_on": table.get("JOIN_ON", []),
-                    "index_col": table.get("index_col", []),
-                    "zone_col": table.get("zone_col", []),
-                    "rename_columns": table.get("rename_columns", []),
+                    "mapped": table.mapped_fields,
+                    "filter": table.filter_rows,
+                    "join_on": table.JOIN_ON,
+                    "index_col": table.index_col,
+                    "zone_col": table.zone_col,
+                    "rename_columns": table.rename_columns,
                 }
 
                 # Add zones to households dicts as vary_on variable
@@ -458,14 +606,14 @@ class ProtoPop:
         klist = ["proto_households", "proto_persons", "proto_tours"]
 
         # Create ID columns, defaults to "%tablename%_id"
-        hhid, perid, tourid = [
+        hhid, perid, tourid = (
             self.params[x]["index_col"]
             if len(self.params[x]["index_col"]) > 0
             else x + "_id"
             for x in klist
-        ]
+        )
 
-        if self.model_settings.get("FROM_TEMPLATES"):
+        if self.model_settings.FROM_TEMPLATES:
             table_params = {k: self.params.get(k) for k in klist}
             tables = {
                 k: pd.read_csv(
@@ -476,7 +624,7 @@ class ProtoPop:
             households, persons, tours = self.expand_template_zones(tables)
             households["household_serial_no"] = households[hhid]
         else:
-            households, persons, tours = [self.generate_replicates(k) for k in klist]
+            households, persons, tours = (self.generate_replicates(k) for k in klist)
 
             # Names
             households.name, persons.name, tours.name = klist
@@ -535,17 +683,17 @@ class ProtoPop:
 
     def annotate_tables(self, state: workflow.State):
         # Extract annotations
-        for annotations in self.model_settings["annotate_proto_tables"]:
-            tablename = annotations["tablename"]
+        for annot in self.model_settings.annotate_proto_tables:
+            tablename = annot.tablename
             df = self.state.get_dataframe(tablename)
             assert df is not None
-            assert annotations is not None
+            assert annot is not None
             assign_columns(
                 state,
                 df=df,
                 model_settings={
-                    **annotations["annotate"],
-                    **self.model_settings["suffixes"],
+                    **annot.annotate.dict(),
+                    **self.model_settings.suffixes.dict(),
                 },
                 trace_label=tracing.extend_trace_label("ProtoPop.annotate", tablename),
             )
@@ -564,7 +712,7 @@ class ProtoPop:
         ).merge(
             self.land_use,
             left_on=self.params["proto_households"]["zone_col"],
-            right_on=self.model_settings["zone_id_names"]["index_col"],
+            right_on=self.model_settings.zone_id_names["index_col"],
         )
 
         perid = self.params["proto_persons"]["index_col"]
@@ -597,9 +745,7 @@ def get_disaggregate_logsums(
         model_settings = TourLocationComponentSettings.read_settings_file(
             state.filesystem, model_name + ".yaml"
         )
-        model_settings.SAMPLE_SIZE = disagg_model_settings.get(
-            "DESTINATION_SAMPLE_SIZE"
-        )
+        model_settings.SAMPLE_SIZE = disagg_model_settings.DESTINATION_SAMPLE_SIZE
         estimator = estimation.manager.begin_estimation(state, trace_label)
         if estimator:
             location_choice.write_estimation_specs(
@@ -613,7 +759,7 @@ def get_disaggregate_logsums(
 
         # Include the suffix tags to pass onto downstream logsum models (e.g., tour mode choice)
         if model_settings.LOGSUM_SETTINGS:
-            suffixes = util.concat_suffix_dict(disagg_model_settings.get("suffixes"))
+            suffixes = util.concat_suffix_dict(disagg_model_settings.suffixes)
             suffixes.insert(0, str(model_settings.LOGSUM_SETTINGS))
             model_settings.LOGSUM_SETTINGS = " ".join(suffixes)
 

@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
+    TourSchedulingSettings,
     vectorize_subtour_scheduling,
 )
 from activitysim.core import config, estimation, expressions, simulate
@@ -23,15 +24,6 @@ logger = logging.getLogger(__name__)
 DUMP = False
 
 
-class AtworkSubtourSchedulingSettings(PydanticReadable):
-    """
-    Settings for the `atwork_subtour_scheduling` component.
-    """
-
-    sharrow_skip: bool = True
-    """Skip Sharow"""  # TODO Check this again
-
-
 @workflow.step
 def atwork_subtour_scheduling(
     state: workflow.State,
@@ -39,7 +31,7 @@ def atwork_subtour_scheduling(
     persons_merged: pd.DataFrame,
     tdd_alts: pd.DataFrame,
     skim_dict: SkimDict | SkimDataset,
-    model_settings: AtworkSubtourSchedulingSettings | None = None,
+    model_settings: TourSchedulingSettings | None = None,
     model_settings_file_name: str = "tour_scheduling_atwork.yaml",
     trace_label: str = "atwork_subtour_scheduling",
 ) -> None:
@@ -56,7 +48,7 @@ def atwork_subtour_scheduling(
         return
 
     if model_settings is None:
-        model_settings = AtworkSubtourSchedulingSettings.read_settings_file(
+        model_settings = TourSchedulingSettings.read_settings_file(
             state.filesystem,
             model_settings_file_name,
         )

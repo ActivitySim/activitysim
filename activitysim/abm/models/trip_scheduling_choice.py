@@ -193,16 +193,19 @@ def get_pattern_index_and_arrays(tour_indexes, durations, one_way=True):
     return indexes, patterns, pattern_sizes
 
 
-def get_spec_for_segment(state: workflow.State, model_settings, spec_name, segment):
+def get_spec_for_segment(
+    state: workflow.State, model_settings: TripSchedulingChoiceSettings, segment: str
+):
     """
     Read in the model spec
     :param model_settings: model settings file
-    :param spec_name: name of the key in the settings file
     :param segment: which segment of the spec file do you want to read
     :return: array of utility equations
     """
 
-    omnibus_spec = state.filesystem.read_model_spec(file_name=model_settings[spec_name])
+    omnibus_spec = state.filesystem.read_model_spec(
+        file_name=model_settings.SPECIFICATION
+    )
 
     spec = omnibus_spec[[segment]]
 
@@ -324,13 +327,16 @@ def run_trip_scheduling_choice(
     return tours
 
 
-class TripSchedulingChoiceSettings(PydanticReadable):
+class TripSchedulingChoiceSettings(PydanticReadable, extra="forbid"):
     """
     Settings for the `trip_scheduling_choice` component.
     """
 
-    preprocessor: PreprocessorSettings | None = None
+    PREPROCESSOR: PreprocessorSettings | None = None
     """Setting for the preprocessor."""
+
+    SPECIFICATION: str
+    """file name of specification file"""
 
 
 @workflow.step
@@ -350,7 +356,7 @@ def trip_scheduling_choice(
             model_settings_file_name,
         )
 
-    spec = get_spec_for_segment(state, model_settings, "SPECIFICATION", "stage_one")
+    spec = get_spec_for_segment(state, model_settings, "stage_one")
 
     trips_df = trips
     tours_df = tours
@@ -382,7 +388,7 @@ def trip_scheduling_choice(
         .reindex(tours.index)
     )
 
-    preprocessor_settings = model_settings.preprocessor
+    preprocessor_settings = model_settings.PREPROCESSOR
 
     # hack: preprocessor adds origin column in place if it does not exist already
     od_skim_stack_wrapper = skim_dict.wrap("origin", "destination")

@@ -104,5 +104,3 @@ MATRICES:
         data_field: TNC_SINGLE_EV
       - name: TNC_SHARED_EV
         data_field: TNC_SHARED_EV
-
-CONSTANTS:

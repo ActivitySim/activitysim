@@ -2,7 +2,7 @@
 # Parking Location Choice
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.parking_location_choice.py
+.. currentmodule:: activitysim.abm.models.parking_location_choice
 ```
 
 The parking location choice model selects a parking location for specified trips. While the model does not
@@ -73,4 +73,6 @@ is registered as an Inject step, and it is available from the pipeline.
 
 ```{eval-rst}
 .. autofunction:: parking_location
+.. autofunction:: wrap_skims
+.. autofunction:: parking_destination_simulate
 ```

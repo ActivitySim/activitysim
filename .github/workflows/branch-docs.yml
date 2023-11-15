@@ -40,7 +40,7 @@ jobs:
         id: cache
 
       - name: Update environment
-        run: mamba env update -n docbuild -f conda-environments/docbuild.yml
+        run: mamba env update --verbose -n docbuild -f conda-environments/docbuild.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install activitysim

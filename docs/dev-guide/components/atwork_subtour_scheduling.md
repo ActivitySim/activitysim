@@ -2,7 +2,7 @@
 # At-work Subtour Scheduling
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.atwork_subtour_scheduling.py
+.. currentmodule:: activitysim.abm.models.atwork_subtour_scheduling
 ```
 
 The at-work subtours scheduling model selects a tour departure and duration period (and therefore a start and end
@@ -32,7 +32,7 @@ function.  This function is registered as an Inject step in the example Pipeline
 ## Configuration
 
 ```{eval-rst}
-.. autopydantic_model:: AtworkSubtourSchedulingSettings
+.. autopydantic_model:: TourSchedulingSettings
     :inherited-members: BaseModel, PydanticReadable
     :show-inheritance:
 ```

@@ -132,8 +132,12 @@ def run_tour_mode_choice_simulate(
     assert ("in_period" not in choosers) and ("out_period" not in choosers)
     in_time = skims["in_time_col_name"]
     out_time = skims["out_time_col_name"]
-    choosers["in_period"] = network_los.skim_time_period_label(choosers[in_time])
-    choosers["out_period"] = network_los.skim_time_period_label(choosers[out_time])
+    choosers["in_period"] = network_los.skim_time_period_label(
+        choosers[in_time], as_cat=True
+    )
+    choosers["out_period"] = network_los.skim_time_period_label(
+        choosers[out_time], as_cat=True
+    )
 
     expressions.annotate_preprocessors(
         state, choosers, locals_dict, skims, model_settings, trace_label

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -480,16 +482,18 @@ def apply_stage_two_model(state, omnibus_spec, trips, chunk_size, trace_label):
     return trips["depart"].astype(int)
 
 
-class TripDepartureChoiceSettings(PydanticReadable):
+class TripDepartureChoiceSettings(PydanticReadable, extra="forbid"):
     """
     Settings for the `trip_departure_choice` component.
     """
 
-    preprocessor: PreprocessorSettings | None = None
+    PREPROCESSOR: PreprocessorSettings | None = None
     """Setting for the preprocessor."""
 
     SPECIFICATION: str = "trip_departure_choice.csv"
     """Filename for the trip departure choice (.csv) file."""
+
+    CONSTANTS: dict[str, Any] = {}
 
 
 @workflow.step
@@ -525,7 +529,7 @@ def trip_departure_choice(
     )
     locals_d = config.get_model_constants(model_settings).copy()
 
-    preprocessor_settings = model_settings.preprocessor
+    preprocessor_settings = model_settings.PREPROCESSOR
     tour_legs = get_tour_legs(trips_merged_df)
     state.get_rn_generator().add_channel("tour_legs", tour_legs)
 

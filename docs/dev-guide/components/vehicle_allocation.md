@@ -2,7 +2,7 @@
 # Vehicle Allocation
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.vehicle_allocation.py
+.. currentmodule:: activitysim.abm.models.vehicle_allocation
 ```
 
 The vehicle allocation model selects which vehicle would be used for a tour of given occupancy. The alternatives for the vehicle
@@ -44,4 +44,6 @@ selected vehicle to be used in two separate tours at the same time.
 
 ```{eval-rst}
 .. autofunction:: vehicle_allocation
+.. autofunction:: annotate_vehicle_allocation
+.. autofunction:: get_skim_dict
 ```

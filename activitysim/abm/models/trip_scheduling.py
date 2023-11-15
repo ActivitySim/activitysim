@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import warnings
 from builtins import range
+from typing import Any, List, Literal
 
 import numpy as np
 import pandas as pd
@@ -15,7 +16,7 @@ from activitysim.abm.models.util.school_escort_tours_trips import (
 )
 from activitysim.abm.models.util.trip import cleanup_failed_trips, failed_trip_cohorts
 from activitysim.core import chunk, config, estimation, expressions, tracing, workflow
-from activitysim.core.configuration.base import PydanticReadable
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
@@ -41,18 +42,18 @@ FAILFIX_DEFAULT = FAILFIX_CHOOSE_MOST_INITIAL
 DEPARTURE_MODE = "departure"
 DURATION_MODE = "stop_duration"
 RELATIVE_MODE = "relative"
-PROBS_JOIN_COLUMNS_DEPARTURE_BASED = [
+PROBS_JOIN_COLUMNS_DEPARTURE_BASED: list[str] = [
     "primary_purpose",
     "outbound",
     "tour_hour",
     "trip_num",
 ]
-PROBS_JOIN_COLUMNS_DURATION_BASED = ["outbound", "stop_num"]
-PROBS_JOIN_COLUMNS_RELATIVE_BASED = ["outbound", "periods_left"]
+PROBS_JOIN_COLUMNS_DURATION_BASED: list[str] = ["outbound", "stop_num"]
+PROBS_JOIN_COLUMNS_RELATIVE_BASED: list[str] = ["outbound", "periods_left"]
 
 
-def _logic_version(model_settings):
-    logic_version = model_settings.get("logic_version", None)
+def _logic_version(model_settings: TripSchedulingSettings):
+    logic_version = model_settings.logic_version
     if logic_version is None:
         warnings.warn(
             "The trip_scheduling component now has a logic_version setting "
@@ -196,7 +197,7 @@ def schedule_trips_in_leg(
     outbound,
     trips,
     probs_spec,
-    model_settings,
+    model_settings: TripSchedulingSettings,
     is_last_iteration,
     trace_label,
     *,
@@ -220,29 +221,25 @@ def schedule_trips_in_leg(
         depart choice for trips, indexed by trip_id
     """
 
-    failfix = model_settings.get(FAILFIX, FAILFIX_DEFAULT)
-    depart_alt_base = model_settings.get("DEPART_ALT_BASE", 0)
-    scheduling_mode = model_settings.get("scheduling_mode", "departure")
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    failfix = model_settings.FAILFIX
+    depart_alt_base = model_settings.DEPART_ALT_BASE
+    scheduling_mode = model_settings.scheduling_mode
+    preprocessor_settings = model_settings.preprocessor
 
-    if scheduling_mode == "departure":
-        probs_join_cols = model_settings.get(
-            "probs_join_cols", PROBS_JOIN_COLUMNS_DEPARTURE_BASED
-        )
-    elif scheduling_mode == "stop_duration":
-        probs_join_cols = model_settings.get(
-            "probs_join_cols", PROBS_JOIN_COLUMNS_DURATION_BASED
-        )
-    elif scheduling_mode == "relative":
-        probs_join_cols = model_settings.get(
-            "probs_join_cols", PROBS_JOIN_COLUMNS_RELATIVE_BASED
-        )
-    else:
-        logger.error(
-            "Invalid scheduling mode specified: {0}.".format(scheduling_mode),
-            "Please select one of ['departure', 'stop_duration', 'relative'] and try again.",
-        )
-        raise ValueError(f"Invalid scheduling mode specified: {scheduling_mode}")
+    probs_join_cols = model_settings.probs_join_cols
+    if probs_join_cols is None:
+        if scheduling_mode == "departure":
+            probs_join_cols = PROBS_JOIN_COLUMNS_DEPARTURE_BASED
+        elif scheduling_mode == "stop_duration":
+            probs_join_cols = PROBS_JOIN_COLUMNS_DURATION_BASED
+        elif scheduling_mode == "relative":
+            probs_join_cols = PROBS_JOIN_COLUMNS_RELATIVE_BASED
+        else:
+            logger.error(
+                "Invalid scheduling mode specified: {0}.".format(scheduling_mode),
+                "Please select one of ['departure', 'stop_duration', 'relative'] and try again.",
+            )
+            raise ValueError(f"Invalid scheduling mode specified: {scheduling_mode}")
 
     # logger.debug("%s scheduling %s trips" % (trace_label, trips.shape[0]))
 
@@ -451,6 +448,16 @@ class TripSchedulingSettings(PydanticReadable):
     """Integer to add to probs column index to get time period it represents.
     e.g. depart_alt_base = 5 means first column (column 0) represents 5 am"""
 
+    scheduling_mode: Literal["departure", "stop_duration", "relative"] = "departure"
+
+    probs_join_cols: list[str] | None = None
+
+    preprocessor: PreprocessorSettings | None = None
+
+    logic_version: int | None = None
+
+    CONSTANTS: dict[str, Any] = {}
+
 
 @workflow.step(copy_tables=False)
 def trip_scheduling(
@@ -560,7 +567,6 @@ def trip_scheduling(
         pd.Series(list(range(len(tours))), tours.index), trips_df.tour_id
     )
 
-    assert "DEPART_ALT_BASE" in model_settings
     failfix = model_settings.FAILFIX
 
     max_iterations = model_settings.MAX_ITERATIONS
@@ -609,9 +615,7 @@ def trip_scheduling(
                 failed = choices.reindex(trips_chunk.index).isnull()
                 logger.info("%s %s failed", trace_label_i, failed.sum())
 
-                if (failed.sum() > 0) & (
-                    model_settings.get("scheduling_mode") == "relative"
-                ):
+                if (failed.sum() > 0) & (model_settings.scheduling_mode == "relative"):
                     raise RuntimeError("failed trips with relative scheduling mode")
 
                 if not is_last_iteration:

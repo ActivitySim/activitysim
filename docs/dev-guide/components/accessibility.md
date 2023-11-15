@@ -65,5 +65,5 @@ function.  This function is registered as an Inject step in the example Pipeline
 ## Implementation
 
 ```{eval-rst}
-.. autofunction:: accessibility
+.. autofunction:: compute_accessibility
 ```

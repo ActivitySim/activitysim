@@ -27,7 +27,7 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.base import PydanticBase
 from activitysim.core.configuration.logit import (
-    LogitComponentSettings,
+    BaseLogitComponentSettings,
     LogitNestSpec,
     TemplatedLogitComponentSettings,
 )
@@ -147,7 +147,7 @@ def read_model_spec(filesystem: configuration.FileSystem, file_name: Path | str)
 
 def read_model_coefficients(
     filesystem: configuration.FileSystem,
-    model_settings: LogitComponentSettings | dict[str, Any] | None = None,
+    model_settings: BaseLogitComponentSettings | dict[str, Any] | None = None,
     file_name: Path | str | None = None,
 ) -> pd.DataFrame:
     """
@@ -159,7 +159,10 @@ def read_model_coefficients(
         assert file_name is not None
     else:
         assert file_name is None
-        if isinstance(model_settings, LogitComponentSettings):
+        if isinstance(model_settings, BaseLogitComponentSettings) or (
+            isinstance(model_settings, PydanticBase)
+            and hasattr(model_settings, "COEFFICIENTS")
+        ):
             file_name = model_settings.COEFFICIENTS
         else:
             assert (
@@ -366,9 +369,16 @@ def get_segment_coefficients(
     if isinstance(model_settings, PydanticBase):
         model_settings = model_settings.dict()
 
-    if "COEFFICIENTS" in model_settings and "COEFFICIENT_TEMPLATE" in model_settings:
+    if (
+        "COEFFICIENTS" in model_settings
+        and "COEFFICIENT_TEMPLATE" in model_settings
+        and model_settings["COEFFICIENTS"] is not None
+        and model_settings["COEFFICIENT_TEMPLATE"] is not None
+    ):
         legacy = False
-    elif "COEFFICIENTS" in model_settings:
+    elif (
+        "COEFFICIENTS" in model_settings and model_settings["COEFFICIENTS"] is not None
+    ):
         legacy = "COEFFICIENTS"
         warnings.warn(
             "Support for COEFFICIENTS without COEFFICIENT_TEMPLATE in model settings file will be removed."
@@ -393,9 +403,17 @@ def get_segment_coefficients(
         omnibus_coefficients = pd.read_csv(
             legacy_coeffs_file_path, comment="#", index_col="coefficient_name"
         )
+        try:
+            omnibus_coefficients_segment_name = omnibus_coefficients[segment_name]
+        except KeyError:
+            logger.error(f"No key {segment_name} found!")
+            possible_keys = "\n- ".join(omnibus_coefficients.keys())
+            logger.error(f"possible keys include: \n- {possible_keys}")
+            raise
         coefficients_dict = assign.evaluate_constants(
-            omnibus_coefficients[segment_name], constants=constants
+            omnibus_coefficients_segment_name, constants=constants
         )
+
     else:
         coefficients_df = filesystem.read_model_coefficients(model_settings)
         template_df = read_model_coefficient_template(filesystem, model_settings)
@@ -584,7 +602,7 @@ def eval_utilities(
         locals_dict.update(state.get_global_constants())
         if locals_d is not None:
             locals_dict.update(locals_d)
-        sh_util, sh_flow = apply_flow(
+        sh_util, sh_flow, sh_tree = apply_flow(
             state,
             spec_sh,
             choosers,
@@ -700,7 +718,7 @@ def eval_utilities(
         if sh_flow is not None:
             try:
                 data_sh = sh_flow.load(
-                    sh_flow.tree.replace_datasets(
+                    sh_tree.replace_datasets(
                         df=choosers.iloc[offsets],
                     ),
                     dtype=np.float32,
@@ -771,7 +789,7 @@ def eval_utilities(
             misses = np.where(~np.isclose(sh_util, utilities.values, rtol=1e-2, atol=0))
             _sh_util_miss1 = sh_util[tuple(m[0] for m in misses)]
             _u_miss1 = utilities.values[tuple(m[0] for m in misses)]
-            diff = _sh_util_miss1 - _u_miss1
+            _sh_util_miss1 - _u_miss1
             if len(misses[0]) > sh_util.size * 0.01:
                 print(
                     f"big problem: {len(misses[0])} missed close values "
@@ -779,7 +797,7 @@ def eval_utilities(
                 )
                 print(f"{sh_util.shape=}")
                 print(misses)
-                _sh_flow_load = sh_flow.load()
+                _sh_flow_load = sh_flow.load(sh_tree)
                 print("possible problematic expressions:")
                 for expr_n, expr in enumerate(exprs):
                     closeness = np.isclose(
@@ -1578,7 +1596,7 @@ def simple_simulate(
     result_list = []
     # segment by person type and pick the right spec for each person type
     for (
-        i,
+        _i,
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
@@ -1632,7 +1650,7 @@ def simple_simulate_by_chunk_id(
     choices = None
     result_list = []
     for (
-        i,
+        _i,
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
@@ -1950,7 +1968,7 @@ def simple_simulate_logsums(
     result_list = []
     # segment by person type and pick the right spec for each person type
     for (
-        i,
+        _i,
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,

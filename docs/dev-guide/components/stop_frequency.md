@@ -2,7 +2,7 @@
 # Stop Frequency
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.stop_frequency.py
+.. currentmodule:: activitysim.abm.models.stop_frequency
 ```
 
 The stop frequency model assigns to each tour the number of intermediate destinations a person

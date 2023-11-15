@@ -20,6 +20,7 @@ import pyarrow as pa
 import pyarrow.csv as csv
 import pyarrow.parquet as pq
 import yaml
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -466,6 +467,10 @@ def parse_suffix_args(args):
 
 
 def concat_suffix_dict(args):
+    if isinstance(args, BaseModel):
+        args = args.dict()
+        if "source_file_paths" in args:
+            del args["source_file_paths"]
     if isinstance(args, dict):
         args = sum([["--" + k, v] for k, v in args.items()], [])
     if isinstance(args, list):

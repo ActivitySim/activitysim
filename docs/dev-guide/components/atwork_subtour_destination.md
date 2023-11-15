@@ -2,7 +2,7 @@
 # At-work Subtours Destination Choice
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.atwork_subtour_destination.py
+.. currentmodule:: activitysim.abm.models.atwork_subtour_destination
 ```
 
 The at-work subtours destination choice model is made up of three model steps:

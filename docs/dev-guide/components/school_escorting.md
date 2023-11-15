@@ -38,7 +38,7 @@ with the first alternative being no escorting. This file contains the following 
 ## Configuration
 
 ```{eval-rst}
-.. autopydantic_model:: SchoolEscortingSettings
+.. autopydantic_model:: SchoolEscortSettings
     :inherited-members: BaseModel, PydanticReadable
     :show-inheritance:
 ```

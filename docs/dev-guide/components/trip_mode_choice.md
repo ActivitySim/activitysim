@@ -2,7 +2,7 @@
 # Trip Mode Choice
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.trip_mode_choice.py
+.. currentmodule:: activitysim.abm.models.trip_mode_choice
 ```
 
 The trip mode choice model assigns a travel mode for each trip on a given tour. It

@@ -94,6 +94,9 @@ class ShadowPriceSettings(PydanticReadable, extra="forbid"):
     """Settings used for shadow pricing."""
 
     shadow_pricing_models: dict[str, str] | None = None
+    """List model_selectors and model_names of models that use shadow pricing.
+  This list identifies which size_terms to preload which must be done in single process mode, so
+  predicted_size tables can be scaled to population"""
 
     LOAD_SAVED_SHADOW_PRICES: bool = True
     """Global switch to enable/disable loading of saved shadow prices.

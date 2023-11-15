@@ -2,7 +2,7 @@
 # Trip Departure Choice
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.trip_departure_choice.py
+.. currentmodule:: activitysim.abm.models.trip_departure_choice
 ```
 
 Used in conjuction with Trip Scheduling Choice (Logit Choice), this model chooses departure

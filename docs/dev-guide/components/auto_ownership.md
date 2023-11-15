@@ -2,7 +2,7 @@
 # Auto Ownership
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.auto_owenership
+.. currentmodule:: activitysim.abm.models.auto_ownership
 ```
 
 The auto ownership model selects a number of autos for each household in the simulation.
@@ -19,7 +19,7 @@ This model is typically structured as multinomial logit model.
 ## Configuration
 
 ```{eval-rst}
-.. autopydantic_model::
+.. autopydantic_model:: AutoOwnershipSettings
     :inherited-members: BaseModel, PydanticReadable
     :show-inheritance:
 ```
@@ -32,5 +32,5 @@ This model is typically structured as multinomial logit model.
 ## Implementation
 
 ```{eval-rst}
-.. autofunction:: auto_ownership
+.. autofunction:: auto_ownership_simulate
 ```

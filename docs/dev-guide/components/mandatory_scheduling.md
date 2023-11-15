@@ -11,10 +11,11 @@ accessibility-based parameters such as the mode choice logsum for the departure/
 combination, demographics, and time pattern characteristics such as the time windows available
 from previously scheduled tours. This model uses person :ref:`time_windows`.
 
-
-## note:
-   For `prototype_mtc`, the modeled time periods for all submodels are hourly from 3 am to 3 am the next day, and any times before 5 am are shifted to time period 5, and any times after 11 pm are shifted to time period 23.
-
+```{note}
+For `prototype_mtc`, the modeled time periods for all submodels are hourly from 3 am to
+3 am the next day, and any times before 5 am are shifted to time period 5, and any times
+after 11 pm are shifted to time period 23.
+```
 
 If ``tour_departure_and_duration_segments.csv`` is included in the configs, then the model
 will use these representative start and end time periods when calculating mode choice logsums
@@ -38,15 +39,6 @@ function.  This function is registered as an Inject step in the example Pipeline
 
 This model generates only True or False outcomes, and is structured as a binary
 logit model.
-
-
-## Configuration
-
-```{eval-rst}
-.. autopydantic_model:: MandatoryTourSchedulingSettings
-    :inherited-members: BaseModel, PydanticReadable
-    :show-inheritance:
-```
 
 ### Examples
 

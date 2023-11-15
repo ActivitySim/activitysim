@@ -2,7 +2,7 @@
 # At-work Subtour Mode
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.atwork_subtour_mode_choice.py
+.. currentmodule:: activitysim.abm.models.atwork_subtour_mode_choice
 ```
 
 The at-work subtour mode choice model assigns a travel mode to each at-work subtour using the `tour_mode_choice` model.

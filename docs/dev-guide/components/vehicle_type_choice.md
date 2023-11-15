@@ -2,7 +2,7 @@
 # Vehicle Type Choice
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.vehicle_type_choice
+.. currentmodule:: activitysim.abm.models.vehicle_type_choice
 ```
 
 The vehicle type choice model selects a vehicle type for each household vehicle. A vehicle type
@@ -59,4 +59,12 @@ Further discussion of output results and model sensitivities can be found [here]
 
 ```{eval-rst}
 .. autofunction:: vehicle_type_choice
+.. autofunction:: append_probabilistic_vehtype_type_choices
+.. autofunction:: annotate_vehicle_type_choice_households
+.. autofunction:: annotate_vehicle_type_choice_persons
+.. autofunction:: annotate_vehicle_type_choice_vehicles
+.. autofunction:: get_combinatorial_vehicle_alternatives
+.. autofunction:: construct_model_alternatives
+.. autofunction:: get_vehicle_type_data
+.. autofunction:: iterate_vehicle_type_choice
 ```

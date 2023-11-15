@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -150,7 +151,13 @@ def extend_tour_counts(
     return tour_counts
 
 
-class NonMandatoryTourFrequencySettings(PydanticReadable):
+class NonMandatoryTourSpecSegment(PydanticReadable):
+    NAME: str
+    PTYPE: int
+    COEFFICIENTS: Path
+
+
+class NonMandatoryTourFrequencySettings(LogitComponentSettings):
     """
     Settings for the `non_mandatory_tour_frequency` component.
     """
@@ -158,20 +165,17 @@ class NonMandatoryTourFrequencySettings(PydanticReadable):
     preprocessor: PreprocessorSettings | None = None
     """Setting for the preprocessor."""
 
-    SPEC: str = "non_mandatory_tour_frequency.csv"
-    """Filename of the non mandatory tour frequency specification (.csv) file"""
-
     SEGMENT_COL: str = "ptype"
     # not used anymore TODO remove if needed
 
-    SPEC_SEGMENTS: dict[str, Any] = {}
+    SPEC_SEGMENTS: list[NonMandatoryTourSpecSegment] = []
     # check the above
 
     annotate_persons: PreprocessorSettings | None = None
     """Preprocessor settings to annotate persons"""
 
     annotate_tours: PreprocessorSettings | None = None
-    """Preprocessor settings to annotate persons"""
+    """Preprocessor settings to annotate tours"""
 
 
 @workflow.step
@@ -230,8 +234,8 @@ def non_mandatory_tour_frequency(
     # segment by person type and pick the right spec for each person type
     choices_list = []
     for segment_settings in spec_segments:
-        segment_name = segment_settings["NAME"]
-        ptype = segment_settings["PTYPE"]
+        segment_name = segment_settings.NAME
+        ptype = segment_settings.PTYPE
 
         # pick the spec column for the segment
         segment_spec = model_spec[[segment_name]]
@@ -434,7 +438,7 @@ def non_mandatory_tour_frequency(
     expressions.assign_columns(
         state,
         df=persons,
-        model_settings=model_settings.get("annotate_persons"),
+        model_settings=model_settings.annotate_persons,
         trace_label=trace_label,
     )
 

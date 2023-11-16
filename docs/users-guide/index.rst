@@ -29,11 +29,8 @@ Contents
 
    modelsetup
    ways_to_run
-   cli-tools
-   notebook
    ../examples
    external-examples
    configuration
-   ../cli
    ../estimation
    ../howitworks

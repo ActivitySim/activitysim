@@ -634,7 +634,7 @@ architecture. The specification of which models should be run in parallel, how m
 should be used, and the segmentation of the data between processes are all specified in the
 settings config file.
 
-Mutliprocessing Configuration
+Multiprocessing Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The multiprocess_steps setting below indicate that the simulation should be broken into three steps.

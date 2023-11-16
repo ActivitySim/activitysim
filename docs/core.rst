@@ -108,6 +108,8 @@ API
 .. automodule:: activitysim.core.random
    :members:
 
+.. _trace :
+
 Tracing
 ~~~~~~~
 

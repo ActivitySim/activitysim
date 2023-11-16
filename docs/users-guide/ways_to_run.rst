@@ -47,6 +47,11 @@ There are several ways to maximize the performance of the model run, either to b
 Chunking
 ________
 
+Chunking is designed to split up large data records in Activitysim to enable processing them in batches such that memory does not get exhausted. Chunking reduces the amount of memory needed to complete computations, and finally combines the data after running through all batches. This process will increase the total run time but it may be a good option if the maximum RAM required to run the model is more than the available memory.
+
+
+Refer to the :ref:`Chunking <Chunk>` section for more details on how to configure and run ActivitySim with chunking.
+
 Multi-processing
 ________________
 

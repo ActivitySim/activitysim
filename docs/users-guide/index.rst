@@ -37,9 +37,11 @@ Contents
    modelsetup
    ways_to_run
    model_anatomy
+   ../howitworks
    example_models
    other_examples
+   visualization
    external-examples
    configuration
    ../estimation
-   ../howitworks
+

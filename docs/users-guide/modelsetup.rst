@@ -100,7 +100,7 @@ There are multiple ways to install the ActivitySim codebase:
 
 1. Using a :ref:`Pre-packaged Installer` (recommended for users who do not need to change the Python code)
 
-2. Using a :ref:`Python package manager like mamba <Using mamba package manager>` (recommended for users who need to change/customize the Python code)
+2. Using a :ref:`Python package manager like mamba <Using *mamba* package manager>` (recommended for users who need to change/customize the Python code)
 
 3. Using :ref:`pip - Python's standard package manager <Using *pip* - Python's standard package manager>`
 
@@ -133,8 +133,6 @@ Using *mamba* package manager
 _____________________________
 
 This method is recommended for ActivitySim users who also wish to customize the Python code to run their models. The steps involved are described as follows:
-
-
 
 1. Install the *mamba* package manager as described in the :ref:`Software Requirements <Software>` subsection.
 

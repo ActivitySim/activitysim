@@ -63,6 +63,7 @@ The multiprocessing feature in ActivitySim enables the model (or parts of the mo
 ActivitySim’s modular and extensible architecture makes it possible to not hardwire the multiprocessing architecture. The specification of which models should be run in parallel, how many processers should be used, and the segmentation of the data between processes are all specified in the settings config file.
 
 Refer to the :ref:`Multiprocessing Configuration` section for details on how to set up multiprocessing in ActivitySim.
+:ref:`This <multiprocess_example>` section shows how to run the prototype mtc example using multiprocessing.
 
 
 Sharrow

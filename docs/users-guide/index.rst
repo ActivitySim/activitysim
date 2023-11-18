@@ -29,7 +29,9 @@ Contents
 
    modelsetup
    ways_to_run
-   ../examples
+   model_anatomy
+   example_models
+   other_examples
    external-examples
    configuration
    ../estimation

@@ -16,9 +16,16 @@ the consortium. All member agencies help make decisions about development priori
 and benefit from contributions of other agency partners.  Additional information about
 the development and management of the ActivitySim is on the `project site <http://www.activitysim.org>`__.
 
-ActivitySim is a common `codebase <https://github.com/activitysim>`__ and individual implementations can vary in a lot of ways – in terms of space (one-zone or two-zone) and spatial fidelity; model components, or individual submodels; activity type segmentation (purposes, scheduling); mode alternatives; and other characteristics. Some `example implementations <https://activitysim.github.io/activitysim/v1.2.0/examples.html>`__ are openly available to any user.
+ActivitySim is a common `codebase <https://github.com/activitysim>`__ and individual implementations
+can vary in a lot of ways – in terms of space (one-zone or two-zone) and spatial fidelity; model components,
+or individual submodels; activity type segmentation (purposes, scheduling); mode alternatives; and other
+characteristics. Some `example implementations <https://activitysim.github.io/activitysim/v1.2.0/examples.html>`__ are
+openly available to any user.
 
-Note that these model files referenced and instructions provided in this User’s Guide are not complete models; only the ActivitySim component is included in the files and this User’s Guide. In practice, ActivitySim is a part of a model system that includes other components, such as network processing, skimming, and assignment, that generates inputs needed for ActivitySim and processes outputs of ActivitySim.
+Note that these model files referenced and instructions provided in this User’s Guide are not complete models;
+only the ActivitySim component is included in the files and this User’s Guide. In practice, ActivitySim is a
+part of a model system that includes other components, such as network processing, skimming, and assignment,
+that generates inputs needed for ActivitySim and processes outputs of ActivitySim.
 
 
 Contents

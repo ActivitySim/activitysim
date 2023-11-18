@@ -11,7 +11,10 @@ This page describes the system requirements and installation procedures to set u
 
 Quick Reference
 ---------------
-This section briefly describes the quickest way to install and start running ActivitySim. This section assumes the user is more experienced in running travel demand models and proficient in Python, but has not used ActivitySim or has not used recent versions of ActivitySim. More detailed instructions for installing and running ActivitySim are also available in this Users Guide.
+This section briefly describes the quickest way to install and start running ActivitySim. This section
+assumes the user is more experienced in running travel demand models and proficient in Python, but has not
+used ActivitySim or has not used recent versions of ActivitySim. More detailed instructions for installing
+and running ActivitySim are also available in this Users Guide.
 
 * :ref:`Pre-packaged Installer`
 * Placeholder (Edit model input files, configs, as needed)
@@ -54,7 +57,7 @@ As an example, the SEMCOG ABM (<todo: insert reference>) runs on a windows machi
 
 
 .. note::
-   in general, more CPU cores and RAM will result in faster run times.
+   In general, more CPU cores and RAM will result in faster run times.
    ActivitySim has also been run in the cloud, on both Windows and Linux using
    `Microsoft Azure <https://azure.microsoft.com/en-us/>`__.  Example configurations,
    scripts, and runtimes are in the <todo: cross-ref> ``other_resources\example_azure`` folder.
@@ -241,6 +244,3 @@ ActivitySim itself in editable mode as described above.
   As mentioned above, the recommended way to get your own scientific Python installation is to
   install 64 bit Anaconda, which contains many of the libraries upon which
   ActivitySim depends + some handy Python installation management tools.
-
-
-

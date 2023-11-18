@@ -183,7 +183,6 @@ can run the shortcut command
 3. To use the **asim** environment, you need to activate it
 
 ::
-
   conda activate asim
 
 The activation of the correct environment needs to be done every time you
@@ -244,3 +243,16 @@ ActivitySim itself in editable mode as described above.
   As mentioned above, the recommended way to get your own scientific Python installation is to
   install 64 bit Anaconda, which contains many of the libraries upon which
   ActivitySim depends + some handy Python installation management tools.
+
+  Anaconda includes the ``conda`` command line tool, which does a number of useful
+  things, including creating `environments <http://conda.pydata.org/docs/using/envs.html>`__
+  (i.e. stand-alone Python installations/instances/sandboxes) that are the recommended
+  way to work with multiple versions of Python on one machine.  Using conda
+  environments keeps multiple Python setups from conflicting with one another.
+
+  You need to activate the activitysim environment each time you start a new command
+  session.  You can remove an environment with ``conda remove -n asim --all`` and
+  check the current active environment with ``conda info -e``.
+
+  For more information on Anaconda, see Anaconda's `getting started
+  <https://docs.anaconda.com/anaconda/user-guide/getting-started>`__ guide.

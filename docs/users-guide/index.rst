@@ -42,6 +42,4 @@ Contents
    other_examples
    visualization
    external-examples
-   configuration
    ../estimation
-

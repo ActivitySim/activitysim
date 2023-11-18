@@ -1006,7 +1006,7 @@ production_semcog
 Introduction
 ~~~~~~~~~~~~
 
-The production_semcog model added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
+The production_semcog model is a two-zone ActivitySim added which added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
 and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`prototype_mtc`
 submodel :ref:`sub-model-spec-files`.  These submodels were added to prototype_semcog as extensions, which is a way for users to add
 submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through
@@ -1018,3 +1018,31 @@ Model Design
 
 Overview
 ________
+
+The below figure shows the ActivitySim struture of the SEMCOG model:
+
+.. image:: ../images/semcog_model_struct.png
+
+These submodels were added to prototype_semcog as extensions, which is a way for users to add submodels within their model setup as opposed to formally adding them to the activitysim package. Extension submodels are run through the models settings. However, the model must be run with the simulation.py script instead of the command line interface in order to load the extensions folder.
+
+Zone System
+___________
+
+The SEMCOG model is implemented the 2-zone ActivitySim structure. <todo: More details?>
+
+
+Setup
+~~~~~
+
+Inputs
+______
+
+ActivitySim-related inputs include: All-street network, synthetic population, and MAZ land use data: this set of inputs are read in by the ActivitySim framework to first create the MAZ-MAZ walk and bike skims, MAZ-stop transit access/egress skims, and then run the activity-based model for the region.
+
+
+
+Running the Model
+~~~~~~~~~~~~~~~~~
+
+Outputs
+~~~~~~~

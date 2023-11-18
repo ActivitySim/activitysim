@@ -32,6 +32,7 @@ Contents
    model_anatomy
    example_models
    other_examples
+   visualization
    external-examples
    configuration
    ../estimation

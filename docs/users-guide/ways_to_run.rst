@@ -20,7 +20,7 @@ more information.
    contains example commands to create and run several versions of the examples.
 
 Create
-------
+++++++
 
 Create an ActivitySim example setup.  See ``activitysim create -h`` for more information.
 More complete examples, including the full scale prototype MTC
@@ -36,7 +36,7 @@ API
 
 
 Run
----
++++
 
 
 Run ActivitySim.  See ``activitysim run -h`` for more information.

@@ -12,7 +12,7 @@ Common inputs include
 * ``zone based land use data``: Includes total population, employments, area types, etc. data for the region.
 * ``skims``: OMX matrix file containing skim matrices for the zone system of the region.
 
-Model Types
+Zone System
 -----------
 
 

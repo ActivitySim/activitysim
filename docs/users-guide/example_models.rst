@@ -1028,7 +1028,7 @@ These submodels were added to prototype_semcog as extensions, which is a way for
 Zone System
 ___________
 
-The SEMCOG model is implemented the 2-zone ActivitySim structure. <todo: More details?>
+The SEMCOG model implemented the 2-zone ActivitySim structure. <todo: More details?>
 
 
 Setup

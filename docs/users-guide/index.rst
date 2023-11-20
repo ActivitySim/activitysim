@@ -32,7 +32,7 @@ Contents
 --------
 
 .. toctree::
-   :maxdepth: 5
+   :maxdepth: 3
 
    modelsetup
    ways_to_run
@@ -41,5 +41,5 @@ Contents
    example_models
    other_examples
    visualization
-   external-examples
-   ../estimation
+   model_dev
+

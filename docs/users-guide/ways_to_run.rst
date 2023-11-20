@@ -71,6 +71,11 @@ API
 .. automodule:: activitysim.cli.run
    :members:
 
+Running the Primary Example using CLI
++++++++++++++++++++++++++++++++++++++
+
+Refer to the :ref:`Run the Primary Example` section to learn how to run the primary ActivitySim example model using the Command Line Interface.
+
 
 Using Jupyter Notebook
 ______________________

@@ -38,8 +38,11 @@ Contents
    ways_to_run
    model_anatomy
    ../howitworks
-   example_models
-   other_examples
-   visualization
    model_dev
+   visualization
+   example_models
+   .. toctree::
+   :maxdepth: 1
+   other_examples
+
 

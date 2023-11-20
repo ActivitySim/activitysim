@@ -4,8 +4,8 @@ Other Example Models
 
 .. _prototype_mtc_extended :
 
-prototype_mtc_extended
-----------------------
+**prototype_mtc_extended**
+
 
 prototype_mtc_extended contains additional models that were developed to enhance ActivitySim's modeling
 capabilities. This example inherets
@@ -29,8 +29,8 @@ The following changes were made to demonstrate this:
 
 .. _prototype_marin :
 
-prototype_marin
----------------
+**prototype_marin**
+
 
 To finalize development and verification of the multiple zone system and transit virtual path building components, the
 `Transportation Authority of Marin County <https://www.tam.ca.gov/>`__ version of MTC travel model two (TM2) work
@@ -38,8 +38,8 @@ tour mode choice model was implemented.  This example was also developed to test
 The complete runnable setup is available from the ActivitySim command line interface as `prototype_3_marin_full`.  This example
 has essentially the same configuration as the simpler three zone example above.
 
-Example
-~~~~~~~
+*Example*
+
 
 To run prototype_marin, do the following:
 
@@ -62,8 +62,8 @@ To run prototype_marin, do the following:
 * For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 
-Settings
-~~~~~~~~
+*Settings*
+
 
 Additional settings for running the Marin TM2 tour mode choice example are in the ``network_los.yaml`` file.  The
 only additional notable setting is the ``tap_lines`` setting, which identifies a table of transit line names
@@ -78,8 +78,8 @@ file to include as it can considerably reduce runtimes.
 
 .. _prototype_arc :
 
-prototype_arc
--------------
+**prototype_arc**
+
 
 .. note::
 
@@ -92,8 +92,8 @@ submodel :ref:`sub-model-spec-files`.
 
 .. _arc-sub-model-spec-files:
 
-Example ARC Sub-Model Specification Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*Example ARC Sub-Model Specification Files*
+
 
 +------------------------------------------------+--------------------------------------------------------------------+
 |            Model                               |    Specification Files                                             |
@@ -112,16 +112,16 @@ Example ARC Sub-Model Specification Files
 |                                                |  - parking_location_choice.csv                                     |
 +------------------------------------------------+--------------------------------------------------------------------+
 
-Example
-~~~~~~~
+*Example*
+
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running prototype_arc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _placeholder_psrc :
 
-placeholder_psrc
-----------------
+**placeholder_psrc**
+
 
 .. note::
 
@@ -131,16 +131,16 @@ placeholder_psrc
 The placeholder_psrc is a two zone system (MAZs and TAZs) implementation of the
 prototype_mtc model design.  It uses PSRC zones, land use, synthetic population, and network LOS (skims).
 
-Example
-~~~~~~~
+*Example*
+
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running placeholder_psrc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _placeholder_sandag :
 
-placeholder_sandag
-------------------
+**placeholder_sandag**
+
 
 .. note::
 
@@ -150,16 +150,16 @@ placeholder_sandag
 The placeholder_sandag is a multi-part model, containing one-, two-, and three- zone system (MAZs, TAZs, and TAPs) implementation of the
 prototype_mtc model design.  It uses SANDAG zones, land use, synthetic population, and network LOS (skims).
 
-Example
-~~~~~~~
+*Example*
+
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running placeholder_sandag.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _prototype_sandag_xborder :
 
-prototype_sandag_xborder
-------------------------
+**prototype_sandag_xborder**
+
 
 .. note::
 
@@ -175,21 +175,21 @@ principal difference between this and the standard 3-zone implementation is that
 since household do not have a default tour origin (home zones), a tour OD choice
 model is required to assign tour origins and destinations simultaneously.
 
-Example
-~~~~~~~
+*Example*
+
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running prototype_sandag_xborder.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _prototype_mwcog :
 
-prototype_mwcog
----------------
+**prototype_mwcog**
+
 
 The prototype_mwcog is a one zone system (TAZs only).
 
-Example
-~~~~~~~
+*Example*
+
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running prototype_mwcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.

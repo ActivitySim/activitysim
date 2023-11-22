@@ -29,7 +29,15 @@ class CdapSettings(PydanticReadable, extra="forbid"):
     INTERACTION_COEFFICIENTS: str = "cdap_interaction_coefficients.csv"
     FIXED_RELATIVE_PROPORTIONS_SPEC: str = "cdap_fixed_relative_proportions.csv"
     ADD_JOINT_TOUR_UTILITY: bool = False
+    """
+    If True, add joint tour utility to CDAP model.
+    """
+
     JOINT_TOUR_COEFFICIENTS: str = "cdap_joint_tour_coefficients.csv"
+    """
+    If ADD_JOINT_TOUR_UTILITY is True, this is the name of the coefficients file
+    for the joint tour utility spec.
+    """
     annotate_persons: PreprocessorSettings | None = None
     annotate_households: PreprocessorSettings | None = None
     COEFFICIENTS: Path

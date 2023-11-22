@@ -24,6 +24,10 @@ logger = logging.getLogger(__name__)
 
 class DisaggregateAccessibilitySuffixes(PydanticReadable):
     SUFFIX: str = "proto_"
+    """
+    Suffix to append to the proto-population tables.
+    """
+
     ROOTS: list[str] = [
         "persons",
         "households",
@@ -33,6 +37,9 @@ class DisaggregateAccessibilitySuffixes(PydanticReadable):
         "household_id",
         "tour_id",
     ]
+    """
+    The roots of the proto-population tables.
+    """
 
 
 class DisaggregateAccessibilityTableSettings(PydanticReadable, extra="forbid"):
@@ -504,7 +511,7 @@ class ProtoPop:
 
         return params
 
-    def generate_replicates(self, table_name):
+    def generate_replicates(self, table_name: str):
         """
         Generates replicates finding the cartesian product of the non-mapped field variables.
         The mapped fields are then annotated after replication
@@ -601,7 +608,10 @@ class ProtoPop:
 
         return [x for x in proto_tables.values()]
 
-    def create_proto_pop(self):
+    def create_proto_pop(self) -> None:
+        """
+        Creates the proto-population tables.
+        """
         # Separate out the mapped data from the varying data and create base replicate tables
         klist = ["proto_households", "proto_persons", "proto_tours"]
 
@@ -671,7 +681,14 @@ class ProtoPop:
             if len(colnames) > 0:
                 df.rename(columns=colnames, inplace=True)
 
-    def inject_tables(self, state: workflow.State):
+    def inject_tables(self, state: workflow.State) -> None:
+        """
+        Injects the proto-population tables into the pipeline.
+
+        Parameters
+        ----------
+        state : workflow.State
+        """
         # Update canonical tables lists
         state.tracing.traceable_tables = state.tracing.traceable_tables + list(
             self.proto_pop.keys()
@@ -681,7 +698,14 @@ class ProtoPop:
             self.state.get_rn_generator().add_channel(tablename, df)
             state.tracing.register_traceable_table(tablename, df)
 
-    def annotate_tables(self, state: workflow.State):
+    def annotate_tables(self, state: workflow.State) -> None:
+        """
+        Annotates the proto-population tables with additional fields.
+
+        Parameters
+        ----------
+        state : workflow.State
+        """
         # Extract annotations
         for annot in self.model_settings.annotate_proto_tables:
             tablename = annot.tablename
@@ -699,7 +723,10 @@ class ProtoPop:
             )
             self.state.add_table(tablename, df)
 
-    def merge_persons(self):
+    def merge_persons(self) -> None:
+        """
+        Merges the proto-population households into the persons.
+        """
         persons = self.state.get_dataframe("proto_persons")
         households = self.state.get_dataframe("proto_households")
 
@@ -726,6 +753,21 @@ class ProtoPop:
 def get_disaggregate_logsums(
     state: workflow.State, network_los: los.Network_LOS, chunk_size: int, trace_hh_id
 ):
+    """
+    Get disaggregate logsums for workplace, school, and non-mandatory tour destinations.
+
+    Parameters
+    ----------
+    state : workflow.State
+    network_los : los.Network_LOS
+    chunk_size : int
+    trace_hh_id : int, optional
+
+    Returns
+    -------
+    logsums : dict
+        Dictionary of logsums for each of the three destination types.
+    """
     logsums = {}
     persons_merged = state.get_dataframe("proto_persons_merged").sort_index(
         inplace=False

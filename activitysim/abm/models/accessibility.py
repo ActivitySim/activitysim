@@ -47,15 +47,34 @@ def _accumulate_accessibility(arr, orig_zone_count, dest_zone_count):
 
 
 def compute_accessibilities_for_zones(
-    state,
-    accessibility_df,
-    land_use_df,
-    assignment_spec,
-    constants,
-    network_los,
-    trace_label,
-    chunk_sizer,
+    state: workflow.State,
+    accessibility_df: pd.DataFrame,
+    land_use_df: pd.DataFrame,
+    assignment_spec: dict,
+    constants: dict,
+    network_los: los.Network_LOS,
+    trace_label: str,
+    chunk_sizer: chunk.ChunkSizer,
 ):
+    """
+    Compute accessibility for each zone in land use file using expressions from accessibility_spec.
+
+    Parameters
+    ----------
+    state : workflow.State
+    accessibility_df : pd.DataFrame
+    land_use_df : pd.DataFrame
+    assignment_spec : dict
+    constants : dict
+    network_los : los.Network_LOS
+    trace_label : str
+    chunk_sizer : chunk.ChunkSizer
+
+    Returns
+    -------
+    accessibility_df : pd.DataFrame
+        The accessibility_df is updated in place.
+    """
     orig_zones = accessibility_df.index.values
     dest_zones = land_use_df.index.values
 

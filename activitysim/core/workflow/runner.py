@@ -314,7 +314,7 @@ class Runner(StateAccessor):
         Parameters
         ----------
         model_name : str
-            model_name is assumed to be the name of a registered orca step
+            model_name is assumed to be the name of a registered workflow step
         """
         self.t0 = time.time()
         try:

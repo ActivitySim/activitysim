@@ -32,16 +32,21 @@ class AccessibilitySettings(PydanticReadable):
     SPEC: str = "accessibility.csv"
     """Filename for the accessibility specification (csv) file."""
 
+    explicit_chunk: int = 0
+    """If > 0, use this chunk size instead of adaptive chunking."""
+
 
 @nb.njit
 def _accumulate_accessibility(arr, orig_zone_count, dest_zone_count):
     assert arr.size == orig_zone_count * dest_zone_count
-    arr2 = arr.reshape((orig_zone_count, dest_zone_count))
+    assert arr.ndim == 1
+    i = 0
     result = np.empty((orig_zone_count,), dtype=arr.dtype)
     for o in range(orig_zone_count):
         x = 0
         for d in range(dest_zone_count):
-            x += arr2[o, d]
+            x += arr[i]
+            i += 1
         result[o] = np.log1p(x)
     return result
 
@@ -234,13 +239,16 @@ def compute_accessibility(
     )
 
     accessibilities_list = []
+    explicit_chunk_size = model_settings.explicit_chunk
 
     for (
         _i,
         chooser_chunk,
         _chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(state, accessibility_df, trace_label):
+    ) in chunk.adaptive_chunked_choosers(
+        state, accessibility_df, trace_label, explicit_chunk_size=explicit_chunk_size
+    ):
         accessibilities = compute_accessibilities_for_zones(
             state,
             chooser_chunk,

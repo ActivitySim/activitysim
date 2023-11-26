@@ -235,6 +235,11 @@ actually reads the input tables from the input HDF5 or CSV file using the ``inpu
         HHID: household_id
 
 
+Running Model Components
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The next steps include running the model components specific to the individual implementation that you are running and as specified in the ``settings.yaml`` file.
+
 Finishing Up
 ~~~~~~~~~~~~
 
@@ -252,8 +257,7 @@ Back in the main ``run`` command, the final steps are to:
 Data Schema
 -----------
 
-The ActivitySim data schema depends on the sub-models implemented.  The data schema listed below is for
-the primary TM1 example model.  These tables and skims are defined in the :mod:`activitysim.abm.tables` package.
+The ActivitySim data schema depends on the specific implementation of ActivitySim. This section includes information on example data that is likely to be included in most implementations. These tables and skims are defined in the :mod:`activitysim.abm.tables` package. For the best information, documentation developed for a specific implementation of ActivitySim is recommended.
 
 .. index:: constants
 .. index:: households
@@ -283,15 +287,15 @@ A few additional tables are also used, which are not really tables, but classes:
   * constants - various constants used throughout the model system, such as person type codes
   * shadow pricing - shadow price calculator and associated utility methods, see :ref:`shadow_pricing`
   * size terms - created by reading the ``destination_choice_size_terms.csv`` input file.  Index - ``segment`` (see ``activitysim.abm.tables.size_terms.py``)
-  * skims - see :ref:`skims`
+  * skims - each model runs requires skims, but how the skims are defined can vary significantly depending on the ActivitySim implementation. The skims class defines Inject injectables to access the skim matrices. The skims class reads the skims from the omx_file on disk.
   * table dictionary - stores which tables should be registered as random number generator channels for restartability of the pipeline
 
 Data Schema
 ~~~~~~~~~~~
 
-The following table lists the pipeline data tables, each final field, the data type, the step that created it, and the
+Each ActivitySim model includes pipeline data tables, field names, data type, the step that created it, and the
 number of columns and rows in the table at the time of creation.  The ``other_resources\scripts\make_pipeline_output.py`` script
-uses the information stored in the pipeline file to create the table below for a small sample of households.
+uses the information stored in the pipeline file to create a table specific to the implementation.
 
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
 | Table                      | Field                         | DType   | Creator                      |NCol  |NRow  |
@@ -858,8 +862,7 @@ uses the information stored in the pipeline file to create the table below for a
 Skims
 ~~~~~
 
-The skims class defines Inject injectables to access the skim matrices.  The skims class reads the
-skims from the omx_file on disk.  The injectables and omx_file for the example are listed below.
+The injectables and omx_file for the example are listed below.
 The skims are float64 matrix.
 
 Skims are named <PATH TYPE>_<MEASURE>__<TIME PERIOD>:
@@ -2573,7 +2576,7 @@ Skims are named <PATH TYPE>_<MEASURE>__<TIME PERIOD>:
 Components
 ----------
 
-TODO: Add link to component documentation
+Individual models and components are defined and described in the Developers Guide. Please refer to the :ref:`Components<dev_components>` section.
 
 
 

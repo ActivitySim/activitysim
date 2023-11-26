@@ -9,7 +9,9 @@ This page describes how the software works, how multiprocessing works, and the p
 Execution Flow
 --------------
 
-The example model run starts by running the steps in :ref:`example_run`.
+An example model run starts by running the steps in :ref:`example_run`. The following flow chart represents steps of ActivitySim, but specific implementations will have different individual model components in their execution.
+
+.. image:: images/example_flowchart.png
 
 Initialization
 ~~~~~~~~~~~~~~

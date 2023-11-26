@@ -7,6 +7,7 @@ In order to run any model, the user needs the input files in the ``data`` folder
 file and the ``configs\network_los.yaml`` file.
 
 Common inputs include
+
 * ``households`` - Synthetic households for the region.
 * ``persons`` - Synthetic population person records with socio-demographics details.
 * ``zone based land use data``: Includes total population, employments, area types, etc. data for the region.
@@ -338,7 +339,7 @@ Configuration
 The ``configs`` folder for a model implementation contains settings, expressions
 files, and other files required for specifying model utilities and form.  Each
 component will have one or more files that control the operation of that
-component.
+component. More information about individual configuration files can be found in the :ref:`Components <dev_components>` section of the Developers Guide.
 
 .. currentmodule:: activitysim.core.configuration
 
@@ -387,14 +388,14 @@ Utility Specifications
 ----------------------
 
 The model specifications files are typically included in the ``configs`` folder. These files store python/pandas/numpy expressions,
-alternatives, and other settings for each model.
+alternatives, coefficients, constants and other settings for each model. For more information, see the :ref:`Utility Expressions<util_expressions>` section of the Developers Guide.
 
 
 Outputs
 -------
 
 The key output of ActivitySIm is the HDF5 data pipeline file ``output\pipeline.h5``. This datastore by default contains
-a copy of each data table after each model step in which the table was modified.
+a copy of each data table after each model step in which the table was modified. The exact fields for each set of outputs will be different for various implementations of ActivitySim.
 
 
 Logging

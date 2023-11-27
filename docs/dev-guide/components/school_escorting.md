@@ -51,8 +51,8 @@ Escortees are students under age 16 with a mandatory tour whereas chaperones are
 For households that have more than three possible escortees, the three youngest children are selected for the model.
 The two chaperones are selected as the adults of the household with the highest weight according to the following calculation:
 `Weight = 100*personType + 10*gender + 1*age(0,1)`
-Where *personType* is the person type number from 1 to 5, *gender* is 1 for male and 2 for female, and
-*age* is a binary indicator equal to 1 if age is over 25 else 0.
+Where `personType` is the person type number from 1 to 5, `gender` is 1 for male and 2 for female, and
+`age` is a binary indicator equal to 1 if age is over 25 else 0.
 
 The model is run sequentially three times, once in the outbound direction, once in the inbound direction,
 and again in the outbound direction with additional conditions on what happened in the inbound direction.

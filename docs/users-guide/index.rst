@@ -32,7 +32,7 @@ Contents
 --------
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
 
    modelsetup
    ways_to_run

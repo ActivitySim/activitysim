@@ -330,9 +330,6 @@ number of TAZs based on impedance and size, the model selects a microzone for ea
 on the microzone share of TAZ size.  Presampling significantly reduces runtime while producing
 similar results.
 
-
-
-
 Configuration
 -------------
 

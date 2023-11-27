@@ -16,7 +16,7 @@ assumes the user is more experienced in running travel demand models and profici
 used ActivitySim or has not used recent versions of ActivitySim. More detailed instructions for installing
 and running ActivitySim are also available in this Users Guide.
 
-* :ref:`Pre-packaged Installer`
+* Use the :ref:`Pre-packaged Installer`
 * Placeholder (Edit model input files, configs, as needed)
 * Placeholder (Run from command line or Jupyter notebook)
 
@@ -33,7 +33,7 @@ The computing hardware required to run a model implemented in the ActivitySim fr
 * The number of households to be simulated for disaggregate model steps
 * The number of model zones (for each zone system) for aggregate model steps
 * The number and size of network skims by mode and time-of-day
-* The number of zone systems, see :ref:`multiple_zone_systems`
+* The number of zone systems, see :ref:`Zone system`
 * The desired runtimes
 
 ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
@@ -41,7 +41,7 @@ data access time in order to minimize runtime.  For example, the prototype MTC e
 households, 7.5 million people, 1475 zones, 826 network skims and has been run between one hour and one day depending
 on the amount of RAM and number of processors allocated.  See :ref:`multiprocessing` and :ref:`chunk_size` for more information.
 
-As an example, the SEMCOG ABM (<todo: insert reference>) runs on a windows machine, with the minimum and recommended system specification as follows:
+As an example, the SEMCOG ABM, a model that follows a 2-Zone system runs on a windows machine, with the minimum and recommended system specification as follows:
 
 * Minimum Specification:
    + Operating System: 64-bit Windows 7, 64-bit Windows 8 (8.1) or 64-bit Windows 10

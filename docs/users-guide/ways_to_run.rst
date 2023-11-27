@@ -96,7 +96,9 @@ ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book wi
 Running Select Components of the Model
 --------------------------------------
 
-<Todo: Placeholder section for linking to component documentation and configuration>
+ActivitySim can be run for all components in any model implementation, or a select set of components. If running the model for a subset of model components, the upstream model components would need to have been run first. For example, if you want to rerun just tour mode choice, all of the steps before tour mode choice would need to have been run.
+To select the model components to run, edit the <todo> XXXX file by doing XXXX.
+
 
 Advanced Configuration
 ----------------------
@@ -247,9 +249,9 @@ See the :ref:`multiprocessing_in_detail` section for more detail.
 Sharrow
 _______
 
-:ref:`Sharrow <https://activitysim.github.io/sharrow/intro.html>`__ is a Python library designed to decrease run-time for ActivitySim models. The sharrow package is an extension of *numba*, and offers access to data formatting and a just-in-time compiler specifically for converting ActivitySim-style “specification” files into optimized, runnable functions that can significantly reduce the amount of run-time. The idea is to pay the cost of compiling these specification files only once, and then re-use the optimized results many times. If there is a change to the utility functions, machine, core, or the user deletes the cached files, this will automatically trigger a recompiling process.
+`Sharrow <https://activitysim.github.io/sharrow/intro.html>`__ is a Python library designed to decrease run-time for ActivitySim models. The sharrow package is an extension of *numba*, and offers access to data formatting and a just-in-time compiler specifically for converting ActivitySim-style “specification” files into optimized, runnable functions that can significantly reduce the amount of run-time. The idea is to pay the cost of compiling these specification files only once, and then re-use the optimized results many times. If there is a change to the utility functions, machine, core, or the user deletes the cached files, this will automatically trigger a recompiling process.
 
-Please refer to :ref:`Sharrow installation <https://activitysim.github.io/sharrow/intro.html#installation>`__ for details on how to install Sharrow. Demonstrative examples of how to use Sharrow features can be found in the :ref:`Sharrow user guide <https://activitysim.github.io/sharrow/walkthrough/index.html>`__.
+Please refer to `Sharrow installation <https://activitysim.github.io/sharrow/intro.html#installation>`__ for details on how to install Sharrow. Demonstrative examples of how to use Sharrow features can be found in the `Sharrow user guide <https://activitysim.github.io/sharrow/walkthrough/index.html>`__.
 
 
 Tracing

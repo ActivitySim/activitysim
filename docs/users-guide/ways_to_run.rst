@@ -96,9 +96,14 @@ ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book wi
 Running Select Components of the Model
 --------------------------------------
 
-ActivitySim can be run for all components in any model implementation, or a select set of components. If running the model for a subset of model components, the upstream model components would need to have been run first. For example, if you want to rerun just tour mode choice, all of the steps before tour mode choice would need to have been run.
-To select the model components to run, edit the <todo> XXXX file by doing XXXX.
+ActivitySim can be run for all components in any model implementation, or a select set of components. If running the model for a subset of model components, the upstream model components would need to have been run first. For example, if you want to rerun just tour mode choice, all of the steps before tour mode choice would need to have been run. This is described below:
 
+* To only run the model up to a certain step, simply comment out (add # at the beginning of the line) all the model steps following that model.
+* To resume the model run after a successfully-run previous step, add the name of the step in front of the resume after line.
+
+The below figure shows an example of the settings.yaml file to run select components of ActivitySim.
+
+.. image:: ../images/run_select_components.png
 
 Advanced Configuration
 ----------------------

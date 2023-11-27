@@ -17,8 +17,9 @@ used ActivitySim or has not used recent versions of ActivitySim. More detailed i
 and running ActivitySim are also available in this Users Guide.
 
 * Use the :ref:`Pre-packaged Installer`
+* :ref:`Run the Primary Example`
 * Placeholder (Edit model input files, configs, as needed)
-* Placeholder (Run from command line or Jupyter notebook)
+
 
 System Requirements
 -------------------

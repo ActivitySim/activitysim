@@ -7,7 +7,7 @@
 Example Models
 ==============
 
-This page describes the example models included with ActivitySim. There are three
+There are many example models available through ActivitySim’s github repositories. There are three
 basic types of example model:
 
 * "production" examples are calibrated and validated by the relevant agency, and
@@ -31,7 +31,7 @@ basic types of example model:
   are early stage development models used for testing purposes, and users are
   strongly cautioned not to use them for any policy or planning purpose.
 
-The current examples are:
+The current examples avaiable include:
 
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | Example                         | Purpose                                                   | Zone Systems | Status               |
@@ -64,12 +64,7 @@ The current examples are:
    contains example commands to create and run several versions of the examples.  See also :ref:`adding_agency_examples` for more
    information on agency example models.
 
-This page describes 2 example models, namely,
-* prototype_mtc <placeholder>
-* placeholder
-
-The other examples are described in the <todo placeholder> section
-
+This page describes, in more detail, a couple of example models included with ActivitySim from the MTC and SEMCOG regions.
 .. _prototype_mtc :
 
 prototype_mtc

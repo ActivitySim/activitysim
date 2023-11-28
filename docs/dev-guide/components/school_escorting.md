@@ -16,6 +16,37 @@ consist of ‘bundles’ of escortees with a chauffeur for each half tour.
 School escorting is a household level decision – each household will choose an alternative from the ``school_escorting_alts.csv`` file,
 with the first alternative being no escorting. This file contains the following columns:
 
+```{eval-rst}
++------------------------------------------------+--------------------------------------------------------------------+
+|  Column Name                                   |    Column Description                                              |
++================================================+====================================================================+
+|  Alt                                           |  Alternative number                                                |
++------------------------------------------------+--------------------------------------------------------------------+
+|  bundle[1,2,3]                                 |  bundle number for child 1,2, and 3                                |
++------------------------------------------------+--------------------------------------------------------------------+
+|  chauf[1,2,3]                                  |  chauffeur number for child 1,2, and 3                             |
+|                                                |  - 0 = child not escorted                                          |
+|                                                |  - 1 = chauffeur 1 as ride share                                   |
+|                                                |  - 2 = chauffeur 1 as pure escort                                  |
+|                                                |  - 3 = chauffeur 2 as ride share                                   |
+|                                                |  - 4 = chauffeur 3 as pure escort                                  |
++------------------------------------------------+--------------------------------------------------------------------+
+|  nbund[1,2]                                    |  - number of escorting bundles for chauffeur 1 and 2               |
++------------------------------------------------+--------------------------------------------------------------------+
+|  nbundles                                      |  - total number of bundles                                         |
+|                                                |  - equals nbund1 + nbund2                                          |
++------------------------------------------------+--------------------------------------------------------------------+
+|  nrs1                                          |  - number of ride share bundles for chauffeur 1                    |
++------------------------------------------------+--------------------------------------------------------------------+
+|  npe1                                          |  - number of pure escort bundles for chauffeur 1                   |
++------------------------------------------------+--------------------------------------------------------------------+
+|  nrs2                                          |  - number of ride share bundles for chauffeur 2                    |
++------------------------------------------------+--------------------------------------------------------------------+
+|  npe2                                          |  - number of pure escort bundles for chauffeur 2                   |
++------------------------------------------------+--------------------------------------------------------------------+
+|  Description                                   |  - text description of alternative                                 |
++------------------------------------------------+--------------------------------------------------------------------+
+```
 
 The model as currently implemented contains three escortees and two chauffeurs.
 Escortees are students under age 16 with a mandatory tour whereas chaperones are all persons in the household over the age of 18.
@@ -51,6 +82,31 @@ destinations, and schedules to satisfy the school escorting model choice.
 
 There are a host of downstream model changes that are involved when including the school escorting model.
 The following list contains the models that are changed in some way when school escorting is included:
+
+```{eval-rst}
++--------------------------------------------------------------------+------------------------------------------------------------------+
+| File Name(s)                                                       | Change(s) Needed                                                 |
++====================================================================+==================================================================+
+|  - `non_mandatory_tour_scheduling_annotate_tours_preprocessor.csv` |                                                                  |
+|  - `tour_scheduling_nonmandatory.csv`                              | - Set availability conditions based on those times               |
+|                                                                    | - Do not schedule over other school escort tours                 |
++--------------------------------------------------------------------+------------------------------------------------------------------+
+|  - `tour_mode_choice_annotate_choosers_preprocessor.csv`           |  - count number of escortees on tour by parsing the              |
+|  - `tour_mode_choice.csv`                                          |    ``escort_participants`` column                                |
+|                                                                    |  - set mode choice availability based on number of escortees     |
+|                                                                    |                                                                  |
++--------------------------------------------------------------------+------------------------------------------------------------------+
+| - `stop_frequency_school.csv`                                      |  Do not allow stops for half-tours that include school escorting |
+| - `stop_frequency_work.csv`                                        |                                                                  |
+| - `stop_frequency_univ.csv`                                        |                                                                  |
+| - `stop_frequency_escort.csv`                                      |                                                                  |
++--------------------------------------------------------------------+------------------------------------------------------------------+
+|  - `trip_mode_choice_annotate_trips_preprocessor.csv`              |  - count number of escortees on trip by parsing the              |
+|  - `trip_mode_choice.csv`                                          |    ``escort_participants`` column                                |
+|                                                                    |  - set mode choice availability based on number of escortees     |
+|                                                                    |                                                                  |
++--------------------------------------------------------------------+------------------------------------------------------------------+
+```
 
 - *Joint tour scheduling:* Joint tours are not allowed to be scheduled over school escort tours.
    This happens automatically by updating the timetable object with the updated mandatory tour times

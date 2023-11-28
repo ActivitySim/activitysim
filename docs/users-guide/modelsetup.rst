@@ -20,7 +20,6 @@ and running ActivitySim are also available in this Users Guide.
 * :ref:`Run the Primary Example`
 * Placeholder (Edit model input files, configs, as needed)
 
-
 System Requirements
 -------------------
 

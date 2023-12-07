@@ -424,6 +424,8 @@ def assign_variables(
     # we stored result in dict - convert to df
     variables = util.df_from_dict(variables, index=df.index)
 
-    util.auto_opt_pd_dtypes(variables, inplace=True)
+    util.auto_opt_pd_dtypes(
+        variables, downcast_int=False, downcast_float=False, inplace=True
+    )
 
     return variables, trace_results, trace_assigned_locals

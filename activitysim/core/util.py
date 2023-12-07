@@ -316,7 +316,7 @@ def quick_loc_series(loc_list, target_series):
     return df.right
 
 
-def assign_in_place(df, df2, downcast_float=False):
+def assign_in_place(df, df2, downcast_int=False, downcast_float=False):
     """
     update existing row values in df from df2, adding columns to df if they are not there
 
@@ -383,11 +383,11 @@ def assign_in_place(df, df2, downcast_float=False):
         if pd.api.types.is_object_dtype(df[c]):
             df[c] = df[c].astype("category")
 
-    auto_opt_pd_dtypes(df, downcast_float, inplace=True)
+    auto_opt_pd_dtypes(df, downcast_int, downcast_float, inplace=True)
 
 
 def auto_opt_pd_dtypes(
-    df_: pd.DataFrame, downcast_float=False, inplace=False
+    df_: pd.DataFrame, downcast_int=False, downcast_float=False, inplace=False
 ) -> Optional[pd.DataFrame]:
     """
     Automatically downcast Number dtypes for minimal possible,
@@ -397,6 +397,8 @@ def auto_opt_pd_dtypes(
     ----------
     df_ : pd.DataFrame
         assignment left-hand-side (dest)
+    downcast_int: bool
+        if True, downcast int columns if possible
     downcast_float: bool
         if True, downcast float columns if possible
     inplace: bool
@@ -429,6 +431,8 @@ def auto_opt_pd_dtypes(
             continue
         # Handle integer types
         if pd.api.types.is_integer_dtype(dtype):
+            if not downcast_int:
+                continue
             # there is a bug in pandas to_numeric
             # when convert int and floats gt 16777216
             # https://github.com/pandas-dev/pandas/issues/43693

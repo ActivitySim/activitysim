@@ -124,6 +124,11 @@ def stop_frequency_university_parking(
 
         park_trips = park_to_campus | park_from_campus
 
+        # check if parking_name is in the purpose category
+        if not parking_name in trip_choosers.purpose.cat.categories:
+            trip_choosers.purpose = trip_choosers.purpose.cat.add_categories(
+                [parking_name]
+            )
         trip_choosers.loc[park_trips, "purpose"] = parking_name
         trip_choosers.loc[park_trips, "destination_logsum"] = pd.NA
         trip_choosers.loc[park_trips, "destination"] = trip_choosers.loc[

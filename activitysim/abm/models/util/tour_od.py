@@ -7,7 +7,6 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from orca import orca
 
 from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.models.util import trip

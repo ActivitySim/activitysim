@@ -105,13 +105,12 @@ def vehicle_allocation(
     Parameters
     ----------
     state : workflow.State
-    persons : orca.DataFrameWrapper
-    households : orca.DataFrameWrapper
-    vehicles : orca.DataFrameWrapper
-    vehicles_merged : orca.DataFrameWrapper
-    tours : orca.DataFrameWrapper
-    tours_merged : orca.DataFrameWrapper
-    chunk_size : orca.injectable
+    persons : pd.DataFrame
+    households : pd.DataFrame
+    vehicles : pd.DataFrame
+    tours : pd.DataFrame
+    tours_merged : pd.DataFrame
+    network_los : los.Network_LOS
     """
     trace_label = "vehicle_allocation"
     model_settings_file_name = "vehicle_allocation.yaml"

@@ -536,7 +536,7 @@ def eval_utilities(
         locals_dict.update(state.get_global_constants())
         if locals_d is not None:
             locals_dict.update(locals_d)
-        sh_util, sh_flow = apply_flow(
+        sh_util, sh_flow, sh_tree = apply_flow(
             state,
             spec_sh,
             choosers,
@@ -652,7 +652,7 @@ def eval_utilities(
         if sh_flow is not None:
             try:
                 data_sh = sh_flow.load(
-                    sh_flow.tree.replace_datasets(
+                    sh_tree.replace_datasets(
                         df=choosers.iloc[offsets],
                     ),
                     dtype=np.float32,
@@ -731,7 +731,7 @@ def eval_utilities(
                 )
                 print(f"{sh_util.shape=}")
                 print(misses)
-                _sh_flow_load = sh_flow.load()
+                _sh_flow_load = sh_flow.load(sh_tree)
                 print("possible problematic expressions:")
                 for expr_n, expr in enumerate(exprs):
                     closeness = np.isclose(

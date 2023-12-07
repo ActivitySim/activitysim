@@ -33,6 +33,10 @@ class SkimDataset:
         self.time_map = {
             j: i for i, j in enumerate(self.dataset.indexes["time_period"])
         }
+        self.time_label_dtype = pd.api.types.CategoricalDtype(
+            self.dataset.indexes["time_period"],
+            ordered=True,
+        )
         self.usage = set()  # track keys of skims looked up
 
     @property
@@ -184,6 +188,10 @@ class DatasetWrapper:
             }
         else:
             self.time_map = time_map
+        self.time_label_dtype = pd.api.types.CategoricalDtype(
+            self.dataset.indexes["time_period"],
+            ordered=True,
+        )
 
     @property
     def odim(self):
@@ -246,6 +254,11 @@ class DatasetWrapper:
             ):
                 logger.info(f"natural use for time_period={self.time_key}")
                 positions["time_period"] = df[self.time_key]
+            elif (
+                df[self.time_key].dtype == "category"
+                and df[self.time_key].dtype == self.time_label_dtype
+            ):
+                positions["time_period"] = df[self.time_key].cat.codes
             else:
                 logger.info(f"vectorize lookup for time_period={self.time_key}")
                 positions["time_period"] = pd.Series(
@@ -257,11 +270,18 @@ class DatasetWrapper:
             self.positions = {}
             for k, v in positions.items():
                 try:
-                    self.positions[k] = v.astype(int)
-                except TypeError:
-                    # possibly some missing values that are not relevant,
-                    # fill with zeros to continue.
-                    self.positions[k] = v.fillna(0).astype(int)
+                    is_int = np.issubdtype(v.dtype, np.integer)
+                except Exception:
+                    is_int = False
+                if is_int:
+                    self.positions[k] = v
+                else:
+                    try:
+                        self.positions[k] = v.astype(int)
+                    except TypeError:
+                        # possibly some missing values that are not relevant,
+                        # fill with zeros to continue.
+                        self.positions[k] = v.fillna(0).astype(int)
         else:
             self.positions = pd.DataFrame(positions).astype(int)
 

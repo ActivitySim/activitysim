@@ -56,6 +56,7 @@ def test_mtf():
     pdt.assert_series_equal(
         mandatory_tours.person_id,
         pd.Series([10, 20, 20, 30, 30, 40, 40], index=idx, name="person_id"),
+        check_dtype=False,
     )
 
     pdt.assert_series_equal(
@@ -71,14 +72,17 @@ def test_mtf():
     pdt.assert_series_equal(
         mandatory_tours.tour_num,
         pd.Series([1, 1, 2, 2, 1, 1, 2], index=idx, name="tour_num"),
+        check_dtype=False,
     )
 
     pdt.assert_series_equal(
         mandatory_tours.destination,
         pd.Series([10, 20, 2, 30, 3, 4, 4], index=idx, name="destination"),
+        check_dtype=False,
     )
 
     pdt.assert_series_equal(
         mandatory_tours.origin,
         pd.Series([100, 200, 200, 300, 300, 400, 400], index=idx, name="origin"),
+        check_dtype=False,
     )

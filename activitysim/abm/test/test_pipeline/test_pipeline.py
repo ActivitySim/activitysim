@@ -151,7 +151,7 @@ def regress_mini_mtf(state: workflow.State):
     Name: mandatory_tour_frequency, dtype: object
     """
     pdt.assert_series_equal(
-        mtf_choice.reindex(per_ids), expected_choice, check_dtype=False
+        mtf_choice.astype(str).reindex(per_ids), expected_choice, check_dtype=False
     )
 
 
@@ -332,6 +332,8 @@ def regress_tour_modes(tours_df):
     mode_cols = ["tour_mode", "person_id", "tour_type", "tour_num", "tour_category"]
 
     tours_df = tours_df[tours_df.household_id == HH_ID]
+    # convert tour_category from categorical to string for comparison
+    tours_df.tour_category = tours_df.tour_category.astype(str)
     tours_df = tours_df.sort_values(by=["person_id", "tour_category", "tour_num"])
 
     print("mode_df\n%s" % tours_df[mode_cols])
@@ -369,8 +371,8 @@ def regress_tour_modes(tours_df):
 
     assert len(tours_df) == len(EXPECT_PERSON_IDS)
     assert (tours_df.person_id.values == EXPECT_PERSON_IDS).all()
-    assert (tours_df.tour_type.values == EXPECT_TOUR_TYPES).all()
-    assert (tours_df.tour_mode.values == EXPECT_MODES).all()
+    assert (tours_df.tour_type.astype(str).values == EXPECT_TOUR_TYPES).all()
+    assert (tours_df.tour_mode.astype(str).values == EXPECT_MODES).all()
 
 
 def regress(state: workflow.State):

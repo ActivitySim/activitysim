@@ -59,7 +59,7 @@ def test_mtf():
     )
 
     pdt.assert_series_equal(
-        mandatory_tours.tour_type,
+        mandatory_tours.tour_type.astype(str),
         pd.Series(
             ["work", "work", "school", "work", "school", "school", "school"],
             index=idx,

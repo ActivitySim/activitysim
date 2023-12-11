@@ -31,33 +31,33 @@ basic types of example model:
   are early stage development models used for testing purposes, and users are
   strongly cautioned not to use them for any policy or planning purpose.
 
-The current examples avaiable include:
+The below table shows the list of example models currently available in Activitysim. Details on the prototype_mtc and prototype_semcog models are provided in this page. All other example models can be found in the :ref:`Other Example Models` page.
 
-+---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| Example                         | Purpose                                                   | Zone Systems | Status               |
-+=================================+===========================================================+==============+======================+
-| :ref:`prototype_mtc`            | Original ActivitySim Example, derived from MTC TM1        | 1            | Mature               |
-+---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`prototype_mtc_extended`   | Prototype MTC example with additional optional models     | 1            | In development       |
-+---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_estimation`       | Estimation example with prototype_mtc                     | 1            | Mature               |
-+---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`placeholder_multiple_zone`| 2 or 3 zone system example using MTC data                 | 2 or 3       | Simple test example  |
-+---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`prototype_marin`          | 3 zone system example using Marin tour mode choice model  | 3            | Mature               |
-+---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`prototype_arc`            | ARC agency example                                        | 1            | In development       |
-+---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`production_semcog`        | SEMCOG agency example                                     | 1            | In production        |
-+---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`placeholder_psrc`         | PSRC agency example                                       | 2            | Future development   |
-+---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`placeholder_sandag`       | SANDAG agency example                                     | 3            | Future development   |
-+---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`prototype_sandag_xborder` | SANDAG agency example                                     | 3            | In development       |
-+---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`prototype_mwcog`          | MWCOG agency example                                      | 2            | In development       |
-+---------------------------------+-----------------------------------------------------------+--------------+----------------------+
++-----------------------------+-----------------------------------------------------------+--------------+----------------------+
+| Example                     | Purpose                                                   | Zone Systems | Status               |
++=============================+===========================================================+==============+======================+
+| prototype_mtc               | Original ActivitySim Example, derived from MTC TM1        | 1            | Mature               |
++-----------------------------+-----------------------------------------------------------+--------------+----------------------+
+| prototype_mtc_extended      | Prototype MTC example with additional optional models     | 1            | In development       |
++-----------------------------+-----------------------------------------------------------+--------------+----------------------+
+| example_estimation          | Estimation example with prototype_mtc                     | 1            | Mature               |
++-----------------------------+-----------------------------------------------------------+--------------+----------------------+
+| placeholder_multiple_zone   | 2 or 3 zone system example using MTC data                 | 2 or 3       | Simple test example  |
++-----------------------------+-----------------------------------------------------------+--------------+----------------------+
+| prototype_marin             | 3 zone system example using Marin tour mode choice model  | 3            | Mature               |
++-----------------------------+-----------------------------------------------------------+--------------+----------------------+
+| prototype_arc               | ARC agency example                                        | 1            | In development       |
++-----------------------------+-----------------------------------------------------------+--------------+----------------------+
+| production_semcog           | SEMCOG agency example                                     | 1            | In production        |
++-----------------------------+-----------------------------------------------------------+--------------+----------------------+
+| placeholder_psrc            | PSRC agency example                                       | 2            | Future development   |
++-----------------------------+-----------------------------------------------------------+--------------+----------------------+
+| placeholder_sandag          | SANDAG agency example                                     | 3            | Future development   |
++-----------------------------+-----------------------------------------------------------+--------------+----------------------+
+| prototype_sandag_xborder    | SANDAG agency example                                     | 3            | In development       |
++-----------------------------+-----------------------------------------------------------+--------------+----------------------+
+| prototype_mwcog             | MWCOG agency example                                      | 2            | In development       |
++-----------------------------+-----------------------------------------------------------+--------------+----------------------+
 
 .. note::
    The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
@@ -65,6 +65,7 @@ The current examples avaiable include:
    information on agency example models.
 
 This page describes, in more detail, a couple of example models included with ActivitySim from the MTC and SEMCOG regions.
+
 .. _prototype_mtc :
 
 prototype_mtc

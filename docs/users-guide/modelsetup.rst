@@ -31,6 +31,7 @@ ________
 The computing hardware required to run a model implemented in the ActivitySim framework generally depends on:
 
 * The number of households to be simulated for disaggregate model steps
+   * In addition to the total number of households in the model region, runtime and hardware requirements can be reduced by sampling a subset of the households. The user can adjust the sampling rate for a particular run (see Settings.yaml).
 * The number of model zones (for each zone system) for aggregate model steps
 * The number and size of network skims by mode and time-of-day
 * The number of zone systems, see :ref:`Zone system`

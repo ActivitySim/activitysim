@@ -87,7 +87,7 @@ def telecommute_frequency(
 
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
     telecommute_frequency_cat = pd.api.types.CategoricalDtype(
-        ["", "No_Telecommute", "1_day_week", "2_3_days_week", "4_days_week"],
+        model_spec.columns.tolist()+[""],
         ordered=False,
     )
     choices = choices.astype(telecommute_frequency_cat)

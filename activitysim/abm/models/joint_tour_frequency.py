@@ -99,29 +99,7 @@ def joint_tour_frequency(
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
     cat_type = pd.api.types.CategoricalDtype(
-        [
-            "0_tours",
-            "1_Shop",
-            "1_Main",
-            "1_Eat",
-            "1_Visit",
-            "1_Disc",
-            "2_SS",
-            "2_SM",
-            "2_SE",
-            "2_SV",
-            "2_SD",
-            "2_MM",
-            "2_ME",
-            "2_MV",
-            "2_MD",
-            "2_EE",
-            "2_EV",
-            "2_ED",
-            "2_VV",
-            "2_VD",
-            "2_DD",
-        ],
+        model_spec.columns.tolist(),
         ordered=False,
     )
     choices = choices.astype(cat_type)
@@ -146,6 +124,12 @@ def joint_tour_frequency(
     temp_point_persons = temp_point_persons[["person_id", "home_zone_id"]]
 
     joint_tours = process_joint_tours(state, choices, alternatives, temp_point_persons)
+
+    # convert purpose to pandas categoricals
+    purpose_type = pd.api.types.CategoricalDtype(
+        alternatives.columns.tolist(), ordered=False
+    )
+    joint_tours["tour_type"] = joint_tours["tour_type"].astype(purpose_type)
 
     tours = state.extend_table("tours", joint_tours)
 

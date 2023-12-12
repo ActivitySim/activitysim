@@ -57,26 +57,6 @@ def create_tours(tour_counts, tour_category, parent_col="person_id"):
     # reformat with the columns given below
     tours = tour_counts.stack().reset_index()
     tours.columns = [parent_col, "tour_type", "tour_type_count"]
-    cat_tour_type = pd.api.types.CategoricalDtype(
-        [
-            "work",
-            "school",
-            "univ",
-            "escort",
-            "eatout",
-            "shopping",
-            "social",
-            "othmaint",
-            "othdiscr",
-            "eat",
-            "business",
-            "maint",
-            "atwork",
-            "home",
-        ],
-        ordered=False,
-    )
-    tours["tour_type"] = tours["tour_type"].astype(cat_tour_type)
 
     """
         <parent_col> tour_type  tour_type_count
@@ -724,26 +704,6 @@ def create_joint_tours(
     tours_purp.columns = [parent_col, "tour_id_temp", "tour_type"]
     tours_purp["tour_id_temp"] = range(1, 1 + len(tours_purp))
     tours_purp["tour_type"] = tours_purp["tour_type"].map(tour_type_dict)
-    cat_tour_type = pd.api.types.CategoricalDtype(
-        [
-            "work",
-            "school",
-            "univ",
-            "escort",
-            "eatout",
-            "shopping",
-            "social",
-            "othmaint",
-            "othdiscr",
-            "eat",
-            "business",
-            "maint",
-            "atwork",
-            "home",
-        ],
-        ordered=False,
-    )
-    tours_purp["tour_type"] = tours_purp["tour_type"].astype(cat_tour_type)
 
     """
         <parent_col> tour_id_temp  tour_type

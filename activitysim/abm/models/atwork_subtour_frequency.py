@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 def add_null_results(state, trace_label, tours):
     logger.info("Skipping %s: add_null_results", trace_label)
     cat_type = pd.api.types.CategoricalDtype(
-        ["", "no_subtours", "eat", "business1", "maint", "business2", "eat_business"],
+        [""],
         ordered=False,
     )
     choices = choices.astype(cat_type)
@@ -109,7 +109,7 @@ def atwork_subtour_frequency(
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
     cat_type = pd.api.types.CategoricalDtype(
-        ["", "no_subtours", "eat", "business1", "maint", "business2", "eat_business"],
+        alternatives.index.tolist()+[""],
         ordered=False,
     )
     choices = choices.astype(cat_type)
@@ -132,6 +132,12 @@ def atwork_subtour_frequency(
     assert not work_tours.atwork_subtour_frequency.isnull().any()
 
     subtours = process_atwork_subtours(state, work_tours, alternatives)
+
+    # convert purpose to pandas categoricals
+    purpose_type = pd.api.types.CategoricalDtype(
+        alternatives.columns.tolist()+["atwork"], ordered=False
+    )
+    subtours["tour_type"] = subtours["tour_type"].astype(purpose_type)
 
     tours = state.extend_table("tours", subtours)
 

@@ -166,9 +166,7 @@ def choose_intermediate_trip_purpose(
     # expand the purpose categorical
     for p in purpose_cols:
         if not p in trips.primary_purpose.cat.categories:
-            trips.primary_purpose = trips.primary_purpose.cat.add_categories(
-                [p]
-            )
+            trips.primary_purpose = trips.primary_purpose.cat.add_categories([p])
     choices = choices.astype(trips["primary_purpose"].dtype)
     return choices
 
@@ -217,9 +215,7 @@ def run_trip_purpose(state: workflow.State, trips_df, estimator, trace_label):
     # add home to purpose categorical
     # check if parking_name is in the purpose category
     if not "home" in trips_df.primary_purpose.cat.categories:
-        trips_df.primary_purpose = trips_df.primary_purpose.cat.add_categories(
-            ["home"]
-        )
+        trips_df.primary_purpose = trips_df.primary_purpose.cat.add_categories(["home"])
 
     # - last trip of outbound tour gets primary_purpose
     last_trip = trips_df.trip_num == trips_df.trip_count

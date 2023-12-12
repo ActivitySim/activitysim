@@ -115,7 +115,7 @@ def mandatory_tour_frequency(
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
     cat_type = pd.api.types.CategoricalDtype(
-        model_spec.columns.tolist()+[""], ordered=False
+        model_spec.columns.tolist() + [""], ordered=False
     )
     choices = choices.astype(cat_type)
 
@@ -144,7 +144,7 @@ def mandatory_tour_frequency(
 
     # convert purpose to pandas categoricals
     purpose_type = pd.api.types.CategoricalDtype(
-        alternatives.columns.tolist()+["univ","home","escort"], ordered=False
+        alternatives.columns.tolist() + ["univ", "home", "escort"], ordered=False
     )
     mandatory_tours["tour_type"] = mandatory_tours["tour_type"].astype(purpose_type)
 

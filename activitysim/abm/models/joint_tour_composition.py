@@ -111,7 +111,7 @@ def joint_tour_composition(
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
     cat_type = pd.api.types.CategoricalDtype(
-        model_spec.columns.tolist()+[""], ordered=False
+        model_spec.columns.tolist() + [""], ordered=False
     )
     choices = choices.astype(cat_type)
 

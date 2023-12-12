@@ -109,7 +109,7 @@ def atwork_subtour_frequency(
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
     cat_type = pd.api.types.CategoricalDtype(
-        alternatives.index.tolist()+[""],
+        alternatives.index.tolist() + [""],
         ordered=False,
     )
     choices = choices.astype(cat_type)
@@ -135,7 +135,7 @@ def atwork_subtour_frequency(
 
     # convert purpose to pandas categoricals
     purpose_type = pd.api.types.CategoricalDtype(
-        alternatives.columns.tolist()+["atwork"], ordered=False
+        alternatives.columns.tolist() + ["atwork"], ordered=False
     )
     subtours["tour_type"] = subtours["tour_type"].astype(purpose_type)
 

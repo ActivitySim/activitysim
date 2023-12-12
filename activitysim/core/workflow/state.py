@@ -1080,16 +1080,18 @@ class State:
                 new_df_columns = [c for c in df.columns if c not in table_df.columns]
                 df = df[new_df_columns]
                 missing_df_str_columns = []
-            
+
             # union categoricals
             for c in table_df.columns.intersection(df.columns):
-                if isinstance(table_df[c].dtype,pd.api.types.CategoricalDtype):
-                    if isinstance(df[c].dtype,pd.api.types.CategoricalDtype):
+                if isinstance(table_df[c].dtype, pd.api.types.CategoricalDtype):
+                    if isinstance(df[c].dtype, pd.api.types.CategoricalDtype):
                         from pandas.api.types import union_categoricals
 
                         uc = union_categoricals([table_df[c], df[c]])
-                        table_df[c]=pd.Categorical(table_df[c],categories=uc.categories)
-                        df[c]=pd.Categorical(df[c],categories=uc.categories)
+                        table_df[c] = pd.Categorical(
+                            table_df[c], categories=uc.categories
+                        )
+                        df[c] = pd.Categorical(df[c], categories=uc.categories)
 
             # preserve existing column order
             df = pd.concat([table_df, df], sort=False, axis=axis)

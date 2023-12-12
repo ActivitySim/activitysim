@@ -70,7 +70,7 @@ def create_logsum_trips(
     """
     stop_frequency_alts = state.get_injectable("stop_frequency_alts")
     stop_freq_cat_type = pd.api.types.CategoricalDtype(
-        stop_frequency_alts.index.tolist()+[""], ordered=False
+        stop_frequency_alts.index.tolist() + [""], ordered=False
     )
     stop_freq = "0out_0in"  # no intermediate stops
     tours["stop_frequency"] = stop_freq

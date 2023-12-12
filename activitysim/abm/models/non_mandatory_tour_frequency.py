@@ -358,7 +358,9 @@ def non_mandatory_tour_frequency(
     purpose_type = pd.api.types.CategoricalDtype(
         alternatives.columns.tolist(), ordered=False
     )
-    non_mandatory_tours["tour_type"] = non_mandatory_tours["tour_type"].astype(purpose_type)
+    non_mandatory_tours["tour_type"] = non_mandatory_tours["tour_type"].astype(
+        purpose_type
+    )
 
     if estimator:
         # make sure they created the right tours

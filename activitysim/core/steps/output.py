@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.csv as csv
+import pyarrow.parquet as parquet
 
 from activitysim.core import configuration, workflow
 from activitysim.core.workflow.checkpoint import CHECKPOINT_NAME
@@ -277,6 +278,7 @@ def write_tables(state: workflow.State) -> None:
     tables = output_tables_settings.tables
     prefix = output_tables_settings.prefix
     h5_store = output_tables_settings.h5_store
+    file_type = output_tables_settings.file_type
     sort = output_tables_settings.sort
 
     registered_tables = state.registered_tables()
@@ -383,14 +385,18 @@ def write_tables(state: workflow.State) -> None:
                 ):
                     dt = dt.drop([f"_original_{lookup_col}"])
 
-        if h5_store:
+        if h5_store or file_type == 'h5':
             file_path = state.get_output_file_path("%soutput_tables.h5" % prefix)
             dt.to_pandas().to_hdf(
                 str(file_path), key=table_name, mode="a", format="fixed"
             )
-        else:
-            file_name = f"{prefix}{table_name}.csv"
+        
+        else:  
+            file_name = f"{prefix}{table_name}.{file_type}"
             file_path = state.get_output_file_path(file_name)
 
             # include the index if it has a name or is a MultiIndex
-            csv.write_csv(dt, file_path)
+            if file_type =='csv':
+                csv.write_csv(dt, file_path)
+            else:
+                parquet.write_table(dt, file_path)

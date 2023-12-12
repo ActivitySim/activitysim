@@ -119,6 +119,11 @@ class OutputTables(PydanticBase):
     h5_store: bool = False
     """Write tables into a single HDF5 store instead of individual CSVs."""
 
+    file_type: str = 'csv'
+    """
+    Specifies the file type for output tables. Options are limited to 'csv', 
+    'h5' or 'parquet'. Only applied if h5_store is set to False."""
+
     action: str
     """Whether to 'include' or 'skip' the enumerated tables in `tables`."""
 
@@ -143,6 +148,15 @@ class OutputTables(PydanticBase):
     If omitted, the all tables are written out and no decoding will be
     applied to any output tables.
     """
+    
+    @validator("file_type")
+    def method_is_valid(cls, method: str) -> str:
+        """Validates file_type setting."""
+
+        allowed_set = {'csv', 'h5', 'parquet'}
+        if method not in allowed_set:
+            raise ValueError(f"must be in {allowed_set}, got '{method}'")
+        return method
 
 
 class MultiprocessStepSlice(PydanticBase, extra="forbid"):

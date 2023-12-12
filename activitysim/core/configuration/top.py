@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from activitysim.core.configuration.base import PydanticBase, Union
+from pydantic import validator
 
 
 class InputTable(PydanticBase):

@@ -227,8 +227,13 @@ def write_data_dictionary(state: workflow.State) -> None:
 @workflow.step
 def write_tables(state: workflow.State) -> None:
     """
-    Write pipeline tables as csv files (in output directory) as specified by output_tables list
-    in settings file.
+    Write pipeline tables as csv or parquet files (in output directory) as specified 
+    by output_tables list in settings file. Output to parquet or a single h5 file is 
+    also supported. 
+
+    'h5_store' defaults to False, which means the output will be written out to csv. 
+    'file_type' defaults to 'csv' but can also be used to specify 'parquet' or 'h5'. 
+    When 'h5_store' is set to True, 'file_type' is ingored and the outputs are written to h5.     
 
     'output_tables' can specify either a list of output tables to include or to skip
     if no output_tables list is specified, then all checkpointed tables will be written
@@ -258,6 +263,16 @@ def write_tables(state: workflow.State) -> None:
 
       output_tables:
         h5_store: True
+        action: include
+        tables:
+           - households
+
+    To write tables to parquet files, use the file_type setting:
+
+    ::
+
+      output_tables:
+        file_type: parquet
         action: include
         tables:
            - households

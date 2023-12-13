@@ -373,9 +373,10 @@ Top Level Settings
 ------------------
 
 .. autosummary::
-    :toctree: _generated
+
     :template: autopydantic.rst
     :recursive:
+
 
     Settings
     InputTable
@@ -389,7 +390,7 @@ File System
 -----------
 
 .. autosummary::
-    :toctree: _generated
+
     :template: autopydantic.rst
     :recursive:
 
@@ -400,7 +401,7 @@ Network Level of Service
 ------------------------
 
 .. autosummary::
-    :toctree: _generated
+
     :template: autopydantic.rst
     :recursive:
 

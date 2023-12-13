@@ -48,7 +48,7 @@ The below table shows the list of example models currently available in Activity
 +-----------------------------+-----------------------------------------------------------+--------------+----------------------+
 | prototype_arc               | ARC agency example                                        | 1            | In development       |
 +-----------------------------+-----------------------------------------------------------+--------------+----------------------+
-| production_semcog           | SEMCOG agency example                                     | 1            | In production        |
+| prototype_semcog            | SEMCOG agency example                                     | 1            | In production        |
 +-----------------------------+-----------------------------------------------------------+--------------+----------------------+
 | placeholder_psrc            | PSRC agency example                                       | 2            | Future development   |
 +-----------------------------+-----------------------------------------------------------+--------------+----------------------+

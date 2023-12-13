@@ -994,6 +994,7 @@ class TransitVirtualPathBuilder:
                         utilities_df,
                         allow_zero_probs=True,
                         trace_label=trace_label,
+                        overflow_protection=False,
                     )
                     chunk_sizer.log_df(trace_label, "probs", probs)
 

@@ -256,7 +256,7 @@ _______
 
 `Sharrow <https://activitysim.github.io/sharrow/intro.html>`__ is a Python library designed to decrease run-time for ActivitySim models. The sharrow package is an extension of *numba*, and offers access to data formatting and a just-in-time compiler specifically for converting ActivitySim-style “specification” files into optimized, runnable functions that can significantly reduce the amount of run-time. The idea is to pay the cost of compiling these specification files only once, and then re-use the optimized results many times. If there is a change to the utility functions, machine, core, or the user deletes the cached files, this will automatically trigger a recompiling process.
 
-Please refer to `Sharrow installation <https://activitysim.github.io/sharrow/intro.html#installation>`__ for details on how to install Sharrow. Demonstrative examples of how to use Sharrow features can be found in the `Sharrow user guide <https://activitysim.github.io/sharrow/walkthrough/index.html>`__.
+Please refer to `Sharrow installation <https://activitysim.github.io/sharrow/intro.html#installation>`__ for details on how to install Sharrow. Details on using Activitysim with Sharrow can be found in the :ref:`Using Sharrow` section of the Developer's Guide. More details on Sharrow features can be found in the `Sharrow user guide <https://activitysim.github.io/sharrow/walkthrough/index.html>`__.
 
 
 Tracing

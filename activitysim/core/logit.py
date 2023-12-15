@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from builtins import object
 
 import numpy as np
@@ -130,6 +131,8 @@ def utils_to_probs(
     exponentiated=False,
     allow_zero_probs=False,
     trace_choosers=None,
+    overflow_protection: bool = True,
+    return_logsums: bool = False,
 ):
     """
     Convert a table of utilities to probabilities.
@@ -155,6 +158,20 @@ def utils_to_probs(
         by report_bad_choices because it can't deduce hh_id from the interaction_dataset
         which is indexed on index values from alternatives df
 
+    overflow_protection : bool, default True
+        Always shift utility values such that the maximum utility in each row is
+        zero.  This constant per-row shift should not fundamentally alter the
+        computed probabilities, but will ensure that an overflow does not occur
+        that will create infinite or NaN values.  This will also provide effective
+        protection against underflow; extremely rare probabilities will round to
+        zero, but by definition they are extremely rare and losing them entirely
+        should not impact the simulation in a measureable fashion, and at least one
+        (and sometimes only one) alternative is guaranteed to have non-zero
+        probability, as long as at least one alternative has a finite utility value.
+        If utility values are certain to be well-behaved and non-extreme, enabling
+        overflow_protection will have no benefit but impose a modest computational
+        overhead cost.
+
     Returns
     -------
     probs : pandas.DataFrame
@@ -167,9 +184,27 @@ def utils_to_probs(
     # utils_arr = utils.values.astype('float')
     utils_arr = utils.values
 
-    if utils_arr.dtype == np.float32 and utils_arr.max() > 85:
+    if allow_zero_probs:
+        if overflow_protection:
+            warnings.warn(
+                "cannot set overflow_protection with allow_zero_probs", stacklevel=2
+            )
+            overflow_protection = utils_arr.dtype == np.float32 and utils_arr.max() > 85
+            if overflow_protection:
+                raise ValueError(
+                    "cannot prevent expected overflow with allow_zero_probs"
+                )
+    else:
+        overflow_protection = overflow_protection or (
+            utils_arr.dtype == np.float32 and utils_arr.max() > 85
+        )
+
+    if overflow_protection:
         # exponentiated utils will overflow, downshift them
-        utils_arr -= utils_arr.max(1, keepdims=True)
+        shifts = utils_arr.max(1, keepdims=True)
+        utils_arr -= shifts
+    else:
+        shifts = None
 
     if not exponentiated:
         # TODO: reduce memory usage by exponentiating in-place.
@@ -184,6 +219,15 @@ def utils_to_probs(
     np.putmask(utils_arr, utils_arr <= EXP_UTIL_MIN, 0)
 
     arr_sum = utils_arr.sum(axis=1)
+
+    if return_logsums:
+        with np.errstate(divide="ignore" if allow_zero_probs else "warn"):
+            logsums = np.log(arr_sum)
+        if shifts is not None:
+            logsums += np.squeeze(shifts, 1)
+        logsums = pd.Series(logsums, index=utils.index)
+    else:
+        logsums = None
 
     if not allow_zero_probs:
         zero_probs = arr_sum == 0.0
@@ -222,6 +266,8 @@ def utils_to_probs(
 
     probs = pd.DataFrame(utils_arr, columns=utils.columns, index=utils.index)
 
+    if return_logsums:
+        return probs, logsums
     return probs
 
 

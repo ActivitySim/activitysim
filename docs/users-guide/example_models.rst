@@ -2823,7 +2823,7 @@ Python/pandas/numpy expressions, alternatives, and other settings used by each m
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the ``non_mandatory_tour_frequency_alternatives.csv`` file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The  set of files for the prototype_mtc are below.  The
-:ref:`prototype_arc`, :ref:`production_semcog`, and :ref:`prototype_mtc_extended` examples added additional submodels.
+:ref:`prototype_arc`, :ref:`prototype_semcog`, and :ref:`prototype_mtc_extended` examples added additional submodels.
 
 +------------------------------------------------+--------------------------------------------------------------------+
 |            Model                               |    Specification Files                                             |
@@ -3282,7 +3282,7 @@ only be activated when writing logsums for a small set of households for model e
 | mode_choice_logsum                | mode choice logsum                    |
 +-----------------------------------+---------------------------------------+
 
-production_semcog
+prototype_semcog
 -----------------
 
 .. note::
@@ -3292,7 +3292,7 @@ production_semcog
 Introduction
 ~~~~~~~~~~~~
 
-The production_semcog model is a two-zone ActivitySim added which added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
+The prototype_semcog model is a two-zone ActivitySim added which added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
 and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`prototype_mtc`
 submodel :ref:`sub-model-spec-files`.  These submodels were added to prototype_semcog as extensions, which is a way for users to add
 submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through

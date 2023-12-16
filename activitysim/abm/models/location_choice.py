@@ -141,16 +141,18 @@ def _location_sample(
 
     sample_size = model_settings.SAMPLE_SIZE
 
-    if state.settings.disable_destination_sampling or (
-        estimator and estimator.want_unsampled_alternatives
-    ):
-        # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
+    if estimator:
+        sample_size = model_settings.ESTIMATION_SAMPLE_SIZE
         logger.info(
-            "Estimation mode for %s using unsampled alternatives short_circuit_choices"
-            % (trace_label,)
+            f"Estimation mode for {trace_label} using sample size of {sample_size}"
         )
-        sample_size = 0
 
+    if state.settings.disable_destination_sampling:
+        sample_size = 0
+        logger.info(
+            f"SAMPLE_SIZE set to 0 for {trace_label} because disable_destination_sampling is set"
+        )
+    
     locals_d = {
         "skims": skims,
         "segment_size": segment_name,
@@ -483,6 +485,39 @@ def run_location_sample(
             chunk_tag=f"{chunk_tag}.sample",
             trace_label=trace_label,
         )
+
+    # adding observed choice to alt set when running in estimation mode
+    if estimator:
+        # grabbing survey values
+        survey_persons = estimation.manager.get_survey_table("persons")
+        if "school_location" in trace_label:
+            survey_choices = survey_persons["school_zone_id"].reset_index()
+        elif ("workplace_location" in trace_label) and ("external" not in trace_label):
+            survey_choices = survey_persons["workplace_zone_id"].reset_index()
+        else:
+            return choices
+        survey_choices.columns = ["person_id", "alt_dest"]
+        survey_choices = survey_choices[
+            survey_choices["person_id"].isin(choices.index)
+            & (survey_choices.alt_dest > 0)
+        ]
+
+        # merging survey destination into table if not available
+        joined_data = survey_choices.merge(
+            choices, on=["person_id", "alt_dest"], how="left", indicator=True
+        )
+        missing_rows = joined_data[joined_data["_merge"] == "left_only"]
+        missing_rows["pick_count"] = 1
+        if len(missing_rows) > 0:
+            new_choices = missing_rows[
+                ["person_id", "alt_dest", "prob", "pick_count"]
+            ].set_index("person_id")
+            choices = choices.append(new_choices, ignore_index=False).sort_index()
+            # making probability the mean of all other sampled destinations by person
+            # FIXME is there a better way to do this? Does this even matter for estimation?
+            choices["prob"] = choices["prob"].fillna(
+                choices.groupby("person_id")["prob"].transform("mean")
+            )
 
     return choices
 

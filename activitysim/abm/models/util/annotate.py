@@ -16,6 +16,62 @@ Code for annotating tables
 logger = logging.getLogger(__name__)
 
 
+def annotate_households(
+        state: workflow.State,
+        model_settings: dict | PydanticBase,
+        trace_label: str,
+        locals_dict: dict | None = None,
+):
+    """
+    Add columns to the households table in the pipeline according to spec.
+
+    Parameters
+    ----------
+    model_settings : dict
+    trace_label : str
+    """
+    if isinstance(model_settings, PydanticBase):
+        model_settings = model_settings.dict()
+    if locals_dict is None:
+        locals_dict = {}
+    households = state.get_dataframe("households")
+    expressions.assign_columns(
+        df=households,
+        model_settings=model_settings.get("annotate_households"),
+        locals_dict=locals_dict,
+        trace_label=tracing.extend_trace_label(trace_label, "annotate_households"),
+    )
+    state.add_table("households", households)
+
+
+def annotate_persons(
+        state: workflow.State,
+        model_settings: dict | PydanticBase,
+        trace_label: str,
+        locals_dict: dict | None = None,
+):
+    """
+    Add columns to the persons table in the pipeline according to spec.
+
+    Parameters
+    ----------
+    model_settings : dict
+    trace_label : str
+    """
+    if isinstance(model_settings, PydanticBase):
+        model_settings = model_settings.dict()
+    if locals_dict is None:
+        locals_dict = {}
+    persons = state.get_dataframe("persons")
+    expressions.assign_columns(
+        df=persons,
+        model_settings=model_settings.get("annotate_persons"),
+        locals_dict=locals_dict,
+        trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
+    )
+    state.add_table("persons", persons)
+
+
 def annotate_tours(
     state: workflow.State,
     model_settings: dict | PydanticBase,

@@ -214,6 +214,10 @@ def participants_chooser(
                 probs[choice_col] = np.where(probs[choice_col] > 0, 1, 0)
                 non_choice_col = [col for col in probs.columns if col != choice_col][0]
                 probs[non_choice_col] = 1 - probs[choice_col]
+                if iter > MAX_ITERATIONS + 1:
+                    raise RuntimeError(
+                        f"{num_tours_remaining} tours could not be satisfied even with forcing participation"
+                    )
             else:
                 raise RuntimeError(
                     f"{num_tours_remaining} tours could not be satisfied after {iter} iterations"

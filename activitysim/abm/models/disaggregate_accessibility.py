@@ -846,6 +846,10 @@ def compute_disaggregate_accessibility(
             state.tracing.register_traceable_table(tablename, df)
         del df
 
+    disagg_model_settings = read_disaggregate_accessibility_yaml(
+        "disaggregate_accessibility.yaml"
+    )
+
     # Run location choice
     logsums = get_disaggregate_logsums(
         state,
@@ -905,5 +909,23 @@ def compute_disaggregate_accessibility(
     # Inject accessibility results into pipeline
     for k, df in logsums.items():
         state.add_table(k, df)
+
+    # available post-processing
+    for annotations in disagg_model_settings.get("postprocess_proto_tables", []):
+        tablename = annotations["tablename"]
+        df = state.get_dataframe(tablename)
+        assert df is not None
+        assert annotations is not None
+        assign_columns(
+            df=df,
+            model_settings={
+                **annotations["annotate"],
+                **disagg_model_settings["suffixes"],
+            },
+            trace_label=tracing.extend_trace_label(
+                "disaggregate_accessibility.postprocess", tablename
+            ),
+        )
+        state.add_table(tablename, df)
 
     return

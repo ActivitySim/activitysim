@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.abm.models.util import annotate
-from activitysim.abm.models.util.overlap import person_max_window
+from activitysim.abm.models.util.overlap import person_max_window, person_available_periods
 from activitysim.abm.models.util.school_escort_tours_trips import (
     recompute_tour_count_statistics,
 )
@@ -24,6 +24,7 @@ from activitysim.core import (
     simulate,
     tracing,
     workflow,
+    annotate,
 )
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.configuration.logit import LogitComponentSettings
@@ -230,7 +231,11 @@ def non_mandatory_tour_frequency(
     # - preprocessor
     preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
-        locals_dict = {"person_max_window": lambda x: person_max_window(state, x)}
+
+        locals_dict = {
+            "person_max_window": lambda x: person_max_window(state, x),
+            "person_available_periods": lambda x: person_available_periods(state, x),
+        }
 
         expressions.assign_columns(
             state,
@@ -324,6 +329,9 @@ def non_mandatory_tour_frequency(
 
         choices_list.append(choices)
 
+    # FIXME only want to keep actual purposes, adding cols in alts will mess this up
+    # this is complicated by canonical_ids calculated based on alts if not specified explicitly
+    # thus, adding column to input alts will change IDs and break estimation mode....
     del alternatives["tot_tours"]  # del tot_tours column we added above
 
     # The choice value 'non_mandatory_tour_frequency' assigned by interaction_simulate
@@ -418,13 +426,14 @@ def non_mandatory_tour_frequency(
     if estimator:
         # make sure they created the right tours
         survey_tours = estimation.manager.get_survey_table("tours").sort_index()
-        non_mandatory_survey_tours = survey_tours[
-            survey_tours.tour_category == "non_mandatory"
-        ]
-        assert len(non_mandatory_survey_tours) == len(non_mandatory_tours)
-        assert non_mandatory_survey_tours.index.equals(
-            non_mandatory_tours.sort_index().index
-        )
+        # FIXME below check needs to remove the pure-escort tours from the survey tours table
+        # non_mandatory_survey_tours = survey_tours[
+        #     survey_tours.tour_category == "non_mandatory"
+        # ]
+        # assert len(non_mandatory_survey_tours) == len(non_mandatory_tours)
+        # assert non_mandatory_survey_tours.index.equals(
+        #     non_mandatory_tours.sort_index().index
+        # )
 
         # make sure they created tours with the expected tour_ids
         columns = ["person_id", "household_id", "tour_type", "tour_category"]

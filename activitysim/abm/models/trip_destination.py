@@ -1374,18 +1374,31 @@ def run_trip_destination(
                 # - assign choices to this trip's destinations
                 # if estimator, then the choices will already have been overridden by trip_destination_simulate
                 # because we need to overwrite choices before any failed choices are suppressed
-                assign_in_place(trips, destinations_df.choice.to_frame("destination"))
+                assign_in_place(
+                    trips,
+                    destinations_df.choice.to_frame("destination"),
+                    state.settings.downcast_int,
+                    state.settings.downcast_int,
+                )
                 if want_logsums:
                     assert "logsum" in destinations_df.columns
                     assign_in_place(
-                        trips, destinations_df.logsum.to_frame(logsum_column_name)
+                        trips,
+                        destinations_df.logsum.to_frame(logsum_column_name),
+                        state.settings.downcast_int,
+                        state.settings.downcast_int,
                     )
 
                 # - assign choice to next trip's origin
                 destinations_df.index = nth_trips.next_trip_id.reindex(
                     destinations_df.index
                 )
-                assign_in_place(trips, destinations_df.choice.to_frame("origin"))
+                assign_in_place(
+                    trips,
+                    destinations_df.choice.to_frame("origin"),
+                    state.settings.downcast_int,
+                    state.settings.downcast_int,
+                )
 
     del trips["next_trip_id"]
 

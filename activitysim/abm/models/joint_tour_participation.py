@@ -441,7 +441,12 @@ def joint_tour_participation(
     # update number_of_participants which was initialized to 1
     joint_tours["number_of_participants"] = participants.groupby("tour_id").size()
 
-    assign_in_place(tours, joint_tours[["person_id", "number_of_participants"]])
+    assign_in_place(
+        tours,
+        joint_tours[["person_id", "number_of_participants"]],
+        state.settings.downcast_int,
+        state.settings.downcast_int,
+    )
 
     state.add_table("tours", tours)
 

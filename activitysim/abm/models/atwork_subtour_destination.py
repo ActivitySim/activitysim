@@ -83,11 +83,21 @@ def atwork_subtour_destination(
         estimator.end_estimation()
 
     subtours[destination_column_name] = choices_df["choice"]
-    assign_in_place(tours, subtours[[destination_column_name]])
+    assign_in_place(
+        tours,
+        subtours[[destination_column_name]],
+        state.settings.downcast_int,
+        state.settings.downcast_int,
+    )
 
     if want_logsums:
         subtours[logsum_column_name] = choices_df["logsum"]
-        assign_in_place(tours, subtours[[logsum_column_name]])
+        assign_in_place(
+            tours,
+            subtours[[logsum_column_name]],
+            state.settings.downcast_int,
+            state.settings.downcast_int,
+        )
 
     state.add_table("tours", tours)
 

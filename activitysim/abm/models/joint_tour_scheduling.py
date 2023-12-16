@@ -140,7 +140,9 @@ def joint_tour_scheduling(
         choices.to_frame("tdd"), tdd_alts, left_on=["tdd"], right_index=True, how="left"
     )
 
-    assign_in_place(tours, choices)
+    assign_in_place(
+        tours, choices, state.settings.downcast_int, state.settings.downcast_int
+    )
     state.add_table("tours", tours)
 
     # updated df for tracing

@@ -269,7 +269,12 @@ def run_parking_destination(
         if fail_some_trips_for_testing:
             parking_df = parking_df.drop(parking_df.index[0])
 
-        assign_in_place(trips, parking_df.to_frame(parking_location_column_name))
+        assign_in_place(
+            trips,
+            parking_df.to_frame(parking_location_column_name),
+            state.settings.downcast_int,
+            state.settings.downcast_int,
+        )
         trips[parking_location_column_name] = trips[
             parking_location_column_name
         ].fillna(-1)
@@ -348,7 +353,12 @@ def parking_location(
         trace_label=trace_label,
     )
 
-    assign_in_place(trips_df, parking_locations.to_frame(alt_destination_col_name))
+    assign_in_place(
+        trips_df,
+        parking_locations.to_frame(alt_destination_col_name),
+        state.settings.downcast_int,
+        state.settings.downcast_int,
+    )
 
     state.add_table("trips", trips_df)
 

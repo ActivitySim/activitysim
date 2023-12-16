@@ -403,11 +403,18 @@ def tour_mode_choice_simulate(
     )
 
     # so we can trace with annotations
-    assign_in_place(primary_tours, choices_df)
+    assign_in_place(
+        primary_tours,
+        choices_df,
+        state.settings.downcast_int,
+        state.settings.downcast_int,
+    )
 
     # update tours table with mode choice (and optionally logsums)
     all_tours = tours
-    assign_in_place(all_tours, choices_df)
+    assign_in_place(
+        all_tours, choices_df, state.settings.downcast_int, state.settings.downcast_int
+    )
 
     if state.is_table("school_escort_tours") & model_settings.get(
         "FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH", True

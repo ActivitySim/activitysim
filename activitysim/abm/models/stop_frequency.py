@@ -93,7 +93,12 @@ def stop_frequency(
             trace_label=trace_label,
         )
 
-        assign_in_place(tours_merged, annotations)
+        assign_in_place(
+            tours_merged,
+            annotations,
+            state.settings.downcast_int,
+            state.settings.downcast_int,
+        )
 
     tracing.print_summary(
         "stop_frequency segments", tours_merged.primary_purpose, value_counts=True
@@ -187,13 +192,23 @@ def stop_frequency(
     tracing.print_summary("stop_frequency", choices, value_counts=True)
 
     # add stop_frequency choices to tours table
-    assign_in_place(tours, choices.to_frame("stop_frequency"))
+    assign_in_place(
+        tours,
+        choices.to_frame("stop_frequency"),
+        state.settings.downcast_int,
+        state.settings.downcast_int,
+    )
 
     # FIXME should have added this when tours created?
     assert "primary_purpose" not in tours
     if "primary_purpose" not in tours.columns:
         # if not already there, then it will have been added by stop_freq_annotate_tours_preprocessor
-        assign_in_place(tours, tours_merged[["primary_purpose"]])
+        assign_in_place(
+            tours,
+            tours_merged[["primary_purpose"]],
+            state.settings.downcast_int,
+            state.settings.downcast_int,
+        )
 
     state.add_table("tours", tours)
 

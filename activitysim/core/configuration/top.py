@@ -635,6 +635,24 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
         the results from the previous time that step was run.
     """
 
+    downcast_int: bool = False
+    """
+    automatically downcasting integer variables.
+
+    Use of this setting should be tested by the region to confirm result consistency.
+
+    .. versionadded:: 1.3
+    """
+
+    downcast_float: bool = False
+    """
+    automatically downcasting float variables.
+
+    Use of this setting should be tested by the region to confirm result consistency.
+
+    .. versionadded:: 1.3
+    """
+
     other_settings: dict[str, Any] = None
 
     def _get_attr(self, attr):

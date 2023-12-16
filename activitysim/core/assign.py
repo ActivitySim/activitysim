@@ -425,7 +425,10 @@ def assign_variables(
     variables = util.df_from_dict(variables, index=df.index)
 
     util.auto_opt_pd_dtypes(
-        variables, downcast_int=False, downcast_float=False, inplace=True
+        variables,
+        downcast_int=state.settings.downcast_int,
+        downcast_float=state.settings.downcast_float,
+        inplace=True,
     )
 
     return variables, trace_results, trace_assigned_locals

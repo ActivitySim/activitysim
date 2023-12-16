@@ -249,7 +249,12 @@ def trip_mode_choice(
             )
 
             # so we can trace with annotations
-            assign_in_place(trips_segment, choices)
+            assign_in_place(
+                trips_segment,
+                choices,
+                state.settings.downcast_int,
+                state.settings.downcast_int,
+            )
 
             state.tracing.trace_df(
                 trips_segment,
@@ -300,7 +305,9 @@ def trip_mode_choice(
         cols_to_keep_df = pd.concat(cols_to_keep_list)
         choices_df = pd.concat([choices_df, cols_to_keep_df], axis=1)
 
-    assign_in_place(trips_df, choices_df)
+    assign_in_place(
+        trips_df, choices_df, state.settings.downcast_int, state.settings.downcast_int
+    )
 
     if state.is_table("school_escort_tours") & model_settings.get(
         "FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH", True

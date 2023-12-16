@@ -100,11 +100,21 @@ def non_mandatory_tour_destination(
             [pure_school_escort_tours, non_mandatory_tours]
         ).set_index(nm_tour_index)
 
-    assign_in_place(tours, non_mandatory_tours[["destination"]])
+    assign_in_place(
+        tours,
+        non_mandatory_tours[["destination"]],
+        state.settings.downcast_int,
+        state.settings.downcast_int,
+    )
 
     if want_logsums:
         non_mandatory_tours[logsum_column_name] = choices_df["logsum"]
-        assign_in_place(tours, non_mandatory_tours[[logsum_column_name]])
+        assign_in_place(
+            tours,
+            non_mandatory_tours[[logsum_column_name]],
+            state.settings.downcast_int,
+            state.settings.downcast_int,
+        )
 
     assert all(
         ~tours["destination"].isna()

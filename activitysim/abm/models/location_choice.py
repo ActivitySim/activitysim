@@ -501,7 +501,6 @@ def run_location_sample(
             survey_choices["person_id"].isin(choices.index)
             & (survey_choices.alt_dest > 0)
         ]
-
         # merging survey destination into table if not available
         joined_data = survey_choices.merge(
             choices, on=["person_id", "alt_dest"], how="left", indicator=True

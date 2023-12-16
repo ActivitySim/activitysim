@@ -446,6 +446,19 @@ def merge_school_escort_trips_into_pipeline(state: workflow.State):
     # for better merge with trips created in stop frequency
     school_escort_trips["failed"] = False
 
+    # make sure the pandas categorical columns share the same categories before cancat
+    # union categoricals
+    for c in trips.columns.intersection(school_escort_trips.columns):
+        if isinstance(trips[c].dtype, pd.api.types.CategoricalDtype):
+            if isinstance(school_escort_trips[c].dtype, pd.api.types.CategoricalDtype):
+                from pandas.api.types import union_categoricals
+
+                uc = union_categoricals([trips[c], school_escort_trips[c]])
+                trips[c] = pd.Categorical(trips[c], categories=uc.categories)
+                school_escort_trips[c] = pd.Categorical(
+                    school_escort_trips[c], categories=uc.categories
+                )
+
     trips = pd.concat(
         [
             trips,

@@ -175,8 +175,11 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     annotate_tours: PreprocessorSettings | None = None
 
     CHOOSER_FILTER_COLUMN_NAME: str | None = None
-    DEST_CHOICE_COLUMN_NAME: str | None = None
+    DEST_CHOICE_COLUMN_NAME: str | None = Nones
     DEST_CHOICE_LOGSUM_COLUMN_NAME: str | None = None
+    """Column name for logsum calculated across all sampled destinations."""
+    MODE_CHOICE_LOGSUM_COLUMN_NAME: str | None = None
+    """Column name for logsum calculated across all sampled modes to selected destination."""
     DEST_CHOICE_SAMPLE_TABLE_NAME: str | None = None
     CHOOSER_TABLE_NAME: str | None = None
     CHOOSER_SEGMENT_COLUMN_NAME: str | None = None

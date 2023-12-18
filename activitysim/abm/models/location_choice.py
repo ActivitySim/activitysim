@@ -850,7 +850,7 @@ def run_location_choice(
                 .drop(columns=model_settings["ALT_DEST_COL_NAME"])
                 .set_index(index_name)
             )
-        
+
         choices_list.append(choices_df)
 
         if want_sample_table:

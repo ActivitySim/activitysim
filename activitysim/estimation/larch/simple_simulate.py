@@ -356,9 +356,9 @@ def telecommute_frequency_model(
         edb_directory=edb_directory,
         return_data=return_data,
         choices={
-            "No_Telecommute" : 1,	
-            "1_day_week" : 2,	
-            "2_3_days_week" : 3,	
-            "4_days_week" : 4,
+            "No_Telecommute": 1,
+            "1_day_week": 2,
+            "2_3_days_week": 3,
+            "4_days_week": 4,
         },
     )

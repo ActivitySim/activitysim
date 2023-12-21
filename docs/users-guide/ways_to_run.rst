@@ -110,6 +110,8 @@ Advanced Configuration
 
 There are several ways to maximize the performance of the model run, either to be able to run the model within the given hardware limitations (such as available RAM) or to reduce the run times. This section describes the various options and settings available in ActivitySim to improve the model run performance.
 
+.. _chunking_ways_to_run :
+
 Chunking
 ________
 
@@ -131,6 +133,8 @@ For example, in the SEMCOG model, following settings can be changed to enable ch
     In training, the model runs once to estimate the best way to allocate memory to run each step, and then saves the information
     in cache.csv for later runs. The production mode makes use of this information to run the model more efficiently. the next
     subsection discusses more details on how to run the model in training mode.
+
+.. _multi_proc_ways_to_run :
 
 Multiprocessing
 ________________
@@ -250,6 +254,7 @@ See the :ref:`multiprocessing_in_detail` section for more detail.
 .. index:: tables
 .. index:: data schema
 
+.. _sharrow_ways_to_run :
 
 Sharrow
 _______
@@ -258,6 +263,7 @@ _______
 
 Please refer to `Sharrow installation <https://activitysim.github.io/sharrow/intro.html#installation>`__ for details on how to install Sharrow. Details on using Activitysim with Sharrow can be found in the :ref:`Using Sharrow` section of the Developer's Guide. More details on Sharrow features can be found in the `Sharrow user guide <https://activitysim.github.io/sharrow/walkthrough/index.html>`__.
 
+.. _tracing_ways_to_run :
 
 Tracing
 _______

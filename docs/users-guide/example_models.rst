@@ -3227,6 +3227,8 @@ only be activated when writing logsums for a small set of households for model e
 | mode_choice_logsum                | mode choice logsum                    |
 +-----------------------------------+---------------------------------------+
 
+.. _prototype_semcog :
+
 prototype_semcog
 -----------------
 

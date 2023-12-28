@@ -773,7 +773,14 @@ class Network_LOS(object):
         #              how="left")[attribute]
 
         # synthetic index method i : omaz_dmaz
-        i = np.asanyarray(omaz) * self.maz_ceiling + np.asanyarray(dmaz)
+        if self.maz_ceiling > 32767:
+            # too many MAZs, or un-recoded MAZ ID's that are too large
+            # will overflow a 32-bit index, so upgrade to 64bit.
+            i = np.asanyarray(omaz, dtype=np.int64) * np.int64(
+                self.maz_ceiling
+            ) + np.asanyarray(dmaz, dtype=np.int64)
+        else:
+            i = np.asanyarray(omaz) * self.maz_ceiling + np.asanyarray(dmaz)
         s = util.quick_loc_df(i, self.maz_to_maz_df, attribute)
 
         # FIXME - no point in returning series?

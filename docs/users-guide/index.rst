@@ -33,7 +33,7 @@ Contents
 
 .. toctree::
    :maxdepth: 2
-
+   
    modelsetup
    ways_to_run
    run_primary_example

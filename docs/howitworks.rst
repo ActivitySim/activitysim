@@ -253,11 +253,8 @@ Back in the main ``run`` command, the final steps are to:
 
 * close the data pipeline (and attached HDF5 file)
 
+
 Components
 ----------
 
 Individual models and components are defined and described in the Developers Guide. Please refer to the :ref:`Components<dev_components>` section.
-
-
-
-

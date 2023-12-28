@@ -1,17 +1,43 @@
 Anatomy of a Model
 ==================
 
+
+.. index:: constants
+.. index:: households
+.. index:: input store
+.. index:: land use
+.. index:: persons
+.. index:: size terms
+.. index:: time windows table
+.. index:: tours
+.. index:: trips
+
+
 Input Data
 ----------
 In order to run any model, the user needs the input files in the ``data`` folder as identified in the ``configs\settings.yaml``
 file and the ``configs\network_los.yaml`` file.
 
-Common inputs include
 
-* ``households`` - Synthetic households for the region.
-* ``persons`` - Synthetic population person records with socio-demographics details.
-* ``zone based land use data``: Includes total population, employments, area types, etc. data for the region.
-* ``skims``: OMX matrix file containing skim matrices for the zone system of the region.
+The following tables are currently implemented:
+
+  * households - household attributes for each household being simulated.  Index: ``household_id`` (see ``activitysim.abm.tables.households.py``)
+  * landuse - zonal land use (such as population and employment) attributes. Index: ``zone_id`` (see ``activitysim.abm.tables.landuse.py``)
+  * persons - person attributes for each person being simulated.  Index: ``person_id`` (see ``activitysim.abm.tables.persons.py``)
+  * time windows - manages person time windows throughout the simulation.  See :ref:`time_windows`.  Index:  ``person_id`` (see the person_windows table create decorator in ``activitysim.abm.tables.time_windows.py``)
+  * tours - tour attributes for each tour (mandatory, non-mandatory, joint, and atwork-subtour) being simulated.  Index:  ``tour_id`` (see ``activitysim.abm.models.util.tour_frequency.py``)
+  * trips - trip attributes for each trip being simulated.  Index: ``trip_id`` (see ``activitysim.abm.models.stop_frequency.py``)
+
+A few additional tables are also used, which are not really tables, but classes:
+
+  * input store - reads input data tables from the input data store
+  * constants - various constants used throughout the model system, such as person type codes
+  * shadow pricing - shadow price calculator and associated utility methods, see :ref:`shadow_pricing`
+  * size terms - created by reading the ``destination_choice_size_terms.csv`` input file.  Index - ``segment`` (see ``activitysim.abm.tables.size_terms.py``)
+  * skims - each model runs requires skims, but how the skims are defined can vary significantly depending on the ActivitySim implementation. The skims class defines Inject injectables to access the skim matrices. The skims class reads the skims from the omx_file on disk.
+  * table dictionary - stores which tables should be registered as random number generator channels for restartability of the pipeline
+
+
 
 .. _zone_systems :
 
@@ -344,9 +370,10 @@ Top Level Settings
 ------------------
 
 .. autosummary::
-    :toctree: _generated
+
     :template: autopydantic.rst
     :recursive:
+
 
     Settings
     InputTable
@@ -360,7 +387,7 @@ File System
 -----------
 
 .. autosummary::
-    :toctree: _generated
+
     :template: autopydantic.rst
     :recursive:
 
@@ -371,7 +398,7 @@ Network Level of Service
 ------------------------
 
 .. autosummary::
-    :toctree: _generated
+
     :template: autopydantic.rst
     :recursive:
 

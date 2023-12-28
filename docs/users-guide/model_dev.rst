@@ -36,7 +36,7 @@ Workflow
 
 The general workflow for estimating models is shown in the following figures and explained in more detail below.
 
-.. image:: images/estimation_tools.jpg
+.. image:: ../images/estimation_tools.jpg
 
 * The user converts their household travel survey into ActivitySim format households, persons, tours, joint tour participants, and trip tables.  The households and persons tables must have the same fields as the synthetic population input tables since the surveyed households and persons will be run through the same set of submodels as the simulated households and persons.
 * The ActivitySim estimation example ``scripts\infer.py`` module reads the ActivitySim format household travel survey files and checks for inconsistencies in the input tables versus the model design + calculates additional fields such as the household joint tour frequency based on the trips and joint tour participants table.  Survey households and persons observed choices much match the model design (i.e. a person cannot have more work tours than the model allows).
@@ -44,7 +44,7 @@ The general workflow for estimating models is shown in the following figures and
 * The relevant EDBs are read and transformed into the format required by the model estimation tool (i.e. larch) and then the coefficients are re-estimated. The ``activitysim.estimation.larch`` library is included for integration with larch and there is a Jupyter Notebook estimation example for each core submodel.  No changes to the model specification are made in the process.
 * The user can then update the ActivitySim model coefficients file(s) for the estimated submodel and re-run the model in simulation mode.  The user may want to use the restartable pipeline feature of ActivitySim to just run the submodel of interest.
 
-.. image:: images/estimation_example.jpg
+.. image:: ../images/estimation_example.jpg
 
 
 .. _estimation_example:

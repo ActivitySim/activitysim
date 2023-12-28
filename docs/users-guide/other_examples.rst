@@ -2,6 +2,66 @@
 Other Example Models
 ====================
 
+There are several example models available in `ActivitySim's GitHub repository <https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples>`__. These example models are categorized into three types:
+
+
+* "production" examples are calibrated and validated by the relevant agency, and
+  are intended to be replicas of an "official" travel model used by that agency,
+  although generally we expect agencies to maintain independent repositories and
+  not rely on the Consortium maintained version as a single source for the model.
+  At this time there are no production examples in the consortium's collection,
+  but we expect that to change soon.
+* "prototype" examples are not representative of any "official" travel model
+  used by the relevant agency, but they are viewed as "ok" models by the
+  consortium: they are usually at least loosely calibrated and/or validated, and
+  typically contain at least some components or parameters specialized for the
+  relevant region. They may be in-development models that are not quite finished,
+  or consortium maintained models that are derived from but now different from
+  the official model of some region. They should not be used in place of
+  "official" models for policy analysis in any given region, but could serve as
+  a donor model for new users who want to implement ActivitySim somewhere new
+  (subject to all the caveats that go along with transferring models).
+* "placeholder" examples are computational testbeds that technically run but
+  have not been calibrated nor validated in any meaningful way. These examples
+  are early stage development models used for testing purposes, and users are
+  strongly cautioned not to use them for any policy or planning purpose.
+
+Some available examples include those listed in the table below.
+
+.. note::
+   Additional details on models provided below may not be complete or up-to-date.
+
++-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| Example                                   | Purpose                                                   | Zone Systems | Status               |
++===========================================+===========================================================+==============+======================+
+| :ref:`prototype_mtc`                      | Original ActivitySim Example, derived from MTC TM1        | 1            | Mature               |
++-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| prototype_mtc_extended                    | Prototype MTC example with additional optional models     | 1            | In development       |
++-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| example_estimation                        | Estimation example with prototype_mtc                     | 1            | Mature               |
++-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| placeholder_multiple_zone                 | 2 or 3 zone system example using MTC data                 | 2 or 3       | Simple test example  |
++-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| prototype_marin                           | 3 zone system example using Marin tour mode choice model  | 3            | Mature               |
++-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| prototype_arc                             | ARC agency example                                        | 1            | In development       |
++-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| :ref:`prototype_semcog`                   | SEMCOG agency example                                     | 1            | In production        |
++-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| placeholder_psrc                          | PSRC agency example                                       | 2            | Future development   |
++-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| placeholder_sandag                        | SANDAG agency example                                     | 3            | Future development   |
++-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| prototype_sandag_xborder                  | SANDAG agency example                                     | 3            | In development       |
++-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| prototype_mwcog                           | MWCOG agency example                                      | 2            | In development       |
++-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
+
+.. note::
+   The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
+   contains example commands to create and run several versions of the examples.  See also :ref:`adding_agency_examples` for more
+   information on agency example models.
+
 .. _prototype_mtc_extended :
 
 **prototype_mtc_extended**

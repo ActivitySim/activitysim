@@ -17,8 +17,8 @@ used ActivitySim or has not used recent versions of ActivitySim. More detailed i
 and running ActivitySim are also available in this Users Guide.
 
 * Use the :ref:`Pre-packaged Installer`
+* :ref:`Run the Primary Example`
 * Placeholder (Edit model input files, configs, as needed)
-* Placeholder (Run from command line or Jupyter notebook)
 
 System Requirements
 -------------------
@@ -31,17 +31,16 @@ ________
 The computing hardware required to run a model implemented in the ActivitySim framework generally depends on:
 
 * The number of households to be simulated for disaggregate model steps
+   * In addition to the total number of households in the model region, runtime and hardware requirements can be reduced by sampling a subset of the households. The user can adjust the sampling rate for a particular run (see Settings.yaml).
 * The number of model zones (for each zone system) for aggregate model steps
 * The number and size of network skims by mode and time-of-day
 * The number of zone systems, see :ref:`Zone system`
 * The desired runtimes
 
 ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
-data access time in order to minimize runtime.  For example, the prototype MTC example model has 2.7 million
-households, 7.5 million people, 1475 zones, 826 network skims and has been run between one hour and one day depending
-on the amount of RAM and number of processors allocated.  See :ref:`multiprocessing` and :ref:`chunk_size` for more information.
+data access time in order to minimize runtime.
 
-As an example, the SEMCOG ABM, a model that follows a 2-Zone system runs on a windows machine, with the minimum and recommended system specification as follows:
+For example, the SEMCOG ABM, a model that follows a 2-Zone system runs on a windows machine, with the minimum and recommended system specification as follows:
 
 * Minimum Specification:
    + Operating System: 64-bit Windows 7, 64-bit Windows 8 (8.1) or 64-bit Windows 10
@@ -54,6 +53,21 @@ As an example, the SEMCOG ABM, a model that follows a 2-Zone system runs on a wi
    + Processor: Intel CPU Xeon Gold / AMD CPU Threadripper Pro (12+ cores)
    + Memory: 256 GB RAM
    + Disk space: 150 GB
+
+As another example, the prototype MTC example model - which has 2.7 million households, 7.5 million people, 1475 zones, 826 network skims - has a runtime between one hour and one day depending on the amount of RAM and number of processors allocated.
+
+ActivitySim has features that makes it possible to customize model runs or improve model runtimes based on the available hardware resources and requirements. A few ways to do this are listed below:
+
+* :ref:`Chunking <chunking_ways_to_run>` allows the user to run eligible steps in parallel. This can be turned on/off.
+* :ref:`Multiprocessing <multi_proc_ways_to_run>` allows the user to segment processing into discrete sets of data. This will increase the runtime but allow for lower RAM requirements. This feature can also be turned on/off.
+* :ref:`Sharrow <sharrow_ways_to_run>` is a Python library designed to decrease run-time for ActivitySim models by creating an optimized compiled version of the model. This can also be turned on/off.
+* :ref:`Tracing <tracing_ways_to_run>` allows the user to access information throughout the model run for a specified number of households/persons/zones. Enabling this feature will increase run-time and memory usage. It is recommended that this feature be turned off for typical model application.
+* Optimization of data types including:
+   + Converting string variables to pandas categoricals. ActivitySim releases *<placeholder for version number>* and higher have this capability.
+   + Converting higher byte integer variables to lower byte integer variables (such as reducing ‘num tours’ from int64 to int8).
+   + Converting higher byte float variables to lower bytes. ActivitySim releases X.X.X and higher have this capability as a switch and defaults to turning this feature off.
+
+Steps for enabling/disabling these options are included in the :ref:`Advanced Configuration` sub-section, under :ref:`Ways to Run the Model` page of this Users’ Guide.
 
 
 .. note::

@@ -131,7 +131,7 @@ def test_location_model(
     [
         ("non_mandatory_tour_scheduling", "SLSQP"),
         ("joint_tour_scheduling", "SLSQP"),
-        # ("atwork_subtour_scheduling", "SLSQP"),  # TODO: needs a fix, this test is unstable, probably the test data is poor
+        # ("atwork_subtour_scheduling", "SLSQP"),  # TODO this test is unstable, needs to be updated with better data
         ("mandatory_tour_scheduling_work", "SLSQP"),
         ("mandatory_tour_scheduling_school", "SLSQP"),
     ],

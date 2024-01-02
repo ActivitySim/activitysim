@@ -104,7 +104,7 @@ def non_mandatory_tour_destination(
         tours,
         non_mandatory_tours[["destination"]],
         state.settings.downcast_int,
-        state.settings.downcast_int,
+        state.settings.downcast_float,
     )
 
     if want_logsums:
@@ -113,7 +113,7 @@ def non_mandatory_tour_destination(
             tours,
             non_mandatory_tours[[logsum_column_name]],
             state.settings.downcast_int,
-            state.settings.downcast_int,
+            state.settings.downcast_float,
         )
 
     assert all(

@@ -87,7 +87,7 @@ def atwork_subtour_destination(
         tours,
         subtours[[destination_column_name]],
         state.settings.downcast_int,
-        state.settings.downcast_int,
+        state.settings.downcast_float,
     )
 
     if want_logsums:
@@ -96,7 +96,7 @@ def atwork_subtour_destination(
             tours,
             subtours[[logsum_column_name]],
             state.settings.downcast_int,
-            state.settings.downcast_int,
+            state.settings.downcast_float,
         )
 
     state.add_table("tours", tours)

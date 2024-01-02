@@ -445,7 +445,7 @@ def joint_tour_participation(
         tours,
         joint_tours[["person_id", "number_of_participants"]],
         state.settings.downcast_int,
-        state.settings.downcast_int,
+        state.settings.downcast_float,
     )
 
     state.add_table("tours", tours)

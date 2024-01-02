@@ -326,6 +326,8 @@ def assign_in_place(df, df2, downcast_int=False, downcast_float=False):
         assignment left-hand-side (dest)
     df2: pd.DataFrame
         assignment right-hand-side (source)
+    downcast_int: bool
+        if True, downcast int columns if possible
     downcast_float: bool
         if True, downcast float columns if possible
     Returns

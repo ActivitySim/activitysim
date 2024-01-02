@@ -88,7 +88,7 @@ def cleanup_failed_trips(trips):
             trips,
             patch_trips[["trip_num", "trip_count"]],
             state.settings.downcast_int,
-            state.settings.downcast_int,
+            state.settings.downcast_float,
         )
 
         # origin needs to match the previous destination

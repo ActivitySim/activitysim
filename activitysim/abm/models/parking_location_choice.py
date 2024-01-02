@@ -273,7 +273,7 @@ def run_parking_destination(
             trips,
             parking_df.to_frame(parking_location_column_name),
             state.settings.downcast_int,
-            state.settings.downcast_int,
+            state.settings.downcast_float,
         )
         trips[parking_location_column_name] = trips[
             parking_location_column_name
@@ -357,7 +357,7 @@ def parking_location(
         trips_df,
         parking_locations.to_frame(alt_destination_col_name),
         state.settings.downcast_int,
-        state.settings.downcast_int,
+        state.settings.downcast_float,
     )
 
     state.add_table("trips", trips_df)

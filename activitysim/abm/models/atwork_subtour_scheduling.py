@@ -102,7 +102,7 @@ def atwork_subtour_scheduling(
     )
 
     assign_in_place(
-        tours, tdd_choices, state.settings.downcast_int, state.settings.downcast_int
+        tours, tdd_choices, state.settings.downcast_int, state.settings.downcast_float
     )
     state.add_table("tours", tours)
 

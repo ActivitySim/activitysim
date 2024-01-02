@@ -220,7 +220,7 @@ def trip_purpose_and_destination(
         trips_df,
         processed_trips,
         state.settings.downcast_int,
-        state.settings.downcast_int,
+        state.settings.downcast_float,
     )
 
     trips_df = cleanup_failed_trips(trips_df)

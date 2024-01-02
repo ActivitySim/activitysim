@@ -85,7 +85,7 @@ def joint_tour_destination(
         tours,
         joint_tours[["destination"]],
         state.settings.downcast_int,
-        state.settings.downcast_int,
+        state.settings.downcast_float,
     )
     state.add_table("tours", tours)
 
@@ -95,7 +95,7 @@ def joint_tour_destination(
             tours,
             joint_tours[[logsum_column_name]],
             state.settings.downcast_int,
-            state.settings.downcast_int,
+            state.settings.downcast_float,
         )
 
     tracing.print_summary("destination", joint_tours.destination, describe=True)

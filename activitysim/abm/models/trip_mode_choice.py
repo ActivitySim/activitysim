@@ -253,7 +253,7 @@ def trip_mode_choice(
                 trips_segment,
                 choices,
                 state.settings.downcast_int,
-                state.settings.downcast_int,
+                state.settings.downcast_float,
             )
 
             state.tracing.trace_df(
@@ -306,7 +306,7 @@ def trip_mode_choice(
         choices_df = pd.concat([choices_df, cols_to_keep_df], axis=1)
 
     assign_in_place(
-        trips_df, choices_df, state.settings.downcast_int, state.settings.downcast_int
+        trips_df, choices_df, state.settings.downcast_int, state.settings.downcast_float
     )
 
     if state.is_table("school_escort_tours") & model_settings.get(

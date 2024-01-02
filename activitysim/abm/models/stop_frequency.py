@@ -97,7 +97,7 @@ def stop_frequency(
             tours_merged,
             annotations,
             state.settings.downcast_int,
-            state.settings.downcast_int,
+            state.settings.downcast_float,
         )
 
     tracing.print_summary(
@@ -196,7 +196,7 @@ def stop_frequency(
         tours,
         choices.to_frame("stop_frequency"),
         state.settings.downcast_int,
-        state.settings.downcast_int,
+        state.settings.downcast_float,
     )
 
     # FIXME should have added this when tours created?
@@ -207,7 +207,7 @@ def stop_frequency(
             tours,
             tours_merged[["primary_purpose"]],
             state.settings.downcast_int,
-            state.settings.downcast_int,
+            state.settings.downcast_float,
         )
 
     state.add_table("tours", tours)

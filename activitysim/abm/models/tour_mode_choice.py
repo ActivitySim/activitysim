@@ -407,13 +407,16 @@ def tour_mode_choice_simulate(
         primary_tours,
         choices_df,
         state.settings.downcast_int,
-        state.settings.downcast_int,
+        state.settings.downcast_float,
     )
 
     # update tours table with mode choice (and optionally logsums)
     all_tours = tours
     assign_in_place(
-        all_tours, choices_df, state.settings.downcast_int, state.settings.downcast_int
+        all_tours,
+        choices_df,
+        state.settings.downcast_int,
+        state.settings.downcast_float,
     )
 
     if state.is_table("school_escort_tours") & model_settings.get(

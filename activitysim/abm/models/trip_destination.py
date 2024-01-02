@@ -1378,7 +1378,7 @@ def run_trip_destination(
                     trips,
                     destinations_df.choice.to_frame("destination"),
                     state.settings.downcast_int,
-                    state.settings.downcast_int,
+                    state.settings.downcast_float,
                 )
                 if want_logsums:
                     assert "logsum" in destinations_df.columns
@@ -1386,7 +1386,7 @@ def run_trip_destination(
                         trips,
                         destinations_df.logsum.to_frame(logsum_column_name),
                         state.settings.downcast_int,
-                        state.settings.downcast_int,
+                        state.settings.downcast_float,
                     )
 
                 # - assign choice to next trip's origin
@@ -1397,7 +1397,7 @@ def run_trip_destination(
                     trips,
                     destinations_df.choice.to_frame("origin"),
                     state.settings.downcast_int,
-                    state.settings.downcast_int,
+                    state.settings.downcast_float,
                 )
 
     del trips["next_trip_id"]

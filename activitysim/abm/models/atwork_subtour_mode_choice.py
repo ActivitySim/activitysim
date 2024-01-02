@@ -186,7 +186,7 @@ def atwork_subtour_mode_choice(
     )
 
     assign_in_place(
-        tours, choices_df, state.settings.downcast_int, state.settings.downcast_int
+        tours, choices_df, state.settings.downcast_int, state.settings.downcast_float
     )
     state.add_table("tours", tours)
 

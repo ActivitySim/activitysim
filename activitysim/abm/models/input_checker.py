@@ -1,13 +1,17 @@
-import os, sys, logging
+from __future__ import annotations
+
+import logging
+import os
+import sys
 import warnings
-import pandas as pd
-import numpy as np
-import pandera as pa
-import pydantic
 from collections import defaultdict
 
-from activitysim.core import workflow
+import numpy as np
+import pandas as pd
+import pandera as pa
+import pydantic
 
+from activitysim.core import workflow
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
@@ -32,6 +36,7 @@ def create_table_store(state, input_checker_settings):
     # looping through all tables listed in input_checker.yaml
     for table_settings in input_checker_settings["table_list"]:
         table = None
+        path = None
 
         table_name = table_settings["name"]
         logger.info("reading in table for input checking: %s" % table_name)

@@ -318,7 +318,7 @@ def parking_location(
         if "trip_period" not in trips_merged_df:
             # TODO: resolve this to the skim time period index not the label, it will be faster
             trips_merged_df["trip_period"] = network_los.skim_time_period_label(
-                trips_merged_df[proposed_trip_departure_period]
+                trips_merged_df[proposed_trip_departure_period], as_cat=True
             )
         model_settings["TRIP_DEPARTURE_PERIOD"] = "trip_period"
 

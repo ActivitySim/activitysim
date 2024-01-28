@@ -6,7 +6,6 @@ import logging
 
 import numpy as np
 import pandas as pd
-from orca import orca
 
 from activitysim.abm.models.util import annotate, school_escort_tours_trips, trip
 from activitysim.abm.models.util.mode import run_tour_mode_choice_simulate

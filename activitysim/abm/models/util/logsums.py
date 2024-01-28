@@ -75,10 +75,10 @@ def compute_logsums(
     # FIXME - are we ok with altering choosers (so caller doesn't have to set these)?
     if (in_period_col is not None) and (out_period_col is not None):
         choosers["in_period"] = network_los.skim_time_period_label(
-            choosers[in_period_col]
+            choosers[in_period_col], as_cat=True
         )
         choosers["out_period"] = network_los.skim_time_period_label(
-            choosers[out_period_col]
+            choosers[out_period_col], as_cat=True
         )
     elif ("in_period" not in choosers.columns) and (
         "out_period" not in choosers.columns
@@ -92,17 +92,21 @@ def compute_logsums(
                 and tour_purpose in model_settings["OUT_PERIOD"]
             ):
                 choosers["in_period"] = network_los.skim_time_period_label(
-                    model_settings["IN_PERIOD"][tour_purpose]
+                    model_settings["IN_PERIOD"][tour_purpose],
+                    as_cat=True,
+                    broadcast_to=choosers.index,
                 )
                 choosers["out_period"] = network_los.skim_time_period_label(
-                    model_settings["OUT_PERIOD"][tour_purpose]
+                    model_settings["OUT_PERIOD"][tour_purpose],
+                    as_cat=True,
+                    broadcast_to=choosers.index,
                 )
         else:
             choosers["in_period"] = network_los.skim_time_period_label(
-                model_settings["IN_PERIOD"]
+                model_settings["IN_PERIOD"], as_cat=True, broadcast_to=choosers.index
             )
             choosers["out_period"] = network_los.skim_time_period_label(
-                model_settings["OUT_PERIOD"]
+                model_settings["OUT_PERIOD"], as_cat=True, broadcast_to=choosers.index
             )
     else:
         logger.error("Choosers table already has columns 'in_period' and 'out_period'.")

@@ -787,7 +787,14 @@ class Network_LOS(object):
         #              how="left")[attribute]
 
         # synthetic index method i : omaz_dmaz
-        i = np.asanyarray(omaz) * self.maz_ceiling + np.asanyarray(dmaz)
+        if self.maz_ceiling > 32767:
+            # too many MAZs, or un-recoded MAZ ID's that are too large
+            # will overflow a 32-bit index, so upgrade to 64bit.
+            i = np.asanyarray(omaz, dtype=np.int64) * np.int64(
+                self.maz_ceiling
+            ) + np.asanyarray(dmaz, dtype=np.int64)
+        else:
+            i = np.asanyarray(omaz) * self.maz_ceiling + np.asanyarray(dmaz)
         s = util.quick_loc_df(i, self.maz_to_maz_df, attribute)
 
         # FIXME - no point in returning series?
@@ -845,7 +852,9 @@ class Network_LOS(object):
 
         return s.values
 
-    def skim_time_period_label(self, time_period, fillna=None):
+    def skim_time_period_label(
+        self, time_period, fillna=None, as_cat=False, broadcast_to=None
+    ):
         """
         convert time period times to skim time period labels (e.g. 9 -> 'AM')
 
@@ -873,6 +882,14 @@ class Network_LOS(object):
         assert 0 == model_time_window_min % period_minutes
         total_periods = model_time_window_min / period_minutes
 
+        try:
+            time_label_dtype = self.skim_dicts["taz"].time_label_dtype
+        except (KeyError, AttributeError):
+            # if the "taz" skim_dict is missing, or if using old SkimDict
+            # instead of SkimDataset, this labeling shortcut is unavailable.
+            time_label_dtype = str
+            as_cat = False
+
         # FIXME - eventually test and use np version always?
         if np.isscalar(time_period):
             bin = (
@@ -888,6 +905,12 @@ class Network_LOS(object):
                 result = self.skim_time_periods["labels"].get(bin, default=default)
             else:
                 result = self.skim_time_periods["labels"][bin]
+            if broadcast_to is not None:
+                result = pd.Series(
+                    data=result,
+                    index=broadcast_to,
+                    dtype=time_label_dtype if as_cat else str,
+                )
         else:
             result = pd.cut(
                 time_period,
@@ -898,8 +921,10 @@ class Network_LOS(object):
             if fillna is not None:
                 default = self.skim_time_periods["labels"][fillna]
                 result = result.fillna(default)
-            result = result.astype(str)
-
+            if as_cat:
+                result = result.astype(time_label_dtype)
+            else:
+                result = result.astype(str)
         return result
 
     def get_tazs(self, state):

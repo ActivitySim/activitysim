@@ -267,6 +267,7 @@ def skims_mapping(
     parking_col_name=None,
     zone_layer=None,
     primary_origin_col_name=None,
+    predigitized_time_periods=False,
 ):
     logger.info("loading skims_mapping")
     logger.info(f"- orig_col_name: {orig_col_name}")
@@ -337,6 +338,10 @@ def skims_mapping(
                 ),
             )
         else:
+            if predigitized_time_periods:
+                time_rel = "_code ->"
+            else:
+                time_rel = " @"
             return dict(
                 # TODO:SHARROW: organize dimensions.
                 odt_skims=skim_dataset,
@@ -347,16 +352,16 @@ def skims_mapping(
                 relationships=(
                     f"df._orig_col_name -> odt_skims.{odim}",
                     f"df._dest_col_name -> odt_skims.{ddim}",
-                    "df.out_period      @  odt_skims.time_period",
+                    f"df.out_period{time_rel} odt_skims.time_period",
                     f"df._dest_col_name -> dot_skims.{odim}",
                     f"df._orig_col_name -> dot_skims.{ddim}",
-                    "df.in_period       @  dot_skims.time_period",
+                    f"df.in_period{time_rel} dot_skims.time_period",
                     f"df._orig_col_name -> odr_skims.{odim}",
                     f"df._dest_col_name -> odr_skims.{ddim}",
-                    "df.in_period       @  odr_skims.time_period",
+                    f"df.in_period{time_rel} odr_skims.time_period",
                     f"df._dest_col_name -> dor_skims.{odim}",
                     f"df._orig_col_name -> dor_skims.{ddim}",
-                    "df.out_period      @  dor_skims.time_period",
+                    f"df.out_period{time_rel} dor_skims.time_period",
                     f"df._orig_col_name -> od_skims.{odim}",
                     f"df._dest_col_name -> od_skims.{ddim}",
                 ),
@@ -525,6 +530,15 @@ def new_flow(
 
         cache_dir = state.filesystem.get_sharrow_cache_dir()
         logger.debug(f"flow.cache_dir: {cache_dir}")
+        predigitized_time_periods = False
+        if "out_period" in choosers and "in_period" in choosers:
+            if (
+                choosers["out_period"].dtype == "category"
+                and choosers["in_period"].dtype == "category"
+            ):
+                choosers["out_period_code"] = choosers["out_period"].cat.codes
+                choosers["in_period_code"] = choosers["in_period"].cat.codes
+                predigitized_time_periods = True
         skims_mapping_ = skims_mapping(
             state,
             orig_col_name,
@@ -534,6 +548,7 @@ def new_flow(
             parking_col_name=parking_col_name,
             zone_layer=zone_layer,
             primary_origin_col_name=primary_origin_col_name,
+            predigitized_time_periods=predigitized_time_periods,
         )
         if size_term_mapping is None:
             size_term_mapping = {}
@@ -774,6 +789,9 @@ def apply_flow(
         it ever again, but having a reference to it available later can be useful
         in debugging and tracing.  Flows are cached and reused anyway, so it is
         generally not important to delete this at any point to free resources.
+    tree : sharrow.DataTree
+        The tree data used to compute the flow result.  It is seperate from the
+        flow to prevent it from being cached with the flow.
     """
     if sh is None:
         return None, None
@@ -800,7 +818,7 @@ def apply_flow(
                 logger.error(f"error in apply_flow: {err!s}")
                 if required:
                     raise
-                return None, None
+                return None, None, None
             else:
                 raise
         with logtime(f"{flow.name}.load", trace_label or ""):
@@ -822,7 +840,9 @@ def apply_flow(
                     logger.error(f"error in apply_flow: {err!s}")
                     if required:
                         raise
-                    return None, flow
+                    tree = flow.tree
+                    flow.tree = None
+                    return None, flow, tree
                 raise
             except Exception as err:
                 logger.error(f"error in apply_flow: {err!s}")
@@ -833,4 +853,6 @@ def apply_flow(
                 # Detecting compilation activity when in production mode is a bug
                 # that should be investigated.
                 tracing.timing_notes.add(f"compiled:{flow.name}")
-            return flow_result, flow
+            tree = flow.tree
+            flow.tree = None
+            return flow_result, flow, tree

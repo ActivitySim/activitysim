@@ -69,7 +69,7 @@ def parking_location_choice_at_university(
     the tour mode is auto.  Parking locations are sampled weighted by the number of parking spots.
 
     The main interface to this model is the parking_location_choice_at_university() function.
-    This function is registered as an orca step in the example Pipeline.
+    This function is registered as a step in the example Pipeline.
     """
 
     trace_label = "parking_location_choice_at_university"

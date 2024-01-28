@@ -24,7 +24,7 @@ def stop_frequency_university_parking(
     and after groups of trips that are on campus zones.
 
     The main interface to this model is the stop_frequency_university_parking() function.
-    This function is registered as an orca step in the example Pipeline.
+    This function is registered as a step in the example Pipeline.
     """
 
     trace_label = "stop_frequency_university_parking"

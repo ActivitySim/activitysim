@@ -55,8 +55,6 @@ def joint_tour_frequency(
 
     estimator = estimation.manager.begin_estimation(state, "joint_tour_frequency")
 
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
-
     alternatives = simulate.read_model_alts(
         state, "joint_tour_frequency_alternatives.csv", set_index="alt"
     )

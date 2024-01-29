@@ -165,16 +165,16 @@ def participants_chooser(
     assert probs.index.equals(choosers.index)
 
     # choice is boolean (participate or not)
-    model_settings = state.filesystem.read_model_settings(
-        "joint_tour_participation.yaml"
+    model_settings = JointTourParticipationSettings.read_settings_file(
+        state.filesystem, "joint_tour_participation.yaml", mandatory=False
     )
 
-    choice_col = model_settings.get("participation_choice", "participate")
+    choice_col = model_settings.participation_choice
     assert (
         choice_col in spec.columns
     ), "couldn't find participation choice column '%s' in spec"
     PARTICIPATE_CHOICE = spec.columns.get_loc(choice_col)
-    MAX_ITERATIONS = model_settings.get("max_participation_choice_iterations", 5000)
+    MAX_ITERATIONS = model_settings.max_participation_choice_iterations
 
     trace_label = tracing.extend_trace_label(trace_label, "participants_chooser")
 
@@ -206,7 +206,7 @@ def participants_chooser(
             )
             print(unsatisfied_candidates.head(20))
 
-            if model_settings.get("FORCE_PARTICIPATION", False):
+            if model_settings.FORCE_PARTICIPATION:
                 logger.warning(
                     f"Forcing joint tour participation for {num_tours_remaining} tours."
                 )
@@ -316,6 +316,10 @@ class JointTourParticipationSettings(LogitComponentSettings, extra="forbid"):
     """Instructions for annotating the persons table."""
 
     participation_choice: str = "participate"
+
+    max_participation_choice_iterations: int = 5000
+
+    FORCE_PARTICIPATION: bool = False
 
 
 @workflow.step

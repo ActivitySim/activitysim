@@ -7,9 +7,8 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config
 from activitysim.abm.models.util.canonical_ids import set_tour_index
-from activitysim.core import config, workflow
+from activitysim.core import workflow
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)

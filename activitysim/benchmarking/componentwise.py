@@ -19,7 +19,7 @@ from activitysim.core import tracing, workflow
 logger = logging.getLogger(__name__)
 
 
-def reload_settings(settings_filename, **kwargs):
+def reload_settings(state, settings_filename, **kwargs):
     settings = state.filesystem.read_settings_file(settings_filename, mandatory=True)
     for k in kwargs:
         settings[k] = kwargs[k]
@@ -85,6 +85,7 @@ def setup_component(
     state.add_injectable("output_dir", os.path.join(working_dir, output_dir))
 
     reload_settings(
+        state,
         settings_filename,
         benchmarking=component_name,
         checkpoints=False,

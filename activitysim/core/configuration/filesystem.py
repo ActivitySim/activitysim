@@ -624,7 +624,7 @@ class FileSystem(PydanticBase, validate_assignment=True):
         include_stack: bool = False,
         configs_dir_list: tuple[Path] | None = None,
         validator_class: type[PydanticBase] | None = None,
-    ):
+    ) -> dict | PydanticBase:
         """
         Load settings from one or more yaml files.
 

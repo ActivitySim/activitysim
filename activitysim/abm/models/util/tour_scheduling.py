@@ -25,19 +25,17 @@ def run_tour_scheduling(
     trace_label = model_name
     model_settings_file_name = f"{model_name}.yaml"
 
-    model_settings: TourSchedulingSettings = state.filesystem.read_settings_file(
+    model_settings = TourSchedulingSettings.read_settings_file(
+        state.filesystem,
         model_settings_file_name,
         mandatory=False,
-        validator_class=TourSchedulingSettings,
     )
 
     if model_settings.LOGSUM_SETTINGS:
-        logsum_settings: TourModeComponentSettings = (
-            state.filesystem.read_settings_file(
-                str(model_settings.LOGSUM_SETTINGS),
-                mandatory=False,
-                validator_class=TourModeComponentSettings,
-            )
+        logsum_settings = TourModeComponentSettings.read_settings_file(
+            state.filesystem,
+            str(model_settings.LOGSUM_SETTINGS),
+            mandatory=False,
         )
         logsum_columns = logsum_settings.LOGSUM_CHOOSER_COLUMNS
     else:

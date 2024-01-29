@@ -113,4 +113,16 @@ class PreprocessorSettings(PydanticBase):
     """
 
     DF: str
+    """Name of the primary table used for this preprocessor.
+
+    The preprocessor will emit rows to a temporary table that match the rows
+    in this table from the pipeline."""
+
     TABLES: list[str] | None
+    """Names of the additional tables to be merged for the preprocessor.
+
+    Data from these tables will be merged into the primary table, according
+    to standard merge rules for these tables.  Care should be taken to limit the
+    number of merged tables as the memory requirements for the preprocessor
+    will increase with each table.
+    """

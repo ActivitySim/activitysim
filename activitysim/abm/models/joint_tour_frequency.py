@@ -88,7 +88,7 @@ def joint_tour_frequency(
             trace_label=trace_label,
         )
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec, coefficients_df, estimator

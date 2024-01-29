@@ -8,13 +8,16 @@ import pandas as pd
 
 from activitysim.core import config, expressions, los, simulate, tracing, workflow
 from activitysim.core.configuration import PydanticBase
-from activitysim.core.configuration.logit import TourLocationComponentSettings
+from activitysim.core.configuration.logit import (
+    TourLocationComponentSettings,
+    TourModeComponentSettings,
+)
 
 logger = logging.getLogger(__name__)
 
 
 def filter_chooser_columns(
-    choosers, logsum_settings, model_settings: dict | PydanticBase
+    choosers, logsum_settings: dict | PydanticBase, model_settings: dict | PydanticBase
 ):
     try:
         chooser_columns = logsum_settings.LOGSUM_CHOOSER_COLUMNS
@@ -52,7 +55,7 @@ def compute_location_choice_logsums(
     state: workflow.State,
     choosers: pd.DataFrame,
     tour_purpose,
-    logsum_settings,
+    logsum_settings: TourModeComponentSettings,
     model_settings: TourLocationComponentSettings,
     network_los: los.Network_LOS,
     chunk_size: int,
@@ -68,8 +71,8 @@ def compute_location_choice_logsums(
     ----------
     choosers
     tour_purpose
-    logsum_settings
-    model_settings
+    logsum_settings : TourModeComponentSettings
+    model_settings : TourLocationComponentSettings
     network_los
     chunk_size
     trace_hh_id
@@ -82,6 +85,8 @@ def compute_location_choice_logsums(
     """
     if isinstance(model_settings, dict):
         model_settings = TourLocationComponentSettings.parse_obj(model_settings)
+    if isinstance(logsum_settings, dict):
+        logsum_settings = TourModeComponentSettings.parse_obj(logsum_settings)
 
     trace_label = tracing.extend_trace_label(trace_label, "compute_logsums")
     logger.debug(f"Running compute_logsums with {choosers.shape[0]:d} choosers")
@@ -152,7 +157,7 @@ def compute_location_choice_logsums(
     else:
         logger.error("Choosers table already has column 'duration'.")
 
-    logsum_spec = state.filesystem.read_model_spec(file_name=logsum_settings["SPEC"])
+    logsum_spec = state.filesystem.read_model_spec(file_name=logsum_settings.SPEC)
     coefficients = state.filesystem.get_segment_coefficients(
         logsum_settings, tour_purpose
     )
@@ -223,7 +228,7 @@ def compute_location_choice_logsums(
         )
 
         # TVPB constants can appear in expressions
-        if logsum_settings.get("use_TVPB_constants", True):
+        if logsum_settings.use_TVPB_constants:
             locals_dict.update(
                 network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
             )
@@ -233,9 +238,7 @@ def compute_location_choice_logsums(
     # - run preprocessor to annotate choosers
     # allow specification of alternate preprocessor for nontour choosers
     preprocessor = model_settings.LOGSUM_PREPROCESSOR
-    preprocessor_settings = (
-        getattr(logsum_settings, preprocessor, None) or logsum_settings[preprocessor]
-    )
+    preprocessor_settings = getattr(logsum_settings, preprocessor, None)
 
     if preprocessor_settings:
         simulate.set_skim_wrapper_targets(choosers, skims)

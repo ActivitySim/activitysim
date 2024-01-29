@@ -73,7 +73,7 @@ def joint_tour_frequency(
     )
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         locals_dict = {
             "persons": persons,

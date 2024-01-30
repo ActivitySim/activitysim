@@ -165,10 +165,11 @@ def validate_with_pydantic(
     pydantic_lists,
 ):
     """
-    Validing table wiht pydantic. Uses a helper class to perform the validation.
-
     FIXME: Not fully built out!! Went with Pandera instead of pydantic,
-           but leaving this in for future development
+           but leaving this in for future development. Code is functional,
+           but not setup for warnings and errors handling yet.
+
+    Validing table with pydantic. Uses a helper class to perform the validation.
 
     Strucutre of the code is as follows:
     households = pd.DataFrame()
@@ -439,6 +440,7 @@ def input_checker(state: workflow.State):
 
         if validation_settings["method"] == "pydantic":
             logger.info(f"performing Pydantic check on {table_settings['name']}")
+            logger.warning(f"Pydantic validation is not fully implemented yet!!")
             v_errors, v_warnings, pydantic_lists = validate_with_pydantic(
                 input_checker,
                 table_name,

@@ -21,6 +21,8 @@ INJECTABLES = [
     "data_dir",
     "configs_dir",
     "output_dir",
+    "cache_dir",
+    "sharrow_cache_dir",
     "settings_file_name",
     "imported_extensions",
 ]

@@ -45,13 +45,17 @@ def test_nmtf():
         pdt.assert_series_equal(
             nmt.tour_type.astype(str),
             pd.Series(
-                ["shopping", "escort", "escort", "othmaint"], index=idx, name="tour_type"
+                ["shopping", "escort", "escort", "othmaint"],
+                index=idx,
+                name="tour_type",
             ),
         )
     else:
         pdt.assert_series_equal(
             nmt.tour_type,
             pd.Series(
-                ["shopping", "escort", "escort", "othmaint"], index=idx, name="tour_type"
+                ["shopping", "escort", "escort", "othmaint"],
+                index=idx,
+                name="tour_type",
             ),
         )

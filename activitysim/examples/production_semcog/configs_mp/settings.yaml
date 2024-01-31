@@ -23,6 +23,7 @@ resume_after:
 
 models:
   ### mp_initialize step
+  - input_checker
   - initialize_landuse
   - initialize_households
   ### mp_accessibility step
@@ -70,7 +71,7 @@ models:
 
 multiprocess_steps:
   - name: mp_initialize
-    begin: initialize_landuse
+    begin: input_checker
   - name: mp_accessibility
     begin: compute_accessibility
     # num_processes: 10

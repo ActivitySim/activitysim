@@ -43,6 +43,7 @@ dependencies:
 - openmatrix = 0.3.*
 - orca = 1.8
 - pandas = 1.4.*
+- pandera >= 0.15
 - platformdirs = 3.2.*
 - pre-commit
 - psutil = 5.9.*
@@ -52,7 +53,7 @@ dependencies:
 - pydata-sphinx-theme
 - pyinstrument = 4.4
 - pypyr = 5.8.*
-- pytables >=3.5.1,<3.7
+- pytables >=3.7
 - pytest = 7.2.*
 - pytest-cov
 - pytest-regressions

@@ -48,6 +48,7 @@
     - prototype_mtc_extended/configs_mp
     - prototype_mtc_extended/output
     - prototype_mtc_extended/README.MD
+    - prototype_mtc_extended/data_model
   subdirs:
     configs_dir:
       - configs_extended/configs
@@ -67,6 +68,7 @@
     - prototype_mtc_extended/configs_mp
     - prototype_mtc_extended/output
     - prototype_mtc_extended/README.MD
+    - prototype_mtc_extended/data_model
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/skims.omx
       data/skims.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/households.csv

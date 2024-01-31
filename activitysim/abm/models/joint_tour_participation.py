@@ -6,6 +6,7 @@ import logging
 
 import numpy as np
 import pandas as pd
+import numpy as np
 
 from activitysim.abm.models.util.canonical_ids import MAX_PARTICIPANT_PNUM
 from activitysim.abm.models.util.overlap import person_time_window_overlap

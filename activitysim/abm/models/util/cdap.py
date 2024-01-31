@@ -339,6 +339,12 @@ def cache_joint_spec(state: workflow.State, hhsize, spec):
     state.add_injectable(spec_name, spec)
 
 
+def cache_joint_spec(hhsize, spec):
+    spec_name = cached_joint_spec_name(hhsize)
+    # cache as injectable
+    inject.add_injectable(spec_name, spec)
+
+
 def build_cdap_spec(
     state: workflow.State,
     interaction_coefficients,
@@ -1266,6 +1272,13 @@ def _run_cdap(
 
     persons["cdap_activity"] = person_choices
     chunk_sizer.log_df(trace_label, "persons", persons)
+
+    # return household joint tour flag
+    if add_joint_tour_utility:
+        hh_activity_choices = hh_activity_choices.to_frame(name="hh_choices")
+        hh_activity_choices["has_joint_tour"] = hh_activity_choices["hh_choices"].apply(
+            lambda x: 1 if "J" in x else 0
+        )
 
     # return household joint tour flag
     if add_joint_tour_utility:

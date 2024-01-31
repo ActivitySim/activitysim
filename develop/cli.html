@@ -3,13 +3,13 @@
 <!DOCTYPE html>
 
 
-<html >
+<html lang="en" data-content_root="" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Command Line Interface &#8212; ActivitySim 1.2.1.dev15+gd9ead707</title>
+    <title>Command Line Interface &#8212; ActivitySim</title>
   
   
   
@@ -19,41 +19,50 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
 
   
-  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+  <link href="_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
     <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
+  <script src="_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
     <script src="_static/design-tabs.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'cli';</script>
     <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.1';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Estimation" href="estimation.html" />
     <link rel="prev" title="DigitalEncoding" href="users-guide/_generated/activitysim.core.configuration.DigitalEncoding.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="docsearch:language" content="None"/>
+  <meta name="docsearch:language" content="en"/>
+    <meta name="docbuild:last-update" content="Jan 31, 2024"/>
   </head>
   
   
@@ -61,7 +70,15 @@
 
   
   
-  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
   
   <input type="checkbox"
           class="sidebar-toggle"
@@ -96,15 +113,17 @@
 </form></div>
   </div>
   
-    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    <header class="bd-header navbar navbar-expand-lg bd-navbar">
 <div class="bd-header__inner bd-page-width">
   <label class="sidebar-toggle primary-toggle" for="__primary">
     <span class="fa-solid fa-bars"></span>
   </label>
   
-  <div class="navbar-header-items__start">
+  
+  <div class="col-lg-3 navbar-header-items__start">
     
       <div class="navbar-item">
+
   
 
 <a class="navbar-brand logo" href="index.html">
@@ -113,24 +132,19 @@
   
   
   
-    <p class="title logo__title">ActivitySim 1.2.1.dev15+gd9ead707</p>
+  
+    <p class="title logo__title">ActivitySim</p>
   
 </a></div>
     
   </div>
   
-  
   <div class="col-lg-9 navbar-header-items">
     
     <div class="me-auto navbar-header-items__center">
       
-        <div class="navbar-item"><nav class="navbar-nav">
-  <p class="sidebar-header-items__title"
-     role="heading"
-     aria-level="1"
-     aria-label="Site Navigation">
-    Site Navigation
-  </p>
+        <div class="navbar-item">
+<nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item current active">
@@ -156,13 +170,16 @@
       
         <div class="navbar-item navbar-persistent--container">
           
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass"></i>
-  </button>
-`);
-</script>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
         </div>
       
       
@@ -170,12 +187,21 @@ document.write(`
 <script>
 document.write(`
   <div class="version-switcher__container dropdown">
-    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
-      1.2.1  <!-- this text may get changed later by javascript -->
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
       <span class="caret"></span>
     </button>
-    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
-    <!-- dropdown will be populated by javascript on page load -->
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
     </div>
   </div>
 `);
@@ -187,27 +213,33 @@ document.write(`
   
   
     <div class="navbar-persistent--mobile">
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass"></i>
-  </button>
-`);
-</script>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
     </div>
   
 
   
-    <label class="sidebar-toggle secondary-toggle" for="__secondary">
+    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
       <span class="fa-solid fa-outdent"></span>
     </label>
   
 </div>
 
-    </nav>
+    </header>
   
+
   <div class="bd-container">
     <div class="bd-container__inner bd-page-width">
+      
+      
       
       <div class="bd-sidebar-primary bd-sidebar">
         
@@ -218,13 +250,8 @@ document.write(`
     
       <div class="sidebar-header-items__center">
         
-          <div class="navbar-item"><nav class="navbar-nav">
-  <p class="sidebar-header-items__title"
-     role="heading"
-     aria-level="1"
-     aria-label="Site Navigation">
-    Site Navigation
-  </p>
+          <div class="navbar-item">
+<nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item current active">
@@ -253,12 +280,21 @@ document.write(`
 <script>
 document.write(`
   <div class="version-switcher__container dropdown">
-    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
-      1.2.1  <!-- this text may get changed later by javascript -->
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
       <span class="caret"></span>
     </button>
-    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
-    <!-- dropdown will be populated by javascript on page load -->
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
     </div>
   </div>
 `);
@@ -269,25 +305,17 @@ document.write(`
   </div>
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
-        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="users-guide/cli-tools.html">Command Line Tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="users-guide/configuration.html">Configuration</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.Settings.html">Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.InputTable.html">InputTable</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.OutputTable.html">OutputTable</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.OutputTables.html">OutputTables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.MultiprocessStep.html">MultiprocessStep</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.MultiprocessStepSlice.html">MultiprocessStepSlice</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.NetworkSettings.html">NetworkSettings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.TAZ_Settings.html">TAZ_Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.DigitalEncoding.html">DigitalEncoding</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="users-guide/notebook.html">Interactive Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Built-in Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="users-guide/external-examples.html">External Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="users-guide/configuration.html">Configuration</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Command Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="estimation.html">Estimation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
@@ -320,8 +348,8 @@ document.write(`
 
 
 
-<nav aria-label="Breadcrumbs">
-  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
     
     <li class="breadcrumb-item breadcrumb-home">
       <a href="index.html" class="nav-link" aria-label="Home">
@@ -331,7 +359,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="users-guide/index.html" class="nav-link">Users Guide</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Command Line Interface</li>
+    <li class="breadcrumb-item active" aria-current="page">Command...</li>
   </ul>
 </nav>
 </div>
@@ -346,10 +374,10 @@ document.write(`
               
                 
 <div id="searchbox"></div>
-                <article class="bd-article" role="main">
+                <article class="bd-article">
                   
   <section id="command-line-interface">
-<span id="cli"></span><h1>Command Line Interface<a class="headerlink" href="#command-line-interface" title="Permalink to this headline">#</a></h1>
+<span id="cli"></span><h1>Command Line Interface<a class="headerlink" href="#command-line-interface" title="Permalink to this heading">#</a></h1>
 <p>ActivitySim includes a <a class="reference internal" href="#cli"><span class="std std-ref">Command Line Interface</span></a> for creating examples and running the model.  See <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">-h</span></code> for
 more information.</p>
 <div class="admonition note">
@@ -358,14 +386,14 @@ more information.</p>
 contains example commands to create and run several versions of the examples.</p>
 </div>
 <section id="create">
-<h2>Create<a class="headerlink" href="#create" title="Permalink to this headline">#</a></h2>
+<h2>Create<a class="headerlink" href="#create" title="Permalink to this heading">#</a></h2>
 <p>Create an ActivitySim example setup.  See <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-h</span></code> for more information.
 More complete examples, including the full scale prototype MTC
 regional demand model are available for creation by typing <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-l</span></code>.  To create
 these examples, ActivitySim downloads the large input files from
 the <a class="reference external" href="https://github.com/rsginc/activitysim_resources">ActivitySim resources</a> repository.</p>
 <section id="module-activitysim.cli.create">
-<span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.cli.create" title="Permalink to this headline">#</a></h3>
+<span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.cli.create" title="Permalink to this heading">#</a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.cli.create.add_create_args">
 <span class="sig-prename descclassname"><span class="pre">activitysim.cli.create.</span></span><span class="sig-name descname"><span class="pre">add_create_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.create.add_create_args" title="Permalink to this definition">#</a></dt>
@@ -382,21 +410,54 @@ be run with the ‘run’ command.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="activitysim.cli.create.download_asset">
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.create.</span></span><span class="sig-name descname"><span class="pre">download_asset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sha256</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.12)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.12)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unpack</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.12)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.create.download_asset" title="Permalink to this definition">#</a></dt>
+<dd><p>Download assets (extra files) associated with examples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>url</strong><span class="classifier">str</span></dt><dd><p>The URL to download.</p>
+</dd>
+<dt><strong>target_path</strong><span class="classifier">str</span></dt><dd><p>The location where the asset should be made available. The raw asset
+file is not necessarily stored here, as it may be stored in a cache
+directory and symlinked here instead (see <cite>link</cite>).</p>
+</dd>
+<dt><strong>sha256</strong><span class="classifier">str, optional</span></dt><dd><p>Checksum for the file.  If there is already a cached file and the
+checksum matches, it is not re-downloaded and the cached version is
+used.  Otherwise, the file is downloaded, and if the downloaded file’s
+checksum does not match, an error is raised.</p>
+</dd>
+<dt><strong>link</strong><span class="classifier">bool, default True</span></dt><dd><p>Download the raw asset to a cache location, and then symlink to the
+desired <cite>target_path</cite> location.  Note symlinks may not work on Windows
+so the file will still be stored in the cache but it will be <em>copied</em>
+instead of linked.</p>
+</dd>
+<dt><strong>base_path</strong><span class="classifier">str, optional</span></dt><dd><p>Give the base directory for the example.</p>
+</dd>
+<dt><strong>unpack</strong><span class="classifier">str, optional</span></dt><dd><p>If the asset is an archive file (.zip, .tar.gz, or .tar.zst), it
+will be decompressed into this location.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="activitysim.cli.create.get_example">
-<span class="sig-prename descclassname"><span class="pre">activitysim.cli.create.</span></span><span class="sig-name descname"><span class="pre">get_example</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">example_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmarking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.create.get_example" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.create.</span></span><span class="sig-name descname"><span class="pre">get_example</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">example_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmarking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.create.get_example" title="Permalink to this definition">#</a></dt>
 <dd><p>Copy project data to user-specified directory.</p>
 <p>Examples and their data are described in a manifest
 YAML file. Each example contains at least a <cite>name</cite> and
 <cite>include</cite> field which is a list of files/folders to include
 in the copied example.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>example_name: str, name of the example to copy.</strong></dt><dd><p>Options can be found via list_examples()</p>
 </dd>
-<dt><strong>destination: name of target directory to copy files to.</strong></dt><dd><p>If the target directory already exists, project files
-will be copied into a subdirectory with the same name
-as the example</p>
+<dt><strong>destination: name of target directory to copy files to.</strong></dt><dd><p>If the target directory does not exist, it is created.
+Project files will then be copied into a subdirectory
+with the same name as the example</p>
 </dd>
 <dt><strong>benchmarking: bool</strong></dt><dd></dd>
 <dt><strong>optimize: bool</strong></dt><dd></dd>
@@ -406,6 +467,15 @@ value, then a cache directory is created using in a location
 selected by the platformdirs library (or, if not installed,
 linking is skipped.)</p>
 </dd>
+<dt><strong>with_subdirs: bool, default False</strong></dt><dd><p>Also return any instructions about sub-directories.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Path or (Path, dict)</dt><dd><p>The path to the location where the example was installed, and
+optionally also a mapping of example subdirectory locations.</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -414,10 +484,10 @@ linking is skipped.)</p>
 </section>
 </section>
 <section id="run">
-<h2>Run<a class="headerlink" href="#run" title="Permalink to this headline">#</a></h2>
+<h2>Run<a class="headerlink" href="#run" title="Permalink to this heading">#</a></h2>
 <p>Run ActivitySim.  See <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">run</span> <span class="pre">-h</span></code> for more information.</p>
 <section id="settings-file-inheritance">
-<span id="index-0"></span><span id="id1"></span><h3>Settings File Inheritance<a class="headerlink" href="#settings-file-inheritance" title="Permalink to this headline">#</a></h3>
+<span id="index-0"></span><span id="id1"></span><h3>Settings File Inheritance<a class="headerlink" href="#settings-file-inheritance" title="Permalink to this heading">#</a></h3>
 <p>ActivitySim model runs can be configured with settings file inheritance to avoid
 duplicating settings across model configurations. The command below runs ActivitySim
 with two configs folders - <code class="docutils literal notranslate"><span class="pre">configs</span></code> and <code class="docutils literal notranslate"><span class="pre">configs_mp</span></code>.  This setup allows for overriding setings
@@ -435,7 +505,26 @@ more information.</p>
 </div>
 </section>
 <section id="id2">
-<h3>API<a class="headerlink" href="#id2" title="Permalink to this headline">#</a></h3>
+<h3>API<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h3>
+<span class="target" id="module-activitysim.cli.run"></span><dl class="py function">
+<dt class="sig sig-object py" id="activitysim.cli.run.add_run_args">
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.run.</span></span><span class="sig-name descname"><span class="pre">add_run_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.run.add_run_args" title="Permalink to this definition">#</a></dt>
+<dd><p>Run command args</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.cli.run.run">
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.run.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.run.run" title="Permalink to this definition">#</a></dt>
+<dd><p>Run the models. Specify a project folder using the ‘–working_dir’ option,
+or point to the config, data, and output folders directly with
+‘–config’, ‘–data’, and ‘–output’. Both ‘–config’ and ‘–data’ can be
+specified multiple times. Directories listed first take precedence.</p>
+<dl class="simple">
+<dt>returns:</dt><dd><p>int: sys.exit exit code</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 </section>
@@ -445,11 +534,10 @@ more information.</p>
               
               
               
-                <footer class="bd-footer-article">
+              
+              
+                <footer class="prev-next-footer">
                   
-<div class="footer-article-items footer-article__inner">
-  
-    <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
        href="users-guide/_generated/activitysim.core.configuration.DigitalEncoding.html"
@@ -469,10 +557,7 @@ more information.</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
-</div></div>
-  
 </div>
-
                 </footer>
               
             </div>
@@ -481,11 +566,14 @@ more information.</p>
               
                 <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
+
   <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
     <i class="fa-solid fa-list"></i> On this page
   </div>
-  <nav class="bd-toc-nav page-toc">
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create">Create</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-activitysim.cli.create">API</a></li>
@@ -500,6 +588,7 @@ more information.</p>
   </nav></div>
 
   <div class="sidebar-secondary-item">
+
   <div class="tocsection sourcelink">
     <a href="_sources/cli.rst.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
@@ -520,8 +609,8 @@ more information.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+  <script src="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -530,12 +619,13 @@ more information.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.1.dev15+gd9ead707, documentation last updated May 19, 2023.<br/>
+ActivitySim 1.2.1.dev33+gfe6bd6e3, documentation last updated Jan 31, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
+
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
     <br/>
   </p>
 </div>
@@ -543,10 +633,12 @@ ActivitySim 1.2.1.dev15+gd9ead707, documentation last updated May 19, 2023.<br/>
     </div>
   
   
+  
     <div class="footer-items__end">
       
-        <div class="footer-item"><p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.13.3.
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.2.
 </p></div>
       
     </div>

@@ -4,8 +4,8 @@
 .. _example :
 .. _examples :
 
-Examples
-========
+Built-in Examples
+=================
 
 This page describes the example models included with ActivitySim. There are three
 basic types of example model:
@@ -1531,15 +1531,15 @@ university students attending the University of Michigan (UofM).  First off, Uof
 weighted by enrollment. This happens after both school location choice in the university_location_zone_override model and
 after university trip destination choice in the trip_destination_univ_zone_override model. Next, parking trips are handled
 explicitly by first choosing a parking location if the trip destination is in a UofM zone. Parking locations are selected
-proportionally to the parking lot size as part of the parking_location_choice_at_university. Finally explicit trips are 
+proportionally to the parking lot size as part of the parking_location_choice_at_university. Finally explicit trips are
 inserted into the trips table to and from the parking lot locations in the stop_frequency_university_parking model.
 While a persons vehicle is parked, trip mode choice treats the tour mode as walk-transit to determine trip mode availability
 until the person returns back to their car.  For more information, please see SEMCOG's final model documentation and the
 SEMCOG model user quide.
 
 These submodels were added to example_semcog as extensions, which is a way for users to add
-submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through 
-the `models` settings.  However, the model must be run with the `simulation.py` script instead of the command line interface 
+submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through
+the `models` settings.  However, the model must be run with the `simulation.py` script instead of the command line interface
 in order to load the extensions folder.
 
 

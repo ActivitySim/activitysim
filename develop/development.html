@@ -3,13 +3,13 @@
 <!DOCTYPE html>
 
 
-<html >
+<html lang="en" data-content_root="" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Software Development &#8212; ActivitySim 1.2.1.dev15+gd9ead707</title>
+    <title>Software Development &#8212; ActivitySim</title>
   
   
   
@@ -19,41 +19,50 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
 
   
-  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+  <link href="_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
     <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
+  <script src="_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
     <script src="_static/design-tabs.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'development';</script>
     <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.1';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Models" href="models.html" />
-    <link rel="prev" title="Workflows" href="dev-guide/workflows.html" />
+    <link rel="prev" title="Logging" href="dev-guide/logging.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="docsearch:language" content="None"/>
+  <meta name="docsearch:language" content="en"/>
+    <meta name="docbuild:last-update" content="Jan 31, 2024"/>
   </head>
   
   
@@ -61,7 +70,15 @@
 
   
   
-  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
   
   <input type="checkbox"
           class="sidebar-toggle"
@@ -96,15 +113,17 @@
 </form></div>
   </div>
   
-    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    <header class="bd-header navbar navbar-expand-lg bd-navbar">
 <div class="bd-header__inner bd-page-width">
   <label class="sidebar-toggle primary-toggle" for="__primary">
     <span class="fa-solid fa-bars"></span>
   </label>
   
-  <div class="navbar-header-items__start">
+  
+  <div class="col-lg-3 navbar-header-items__start">
     
       <div class="navbar-item">
+
   
 
 <a class="navbar-brand logo" href="index.html">
@@ -113,24 +132,19 @@
   
   
   
-    <p class="title logo__title">ActivitySim 1.2.1.dev15+gd9ead707</p>
+  
+    <p class="title logo__title">ActivitySim</p>
   
 </a></div>
     
   </div>
   
-  
   <div class="col-lg-9 navbar-header-items">
     
     <div class="me-auto navbar-header-items__center">
       
-        <div class="navbar-item"><nav class="navbar-nav">
-  <p class="sidebar-header-items__title"
-     role="heading"
-     aria-level="1"
-     aria-label="Site Navigation">
-    Site Navigation
-  </p>
+        <div class="navbar-item">
+<nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item">
@@ -156,13 +170,16 @@
       
         <div class="navbar-item navbar-persistent--container">
           
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass"></i>
-  </button>
-`);
-</script>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
         </div>
       
       
@@ -170,12 +187,21 @@ document.write(`
 <script>
 document.write(`
   <div class="version-switcher__container dropdown">
-    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
-      1.2.1  <!-- this text may get changed later by javascript -->
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
       <span class="caret"></span>
     </button>
-    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
-    <!-- dropdown will be populated by javascript on page load -->
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
     </div>
   </div>
 `);
@@ -187,27 +213,33 @@ document.write(`
   
   
     <div class="navbar-persistent--mobile">
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass"></i>
-  </button>
-`);
-</script>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
     </div>
   
 
   
-    <label class="sidebar-toggle secondary-toggle" for="__secondary">
+    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
       <span class="fa-solid fa-outdent"></span>
     </label>
   
 </div>
 
-    </nav>
+    </header>
   
+
   <div class="bd-container">
     <div class="bd-container__inner bd-page-width">
+      
+      
       
       <div class="bd-sidebar-primary bd-sidebar">
         
@@ -218,13 +250,8 @@ document.write(`
     
       <div class="sidebar-header-items__center">
         
-          <div class="navbar-item"><nav class="navbar-nav">
-  <p class="sidebar-header-items__title"
-     role="heading"
-     aria-level="1"
-     aria-label="Site Navigation">
-    Site Navigation
-  </p>
+          <div class="navbar-item">
+<nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item">
@@ -253,12 +280,21 @@ document.write(`
 <script>
 document.write(`
   <div class="version-switcher__container dropdown">
-    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
-      1.2.1  <!-- this text may get changed later by javascript -->
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
       <span class="caret"></span>
     </button>
-    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
-    <!-- dropdown will be populated by javascript on page load -->
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
     </div>
   </div>
 `);
@@ -269,17 +305,26 @@ document.write(`
   </div>
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
-        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="dev-guide/install.html">Developer Installation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="dev-guide/core-workflow.html">Workflow State</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/core-workflow-api.html">State API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/core-workflow-steps.html">Workflow Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/core-workflow-table.html">Workflow Tables</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="dev-guide/using-sharrow.html">Using Sharrow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev-guide/skim-dataset.html">Using Skim Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/checkpointing.html">Checkpointing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev-guide/workflows.html">Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/logging.html">Logging</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Software Development</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="dev-guide/components/index.html">Components</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="dev-guide/components/index.html">Components</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="dev-guide/components/trip_destination.html">Trip Destination</a></li>
 </ul>
 </li>
@@ -314,8 +359,8 @@ document.write(`
 
 
 
-<nav aria-label="Breadcrumbs">
-  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
     
     <li class="breadcrumb-item breadcrumb-home">
       <a href="index.html" class="nav-link" aria-label="Home">
@@ -340,13 +385,13 @@ document.write(`
               
                 
 <div id="searchbox"></div>
-                <article class="bd-article" role="main">
+                <article class="bd-article">
                   
   <section id="software-development">
-<h1>Software Development<a class="headerlink" href="#software-development" title="Permalink to this headline">#</a></h1>
+<h1>Software Development<a class="headerlink" href="#software-development" title="Permalink to this heading">#</a></h1>
 <p>This page documents the ActivitySim software design and how to contribute to the project.</p>
 <section id="software-design">
-<h2>Software Design<a class="headerlink" href="#software-design" title="Permalink to this headline">#</a></h2>
+<h2>Software Design<a class="headerlink" href="#software-design" title="Permalink to this heading">#</a></h2>
 <p>The core software components of ActivitySim are described below.  ActivitySim is
 implemented in Python, and makes heavy use of the vectorized backend C/C++ libraries in
 <a class="reference external" href="http://pandas.pydata.org">pandas</a>  and <a class="reference external" href="http://numpy.org">numpy</a> in order to be quite performant.
@@ -359,7 +404,7 @@ is responsible for setting up and providing expressions to operate on these larg
 <p>In developing this software platform, we strive to adhere to a best practices approach to scientific computing,
 as summarized in <a class="reference external" href="http://www.plosbiology.org/article/info%3Adoi%2F10.1371%2Fjournal.pbio.1001745">this article.</a></p>
 <section id="model-orchestrator">
-<h3>Model Orchestrator<a class="headerlink" href="#model-orchestrator" title="Permalink to this headline">#</a></h3>
+<h3>Model Orchestrator<a class="headerlink" href="#model-orchestrator" title="Permalink to this heading">#</a></h3>
 <p>An ActivitySim model is a sequence of model / data processing steps, commonly known as a data pipeline.
 A well defined data pipeline has the ability to resume jobs at a known point, which facilitates
 debugging of problems with data and/or calculations.  It also allows for checkpointing model
@@ -371,15 +416,15 @@ module, which wraps <a class="reference external" href="https://github.com/udst/
 steps, dynamic data sources, and connects them to processing functions. It also defines dynamic data tables
 based on pandas DataFrames, columns based on pandas Series, and injectables (functions).  Model steps are executed
 as steps registered with the model orchestration engine.  Over time Inject has extended ORCA’s functionality by
-adding a <a class="reference internal" href="core.html#pipeline-in-detail"><span class="std std-ref">Pipeline</span></a> that runs a series of model steps, manages the state of the data
+adding a <span class="xref std std-ref">pipeline_in_detail</span> that runs a series of model steps, manages the state of the data
 tables throughout the model run, allows for restarting at any model step, and integrates with the
 random number generation procedures (see <a class="reference internal" href="core.html#random-in-detail"><span class="std std-ref">Random</span></a>).</p>
 </section>
 <section id="data-handling">
-<h3>Data Handling<a class="headerlink" href="#data-handling" title="Permalink to this headline">#</a></h3>
+<h3>Data Handling<a class="headerlink" href="#data-handling" title="Permalink to this heading">#</a></h3>
 <p>ActivitySim works with three open data formats, <a class="reference external" href="https://www.hdfgroup.org/HDF5/">HDF5</a>
 , <a class="reference external" href="https://github.com/osPlanning/omx">Open Matrix (OMX)</a>, and <a class="reference external" href="https://en.wikipedia.org/wiki/Comma-separated_values">CSV</a> .
-The HDF5 binary data container is used for the <a class="reference internal" href="core.html#pipeline-in-detail"><span class="std std-ref">Pipeline</span></a> data store.
+The HDF5 binary data container is used for the <span class="xref std std-ref">pipeline_in_detail</span> data store.
 OMX, which is based on HDF5, is used for input and output matrices (skims and demand matrices).  CSV files
 are used for various inputs and outputs as well.</p>
 <p>Three key data structures in ActivitySim are:</p>
@@ -390,7 +435,7 @@ are used for various inputs and outputs as well.</p>
 </ul>
 </section>
 <section id="expressions">
-<h3>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">#</a></h3>
+<h3>Expressions<a class="headerlink" href="#expressions" title="Permalink to this heading">#</a></h3>
 <p>ActivitySim exposes all model expressions in CSV files.  These model expression CSV files
 contain Python expressions, mainly pandas/numpy expression, and reference input data tables
 and network skim matrices.  With this design, the Python code, which can be thought of as a generic expression
@@ -406,21 +451,21 @@ file is found in the example configuration files for households for the CDAP mod
 Refer to <a class="reference internal" href="models.html#table-annotation"><span class="std std-ref">Estimation</span></a> for more information and the <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.abm.models.util.expressions.assign_columns()</span></code> function.</p>
 </section>
 <section id="choice-models">
-<h3>Choice Models<a class="headerlink" href="#choice-models" title="Permalink to this headline">#</a></h3>
+<h3>Choice Models<a class="headerlink" href="#choice-models" title="Permalink to this heading">#</a></h3>
 <p>ActivitySim currently supports multinomial (MNL) and nested logit (NL) choice models. Refer to <a class="reference internal" href="core.html#logit-in-detail"><span class="std std-ref">Logit</span></a>
 for more information.  It also supports custom expressions as noted above, which can often be used to
 code additional types of choice models.  In addition, developers can write their own choice models
 in Python and expose these through the framework.</p>
 </section>
 <section id="person-time-windows">
-<h3>Person Time Windows<a class="headerlink" href="#person-time-windows" title="Permalink to this headline">#</a></h3>
+<h3>Person Time Windows<a class="headerlink" href="#person-time-windows" title="Permalink to this heading">#</a></h3>
 <p>The departure time and duration models require person time windows. Time windows are adjacent time
 periods that are available for travel. ActivitySim maintains time windows in a pandas table where each row is
 a person and each time period is a column.  As travel is scheduled throughout the simulation, the relevant
 columns for the tour, trip, etc. are updated as needed. Refer to <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a> for more information.</p>
 </section>
 <section id="models">
-<h3>Models<a class="headerlink" href="#models" title="Permalink to this headline">#</a></h3>
+<h3>Models<a class="headerlink" href="#models" title="Permalink to this heading">#</a></h3>
 <p>An activitysim travel model is made up of a series of models, or steps in the data pipeline.  A model
 typically does the following:</p>
 <blockquote>
@@ -439,7 +484,7 @@ typically does the following:</p>
 </section>
 </section>
 <section id="development-install">
-<h2>Development Install<a class="headerlink" href="#development-install" title="Permalink to this headline">#</a></h2>
+<h2>Development Install<a class="headerlink" href="#development-install" title="Permalink to this heading">#</a></h2>
 <p>The development version of ActivitySim can be installed as follows:</p>
 <ul class="simple">
 <li><p>Clone or fork the source from the <a class="reference external" href="https://github.com/activitysim/activitysim">GitHub repository</a></p></li>
@@ -453,17 +498,17 @@ any changes you make in the code in your git directory will be reflected.</p></l
 </ul>
 </section>
 <section id="development-guidelines">
-<h2>Development Guidelines<a class="headerlink" href="#development-guidelines" title="Permalink to this headline">#</a></h2>
+<h2>Development Guidelines<a class="headerlink" href="#development-guidelines" title="Permalink to this heading">#</a></h2>
 <p>ActivitySim development adheres to the following standards.</p>
 <section id="style">
-<h3>Style<a class="headerlink" href="#style" title="Permalink to this headline">#</a></h3>
+<h3>Style<a class="headerlink" href="#style" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Python code should follow the <a class="reference external" href="https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html">black code style</a></p></li>
 <li><p>Python docstrings should follow the <a class="reference external" href="https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt">numpydoc documentation format</a></p></li>
 </ul>
 </section>
 <section id="imports">
-<h3>Imports<a class="headerlink" href="#imports" title="Permalink to this headline">#</a></h3>
+<h3>Imports<a class="headerlink" href="#imports" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Imports should be one per line.</p></li>
 <li><p>Imports should be grouped into standard library, third-party, and intra-library imports.</p></li>
@@ -477,7 +522,7 @@ any changes you make in the code in your git directory will be reflected.</p></l
 </div>
 </section>
 <section id="working-together-in-the-repository">
-<h3>Working Together in the Repository<a class="headerlink" href="#working-together-in-the-repository" title="Permalink to this headline">#</a></h3>
+<h3>Working Together in the Repository<a class="headerlink" href="#working-together-in-the-repository" title="Permalink to this heading">#</a></h3>
 <p>We use <a class="reference external" href="https://guides.github.com/introduction/flow">GitHub Flow</a>.  The key points to
 our GitHub workflow are:</p>
 <ul class="simple">
@@ -499,7 +544,7 @@ and otherwise make a <a class="reference external" href="https://github.com/Acti
 </ul>
 </section>
 <section id="versioning">
-<h3>Versioning<a class="headerlink" href="#versioning" title="Permalink to this headline">#</a></h3>
+<h3>Versioning<a class="headerlink" href="#versioning" title="Permalink to this heading">#</a></h3>
 <p>ActivitySim uses the following <a class="reference external" href="http://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/specification.html">versioning convention</a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MAJOR</span><span class="o">.</span><span class="n">MINOR</span><span class="o">.</span><span class="n">PATCH</span><span class="p">[</span><span class="o">.</span><span class="n">devN</span><span class="p">]</span>
 </pre></div>
@@ -522,7 +567,7 @@ release other than for a specific well-defined purpose.</p></li>
 </ul>
 </section>
 <section id="testing">
-<h3>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">#</a></h3>
+<h3>Testing<a class="headerlink" href="#testing" title="Permalink to this heading">#</a></h3>
 <p>ActivitySim testing is done with several tools:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://black.readthedocs.io">black</a>, a tool to check and enforce black
@@ -548,13 +593,13 @@ the tests.</p>
 <p>See <a class="reference internal" href="#adding-agency-examples"><span class="std std-ref">Adding Agency Examples</span></a> for more information on testing, most notably, agency example models.</p>
 </section>
 <section id="profiling">
-<h3>Profiling<a class="headerlink" href="#profiling" title="Permalink to this headline">#</a></h3>
+<h3>Profiling<a class="headerlink" href="#profiling" title="Permalink to this heading">#</a></h3>
 <p>A handy way to profile ActivitySim model runs is to use <a class="reference external" href="https://jiffyclub.github.io/snakeviz/">snakeviz</a>.
 To do so, first install snakeviz and then run ActivitySim with the Python profiler (cProfile) to create
 a profiler file.  Then run snakeviz on the profiler file to interactively explore the component runtimes.</p>
 </section>
 <section id="documentation">
-<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">#</a></h3>
+<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading">#</a></h3>
 <p>The documentation is written in <a class="reference external" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> markup
 and built with <a class="reference external" href="http://www.sphinx-doc.org/en/stable/">Sphinx</a>.  In addition to converting rst files
 to html and other document formats, these tools also read the inline Python docstrings and convert
@@ -568,22 +613,22 @@ is automatically built by Travis after successfully passing the tests.</p>
 <p>GitHub automatically publishes the gh-pages branch at <a class="reference external" href="https://activitysim.github.io/activitysim">https://activitysim.github.io/activitysim</a>.</p>
 </section>
 <section id="releases">
-<span id="release-steps"></span><h3>Releases<a class="headerlink" href="#releases" title="Permalink to this headline">#</a></h3>
+<span id="release-steps"></span><h3>Releases<a class="headerlink" href="#releases" title="Permalink to this heading">#</a></h3>
 <p>With the agreement of the PMC, a project administrator will handle making releases, following the detailed
 steps outlined in the <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/HOW_TO_RELEASE.md">HOW_TO_RELEASE</a>
 document.</p>
 </section>
 <section id="issues-and-support">
-<h3>Issues and Support<a class="headerlink" href="#issues-and-support" title="Permalink to this headline">#</a></h3>
+<h3>Issues and Support<a class="headerlink" href="#issues-and-support" title="Permalink to this heading">#</a></h3>
 <p>Issue tracking and support is done through GitHub <a class="reference external" href="https://github.com/ActivitySim/activitysim/issues">issues</a>.</p>
 </section>
 <section id="license">
-<h3>License<a class="headerlink" href="#license" title="Permalink to this headline">#</a></h3>
+<h3>License<a class="headerlink" href="#license" title="Permalink to this heading">#</a></h3>
 <p>ActivitySim is provided “as is.”  See the
 <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/LICENSE.txt">License</a> for more information.</p>
 </section>
 <section id="contribution-review-criteria">
-<h3>Contribution Review Criteria<a class="headerlink" href="#contribution-review-criteria" title="Permalink to this headline">#</a></h3>
+<h3>Contribution Review Criteria<a class="headerlink" href="#contribution-review-criteria" title="Permalink to this heading">#</a></h3>
 <p>When contributing to ActivitySim, the set of questions below will be asked of the contribution.  Make sure to also
 review the documentation above before making a submittal.  The automated test system also provides some helpful
 information where identified.</p>
@@ -611,12 +656,6 @@ Its a good idea to setup a pre-submittal meeting to discuss questions and better
 <p><strong>Feedback</strong></p>
 <p>The PMC and/or its Contractor will provide feedback for each review criteria above and tag each submittal category as follows:</p>
 <table class="table">
-<colgroup>
-<col style="width: 41%" />
-<col style="width: 15%" />
-<col style="width: 22%" />
-<col style="width: 22%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Status</p></th>
 <th class="head"><p>Code</p></th>
@@ -645,8 +684,8 @@ Its a good idea to setup a pre-submittal meeting to discuss questions and better
 </section>
 </section>
 <section id="adding-agency-examples">
-<span id="id1"></span><h2>Adding Agency Examples<a class="headerlink" href="#adding-agency-examples" title="Permalink to this headline">#</a></h2>
-<p>ActivitySim includes several mature or in-development full scale agency <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a>.  Adding an agency example to
+<span id="id1"></span><h2>Adding Agency Examples<a class="headerlink" href="#adding-agency-examples" title="Permalink to this heading">#</a></h2>
+<p>ActivitySim includes several mature or in-development full scale agency <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Built-in Examples</span></a>.  Adding an agency example to
 ActivitySim adds additional assurances that future updates to ActivitySim will more easily work for users.  At the same
 time, with each additional implementation, the need for additional test coverage increases.  This increased need for
 test coverage relates to when setting up a new model, with differences in inputs and configurations, when adding new
@@ -654,7 +693,7 @@ model components (and/or revisions to the core) in order to implement new featur
 components at a scale previously untested.  The following section describes the process to add an agency example model
 to ActivitySim.</p>
 <section id="examples">
-<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">#</a></h3>
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">#</a></h3>
 <p>Generally speaking, there are two types of ActivitySim examples: test examples and agency examples.</p>
 <ul class="simple">
 <li><p>Test examples - these are the core ActivitySim maintained and tested examples developed to date.  The current test
@@ -701,7 +740,7 @@ should be included in the example manifest.</p></li>
 </ul>
 </section>
 <section id="id2">
-<h3>Testing<a class="headerlink" href="#id2" title="Permalink to this headline">#</a></h3>
+<h3>Testing<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h3>
 <p>The test plan for test examples versus agency examples is different:</p>
 <ul class="simple">
 <li><p>Test examples test software features such as stability, tracing, expression solving, etc.  This set of tests is run
@@ -729,7 +768,7 @@ creating and running examples makes uses the
 to maintain the dictionary of the examples and how to get and run them.</p>
 </section>
 <section id="running-the-test-system">
-<h3>Running the Test System<a class="headerlink" href="#running-the-test-system" title="Permalink to this headline">#</a></h3>
+<h3>Running the Test System<a class="headerlink" href="#running-the-test-system" title="Permalink to this heading">#</a></h3>
 <p>The automatic TravisCI test system runs the test examples and the cropped agency examples.  Examples of the testing
 resources for each agency example that need to be up-to-date are:</p>
 <ul class="simple">
@@ -740,7 +779,7 @@ resources for each agency example that need to be up-to-date are:</p>
 <p>For the time being, running the full scale examples is done manually since it involves getting and running several large examples that take many hours to run.  The entire system could be fully automated, and either run in the cloud or on a local server.</p>
 </section>
 <section id="update-use-cases">
-<h3>Update Use Cases<a class="headerlink" href="#update-use-cases" title="Permalink to this headline">#</a></h3>
+<h3>Update Use Cases<a class="headerlink" href="#update-use-cases" title="Permalink to this heading">#</a></h3>
 <p>To better illustrate the workflow for adding agency examples, a series of use cases is discussed.</p>
 <p>When a new version of the code is pushed to develop:</p>
 <ul class="simple">
@@ -775,19 +814,18 @@ resources for each agency example that need to be up-to-date are:</p>
               
               
               
-                <footer class="bd-footer-article">
+              
+              
+                <footer class="prev-next-footer">
                   
-<div class="footer-article-items footer-article__inner">
-  
-    <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
-       href="dev-guide/workflows.html"
+       href="dev-guide/logging.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Workflows</p>
+        <p class="prev-next-title">Logging</p>
       </div>
     </a>
     <a class="right-next"
@@ -799,10 +837,7 @@ resources for each agency example that need to be up-to-date are:</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
-</div></div>
-  
 </div>
-
                 </footer>
               
             </div>
@@ -811,11 +846,14 @@ resources for each agency example that need to be up-to-date are:</p>
               
                 <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
+
   <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
     <i class="fa-solid fa-list"></i> On this page
   </div>
-  <nav class="bd-toc-nav page-toc">
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#software-design">Software Design</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-orchestrator">Model Orchestrator</a></li>
@@ -852,6 +890,7 @@ resources for each agency example that need to be up-to-date are:</p>
   </nav></div>
 
   <div class="sidebar-secondary-item">
+
   <div class="tocsection sourcelink">
     <a href="_sources/development.rst.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
@@ -872,8 +911,8 @@ resources for each agency example that need to be up-to-date are:</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+  <script src="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -882,12 +921,13 @@ resources for each agency example that need to be up-to-date are:</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.1.dev15+gd9ead707, documentation last updated May 19, 2023.<br/>
+ActivitySim 1.2.1.dev33+gfe6bd6e3, documentation last updated Jan 31, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
+
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
     <br/>
   </p>
 </div>
@@ -895,10 +935,12 @@ ActivitySim 1.2.1.dev15+gd9ead707, documentation last updated May 19, 2023.<br/>
     </div>
   
   
+  
     <div class="footer-items__end">
       
-        <div class="footer-item"><p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.13.3.
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.2.
 </p></div>
       
     </div>

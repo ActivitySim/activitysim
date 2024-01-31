@@ -3,13 +3,13 @@
 <!DOCTYPE html>
 
 
-<html >
+<html lang="en" data-content_root="" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>How the System Works &#8212; ActivitySim 1.2.1.dev15+gd9ead707</title>
+    <title>How the System Works &#8212; ActivitySim</title>
   
   
   
@@ -19,41 +19,50 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
 
   
-  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+  <link href="_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
     <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
+  <script src="_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
     <script src="_static/design-tabs.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'howitworks';</script>
     <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.1';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Developers" href="dev-guide/index.html" />
     <link rel="prev" title="Estimation" href="estimation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="docsearch:language" content="None"/>
+  <meta name="docsearch:language" content="en"/>
+    <meta name="docbuild:last-update" content="Jan 31, 2024"/>
   </head>
   
   
@@ -61,7 +70,15 @@
 
   
   
-  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
   
   <input type="checkbox"
           class="sidebar-toggle"
@@ -96,15 +113,17 @@
 </form></div>
   </div>
   
-    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    <header class="bd-header navbar navbar-expand-lg bd-navbar">
 <div class="bd-header__inner bd-page-width">
   <label class="sidebar-toggle primary-toggle" for="__primary">
     <span class="fa-solid fa-bars"></span>
   </label>
   
-  <div class="navbar-header-items__start">
+  
+  <div class="col-lg-3 navbar-header-items__start">
     
       <div class="navbar-item">
+
   
 
 <a class="navbar-brand logo" href="index.html">
@@ -113,24 +132,19 @@
   
   
   
-    <p class="title logo__title">ActivitySim 1.2.1.dev15+gd9ead707</p>
+  
+    <p class="title logo__title">ActivitySim</p>
   
 </a></div>
     
   </div>
   
-  
   <div class="col-lg-9 navbar-header-items">
     
     <div class="me-auto navbar-header-items__center">
       
-        <div class="navbar-item"><nav class="navbar-nav">
-  <p class="sidebar-header-items__title"
-     role="heading"
-     aria-level="1"
-     aria-label="Site Navigation">
-    Site Navigation
-  </p>
+        <div class="navbar-item">
+<nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item current active">
@@ -156,13 +170,16 @@
       
         <div class="navbar-item navbar-persistent--container">
           
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass"></i>
-  </button>
-`);
-</script>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
         </div>
       
       
@@ -170,12 +187,21 @@ document.write(`
 <script>
 document.write(`
   <div class="version-switcher__container dropdown">
-    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
-      1.2.1  <!-- this text may get changed later by javascript -->
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
       <span class="caret"></span>
     </button>
-    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
-    <!-- dropdown will be populated by javascript on page load -->
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
     </div>
   </div>
 `);
@@ -187,27 +213,33 @@ document.write(`
   
   
     <div class="navbar-persistent--mobile">
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass"></i>
-  </button>
-`);
-</script>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
     </div>
   
 
   
-    <label class="sidebar-toggle secondary-toggle" for="__secondary">
+    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
       <span class="fa-solid fa-outdent"></span>
     </label>
   
 </div>
 
-    </nav>
+    </header>
   
+
   <div class="bd-container">
     <div class="bd-container__inner bd-page-width">
+      
+      
       
       <div class="bd-sidebar-primary bd-sidebar">
         
@@ -218,13 +250,8 @@ document.write(`
     
       <div class="sidebar-header-items__center">
         
-          <div class="navbar-item"><nav class="navbar-nav">
-  <p class="sidebar-header-items__title"
-     role="heading"
-     aria-level="1"
-     aria-label="Site Navigation">
-    Site Navigation
-  </p>
+          <div class="navbar-item">
+<nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item current active">
@@ -253,12 +280,21 @@ document.write(`
 <script>
 document.write(`
   <div class="version-switcher__container dropdown">
-    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
-      1.2.1  <!-- this text may get changed later by javascript -->
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
       <span class="caret"></span>
     </button>
-    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
-    <!-- dropdown will be populated by javascript on page load -->
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
     </div>
   </div>
 `);
@@ -269,25 +305,17 @@ document.write(`
   </div>
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
-        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="users-guide/cli-tools.html">Command Line Tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="users-guide/configuration.html">Configuration</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.Settings.html">Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.InputTable.html">InputTable</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.OutputTable.html">OutputTable</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.OutputTables.html">OutputTables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.MultiprocessStep.html">MultiprocessStep</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.MultiprocessStepSlice.html">MultiprocessStepSlice</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.NetworkSettings.html">NetworkSettings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.TAZ_Settings.html">TAZ_Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.DigitalEncoding.html">DigitalEncoding</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="users-guide/notebook.html">Interactive Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Built-in Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="users-guide/external-examples.html">External Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="users-guide/configuration.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="estimation.html">Estimation</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">How the System Works</a></li>
@@ -320,8 +348,8 @@ document.write(`
 
 
 
-<nav aria-label="Breadcrumbs">
-  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
     
     <li class="breadcrumb-item breadcrumb-home">
       <a href="index.html" class="nav-link" aria-label="Home">
@@ -346,16 +374,16 @@ document.write(`
               
                 
 <div id="searchbox"></div>
-                <article class="bd-article" role="main">
+                <article class="bd-article">
                   
   <section id="how-the-system-works">
-<h1>How the System Works<a class="headerlink" href="#how-the-system-works" title="Permalink to this headline">#</a></h1>
+<h1>How the System Works<a class="headerlink" href="#how-the-system-works" title="Permalink to this heading">#</a></h1>
 <p>This page describes how the software works, how multiprocessing works, and the primary example model data schema.  The code snippets below may not exactly match the latest version of the software, but they are close enough to illustrate how the system works.</p>
 <section id="execution-flow">
-<span id="id1"></span><h2>Execution Flow<a class="headerlink" href="#execution-flow" title="Permalink to this headline">#</a></h2>
+<span id="id1"></span><h2>Execution Flow<a class="headerlink" href="#execution-flow" title="Permalink to this heading">#</a></h2>
 <p>The example model run starts by running the steps in <a class="reference internal" href="examples.html#example-run"><span class="std std-ref">Running the example</span></a>.</p>
 <section id="initialization">
-<h3>Initialization<a class="headerlink" href="#initialization" title="Permalink to this headline">#</a></h3>
+<h3>Initialization<a class="headerlink" href="#initialization" title="Permalink to this heading">#</a></h3>
 <p>The first significant step of the <code class="docutils literal notranslate"><span class="pre">run</span></code> command is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">activitysim</span> <span class="kn">import</span> <span class="n">abm</span>
 </pre></div>
@@ -435,11 +463,11 @@ on-demand loading. Next, the system loads the models list and starts the pipelin
 </div>
 <p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.run()</span></code> method loops through the list of models, calls <code class="docutils literal notranslate"><span class="pre">inject.run([step_name])</span></code>,
 and manages the data pipeline.  The first disaggregate data processing step (or model) run is <code class="docutils literal notranslate"><span class="pre">initialize_households</span></code>, defined in
-<code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.models.initialize</span></code>.  The <code class="docutils literal notranslate"><span class="pre">initialize_households</span></code> step is responsible for requesting reading of the raw
+<a class="reference internal" href="models.html#module-activitysim.abm.models.initialize" title="activitysim.abm.models.initialize"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.models.initialize</span></code></a>.  The <code class="docutils literal notranslate"><span class="pre">initialize_households</span></code> step is responsible for requesting reading of the raw
 households and persons into memory.</p>
 </section>
 <section id="initialize-households">
-<h3>Initialize Households<a class="headerlink" href="#initialize-households" title="Permalink to this headline">#</a></h3>
+<h3>Initialize Households<a class="headerlink" href="#initialize-households" title="Permalink to this heading">#</a></h3>
 <p>The initialize households step/model is run via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inject</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">initialize_households</span><span class="p">():</span>
@@ -522,7 +550,7 @@ as well.  The various calls also setup logging, tracing, stable random number ma
 
   <span class="k">if</span> <span class="n">trace_hh_id</span><span class="p">:</span>
       <span class="n">tracing</span><span class="o">.</span><span class="n">register_traceable_table</span><span class="p">(</span><span class="s1">&#39;persons&#39;</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
-      <span class="n">tracing</span><span class="o">.</span><span class="n">trace_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s2">&quot;raw.persons&quot;</span><span class="p">,</span> <span class="n">warn_if_empty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="n">whale</span><span class="o">.</span><span class="n">trace_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s2">&quot;raw.persons&quot;</span><span class="p">,</span> <span class="n">warn_if_empty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
   <span class="k">return</span> <span class="n">df</span>
 
@@ -545,10 +573,10 @@ actually reads the input tables from the input HDF5 or CSV file using the <code 
 </div>
 </section>
 <section id="school-location">
-<h3>School Location<a class="headerlink" href="#school-location" title="Permalink to this headline">#</a></h3>
+<h3>School Location<a class="headerlink" href="#school-location" title="Permalink to this heading">#</a></h3>
 <p>Now that the persons, households, and other data are in memory, and also annotated with additional fields
 for later calculations, the school location model can be run.  The school location model is defined
-in <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.models.location_choice</span></code>.  As shown below, the school location model
+in <a class="reference internal" href="models.html#module-activitysim.abm.models.location_choice" title="activitysim.abm.models.location_choice"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.models.location_choice</span></code></a>.  As shown below, the school location model
 actually uses the <code class="docutils literal notranslate"><span class="pre">persons_merged</span></code> table, which includes joined household, land use, and accessibility
 tables as well.  The school location model also requires the network_los object, which is discussed next.
 Before running the generic iterate location choice function, the model reads the model settings file, which
@@ -593,7 +621,7 @@ The skims are lazy loaded under the name “skims” and are available in the ex
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The next step is to call the <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.interaction_sample.interaction_sample()</span></code> function which
+<p>The next step is to call the <a class="reference internal" href="core.html#activitysim.core.interaction_sample.interaction_sample" title="activitysim.core.interaction_sample.interaction_sample"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.interaction_sample.interaction_sample()</span></code></a> function which
 selects a sample of alternatives by running a MNL choice model simulation in which alternatives must be
 merged with choosers because there are interaction terms.  The choosers table, the alternatives table, the
 sample size, the model specification expressions file, the skims, the skims lookups, the chunk size, and the
@@ -614,15 +642,15 @@ trace labels are passed in.</p>
 <p>This function solves the utilities, calculates probabilities, draws random numbers, selects choices with
 replacement, and returns the choices. This is done in a for loop of chunks of chooser records in order to avoid
 running out of RAM when building the often large data tables. This method does a lot, and eventually
-calls <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.interaction_simulate.eval_interaction_utilities()</span></code>, which loops through each
+calls <a class="reference internal" href="core.html#activitysim.core.interaction_simulate.eval_interaction_utilities" title="activitysim.core.interaction_simulate.eval_interaction_utilities"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.interaction_simulate.eval_interaction_utilities()</span></code></a>, which loops through each
 expression in  the expression file and solves it at once for all records in the chunked chooser
 table using Python’s <code class="docutils literal notranslate"><span class="pre">eval</span></code>.</p>
-<p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.interaction_sample.interaction_sample()</span></code> method is currently only a multinomial
-logit choice model.  The <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.simulate.simple_simulate()</span></code> method supports both MNL and NL as specified by
+<p>The <a class="reference internal" href="core.html#activitysim.core.interaction_sample.interaction_sample" title="activitysim.core.interaction_sample.interaction_sample"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.interaction_sample.interaction_sample()</span></code></a> method is currently only a multinomial
+logit choice model.  The <a class="reference internal" href="core.html#activitysim.core.simulate.simple_simulate" title="activitysim.core.simulate.simple_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.simulate.simple_simulate()</span></code></a> method supports both MNL and NL as specified by
 the <code class="docutils literal notranslate"><span class="pre">LOGIT_TYPE</span></code> setting in the model settings YAML file.   The <code class="docutils literal notranslate"><span class="pre">auto_ownership.yaml</span></code> file for example specifies
 the <code class="docutils literal notranslate"><span class="pre">LOGIT_TYPE</span></code> as <code class="docutils literal notranslate"><span class="pre">MNL.</span></code></p>
 <p>If the expression is a skim matrix, then the entire column of chooser OD pairs is retrieved from the matrix (i.e. numpy array)
-in one vectorized step.  The <code class="docutils literal notranslate"><span class="pre">orig</span></code> and <code class="docutils literal notranslate"><span class="pre">dest</span></code> objects in <code class="docutils literal notranslate"><span class="pre">self.data[orig,</span> <span class="pre">dest]</span></code> in <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.los</span></code> are vectors
+in one vectorized step.  The <code class="docutils literal notranslate"><span class="pre">orig</span></code> and <code class="docutils literal notranslate"><span class="pre">dest</span></code> objects in <code class="docutils literal notranslate"><span class="pre">self.data[orig,</span> <span class="pre">dest]</span></code> in <a class="reference internal" href="core.html#module-activitysim.core.los" title="activitysim.core.los"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.los</span></code></a> are vectors
 and selecting numpy array items with vector indexes returns a vector.  Trace data is also written out if configured (not shown below).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># evaluate expressions from the spec multiply by coefficients and sum</span>
 <span class="n">interaction_utilities</span><span class="p">,</span> <span class="n">trace_eval_results</span> \
@@ -690,7 +718,7 @@ logsums settings and expression files.  The resulting logsums are added to the c
 <span class="n">location_sample_df</span><span class="p">[</span><span class="s1">&#39;mode_choice_logsum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">logsums</span>
 </pre></div>
 </div>
-<p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.abm.models.util.logsums.compute_logsums()</span></code> method goes through a similar series
+<p>The <a class="reference internal" href="models.html#activitysim.abm.models.util.logsums.compute_logsums" title="activitysim.abm.models.util.logsums.compute_logsums"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.abm.models.util.logsums.compute_logsums()</span></code></a> method goes through a similar series
 of steps as the interaction_sample function but ends up calling
 <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.simulate.simple_simulate_logsums()</span></code> since it supports nested logit models, which
 are required for the mode choice logsum calculation.  The
@@ -716,7 +744,7 @@ above and is called as follows:</p>
 <p>The operations executed by this model are very similar to the earlier models, except
 this time the sampled locations table is the choosers and the model selects one alternative for
 each chooser using the school location simulate expression files and the
-<code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.interaction_sample_simulate.interaction_sample_simulate()</span></code> function.</p>
+<a class="reference internal" href="core.html#activitysim.core.interaction_sample_simulate.interaction_sample_simulate" title="activitysim.core.interaction_sample_simulate.interaction_sample_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.interaction_sample_simulate.interaction_sample_simulate()</span></code></a> function.</p>
 <p>Back in <code class="docutils literal notranslate"><span class="pre">iterate_location_choice()</span></code>, the model adds the choices as a column to the <code class="docutils literal notranslate"><span class="pre">persons</span></code> table and adds
 additional output columns using a postprocessor table annotation if specified in the settings file.  Refer
 to <a class="reference internal" href="models.html#table-annotation"><span class="std std-ref">Estimation</span></a> for more information and the <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.abm.models.util.expressions.assign_columns()</span></code>
@@ -779,7 +807,7 @@ to <a class="reference internal" href="models.html#shadow-pricing"><span class="
 </div>
 </section>
 <section id="finishing-up">
-<h3>Finishing Up<a class="headerlink" href="#finishing-up" title="Permalink to this headline">#</a></h3>
+<h3>Finishing Up<a class="headerlink" href="#finishing-up" title="Permalink to this heading">#</a></h3>
 <p>The last models to be run by the data pipeline are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">write_data_dictionary</span></code>, which writes the table_name, number of rows, number of columns, and number of bytes for each checkpointed table</p></li>
@@ -793,7 +821,7 @@ to <a class="reference internal" href="models.html#shadow-pricing"><span class="
 </section>
 </section>
 <section id="additional-notes">
-<h2>Additional Notes<a class="headerlink" href="#additional-notes" title="Permalink to this headline">#</a></h2>
+<h2>Additional Notes<a class="headerlink" href="#additional-notes" title="Permalink to this heading">#</a></h2>
 <p>The rest of the microsimulation models operate in a similar fashion with a few notable additions:</p>
 <ul class="simple">
 <li><p>creating new tables</p></li>
@@ -801,10 +829,10 @@ to <a class="reference internal" href="models.html#shadow-pricing"><span class="
 <li><p>aggregate (OD-level) accessibilities model</p></li>
 </ul>
 <section id="creating-new-tables">
-<h3>Creating New Tables<a class="headerlink" href="#creating-new-tables" title="Permalink to this headline">#</a></h3>
+<h3>Creating New Tables<a class="headerlink" href="#creating-new-tables" title="Permalink to this heading">#</a></h3>
 <p>In addition to calculating the mandatory tour frequency for a person, the model must also create mandatory tour records.
 Once the number of tours is known, then the next step is to create tours records for subsequent models.  This is done by the
-<code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.abm.models.util.tour_frequency.process_tours()</span></code> function, which is called by the
+<a class="reference internal" href="models.html#activitysim.abm.models.util.tour_frequency.process_tours" title="activitysim.abm.models.util.tour_frequency.process_tours"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.abm.models.util.tour_frequency.process_tours()</span></code></a> function, which is called by the
 <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency()</span></code> function, which adds the tours to
 the <code class="docutils literal notranslate"><span class="pre">tours</span></code> table managed in the data pipeline.  This is the same basic pattern used for creating new tables - tours, trips, etc.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inject</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
@@ -821,7 +849,7 @@ the <code class="docutils literal notranslate"><span class="pre">tours</span></c
 </div>
 </section>
 <section id="vectorized-3d-skim-indexing">
-<h3>Vectorized 3D Skim Indexing<a class="headerlink" href="#vectorized-3d-skim-indexing" title="Permalink to this headline">#</a></h3>
+<h3>Vectorized 3D Skim Indexing<a class="headerlink" href="#vectorized-3d-skim-indexing" title="Permalink to this heading">#</a></h3>
 <p>The mode choice model uses a collection of skims with a third dimension, which in this case
 is time period.  Setting up the 3D index for skims is done as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">skim_dict</span> <span class="o">=</span> <span class="n">network_los</span><span class="o">.</span><span class="n">get_default_skim_dict</span><span class="p">()</span>
@@ -862,7 +890,7 @@ significant model runtime.</p>
 <p>See <a class="reference internal" href="core.html#los-in-detail"><span class="std std-ref">LOS</span></a> for more information on skim handling.</p>
 </section>
 <section id="accessibilities-model">
-<h3>Accessibilities Model<a class="headerlink" href="#accessibilities-model" title="Permalink to this headline">#</a></h3>
+<h3>Accessibilities Model<a class="headerlink" href="#accessibilities-model" title="Permalink to this heading">#</a></h3>
 <p>Unlike the microsimulation models, which operate on a table of choosers, the accessibilities model is
 an aggregate model that calculates accessibility measures by origin zone to all destination zones.  This
 model could be implemented with a matrix library such as numpy since it involves a series of matrix
@@ -889,7 +917,7 @@ to origin zone and write them to the datastore.</p>
 </section>
 </section>
 <section id="multiprocessing">
-<span id="index-0"></span><span id="id2"></span><h2>Multiprocessing<a class="headerlink" href="#multiprocessing" title="Permalink to this headline">#</a></h2>
+<span id="index-0"></span><span id="id2"></span><h2>Multiprocessing<a class="headerlink" href="#multiprocessing" title="Permalink to this heading">#</a></h2>
 <p>Most models can be implemented as a series of independent vectorized operations on pandas DataFrames and
 numpy arrays. These vectorized operations are much faster than sequential Python because they are
 implemented by native code (compiled C) and are to some extent multi-threaded. But the benefits of
@@ -905,7 +933,7 @@ architecture. The specification of which models should be run in parallel, how m
 should be used, and the segmentation of the data between processes are all specified in the
 settings config file.</p>
 <section id="mutliprocessing-configuration">
-<h3>Mutliprocessing Configuration<a class="headerlink" href="#mutliprocessing-configuration" title="Permalink to this headline">#</a></h3>
+<h3>Mutliprocessing Configuration<a class="headerlink" href="#mutliprocessing-configuration" title="Permalink to this heading">#</a></h3>
 <p>The multiprocess_steps setting below indicate that the simulation should be broken into three steps.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">models</span><span class="p">:</span>
   <span class="c1">### mp_initialize step</span>
@@ -966,7 +994,7 @@ concatenating the primary and dependent tables and simply retaining any copy of 
 essentially the same tables and results as if the whole simulation had been run as a single process.</p>
 </section>
 <section id="shared-data">
-<h3>Shared Data<a class="headerlink" href="#shared-data" title="Permalink to this headline">#</a></h3>
+<h3>Shared Data<a class="headerlink" href="#shared-data" title="Permalink to this heading">#</a></h3>
 <p>Although multiprocessing subprocesses each have their apportioned pipeline, they also share some
 data passed to them by the parent process:</p>
 <blockquote>
@@ -977,7 +1005,7 @@ data passed to them by the parent process:</p>
 </div></blockquote>
 </section>
 <section id="outputs">
-<h3>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">#</a></h3>
+<h3>Outputs<a class="headerlink" href="#outputs" title="Permalink to this heading">#</a></h3>
 <p>When multiprocessing is run, the following additional outputs are created, which are useful for understanding how multiprocessing works:</p>
 <blockquote>
 <div><ul class="simple">
@@ -992,11 +1020,11 @@ data passed to them by the parent process:</p>
 <span class="target" id="index-1"></span><span class="target" id="index-2"></span></section>
 </section>
 <section id="data-schema">
-<span id="index-3"></span><h2>Data Schema<a class="headerlink" href="#data-schema" title="Permalink to this headline">#</a></h2>
+<span id="index-3"></span><h2>Data Schema<a class="headerlink" href="#data-schema" title="Permalink to this heading">#</a></h2>
 <p>The ActivitySim data schema depends on the sub-models implemented.  The data schema listed below is for
 the primary TM1 example model.  These tables and skims are defined in the <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.tables</span></code> package.</p>
 <span class="target" id="index-4"></span><span class="target" id="index-5"></span><span class="target" id="index-6"></span><span class="target" id="index-7"></span><span class="target" id="index-8"></span><span class="target" id="index-9"></span><span class="target" id="index-10"></span><span class="target" id="index-11"></span><section id="data-tables">
-<span id="index-12"></span><h3>Data Tables<a class="headerlink" href="#data-tables" title="Permalink to this headline">#</a></h3>
+<span id="index-12"></span><h3>Data Tables<a class="headerlink" href="#data-tables" title="Permalink to this heading">#</a></h3>
 <p>The following tables are currently implemented:</p>
 <blockquote>
 <div><ul class="simple">
@@ -1021,19 +1049,11 @@ the primary TM1 example model.  These tables and skims are defined in the <code 
 </div></blockquote>
 </section>
 <section id="id3">
-<h3>Data Schema<a class="headerlink" href="#id3" title="Permalink to this headline">#</a></h3>
+<h3>Data Schema<a class="headerlink" href="#id3" title="Permalink to this heading">#</a></h3>
 <p>The following table lists the pipeline data tables, each final field, the data type, the step that created it, and the
 number of columns and rows in the table at the time of creation.  The <code class="docutils literal notranslate"><span class="pre">other_resources\scripts\make_pipeline_output.py</span></code> script
 uses the information stored in the pipeline file to create the table below for a small sample of households.</p>
 <table class="table">
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 28%" />
-<col style="width: 8%" />
-<col style="width: 27%" />
-<col style="width: 5%" />
-<col style="width: 5%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Table</p></th>
 <th class="head"><p>Field</p></th>
@@ -2980,7 +3000,7 @@ uses the information stored in the pipeline file to create the table below for a
 </table>
 <span class="target" id="index-13"></span><span class="target" id="index-14"></span></section>
 <section id="skims">
-<span id="index-15"></span><span id="id4"></span><h3>Skims<a class="headerlink" href="#skims" title="Permalink to this headline">#</a></h3>
+<span id="index-15"></span><span id="id4"></span><h3>Skims<a class="headerlink" href="#skims" title="Permalink to this heading">#</a></h3>
 <p>The skims class defines Inject injectables to access the skim matrices.  The skims class reads the
 skims from the omx_file on disk.  The injectables and omx_file for the example are listed below.
 The skims are float64 matrix.</p>
@@ -3042,10 +3062,6 @@ The skims are float64 matrix.</p>
 </li>
 </ul>
 <table class="table">
-<colgroup>
-<col style="width: 64%" />
-<col style="width: 36%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Field</p></th>
 <th class="head"><p>Type</p></th>
@@ -5541,11 +5557,10 @@ The skims are float64 matrix.</p>
               
               
               
-                <footer class="bd-footer-article">
+              
+              
+                <footer class="prev-next-footer">
                   
-<div class="footer-article-items footer-article__inner">
-  
-    <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
        href="estimation.html"
@@ -5565,10 +5580,7 @@ The skims are float64 matrix.</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
-</div></div>
-  
 </div>
-
                 </footer>
               
             </div>
@@ -5577,11 +5589,14 @@ The skims are float64 matrix.</p>
               
                 <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
+
   <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
     <i class="fa-solid fa-list"></i> On this page
   </div>
-  <nav class="bd-toc-nav page-toc">
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execution-flow">Execution Flow</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#initialization">Initialization</a></li>
@@ -5612,6 +5627,7 @@ The skims are float64 matrix.</p>
   </nav></div>
 
   <div class="sidebar-secondary-item">
+
   <div class="tocsection sourcelink">
     <a href="_sources/howitworks.rst.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
@@ -5632,8 +5648,8 @@ The skims are float64 matrix.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+  <script src="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -5642,12 +5658,13 @@ The skims are float64 matrix.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.1.dev15+gd9ead707, documentation last updated May 19, 2023.<br/>
+ActivitySim 1.2.1.dev33+gfe6bd6e3, documentation last updated Jan 31, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
+
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
     <br/>
   </p>
 </div>
@@ -5655,10 +5672,12 @@ ActivitySim 1.2.1.dev15+gd9ead707, documentation last updated May 19, 2023.<br/>
     </div>
   
   
+  
     <div class="footer-items__end">
       
-        <div class="footer-item"><p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.13.3.
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.2.
 </p></div>
       
     </div>

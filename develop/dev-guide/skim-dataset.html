@@ -3,13 +3,13 @@
 <!DOCTYPE html>
 
 
-<html >
+<html lang="en" data-content_root="" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Using Skim Dataset &#8212; ActivitySim 1.2.1.dev15+gd9ead707</title>
+    <title>Using Skim Dataset &#8212; ActivitySim</title>
   
   
   
@@ -19,41 +19,50 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
 
   
-  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+  <link href="../_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
     <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
+  <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
     <script src="../_static/design-tabs.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/skim-dataset';</script>
     <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.1';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Workflows" href="workflows.html" />
+    <link rel="next" title="Checkpointing" href="checkpointing.html" />
     <link rel="prev" title="Using Sharrow" href="using-sharrow.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="docsearch:language" content="None"/>
+  <meta name="docsearch:language" content="en"/>
+    <meta name="docbuild:last-update" content="Jan 31, 2024"/>
   </head>
   
   
@@ -61,7 +70,15 @@
 
   
   
-  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
   
   <input type="checkbox"
           class="sidebar-toggle"
@@ -96,15 +113,17 @@
 </form></div>
   </div>
   
-    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    <header class="bd-header navbar navbar-expand-lg bd-navbar">
 <div class="bd-header__inner bd-page-width">
   <label class="sidebar-toggle primary-toggle" for="__primary">
     <span class="fa-solid fa-bars"></span>
   </label>
   
-  <div class="navbar-header-items__start">
+  
+  <div class="col-lg-3 navbar-header-items__start">
     
       <div class="navbar-item">
+
   
 
 <a class="navbar-brand logo" href="../index.html">
@@ -113,24 +132,19 @@
   
   
   
-    <p class="title logo__title">ActivitySim 1.2.1.dev15+gd9ead707</p>
+  
+    <p class="title logo__title">ActivitySim</p>
   
 </a></div>
     
   </div>
   
-  
   <div class="col-lg-9 navbar-header-items">
     
     <div class="me-auto navbar-header-items__center">
       
-        <div class="navbar-item"><nav class="navbar-nav">
-  <p class="sidebar-header-items__title"
-     role="heading"
-     aria-level="1"
-     aria-label="Site Navigation">
-    Site Navigation
-  </p>
+        <div class="navbar-item">
+<nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item">
@@ -156,13 +170,16 @@
       
         <div class="navbar-item navbar-persistent--container">
           
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass"></i>
-  </button>
-`);
-</script>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
         </div>
       
       
@@ -170,12 +187,21 @@ document.write(`
 <script>
 document.write(`
   <div class="version-switcher__container dropdown">
-    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
-      1.2.1  <!-- this text may get changed later by javascript -->
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
       <span class="caret"></span>
     </button>
-    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
-    <!-- dropdown will be populated by javascript on page load -->
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
     </div>
   </div>
 `);
@@ -187,27 +213,33 @@ document.write(`
   
   
     <div class="navbar-persistent--mobile">
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass"></i>
-  </button>
-`);
-</script>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
     </div>
   
 
   
-    <label class="sidebar-toggle secondary-toggle" for="__secondary">
+    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
       <span class="fa-solid fa-outdent"></span>
     </label>
   
 </div>
 
-    </nav>
+    </header>
   
+
   <div class="bd-container">
     <div class="bd-container__inner bd-page-width">
+      
+      
       
       <div class="bd-sidebar-primary bd-sidebar">
         
@@ -218,13 +250,8 @@ document.write(`
     
       <div class="sidebar-header-items__center">
         
-          <div class="navbar-item"><nav class="navbar-nav">
-  <p class="sidebar-header-items__title"
-     role="heading"
-     aria-level="1"
-     aria-label="Site Navigation">
-    Site Navigation
-  </p>
+          <div class="navbar-item">
+<nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item">
@@ -253,12 +280,21 @@ document.write(`
 <script>
 document.write(`
   <div class="version-switcher__container dropdown">
-    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
-      1.2.1  <!-- this text may get changed later by javascript -->
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
       <span class="caret"></span>
     </button>
-    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
-    <!-- dropdown will be populated by javascript on page load -->
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
     </div>
   </div>
 `);
@@ -269,17 +305,26 @@ document.write(`
   </div>
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
-        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Developer Installation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="core-workflow.html">Workflow State</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="core-workflow-api.html">State API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-workflow-steps.html">Workflow Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-workflow-table.html">Workflow Tables</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="using-sharrow.html">Using Sharrow</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Using Skim Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="checkpointing.html">Checkpointing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development.html">Software Development</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../models.html">Models</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="components/index.html">Components</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="components/index.html">Components</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="components/trip_destination.html">Trip Destination</a></li>
 </ul>
 </li>
@@ -314,8 +359,8 @@ document.write(`
 
 
 
-<nav aria-label="Breadcrumbs">
-  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
     
     <li class="breadcrumb-item breadcrumb-home">
       <a href="../index.html" class="nav-link" aria-label="Home">
@@ -340,16 +385,16 @@ document.write(`
               
                 
 <div id="searchbox"></div>
-                <article class="bd-article" role="main">
+                <article class="bd-article">
                   
   <section id="using-skim-dataset">
-<span id="skim-datasets"></span><h1>Using Skim Dataset<a class="headerlink" href="#using-skim-dataset" title="Permalink to this headline">#</a></h1>
+<span id="skim-datasets"></span><h1>Using Skim Dataset<a class="headerlink" href="#using-skim-dataset" title="Permalink to this heading">#</a></h1>
 <p>ActivitySim 1.2 offers two internal frameworks for managing skim data.</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="../core.html#activitysim.core.skim_dictionary.SkimDict" title="activitysim.core.skim_dictionary.SkimDict"><span class="xref myst py py-class"><code class="docutils literal notranslate"><span class="pre">SkimDict</span></code></span></a>, the legacy
 framework, that stores all skim data in one large omnibus array, with
 various offset lookups and tools to access values.</p></li>
-<li><p><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">SkimDataset</span></code></span>, an
+<li><p><a class="reference internal" href="#activitysim.core.skim_dataset.SkimDataset" title="activitysim.core.skim_dataset.SkimDataset"><span class="xref myst py py-class"><code class="docutils literal notranslate"><span class="pre">SkimDataset</span></code></span></a>, an
 <span class="xref myst">xarray.Dataset</span> based framework, which mimics the
 <a class="reference internal" href="../core.html#activitysim.core.skim_dictionary.SkimDict" title="activitysim.core.skim_dictionary.SkimDict"><span class="xref myst py py-class"><code class="docutils literal notranslate"><span class="pre">SkimDict</span></code></span></a> interface, and
 adds a number of features optimized specifically for use with <code class="docutils literal notranslate"><span class="pre">sharrow</span></code>.
@@ -357,22 +402,223 @@ This framework is automatically used when sharrow is enabled, and there
 is no user configuration to enable it separately.</p></li>
 </ul>
 <section id="skims-in-shared-memory">
-<h2>Skims in Shared Memory<a class="headerlink" href="#skims-in-shared-memory" title="Permalink to this headline">#</a></h2>
+<h2>Skims in Shared Memory<a class="headerlink" href="#skims-in-shared-memory" title="Permalink to this heading">#</a></h2>
 <p>These two internal frameworks manage shared memory differently when running
 ActivitySim in multiprocessing mode.</p>
 <p>For <a class="reference internal" href="../core.html#activitysim.core.skim_dictionary.SkimDict" title="activitysim.core.skim_dictionary.SkimDict"><span class="xref myst py py-class"><code class="docutils literal notranslate"><span class="pre">SkimDict</span></code></span></a>, shared memory is
 used only when running with multiprocessing active, and is allocated via the
-<span class="xref myst"><code class="docutils literal notranslate"><span class="pre">allocate_shared_skim_buffers</span></code></span>
+<a class="reference internal" href="../core.html#activitysim.core.mp_tasks.allocate_shared_skim_buffers" title="activitysim.core.mp_tasks.allocate_shared_skim_buffers"><span class="xref myst py py-func"><code class="docutils literal notranslate"><span class="pre">allocate_shared_skim_buffers</span></code></span></a>
 function, which in turn invokes
-<span class="xref myst">Network_LOS.allocate_shared_skim_buffers</span>.</p>
-<p>For <span class="xref myst"><code class="docutils literal notranslate"><span class="pre">SkimDataset</span></code></span>, shared memory is
+<a class="reference internal" href="../core.html#activitysim.core.los.Network_LOS.allocate_shared_skim_buffers" title="activitysim.core.los.Network_LOS.allocate_shared_skim_buffers"><span class="xref myst py py-meth">Network_LOS.allocate_shared_skim_buffers</span></a>.</p>
+<p>For <a class="reference internal" href="#activitysim.core.skim_dataset.SkimDataset" title="activitysim.core.skim_dataset.SkimDataset"><span class="xref myst py py-class"><code class="docutils literal notranslate"><span class="pre">SkimDataset</span></code></span></a>, shared memory is
 used regardless of whether multiprocessing is active or not.  The shared memory
 allocation is done via the <code class="docutils literal notranslate"><span class="pre">Dataset.shm.to_shared_memory</span></code> method called at the end
-of the <span class="xref myst"><code class="docutils literal notranslate"><span class="pre">load_skim_dataset_to_shared_memory</span></code></span>
+of the <a class="reference internal" href="#activitysim.core.skim_dataset.load_skim_dataset_to_shared_memory" title="activitysim.core.skim_dataset.load_skim_dataset_to_shared_memory"><span class="xref myst py py-func"><code class="docutils literal notranslate"><span class="pre">load_skim_dataset_to_shared_memory</span></code></span></a>
 function.</p>
 </section>
-<section id="skim-dataset-api">
-<h2>Skim Dataset API<a class="headerlink" href="#skim-dataset-api" title="Permalink to this headline">#</a></h2>
+<section id="module-activitysim.core.skim_dataset">
+<span id="skim-dataset-api"></span><h2>Skim Dataset API<a class="headerlink" href="#module-activitysim.core.skim_dataset" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="activitysim.core.skim_dataset.DatasetWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dataset.</span></span><span class="sig-name descname"><span class="pre">DatasetWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper" title="Permalink to this definition">#</a></dt>
+<dd><p>Mimics the SkimWrapper interface to allow legacy code to access data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataset: Dataset</strong></dt><dd></dd>
+<dt><strong>orig_key, dest_key: str</strong></dt><dd><p>name of columns in target dataframe to use as origin and destination
+lookups, respectively</p>
+</dd>
+<dt><strong>time_key</strong><span class="classifier">str, optional</span></dt><dd></dd>
+<dt><strong>time_map</strong><span class="classifier">Mapping, optional</span></dt><dd><p>A mapping from time period index numbers to (more aggregate) time
+period names.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.skim_dataset.DatasetWrapper.lookup">
+<span class="sig-name descname"><span class="pre">lookup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper.lookup" title="Permalink to this definition">#</a></dt>
+<dd><p>Generally not called by the user - use __getitem__ instead</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>key</strong><span class="classifier">hashable</span></dt><dd><p>The key (identifier) for this skim object</p>
+</dd>
+<dt><strong>od</strong><span class="classifier">bool (optional)</span></dt><dd><p>od=True means lookup standard origin-destination skim value
+od=False means lookup destination-origin skim value</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>impedances: pd.Series</dt><dd><p>A Series of impedances which are elements of the Skim object and
+with the same index as df</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.skim_dataset.DatasetWrapper.max">
+<span class="sig-name descname"><span class="pre">max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper.max" title="Permalink to this definition">#</a></dt>
+<dd><p>return max skim value in either o-d or d-o direction</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.skim_dataset.DatasetWrapper.reverse">
+<span class="sig-name descname"><span class="pre">reverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper.reverse" title="Permalink to this definition">#</a></dt>
+<dd><p>return skim value in reverse (d-o) direction</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.skim_dataset.DatasetWrapper.set_df">
+<span class="sig-name descname"><span class="pre">set_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper.set_df" title="Permalink to this definition">#</a></dt>
+<dd><p>Set the dataframe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>df</strong><span class="classifier">DataFrame</span></dt><dd><p>The dataframe which contains the origin and destination ids</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>self (to facilitate chaining)</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="activitysim.core.skim_dataset.SkimDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dataset.</span></span><span class="sig-name descname"><span class="pre">SkimDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset" title="Permalink to this definition">#</a></dt>
+<dd><p>A wrapper around xarray.Dataset containing skim data, with time period management.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.skim_dataset.SkimDataset.get_skim_usage">
+<span class="sig-name descname"><span class="pre">get_skim_usage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset.get_skim_usage" title="Permalink to this definition">#</a></dt>
+<dd><p>return set of keys of skims looked up. e.g. {‘DIST’, ‘SOV’}</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>set:</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.skim_dataset.SkimDataset.lookup">
+<span class="sig-name descname"><span class="pre">lookup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset.lookup" title="Permalink to this definition">#</a></dt>
+<dd><p>Return list of skim values of skims(s) at orig/dest in skim with the specified key (e.g. ‘DIST’)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>orig: list of orig zone_ids</strong></dt><dd></dd>
+<dt><strong>dest: list of dest zone_ids</strong></dt><dd></dd>
+<dt><strong>key: str</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Numpy.ndarray: list of skim values for od pairs</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.skim_dataset.SkimDataset.wrap">
+<span class="sig-name descname"><span class="pre">wrap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset.wrap" title="Permalink to this definition">#</a></dt>
+<dd><p>Get a wrapper for the given keys.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>orig_key, dest_key</strong><span class="classifier">str</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>DatasetWrapper</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.skim_dataset.SkimDataset.wrap_3d">
+<span class="sig-name descname"><span class="pre">wrap_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim3_key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset.wrap_3d" title="Permalink to this definition">#</a></dt>
+<dd><p>Get a 3d wrapper for the given keys.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>orig_key, dest_key</strong><span class="classifier">str</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>DatasetWrapper</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.skim_dataset.load_skim_dataset_to_shared_memory">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dataset.</span></span><span class="sig-name descname"><span class="pre">load_skim_dataset_to_shared_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'taz'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2024.1.2.dev0)"><span class="pre">Dataset</span></a></span></span><a class="headerlink" href="#activitysim.core.skim_dataset.load_skim_dataset_to_shared_memory" title="Permalink to this definition">#</a></dt>
+<dd><p>Load skims from disk into shared memory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>state</strong><span class="classifier">State</span></dt><dd></dd>
+<dt><strong>skim_tag</strong><span class="classifier">str, default “taz”</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>xarray.Dataset</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.skim_dataset.load_sparse_maz_skims">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dataset.</span></span><span class="sig-name descname"><span class="pre">load_sparse_maz_skims</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">land_use_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remapper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zone_system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maz2taz_file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maz_to_maz_tables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_blend_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_file_resolver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.load_sparse_maz_skims" title="Permalink to this definition">#</a></dt>
+<dd><p>Load sparse MAZ data on top of TAZ skim data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataset</strong><span class="classifier">xarray.Dataset</span></dt><dd><p>The existing dataset at TAZ resolution only.</p>
+</dd>
+<dt><strong>land_use_index</strong><span class="classifier">pandas.Index</span></dt><dd><p>The index of the land use table.  For two and three zone systems,
+these index values should be MAZ identifiers.</p>
+</dd>
+<dt><strong>remapper</strong><span class="classifier">dict, optional</span></dt><dd><p>A dictionary mapping where the keys are the original (nominal) zone
+id’s, and the values are the recoded (typically zero-based contiguous)
+zone id’s.  Recoding improves runtime efficiency.</p>
+</dd>
+<dt><strong>zone_system</strong><span class="classifier">int</span></dt><dd><p>Currently 1, 2 and 3 are supported.</p>
+</dd>
+<dt><strong>maz2taz_file_name</strong><span class="classifier">str</span></dt><dd></dd>
+<dt><strong>maz_to_maz_tables</strong><span class="classifier">Collection[]</span></dt><dd></dd>
+<dt><strong>max_blend_distance</strong><span class="classifier">optional</span></dt><dd></dd>
+<dt><strong>data_file_resolver</strong><span class="classifier">function or Callable</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>xarray.Dataset</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -381,11 +627,10 @@ function.</p>
               
               
               
-                <footer class="bd-footer-article">
+              
+              
+                <footer class="prev-next-footer">
                   
-<div class="footer-article-items footer-article__inner">
-  
-    <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
        href="using-sharrow.html"
@@ -397,18 +642,15 @@ function.</p>
       </div>
     </a>
     <a class="right-next"
-       href="workflows.html"
+       href="checkpointing.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Workflows</p>
+        <p class="prev-next-title">Checkpointing</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
-</div></div>
-  
 </div>
-
                 </footer>
               
             </div>
@@ -417,18 +659,22 @@ function.</p>
               
                 <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
+
   <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
     <i class="fa-solid fa-list"></i> On this page
   </div>
-  <nav class="bd-toc-nav page-toc">
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#skims-in-shared-memory">Skims in Shared Memory</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#skim-dataset-api">Skim Dataset API</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-activitysim.core.skim_dataset">Skim Dataset API</a></li>
 </ul>
   </nav></div>
 
   <div class="sidebar-secondary-item">
+
   <div class="tocsection sourcelink">
     <a href="../_sources/dev-guide/skim-dataset.md.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
@@ -449,8 +695,8 @@ function.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+  <script src="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -459,12 +705,13 @@ function.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.1.dev15+gd9ead707, documentation last updated May 19, 2023.<br/>
+ActivitySim 1.2.1.dev33+gfe6bd6e3, documentation last updated Jan 31, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
+
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
     <br/>
   </p>
 </div>
@@ -472,10 +719,12 @@ ActivitySim 1.2.1.dev15+gd9ead707, documentation last updated May 19, 2023.<br/>
     </div>
   
   
+  
     <div class="footer-items__end">
       
-        <div class="footer-item"><p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.13.3.
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.2.
 </p></div>
       
     </div>

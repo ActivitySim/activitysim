@@ -444,12 +444,10 @@ def auto_opt_pd_dtypes(
             else:
                 df[col] = pd.to_numeric(df[col], downcast="integer")
                 continue
-            # there are calcualtions in asim that expect results in negative values
-            # operations on two unsigned types will not produce negative values
-            # if df[col].min() >= 0:
-            #     df[col] = pd.to_numeric(df[col], downcast='unsigned')
-            # else:
-            #     df[col] = pd.to_numeric(df[col], downcast='integer')
+            # Initially thought of using unsigned integers, BUT:
+            # There are calculations in asim (e.g., UECs) that expect results in negative values,
+            # and operations on two unsigned types will not produce negative values,
+            # therefore, we did not use unsigned integers.
 
     if not inplace:
         return df

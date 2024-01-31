@@ -59,14 +59,25 @@ def test_mtf():
         check_dtype=False,
     )
 
-    pdt.assert_series_equal(
-        mandatory_tours.tour_type.astype(str),
-        pd.Series(
-            ["work", "work", "school", "work", "school", "school", "school"],
-            index=idx,
-            name="tour_type",
-        ),
-    )
+    # check if the tour_type variable is pandas categorical
+    if isinstance(mandatory_tours.tour_type.dtype, pd.api.types.CategoricalDtype):
+        pdt.assert_series_equal(
+            mandatory_tours.tour_type.astype(str),
+            pd.Series(
+                ["work", "work", "school", "work", "school", "school", "school"],
+                index=idx,
+                name="tour_type",
+            ),
+        )
+    else:
+        pdt.assert_series_equal(
+            mandatory_tours.tour_type,
+            pd.Series(
+                ["work", "work", "school", "work", "school", "school", "school"],
+                index=idx,
+                name="tour_type",
+            ),
+        )
 
     # tour_nums for work_and_school non-worker should be flipped
     pdt.assert_series_equal(

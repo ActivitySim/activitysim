@@ -230,10 +230,9 @@ def construct_model_alternatives(
             ), f"missing vehicle data for alternatives:\n {missing_alts}"
         else:
             # eliminate alternatives if no vehicle type data
+            # if this happens, alts_wide is not the same length as alts_long
             alts_wide = alts_wide[alts_wide._merge != "left_only"]
-        alts_wide.drop(
-            columns="_merge", inplace=True
-        )  # if this happens, alt_wide length will not match alt_long
+        alts_wide.drop(columns="_merge", inplace=True)
 
     # converting age to integer to allow interactions in utilities
     alts_wide["age"] = alts_wide["age"].astype(int)

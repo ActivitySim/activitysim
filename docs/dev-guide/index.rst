@@ -30,7 +30,8 @@ Contents
    workflows
    logging
    ../development
-   ../models
+   component-configs
    components/index
    ../core
    ../benchmarking
+   build-docs

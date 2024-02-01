@@ -6,13 +6,16 @@ import os
 import struct
 import time
 from pathlib import Path
+from typing import Any
 
 import numba
+import pandas as pd
 import platformdirs
 import yaml
 from pydantic import DirectoryPath, validator
 
 from activitysim.core.configuration.base import PydanticBase
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.exceptions import SettingsFileNotFoundError
 from activitysim.core.util import parse_suffix_args, suffix_tables_in_settings
 
@@ -538,7 +541,9 @@ class FileSystem(PydanticBase, validate_assignment=True):
         """
         return tuple(self.get_working_subdir(i) for i in self.configs_dir)
 
-    def get_config_file_path(self, file_name, mandatory=True, allow_glob=False) -> Path:
+    def get_config_file_path(
+        self, file_name: Path | str, mandatory: bool = True, allow_glob: bool = False
+    ) -> Path:
         """
         Find the first matching file among config directories.
 
@@ -629,12 +634,12 @@ class FileSystem(PydanticBase, validate_assignment=True):
 
     def read_settings_file(
         self,
-        file_name,
-        mandatory=True,
-        include_stack=False,
-        configs_dir_list=None,
-        validator_class=None,
-    ):
+        file_name: str,
+        mandatory: bool = True,
+        include_stack: bool = False,
+        configs_dir_list: tuple[Path] | None = None,
+        validator_class: type[PydanticBase] | None = None,
+    ) -> dict | PydanticBase:
         """
         Load settings from one or more yaml files.
 
@@ -671,6 +676,8 @@ class FileSystem(PydanticBase, validate_assignment=True):
         -------
         dict or validator_class
         """
+        if isinstance(file_name, Path):
+            file_name = str(file_name)
 
         def backfill_settings(settings, backfill):
             new_settings = backfill.copy()
@@ -804,8 +811,10 @@ class FileSystem(PydanticBase, validate_assignment=True):
         if args.SUFFIX is not None and args.ROOTS:
             settings = suffix_tables_in_settings(settings, args.SUFFIX, args.ROOTS)
 
-        # we don't want to actually have inherit_settings as a settings
+        # we don't want to actually have inherit_settings or include_settings
+        # as they won't validate
         settings.pop("inherit_settings", None)
+        settings.pop("include_settings", None)
 
         if validator_class is not None:
             settings = validator_class.parse_obj(settings)
@@ -825,19 +834,25 @@ class FileSystem(PydanticBase, validate_assignment=True):
         # in the legacy implementation, this function has a default mandatory=False
         return self.read_settings_file(file_name, mandatory=mandatory)
 
-    def read_model_spec(self, file_name: str):
+    def read_model_spec(self, file_name: Path | str):
         from activitysim.core import simulate
 
         return simulate.read_model_spec(self, file_name)
 
-    def read_model_coefficients(self, model_settings=None, file_name=None):
+    def read_model_coefficients(
+        self,
+        model_settings: LogitComponentSettings | dict[str, Any] | None = None,
+        file_name: str | None = None,
+    ) -> pd.DataFrame:
         from activitysim.core import simulate
 
         return simulate.read_model_coefficients(
             self, model_settings=model_settings, file_name=file_name
         )
 
-    def get_segment_coefficients(self, model_settings, segment_name):
+    def get_segment_coefficients(
+        self, model_settings: PydanticBase | dict, segment_name: str
+    ):
         from activitysim.core import simulate
 
         return simulate.get_segment_coefficients(self, model_settings, segment_name)

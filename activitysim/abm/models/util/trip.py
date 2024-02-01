@@ -151,7 +151,7 @@ def get_time_windows(residual, level):
 
 
 @workflow.cached_object
-def stop_frequency_alts(state: workflow.State):
+def stop_frequency_alts(state: workflow.State) -> pd.DataFrame:
     # alt file for building trips even though simulation is simple_simulate not interaction_simulate
     file_path = state.filesystem.get_config_file_path("stop_frequency_alternatives.csv")
     df = pd.read_csv(file_path, comment="#")
@@ -160,7 +160,10 @@ def stop_frequency_alts(state: workflow.State):
 
 
 def initialize_from_tours(
-    state: workflow.State, tours, stop_frequency_alts, addtl_tour_cols_to_preserve=None
+    state: workflow.State,
+    tours,
+    stop_frequency_alts: pd.DataFrame,
+    addtl_tour_cols_to_preserve=None,
 ):
     """
     Instantiates a trips table based on tour-level attributes: stop frequency,

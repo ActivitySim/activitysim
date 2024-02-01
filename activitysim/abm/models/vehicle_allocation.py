@@ -15,30 +15,34 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger(__name__)
 
 
-def annotate_vehicle_allocation(state: workflow.State, model_settings, trace_label):
+def annotate_vehicle_allocation(
+    state: workflow.State, model_settings: VehicleAllocationSettings, trace_label: str
+):
     """
     Add columns to the tours table in the pipeline according to spec.
 
     Parameters
     ----------
-    model_settings : dict
+    model_settings : VehicleAllocationSettings
     trace_label : str
     """
     tours = state.get_dataframe("tours")
     expressions.assign_columns(
         state,
         df=tours,
-        model_settings=model_settings.get("annotate_tours"),
+        model_settings=model_settings.annotate_tours,
         trace_label=tracing.extend_trace_label(trace_label, "annotate_tours"),
     )
     state.add_table("tours", tours)
 
 
-def get_skim_dict(network_los, choosers):
+def get_skim_dict(network_los: los.Network_LOS, choosers: pd.DataFrame):
     """
     Returns a dictionary of skim wrappers to use in expression writing.
 
@@ -81,6 +85,26 @@ def get_skim_dict(network_los, choosers):
     return skims
 
 
+class VehicleAllocationSettings(LogitComponentSettings, extra="forbid"):
+    """
+    Settings for the `joint_tour_scheduling` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    OCCUPANCY_LEVELS: list = [1]  # TODO Check this
+    """Occupancy level
+
+    It will create columns in the tour table selecting a vehicle for each of the
+    occupancy levels. They are named vehicle_occup_1, vehicle_occup_2,... etc.
+    if not supplied, will default to only one occupancy level of 1
+    """
+
+    annotate_tours: PreprocessorSettings | None = None
+    """Preprocessor settings to annotate tours"""
+
+
 @workflow.step
 def vehicle_allocation(
     state: workflow.State,
@@ -90,6 +114,9 @@ def vehicle_allocation(
     tours: pd.DataFrame,
     tours_merged: pd.DataFrame,
     network_los: los.Network_LOS,
+    model_settings: VehicleAllocationSettings | None = None,
+    model_settings_file_name: str = "vehicle_allocation.yaml",
+    trace_label: str = "vehicle_allocation",
 ) -> None:
     """Selects a vehicle for each occupancy level for each tour.
 
@@ -112,15 +139,18 @@ def vehicle_allocation(
     tours_merged : pd.DataFrame
     network_los : los.Network_LOS
     """
-    trace_label = "vehicle_allocation"
-    model_settings_file_name = "vehicle_allocation.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
-    logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
+    if model_settings is None:
+        model_settings = VehicleAllocationSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
+
+    # logsum_column_name = model_settings.MODE_CHOICE_LOGSUM_COLUMN_NAME
 
     estimator = estimation.manager.begin_estimation(state, "vehicle_allocation")
 
-    model_spec_raw = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec_raw = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec_raw, coefficients_df, estimator
@@ -171,7 +201,7 @@ def vehicle_allocation(
     locals_dict.update(skims)
 
     # ------ preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         expressions.assign_columns(
             state,
@@ -191,7 +221,7 @@ def vehicle_allocation(
 
     # ------ running for each occupancy level selected
     tours_veh_occup_cols = []
-    for occup in model_settings.get("OCCUPANCY_LEVELS", [1]):
+    for occup in model_settings.OCCUPANCY_LEVELS:
         logger.info("Running for occupancy = %d", occup)
         # setting occup for access in spec expressions
         locals_dict.update({"occup": occup})
@@ -240,7 +270,7 @@ def vehicle_allocation(
         "vehicle_allocation", tours[tours_veh_occup_cols], value_counts=True
     )
 
-    annotate_settings = model_settings.get("annotate_tours", None)
+    annotate_settings = model_settings.annotate_tours
     if annotate_settings:
         annotate_vehicle_allocation(state, model_settings, trace_label)
 

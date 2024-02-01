@@ -8,6 +8,7 @@ import pandas as pd
 
 from activitysim.abm.models.util import probabilistic_scheduling as ps
 from activitysim.core import chunk, estimation, workflow
+from activitysim.core.configuration.base import PydanticReadable
 
 logger = logging.getLogger(__name__)
 
@@ -69,8 +70,28 @@ def run_tour_scheduling_probabilistic(
     return choices
 
 
+class TourSchedulingProbabilisticSettings(PydanticReadable):
+    """
+    Settings for the `tour_scheduling_probabilistic` component.
+    """
+
+    depart_alt_base: int = 0
+
+    PROBS_SPEC: str = "tour_scheduling_probs.csv"
+    """Filename for the tour scheduling probabilistic specification (csv) file."""
+
+    PROBS_JOIN_COLS: list[str] | None = None
+    """List of columns"""
+
+
 @workflow.step
-def tour_scheduling_probabilistic(state: workflow.State, tours: pd.DataFrame) -> None:
+def tour_scheduling_probabilistic(
+    state: workflow.State,
+    tours: pd.DataFrame,
+    model_settings: TourSchedulingProbabilisticSettings | None = None,
+    model_settings_file_name: str = "tour_scheduling_probabilistic.yaml",
+    trace_label: str = "tour_scheduling_probabilistic",
+) -> None:
     """Makes tour departure and arrival choices by sampling from a probability lookup table
 
     This model samples tour scheduling choices from an exogenously defined probability
@@ -89,15 +110,18 @@ def tour_scheduling_probabilistic(state: workflow.State, tours: pd.DataFrame) ->
 
     """
 
-    trace_label = "tour_scheduling_probabilistic"
-    model_settings_file_name = "tour_scheduling_probabilistic.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
-    depart_alt_base = model_settings.get("depart_alt_base", 0)
+    if model_settings is None:
+        model_settings = TourSchedulingProbabilisticSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
+
+    depart_alt_base = model_settings.depart_alt_base
     scheduling_probs_filepath = state.filesystem.get_config_file_path(
-        model_settings["PROBS_SPEC"]
+        model_settings.PROBS_SPEC
     )
     scheduling_probs = pd.read_csv(scheduling_probs_filepath)
-    probs_join_cols = model_settings["PROBS_JOIN_COLS"]
+    probs_join_cols = model_settings.PROBS_JOIN_COLS
     tours_df = tours
 
     # trip_scheduling is a probabilistic model ane we don't support estimation,

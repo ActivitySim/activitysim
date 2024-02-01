@@ -13,6 +13,7 @@ from activitysim.abm.models.util.trip import (
     flag_failed_trip_leg_mates,
 )
 from activitysim.core import estimation, tracing, workflow
+from activitysim.core.configuration.base import PydanticReadable
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
@@ -50,16 +51,30 @@ def run_trip_purpose_and_destination(
     return trips_df, save_sample_df
 
 
+class TripPurposeAndDestinationSettings(PydanticReadable):
+    """
+    Settings for the `trip_purpose_and_destination` component.
+    """
+
+    MAX_ITERATIONS: int = 5
+    """Setting for the maximum iterations"""
+
+
 @workflow.step
 def trip_purpose_and_destination(
     state: workflow.State,
     trips: pd.DataFrame,
     tours_merged: pd.DataFrame,
+    model_settings: TripPurposeAndDestinationSettings | None = None,
+    model_settings_file_name: str = "trip_purpose_and_destination.yaml",
+    trace_label: str = "trip_purpose_and_destination",
 ) -> None:
-    trace_label = "trip_purpose_and_destination"
-    model_settings = state.filesystem.read_model_settings(
-        "trip_purpose_and_destination.yaml"
-    )
+
+    if model_settings is None:
+        model_settings = TripPurposeAndDestinationSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
     # for consistency, read sample_table_name setting from trip_destination settings file
     trip_destination_model_settings = state.filesystem.read_model_settings(
@@ -72,7 +87,7 @@ def trip_purpose_and_destination(
         state.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
-    MAX_ITERATIONS = model_settings.get("MAX_ITERATIONS", 5)
+    MAX_ITERATIONS = model_settings.MAX_ITERATIONS
 
     trips_df = trips
     tours_merged_df = tours_merged

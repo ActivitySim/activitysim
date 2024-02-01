@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -17,9 +18,9 @@ from activitysim.core import (
     expressions,
     logit,
     simulate,
-    tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
@@ -123,15 +124,12 @@ def choose_intermediate_trip_purpose(
 
             file_name = "%s.UNMATCHED_PROBS" % trace_label
             logger.error(
-                "%s %s of %s intermediate trips could not be matched to probs based on join columns  %s"
-                % (trace_label, len(unmatched_choosers), len(choosers), probs_join_cols)
+                "{} {} of {} intermediate trips could not be matched to probs based on join columns  {}".format(
+                    trace_label, len(unmatched_choosers), len(choosers), probs_join_cols
+                )
             )
             logger.info(
-                "Writing %s unmatched choosers to %s"
-                % (
-                    len(unmatched_choosers),
-                    file_name,
-                )
+                f"Writing {len(unmatched_choosers)} unmatched choosers to {file_name}"
             )
             state.tracing.write_csv(
                 unmatched_choosers, file_name=file_name, transpose=False
@@ -166,7 +164,22 @@ def choose_intermediate_trip_purpose(
     return choices
 
 
-def run_trip_purpose(state: workflow.State, trips_df, estimator, trace_label):
+class TripPurposeSettings(PydanticReadable):
+    probs_join_cols: list[str] = ["primary_purpose", "outbound", "person_type"]
+    PROBS_SPEC: str = "trip_purpose_probs.csv"
+    preprocessor: PreprocessorSettings | None = None
+    use_depart_time: bool = True
+    CONSTANTS: dict[str, Any] = {}
+
+
+def run_trip_purpose(
+    state: workflow.State,
+    trips_df: pd.DataFrame,
+    estimator,
+    model_settings: TripPurposeSettings | None = None,
+    model_settings_file_name: str = "trip_purpose.yaml",
+    trace_label: str = "trip_purpose",
+):
     """
     trip purpose - main functionality separated from model step so it can be called iteratively
 
@@ -186,12 +199,14 @@ def run_trip_purpose(state: workflow.State, trips_df, estimator, trace_label):
     # uniform across trip_purpose
     chunk_tag = "trip_purpose"
 
-    model_settings_file_name = "trip_purpose.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = TripPurposeSettings.read_settings_file(
+            state.filesystem, model_settings_file_name
+        )
 
-    probs_join_cols = model_settings.get("probs_join_cols", PROBS_JOIN_COLUMNS)
+    probs_join_cols = model_settings.probs_join_cols
 
-    spec_file_name = model_settings.get("PROBS_SPEC", "trip_purpose_probs.csv")
+    spec_file_name = model_settings.PROBS_SPEC
     probs_spec = pd.read_csv(
         state.filesystem.get_config_file_path(spec_file_name), comment="#"
     )
@@ -225,7 +240,7 @@ def run_trip_purpose(state: workflow.State, trips_df, estimator, trace_label):
     trips_df = trips_df[~last_trip]
     logger.info("assign purpose to %s intermediate trips", trips_df.shape[0])
 
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         locals_dict = config.get_model_constants(model_settings)
         expressions.assign_columns(
@@ -236,10 +251,10 @@ def run_trip_purpose(state: workflow.State, trips_df, estimator, trace_label):
             trace_label=trace_label,
         )
 
-    use_depart_time = model_settings.get("use_depart_time", True)
+    use_depart_time = model_settings.use_depart_time
 
     for (
-        i,
+        _i,
         trips_chunk,
         chunk_trace_label,
         chunk_sizer,
@@ -258,7 +273,7 @@ def run_trip_purpose(state: workflow.State, trips_df, estimator, trace_label):
 
         result_list.append(choices)
 
-        chunk_sizer.log_df(trace_label, f"result_list", result_list)
+        chunk_sizer.log_df(trace_label, "result_list", result_list)
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)

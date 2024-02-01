@@ -3,13 +3,18 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
+from activitysim.abm.models.tour_mode_choice import TourModeComponentSettings
 from activitysim.core import chunk, config, expressions, los, simulate
 from activitysim.core import timetable as tt
 from activitysim.core import tracing, workflow
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
 
@@ -21,16 +26,52 @@ USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS = False
 RUN_ALTS_PREPROCESSOR_BEFORE_MERGE = True  # see FIXME below before changing this
 
 
-def skims_for_logsums(state: workflow.State, tour_purpose, model_settings, trace_label):
-    assert "LOGSUM_SETTINGS" in model_settings
+# class TourSchedulingSpecSegmentsSettings(PydanticReadable, extra="forbid"):
+#     COEFFICIENTS: Path
+#     SPEC: Path
 
+
+class TourSchedulingSettings(LogitComponentSettings, extra="forbid"):
+    LOGSUM_SETTINGS: Path | None = None
+    DESTINATION_FOR_TOUR_PURPOSE: str | dict[str, str] | None = None
+    LOGSUM_PREPROCESSOR: str = "preprocessor"
+    ALTS_PREPROCESSOR: PreprocessorSettings | dict[str, PreprocessorSettings] = {}
+    """
+    If the alternatives preprocessor is a single PreprocessorSettings object,
+    it is assumed to be an unsegmented preprocessor.  Otherwise, the dict keys
+    give the segements.
+    """
+    SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    SPEC_SEGMENTS: dict[str, LogitComponentSettings] = {}
+
+    TOUR_SPEC_SEGMENTS: dict[str, str] = {}
+
+    SPEC: Path | None = None
+    """Utility specification filename.
+
+    This is sometimes alternatively called the utility expressions calculator
+    (UEC). It is a CSV file giving all the functions for the terms of a
+    linear-in-parameters utility expression.  If SPEC_SEGMENTS is given, then
+    this unsegmented SPEC should be omitted.
+    """
+
+
+def skims_for_logsums(
+    state: workflow.State,
+    tour_purpose,
+    model_settings: TourSchedulingSettings,
+    trace_label: str,
+):
     network_los = state.get_injectable("network_los")
 
     skim_dict = network_los.get_default_skim_dict()
 
     orig_col_name = "home_zone_id"
 
-    destination_for_tour_purpose = model_settings.get("DESTINATION_FOR_TOUR_PURPOSE")
+    destination_for_tour_purpose = model_settings.DESTINATION_FOR_TOUR_PURPOSE
     if isinstance(destination_for_tour_purpose, str):
         dest_col_name = destination_for_tour_purpose
     elif isinstance(destination_for_tour_purpose, dict):
@@ -97,7 +138,7 @@ def _compute_logsums(
     alt_tdd,
     tours_merged,
     tour_purpose,
-    model_settings,
+    model_settings: TourSchedulingSettings,
     network_los,
     skims,
     trace_label,
@@ -109,8 +150,10 @@ def _compute_logsums(
     trace_label = tracing.extend_trace_label(trace_label, "logsums")
 
     with chunk.chunk_log(state, trace_label):
-        logsum_settings = state.filesystem.read_model_settings(
-            model_settings["LOGSUM_SETTINGS"]
+        logsum_settings = TourModeComponentSettings.read_settings_file(
+            state.filesystem,
+            str(model_settings.LOGSUM_SETTINGS),
+            mandatory=False,
         )
         choosers = alt_tdd.join(tours_merged, how="left", rsuffix="_chooser")
         logger.info(
@@ -138,8 +181,11 @@ def _compute_logsums(
 
         # - run preprocessor to annotate choosers
         # allow specification of alternate preprocessor for nontour choosers
-        preprocessor = model_settings.get("LOGSUM_PREPROCESSOR", "preprocessor")
-        preprocessor_settings = logsum_settings[preprocessor]
+        preprocessor = model_settings.LOGSUM_PREPROCESSOR
+        preprocessor_settings = (
+            getattr(logsum_settings, preprocessor, None)
+            or logsum_settings[preprocessor]
+        )
 
         if preprocessor_settings:
             simulate.set_skim_wrapper_targets(choosers, skims)
@@ -153,9 +199,7 @@ def _compute_logsums(
             )
 
         # - compute logsums
-        logsum_spec = state.filesystem.read_model_spec(
-            file_name=logsum_settings["SPEC"]
-        )
+        logsum_spec = state.filesystem.read_model_spec(file_name=logsum_settings.SPEC)
         logsum_spec = simulate.eval_coefficients(
             state, logsum_spec, coefficients, estimator=None
         )
@@ -309,7 +353,7 @@ def compute_tour_scheduling_logsums(
     alt_tdd,
     tours_merged,
     tour_purpose,
-    model_settings,
+    model_settings: TourSchedulingSettings,
     skims,
     trace_label,
     *,
@@ -570,7 +614,12 @@ def tdd_interaction_dataset(
 
 
 def run_alts_preprocessor(
-    state: workflow.State, model_settings, alts, segment, locals_dict, trace_label
+    state: workflow.State,
+    model_settings: TourSchedulingSettings,
+    alts,
+    segment,
+    locals_dict,
+    trace_label,
 ):
     """
     run preprocessor on alts, as specified by ALTS_PREPROCESSOR in model_settings
@@ -595,18 +644,18 @@ def run_alts_preprocessor(
         annotated copy of alts
     """
 
-    preprocessor_settings = model_settings.get("ALTS_PREPROCESSOR", {})
+    preprocessor_settings = model_settings.ALTS_PREPROCESSOR
 
-    if segment in preprocessor_settings:
+    if isinstance(preprocessor_settings, dict) and segment in preprocessor_settings:
         # segmented by logsum_tour_purpose
         preprocessor_settings = preprocessor_settings.get(segment)
         logger.debug(
-            f"running ALTS_PREPROCESSOR with spec for {segment}: {preprocessor_settings.get('SPEC')}"
+            f"running ALTS_PREPROCESSOR with spec for {segment}: {preprocessor_settings.SPEC}"
         )
-    elif "SPEC" in preprocessor_settings:
+    elif isinstance(preprocessor_settings, PreprocessorSettings):
         # unsegmented (either because no segmentation, or fallback if settings has generic preprocessor)
         logger.debug(
-            f"running ALTS_PREPROCESSOR with unsegmented spec {preprocessor_settings.get('SPEC')}"
+            f"running ALTS_PREPROCESSOR with unsegmented spec {preprocessor_settings.SPEC}"
         )
     else:
         logger.debug(
@@ -638,7 +687,7 @@ def _schedule_tours(
     alts,
     spec,
     logsum_tour_purpose,
-    model_settings,
+    model_settings: TourSchedulingSettings,
     skims,
     timetable,
     window_id_col,
@@ -673,7 +722,7 @@ def _schedule_tours(
         unavailable alternatives
     spec : DataFrame
         The spec which will be passed to interaction_simulate.
-    model_settings : dict
+    model_settings : TourSchedulingSettings
     timetable : TimeTable
         timetable of timewidows for person (or subtour) with rows for tours[window_id_col]
     window_id_col : str
@@ -823,7 +872,7 @@ def schedule_tours(
     alts,
     spec,
     logsum_tour_purpose,
-    model_settings,
+    model_settings: TourSchedulingSettings,
     timetable,
     timetable_window_id_col,
     previous_tour,
@@ -858,7 +907,7 @@ def schedule_tours(
     else:
         assert not tours[timetable_window_id_col].duplicated().any()
 
-    if "LOGSUM_SETTINGS" in model_settings:
+    if model_settings.LOGSUM_SETTINGS:
         # we need skims to calculate tvpb skim overhead in 3_ZONE systems for use by calc_rows_per_chunk
         skims = skims_for_logsums(
             state, logsum_tour_purpose, model_settings, tour_trace_label
@@ -868,7 +917,7 @@ def schedule_tours(
 
     result_list = []
     for (
-        i,
+        _i,
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
@@ -917,7 +966,7 @@ def vectorize_tour_scheduling(
     timetable,
     tour_segments,
     tour_segment_col,
-    model_settings,
+    model_settings: TourSchedulingSettings,
     chunk_size=0,
     trace_label=None,
 ):
@@ -950,7 +999,7 @@ def vectorize_tour_scheduling(
     spec : DataFrame
         The spec which will be passed to interaction_simulate.
         (or dict of specs keyed on tour_type if tour_types is not None)
-    model_settings : dict
+    model_settings : TourSchedulingSettings
 
     Returns
     -------
@@ -978,7 +1027,7 @@ def vectorize_tour_scheduling(
 
     timetable_window_id_col = "person_id"
     tour_owner_id_col = "person_id"
-    should_compute_logsums = "LOGSUM_SETTINGS" in model_settings
+    should_compute_logsums = model_settings.LOGSUM_SETTINGS is not None
 
     assert isinstance(tour_segments, dict)
 
@@ -1089,7 +1138,7 @@ def vectorize_subtour_scheduling(
     persons_merged,
     alts,
     spec,
-    model_settings,
+    model_settings: TourSchedulingSettings,
     estimator,
     chunk_size=0,
     trace_label=None,
@@ -1119,7 +1168,7 @@ def vectorize_subtour_scheduling(
     spec : DataFrame
         The spec which will be passed to interaction_simulate.
         (all subtours share same spec regardless of subtour type)
-    model_settings : dict
+    model_settings : TourSchedulingSettings
     chunk_size
     trace_label
 
@@ -1219,7 +1268,7 @@ def build_joint_tour_timetables(
     joint_tour_windows_df = tt.create_timetable_windows(joint_tours, alts)
     joint_tour_timetable = tt.TimeTable(joint_tour_windows_df, alts)
 
-    for participant_num, nth_participants in joint_tour_participants.groupby(
+    for _participant_num, nth_participants in joint_tour_participants.groupby(
         "participant_num", sort=True
     ):
         # nth_participant windows from persons_timetable
@@ -1243,7 +1292,7 @@ def vectorize_joint_tour_scheduling(
     alts,
     persons_timetable,
     spec,
-    model_settings,
+    model_settings: TourSchedulingSettings,
     estimator,
     chunk_size=0,
     trace_label=None,
@@ -1269,7 +1318,7 @@ def vectorize_joint_tour_scheduling(
     spec : DataFrame
         The spec which will be passed to interaction_simulate.
         (or dict of specs keyed on tour_type if tour_types is not None)
-    model_settings : dict
+    model_settings : TourSchedulingSettings
 
     Returns
     -------

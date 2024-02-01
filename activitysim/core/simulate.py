@@ -8,6 +8,8 @@ import warnings
 from collections import OrderedDict
 from collections.abc import Callable
 from datetime import timedelta
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -22,6 +24,12 @@ from activitysim.core import (
     tracing,
     util,
     workflow,
+)
+from activitysim.core.configuration.base import PydanticBase
+from activitysim.core.configuration.logit import (
+    BaseLogitComponentSettings,
+    LogitNestSpec,
+    TemplatedLogitComponentSettings,
 )
 from activitysim.core.estimation import Estimator
 from activitysim.core.simulate_consts import (
@@ -72,7 +80,7 @@ def read_model_alts(state: workflow.State, file_name, set_index=None):
     return df
 
 
-def read_model_spec(filesystem: configuration.FileSystem, file_name: str):
+def read_model_spec(filesystem: configuration.FileSystem, file_name: Path | str):
     """
     Read a CSV model specification into a Pandas DataFrame or Series.
 
@@ -103,7 +111,8 @@ def read_model_spec(filesystem: configuration.FileSystem, file_name: str):
         The description column is dropped from the returned data and the
         expression values are set as the table index.
     """
-
+    if isinstance(file_name, Path):
+        file_name = str(file_name)
     assert isinstance(file_name, str)
     if not file_name.lower().endswith(".csv"):
         file_name = f"{file_name}.csv"
@@ -137,8 +146,10 @@ def read_model_spec(filesystem: configuration.FileSystem, file_name: str):
 
 
 def read_model_coefficients(
-    filesystem: configuration.FileSystem, model_settings=None, file_name=None
-):
+    filesystem: configuration.FileSystem,
+    model_settings: BaseLogitComponentSettings | dict[str, Any] | None = None,
+    file_name: Path | str | None = None,
+) -> pd.DataFrame:
     """
     Read the coefficient file specified by COEFFICIENTS model setting
     """
@@ -148,12 +159,18 @@ def read_model_coefficients(
         assert file_name is not None
     else:
         assert file_name is None
-        assert (
-            "COEFFICIENTS" in model_settings
-        ), "'COEFFICIENTS' tag not in model_settings in %s" % model_settings.get(
-            "source_file_paths"
-        )
-        file_name = model_settings["COEFFICIENTS"]
+        if isinstance(model_settings, BaseLogitComponentSettings) or (
+            isinstance(model_settings, PydanticBase)
+            and hasattr(model_settings, "COEFFICIENTS")
+        ):
+            file_name = model_settings.COEFFICIENTS
+        else:
+            assert (
+                "COEFFICIENTS" in model_settings
+            ), "'COEFFICIENTS' tag not in model_settings in %s" % model_settings.get(
+                "source_file_paths"
+            )
+            file_name = model_settings["COEFFICIENTS"]
         logger.debug(f"read_model_coefficients file_name {file_name}")
 
     file_path = filesystem.get_config_file_path(file_name)
@@ -179,13 +196,15 @@ def read_model_coefficients(
     return coefficients
 
 
-@workflow.func
 def spec_for_segment(
     state: workflow.State,
-    model_settings,
+    model_settings: dict | None,
     spec_id: str,
     segment_name: str,
     estimator: Estimator | None,
+    *,
+    spec_file_name: Path | None = None,
+    coefficients_file_name: Path | None = None,
 ) -> pd.DataFrame:
     """
     Select spec for specified segment from omnibus spec containing columns for each segment
@@ -203,7 +222,8 @@ def spec_for_segment(
         canonical spec file with expressions in index and single column with utility coefficients
     """
 
-    spec_file_name = model_settings[spec_id]
+    if spec_file_name is None:
+        spec_file_name = model_settings[spec_id]
     spec = read_model_spec(state.filesystem, file_name=spec_file_name)
 
     if len(spec.columns) > 1:
@@ -214,7 +234,14 @@ def spec_for_segment(
         # doesn't really matter what it is called, but this may catch errors
         assert spec.columns[0] in ["coefficient", segment_name]
 
-    if "COEFFICIENTS" not in model_settings:
+    if (
+        coefficients_file_name is None
+        and isinstance(model_settings, dict)
+        and "COEFFICIENTS" in model_settings
+    ):
+        coefficients_file_name = model_settings["COEFFICIENTS"]
+
+    if coefficients_file_name is None:
         logger.warning(
             f"no coefficient file specified in model_settings for {spec_file_name}"
         )
@@ -224,11 +251,13 @@ def spec_for_segment(
             raise RuntimeError(
                 f"No coefficient file specified for {spec_file_name} "
                 f"but not all spec column values are numeric"
-            )
+            ) from None
 
         return spec
 
-    coefficients = state.filesystem.read_model_coefficients(model_settings)
+    coefficients = read_model_coefficients(
+        state.filesystem, file_name=coefficients_file_name
+    )
 
     spec = eval_coefficients(state, spec, coefficients, estimator)
 
@@ -236,19 +265,22 @@ def spec_for_segment(
 
 
 def read_model_coefficient_template(
-    filesystem: configuration.FileSystem, model_settings
+    filesystem: configuration.FileSystem,
+    model_settings: dict | TemplatedLogitComponentSettings,
 ):
     """
     Read the coefficient template specified by COEFFICIENT_TEMPLATE model setting
     """
 
-    assert (
-        "COEFFICIENT_TEMPLATE" in model_settings
-    ), "'COEFFICIENT_TEMPLATE' not in model_settings in %s" % model_settings.get(
-        "source_file_paths"
-    )
-
-    coefficients_file_name = model_settings["COEFFICIENT_TEMPLATE"]
+    if isinstance(model_settings, dict):
+        assert (
+            "COEFFICIENT_TEMPLATE" in model_settings
+        ), "'COEFFICIENT_TEMPLATE' not in model_settings in %s" % model_settings.get(
+            "source_file_paths"
+        )
+        coefficients_file_name = model_settings["COEFFICIENT_TEMPLATE"]
+    else:
+        coefficients_file_name = model_settings.COEFFICIENT_TEMPLATE
 
     file_path = filesystem.get_config_file_path(coefficients_file_name)
     try:
@@ -300,7 +332,9 @@ def dump_mapped_coefficients(state: workflow.State, model_settings):
 
 
 def get_segment_coefficients(
-    filesystem: configuration.FileSystem, model_settings, segment_name
+    filesystem: configuration.FileSystem,
+    model_settings: PydanticBase | dict,
+    segment_name: str,
 ):
     """
     Return a dict mapping generic coefficient names to segment-specific coefficient values
@@ -332,10 +366,19 @@ def get_segment_coefficients(
         ...
 
     """
+    if isinstance(model_settings, PydanticBase):
+        model_settings = model_settings.dict()
 
-    if "COEFFICIENTS" in model_settings and "COEFFICIENT_TEMPLATE" in model_settings:
+    if (
+        "COEFFICIENTS" in model_settings
+        and "COEFFICIENT_TEMPLATE" in model_settings
+        and model_settings["COEFFICIENTS"] is not None
+        and model_settings["COEFFICIENT_TEMPLATE"] is not None
+    ):
         legacy = False
-    elif "COEFFICIENTS" in model_settings:
+    elif (
+        "COEFFICIENTS" in model_settings and model_settings["COEFFICIENTS"] is not None
+    ):
         legacy = "COEFFICIENTS"
         warnings.warn(
             "Support for COEFFICIENTS without COEFFICIENT_TEMPLATE in model settings file will be removed."
@@ -360,9 +403,17 @@ def get_segment_coefficients(
         omnibus_coefficients = pd.read_csv(
             legacy_coeffs_file_path, comment="#", index_col="coefficient_name"
         )
+        try:
+            omnibus_coefficients_segment_name = omnibus_coefficients[segment_name]
+        except KeyError:
+            logger.error(f"No key {segment_name} found!")
+            possible_keys = "\n- ".join(omnibus_coefficients.keys())
+            logger.error(f"possible keys include: \n- {possible_keys}")
+            raise
         coefficients_dict = assign.evaluate_constants(
-            omnibus_coefficients[segment_name], constants=constants
+            omnibus_coefficients_segment_name, constants=constants
         )
+
     else:
         coefficients_df = filesystem.read_model_coefficients(model_settings)
         template_df = read_model_coefficient_template(filesystem, model_settings)
@@ -383,25 +434,40 @@ def get_segment_coefficients(
     return coefficients_dict
 
 
-def eval_nest_coefficients(nest_spec, coefficients, trace_label):
-    def replace_coefficients(nest):
+def eval_nest_coefficients(
+    nest_spec: LogitNestSpec | dict, coefficients: dict, trace_label: str
+) -> LogitNestSpec:
+    def replace_coefficients(nest: LogitNestSpec):
         if isinstance(nest, dict):
             assert "coefficient" in nest
             coefficient_name = nest["coefficient"]
             if isinstance(coefficient_name, str):
                 assert (
                     coefficient_name in coefficients
-                ), "%s not in nest coefficients" % (coefficient_name,)
+                ), f"{coefficient_name} not in nest coefficients"
                 nest["coefficient"] = coefficients[coefficient_name]
 
             assert "alternatives" in nest
             for alternative in nest["alternatives"]:
-                if isinstance(alternative, dict):
+                if isinstance(alternative, dict | LogitNestSpec):
+                    replace_coefficients(alternative)
+        elif isinstance(nest, LogitNestSpec):
+            if isinstance(nest.coefficient, str):
+                assert (
+                    nest.coefficient in coefficients
+                ), f"{nest.coefficient} not in nest coefficients"
+                nest.coefficient = coefficients[nest.coefficient]
+
+            for alternative in nest.alternatives:
+                if isinstance(alternative, dict | LogitNestSpec):
                     replace_coefficients(alternative)
 
     if isinstance(coefficients, pd.DataFrame):
         assert "value" in coefficients.columns
         coefficients = coefficients["value"].to_dict()
+
+    if not isinstance(nest_spec, LogitNestSpec):
+        nest_spec = LogitNestSpec.parse_obj(nest_spec)
 
     replace_coefficients(nest_spec)
 
@@ -443,9 +509,9 @@ def eval_coefficients(
     zero_rows = (spec == 0).all(axis=1)
     if zero_rows.any():
         if estimator:
-            logger.debug("keeping %s all-zero rows in SPEC" % (zero_rows.sum(),))
+            logger.debug(f"keeping {zero_rows.sum()} all-zero rows in SPEC")
         else:
-            logger.debug("dropping %s all-zero rows from SPEC" % (zero_rows.sum(),))
+            logger.debug(f"dropping {zero_rows.sum()} all-zero rows from SPEC")
             spec = spec.loc[~zero_rows]
 
     return spec
@@ -723,7 +789,7 @@ def eval_utilities(
             misses = np.where(~np.isclose(sh_util, utilities.values, rtol=1e-2, atol=0))
             _sh_util_miss1 = sh_util[tuple(m[0] for m in misses)]
             _u_miss1 = utilities.values[tuple(m[0] for m in misses)]
-            diff = _sh_util_miss1 - _u_miss1
+            _sh_util_miss1 - _u_miss1
             if len(misses[0]) > sh_util.size * 0.01:
                 print(
                     f"big problem: {len(misses[0])} missed close values "
@@ -1530,7 +1596,7 @@ def simple_simulate(
     result_list = []
     # segment by person type and pick the right spec for each person type
     for (
-        i,
+        _i,
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
@@ -1584,7 +1650,7 @@ def simple_simulate_by_chunk_id(
     choices = None
     result_list = []
     for (
-        i,
+        _i,
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
@@ -1902,7 +1968,7 @@ def simple_simulate_logsums(
     result_list = []
     # segment by person type and pick the right spec for each person type
     for (
-        i,
+        _i,
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,

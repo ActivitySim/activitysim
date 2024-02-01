@@ -16,7 +16,10 @@ from activitysim.core import configuration, test, workflow
 
 
 def _test_prototype_mtc_extended(
-    multiprocess=False, sharrow=False, shadow_pricing=True
+    multiprocess=False,
+    sharrow=False,
+    shadow_pricing=True,
+    via_cli=True,
 ):
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_mtc_extended", dirname)
@@ -76,12 +79,18 @@ def _test_prototype_mtc_extended(
             final_vehicles_df, regress_vehicles_df, rtol=1.0e-4
         )
 
+    kwargs = {
+        "configs_dir": [],
+    }
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
     shadowprice_configs = (
         [] if shadow_pricing else ["-c", test_path("no-shadow-pricing")]
     )
+    if shadow_pricing:
+        kwargs["configs_dir"].append(test_path("no-shadow-pricing"))
     if sharrow:
         sh_configs = ["-c", example_path("configs_sharrow")]
+        kwargs["configs_dir"].append(example_path("configs_sharrow"))
     else:
         sh_configs = []
     if multiprocess:
@@ -91,16 +100,20 @@ def _test_prototype_mtc_extended(
             "-c",
             example_path("configs_mp"),
         ]
+        kwargs["configs_dir"].append(test_path("configs_mp"))
+        kwargs["configs_dir"].append(example_path("configs_mp"))
     elif sharrow:
         mp_configs = [
             "-c",
             test_path("configs"),
         ]
+        kwargs["configs_dir"].append(test_path("configs"))
     else:
         mp_configs = [
             "-c",
             test_path("configs"),
         ]
+        kwargs["configs_dir"].append(test_path("configs"))
     run_args = (
         shadowprice_configs
         + sh_configs
@@ -118,13 +131,22 @@ def _test_prototype_mtc_extended(
             example_path("data_model"),
         ]
     )
+    kwargs["configs_dir"].append(example_path("configs"))
+    kwargs["configs_dir"].append(example_mtc_path("configs"))
+    kwargs["data_dir"] = [example_mtc_path("data")]
+    kwargs["output_dir"] = test_path("output")
+
     if os.environ.get("GITHUB_ACTIONS") == "true":
         subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
-    else:
+    elif via_cli:
         subprocess.run(
             [sys.executable, "-m", "activitysim", "run"] + run_args, check=True
         )
+    else:
+        import activitysim.abm
 
+        state = workflow.State.make_default(**kwargs)
+        state.run.all()
     regress()
 
 

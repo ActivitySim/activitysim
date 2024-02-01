@@ -15,6 +15,8 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.skim_dataset import DatasetWrapper
+from activitysim.core.skim_dictionary import SkimWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -171,6 +173,11 @@ def _interaction_sample(
         the index is same as choosers
         and the series value is the alternative df index of chosen alternative
 
+    zone_layer : {'taz', 'maz'}, default 'taz'
+        Specify which zone layer of the skims is to be used.  You cannot use the
+        'maz' zone layer in a one-zone model, but you can use the 'taz' layer in
+        a two- or three-zone model (e.g. for destination pre-sampling).
+
     Returns
     -------
     choices_df : pandas.DataFrame
@@ -225,7 +232,6 @@ def _interaction_sample(
     interaction_utilities = None
     interaction_utilities_sh = None
     if sharrow_enabled:
-
         (
             interaction_utilities,
             trace_eval_results,
@@ -501,22 +507,21 @@ def _interaction_sample(
 
 
 def interaction_sample(
-    state,
-    choosers,
-    alternatives,
-    spec,
-    sample_size,
-    alt_col_name,
-    allow_zero_probs=False,
-    log_alt_losers=False,
-    skims=None,
+    state: workflow.State,
+    choosers: pd.DataFrame,
+    alternatives: pd.DataFrame,
+    spec: pd.DataFrame,
+    sample_size: int,
+    alt_col_name: str,
+    allow_zero_probs: bool = False,
+    log_alt_losers: bool = False,
+    skims: SkimWrapper | DatasetWrapper | None = None,
     locals_d=None,
-    chunk_size=0,
-    chunk_tag=None,
-    trace_label=None,
-    zone_layer=None,
+    chunk_size: int = 0,
+    chunk_tag: str | None = None,
+    trace_label: str | None = None,
+    zone_layer: str | None = None,
 ):
-
     """
     Run a simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
@@ -526,6 +531,7 @@ def interaction_sample(
 
     Parameters
     ----------
+    state : State
     choosers : pandas.DataFrame
         DataFrame of choosers
     alternatives : pandas.DataFrame
@@ -540,7 +546,7 @@ def interaction_sample(
         which does not sample alternatives.
     alt_col_name: str
         name to give the sampled_alternative column
-    skims : Skims object
+    skims : SkimWrapper or DatasetWrapper or None
         The skims object is used to contain multiple matrices of
         origin-destination impedances.  Make sure to also add it to the
         locals_d below in order to access it in expressions.  The *only* job
@@ -556,6 +562,10 @@ def interaction_sample(
     trace_label: str
         This is the label to be used  for trace log file entries and dump file names
         when household tracing enabled. No tracing occurs if label is empty or None.
+    zone_layer : {'taz', 'maz'}, default 'taz'
+        Specify which zone layer of the skims is to be used.  You cannot use the
+        'maz' zone layer in a one-zone model, but you can use the 'taz' layer in
+        a two- or three-zone model (e.g. for destination pre-sampling).
 
     Returns
     -------
@@ -579,7 +589,8 @@ def interaction_sample(
     # we return alternatives ordered in (index, alt_col_name)
     # if choosers index is not ordered, it is probably a mistake, since the alts wont line up
     assert alt_col_name is not None
-    assert choosers.index.is_monotonic_increasing
+    if not choosers.index.is_monotonic_increasing:
+        assert choosers.index.is_monotonic_increasing
 
     # FIXME - legacy logic - not sure this is needed or even correct?
     sample_size = min(sample_size, len(alternatives.index))
@@ -591,7 +602,6 @@ def interaction_sample(
         chunk_trace_label,
         chunk_sizer,
     ) in chunk.adaptive_chunked_choosers(state, choosers, trace_label, chunk_tag):
-
         choices = _interaction_sample(
             state,
             chooser_chunk,

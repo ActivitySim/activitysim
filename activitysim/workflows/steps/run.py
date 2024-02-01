@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import shlex
 
 from pypyr.errors import KeyNotInContextError
 
-from activitysim.standalone.utils import chdir
 from activitysim.workflows.steps.progression import reset_progress_step
 from activitysim.workflows.steps.wrapping import workstep
+from activitysim.workflows.utils import chdir
 
 
 def _get_formatted(context, key, default):

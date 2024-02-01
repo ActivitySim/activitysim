@@ -55,8 +55,6 @@ def joint_tour_frequency(
 
     estimator = estimation.manager.begin_estimation(state, "joint_tour_frequency")
 
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
-
     alternatives = simulate.read_model_alts(
         state, "joint_tour_frequency_alternatives.csv", set_index="alt"
     )
@@ -75,7 +73,7 @@ def joint_tour_frequency(
     )
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         locals_dict = {
             "persons": persons,
@@ -90,7 +88,7 @@ def joint_tour_frequency(
             trace_label=trace_label,
         )
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec, coefficients_df, estimator

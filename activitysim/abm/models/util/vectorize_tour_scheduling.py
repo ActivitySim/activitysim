@@ -150,10 +150,10 @@ def _compute_logsums(
     trace_label = tracing.extend_trace_label(trace_label, "logsums")
 
     with chunk.chunk_log(state, trace_label):
-        logsum_settings = state.filesystem.read_settings_file(
+        logsum_settings = TourModeComponentSettings.read_settings_file(
+            state.filesystem,
             str(model_settings.LOGSUM_SETTINGS),
             mandatory=False,
-            validator_class=TourModeComponentSettings,
         )
         choosers = alt_tdd.join(tours_merged, how="left", rsuffix="_chooser")
         logger.info(

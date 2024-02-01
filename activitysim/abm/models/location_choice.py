@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -12,7 +11,10 @@ from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.models.util import tour_destination
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core import estimation, expressions, los, simulate, tracing, workflow
-from activitysim.core.configuration.logit import TourLocationComponentSettings
+from activitysim.core.configuration.logit import (
+    TourLocationComponentSettings,
+    TourModeComponentSettings,
+)
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 
@@ -519,8 +521,10 @@ def run_location_logsums(
 
     assert not location_sample_df.empty
 
-    logsum_settings = state.filesystem.read_model_settings(
-        model_settings.LOGSUM_SETTINGS
+    logsum_settings = TourModeComponentSettings.read_settings_file(
+        state.filesystem,
+        str(model_settings.LOGSUM_SETTINGS),
+        mandatory=False,
     )
 
     # FIXME - MEMORY HACK - only include columns actually used in spec

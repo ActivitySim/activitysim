@@ -15,7 +15,7 @@ write_skim_cache: False
 
 taz_skims: skims*.omx
 
-maz: land_use.csv  
+maz: mazs.csv 
 
 maz_to_maz:
   tables:

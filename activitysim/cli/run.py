@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 INJECTABLES = [
     "data_dir",
     "configs_dir",
+    "data_model_dir",
     "output_dir",
     "settings_file_name",
     "imported_extensions",
@@ -53,6 +54,13 @@ def add_run_args(parser, multiprocess=True):
         action="append",
         metavar="PATH",
         help="path to data dir",
+    )
+    parser.add_argument(
+        "--data_model",
+        type=str,
+        action="append",
+        metavar="PATH",
+        help="path to data model dir",
     )
     parser.add_argument(
         "-r", "--resume", type=str, metavar="STEPNAME", help="resume after step"
@@ -401,7 +409,7 @@ def run(args):
 
     from activitysim.core.flow import TimeLogger
 
-    TimeLogger.aggregate_summary(logger)
+    # TimeLogger.aggregate_summary(logger)
 
     tracing.print_elapsed_time("all models", t0)
 

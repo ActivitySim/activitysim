@@ -154,16 +154,16 @@ When Simwrapper launches, the dashboard is displayed in the scrollable field in 
 two sets of navigation controls.  The left-hand sidebar contains a menu of the available simulation outputs you can access from the
 current directory, including a number of sample outputs:
 
-.. image:: images/viz_nav-1.png
+.. image:: ../images/viz_nav-1.png
 
 The header and tabs at the top of the page help you navigate within the simulation run that is currently being visualized:
 
-.. image:: images/viz_nav-2.png
+.. image:: ../images/viz_nav-2.png
 
 Clicking on ‘Details’ will switch from the visualizations view to a current directory listing to facilitate viewing and downloading of
 the code and raw data used to create the dashboard:
 
-.. image:: images/viz_nav-3.png
+.. image:: ../images/viz_nav-3.png
 
 Clicking on ‘Topsheet’ returns you to the visualization graphics page.  The three buttons in the lower left corner provide additional
 functionality to:
@@ -172,7 +172,7 @@ functionality to:
 2. toggle light theme vs. dark theme, and
 3. split the visualization window into two separate panels like this:
 
-.. image:: images/viz_nav-4.png
+.. image:: ../images/viz_nav-4.png
 
 Before starting the split-screen view, choose the model run that you want to appear in the right side pane (‘1-sf-run’ in the image above).
 Then, click on the split view button to divide the window into two visualization panels.  Finally, use the left-hand navigation pane to

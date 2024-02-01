@@ -30,7 +30,6 @@ Contents
    workflows
    logging
    ../development
-   ../models
    component-configs
    components/index
    ../core

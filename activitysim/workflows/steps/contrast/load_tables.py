@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 import warnings
 
+import pandas as pd
+
 from activitysim.workflows.steps.wrapping import workstep
 from activitysim.workflows.utils import chdir
 

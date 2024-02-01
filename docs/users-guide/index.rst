@@ -32,10 +32,11 @@ Contents
 --------
 
 .. toctree::
-   :maxdepth: 3
-
+   :maxdepth: 2
+   
    modelsetup
    ways_to_run
+   run_primary_example
    model_anatomy
    ../howitworks
    model_dev

@@ -15,6 +15,7 @@ from . import (
     initialize,
     initialize_los,
     initialize_tours,
+    input_checker,
     joint_tour_composition,
     joint_tour_destination,
     joint_tour_frequency,

@@ -181,19 +181,6 @@ def read_disaggregate_accessibility_yaml(
     model_settings = DisaggregateAccessibilitySettings.read_settings_file(
         state.filesystem, file_name
     )
-    # if not model_settings.get("suffixes"):
-    #     model_settings["suffixes"] = {
-    #         "SUFFIX": "proto_",
-    #         "ROOTS": [
-    #             "persons",
-    #             "households",
-    #             "tours",
-    #             "persons_merged",
-    #             "person_id",
-    #             "household_id",
-    #             "tour_id",
-    #         ],
-    #     }
     # Convert decimal sample rate to integer sample size
     for sample in ["ORIGIN_SAMPLE_SIZE", "DESTINATION_SAMPLE_SIZE"]:
         size = getattr(model_settings, sample)

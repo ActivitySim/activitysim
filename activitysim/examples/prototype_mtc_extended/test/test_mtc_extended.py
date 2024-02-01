@@ -127,6 +127,8 @@ def _test_prototype_mtc_extended(
             example_mtc_path("data"),
             "-o",
             test_path(f"output_{int(sharrow)}{int(shadow_pricing)}"),
+            "--data_model",
+            example_path("data_model"),
         ]
     )
     kwargs["configs_dir"].append(example_path("configs"))
@@ -175,6 +177,7 @@ def test_prototype_mtc_extended_mp_shadow_pricing():
 
 
 EXPECTED_MODELS = [
+    "input_checker",
     "initialize_proto_population",
     "compute_disaggregate_accessibility",
     "initialize_landuse",

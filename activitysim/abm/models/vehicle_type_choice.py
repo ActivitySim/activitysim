@@ -245,6 +245,13 @@ def construct_model_alternatives(
         else:
             # eliminate alternatives if no vehicle type data
             alts_wide = alts_wide[alts_wide._merge != "left_only"]
+            # need to also remove any alts from alts_long
+            alts_long.set_index(["body_type", "fuel_type", "age"], inplace=True)
+            alts_long = alts_long[
+                alts_long.index.isin(
+                    alts_wide.set_index(["body_type", "fuel_type", "age"]).index
+                )
+            ].reset_index()
         alts_wide.drop(columns="_merge", inplace=True)
 
     # converting age to integer to allow interactions in utilities

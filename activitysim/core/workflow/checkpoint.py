@@ -958,7 +958,9 @@ class Checkpoints(StateAccessor):
         self.load(checkpoint_name, store=from_store)
         logger.debug(f"checkpoint.restore_from of {checkpoint_name} complete")
 
-    def check_against(self, location: Path, checkpoint_name: str):
+    def check_against(
+        self, location: Path, checkpoint_name: str, strict_categoricals: bool = False
+    ):
         """
         Check that the tables in this State match those in an archived pipeline.
 
@@ -966,6 +968,11 @@ class Checkpoints(StateAccessor):
         ----------
         location : Path-like
         checkpoint_name : str
+        strict_categoricals : bool, default False
+            If True, check that categorical columns have the same categories
+            in both the current state and the checkpoint.  Otherwise, the dtypes
+            of categorical columns are ignored, and only the values themselves are
+            checked to confirm they match.
 
         Raises
         ------
@@ -1033,9 +1040,27 @@ class Checkpoints(StateAccessor):
                         local_table[ref_table.columns], ref_table, check_dtype=False
                     )
                 except Exception as err:
-                    raise AssertionError(
-                        f"checkpoint {checkpoint_name!r} table {table_name!r}, {str(err)}"
-                    )
+                    if not strict_categoricals:
+                        try:
+                            pd.testing.assert_frame_equal(
+                                local_table[ref_table.columns],
+                                ref_table,
+                                check_dtype=False,
+                                check_categorical=False,
+                            )
+                        except Exception as err2:
+                            raise AssertionError(
+                                f"checkpoint {checkpoint_name!r} table {table_name!r}, {str(err)}"
+                            )
+                        else:
+                            warnings.warn(
+                                f"checkpoint {checkpoint_name!r} table {table_name!r}, "
+                                f"values match but categorical dtype does not"
+                            )
+                    else:
+                        raise AssertionError(
+                            f"checkpoint {checkpoint_name!r} table {table_name!r}, {str(err)}"
+                        )
                 else:
                     logger.info(f"table {table_name!r}: ok")
 

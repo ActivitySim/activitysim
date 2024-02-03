@@ -244,12 +244,16 @@ def construct_model_alternatives(
             ), f"missing vehicle data for alternatives:\n {missing_alts}"
         else:
             # eliminate alternatives if no vehicle type data
+            num_alts_before_filer = len(alts_wide)
             alts_wide = alts_wide[alts_wide._merge != "left_only"]
+            logger.warning(
+                f"Removed {num_alts_before_filer - len(alts_wide)} alternatives not included in input vehicle type data."
+            )
             # need to also remove any alts from alts_long
-            alts_long.set_index(["body_type", "fuel_type", "age"], inplace=True)
+            alts_long.set_index(["body_type", "age", "fuel_type"], inplace=True)
             alts_long = alts_long[
                 alts_long.index.isin(
-                    alts_wide.set_index(["body_type", "fuel_type", "age"]).index
+                    alts_wide.set_index(["body_type", "age", "fuel_type"]).index
                 )
             ].reset_index()
         alts_wide.drop(columns="_merge", inplace=True)

@@ -284,7 +284,7 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     """
 
     chunk_training_mode: Literal[
-        "disabled", "training", "production", "adaptive"
+        "disabled", "training", "production", "adaptive", "explicit"
     ] = "disabled"
     """
     The method to use for chunk training.

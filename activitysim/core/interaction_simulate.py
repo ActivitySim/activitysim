@@ -417,7 +417,7 @@ def eval_interaction_utilities(
                 ),
                 dtype=np.float32,
             )
-            sh_utility_fat = sh_utility_fat[trace_rows, :]
+            # sh_utility_fat = sh_utility_fat[trace_rows, :]
             sh_utility_fat = sh_utility_fat.to_dataframe("vals")
             try:
                 sh_utility_fat = sh_utility_fat.unstack("expressions")

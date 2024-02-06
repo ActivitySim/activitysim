@@ -413,5 +413,7 @@ def write_tables(state: workflow.State) -> None:
             # include the index if it has a name or is a MultiIndex
             if file_type == "csv":
                 csv.write_csv(dt, file_path)
-            else:
+            elif file_type == "parquet":
                 parquet.write_table(dt, file_path)
+            else:
+                raise ValueError(f"unknown file_type {file_type}")

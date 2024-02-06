@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import shlex
 
 from pypyr.errors import KeyNotInContextError
 
-from ...standalone.utils import chdir
-from .progression import reset_progress_step
-from .wrapping import workstep
+from activitysim.workflows.steps.progression import reset_progress_step
+from activitysim.workflows.steps.wrapping import workstep
+from activitysim.workflows.utils import chdir
 
 
 def _get_formatted(context, key, default):
@@ -60,18 +62,8 @@ def run_activitysim(
 
     reset_progress_step(description=f"{label}", prefix="[bold green]")
 
-    # Clear all saved state from ORCA
-    import orca
-
-    orca.clear_cache()
-    orca.clear_all()
-
-    # Re-inject everything from ActivitySim
-    from ...core.inject import reinject_decorated_tables
-
-    reinject_decorated_tables(steps=True)
-
     # Call the run program inside this process
+    import activitysim.abm  # noqa: F401
     from activitysim.cli.main import prog
 
     with chdir(cwd):

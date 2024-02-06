@@ -1,15 +1,22 @@
+from __future__ import annotations
+
 import glob
 import logging
 import os
+import time
+from functools import partial
+from pathlib import Path
 
 import numpy as np
 import openmatrix
 import pandas as pd
 import sharrow as sh
+import xarray as xr
 
-from . import config
-from . import flow as __flow  # noqa, keep this here for side effects?
-from . import inject
+from activitysim.core import config
+from activitysim.core import flow as __flow  # noqa: 401
+from activitysim.core import workflow
+from activitysim.core.input import read_input_file
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +33,10 @@ class SkimDataset:
         self.time_map = {
             j: i for i, j in enumerate(self.dataset.indexes["time_period"])
         }
+        self.time_label_dtype = pd.api.types.CategoricalDtype(
+            self.dataset.indexes["time_period"],
+            ordered=True,
+        )
         self.usage = set()  # track keys of skims looked up
 
     @property
@@ -110,6 +121,8 @@ class SkimDataset:
         orig = np.asanyarray(orig).astype(int)
         dest = np.asanyarray(dest).astype(int)
 
+        some_missing = (orig.min() < 0) or (dest.min() < 0)
+
         # TODO offset mapper if required
         positions = {self.odim: orig, self.ddim: dest}
 
@@ -126,6 +139,8 @@ class SkimDataset:
             **positions, _name=key
         )  # Dataset.iat as implemented by sharrow strips data encoding
 
+        if some_missing:
+            result[(orig < 0) | (dest < 0)] = np.nan
         result = result.to_series()
 
         if use_index is not None:
@@ -173,6 +188,10 @@ class DatasetWrapper:
             }
         else:
             self.time_map = time_map
+        self.time_label_dtype = pd.api.types.CategoricalDtype(
+            self.dataset.indexes["time_period"],
+            ordered=True,
+        )
 
     @property
     def odim(self):
@@ -229,22 +248,40 @@ class DatasetWrapper:
         }
         if self.time_key:
             if (
-                np.issubdtype(df[self.time_key].dtype, np.integer)
+                not df[self.time_key].dtype == "category"
+                and np.issubdtype(df[self.time_key].dtype, np.integer)
                 and df[self.time_key].max() < self.dataset.dims["time_period"]
             ):
                 logger.info(f"natural use for time_period={self.time_key}")
                 positions["time_period"] = df[self.time_key]
+            elif (
+                df[self.time_key].dtype == "category"
+                and df[self.time_key].dtype == self.time_label_dtype
+            ):
+                positions["time_period"] = df[self.time_key].cat.codes
             else:
                 logger.info(f"vectorize lookup for time_period={self.time_key}")
                 positions["time_period"] = pd.Series(
-                    np.vectorize(self.time_map.get)(df[self.time_key]),
+                    np.vectorize(self.time_map.get, "I")(df[self.time_key], 0),
                     index=df.index,
                 )
 
         if POSITIONS_AS_DICT:
             self.positions = {}
             for k, v in positions.items():
-                self.positions[k] = v.astype(int)
+                try:
+                    is_int = np.issubdtype(v.dtype, np.integer)
+                except Exception:
+                    is_int = False
+                if is_int:
+                    self.positions[k] = v
+                else:
+                    try:
+                        self.positions[k] = v.astype(int)
+                    except TypeError:
+                        # possibly some missing values that are not relevant,
+                        # fill with zeros to continue.
+                        self.positions[k] = v.fillna(0).astype(int)
         else:
             self.positions = pd.DataFrame(positions).astype(int)
 
@@ -295,8 +332,10 @@ class DatasetWrapper:
             main_key, time_key = key
             if time_key in self.time_map:
                 if isinstance(x, dict):
-                    x["time_period"] = np.full_like(
-                        x[self.odim], fill_value=self.time_map[time_key]
+                    # np.broadcast_to saves memory over np.full_like, since we
+                    # don't ever write to this array.
+                    x["time_period"] = np.broadcast_to(
+                        self.time_map[time_key], x[self.odim].shape
                     )
                 else:
                     x = x.assign(time_period=self.time_map[time_key])
@@ -432,7 +471,7 @@ def _use_existing_backing_if_valid(backing, omx_file_paths, skim_tag):
 
 
 def _dedupe_time_periods(network_los_preload):
-    raw_time_periods = network_los_preload.los_settings["skim_time_periods"]["labels"]
+    raw_time_periods = network_los_preload.los_settings.skim_time_periods.labels
     # deduplicate time period names
     time_periods = []
     for t in raw_time_periods:
@@ -490,22 +529,27 @@ def _apply_digital_encoding(dataset, digital_encodings):
     return dataset
 
 
-def _scan_for_unused_names(tokens):
+def _scan_for_unused_names(state, tokens):
     """
     Scan all spec files to find unused skim variable names.
 
     Parameters
     ----------
+    state : State
     tokens : Collection[str]
 
     Returns
     -------
     Set[str]
     """
-    configs_dir_list = inject.get_injectable("configs_dir")
+    configs_dir_list = state.filesystem.get_configs_dir()
     configs_dir_list = (
-        [configs_dir_list] if isinstance(configs_dir_list, str) else configs_dir_list
+        [configs_dir_list]
+        if isinstance(configs_dir_list, (str, Path))
+        else configs_dir_list
     )
+    if isinstance(configs_dir_list, tuple):
+        configs_dir_list = list(configs_dir_list)
     assert isinstance(configs_dir_list, list)
 
     for directory in configs_dir_list:
@@ -524,10 +568,10 @@ def _scan_for_unused_names(tokens):
     return tokens
 
 
-def _drop_unused_names(dataset):
+def _drop_unused_names(state, dataset):
     logger.info("scanning for unused skims")
     tokens = set(dataset.variables.keys()) - set(dataset.coords.keys())
-    unused_tokens = _scan_for_unused_names(tokens)
+    unused_tokens = _scan_for_unused_names(state, tokens)
     if unused_tokens:
         baggage = dataset.digital_encoding.baggage(None)
         unused_tokens -= baggage
@@ -571,7 +615,7 @@ def load_sparse_maz_skims(
     maz2taz_file_name : str
     maz_to_maz_tables : Collection[]
     max_blend_distance : optional
-    data_file_resolver : function
+    data_file_resolver : function or Callable
 
     Returns
     -------
@@ -580,12 +624,12 @@ def load_sparse_maz_skims(
     from ..core.los import THREE_ZONE, TWO_ZONE
 
     if data_file_resolver is None:
-        data_file_resolver = config.data_file_path
+        raise ValueError("missing file resolver")
 
     if zone_system in [TWO_ZONE, THREE_ZONE]:
-
         # maz
-        maz_taz = pd.read_csv(data_file_resolver(maz2taz_file_name, mandatory=True))
+        maz_filename = data_file_resolver(maz2taz_file_name, mandatory=True)
+        maz_taz = read_input_file(maz_filename)
         maz_taz = maz_taz[["MAZ", "TAZ"]].set_index("MAZ").sort_index()
 
         # MAZ alignment is ensured here, so no re-alignment check is
@@ -623,8 +667,7 @@ def load_sparse_maz_skims(
             max_blend_distance = {"DEFAULT": max_blend_distance}
 
         for file_name in maz_to_maz_tables:
-
-            df = pd.read_csv(data_file_resolver(file_name, mandatory=True))
+            df = read_input_file(data_file_resolver(file_name, mandatory=True))
             if remapper is not None:
                 df.OMAZ = df.OMAZ.map(remapper.get)
                 df.DMAZ = df.DMAZ.map(remapper.get)
@@ -647,38 +690,39 @@ def load_sparse_maz_skims(
     return dataset
 
 
-def load_skim_dataset_to_shared_memory(skim_tag="taz"):
+def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
     """
     Load skims from disk into shared memory.
 
     Parameters
     ----------
+    state : State
     skim_tag : str, default "taz"
 
     Returns
     -------
     xarray.Dataset
     """
-    from ..core.los import ONE_ZONE
+    from activitysim.core.los import ONE_ZONE
 
     # TODO:SHARROW: taz and maz are the same
-    network_los_preload = inject.get_injectable("network_los_preload", None)
+    network_los_preload = state.get_injectable("network_los_preload")
     if network_los_preload is None:
         raise ValueError("missing network_los_preload")
 
     # find which OMX files are to be used.
-    omx_file_paths = config.expand_input_file_list(
+    omx_file_paths = state.filesystem.expand_input_file_list(
         network_los_preload.omx_file_names(skim_tag),
     )
     zarr_file = network_los_preload.zarr_file_name(skim_tag)
 
-    if config.setting("disable_zarr", False):
+    if state.settings.disable_zarr:
         # we can disable the zarr optimizations by setting the `disable_zarr`
         # flag in the master config file to True
         zarr_file = None
 
     if zarr_file is not None:
-        zarr_file = os.path.join(config.get_cache_dir(), zarr_file)
+        zarr_file = os.path.join(state.filesystem.get_cache_dir(), zarr_file)
 
     max_float_precision = network_los_preload.skim_max_float_precision(skim_tag)
 
@@ -694,30 +738,35 @@ def load_skim_dataset_to_shared_memory(skim_tag="taz"):
         )
         backing = f"memmap:{mmap_file}"
 
-    land_use = inject.get_table("land_use")
+    land_use = state.get_dataframe("land_use")
 
-    if f"_original_{land_use.index.name}" in land_use.to_frame():
-        land_use_zone_ids = land_use.to_frame()[f"_original_{land_use.index.name}"]
+    if f"_original_{land_use.index.name}" in land_use:
+        land_use_zone_ids = land_use[f"_original_{land_use.index.name}"]
         remapper = dict(zip(land_use_zone_ids, land_use_zone_ids.index))
     else:
         remapper = None
 
     d = _use_existing_backing_if_valid(backing, omx_file_paths, skim_tag)
+    do_not_save_zarr = False
 
     if d is None:
         time_periods = _dedupe_time_periods(network_los_preload)
         if zarr_file:
             logger.info(f"looking for zarr skims at {zarr_file}")
         if zarr_file and os.path.exists(zarr_file):
-            # TODO: check if the OMX skims or sparse MAZ are modified more
-            #       recently than the cached ZARR versions; if so do not use
-            #       the ZARR
+            from .util import latest_file_modification_time
+
             logger.info("found zarr skims, loading them")
-            d = sh.dataset.from_zarr_with_attr(zarr_file).max_float_precision(
-                max_float_precision
-            )
-        else:
-            if zarr_file:
+            d = sh.dataset.from_zarr_with_attr(zarr_file)
+            zarr_write_time = d.attrs.get("ZARR_WRITE_TIME", 0)
+            if zarr_write_time < latest_file_modification_time(omx_file_paths):
+                logger.warning("zarr skims older than omx, not using them")
+                do_not_save_zarr = True
+                d = None
+            else:
+                d = d.max_float_precision(max_float_precision)
+        if d is None:
+            if zarr_file and not do_not_save_zarr:
                 logger.info("did not find zarr skims, loading omx")
             d = sh.dataset.from_omx_3d(
                 [openmatrix.open_file(f, mode="r") for f in omx_file_paths],
@@ -744,7 +793,9 @@ def load_skim_dataset_to_shared_memory(skim_tag="taz"):
                     if zarr_digital_encoding:
                         d = _apply_digital_encoding(d, zarr_digital_encoding)
                     logger.info(f"writing zarr skims to {zarr_file}")
-                    d.to_zarr_with_attr(zarr_file)
+                    d.attrs["ZARR_WRITE_TIME"] = time.time()
+                    if not do_not_save_zarr:
+                        d.to_zarr_with_attr(zarr_file)
 
         if skim_tag in ("taz", "maz"):
             # load sparse MAZ skims, if any
@@ -764,9 +815,13 @@ def load_skim_dataset_to_shared_memory(skim_tag="taz"):
                     max_blend_distance=network_los_preload.setting(
                         "maz_to_maz.max_blend_distance", default={}
                     ),
+                    data_file_resolver=partial(
+                        state.filesystem.get_data_file_path,
+                        alternative_suffixes=(".csv.gz", ".parquet"),
+                    ),
                 )
 
-        d = _drop_unused_names(d)
+        d = _drop_unused_names(state, d)
         # apply non-zarr dependent digital encoding
         d = _apply_digital_encoding(d, skim_digital_encoding)
 
@@ -817,11 +872,11 @@ def load_skim_dataset_to_shared_memory(skim_tag="taz"):
         return d.shm.to_shared_memory(backing, mode="r")
 
 
-@inject.injectable(cache=True)
-def skim_dataset():
-    return load_skim_dataset_to_shared_memory()
+@workflow.cached_object
+def skim_dataset(state: workflow.State) -> xr.Dataset:
+    return load_skim_dataset_to_shared_memory(state)
 
 
-@inject.injectable(cache=True)
-def tap_dataset():
-    return load_skim_dataset_to_shared_memory("tap")
+@workflow.cached_object
+def tap_dataset(state: workflow.State) -> xr.Dataset:
+    return load_skim_dataset_to_shared_memory(state, "tap")

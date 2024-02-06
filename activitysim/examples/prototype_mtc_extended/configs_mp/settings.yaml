@@ -42,7 +42,8 @@ trace_od:
 #resume_after: trip_purpose_and_destination
 
 models:
-  ### mp_initialize_proto step (Create the proto tables in single process to be shared across cores)
+  - input_checker
+  # mp_initialize_proto step (Create the proto tables in single process to be shared across cores)
   - initialize_proto_population
   ### mp_disaggregate_accessibility (Slice and run proto tables in multiprocess)
   - compute_disaggregate_accessibility
@@ -88,7 +89,7 @@ models:
 
 multiprocess_steps:
   - name: mp_initialize
-    begin: initialize_proto_population
+    begin: input_checker
   - name: mp_disaggregate_accessibility
     begin: compute_disaggregate_accessibility
     slice:
@@ -104,7 +105,7 @@ multiprocess_steps:
       tables:
         - accessibility
       # don't slice any tables not explicitly listed above in slice.tables
-      except: True # This is needed after disaggregate accessibilities, otherwise it will return empty logsums tables
+      exclude: True # This is needed after disaggregate accessibilities, otherwise it will return empty logsums tables
   - name: mp_simulate
     begin: school_location
     slice:

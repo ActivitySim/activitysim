@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 # from builtins import int
+from __future__ import annotations
 
 import logging
 import multiprocessing
@@ -11,7 +12,7 @@ from abc import ABC
 import numpy as np
 import openmatrix as omx
 
-from activitysim.core import config, inject, skim_dictionary, util
+from activitysim.core import skim_dictionary, util
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ class SkimData(object):
 
 
 class SkimInfo(object):
-    def __init__(self, skim_tag, network_los):
+    def __init__(self, state, skim_tag, network_los):
         """
 
         skim_tag:           str             (e.g. 'TAZ')
@@ -89,9 +90,9 @@ class SkimInfo(object):
         self.block_offsets = None
 
         if skim_tag:
-            self.load_skim_info(skim_tag)
+            self.load_skim_info(state, skim_tag)
 
-    def load_skim_info(self, skim_tag):
+    def load_skim_info(self, state, skim_tag):
         """
         Read omx files for skim <skim_tag> (e.g. 'TAZ') and build skim_info dict
 
@@ -103,12 +104,12 @@ class SkimInfo(object):
 
         omx_file_names = self.network_los.omx_file_names(skim_tag)
 
-        self.omx_file_paths = config.expand_input_file_list(omx_file_names)
+        self.omx_file_paths = state.filesystem.expand_input_file_list(omx_file_names)
 
         # ignore any 3D skims not in skim_time_periods
         # specifically, load all skims except those with key2 not in dim3_tags_to_load
         skim_time_periods = self.network_los.skim_time_periods
-        dim3_tags_to_load = skim_time_periods and skim_time_periods["labels"]
+        dim3_tags_to_load = skim_time_periods and skim_time_periods.labels
 
         self.omx_manifest = {}  # dict mapping { omx_key: skim_name }
 
@@ -131,7 +132,7 @@ class SkimInfo(object):
                 for skim_name in omx_file.listMatrices():
                     if skim_name in self.omx_manifest:
                         warnings.warn(
-                            f"duplicate skim '{skim_name}' found in {self.omx_manifest[skim_name]} and {omx_file}"
+                            f"duplicate skim '{skim_name}' found in {self.omx_manifest[skim_name]} and {omx_file.filename}"
                         )
                     self.omx_manifest[skim_name] = omx_file_path
 
@@ -263,10 +264,12 @@ class AbstractSkimFactory(ABC):
         assert False, "Not supported"
 
     def _memmap_skim_data_path(self, skim_tag):
-        return os.path.join(config.get_cache_dir(), f"cached_{skim_tag}.mmap")
+        return os.path.join(
+            self.network_los.state.filesystem.get_cache_dir(), f"cached_{skim_tag}.mmap"
+        )
 
-    def load_skim_info(self, skim_tag):
-        return SkimInfo(skim_tag, self.network_los)
+    def load_skim_info(self, state, skim_tag):
+        return SkimInfo(state, skim_tag, self.network_los)
 
     def _read_skims_from_omx(self, skim_info, skim_data):
         """
@@ -496,14 +499,14 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         Parameters
         ----------
         skim_tag: str
-        skim_info: string
+        skim_info: dict
 
         Returns
         -------
         SkimData
         """
 
-        data_buffers = inject.get_injectable("data_buffers", None)
+        data_buffers = self.network_los.state.get_injectable("data_buffers", None)
         if data_buffers:
             # we assume any existing skim buffers will already have skim data loaded into them
             logger.info(
@@ -594,7 +597,9 @@ class MemMapSkimFactory(AbstractSkimFactory):
         """
 
         # don't expect legacy shared memory buffers
-        assert not inject.get_injectable("data_buffers", {}).get(skim_tag)
+        assert not self.network_los.state.get_injectable("data_buffers", {}).get(
+            skim_tag
+        )
 
         skim_cache_path = self._memmap_skim_data_path(skim_tag)
         if not os.path.isfile(skim_cache_path):

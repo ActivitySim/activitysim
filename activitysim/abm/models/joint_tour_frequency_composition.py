@@ -1,64 +1,82 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
 
 import numpy as np
 import pandas as pd
-import os
+
+from activitysim.abm.models.util.overlap import hh_time_window_overlap
+from activitysim.abm.models.util.tour_frequency import (
+    process_joint_tours_frequency_composition,
+)
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    simulate,
+    tracing,
+    workflow,
+)
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_simulate import interaction_simulate
-
-from activitysim.core import simulate
-from activitysim.core import tracing
-from activitysim.core import pipeline
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import expressions
-
-from .util import estimation
-
-from .util.overlap import hh_time_window_overlap
-from .util.tour_frequency import process_joint_tours_frequency_composition
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
+class JointTourFrequencyCompositionSettings(LogitComponentSettings):
+    """
+    Settings for the `joint_tour_frequency_composition` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    ALTS_PREPROCESSOR: PreprocessorSettings | None = None
+
+
+@workflow.step
 def joint_tour_frequency_composition(
-    households_merged, persons, chunk_size, trace_hh_id
-):
+    state: workflow.State,
+    households_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+    model_settings: JointTourFrequencyCompositionSettings | None = None,
+    model_settings_file_name: str = "joint_tour_frequency_composition.yaml",
+    trace_label: str = "joint_tour_frequency_composition",
+) -> None:
     """
     This model predicts the frequency and composition of fully joint tours.
     """
-
-    trace_label = "joint_tour_frequency_composition"
-    model_settings_file_name = "joint_tour_frequency_composition.yaml"
-
-    model_settings = config.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = JointTourFrequencyCompositionSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
     alt_tdd = simulate.read_model_alts(
-        "joint_tour_frequency_composition_alternatives.csv", set_index="alt"
+        state, "joint_tour_frequency_composition_alternatives.csv", set_index="alt"
     )
 
     # - only interested in households with more than one cdap travel_active person and
     # - at least one non-preschooler
-    households_merged = households_merged.to_frame()
     choosers = households_merged[households_merged.participates_in_jtf_model].copy()
 
     # - only interested in persons in choosers households
-    persons = persons.to_frame()
     persons = persons[persons.household_id.isin(choosers.index)]
 
     logger.info("Running %s with %d households", trace_label, len(choosers))
 
     # alt preprocessor
-    alt_preprocessor_settings = model_settings.get("ALTS_PREPROCESSOR", None)
+    alt_preprocessor_settings = model_settings.ALTS_PREPROCESSOR
     if alt_preprocessor_settings:
-
         locals_dict = {}
 
         alt_tdd = alt_tdd.copy()
 
         expressions.assign_columns(
+            state,
             df=alt_tdd,
             model_settings=alt_preprocessor_settings,
             locals_dict=locals_dict,
@@ -66,26 +84,30 @@ def joint_tour_frequency_composition(
         )
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
-
         locals_dict = {
             "persons": persons,
-            "hh_time_window_overlap": hh_time_window_overlap,
+            "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
         }
 
         expressions.assign_columns(
+            state,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
             trace_label=trace_label,
         )
 
-    estimator = estimation.manager.begin_estimation("joint_tour_frequency_composition")
+    estimator = estimation.manager.begin_estimation(
+        state, "joint_tour_frequency_composition"
+    )
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(
+        state, model_spec, coefficients_df, estimator
+    )
 
     constants = config.get_model_constants(model_settings)
 
@@ -105,11 +127,12 @@ def joint_tour_frequency_composition(
     # The choice value 'joint_tour_frequency_composition' assigned by interaction_simulate
     # is the index value of the chosen alternative in the alternatives table.
     choices = interaction_simulate(
+        state,
         choosers=choosers,
         alternatives=alt_tdd,
         spec=model_spec,
         locals_d=constants,
-        chunk_size=chunk_size,
+        chunk_size=state.settings.chunk_size,
         trace_label=trace_label,
         trace_choice_name=trace_label,
         estimator=estimator,
@@ -162,13 +185,13 @@ def joint_tour_frequency_composition(
     # 33333	shop	joint	    adults
 
     joint_tours = process_joint_tours_frequency_composition(
-        choices, alt_tdd, temp_point_persons
+        state, choices, alt_tdd, temp_point_persons
     )
 
-    tours = pipeline.extend_table("tours", joint_tours)
+    tours = state.extend_table("tours", joint_tours)
 
-    tracing.register_traceable_table("tours", joint_tours)
-    pipeline.get_rn_generator().add_channel("tours", joint_tours)
+    state.tracing.register_traceable_table("tours", joint_tours)
+    state.get_rn_generator().add_channel("tours", joint_tours)
 
     # we expect there to be an alt with no tours - which we can use to backfill non-travelers
     no_tours_alt = 0
@@ -184,7 +207,7 @@ def joint_tour_frequency_composition(
         .astype(np.int8)
     )
 
-    pipeline.replace_table("households", households_merged)
+    state.add_table("households", households_merged)
 
     tracing.print_summary(
         "joint_tour_frequency_composition",
@@ -192,12 +215,12 @@ def joint_tour_frequency_composition(
         value_counts=True,
     )
 
-    if trace_hh_id:
-        tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             households_merged, label="joint_tour_frequency_composition.households"
         )
 
-        tracing.trace_df(
+        state.tracing.trace_df(
             joint_tours,
             label="joint_tour_frequency_composition.joint_tours",
             slicer="household_id",

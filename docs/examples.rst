@@ -4,8 +4,8 @@
 .. _example :
 .. _examples :
 
-Examples
-========
+Built-in Examples
+=================
 
 This page describes the example models included with ActivitySim. There are three
 basic types of example model:
@@ -48,7 +48,7 @@ The current examples are:
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`prototype_arc`            | ARC agency example                                        | 1            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`prototype_semcog`         | SEMCOG agency example                                     | 1            | In development       |
+| :ref:`production_semcog`        | SEMCOG agency example                                     | 1            | In production        |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`placeholder_psrc`         | PSRC agency example                                       | 2            | Future development   |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
@@ -64,7 +64,7 @@ The current examples are:
    contains example commands to create and run several versions of the examples.  See also :ref:`adding_agency_examples` for more
    information on agency example models.
 
-.. _prototype_mtc :
+
 
 prototype_mtc
 -------------
@@ -523,7 +523,7 @@ Python/pandas/numpy expressions, alternatives, and other settings used by each m
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the ``non_mandatory_tour_frequency_alternatives.csv`` file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The  set of files for the prototype_mtc are below.  The
-:ref:`prototype_arc`, :ref:`prototype_semcog`, and :ref:`prototype_mtc_extended` examples added additional submodels.
+:ref:`prototype_arc`, :ref:`production_semcog`, and :ref:`prototype_mtc_extended` examples added additional submodels.
 
 +------------------------------------------------+--------------------------------------------------------------------+
 |            Model                               |    Specification Files                                             |
@@ -1078,7 +1078,7 @@ for examples that illustrate running ActivitySim in estimation mode and using la
 
 .. index:: multiple_zone_systems
 .. _multiple_zone_systems :
-.. _placeholder_multiple_zone :
+.. _placeholder_multiple_zone_old :
 
 placeholder_multiple_zone
 -------------------------
@@ -1484,9 +1484,9 @@ Example
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running prototype_arc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
-.. _prototype_semcog :
 
-prototype_semcog
+
+production_semcog
 ----------------
 
 .. note::
@@ -1494,7 +1494,7 @@ prototype_semcog
   This example is in development
 
 
-The prototype_semcog added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
+The production_semcog model added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
 and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`prototype_mtc`
 submodel :ref:`sub-model-spec-files`.  These submodels were added to prototype_semcog as extensions, which is a way for users to add
 submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through
@@ -1526,11 +1526,28 @@ Example SEMCOG Sub-Model Specification Files
 |                                                |  - transit_pass_ownership_coeffs.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 
+Additional extensions were included specifically as part of the production_semcog model to deal with the unique travel of
+university students attending the University of Michigan (UofM).  First off, UofM students have their school zones resampled
+weighted by enrollment. This happens after both school location choice in the university_location_zone_override model and
+after university trip destination choice in the trip_destination_univ_zone_override model. Next, parking trips are handled
+explicitly by first choosing a parking location if the trip destination is in a UofM zone. Parking locations are selected
+proportionally to the parking lot size as part of the parking_location_choice_at_university. Finally explicit trips are
+inserted into the trips table to and from the parking lot locations in the stop_frequency_university_parking model.
+While a persons vehicle is parked, trip mode choice treats the tour mode as walk-transit to determine trip mode availability
+until the person returns back to their car.  For more information, please see SEMCOG's final model documentation and the
+SEMCOG model user quide.
+
+These submodels were added to production_semcog as extensions, which is a way for users to add
+submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through
+the `models` settings.  However, the model must be run with the `simulation.py` script instead of the command line interface
+in order to load the extensions folder.
+
+
 Example
 ~~~~~~~
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
-for running prototype_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+for running production_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 
 .. _placeholder_psrc :

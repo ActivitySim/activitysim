@@ -1,0 +1,123 @@
+## ActivitySim
+## See full license in LICENSE.txt.
+### MODE CHOICE RELATED CONSTANTS
+
+# cash discount factor for seniors (persons age 65+) or driving-age students, non-driving age students, and pre-school children
+cash_discount_factor: 0.5
+
+#pass discount factor by operator and person type (1-8)
+transit_pass_discount_factor_ddot:
+      1: 0.74
+      2: 0.73
+      3: 0.68
+      4: 0.67
+      5: 0.36
+      6: 0.44
+      7: 0.42
+      8: 1.0
+transit_pass_discount_factor_smart:
+      1: 0.65
+      2: 0.54
+      3: 0.61
+      4: 0.58
+      5: 0.15
+      6: 0.21
+      7: 0.12
+      8: 1.0
+transit_pass_discount_factor_aata:
+      1: 0.08
+      2: 0.16
+      3: 0.02
+      4: 0.25
+      5: 0.05
+      6: 0.12
+      7: 0.17
+      8: 1.0
+transit_pass_discount_factor_um:
+      1: 0.0
+      2: 0.0
+      3: 0.0
+      4: 0.0
+      5: 0.0
+      6: 0.0
+      7: 0.0
+      8: 0.0
+transit_pass_discount_factor_other:
+      1: 0.34
+      2: 0.60
+      3: 0.35
+      4: 0.68
+      5: 0.25
+      6: 0.75
+      7: 0.84
+      8: 1.0
+
+costPerMile: 18.29
+costShareSr2: 1.75
+costShareSr3: 2.50
+
+waitThresh: 10.00
+walkThresh: 1.00
+shortWalk: 0.333
+longWalk: 0.667
+walkSpeed: 3.00
+bikeThresh: 6.00
+bikeSpeed: 12.00
+valueOfTime: 8.00
+
+max_local_walk_dist: 0.85
+max_prm_walk_dist: 1.2
+max_mix_walk_dist: 1.2
+walk_speed: 2.8 #mph
+
+# convenience for expression files
+HHT_NONFAMILY: [4, 5, 6, 7]
+HHT_FAMILY: [1, 2, 3]
+
+PSTUDENT_GRADE_OR_HIGH: 1
+PSTUDENT_UNIVERSITY: 2
+PSTUDENT_NOT: 3
+
+GRADE_SCHOOL_MAX_AGE: 14
+GRADE_SCHOOL_MIN_AGE: 5
+
+SCHOOL_SEGMENT_NONE: 0
+SCHOOL_SEGMENT_GRADE: 1
+SCHOOL_SEGMENT_HIGH: 2
+SCHOOL_SEGMENT_UNIV: 3
+
+INCOME_SEGMENT_LOW: 1
+INCOME_SEGMENT_MED: 2
+INCOME_SEGMENT_HIGH: 3
+INCOME_SEGMENT_VERYHIGH: 4
+
+PEMPLOY_FULL: 1
+PEMPLOY_PART: 2
+PEMPLOY_NOT: 3
+PEMPLOY_CHILD: 4
+
+PTYPE_FULL: &ptype_full 1
+PTYPE_PART: &ptype_part 2
+PTYPE_UNIVERSITY: &ptype_university 3
+PTYPE_NONWORK: &ptype_nonwork 4
+PTYPE_RETIRED: &ptype_retired 5
+PTYPE_DRIVING: &ptype_driving 6
+PTYPE_SCHOOL: &ptype_school 7
+PTYPE_PRESCHOOL:  &ptype_preschool 8
+
+# these appear as column headers in non_mandatory_tour_frequency.csv
+PTYPE_NAME:
+  *ptype_full: PTYPE_FULL
+  *ptype_part: PTYPE_PART
+  *ptype_university: PTYPE_UNIVERSITY
+  *ptype_nonwork: PTYPE_NONWORK
+  *ptype_retired: PTYPE_RETIRED
+  *ptype_driving: PTYPE_DRIVING
+  *ptype_school: PTYPE_SCHOOL
+  *ptype_preschool: PTYPE_PRESCHOOL
+
+
+CDAP_ACTIVITY_MANDATORY: M
+CDAP_ACTIVITY_NONMANDATORY: N
+CDAP_ACTIVITY_HOME: H
+

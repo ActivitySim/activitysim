@@ -157,7 +157,7 @@ multiprocess_steps:
       tables:
         - accessibility
       # don't slice any tables not explicitly listed above in slice.tables
-      except: True
+      exclude: True
   - name: mp_households
     begin: school_location
     slice:

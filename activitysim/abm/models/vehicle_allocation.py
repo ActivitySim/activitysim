@@ -1,52 +1,48 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
 
-import itertools
 import logging
-import os
 
-import numpy as np
 import pandas as pd
 
 from activitysim.core import (
-    assign,
     config,
+    estimation,
     expressions,
-    inject,
-    logit,
     los,
-    pipeline,
     simulate,
     tracing,
+    workflow,
 )
-from activitysim.core.interaction_simulate import interaction_simulate
-from activitysim.core.util import assign_in_place
-
-from .util import estimation
-from .util.mode import mode_choice_simulate
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger(__name__)
 
 
-def annotate_vehicle_allocation(model_settings, trace_label):
+def annotate_vehicle_allocation(
+    state: workflow.State, model_settings: VehicleAllocationSettings, trace_label: str
+):
     """
     Add columns to the tours table in the pipeline according to spec.
 
     Parameters
     ----------
-    model_settings : dict
+    model_settings : VehicleAllocationSettings
     trace_label : str
     """
-    tours = inject.get_table("tours").to_frame()
+    tours = state.get_dataframe("tours")
     expressions.assign_columns(
+        state,
         df=tours,
-        model_settings=model_settings.get("annotate_tours"),
+        model_settings=model_settings.annotate_tours,
         trace_label=tracing.extend_trace_label(trace_label, "annotate_tours"),
     )
-    pipeline.replace_table("tours", tours)
+    state.add_table("tours", tours)
 
 
-def get_skim_dict(network_los, choosers):
+def get_skim_dict(network_los: los.Network_LOS, choosers: pd.DataFrame):
     """
     Returns a dictionary of skim wrappers to use in expression writing.
 
@@ -89,17 +85,39 @@ def get_skim_dict(network_los, choosers):
     return skims
 
 
-@inject.step()
+class VehicleAllocationSettings(LogitComponentSettings, extra="forbid"):
+    """
+    Settings for the `joint_tour_scheduling` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    OCCUPANCY_LEVELS: list = [1]  # TODO Check this
+    """Occupancy level
+
+    It will create columns in the tour table selecting a vehicle for each of the
+    occupancy levels. They are named vehicle_occup_1, vehicle_occup_2,... etc.
+    if not supplied, will default to only one occupancy level of 1
+    """
+
+    annotate_tours: PreprocessorSettings | None = None
+    """Preprocessor settings to annotate tours"""
+
+
+@workflow.step
 def vehicle_allocation(
-    persons,
-    households,
-    vehicles,
-    tours,
-    tours_merged,
-    network_los,
-    chunk_size,
-    trace_hh_id,
-):
+    state: workflow.State,
+    persons: pd.DataFrame,
+    households: pd.DataFrame,
+    vehicles: pd.DataFrame,
+    tours: pd.DataFrame,
+    tours_merged: pd.DataFrame,
+    network_los: los.Network_LOS,
+    model_settings: VehicleAllocationSettings | None = None,
+    model_settings_file_name: str = "vehicle_allocation.yaml",
+    trace_label: str = "vehicle_allocation",
+) -> None:
     """Selects a vehicle for each occupancy level for each tour.
 
     Alternatives consist of the up to the number of household vehicles plus one
@@ -113,26 +131,30 @@ def vehicle_allocation(
 
     Parameters
     ----------
-    persons : orca.DataFrameWrapper
-    households : orca.DataFrameWrapper
-    vehicles : orca.DataFrameWrapper
-    vehicles_merged : orca.DataFrameWrapper
-    tours : orca.DataFrameWrapper
-    tours_merged : orca.DataFrameWrapper
-    chunk_size : orca.injectable
-    trace_hh_id : orca.injectable
+    state : workflow.State
+    persons : pd.DataFrame
+    households : pd.DataFrame
+    vehicles : pd.DataFrame
+    tours : pd.DataFrame
+    tours_merged : pd.DataFrame
+    network_los : los.Network_LOS
     """
-    trace_label = "vehicle_allocation"
-    model_settings_file_name = "vehicle_allocation.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
 
-    logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
+    if model_settings is None:
+        model_settings = VehicleAllocationSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
-    estimator = estimation.manager.begin_estimation("vehicle_allocation")
+    # logsum_column_name = model_settings.MODE_CHOICE_LOGSUM_COLUMN_NAME
 
-    model_spec_raw = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec_raw, coefficients_df, estimator)
+    estimator = estimation.manager.begin_estimation(state, "vehicle_allocation")
+
+    model_spec_raw = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(
+        state, model_spec_raw, coefficients_df, estimator
+    )
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
@@ -142,7 +164,7 @@ def vehicle_allocation(
     locals_dict.update(coefficients_df)
 
     # ------ constructing alternatives from model spec and joining to choosers
-    vehicles_wide = vehicles.to_frame().pivot_table(
+    vehicles_wide = vehicles.pivot_table(
         index="household_id",
         columns="vehicle_num",
         values="vehicle_type",
@@ -170,7 +192,7 @@ def vehicle_allocation(
     vehicles_wide[alts_from_spec[-1]] = ""
 
     # merging vehicle alternatives to choosers
-    choosers = tours_merged.to_frame().reset_index()
+    choosers = tours_merged.reset_index()
     choosers = pd.merge(choosers, vehicles_wide, how="left", on="household_id")
     choosers.set_index("tour_id", inplace=True)
 
@@ -179,9 +201,10 @@ def vehicle_allocation(
     locals_dict.update(skims)
 
     # ------ preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         expressions.assign_columns(
+            state,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -196,22 +219,20 @@ def vehicle_allocation(
         estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_choosers(choosers)
 
-    tours = tours.to_frame()
-
     # ------ running for each occupancy level selected
     tours_veh_occup_cols = []
-    for occup in model_settings.get("OCCUPANCY_LEVELS", [1]):
+    for occup in model_settings.OCCUPANCY_LEVELS:
         logger.info("Running for occupancy = %d", occup)
         # setting occup for access in spec expressions
         locals_dict.update({"occup": occup})
 
         choices = simulate.simple_simulate(
+            state,
             choosers=choosers,
             spec=model_spec,
             nest_spec=nest_spec,
             skims=skims,
             locals_d=locals_dict,
-            chunk_size=chunk_size,
             trace_label=trace_label,
             trace_choice_name="vehicle_allocation",
             estimator=estimator,
@@ -243,15 +264,15 @@ def vehicle_allocation(
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    pipeline.replace_table("tours", tours)
+    state.add_table("tours", tours)
 
     tracing.print_summary(
         "vehicle_allocation", tours[tours_veh_occup_cols], value_counts=True
     )
 
-    annotate_settings = model_settings.get("annotate_tours", None)
+    annotate_settings = model_settings.annotate_tours
     if annotate_settings:
-        annotate_vehicle_allocation(model_settings, trace_label)
+        annotate_vehicle_allocation(state, model_settings, trace_label)
 
-    if trace_hh_id:
-        tracing.trace_df(tours, label="vehicle_allocation", warn_if_empty=True)
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(tours, label="vehicle_allocation", warn_if_empty=True)

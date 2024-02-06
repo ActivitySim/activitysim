@@ -235,21 +235,8 @@ a profiler file.  Then run snakeviz on the profiler file to interactively explor
 Documentation
 ~~~~~~~~~~~~~
 
-The documentation is written in `reStructuredText <http://docutils.sourceforge.net/rst.html>`__ markup
-and built with `Sphinx <http://www.sphinx-doc.org/en/stable/>`__.  In addition to converting rst files
-to html and other document formats, these tools also read the inline Python docstrings and convert
-them into html as well.  ActivitySim's docstrings are written in `numpydoc format
-<https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`__ since it is easier to use
-than standard rst format.
+See :ref:`Documentation <write-docs>`.
 
-To build the documentation, first make sure the required packages are installed.  Next, build the
-documentation in html format with the ``make html`` command run from the ``docs`` folder.
-
-If the activitysim package is installed, then the documentation will be built from that version of
-the source code instead of the git repo version.  When pushing revisions to the repo, the documentation
-is automatically built by Travis after successfully passing the tests.
-
-GitHub automatically publishes the gh-pages branch at https://activitysim.github.io/activitysim.
 
 .. _release_steps :
 

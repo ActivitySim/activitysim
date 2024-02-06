@@ -1,33 +1,37 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import itertools
 import logging
 import os
+from typing import Literal
 
-import numpy as np
 import pandas as pd
 
 from activitysim.core import (
-    assign,
     config,
+    estimation,
     expressions,
-    inject,
     logit,
-    los,
-    pipeline,
     simulate,
     tracing,
+    workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_simulate import interaction_simulate
-from activitysim.core.util import assign_in_place
-
-from .util import estimation
 
 logger = logging.getLogger(__name__)
 
 
-def append_probabilistic_vehtype_type_choices(choices, model_settings, trace_label):
+def append_probabilistic_vehtype_type_choices(
+    state: workflow.State,
+    choices,
+    model_settings: VehicleTypeChoiceSettings,
+    trace_label,
+):
     """
     Select a fuel type for the provided body type and age of the vehicle.
 
@@ -35,9 +39,10 @@ def append_probabilistic_vehtype_type_choices(choices, model_settings, trace_lab
 
     Parameters
     ----------
+    state : workflow.State
     choices : pandas.DataFrame
         selection of {body_type}_{age} to append vehicle type to
-    probs_spec_file : str
+    model_settings : VehicleTypeChoiceSettings
     trace_label : str
 
     Returns
@@ -45,10 +50,12 @@ def append_probabilistic_vehtype_type_choices(choices, model_settings, trace_lab
     choices : pandas.DataFrame
         table of chosen vehicle types
     """
-    probs_spec_file = model_settings.get("PROBS_SPEC", None)
-    probs_spec = pd.read_csv(config.config_file_path(probs_spec_file), comment="#")
+    probs_spec_file = model_settings.PROBS_SPEC
+    probs_spec = pd.read_csv(
+        state.filesystem.get_config_file_path(probs_spec_file), comment="#"
+    )
 
-    fleet_year = model_settings.get("FLEET_YEAR")
+    fleet_year = model_settings.FLEET_YEAR
     probs_spec["age"] = (1 + fleet_year - probs_spec["vehicle_year"]).astype(int)
     probs_spec["vehicle_type"] = (
         probs_spec[["body_type", "age"]].astype(str).agg("_".join, axis=1)
@@ -75,7 +82,7 @@ def append_probabilistic_vehtype_type_choices(choices, model_settings, trace_lab
 
     # make probabilistic choices
     prob_choices, rands = logit.make_choices(
-        chooser_probs, trace_label=trace_label, trace_choosers=choosers
+        state, chooser_probs, trace_label=trace_label, trace_choosers=choosers
     )
 
     # convert alt choice index to vehicle type attribute
@@ -91,58 +98,70 @@ def append_probabilistic_vehtype_type_choices(choices, model_settings, trace_lab
     return choices
 
 
-def annotate_vehicle_type_choice_households(model_settings, trace_label):
+def annotate_vehicle_type_choice_households(
+    state: workflow.State, model_settings: VehicleTypeChoiceSettings, trace_label: str
+):
     """
     Add columns to the households table in the pipeline according to spec.
 
     Parameters
     ----------
-    model_settings : dict
+    state : workflow.State
+    model_settings : VehicleTypeChoiceSettings
     trace_label : str
     """
-    households = inject.get_table("households").to_frame()
+    households = state.get_dataframe("households")
     expressions.assign_columns(
+        state,
         df=households,
-        model_settings=model_settings.get("annotate_households"),
+        model_settings=model_settings.annotate_households,
         trace_label=tracing.extend_trace_label(trace_label, "annotate_households"),
     )
-    pipeline.replace_table("households", households)
+    state.add_table("households", households)
 
 
-def annotate_vehicle_type_choice_persons(model_settings, trace_label):
+def annotate_vehicle_type_choice_persons(
+    state: workflow.State, model_settings: VehicleTypeChoiceSettings, trace_label: str
+):
     """
     Add columns to the persons table in the pipeline according to spec.
 
     Parameters
     ----------
-    model_settings : dict
+    state : workflow.State
+    model_settings : VehicleTypeChoiceSettings
     trace_label : str
     """
-    persons = inject.get_table("persons").to_frame()
+    persons = state.get_dataframe("persons")
     expressions.assign_columns(
+        state,
         df=persons,
-        model_settings=model_settings.get("annotate_persons"),
+        model_settings=model_settings.annotate_persons,
         trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
     )
-    pipeline.replace_table("persons", persons)
+    state.add_table("persons", persons)
 
 
-def annotate_vehicle_type_choice_vehicles(model_settings, trace_label):
+def annotate_vehicle_type_choice_vehicles(
+    state: workflow.State, model_settings: VehicleTypeChoiceSettings, trace_label: str
+):
     """
     Add columns to the vehicles table in the pipeline according to spec.
 
     Parameters
     ----------
-    model_settings : dict
+    state : workflow.State
+    model_settings : VehicleTypeChoiceSettings
     trace_label : str
     """
-    vehicles = inject.get_table("vehicles").to_frame()
+    vehicles = state.get_dataframe("vehicles")
     expressions.assign_columns(
+        state,
         df=vehicles,
-        model_settings=model_settings.get("annotate_vehicles"),
+        model_settings=model_settings.annotate_vehicles,
         trace_label=tracing.extend_trace_label(trace_label, "annotate_vehicles"),
     )
-    pipeline.replace_table("vehicles", vehicles)
+    state.add_table("vehicles", vehicles)
 
 
 def get_combinatorial_vehicle_alternatives(alts_cats_dict):
@@ -155,14 +174,13 @@ def get_combinatorial_vehicle_alternatives(alts_cats_dict):
     Parameters
     ----------
     alts_cats_dict : dict
-    model_settings : dict
 
     Returns
     -------
     alts_wide : pd.DataFrame in wide format expanded using pandas get_dummies function
     alts_long : pd.DataFrame in long format
     """
-    cat_cols = list(alts_cats_dict.keys())  # e.g. fuel type, body type, age
+    list(alts_cats_dict.keys())  # e.g. fuel type, body type, age
     alts_long = pd.DataFrame(
         list(itertools.product(*alts_cats_dict.values())), columns=alts_cats_dict.keys()
     ).astype(str)
@@ -172,7 +190,12 @@ def get_combinatorial_vehicle_alternatives(alts_cats_dict):
     return alts_wide, alts_long
 
 
-def construct_model_alternatives(model_settings, alts_cats_dict, vehicle_type_data):
+def construct_model_alternatives(
+    state: workflow.State,
+    model_settings: VehicleTypeChoiceSettings,
+    alts_cats_dict,
+    vehicle_type_data,
+):
     """
     Construct the table of vehicle type alternatives.
 
@@ -180,7 +203,8 @@ def construct_model_alternatives(model_settings, alts_cats_dict, vehicle_type_da
 
     Parameters
     ----------
-    model_settings : dict
+    state : workflow.State
+    model_settings : VehicleTypeChoiceSettings
     alts_cats_dict : dict
         nested dictionary of vehicle body, age, and fuel options
     vehicle_type_data : pandas.DataFrame
@@ -192,7 +216,7 @@ def construct_model_alternatives(model_settings, alts_cats_dict, vehicle_type_da
     alts_long : pd.DataFrame
         rows just list the alternatives
     """
-    probs_spec_file = model_settings.get("PROBS_SPEC", None)
+    probs_spec_file = model_settings.PROBS_SPEC
     if probs_spec_file:
         # do not include alternatives from fuel_type if they are given probabilisticly
         del alts_cats_dict["fuel_type"]
@@ -200,7 +224,6 @@ def construct_model_alternatives(model_settings, alts_cats_dict, vehicle_type_da
 
     # merge vehicle type data to alternatives if data is provided
     if (vehicle_type_data is not None) and (probs_spec_file is None):
-
         alts_wide = pd.merge(
             alts_wide,
             vehicle_type_data,
@@ -214,7 +237,7 @@ def construct_model_alternatives(model_settings, alts_cats_dict, vehicle_type_da
             alts_wide._merge == "left_only", ["body_type", "fuel_type", "age"]
         ]
 
-        if model_settings.get("REQUIRE_DATA_FOR_ALL_ALTS", False):
+        if model_settings.REQUIRE_DATA_FOR_ALL_ALTS:
             # fail if alternative does not have an associated record in the data
             assert (
                 len(missing_alts) == 0
@@ -228,10 +251,10 @@ def construct_model_alternatives(model_settings, alts_cats_dict, vehicle_type_da
     alts_wide["age"] = alts_wide["age"].astype(int)
 
     # store alts in primary configs dir for inspection
-    configs_dirs = inject.get_injectable("configs_dir")
+    configs_dirs = state.filesystem.get_configs_dir()
     configs_dirs = configs_dirs if isinstance(configs_dirs, list) else [configs_dirs]
 
-    if model_settings.get("WRITE_OUT_ALTS_FILE", False):
+    if model_settings.WRITE_OUT_ALTS_FILE:
         alts_wide.to_csv(
             os.path.join(configs_dirs[0]), "vehicle_type_choice_aternatives.csv"
         )
@@ -239,13 +262,18 @@ def construct_model_alternatives(model_settings, alts_cats_dict, vehicle_type_da
     return alts_wide, alts_long
 
 
-def get_vehicle_type_data(model_settings, vehicle_type_data_file):
+def get_vehicle_type_data(
+    state: workflow.State,
+    model_settings: VehicleTypeChoiceSettings,
+    vehicle_type_data_file,
+):
     """
     Read in the vehicle type data and computes the vehicle age.
 
     Parameters
     ----------
-    model_settings : dict
+    state : workflow.State
+    model_settings : VehicleTypeChoiceSettings
     vehicle_type_data_file : str
         name of vehicle type data file found in config folder
 
@@ -255,9 +283,9 @@ def get_vehicle_type_data(model_settings, vehicle_type_data_file):
         table of vehicle type data with required body_type, age, and fuel_type columns
     """
     vehicle_type_data = pd.read_csv(
-        config.config_file_path(vehicle_type_data_file), comment="#"
+        state.filesystem.get_config_file_path(vehicle_type_data_file), comment="#"
     )
-    fleet_year = model_settings.get("FLEET_YEAR")
+    fleet_year = model_settings.FLEET_YEAR
 
     vehicle_type_data["age"] = (
         1 + fleet_year - vehicle_type_data["vehicle_year"]
@@ -272,8 +300,9 @@ def get_vehicle_type_data(model_settings, vehicle_type_data_file):
 
 
 def iterate_vehicle_type_choice(
-    vehicles_merged,
-    model_settings,
+    state: workflow.State,
+    vehicles_merged: pd.DataFrame,
+    model_settings: VehicleTypeChoiceSettings,
     model_spec,
     locals_dict,
     estimator,
@@ -295,7 +324,7 @@ def iterate_vehicle_type_choice(
 
     Parameters
     ----------
-    vehicles_merged : orca.DataFrameWrapper
+    vehicles_merged : DataFrame
         vehicle list owned by each household merged with households table
     model_settings : dict
         yaml model settings file as dict
@@ -304,7 +333,7 @@ def iterate_vehicle_type_choice(
     locals_dict : dict
         additional variables available when writing expressions
     estimator : Estimator object
-    chunk_size : orca.injectable
+    chunk_size : int
     trace_label : str
 
     Returns
@@ -316,27 +345,30 @@ def iterate_vehicle_type_choice(
     """
     # - model settings
     nest_spec = config.get_logit_model_settings(model_settings)
-    vehicle_type_data_file = model_settings.get("VEHICLE_TYPE_DATA_FILE", None)
-    probs_spec_file = model_settings.get("PROBS_SPEC", None)
-    alts_cats_dict = model_settings.get("combinatorial_alts", False)
+    vehicle_type_data_file = model_settings.VEHICLE_TYPE_DATA_FILE
+    probs_spec_file = model_settings.PROBS_SPEC
+    alts_cats_dict = model_settings.combinatorial_alts
 
     # adding vehicle type data to be available to locals_dict regardless of option
     if vehicle_type_data_file:
         vehicle_type_data = get_vehicle_type_data(
-            model_settings, vehicle_type_data_file
+            state, model_settings, vehicle_type_data_file
         )
         locals_dict.update({"vehicle_type_data": vehicle_type_data})
+    else:
+        vehicle_type_data = None
 
     # - Preparing alternatives
     # create alts on-the-fly as cartesian product of categorical values
     if alts_cats_dict:
         # do not include fuel types as alternatives if probability file is supplied
         alts_wide, alts_long = construct_model_alternatives(
-            model_settings, alts_cats_dict, vehicle_type_data
+            state, model_settings, alts_cats_dict, vehicle_type_data
         )
+    else:
+        alts_wide = alts_long = None
 
     # - preparing choosers for iterating
-    vehicles_merged = vehicles_merged.to_frame()
     vehicles_merged["already_owned_veh"] = ""
     logger.info("Running %s with %d vehicles", trace_label, len(vehicles_merged))
     all_choosers = []
@@ -350,9 +382,10 @@ def iterate_vehicle_type_choice(
         # running preprocessor on entire vehicle table to enumerate vehicle types
         # already owned by the household
         choosers = vehicles_merged
-        preprocessor_settings = model_settings.get("preprocessor", None)
+        preprocessor_settings = model_settings.preprocessor
         if preprocessor_settings:
             expressions.assign_columns(
+                state,
                 df=choosers,
                 model_settings=preprocessor_settings,
                 locals_dict=locals_dict,
@@ -371,12 +404,12 @@ def iterate_vehicle_type_choice(
         # if there were so many alts that they had to be created programmatically,
         # by combining categorical variables, then the utility expressions should make
         # use of interaction terms to accommodate alt-specific coefficients and constants
-        simulation_type = model_settings.get("SIMULATION_TYPE", "interaction_simulate")
+        simulation_type = model_settings.SIMULATION_TYPE
         assert (simulation_type == "interaction_simulate") or (
             simulation_type == "simple_simulate"
         ), "SIMULATION_TYPE needs to be interaction_simulate or simple_simulate"
 
-        log_alt_losers = config.setting("log_alt_losers", False)
+        log_alt_losers = state.settings.log_alt_losers
 
         if simulation_type == "interaction_simulate":
             assert (
@@ -384,6 +417,7 @@ def iterate_vehicle_type_choice(
             ), "Need to supply combinatorial_alts in yaml"
 
             choices = interaction_simulate(
+                state,
                 choosers=choosers,
                 alternatives=alts_wide,
                 spec=model_spec,
@@ -399,16 +433,18 @@ def iterate_vehicle_type_choice(
         # each alternative as a distinct column in the .csv
         elif simulation_type == "simple_simulate":
             choices = simulate.simple_simulate(
+                state,
                 choosers=choosers,
                 spec=model_spec,
                 log_alt_losers=log_alt_losers,
                 nest_spec=nest_spec,
                 locals_d=locals_dict,
-                chunk_size=chunk_size,
                 trace_label=trace_label,
                 trace_choice_name="vehicle_type",
                 estimator=estimator,
             )
+        else:
+            raise NotImplementedError(simulation_type)
 
         if isinstance(choices, pd.Series):
             choices = choices.to_frame("choice")
@@ -428,7 +464,7 @@ def iterate_vehicle_type_choice(
         # STEP II: append probabilistic vehicle type attributes
         if probs_spec_file is not None:
             choices = append_probabilistic_vehtype_type_choices(
-                choices, model_settings, trace_label
+                state, choices, model_settings, trace_label
             )
 
         vehicles_merged.loc[choices.index, "already_owned_veh"] = choices[
@@ -442,7 +478,7 @@ def iterate_vehicle_type_choice(
     all_choosers = pd.concat(all_choosers)
 
     # appending vehicle type data to the vehicle table
-    additional_cols = model_settings.get("COLS_TO_INCLUDE_IN_VEHICLE_TABLE")
+    additional_cols = model_settings.COLS_TO_INCLUDE_IN_VEHICLE_TABLE
     if additional_cols:
         additional_cols.append("vehicle_type")
         all_choices = (
@@ -454,10 +490,41 @@ def iterate_vehicle_type_choice(
     return all_choices, all_choosers
 
 
-@inject.step()
+class VehicleTypeChoiceSettings(LogitComponentSettings):
+    """
+    Settings for the `vehicle_type_choice` component.
+    """
+
+    VEHICLE_TYPE_DATA_FILE: str | None = None
+    PROBS_SPEC: str | None = None
+    combinatorial_alts: dict | None = None
+    preprocessor: PreprocessorSettings | None = None
+    SIMULATION_TYPE: Literal[
+        "simple_simulate", "interaction_simulate"
+    ] = "interaction_simulate"
+    COLS_TO_INCLUDE_IN_VEHICLE_TABLE: list[str] = []
+
+    annotate_households: PreprocessorSettings | None = None
+    annotate_persons: PreprocessorSettings | None = None
+    annotate_vehicles: PreprocessorSettings | None = None
+
+    REQUIRE_DATA_FOR_ALL_ALTS: bool = False
+    WRITE_OUT_ALTS_FILE: bool = False
+
+    FLEET_YEAR: int
+
+
+@workflow.step
 def vehicle_type_choice(
-    persons, households, vehicles, vehicles_merged, chunk_size, trace_hh_id
-):
+    state: workflow.State,
+    persons: pd.DataFrame,
+    households: pd.DataFrame,
+    vehicles: pd.DataFrame,
+    vehicles_merged: pd.DataFrame,
+    model_settings: VehicleTypeChoiceSettings | None = None,
+    model_settings_file_name: str = "vehicle_type_choice.yaml",
+    trace_label: str = "vehicle_type_choice",
+) -> None:
     """Assign a vehicle type to each vehicle in the `vehicles` table.
 
     If a "SIMULATION_TYPE" is set to simple_simulate in the
@@ -493,22 +560,28 @@ def vehicle_type_choice(
 
     Parameters
     ----------
-    persons : orca.DataFrameWrapper
-    households : orca.DataFrameWrapper
-    vehicles : orca.DataFrameWrapper
-    vehicles_merged : orca.DataFrameWrapper
-    chunk_size : orca.injectable
-    trace_hh_id : orca.injectable
+    state : workflow.State
+    persons : pd.DataFrame
+    households : pd.DataFrame
+    vehicles : pd.DataFrame
+    vehicles_merged :pd. DataFrame
+    model_settings : class specifying the model settings
+    model_settings_file_name: filename of the model settings file
+    trace_label: trace label of the vehicle type choice model
     """
-    trace_label = "vehicle_type_choice"
-    model_settings_file_name = "vehicle_type_choice.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = VehicleTypeChoiceSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
-    estimator = estimation.manager.begin_estimation("vehicle_type")
+    estimator = estimation.manager.begin_estimation(state, "vehicle_type")
 
-    model_spec_raw = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec_raw, coefficients_df, estimator)
+    model_spec_raw = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(
+        state, model_spec_raw, coefficients_df, estimator
+    )
 
     constants = config.get_model_constants(model_settings)
 
@@ -517,12 +590,13 @@ def vehicle_type_choice(
     locals_dict.update(coefficients_df)
 
     choices, choosers = iterate_vehicle_type_choice(
+        state,
         vehicles_merged,
         model_settings,
         model_spec,
         locals_dict,
         estimator,
-        chunk_size,
+        state.settings.chunk_size,
         trace_label,
     )
 
@@ -553,21 +627,22 @@ def vehicle_type_choice(
         estimator.end_estimation()
 
     # update vehicles table
-    # vehicles = pd.merge(vehicles.to_frame(), choices, left_index=True, right_index=True)
-    vehicles = pd.concat([vehicles.to_frame(), choices], axis=1)
-    pipeline.replace_table("vehicles", vehicles)
+    vehicles = pd.concat([vehicles, choices], axis=1)
+    state.add_table("vehicles", vehicles)
 
     # - annotate tables
-    if model_settings.get("annotate_households"):
-        annotate_vehicle_type_choice_households(model_settings, trace_label)
-    if model_settings.get("annotate_persons"):
-        annotate_vehicle_type_choice_persons(model_settings, trace_label)
-    if model_settings.get("annotate_vehicles"):
-        annotate_vehicle_type_choice_vehicles(model_settings, trace_label)
+    if model_settings.annotate_households:
+        annotate_vehicle_type_choice_households(state, model_settings, trace_label)
+    if model_settings.annotate_persons:
+        annotate_vehicle_type_choice_persons(state, model_settings, trace_label)
+    if model_settings.annotate_vehicles:
+        annotate_vehicle_type_choice_vehicles(state, model_settings, trace_label)
 
     tracing.print_summary(
         "vehicle_type_choice", vehicles.vehicle_type, value_counts=True
     )
 
-    if trace_hh_id:
-        tracing.trace_df(vehicles, label="vehicle_type_choice", warn_if_empty=True)
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
+            vehicles, label="vehicle_type_choice", warn_if_empty=True
+        )

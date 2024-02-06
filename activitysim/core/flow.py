@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import glob
 import logging
@@ -11,11 +13,11 @@ from stat import ST_MTIME
 import numpy as np
 import pandas as pd
 
-from .. import __version__
-from ..core import tracing
-from . import config, inject
-from .simulate_consts import SPEC_EXPRESSION_NAME, SPEC_LABEL_NAME
-from .timetable import (
+import activitysim.core.skim_dataset  # noqa: F401
+from activitysim import __version__
+from activitysim.core import tracing, workflow
+from activitysim.core.simulate_consts import SPEC_EXPRESSION_NAME, SPEC_LABEL_NAME
+from activitysim.core.timetable import (
     sharrow_tt_adjacent_window_after,
     sharrow_tt_adjacent_window_before,
     sharrow_tt_max_time_block_available,
@@ -133,7 +135,13 @@ def only_simple(x, exclude_keys=()):
 
 
 def get_flow(
-    spec, local_d, trace_label=None, choosers=None, interacts=None, zone_layer=None
+    state,
+    spec,
+    local_d,
+    trace_label=None,
+    choosers=None,
+    interacts=None,
+    zone_layer=None,
 ):
     extra_vars = only_simple(local_d)
     orig_col_name = local_d.get("orig_col_name", None)
@@ -161,6 +169,7 @@ def get_flow(
     else:
         aux_vars = {}
     flow = new_flow(
+        state,
         spec,
         extra_vars,
         orig_col_name,
@@ -208,7 +217,7 @@ def should_invalidate_cache_file(cache_filename, *source_filenames):
     return False
 
 
-def scan_for_unused_names(tokens):
+def scan_for_unused_names(state: workflow.State, tokens):
     """
     Scan all spec files to find unused skim variable names.
 
@@ -220,11 +229,11 @@ def scan_for_unused_names(tokens):
     -------
     Set[str]
     """
-    configs_dir_list = inject.get_injectable("configs_dir")
+    configs_dir_list = state.filesystem.get_configs_dir()
     configs_dir_list = (
         [configs_dir_list] if isinstance(configs_dir_list, str) else configs_dir_list
     )
-    assert isinstance(configs_dir_list, list)
+    assert isinstance(configs_dir_list, (list, tuple))
 
     for directory in configs_dir_list:
         logger.debug(f"scanning for unused skims in {directory}")
@@ -242,14 +251,15 @@ def scan_for_unused_names(tokens):
     return tokens
 
 
-@inject.injectable(cache=True)
-def skim_dataset_dict(skim_dataset):
+@workflow.cached_object
+def skim_dataset_dict(state: workflow.State, skim_dataset):
     from .skim_dataset import SkimDataset
 
     return SkimDataset(skim_dataset)
 
 
 def skims_mapping(
+    state: workflow.State,
     orig_col_name,
     dest_col_name,
     timeframe="tour",
@@ -257,13 +267,14 @@ def skims_mapping(
     parking_col_name=None,
     zone_layer=None,
     primary_origin_col_name=None,
+    predigitized_time_periods=False,
 ):
     logger.info("loading skims_mapping")
     logger.info(f"- orig_col_name: {orig_col_name}")
     logger.info(f"- dest_col_name: {dest_col_name}")
     logger.info(f"- stop_col_name: {stop_col_name}")
     logger.info(f"- primary_origin_col_name: {primary_origin_col_name}")
-    skim_dataset = inject.get_injectable("skim_dataset")
+    skim_dataset = state.get_injectable("skim_dataset")
     if zone_layer == "maz" or zone_layer is None:
         odim = "omaz" if "omaz" in skim_dataset.dims else "otaz"
         ddim = "dmaz" if "dmaz" in skim_dataset.dims else "dtaz"
@@ -327,6 +338,10 @@ def skims_mapping(
                 ),
             )
         else:
+            if predigitized_time_periods:
+                time_rel = "_code ->"
+            else:
+                time_rel = " @"
             return dict(
                 # TODO:SHARROW: organize dimensions.
                 odt_skims=skim_dataset,
@@ -337,16 +352,16 @@ def skims_mapping(
                 relationships=(
                     f"df._orig_col_name -> odt_skims.{odim}",
                     f"df._dest_col_name -> odt_skims.{ddim}",
-                    "df.out_period      @  odt_skims.time_period",
+                    f"df.out_period{time_rel} odt_skims.time_period",
                     f"df._dest_col_name -> dot_skims.{odim}",
                     f"df._orig_col_name -> dot_skims.{ddim}",
-                    "df.in_period       @  dot_skims.time_period",
+                    f"df.in_period{time_rel} dot_skims.time_period",
                     f"df._orig_col_name -> odr_skims.{odim}",
                     f"df._dest_col_name -> odr_skims.{ddim}",
-                    "df.in_period       @  odr_skims.time_period",
+                    f"df.in_period{time_rel} odr_skims.time_period",
                     f"df._dest_col_name -> dor_skims.{odim}",
                     f"df._orig_col_name -> dor_skims.{ddim}",
-                    "df.out_period      @  dor_skims.time_period",
+                    f"df.out_period{time_rel} dor_skims.time_period",
                     f"df._orig_col_name -> od_skims.{odim}",
                     f"df._dest_col_name -> od_skims.{ddim}",
                 ),
@@ -435,6 +450,7 @@ def skims_mapping(
 
 
 def new_flow(
+    state: workflow.State,
     spec,
     extra_vars,
     orig_col_name,
@@ -512,13 +528,19 @@ def new_flow(
         else:
             chooser_cols = list(choosers.columns)
 
-        cache_dir = os.path.join(
-            config.get_cache_dir(),
-            "__sharrowcache__",
-        )
-        os.makedirs(cache_dir, exist_ok=True)
+        cache_dir = state.filesystem.get_sharrow_cache_dir()
         logger.debug(f"flow.cache_dir: {cache_dir}")
+        predigitized_time_periods = False
+        if "out_period" in choosers and "in_period" in choosers:
+            if (
+                choosers["out_period"].dtype == "category"
+                and choosers["in_period"].dtype == "category"
+            ):
+                choosers["out_period_code"] = choosers["out_period"].cat.codes
+                choosers["in_period_code"] = choosers["in_period"].cat.codes
+                predigitized_time_periods = True
         skims_mapping_ = skims_mapping(
+            state,
             orig_col_name,
             dest_col_name,
             timeframe,
@@ -526,6 +548,7 @@ def new_flow(
             parking_col_name=parking_col_name,
             zone_layer=zone_layer,
             primary_origin_col_name=primary_origin_col_name,
+            predigitized_time_periods=predigitized_time_periods,
         )
         if size_term_mapping is None:
             size_term_mapping = {}
@@ -719,6 +742,7 @@ def size_terms_on_flow(locals_d):
 
 
 def apply_flow(
+    state,
     spec,
     choosers,
     locals_d=None,
@@ -765,6 +789,9 @@ def apply_flow(
         it ever again, but having a reference to it available later can be useful
         in debugging and tracing.  Flows are cached and reused anyway, so it is
         generally not important to delete this at any point to free resources.
+    tree : sharrow.DataTree
+        The tree data used to compute the flow result.  It is seperate from the
+        flow to prevent it from being cached with the flow.
     """
     if sh is None:
         return None, None
@@ -773,6 +800,7 @@ def apply_flow(
     with logtime("apply_flow"):
         try:
             flow = get_flow(
+                state,
                 spec,
                 locals_d,
                 trace_label,
@@ -790,7 +818,7 @@ def apply_flow(
                 logger.error(f"error in apply_flow: {err!s}")
                 if required:
                     raise
-                return None, None
+                return None, None, None
             else:
                 raise
         with logtime(f"{flow.name}.load", trace_label or ""):
@@ -812,7 +840,9 @@ def apply_flow(
                     logger.error(f"error in apply_flow: {err!s}")
                     if required:
                         raise
-                    return None, flow
+                    tree = flow.tree
+                    flow.tree = None
+                    return None, flow, tree
                 raise
             except Exception as err:
                 logger.error(f"error in apply_flow: {err!s}")
@@ -823,4 +853,6 @@ def apply_flow(
                 # Detecting compilation activity when in production mode is a bug
                 # that should be investigated.
                 tracing.timing_notes.add(f"compiled:{flow.name}")
-            return flow_result, flow
+            tree = flow.tree
+            flow.tree = None
+            return flow_result, flow, tree

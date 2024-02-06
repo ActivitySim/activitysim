@@ -1,0 +1,23 @@
+Label,Description,Expression,cars0,cars1,cars2,cars3,cars4
+util_drivers_1,1 Adult (age 16+),num_drivers==1,,coef_cars1_drivers_1,coef_cars2_drivers_1,coef_cars3_drivers_1,coef_cars4_drivers_1
+util_drivers_2,2 Adult (age 16+),num_drivers==2,,coef_cars1_drivers_2,coef_cars2_drivers_2,coef_cars3_drivers_2,coef_cars4_drivers_2
+util_drivers_3_up,3+ Adults (age 16+),num_drivers>=3,,coef_cars1_drivers_3_up,coef_cars2_drivers_3_up,coef_cars3_drivers_3_up,coef_cars4_drivers_3_up
+util_persons_16_17,Persons age 16-17,num_children_16_to_17,,coef_cars1_persons_16_17,coef_cars2_persons_16_17,coef_cars34_persons_16_17,coef_cars34_persons_16_17
+util_persons_18_24,Persons age 18-24,num_college_age,,coef_cars1_persons_18_24,coef_cars2_persons_18_24,coef_cars34_persons_18_24,coef_cars34_persons_18_24
+util_persons_25_34,Persons age 35-34,num_young_adults,,coef_cars1_persons_25_34,coef_cars2_persons_25_34,coef_cars34_persons_25_34,coef_cars34_persons_25_34
+util_presence_children_0_4,Presence of children age 0-4,num_young_children>0,,coef_cars1_presence_children_0_4,coef_cars2_presence_children_0_4,coef_cars34_presence_children_0_4,coef_cars34_presence_children_0_4
+util_presence_children_5_17,Presence of children age 5-17,(num_children_5_to_15+num_children_16_to_17)>0,,coef_cars1_presence_children_5_17,coef_cars2_presence_children_5_17,coef_cars34_presence_children_5_17,coef_cars34_presence_children_5_17
+util_num_workers_clip_3,Number of workers capped at 3,@df.num_workers.clip(upper=3),,coef_cars1_num_workers_clip_3,coef_cars2_num_workers_clip_3,coef_cars3_num_workers_clip_3,coef_cars4_num_workers_clip_3
+util_hh_income_0_15k,Piecewise Linear household income $0-15k,income_in_thousands <  15,,coef_cars1_hh_income_0_15k,coef_cars2_hh_income_0_15k,coef_cars3_hh_income_0_15k,coef_cars4_hh_income_0_15k
+util_hh_income_15_35k,Piecewise Linear household income $15-35k,(income_in_thousands >= 15) & (income_in_thousands<35),,coef_cars1_hh_income_15_35k,coef_cars2_hh_income_15_35k,coef_cars3_hh_income_15_35k,coef_cars4_hh_income_15_35k
+util_hh_income_35_50k,Piecewise Linear household income $35-50k,(income_in_thousands >= 35) & (income_in_thousands<50),,coef_cars1_hh_income_35_50k,coef_cars2_hh_income_35_50k,coef_cars3_hh_income_35_50k,coef_cars4_hh_income_35_50k
+util_hh_income_50_75k,Piecewise Linear household income $50-75k,(income_in_thousands >= 50) & (income_in_thousands<75),,coef_cars1_hh_income_50_75k,coef_cars2_hh_income_50_75k,coef_cars3_hh_income_50_75k,coef_cars4_hh_income_50_75k
+util_density,Density index,@df.density_index,,coef_cars1_density,coef_cars2_density,coef_cars3_density,coef_cars4_density
+util_retail_transit,Retail accessibility (0.66*PK + 0.34*OP) by transit,(0.66*trPkRetail+0.34*trOpRetail),,coef_cars1_retail_transit,coef_cars2_retail_transit,coef_cars3_retail_transit,coef_cars4_retail_transit
+util_retail_non_motor,Retail accessibility by non-motorized,nmRetail,,coef_cars1_retail_non_motor,coef_cars2_retail_non_motor,coef_cars3_retail_non_motor,coef_cars4_retail_non_motor
+util_auto_time_saving_per_worker,Auto time savings per worker to work,"@np.where(df.num_workers > 0, df.hh_work_auto_savings_ratio / df.num_workers, 0)",,coef_cars1_auto_time_saving_per_worker,coef_cars2_auto_time_saving_per_worker,coef_cars3_auto_time_saving_per_worker,coef_cars4_auto_time_saving_per_worker
+util_univ_students_GQ,University Students living in GQ households,(num_college_age > 0) & (type == 3),,coef_cars1_univ_GQ,coef_unavailable,coef_unavailable,coef_unavailable
+util_constants,Alternative-specific constants,1,,coef_cars1,coef_cars2,coef_cars3,coef_cars4
+util_detroit,district specific constant,home_in_detroit,coef_detroit,0,0,,0
+#,,,,,,,
+calib_constant,calibration constant,1,coef_cars0_asc,coef_cars1_asc,coef_cars2_asc,coef_cars3_asc,coef_cars4_asc

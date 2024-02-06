@@ -2,25 +2,15 @@
 # See full license in LICENSE.txt.
 
 
-import os
-
 import pandas as pd
 import pandas.testing as pdt
-import pytest
 
-from activitysim.core import inject
-
-from ..tour_frequency import process_non_mandatory_tours
-
-
-def setup_function():
-    configs_dir = os.path.join(os.path.dirname(__file__), "configs")
-    inject.add_injectable("configs_dir", configs_dir)
-    output_dir = os.path.join(os.path.dirname(__file__), "output")
-    inject.add_injectable("output_dir", output_dir)
+from activitysim.abm.models.util.tour_frequency import process_non_mandatory_tours
+from activitysim.core import workflow
 
 
 def test_nmtf():
+    state = workflow.State.make_default(__file__)
 
     persons = pd.DataFrame(
         {
@@ -42,7 +32,7 @@ def test_nmtf():
     tour_counts.index = persons.index  # assign person ids to the index
 
     # - create the non_mandatory tours
-    nmt = process_non_mandatory_tours(persons, tour_counts)
+    nmt = process_non_mandatory_tours(state, persons, tour_counts)
 
     idx = nmt.index
 

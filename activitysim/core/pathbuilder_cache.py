@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import itertools
 import logging
 import multiprocessing
@@ -11,7 +13,7 @@ import numpy as np
 import pandas as pd
 import psutil
 
-from activitysim.core import config, inject, simulate, util
+from activitysim.core import config, los, util
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +69,7 @@ class TVPBCache(object):
     Transit virtual path builder cache for three zone systems
     """
 
-    def __init__(self, network_los, uid_calculator, cache_tag):
+    def __init__(self, network_los: "los.Network_LOS", uid_calculator, cache_tag):
 
         # lightweight until opened
 
@@ -83,12 +85,18 @@ class TVPBCache(object):
     @property
     def cache_path(self):
         file_type = "mmap"
-        return os.path.join(config.get_cache_dir(), f"{self.cache_tag}.{file_type}")
+        return os.path.join(
+            self.network_los.state.filesystem.get_cache_dir(),
+            f"{self.cache_tag}.{file_type}",
+        )
 
     @property
     def csv_trace_path(self):
         file_type = "csv"
-        return os.path.join(config.get_cache_dir(), f"{self.cache_tag}.{file_type}")
+        return os.path.join(
+            self.network_los.state.filesystem.get_cache_dir(),
+            f"{self.cache_tag}.{file_type}",
+        )
 
     def cleanup(self):
         """
@@ -105,7 +113,8 @@ class TVPBCache(object):
                 while True:
                     n += 1
                     candidate = os.path.join(
-                        config.get_cache_dir(), f"{self.cache_tag}.{n}.mmap"
+                        self.network_los.state.filesystem.get_cache_dir(),
+                        f"{self.cache_tag}.{n}.mmap",
                     )
                     if not os.path.isfile(candidate):
                         self.cache_tag = f"{self.cache_tag}.{n}"
@@ -307,7 +316,7 @@ class TVPBCache(object):
         -------
         either multiprocessing.Array and lock or multiprocessing.RawArray and None according to RAWARRAY
         """
-        data_buffers = inject.get_injectable("data_buffers", None)
+        data_buffers = self.network_los.state.get_injectable("data_buffers", None)
         assert self.cache_tag in data_buffers  # internal error
         logger.debug(f"TVPBCache.get_data_and_lock_from_buffers")
         data_buffer = data_buffers[self.cache_tag]
@@ -321,7 +330,7 @@ class TVPBCache(object):
         return data, lock
 
 
-class TapTapUidCalculator(object):
+class TapTapUidCalculator:
     """
     Transit virtual path builder TAP to TAP unique ID calculator for three zone systems
     """
@@ -362,7 +371,11 @@ class TapTapUidCalculator(object):
         spec_name = self.network_los.setting(
             f"TVPB_SETTINGS.tour_mode_choice.tap_tap_settings.SPEC"
         )
-        self.set_names = list(simulate.read_model_spec(file_name=spec_name).columns)
+        self.set_names = list(
+            self.network_los.state.filesystem.read_model_spec(
+                file_name=spec_name
+            ).columns
+        )
 
     @property
     def fully_populated_shape(self):
@@ -481,7 +494,7 @@ class TapTapUidCalculator(object):
 
             yield scalar_attributes
 
-    def scalar_attribute_combinations(self):
+    def scalar_attribute_combinations(self) -> pd.DataFrame:
         attribute_names = list(self.segmentation.keys())
         attribute_tuples = self.attribute_combination_tuples
         x = [list(t) for t in attribute_tuples]

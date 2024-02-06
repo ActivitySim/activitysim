@@ -1,12 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 import os.path
 
 import pandas as pd
 import pytest
 
-from .. import inject, tracing
+from activitysim.abm.tables import table_dict
+from activitysim.core import tracing, workflow
 
 
 def close_handlers():
@@ -19,27 +22,30 @@ def close_handlers():
         logger.setLevel(logging.NOTSET)
 
 
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
-
-
 def add_canonical_dirs():
 
-    inject.clear_cache()
+    state = workflow.State()
 
     configs_dir = os.path.join(os.path.dirname(__file__), "configs")
-    inject.add_injectable("configs_dir", configs_dir)
+    state.add_injectable("configs_dir", configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), "output")
-    inject.add_injectable("output_dir", output_dir)
+    state.add_injectable("output_dir", output_dir)
+
+    state.initialize_filesystem(
+        working_dir=os.path.dirname(__file__),
+        configs_dir=(configs_dir,),
+        output_dir=output_dir,
+    )
+
+    return state
 
 
 def test_config_logger(capsys):
 
-    add_canonical_dirs()
+    state = add_canonical_dirs()
 
-    tracing.config_logger()
+    state.logging.config_logger()
 
     logger = logging.getLogger("activitysim")
 
@@ -76,9 +82,9 @@ def test_config_logger(capsys):
 
 def test_print_summary(capsys):
 
-    add_canonical_dirs()
+    state = add_canonical_dirs()
 
-    tracing.config_logger()
+    state.logging.config_logger()
 
     tracing.print_summary(
         "label", df=pd.DataFrame(), describe=False, value_counts=False
@@ -96,23 +102,24 @@ def test_print_summary(capsys):
 
 def test_register_households(capsys):
 
-    add_canonical_dirs()
+    state = add_canonical_dirs()
+    state.load_settings()
 
-    tracing.config_logger()
+    state.logging.config_logger()
 
     df = pd.DataFrame({"zort": ["a", "b", "c"]}, index=[1, 2, 3])
 
-    inject.add_injectable("traceable_tables", ["households"])
-    inject.add_injectable("trace_hh_id", 5)
+    state.tracing.traceable_tables = ["households"]
+    state.settings.trace_hh_id = 5
 
-    tracing.register_traceable_table("households", df)
+    state.tracing.register_traceable_table("households", df)
     out, err = capsys.readouterr()
     # print out   # don't consume output
 
     assert "Can't register table 'households' without index name" in out
 
     df.index.name = "household_id"
-    tracing.register_traceable_table("households", df)
+    state.tracing.register_traceable_table("households", df)
     out, err = capsys.readouterr()
     # print out   # don't consume output
 
@@ -124,22 +131,20 @@ def test_register_households(capsys):
 
 def test_register_tours(capsys):
 
-    add_canonical_dirs()
+    state = add_canonical_dirs().load_settings()
 
-    tracing.config_logger()
+    state.logging.config_logger()
 
-    inject.add_injectable("traceable_tables", ["households", "tours"])
+    state.tracing.traceable_tables = ["households", "tours"]
 
     # in case another test injected this
-    inject.add_injectable("trace_tours", [])
-    inject.add_injectable(
-        "trace_hh_id", 3
-    )  # need this or register_traceable_table is a nop
+    state.add_injectable("trace_tours", [])
+    state.settings.trace_hh_id = 3
 
     tours_df = pd.DataFrame({"zort": ["a", "b", "c"]}, index=[10, 11, 12])
     tours_df.index.name = "tour_id"
 
-    tracing.register_traceable_table("tours", tours_df)
+    state.tracing.register_traceable_table("tours", tours_df)
 
     out, err = capsys.readouterr()
     assert (
@@ -147,12 +152,12 @@ def test_register_tours(capsys):
         in out
     )
 
-    inject.add_injectable("trace_hh_id", 3)
+    state.add_injectable("trace_hh_id", 3)
     households_df = pd.DataFrame({"dzing": ["a", "b", "c"]}, index=[1, 2, 3])
     households_df.index.name = "household_id"
-    tracing.register_traceable_table("households", households_df)
+    state.tracing.register_traceable_table("households", households_df)
 
-    tracing.register_traceable_table("tours", tours_df)
+    state.tracing.register_traceable_table("tours", tours_df)
 
     out, err = capsys.readouterr()
     # print out  # don't consume output
@@ -160,13 +165,13 @@ def test_register_tours(capsys):
 
     tours_df["household_id"] = [1, 5, 3]
 
-    tracing.register_traceable_table("tours", tours_df)
+    state.tracing.register_traceable_table("tours", tours_df)
 
     out, err = capsys.readouterr()
     print(out)  # don't consume output
 
     # should be tracing tour with tour_id 3
-    traceable_table_ids = inject.get_injectable("traceable_table_ids")
+    traceable_table_ids = state.tracing.traceable_table_ids
     assert traceable_table_ids["tours"] == [12]
 
     close_handlers()
@@ -174,12 +179,12 @@ def test_register_tours(capsys):
 
 def test_write_csv(capsys):
 
-    add_canonical_dirs()
+    state = add_canonical_dirs()
 
-    tracing.config_logger()
+    state.logging.config_logger()
 
     # should complain if df not a DataFrame or Series
-    tracing.write_csv(df="not a df or series", file_name="baddie")
+    state.tracing.write_csv(df="not a df or series", file_name="baddie")
 
     out, err = capsys.readouterr()
 
@@ -212,16 +217,12 @@ def test_basic(capsys):
 
     close_handlers()
 
-    configs_dir = os.path.join(os.path.dirname(__file__), "configs")
-    inject.add_injectable("configs_dir", configs_dir)
-
-    output_dir = os.path.join(os.path.dirname(__file__), "output")
-    inject.add_injectable("output_dir", output_dir)
+    state = add_canonical_dirs()
 
     # remove existing handlers or basicConfig is a NOP
     logging.getLogger().handlers = []
 
-    tracing.config_logger(basic=True)
+    state.logging.config_logger(basic=True)
 
     logger = logging.getLogger()
     file_handlers = [h for h in logger.handlers if type(h) is logging.FileHandler]

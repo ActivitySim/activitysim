@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from typing import Collection
@@ -131,7 +133,9 @@ def location_choice_model(
         if SEGMENTS is not None:
             SEGMENT_IDS = {i: i for i in SEGMENTS}
 
-    SIZE_TERM_SELECTOR = settings.get("SIZE_TERM_SELECTOR", model_selector)
+    SIZE_TERM_SELECTOR = (
+        settings.get("SIZE_TERM_SELECTOR", model_selector) or model_selector
+    )
 
     # filter size spec for this location choice only
     size_spec = (

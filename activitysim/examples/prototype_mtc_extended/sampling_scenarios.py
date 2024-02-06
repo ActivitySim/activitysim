@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 import argparse
 import os
+import shutil
+
+import pandas as pd
 import pkg_resources
 import yaml
-import pandas as pd
-import shutil
+
 from activitysim.cli.run import add_run_args, run
 from activitysim.core.util import named_product
 
@@ -21,8 +25,10 @@ def integer_params(params):
     d_zones = 1 if params.DESTINATION_SAMPLE_SIZE > 1 else n_zones
     o_zones = 1 if params.ORIGIN_SAMPLE_SIZE > 1 else n_zones
 
-    params.DESTINATION_SAMPLE_SIZE = round(params.DESTINATION_SAMPLE_SIZE * d_zones)
-    params.ORIGIN_SAMPLE_SIZE = round(params.ORIGIN_SAMPLE_SIZE * o_zones)
+    params.DESTINATION_SAMPLE_SIZE = int(
+        round(params.DESTINATION_SAMPLE_SIZE * d_zones)
+    )
+    params.ORIGIN_SAMPLE_SIZE = int(round(params.ORIGIN_SAMPLE_SIZE * o_zones))
 
     return params
 
@@ -171,8 +177,9 @@ def run_scenarios():
             run_model()
             # Copy results to named folder
             copy_output(scene_name, model_settings)
-        except:
+        except Exception:
             print(f"Failed on scene {scene_name}")
+            raise
 
 
 if __name__ == "__main__":

@@ -5,7 +5,6 @@ sandbox/
 .pytest_cache
 .vagrant
 
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -77,3 +76,7 @@ _test_est
 **/output/
 **/_generated_version.py
 docs/**/_generated
+activitysim/examples/prototype_mtc_extended/test/*.ipynb
+activitysim/examples/prototype_mtc/*.ipynb
+Untitled.ipynb
+docs/dev-guide/_generated2

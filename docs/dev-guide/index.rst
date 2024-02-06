@@ -23,11 +23,15 @@ Contents
    :maxdepth: 3
 
    install
+   core-workflow
    using-sharrow
    skim-dataset
+   checkpointing
    workflows
+   logging
    ../development
-   ../models
+   component-configs
    components/index
    ../core
    ../benchmarking
+   build-docs

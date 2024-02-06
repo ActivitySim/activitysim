@@ -1050,7 +1050,7 @@ class Checkpoints(StateAccessor):
                             )
                         except Exception as err2:
                             raise AssertionError(
-                                f"checkpoint {checkpoint_name!r} table {table_name!r}, {str(err)}"
+                                f"checkpoint {checkpoint_name!r} table {table_name!r}, {str(err)}\nfrom: {str(err2)}"
                             )
                         else:
                             warnings.warn(

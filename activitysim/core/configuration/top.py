@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Literal
 
+from pydantic import validator
+
 from activitysim.core.configuration.base import PydanticBase, Union
 
 
@@ -118,6 +120,11 @@ class OutputTables(PydanticBase):
 
     h5_store: bool = False
     """Write tables into a single HDF5 store instead of individual CSVs."""
+
+    file_type: Literal["csv", "parquet", "h5"] = "csv"
+    """
+    Specifies the file type for output tables. Options are limited to 'csv',
+    'h5' or 'parquet'. Only applied if h5_store is set to False."""
 
     action: str
     """Whether to 'include' or 'skip' the enumerated tables in `tables`."""

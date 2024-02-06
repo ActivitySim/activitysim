@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -19,14 +20,51 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import TemplatedLogitComponentSettings
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
 
 
+class TripModeChoiceSettings(TemplatedLogitComponentSettings, extra="forbid"):
+    """
+    Settings for the `trip_mode_choice` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    MODE_CHOICE_LOGSUM_COLUMN_NAME: str = "mode_choice_logsum"
+    """Column name of the mode choice logsum"""
+
+    TOURS_MERGED_CHOOSER_COLUMNS: list[str] | None = None
+    """List of columns to be filtered from the dataframe to reduce memory
+    needs filter chooser table to these fields"""
+
+    CHOOSER_COLS_TO_KEEP: list[str] = []
+
+    tvpb_mode_path_types: dict[str, Any] = {}
+    TVPB_recipe: str = "tour_mode_choice"
+    use_TVPB_constants: bool = True
+
+    FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH: bool = True
+
+    annotate_trips: PreprocessorSettings | None = None
+
+    LEGACY_COEFFICIENTS: str | None = None
+
+    REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS: list[str] | None = None
+
+
 @workflow.step
 def trip_mode_choice(
-    state: workflow.State, trips: pd.DataFrame, network_los: los.Network_LOS
+    state: workflow.State,
+    trips: pd.DataFrame,
+    network_los: los.Network_LOS,
+    model_settings: TripModeChoiceSettings | None = None,
+    model_settings_file_name: str = "trip_mode_choice.yaml",
+    trace_label: str = "trip_mode_choice",
 ) -> None:
     """
     Trip mode choice - compute trip_mode (same values as for tour_mode) for each trip.
@@ -37,11 +75,13 @@ def trip_mode_choice(
     Adds trip_mode column to trip table
     """
 
-    trace_label = "trip_mode_choice"
-    model_settings_file_name = "trip_mode_choice.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = TripModeChoiceSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
-    logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
+    logsum_column_name = model_settings.MODE_CHOICE_LOGSUM_COLUMN_NAME
     mode_column_name = "trip_mode"
 
     trips_df = trips
@@ -52,7 +92,7 @@ def trip_mode_choice(
     # needed by tour_merged (e.g. home_zone_id) exist
     tours_cols = [
         col
-        for col in model_settings["TOURS_MERGED_CHOOSER_COLUMNS"]
+        for col in model_settings.TOURS_MERGED_CHOOSER_COLUMNS
         if col not in trips_df.columns
     ]
     if len(tours_cols) > 0:
@@ -78,7 +118,7 @@ def trip_mode_choice(
 
     orig_col = "origin"
     dest_col = "destination"
-    min_per_period = network_los.skim_time_periods["period_minutes"]
+    min_per_period = network_los.skim_time_periods.period_minutes
     periods_per_hour = 60 / min_per_period
 
     constants = {}
@@ -118,7 +158,7 @@ def trip_mode_choice(
     if network_los.zone_system == los.THREE_ZONE:
         # fixme - is this a lightweight object?
         tvpb = network_los.tvpb
-        tvpb_recipe = model_settings.get("TVPB_recipe", "tour_mode_choice")
+        tvpb_recipe = model_settings.TVPB_recipe
         tvpb_logsum_odt = tvpb.wrap_logsum(
             orig_key=orig_col,
             dest_key=dest_col,
@@ -145,7 +185,7 @@ def trip_mode_choice(
         # the tvpb will still use the constants as defined in the recipe
         # specified above in `tvpb.wrap_logsum()` but they will not be used
         # in the trip mode choice expressions.
-        if model_settings.get("use_TVPB_constants", True):
+        if model_settings.use_TVPB_constants:
             constants.update(
                 network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
             )
@@ -162,9 +202,9 @@ def trip_mode_choice(
         estimator.write_spec(model_settings)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     nest_spec = config.get_logit_model_settings(model_settings)
-    cols_to_keep = model_settings.get("CHOOSER_COLS_TO_KEEP", None)
+    cols_to_keep = model_settings.CHOOSER_COLS_TO_KEEP
 
     choices_list = []
     cols_to_keep_list = []
@@ -278,7 +318,7 @@ def trip_mode_choice(
 
     # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
     if network_los.zone_system == los.THREE_ZONE:
-        tvpb_mode_path_types = model_settings.get("tvpb_mode_path_types")
+        tvpb_mode_path_types = model_settings.tvpb_mode_path_types
         for mode, path_type in tvpb_mode_path_types.items():
             skim_cache = tvpb_logsum_odt.cache[path_type]
 
@@ -309,8 +349,9 @@ def trip_mode_choice(
         trips_df, choices_df, state.settings.downcast_int, state.settings.downcast_float
     )
 
-    if state.is_table("school_escort_tours") & model_settings.get(
-        "FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH", True
+    if (
+        state.is_table("school_escort_tours")
+        & model_settings.FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH
     ):
         trips_df = (
             school_escort_tours_trips.force_escortee_trip_modes_to_match_chauffeur(
@@ -328,7 +369,7 @@ def trip_mode_choice(
 
     state.add_table("trips", trips_df)
 
-    if model_settings.get("annotate_trips"):
+    if model_settings.annotate_trips:
         annotate.annotate_trips(state, model_settings, trace_label, locals_dict)
 
     if state.settings.trace_hh_id:

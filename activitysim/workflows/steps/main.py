@@ -1,4 +1,6 @@
 """Naive custom loader without any error handling."""
+from __future__ import annotations
+
 import os
 import signal
 import sys
@@ -59,7 +61,7 @@ def main(args):
             from pypyr.cli import get_args
             from pypyr.config import config
         except ImportError:
-            raise ImportError("activitysim.workflows requires pypyr")
+            raise ImportError("activitysim.workflows requires pypyr") from None
 
         parsed_args = get_args(args)
 

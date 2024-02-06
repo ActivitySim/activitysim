@@ -20,6 +20,8 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
@@ -38,8 +40,18 @@ ORIG_MAZ = "orig_MAZ"
 ORIG_TAZ_EXT = "orig_TAZ_ext"
 
 
+class TourODSettings(TourLocationComponentSettings):
+    DEST_COL_NAME: str
+    OD_CHOICE_SAMPLE_TABLE_NAME: str | None = None
+    OD_CHOICE_LOGSUM_COLUMN_NAME: str | None = None
+    ORIGIN_ATTR_COLS_TO_USE: list[str] = []
+    ORIG_COL_NAME: str
+    ORIG_FILTER: str | None = None
+    preprocessor: PreprocessorSettings | None = None
+
+
 def get_od_id_col(origin_col, destination_col):
-    colname = "{0}_{1}".format(origin_col, destination_col)
+    colname = f"{origin_col}_{destination_col}"
     return colname
 
 
@@ -64,7 +76,7 @@ def _create_od_alts_from_dest_size_terms(
     origin_id_col="origin",
     dest_id_col="destination",
     origin_filter=None,
-    origin_attr_cols: Optional[list[str]] = None,
+    origin_attr_cols: list[str] | None = None,
 ):
     """
     Extend destination size terms to create dataframe representing the
@@ -124,7 +136,7 @@ def _od_sample(
     dest_id_col,
     skims,
     estimator,
-    model_settings,
+    model_settings: TourODSettings,
     alt_od_col_name,
     chunk_size,
     chunk_tag,
@@ -132,10 +144,12 @@ def _od_sample(
 ):
     model_spec = simulate.spec_for_segment(
         state,
-        model_settings,
+        None,
         spec_id="SAMPLE_SPEC",
         segment_name=spec_segment_name,
         estimator=estimator,
+        spec_file_name=model_settings.SAMPLE_SPEC,
+        coefficients_file_name=model_settings.COEFFICIENTS,
     )
     if alt_od_col_name is None:
         alt_col_name = get_od_id_col(origin_id_col, dest_id_col)
@@ -144,7 +158,7 @@ def _od_sample(
 
     logger.info("running %s with %d tours", trace_label, len(choosers))
 
-    sample_size = model_settings["SAMPLE_SIZE"]
+    sample_size = model_settings.SAMPLE_SIZE
     if state.settings.disable_destination_sampling or (
         estimator and estimator.want_unsampled_alternatives
     ):
@@ -165,12 +179,12 @@ def _od_sample(
         "orig_col_name": ORIG_TAZ,
         "dest_col_name": DEST_TAZ,
     }
-    constants = config.get_model_constants(model_settings)
+    constants = model_settings.CONSTANTS
     if constants is not None:
         locals_d.update(constants)
 
-    origin_filter = model_settings.get("ORIG_FILTER", None)
-    origin_attr_cols = model_settings["ORIGIN_ATTR_COLS_TO_USE"]
+    origin_filter = model_settings.ORIG_FILTER
+    origin_attr_cols = model_settings.ORIGIN_ATTR_COLS_TO_USE
 
     od_alts_df = _create_od_alts_from_dest_size_terms(
         state,
@@ -208,9 +222,10 @@ def _od_sample(
 
 
 def od_sample(
+    state: workflow.State,
     spec_segment_name,
     choosers,
-    model_settings,
+    model_settings: TourODSettings,
     network_los,
     destination_size_terms,
     estimator,
@@ -219,9 +234,9 @@ def od_sample(
 ):
     chunk_tag = "tour_od.sample"
 
-    origin_col_name = model_settings["ORIG_COL_NAME"]
-    dest_col_name = model_settings["DEST_COL_NAME"]
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    origin_col_name = model_settings.ORIG_COL_NAME
+    dest_col_name = model_settings.DEST_COL_NAME
+    alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
     skim_dict = network_los.get_default_skim_dict()
     skims = skim_dict.wrap(origin_col_name, dest_col_name)
@@ -229,6 +244,7 @@ def od_sample(
     # the name of the od column to be returned in choices
     alt_od_col_name = get_od_id_col(origin_col_name, dest_col_name)
     choices = _od_sample(
+        state,
         spec_segment_name,
         choosers,
         network_los,
@@ -567,7 +583,7 @@ def od_presample(
     state: workflow.State,
     spec_segment_name,
     choosers,
-    model_settings,
+    model_settings: TourODSettings,
     network_los,
     destination_size_terms,
     estimator,
@@ -629,8 +645,8 @@ def od_presample(
     # outputs
     assert DEST_MAZ in maz_choices
 
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
-    chooser_orig_col_name = model_settings["CHOOSER_ORIG_COL_NAME"]
+    alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
+    chooser_orig_col_name = model_settings.CHOOSER_ORIG_COL_NAME
     maz_choices = maz_choices.rename(
         columns={DEST_MAZ: alt_dest_col_name, ORIG_MAZ: chooser_orig_col_name}
     )
@@ -690,7 +706,7 @@ def run_od_sample(
     state,
     spec_segment_name,
     tours,
-    model_settings,
+    model_settings: TourODSettings,
     network_los,
     destination_size_terms,
     estimator,
@@ -699,15 +715,17 @@ def run_od_sample(
 ):
     model_spec = simulate.spec_for_segment(
         state,
-        model_settings,
+        None,
         spec_id="SAMPLE_SPEC",
         segment_name=spec_segment_name,
         estimator=estimator,
+        spec_file_name=model_settings.SAMPLE_SPEC,
+        coefficients_file_name=model_settings.COEFFICIENTS,
     )
 
     choosers = tours
     # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = model_settings["SIMULATE_CHOOSER_COLUMNS"]
+    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
     choosers = choosers[chooser_columns]
 
     # interaction_sample requires that choosers.index.is_monotonic_increasing
@@ -745,6 +763,7 @@ def run_od_sample(
 
     else:
         choices = od_sample(
+            state,
             spec_segment_name,
             choosers,
             model_settings,
@@ -763,7 +782,7 @@ def run_od_logsums(
     spec_segment_name,
     tours_merged_df,
     od_sample,
-    model_settings,
+    model_settings: TourODSettings,
     network_los,
     estimator,
     chunk_size,
@@ -778,10 +797,10 @@ def run_od_logsums(
     """
     chunk_tag = "tour_od.logsums"
     logsum_settings = state.filesystem.read_model_settings(
-        model_settings["LOGSUM_SETTINGS"]
+        model_settings.LOGSUM_SETTINGS
     )
-    origin_id_col = model_settings["ORIG_COL_NAME"]
-    dest_id_col = model_settings["DEST_COL_NAME"]
+    origin_id_col = model_settings.ORIG_COL_NAME
+    dest_id_col = model_settings.DEST_COL_NAME
     tour_od_id_col = get_od_id_col(origin_id_col, dest_id_col)
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
@@ -912,7 +931,7 @@ def run_od_logsums(
         for col in new_cols:
             od_sample[col] = choosers[col]
 
-    logsums = logsum.compute_logsums(
+    logsums = logsum.compute_location_choice_logsums(
         state,
         choosers,
         spec_segment_name,
@@ -939,7 +958,7 @@ def run_od_simulate(
     tours,
     od_sample,
     want_logsums,
-    model_settings,
+    model_settings: TourODSettings,
     network_los,
     destination_size_terms,
     estimator,
@@ -953,17 +972,19 @@ def run_od_simulate(
 
     model_spec = simulate.spec_for_segment(
         state,
-        model_settings,
+        None,
         spec_id="SPEC",
         segment_name=spec_segment_name,
         estimator=estimator,
+        spec_file_name=model_settings.SPEC,
+        coefficients_file_name=model_settings.COEFFICIENTS,
     )
 
     # merge persons into tours
     choosers = tours
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = model_settings["SIMULATE_CHOOSER_COLUMNS"]
+    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
     choosers = choosers[chooser_columns]
 
     # interaction_sample requires that choosers.index.is_monotonic_increasing
@@ -976,10 +997,10 @@ def run_od_simulate(
     if estimator:
         estimator.write_choosers(choosers)
 
-    origin_col_name = model_settings["ORIG_COL_NAME"]
-    dest_col_name = model_settings["DEST_COL_NAME"]
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
-    origin_attr_cols = model_settings["ORIGIN_ATTR_COLS_TO_USE"]
+    origin_col_name = model_settings.ORIG_COL_NAME
+    dest_col_name = model_settings.DEST_COL_NAME
+    alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
+    origin_attr_cols = model_settings.ORIGIN_ATTR_COLS_TO_USE
 
     alt_od_col_name = get_od_id_col(origin_col_name, dest_col_name)
     od_sample[alt_od_col_name] = create_od_id_col(
@@ -1000,7 +1021,7 @@ def run_od_simulate(
 
     state.tracing.dump_df(DUMP, od_sample, trace_label, "alternatives")
 
-    constants = config.get_model_constants(model_settings)
+    constants = model_settings.CONSTANTS
 
     logger.info("Running tour_destination_simulate with %d persons", len(choosers))
 
@@ -1050,23 +1071,21 @@ def run_tour_od(
     persons,
     want_logsums,
     want_sample_table,
-    model_settings,
+    model_settings: TourODSettings,
     network_los,
     estimator,
     chunk_size,
     trace_hh_id,
     trace_label,
 ):
-    size_term_calculator = SizeTermCalculator(
-        state, model_settings["SIZE_TERM_SELECTOR"]
-    )
-    preprocessor_settings = model_settings.get("preprocessor", None)
-    origin_col_name = model_settings["ORIG_COL_NAME"]
+    size_term_calculator = SizeTermCalculator(state, model_settings.SIZE_TERM_SELECTOR)
+    preprocessor_settings = model_settings.preprocessor
+    origin_col_name = model_settings.ORIG_COL_NAME
 
-    chooser_segment_column = model_settings["CHOOSER_SEGMENT_COLUMN_NAME"]
+    chooser_segment_column = model_settings.CHOOSER_SEGMENT_COLUMN_NAME
 
     # maps segment names to compact (integer) ids
-    segments = model_settings["SEGMENTS"]
+    segments = model_settings.SEGMENTS
 
     # interaction_sample_simulate insists choosers appear in same order as alts
     tours = tours.sort_index()
@@ -1120,9 +1139,9 @@ def run_tour_od(
             ),
         )
 
-        if model_settings["ORIG_FILTER"] == "original_MAZ > 0":
+        if model_settings.ORIG_FILTER == "original_MAZ > 0":
             pass
-        elif model_settings["ORIG_FILTER"] == "external_TAZ > 0":
+        elif model_settings.ORIG_FILTER == "external_TAZ > 0":
             # sampled alts using internal mazs, so now we
             # have to convert to using the external tazs
             od_sample_df[origin_col_name] = map_maz_to_ext_maz(
@@ -1146,7 +1165,7 @@ def run_tour_od(
             chunk_size=chunk_size,
             trace_hh_id=trace_hh_id,
             trace_label=tracing.extend_trace_label(
-                trace_label, "logsums.%s" % segment_name
+                trace_label, f"logsums.{segment_name}"
             ),
         )
 
@@ -1174,7 +1193,7 @@ def run_tour_od(
         if want_sample_table:
             # FIXME - sample_table
             od_sample_df.set_index(
-                model_settings["ALT_DEST_COL_NAME"], append=True, inplace=True
+                model_settings.ALT_DEST_COL_NAME, append=True, inplace=True
             )
             sample_list.append(od_sample_df)
 

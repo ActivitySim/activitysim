@@ -187,19 +187,6 @@ class Network_LOS(object):
 
         # validate skim_time_periods
         self.skim_time_periods = self.state.network_settings.skim_time_periods
-        if "hours" in self.skim_time_periods:
-            self.skim_time_periods["periods"] = self.skim_time_periods.pop("hours")
-            warnings.warn(
-                "support for `skim_time_periods` key `hours` will be removed in "
-                "future verions. Use `periods` instead",
-                FutureWarning,
-            )
-        assert (
-            "periods" in self.skim_time_periods
-        ), "'periods' key not found in network_los.skim_time_periods"
-        assert (
-            "labels" in self.skim_time_periods
-        ), "'labels' key not found in network_los.skim_time_periods"
 
         self.zone_system = self.setting("zone_system")
         assert self.zone_system in [
@@ -221,7 +208,6 @@ class Network_LOS(object):
 
         # validate skim_time_periods
         self.skim_time_periods = self.setting("skim_time_periods")
-        assert {"periods", "labels"}.issubset(set(self.skim_time_periods.keys()))
 
     def load_skim_info(self):
         """
@@ -724,7 +710,7 @@ class Network_LOS(object):
 
         Returns
         -------
-        SkimDict or subclass (e.g. MazSkimDict)
+        SkimDict or subclass (e.g. MazSkimDict) or SkimDataset
         """
         sharrow_enabled = self.sharrow_enabled
         if sharrow_enabled and skim_tag in ("taz", "maz"):
@@ -787,7 +773,14 @@ class Network_LOS(object):
         #              how="left")[attribute]
 
         # synthetic index method i : omaz_dmaz
-        i = np.asanyarray(omaz) * self.maz_ceiling + np.asanyarray(dmaz)
+        if self.maz_ceiling > 32767:
+            # too many MAZs, or un-recoded MAZ ID's that are too large
+            # will overflow a 32-bit index, so upgrade to 64bit.
+            i = np.asanyarray(omaz, dtype=np.int64) * np.int64(
+                self.maz_ceiling
+            ) + np.asanyarray(dmaz, dtype=np.int64)
+        else:
+            i = np.asanyarray(omaz) * self.maz_ceiling + np.asanyarray(dmaz)
         s = util.quick_loc_df(i, self.maz_to_maz_df, attribute)
 
         # FIXME - no point in returning series?
@@ -866,10 +859,10 @@ class Network_LOS(object):
         ), "'skim_time_periods' setting not found."
 
         # Default to 60 minute time periods
-        period_minutes = self.skim_time_periods.get("period_minutes", 60)
+        period_minutes = self.skim_time_periods.period_minutes
 
         # Default to a day
-        model_time_window_min = self.skim_time_periods.get("time_window", 1440)
+        model_time_window_min = self.skim_time_periods.time_window
 
         # Check to make sure the intervals result in no remainder time through 24 hour day
         assert 0 == model_time_window_min % period_minutes
@@ -888,16 +881,16 @@ class Network_LOS(object):
             bin = (
                 np.digitize(
                     [time_period % total_periods],
-                    self.skim_time_periods["periods"],
+                    self.skim_time_periods.periods,
                     right=True,
                 )[0]
                 - 1
             )
             if fillna is not None:
-                default = self.skim_time_periods["labels"][fillna]
-                result = self.skim_time_periods["labels"].get(bin, default=default)
+                default = self.skim_time_periods.labels[fillna]
+                result = self.skim_time_periods.labels.get(bin, default=default)
             else:
-                result = self.skim_time_periods["labels"][bin]
+                result = self.skim_time_periods.labels[bin]
             if broadcast_to is not None:
                 result = pd.Series(
                     data=result,
@@ -907,12 +900,12 @@ class Network_LOS(object):
         else:
             result = pd.cut(
                 time_period,
-                self.skim_time_periods["periods"],
-                labels=self.skim_time_periods["labels"],
+                self.skim_time_periods.periods,
+                labels=self.skim_time_periods.labels,
                 ordered=False,
             )
             if fillna is not None:
-                default = self.skim_time_periods["labels"][fillna]
+                default = self.skim_time_periods.labels[fillna]
                 result = result.fillna(default)
             if as_cat:
                 result = result.astype(time_label_dtype)

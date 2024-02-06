@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import os
 import shutil
@@ -23,8 +25,10 @@ def integer_params(params):
     d_zones = 1 if params.DESTINATION_SAMPLE_SIZE > 1 else n_zones
     o_zones = 1 if params.ORIGIN_SAMPLE_SIZE > 1 else n_zones
 
-    params.DESTINATION_SAMPLE_SIZE = round(params.DESTINATION_SAMPLE_SIZE * d_zones)
-    params.ORIGIN_SAMPLE_SIZE = round(params.ORIGIN_SAMPLE_SIZE * o_zones)
+    params.DESTINATION_SAMPLE_SIZE = int(
+        round(params.DESTINATION_SAMPLE_SIZE * d_zones)
+    )
+    params.ORIGIN_SAMPLE_SIZE = int(round(params.ORIGIN_SAMPLE_SIZE * o_zones))
 
     return params
 

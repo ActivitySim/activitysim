@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Literal
+
+from pydantic import PositiveInt, root_validator
 
 from activitysim.core.configuration.base import (
     Any,
@@ -148,12 +151,50 @@ class TAZ_Settings(PydanticBase):
 
 
 class MazToMazSettings(PydanticBase, extra="forbid"):
-    tables: list[str]
+    tables: list[str] = []
 
     max_blend_distance: dict[str, float] = None
 
-    blend_distance_skim_name: str = None
+    blend_distance_skim_name: str | None = None
     """The name of the skim table used to blend distances for MAZs."""
+
+
+class TimeSettings(PydanticReadable, extra="forbid"):
+    """
+    Settings to describe discrete time.
+    """
+
+    time_window: PositiveInt = 1440
+    """total duration (in minutes) of the modeled time span."""
+
+    period_minutes: PositiveInt = 60
+    """length of time (in minutes) each model time period represents.
+
+    Must be whole factor of ``time_window``."""
+
+    periods: list[int]
+    """Breakpoints that define the aggregate periods for skims and assignment.
+
+    The first value should be zero and the last value should equal `time_window`
+    divided by `period_minutes`.  The intervals between these various values
+    represent the skimmed time periods, so this list should be one longer than
+    that of `labels`.
+    """
+
+    labels: list[str]
+    """Labels to define names for aggregate periods for skims and assignment"""
+
+    @root_validator(pre=True)
+    def hours_deprecated(cls, data):
+        if "hours" in data:
+            data["periods"] = data.pop("hours")
+            warnings.warn(
+                "support for `skim_time_periods` key `hours` will be removed in "
+                "future verions. Use `periods` instead",
+                FutureWarning,
+                stacklevel=2,
+            )
+        return data
 
 
 class NetworkSettings(PydanticReadable, extra="forbid"):
@@ -188,14 +229,8 @@ class NetworkSettings(PydanticReadable, extra="forbid"):
     TAZ_Settings class, which allows for ZARR transformation and pre-processing.
     """
 
-    skim_time_periods: dict
-    """time period upper bound values and labels
-
-    * ``time_window`` - total duration (in minutes) of the modeled time span (Default: 1440 minutes (24 hours))
-    * ``period_minutes`` - length of time (in minutes) each model time period represents. Must be whole factor of ``time_window``. (Default: 60 minutes)
-    * ``periods`` - Breakpoints that define the aggregate periods for skims and assignment
-    * ``labels`` - Labels to define names for aggregate periods for skims and assignment
-    """
+    skim_time_periods: TimeSettings
+    """How to discretize time in this model."""
 
     read_skim_cache: bool = False
     """Read cached skims (using numpy memmap) from output directory.
@@ -222,7 +257,7 @@ class NetworkSettings(PydanticReadable, extra="forbid"):
     This file should contain the MAZ ID, TAZ, and land use and other MAZ attributes
     """
 
-    maz_to_maz: MazToMazSettings = None
+    maz_to_maz: MazToMazSettings | None = None
     """Settings to manage maz-to-maz level of service in 2- and 3-zone models."""
 
     #### 3 ZONE ####

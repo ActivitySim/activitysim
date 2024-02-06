@@ -1,7 +1,7 @@
 SAMPLE_SIZE: 30
 
-DESTINATION_SAMPLE_SPEC: trip_destination_sample.csv
-DESTINATION_SPEC: trip_destination.csv
+SAMPLE_SPEC: trip_destination_sample.csv
+SPEC: trip_destination.csv
 
 LOGSUM_SETTINGS: trip_mode_choice.yaml
 
@@ -38,4 +38,3 @@ CLEANUP: False
 
 # this setting is used by testing code to force failed trip_destination
 # fail_some_trips_for_testing: False
-

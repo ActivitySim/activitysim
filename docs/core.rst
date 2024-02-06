@@ -108,6 +108,8 @@ API
 .. automodule:: activitysim.core.random
    :members:
 
+.. _trace :
+
 Tracing
 ~~~~~~~
 
@@ -127,7 +129,7 @@ API
    :members:
 
 
-.. _expressions:
+.. _util_expressions:
 
 Utility Expressions
 -------------------

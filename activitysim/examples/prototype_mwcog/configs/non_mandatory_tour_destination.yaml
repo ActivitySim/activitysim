@@ -50,15 +50,15 @@ IN_PERIOD:
   othdiscr: 36
   eatout: 36
   social: 36
-  escort: 11  
+  escort: 11
 OUT_PERIOD:
   shopping: 15
   othmaint: 15
   othdiscr: 31
   eatout: 31
   social: 31
-  escort: 10  
-  
+  escort: 10
+
 SEGMENT_IDS:
   work_low: 1
   work_med: 2
@@ -70,10 +70,10 @@ CONSTANTS:
   WORK_MED_SEGMENT_ID: 2
   WORK_HIGH_SEGMENT_ID: 3
   WORK_VERYHIGH_SEGMENT_ID: 4
-  
 
-preprocessor:
-  SPEC: non_mandatory_tour_destination_annotate_tours_preprocessor
-  DF: tours
-  TABLES:
-    - persons
+
+#preprocessor:
+#  SPEC: non_mandatory_tour_destination_annotate_tours_preprocessor
+#  DF: tours
+#  TABLES:
+#    - persons

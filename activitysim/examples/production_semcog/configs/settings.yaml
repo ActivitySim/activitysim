@@ -78,6 +78,7 @@ trace_od:
 
 
 models:
+  - input_checker
   - initialize_landuse
   - initialize_households
   - compute_accessibility

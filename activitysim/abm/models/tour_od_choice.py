@@ -20,7 +20,9 @@ def tour_od_choice(
     households: pd.DataFrame,
     land_use: pd.DataFrame,
     network_los: los.Network_LOS,
-    chunk_size,
+    model_settings: tour_od.TourODSettings | None = None,
+    model_settings_file_name: str = "tour_od_choice.yaml",
+    trace_label: str = "tour_od_choice",
 ) -> None:
     """Simulates joint origin/destination choice for all tours.
 
@@ -43,24 +45,24 @@ def tour_od_choice(
         lazy-loaded land use data table
     network_los : los.Network_LOS
         lazy-loaded activitysim.los.Network_LOS object
-    chunk_size
-        simulation chunk size, set in main settings.yaml
     """
-
-    trace_label = "tour_od_choice"
-    model_settings_file_name = "tour_od_choice.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
-    origin_col_name = model_settings["ORIG_COL_NAME"]
-    dest_col_name = model_settings["DEST_COL_NAME"]
+    if model_settings is None:
+        model_settings = tour_od.TourODSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
+    origin_col_name = model_settings.ORIG_COL_NAME
+    dest_col_name = model_settings.DEST_COL_NAME
     alt_id_col = tour_od.get_od_id_col(origin_col_name, dest_col_name)
     trace_hh_id = state.settings.trace_hh_id
+    chunk_size = state.settings.chunk_size
 
-    sample_table_name = model_settings.get("OD_CHOICE_SAMPLE_TABLE_NAME")
+    sample_table_name = model_settings.OD_CHOICE_SAMPLE_TABLE_NAME
     want_sample_table = (
         state.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
-    logsum_column_name = model_settings.get("OD_CHOICE_LOGSUM_COLUMN_NAME", None)
+    logsum_column_name = model_settings.OD_CHOICE_LOGSUM_COLUMN_NAME
     want_logsums = logsum_column_name is not None
 
     # interaction_sample_simulate insists choosers appear in same order as alts
@@ -69,8 +71,8 @@ def tour_od_choice(
     estimator = estimation.manager.begin_estimation(state, "tour_od_choice")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
-        estimator.write_spec(model_settings, tag="SAMPLE_SPEC")
-        estimator.write_spec(model_settings, tag="SPEC")
+        estimator.write_spec(file_name=model_settings.SAMPLE_SPEC, tag="SAMPLE_SPEC")
+        estimator.write_spec(file_name=model_settings.SPEC, tag="SPEC")
         estimator.set_alt_id(alt_id_col)
         estimator.write_table(
             state.get_injectable("size_terms"), "size_terms", append=False

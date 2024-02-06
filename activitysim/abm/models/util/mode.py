@@ -9,6 +9,7 @@ from typing import Optional
 import pandas as pd
 
 from activitysim.core import config, expressions, simulate, workflow
+from activitysim.core.configuration.logit import TourModeComponentSettings
 from activitysim.core.estimation import Estimator
 
 """
@@ -93,7 +94,7 @@ def run_tour_mode_choice_simulate(
     state: workflow.State,
     choosers,
     tour_purpose,
-    model_settings,
+    model_settings: TourModeComponentSettings,
     mode_column_name,
     logsum_column_name,
     network_los,
@@ -110,7 +111,7 @@ def run_tour_mode_choice_simulate(
     you want to use in the evaluation of variables.
     """
 
-    spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients = state.filesystem.get_segment_coefficients(
         model_settings, tour_purpose
     )

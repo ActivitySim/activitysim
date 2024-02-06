@@ -6,11 +6,12 @@ import argparse
 import collections
 import itertools
 import logging
+import numbers
 import os
-from builtins import zip
 from collections.abc import Iterable
 from operator import itemgetter
 from pathlib import Path
+from typing import Optional, TypeVar
 
 import cytoolz as tz
 import cytoolz.curried
@@ -20,9 +21,7 @@ import pyarrow as pa
 import pyarrow.csv as csv
 import pyarrow.parquet as pq
 import yaml
-import numbers
-
-from typing import Optional
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -505,13 +504,26 @@ def recursive_replace(obj, search, replace):
     return obj
 
 
+T = TypeVar("T")
+
+
 def suffix_tables_in_settings(
-    model_settings,
-    suffix="proto_",
-    tables=["persons", "households", "tours", "persons_merged"],
-):
+    model_settings: T,
+    suffix: str = "proto_",
+    tables: Iterable[str] = ("persons", "households", "tours", "persons_merged"),
+) -> T:
+    if not isinstance(model_settings, dict):
+        model_settings_type = type(model_settings)
+        model_settings = model_settings.dict()
+    else:
+        model_settings_type = None
+
     for k in tables:
         model_settings = recursive_replace(model_settings, k, suffix + k)
+
+    if model_settings_type is not None:
+        model_settings = model_settings_type.parse_obj(model_settings)
+
     return model_settings
 
 
@@ -534,6 +546,10 @@ def parse_suffix_args(args):
 
 
 def concat_suffix_dict(args):
+    if isinstance(args, BaseModel):
+        args = args.dict()
+        if "source_file_paths" in args:
+            del args["source_file_paths"]
     if isinstance(args, dict):
         args = sum([["--" + k, v] for k, v in args.items()], [])
     if isinstance(args, list):

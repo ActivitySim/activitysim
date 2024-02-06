@@ -14,8 +14,19 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger("activitysim")
+
+
+class TransitPassSubsidySettings(LogitComponentSettings, extra="forbid"):
+    """
+    Settings for the `transit_pass_subsidy` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
 
 
 @workflow.step
@@ -23,24 +34,28 @@ def transit_pass_subsidy(
     state: workflow.State,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
+    model_settings: TransitPassSubsidySettings | None = None,
+    model_settings_file_name: str = "transit_pass_subsidy.yaml",
+    trace_label: str = "transit_pass_subsidy",
 ) -> None:
     """
     Transit pass subsidy model.
     """
-
-    trace_label = "transit_pass_subsidy"
-    model_settings_file_name = "transit_pass_subsidy.yaml"
+    if model_settings is None:
+        model_settings = TransitPassSubsidySettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
     choosers = persons_merged
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
     estimator = estimation.manager.begin_estimation(state, "transit_pass_subsidy")
 
     constants = config.get_model_constants(model_settings)
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         locals_d = {}
         if constants is not None:
@@ -54,7 +69,7 @@ def transit_pass_subsidy(
             trace_label=trace_label,
         )
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec, coefficients_df, estimator

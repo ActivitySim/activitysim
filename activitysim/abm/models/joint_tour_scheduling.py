@@ -7,6 +7,7 @@ import logging
 import pandas as pd
 
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
+    TourSchedulingSettings,
     vectorize_joint_tour_scheduling,
 )
 from activitysim.core import (
@@ -17,9 +18,24 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.util import assign_in_place, reindex
 
 logger = logging.getLogger(__name__)
+
+
+# class JointTourSchedulingSettings(LogitComponentSettings, extra="forbid"):
+#     """
+#     Settings for the `joint_tour_scheduling` component.
+#     """
+#
+#     preprocessor: PreprocessorSettings | None = None
+#     """Setting for the preprocessor."""
+#
+#     sharrow_skip: bool = False
+#     """Setting to skip sharrow"""
+#
 
 
 @workflow.step
@@ -28,14 +44,19 @@ def joint_tour_scheduling(
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     tdd_alts: pd.DataFrame,
+    model_settings: TourSchedulingSettings | None = None,
+    model_settings_file_name: str = "joint_tour_scheduling.yaml",
+    trace_label: str = "joint_tour_scheduling",
 ) -> None:
     """
     This model predicts the departure time and duration of each joint tour
     """
-    trace_label = "joint_tour_scheduling"
 
-    model_settings_file_name = "joint_tour_scheduling.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = TourSchedulingSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
     trace_hh_id = state.settings.trace_hh_id
     joint_tours = tours[tours.tour_category == "joint"]
@@ -64,7 +85,7 @@ def joint_tour_scheduling(
     constants = config.get_model_constants(model_settings)
 
     # - run preprocessor to annotate choosers
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         locals_d = {}
         if constants is not None:
@@ -82,8 +103,8 @@ def joint_tour_scheduling(
 
     estimator = estimation.manager.begin_estimation(state, "joint_tour_scheduling")
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
-    sharrow_skip = model_settings.get("sharrow_skip", False)
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
+    sharrow_skip = model_settings.sharrow_skip
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec, coefficients_df, estimator

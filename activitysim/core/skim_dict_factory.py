@@ -109,7 +109,7 @@ class SkimInfo(object):
         # ignore any 3D skims not in skim_time_periods
         # specifically, load all skims except those with key2 not in dim3_tags_to_load
         skim_time_periods = self.network_los.skim_time_periods
-        dim3_tags_to_load = skim_time_periods and skim_time_periods["labels"]
+        dim3_tags_to_load = skim_time_periods and skim_time_periods.labels
 
         self.omx_manifest = {}  # dict mapping { omx_key: skim_name }
 

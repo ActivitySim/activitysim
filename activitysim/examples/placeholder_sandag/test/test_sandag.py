@@ -42,7 +42,7 @@ def data():
     build_data()
 
 
-def run_test(zone, multiprocess=False, sharrow=False):
+def run_test(zone, multiprocess=False, sharrow=False, recode=True):
     def test_path(dirname):
         return os.path.join(os.path.dirname(__file__), dirname)
 
@@ -136,6 +136,8 @@ def run_test(zone, multiprocess=False, sharrow=False):
 
     if multiprocess:
         run_args = run_args + ["-s", "settings_mp.yaml"]
+    elif not recode:
+        run_args = run_args + ["-s", "settings_no_recode.yaml"]
 
     if sharrow:
         run_args = ["-c", test_path(f"configs_{zone}_sharrow")] + run_args
@@ -192,6 +194,10 @@ def test_1_zone_sharrow(data):
 
 def test_2_zone(data):
     run_test(zone="2", multiprocess=False)
+
+
+def test_2_zone_norecode(data):
+    run_test(zone="2", multiprocess=False, recode=False)
 
 
 def test_2_zone_mp(data):

@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import pandas as pd
+from pydantic import validator
 
 from activitysim.core import (
     config,
@@ -15,8 +15,22 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger(__name__)
+
+
+class FreeParkingSettings(LogitComponentSettings, extra="forbid"):
+    """
+    Settings for the `free_parking` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    FREE_PARKING_ALT: int
+    """The code for free parking."""
 
 
 @workflow.step
@@ -24,8 +38,8 @@ def free_parking(
     state: workflow.State,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
+    model_settings: FreeParkingSettings | None = None,
     model_settings_file_name: str = "free_parking.yaml",
-    model_settings: dict[str, Any] = workflow.from_yaml("free_parking.yaml"),
     trace_label: str = "free_parking",
 ) -> None:
     """
@@ -35,17 +49,26 @@ def free_parking(
     ----------
     state : workflow.State
     persons_merged : DataFrame
+        This represents the 'choosers' table for this component.
     persons : DataFrame
-    model_settings_file_name : str
-        This filename is used to write settings files in estimation mode.
-    model_settings : dict
-        The settings used in this model component.
-    trace_label : str
-
-    Returns
-    -------
-
+        The original persons table is referenced so the free parking column
+        can be appended to it.
+    model_settings : FreeParkingSettings, optional
+        The settings used in this model component.  If not provided, they are
+        loaded out of the configs directory YAML file referenced by
+        the `model_settings_file_name` argument.
+    model_settings_file_name : str, default "free_parking.yaml"
+        This is where model setting are found if `model_settings` is not given
+        explicitly.  The same filename is also used to write settings files to
+        the estimation data bundle in estimation mode.
+    trace_label : str, default "free_parking"
+        This label is used for various tracing purposes.
     """
+    if model_settings is None:
+        model_settings = FreeParkingSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
     choosers = pd.DataFrame(persons_merged)
     choosers = choosers[choosers.workplace_zone_id > -1]
@@ -53,10 +76,10 @@ def free_parking(
 
     estimator = estimation.manager.begin_estimation(state, "free_parking")
 
-    constants = config.get_model_constants(model_settings)
+    constants = model_settings.CONSTANTS or {}
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         locals_d = {}
         if constants is not None:
@@ -70,7 +93,7 @@ def free_parking(
             trace_label=trace_label,
         )
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec, coefficients_df, estimator
@@ -80,8 +103,10 @@ def free_parking(
 
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
-        estimator.write_spec(model_settings)
-        estimator.write_coefficients(coefficients_df, model_settings)
+        estimator.write_spec(file_name=model_settings.SPEC)
+        estimator.write_coefficients(
+            coefficients_df, file_name=model_settings.COEFFICIENTS
+        )
         estimator.write_choosers(choosers)
 
     choices = simulate.simple_simulate(
@@ -95,7 +120,7 @@ def free_parking(
         estimator=estimator,
     )
 
-    free_parking_alt = model_settings["FREE_PARKING_ALT"]
+    free_parking_alt = model_settings.FREE_PARKING_ALT
     choices = choices == free_parking_alt
 
     if estimator:

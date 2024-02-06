@@ -10,6 +10,7 @@ import pandas as pd
 from activitysim.abm.models.util import annotate, school_escort_tours_trips, trip
 from activitysim.abm.models.util.mode import run_tour_mode_choice_simulate
 from activitysim.core import config, estimation, logit, los, simulate, tracing, workflow
+from activitysim.core.configuration.logit import TourModeComponentSettings
 from activitysim.core.util import assign_in_place, reindex
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,10 @@ will be used for the tour
 
 
 def get_alts_from_segmented_nested_logit(
-    state: workflow.State, model_settings, segment_name, trace_label
+    state: workflow.State,
+    model_settings: TourModeComponentSettings,
+    segment_name: str,
+    trace_label: str,
 ):
     """Infer alts from logit spec
 
@@ -50,7 +54,11 @@ def get_alts_from_segmented_nested_logit(
 
 
 def create_logsum_trips(
-    state: workflow.State, tours, segment_column_name, model_settings, trace_label
+    state: workflow.State,
+    tours: pd.DataFrame,
+    segment_column_name: str,
+    model_settings: TourModeComponentSettings,
+    trace_label: str,
 ):
     """
     Construct table of trips from half-tours (1 inbound, 1 outbound) for each tour-mode.
@@ -60,7 +68,7 @@ def create_logsum_trips(
     tours : pandas.DataFrame
     segment_column_name : str
         column in tours table used for segmenting model spec
-    model_settings : dict
+    model_settings : TourModeComponentSettings
     trace_label : str
 
     Returns
@@ -133,7 +141,11 @@ def append_tour_leg_trip_mode_choice_logsums(state: workflow.State, tours):
 
 
 def get_trip_mc_logsums_for_all_modes(
-    state: workflow.State, tours, segment_column_name, model_settings, trace_label
+    state: workflow.State,
+    tours: pd.DataFrame,
+    segment_column_name: str,
+    model_settings: TourModeComponentSettings,
+    trace_label: str,
 ):
     """Creates pseudo-trips from tours and runs trip mode choice to get logsums
 
@@ -142,7 +154,7 @@ def get_trip_mc_logsums_for_all_modes(
     tours : pandas.DataFrame
     segment_column_name : str
         column in tours table used for segmenting model spec
-    model_settings : dict
+    model_settings : TourModeComponentSettings
     trace_label : str
 
     Returns
@@ -183,15 +195,20 @@ def tour_mode_choice_simulate(
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     network_los: los.Network_LOS,
+    model_settings: TourModeComponentSettings | None = None,
+    model_settings_file_name: str = "tour_mode_choice.yaml",
+    trace_label: str = "tour_mode_choice",
 ) -> None:
     """
     Tour mode choice simulate
     """
-    trace_label = "tour_mode_choice"
-    model_settings_file_name = "tour_mode_choice.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = TourModeComponentSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
-    logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
+    logsum_column_name = model_settings.MODE_CHOICE_LOGSUM_COLUMN_NAME
     mode_column_name = "tour_mode"
     segment_column_name = "tour_purpose"
 
@@ -213,7 +230,7 @@ def tour_mode_choice_simulate(
 
     constants = {}
     # model_constants can appear in expressions
-    constants.update(config.get_model_constants(model_settings))
+    constants.update(model_settings.CONSTANTS)
 
     skim_dict = network_los.get_default_skim_dict()
 
@@ -278,7 +295,7 @@ def tour_mode_choice_simulate(
         )
 
         # TVPB constants can appear in expressions
-        if model_settings.get("use_TVPB_constants", True):
+        if model_settings.use_TVPB_constants:
             constants.update(
                 network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
             )
@@ -309,7 +326,7 @@ def tour_mode_choice_simulate(
     )
 
     # if trip logsums are used, run trip mode choice and append the logsums
-    if model_settings.get("COMPUTE_TRIP_MODE_CHOICE_LOGSUMS", False):
+    if model_settings.COMPUTE_TRIP_MODE_CHOICE_LOGSUMS:
         primary_tours_merged = get_trip_mc_logsums_for_all_modes(
             state,
             primary_tours_merged,
@@ -364,7 +381,7 @@ def tour_mode_choice_simulate(
 
     # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
     if network_los.zone_system == los.THREE_ZONE:
-        tvpb_mode_path_types = model_settings.get("tvpb_mode_path_types")
+        tvpb_mode_path_types = model_settings.tvpb_mode_path_types
         if tvpb_mode_path_types is not None:
             for mode, path_types in tvpb_mode_path_types.items():
                 for direction, skim in zip(
@@ -419,8 +436,9 @@ def tour_mode_choice_simulate(
         state.settings.downcast_float,
     )
 
-    if state.is_table("school_escort_tours") & model_settings.get(
-        "FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH", True
+    if (
+        state.is_table("school_escort_tours")
+        & model_settings.FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH
     ):
         all_tours = (
             school_escort_tours_trips.force_escortee_tour_modes_to_match_chauffeur(
@@ -431,7 +449,7 @@ def tour_mode_choice_simulate(
     state.add_table("tours", all_tours)
 
     # - annotate tours table
-    if model_settings.get("annotate_tours"):
+    if model_settings.annotate_tours:
         annotate.annotate_tours(state, model_settings, trace_label)
 
     if state.settings.trace_hh_id:

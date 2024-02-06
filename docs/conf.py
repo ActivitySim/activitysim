@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # ActivitySim documentation build configuration file, created by
 # sphinx-quickstart on Tue May 26 14:13:47 2016.
@@ -15,7 +14,6 @@
 from __future__ import annotations
 
 import os
-import sys
 
 # -- Get Package Version --------------------------------------------------
 import activitysim
@@ -47,6 +45,7 @@ extensions = [
     "sphinx_autosummary_accessors",
     "sphinx_remove_toctrees",
     "sphinx_copybutton",
+    "sphinx.ext.autosectionlabel",
 ]
 
 remove_from_toctrees = [

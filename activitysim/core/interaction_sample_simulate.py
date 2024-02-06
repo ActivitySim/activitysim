@@ -253,20 +253,27 @@ def _interaction_sample_simulate(
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
-    probs = logit.utils_to_probs(
-        state,
-        utilities_df,
-        allow_zero_probs=allow_zero_probs,
-        trace_label=trace_label,
-        trace_choosers=choosers,
-    )
-    chunk_sizer.log_df(trace_label, "probs", probs)
-
     if want_logsums:
-        logsums = logit.utils_to_logsums(
-            utilities_df, allow_zero_probs=allow_zero_probs
+        probs, logsums = logit.utils_to_probs(
+            state,
+            utilities_df,
+            allow_zero_probs=allow_zero_probs,
+            trace_label=trace_label,
+            trace_choosers=choosers,
+            overflow_protection=not allow_zero_probs,
+            return_logsums=True,
         )
         chunk_sizer.log_df(trace_label, "logsums", logsums)
+    else:
+        probs = logit.utils_to_probs(
+            state,
+            utilities_df,
+            allow_zero_probs=allow_zero_probs,
+            trace_label=trace_label,
+            trace_choosers=choosers,
+            overflow_protection=not allow_zero_probs,
+        )
+    chunk_sizer.log_df(trace_label, "probs", probs)
 
     del utilities_df
     chunk_sizer.log_df(trace_label, "utilities_df", None)

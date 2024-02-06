@@ -1,10 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import pandas as pd
 import pandas.testing as pdt
 
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
+    TourSchedulingSettings,
     get_previous_tour_by_tourid,
     vectorize_tour_scheduling,
 )
@@ -64,7 +67,7 @@ def test_vts():
         timetable,
         tour_segments={"spec": spec},
         tour_segment_col=None,
-        model_settings={},
+        model_settings=TourSchedulingSettings(),
         chunk_size=0,
         trace_label="test_vts",
     )

@@ -16,7 +16,10 @@ from activitysim.core import configuration, test, workflow
 
 
 def _test_prototype_mtc_extended(
-    multiprocess=False, sharrow=False, shadow_pricing=True
+    multiprocess=False,
+    sharrow=False,
+    shadow_pricing=True,
+    via_cli=True,
 ):
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_mtc_extended", dirname)
@@ -76,12 +79,18 @@ def _test_prototype_mtc_extended(
             final_vehicles_df, regress_vehicles_df, rtol=1.0e-4
         )
 
+    kwargs = {
+        "configs_dir": [],
+    }
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
     shadowprice_configs = (
         [] if shadow_pricing else ["-c", test_path("no-shadow-pricing")]
     )
+    if shadow_pricing:
+        kwargs["configs_dir"].append(test_path("no-shadow-pricing"))
     if sharrow:
         sh_configs = ["-c", example_path("configs_sharrow")]
+        kwargs["configs_dir"].append(example_path("configs_sharrow"))
     else:
         sh_configs = []
     if multiprocess:
@@ -91,16 +100,20 @@ def _test_prototype_mtc_extended(
             "-c",
             example_path("configs_mp"),
         ]
+        kwargs["configs_dir"].append(test_path("configs_mp"))
+        kwargs["configs_dir"].append(example_path("configs_mp"))
     elif sharrow:
         mp_configs = [
             "-c",
             test_path("configs"),
         ]
+        kwargs["configs_dir"].append(test_path("configs"))
     else:
         mp_configs = [
             "-c",
             test_path("configs"),
         ]
+        kwargs["configs_dir"].append(test_path("configs"))
     run_args = (
         shadowprice_configs
         + sh_configs
@@ -114,15 +127,26 @@ def _test_prototype_mtc_extended(
             example_mtc_path("data"),
             "-o",
             test_path(f"output_{int(sharrow)}{int(shadow_pricing)}"),
+            "--data_model",
+            example_path("data_model"),
         ]
     )
+    kwargs["configs_dir"].append(example_path("configs"))
+    kwargs["configs_dir"].append(example_mtc_path("configs"))
+    kwargs["data_dir"] = [example_mtc_path("data")]
+    kwargs["output_dir"] = test_path("output")
+
     if os.environ.get("GITHUB_ACTIONS") == "true":
         subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
-    else:
+    elif via_cli:
         subprocess.run(
             [sys.executable, "-m", "activitysim", "run"] + run_args, check=True
         )
+    else:
+        import activitysim.abm
 
+        state = workflow.State.make_default(**kwargs)
+        state.run.all()
     regress()
 
 
@@ -153,6 +177,7 @@ def test_prototype_mtc_extended_mp_shadow_pricing():
 
 
 EXPECTED_MODELS = [
+    "input_checker",
     "initialize_proto_population",
     "compute_disaggregate_accessibility",
     "initialize_landuse",
@@ -194,7 +219,6 @@ EXPECTED_MODELS = [
 ]
 
 
-@test.run_if_exists("prototype_mtc_extended_reference_pipeline.zip")
 def test_prototype_mtc_extended_progressive():
     import activitysim.abm  # register components
 
@@ -226,20 +250,13 @@ def test_prototype_mtc_extended_progressive():
     assert state.settings.chunk_size == 0
     assert state.settings.sharrow == False
 
-    for step_name in EXPECTED_MODELS:
-        state.run.by_name(step_name)
-        try:
-            state.checkpoint.check_against(
-                Path(__file__).parent.joinpath(
-                    "prototype_mtc_extended_reference_pipeline.zip"
-                ),
-                checkpoint_name=step_name,
-            )
-        except Exception:
-            print(f"> prototype_mtc_extended {step_name}: ERROR")
-            raise
-        else:
-            print(f"> prototype_mtc_extended {step_name}: ok")
+    ref_target = Path(__file__).parent.joinpath(
+        "prototype_mtc_extended_reference_pipeline.zip"
+    )
+
+    test.progressive_checkpoint_test(
+        state, ref_target, EXPECTED_MODELS, name="prototype_mtc_extended"
+    )
 
 
 @pytest.mark.parametrize(
@@ -282,20 +299,12 @@ def test_prototype_mtc_extended_with_chunking(chunksize):
     assert state.settings.sharrow == False
     assert state.settings.chunk_size == chunksize
 
-    for step_name in EXPECTED_MODELS:
-        state.run.by_name(step_name)
-        try:
-            state.checkpoint.check_against(
-                Path(__file__).parent.joinpath(
-                    "prototype_mtc_extended_reference_pipeline.zip"
-                ),
-                checkpoint_name=step_name,
-            )
-        except Exception:
-            print(f"> prototype_mtc_extended {step_name}: ERROR")
-            raise
-        else:
-            print(f"> prototype_mtc_extended {step_name}: ok")
+    test.progressive_checkpoint_test(
+        state,
+        Path(__file__).parent.joinpath("prototype_mtc_extended_reference_pipeline.zip"),
+        EXPECTED_MODELS,
+        name="prototype_mtc_extended_with_chunking",
+    )
 
 
 if __name__ == "__main__":

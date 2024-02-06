@@ -1,33 +1,32 @@
+from __future__ import annotations
+
 import os
-from pathlib import Path
+import warnings
 
-from pypyr.context import Context
+import pandas as pd
 
-from activitysim.standalone.compare import load_final_tables
-from activitysim.standalone.utils import chdir
+from activitysim.workflows.steps.wrapping import workstep
+from activitysim.workflows.utils import chdir
 
-from ..error_handler import error_logging
-from ..progression import reset_progress_step
-from ..wrapping import workstep
 
-#     databases = context.get_formatted('databases')
-#     # the various different output directories to process, for example:
-#     # {
-#     #     "sharrow": "output-sharrow",
-#     #     "legacy": "output-legacy",
-#     # }
-#
-#     tables = context.get_formatted('tables')
-#     # the various tables in the output directories to read, for example:
-#     # trips:
-#     #   filename: final_trips.csv
-#     #   index_col: trip_id
-#     # persons:
-#     #   filename: final_persons.csv
-#     #   index_col: person_id
-#     # land_use:
-#     #   filename: final_land_use.csv
-#     #   index_col: zone_id
+def load_final_tables(output_dirs, tables=None, index_cols=None):
+    result = {}
+    for key, pth in output_dirs.items():
+        if not os.path.exists(pth):
+            warnings.warn(f"{key} directory does not exist: {pth}")
+            continue
+        result[key] = {}
+        for tname, tfile in tables.items():
+            tpath = os.path.join(pth, tfile)
+            kwargs = {}
+            if index_cols is not None and tname in index_cols:
+                kwargs["index_col"] = index_cols[tname]
+            if os.path.exists(tpath):
+                result[key][tname] = pd.read_csv(tpath, **kwargs)
+        if len(result[key]) == 0:
+            # no tables were loaded, delete the entire group
+            del result[key]
+    return result
 
 
 @workstep("tablesets")

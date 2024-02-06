@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -22,6 +24,8 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_simulate import interaction_simulate
 
 logger = logging.getLogger(__name__)
@@ -147,9 +151,41 @@ def extend_tour_counts(
     return tour_counts
 
 
+class NonMandatoryTourSpecSegment(PydanticReadable):
+    NAME: str
+    PTYPE: int
+    COEFFICIENTS: Path
+
+
+class NonMandatoryTourFrequencySettings(LogitComponentSettings):
+    """
+    Settings for the `non_mandatory_tour_frequency` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    SEGMENT_COL: str = "ptype"
+    # not used anymore TODO remove if needed
+
+    SPEC_SEGMENTS: list[NonMandatoryTourSpecSegment] = []
+    # check the above
+
+    annotate_persons: PreprocessorSettings | None = None
+    """Preprocessor settings to annotate persons"""
+
+    annotate_tours: PreprocessorSettings | None = None
+    """Preprocessor settings to annotate tours"""
+
+
 @workflow.step
 def non_mandatory_tour_frequency(
-    state: workflow.State, persons: pd.DataFrame, persons_merged: pd.DataFrame
+    state: workflow.State,
+    persons: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    model_settings: NonMandatoryTourFrequencySettings | None = None,
+    model_settings_file_name: str = "non_mandatory_tour_frequency.yaml",
+    trace_label: str = "non_mandatory_tour_frequency",
 ) -> None:
     """
     This model predicts the frequency of making non-mandatory trips
@@ -158,10 +194,11 @@ def non_mandatory_tour_frequency(
     othdiscr, eatout, and social trips in various combination.
     """
 
-    trace_label = "non_mandatory_tour_frequency"
-    model_settings_file_name = "non_mandatory_tour_frequency.yaml"
-
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = NonMandatoryTourFrequencySettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
     # FIXME kind of tacky both that we know to add this here and del it below
     # 'tot_tours' is used in model_spec expressions
@@ -175,7 +212,7 @@ def non_mandatory_tour_frequency(
     choosers = choosers[choosers.cdap_activity.isin(["M", "N"])]
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         locals_dict = {"person_max_window": lambda x: person_max_window(state, x)}
 
@@ -191,14 +228,14 @@ def non_mandatory_tour_frequency(
 
     constants = config.get_model_constants(model_settings)
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
-    spec_segments = model_settings.get("SPEC_SEGMENTS", {})
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
+    spec_segments = model_settings.SPEC_SEGMENTS
 
     # segment by person type and pick the right spec for each person type
     choices_list = []
     for segment_settings in spec_segments:
-        segment_name = segment_settings["NAME"]
-        ptype = segment_settings["PTYPE"]
+        segment_name = segment_settings.NAME
+        ptype = segment_settings.PTYPE
 
         # pick the spec column for the segment
         segment_spec = model_spec[[segment_name]]
@@ -403,13 +440,13 @@ def non_mandatory_tour_frequency(
         # need to re-compute tour frequency statistics to account for school escort tours
         recompute_tour_count_statistics(state)
 
-    if model_settings.get("annotate_tours"):
+    if model_settings.annotate_tours:
         annotate.annotate_tours(state, model_settings, trace_label)
 
     expressions.assign_columns(
         state,
         df=persons,
-        model_settings=model_settings.get("annotate_persons"),
+        model_settings=model_settings.annotate_persons,
         trace_label=trace_label,
     )
 

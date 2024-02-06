@@ -65,6 +65,11 @@ def eval_interaction_utilities(
         yielding a dataframe  with len(interaction_df) rows and one utility column
         having the same index as interaction_df (non-unique values from alternatives df)
 
+    zone_layer : {'taz', 'maz'}, default 'taz'
+        Specify which zone layer of the skims is to be used.  You cannot use the
+        'maz' zone layer in a one-zone model, but you can use the 'taz' layer in
+        a two- or three-zone model (e.g. for destination pre-sampling).
+
     Returns
     -------
     utilities : pandas.DataFrame

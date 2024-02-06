@@ -19,9 +19,22 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_simulate import interaction_simulate
 
 logger = logging.getLogger(__name__)
+
+
+class JointTourFrequencyCompositionSettings(LogitComponentSettings):
+    """
+    Settings for the `joint_tour_frequency_composition` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    ALTS_PREPROCESSOR: PreprocessorSettings | None = None
 
 
 @workflow.step
@@ -29,15 +42,18 @@ def joint_tour_frequency_composition(
     state: workflow.State,
     households_merged: pd.DataFrame,
     persons: pd.DataFrame,
+    model_settings: JointTourFrequencyCompositionSettings | None = None,
+    model_settings_file_name: str = "joint_tour_frequency_composition.yaml",
+    trace_label: str = "joint_tour_frequency_composition",
 ) -> None:
     """
     This model predicts the frequency and composition of fully joint tours.
     """
-
-    trace_label = "joint_tour_frequency_composition"
-    model_settings_file_name = "joint_tour_frequency_composition.yaml"
-
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = JointTourFrequencyCompositionSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
     alt_tdd = simulate.read_model_alts(
         state, "joint_tour_frequency_composition_alternatives.csv", set_index="alt"
@@ -53,7 +69,7 @@ def joint_tour_frequency_composition(
     logger.info("Running %s with %d households", trace_label, len(choosers))
 
     # alt preprocessor
-    alt_preprocessor_settings = model_settings.get("ALTS_PREPROCESSOR", None)
+    alt_preprocessor_settings = model_settings.ALTS_PREPROCESSOR
     if alt_preprocessor_settings:
         locals_dict = {}
 
@@ -68,7 +84,7 @@ def joint_tour_frequency_composition(
         )
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         locals_dict = {
             "persons": persons,
@@ -87,7 +103,7 @@ def joint_tour_frequency_composition(
         state, "joint_tour_frequency_composition"
     )
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec, coefficients_df, estimator

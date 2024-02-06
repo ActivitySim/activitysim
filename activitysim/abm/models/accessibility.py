@@ -3,39 +3,83 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import numba as nb
 import numpy as np
 import pandas as pd
 
 from activitysim.core import assign, chunk, los, workflow
+from activitysim.core.configuration.base import PydanticReadable
 
 logger = logging.getLogger(__name__)
+
+
+class AccessibilitySettings(PydanticReadable):
+    """
+    Settings for aggregate accessibility component.
+    """
+
+    CONSTANTS: dict[str, Any] = {}
+
+    land_use_columns: list[str] = []
+    """Only include the these columns in the computational tables
+
+    Memory usage is reduced by only listing the minimum columns needed by
+    the SPEC, and nothing extra.
+    """
+
+    SPEC: str = "accessibility.csv"
+    """Filename for the accessibility specification (csv) file."""
+
+    explicit_chunk: int = 0
+    """If > 0, use this chunk size instead of adaptive chunking."""
 
 
 @nb.njit
 def _accumulate_accessibility(arr, orig_zone_count, dest_zone_count):
     assert arr.size == orig_zone_count * dest_zone_count
-    arr2 = arr.reshape((orig_zone_count, dest_zone_count))
+    assert arr.ndim == 1
+    i = 0
     result = np.empty((orig_zone_count,), dtype=arr.dtype)
     for o in range(orig_zone_count):
         x = 0
         for d in range(dest_zone_count):
-            x += arr2[o, d]
+            x += arr[i]
+            i += 1
         result[o] = np.log1p(x)
     return result
 
 
 def compute_accessibilities_for_zones(
-    state,
-    accessibility_df,
-    land_use_df,
-    assignment_spec,
-    constants,
-    network_los,
-    trace_label,
-    chunk_sizer,
+    state: workflow.State,
+    accessibility_df: pd.DataFrame,
+    land_use_df: pd.DataFrame,
+    assignment_spec: dict,
+    constants: dict,
+    network_los: los.Network_LOS,
+    trace_label: str,
+    chunk_sizer: chunk.ChunkSizer,
 ):
+    """
+    Compute accessibility for each zone in land use file using expressions from accessibility_spec.
+
+    Parameters
+    ----------
+    state : workflow.State
+    accessibility_df : pd.DataFrame
+    land_use_df : pd.DataFrame
+    assignment_spec : dict
+    constants : dict
+    network_los : los.Network_LOS
+    trace_label : str
+    chunk_sizer : chunk.ChunkSizer
+
+    Returns
+    -------
+    accessibility_df : pd.DataFrame
+        The accessibility_df is updated in place.
+    """
     orig_zones = accessibility_df.index.values
     dest_zones = land_use_df.index.values
 
@@ -144,6 +188,10 @@ def compute_accessibility(
     land_use: pd.DataFrame,
     accessibility: pd.DataFrame,
     network_los: los.Network_LOS,
+    model_settings: AccessibilitySettings | None = None,
+    model_settings_file_name: str = "accessibility.yaml",
+    trace_label: str = "compute_accessibility",
+    output_table_name: str = "accessibility",
 ) -> None:
     """
     Compute accessibility for each zone in land use file using expressions from accessibility_spec
@@ -160,40 +208,47 @@ def compute_accessibility(
     product mutes large differences.  The decay function on the walk accessibility measure is
     steeper than automobile or transit.  The minimum accessibility is zero.
     """
+    if model_settings is None:
+        model_settings = AccessibilitySettings.read_settings_file(
+            state.filesystem, model_settings_file_name
+        )
 
-    trace_label = "compute_accessibility"
-    model_settings = state.filesystem.read_model_settings("accessibility.yaml")
     assignment_spec = assign.read_assignment_spec(
-        state.filesystem.get_config_file_path("accessibility.csv")
+        state.filesystem.get_config_file_path(model_settings.SPEC)
     )
 
     accessibility_df = accessibility
     if len(accessibility_df.columns) > 0:
         logger.warning(
-            f"accessibility table is not empty. Columns:{list(accessibility_df.columns)}"
+            f"accessibility table is not empty. "
+            f"Columns:{list(accessibility_df.columns)}"
         )
         raise RuntimeError("accessibility table is not empty.")
 
-    constants = model_settings.get("CONSTANTS", {})
+    constants = model_settings.CONSTANTS
 
-    # only include the land_use columns needed by spec, as specified by land_use_columns model_setting
-    land_use_columns = model_settings.get("land_use_columns", [])
+    # only include the land_use columns needed by spec,
+    # as specified by land_use_columns model_setting
+    land_use_columns = model_settings.land_use_columns
     land_use_df = land_use
     land_use_df = land_use_df[land_use_columns]
 
     logger.info(
-        f"Running {trace_label} with {len(accessibility_df.index)} orig zones {len(land_use_df)} dest zones"
+        f"Running {trace_label} with {len(accessibility_df.index)} orig zones "
+        f"{len(land_use_df)} dest zones"
     )
 
     accessibilities_list = []
+    explicit_chunk_size = model_settings.explicit_chunk
 
     for (
-        i,
+        _i,
         chooser_chunk,
-        chunk_trace_label,
+        _chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(state, accessibility_df, trace_label):
-
+    ) in chunk.adaptive_chunked_choosers(
+        state, accessibility_df, trace_label, explicit_chunk_size=explicit_chunk_size
+    ):
         accessibilities = compute_accessibilities_for_zones(
             state,
             chooser_chunk,
@@ -211,4 +266,4 @@ def compute_accessibility(
     logger.info(f"{trace_label} computed accessibilities {accessibility_df.shape}")
 
     # - write table to pipeline
-    state.add_table("accessibility", accessibility_df)
+    state.add_table(output_table_name, accessibility_df)

@@ -1,5 +1,5 @@
 
-.. _estimation :
+.. _estimation_old :
 
 Estimation
 ----------
@@ -80,7 +80,7 @@ Additional settings for running ActivitySim in estimation mode are specified in 
 * ``survey_tables`` - the list of input ActivitySim format survey tables with observed choices to override model simulation choices in order to write EDBs.  These tables are the output of the ``scripts\infer.py`` script that pre-processes the ActivitySim format household travel survey files for the example data and submodels
 
 
-.. _estimation_example_notebooks:
+.. _estimation_example_notebooks_old:
 
 Estimation Notebooks
 ~~~~~~~~~~~~~~~~~~~~

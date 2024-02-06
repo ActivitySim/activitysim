@@ -17,25 +17,43 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger(__name__)
 
 
+class JointTourFrequencySettings(LogitComponentSettings, extra="forbid"):
+    """
+    Settings for the `free_parking` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+
 @workflow.step
 def joint_tour_frequency(
-    state: workflow.State, households: pd.DataFrame, persons: pd.DataFrame
+    state: workflow.State,
+    households: pd.DataFrame,
+    persons: pd.DataFrame,
+    model_settings: JointTourFrequencySettings | None = None,
+    model_settings_file_name: str = "joint_tour_frequency.yaml",
+    trace_label: str = "joint_tour_frequency",
 ) -> None:
     """
     This model predicts the frequency of making fully joint trips (see the
     alternatives above).
     """
-    trace_label = "joint_tour_frequency"
-    model_settings_file_name = "joint_tour_frequency.yaml"
+    if model_settings is None:
+        model_settings = JointTourFrequencySettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
+
     trace_hh_id = state.settings.trace_hh_id
 
     estimator = estimation.manager.begin_estimation(state, "joint_tour_frequency")
-
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     alternatives = simulate.read_model_alts(
         state, "joint_tour_frequency_alternatives.csv", set_index="alt"
@@ -55,7 +73,7 @@ def joint_tour_frequency(
     )
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
         locals_dict = {
             "persons": persons,
@@ -70,7 +88,7 @@ def joint_tour_frequency(
             trace_label=trace_label,
         )
 
-    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec, coefficients_df, estimator

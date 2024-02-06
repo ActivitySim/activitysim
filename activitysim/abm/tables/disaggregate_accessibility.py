@@ -161,12 +161,14 @@ def disaggregate_accessibility(state: workflow.State):
         disaggregate_accessibility=None,
     )
 
+    from ..models.disaggregate_accessibility import DisaggregateAccessibilitySettings
+
     # Extract model settings
-    model_settings = state.filesystem.read_model_settings(
-        "disaggregate_accessibility.yaml"
+    model_settings = DisaggregateAccessibilitySettings.read_settings_file(
+        state.filesystem, "disaggregate_accessibility.yaml"
     )
-    merging_params = model_settings.get("MERGE_ON")
-    nearest_method = model_settings.get("NEAREST_METHOD", "skims")
+    merging_params = model_settings.MERGE_ON
+    nearest_method = model_settings.NEAREST_METHOD
     accessibility_cols = [
         x for x in proto_accessibility_df.columns if "accessibility" in x
     ]

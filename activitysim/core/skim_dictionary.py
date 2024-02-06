@@ -669,9 +669,12 @@ class MazSkimDict(SkimDict):
 
         self.dtype = np.dtype(self.skim_info.dtype_name)
         self.base_keys = taz_skim_dict.skim_info.base_keys
-        self.sparse_keys = list(
-            set(network_los.maz_to_maz_df.columns) - {"OMAZ", "DMAZ"}
-        )
+        if network_los.maz_to_maz_df is not None:
+            self.sparse_keys = list(
+                set(network_los.maz_to_maz_df.columns) - {"OMAZ", "DMAZ"}
+            )
+        else:
+            self.sparse_keys = []
         self.sparse_key_usage = set()
 
     def _offset_mapper(self, state):

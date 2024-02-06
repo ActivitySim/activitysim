@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -16,6 +17,8 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import BaseLogitComponentSettings
 from activitysim.core.interaction_simulate import interaction_simulate
 from activitysim.core.util import reindex
 
@@ -26,7 +29,9 @@ NUM_ESCORTEES = 3
 NUM_CHAPERONES = 2
 
 
-def determine_escorting_participants(choosers, persons, model_settings):
+def determine_escorting_participants(
+    choosers: pd.DataFrame, persons: pd.DataFrame, model_settings: SchoolEscortSettings
+):
     """
     Determining which persons correspond to chauffer 1..n and escortee 1..n.
     Chauffers are those with the highest weight given by:
@@ -35,15 +40,15 @@ def determine_escorting_participants(choosers, persons, model_settings):
     """
     global NUM_ESCORTEES
     global NUM_CHAPERONES
-    NUM_ESCORTEES = model_settings.get("NUM_ESCORTEES", NUM_ESCORTEES)
-    NUM_CHAPERONES = model_settings.get("NUM_CHAPERONES", NUM_CHAPERONES)
+    NUM_ESCORTEES = model_settings.NUM_ESCORTEES
+    NUM_CHAPERONES = model_settings.NUM_CHAPERONES
 
-    ptype_col = model_settings.get("PERSONTYPE_COLUMN", "ptype")
-    sex_col = model_settings.get("GENDER_COLUMN", "sex")
-    age_col = model_settings.get("AGE_COLUMN", "age")
+    ptype_col = model_settings.PERSONTYPE_COLUMN
+    sex_col = model_settings.GENDER_COLUMN
+    age_col = model_settings.AGE_COLUMN
 
-    escortee_age_cutoff = model_settings.get("ESCORTEE_AGE_CUTOFF", 16)
-    chaperone_age_cutoff = model_settings.get("CHAPERONE_AGE_CUTOFF", 18)
+    escortee_age_cutoff = model_settings.ESCORTEE_AGE_CUTOFF
+    chaperone_age_cutoff = model_settings.CHAPERONE_AGE_CUTOFF
 
     escortees = persons[
         persons.is_student
@@ -53,9 +58,9 @@ def determine_escorting_participants(choosers, persons, model_settings):
     households_with_escortees = escortees["household_id"]
 
     # can specify different weights to determine chaperones
-    persontype_weight = model_settings.get("PERSON_WEIGHT", 100)
-    gender_weight = model_settings.get("PERSON_WEIGHT", 10)
-    age_weight = model_settings.get("AGE_WEIGHT", 1)
+    persontype_weight = model_settings.PERSON_WEIGHT
+    gender_weight = model_settings.GENDER_WEIGHT
+    age_weight = model_settings.AGE_WEIGHT
 
     # can we move all of these to a config file?
     chaperones = persons[
@@ -101,7 +106,7 @@ def determine_escorting_participants(choosers, persons, model_settings):
     return choosers, participant_columns
 
 
-def check_alts_consistency(alts):
+def check_alts_consistency(alts: pd.DataFrame):
     """
     Checking to ensure that the alternatives file is consistent with
     the number of chaperones and escortees set in the model settings.
@@ -116,7 +121,9 @@ def check_alts_consistency(alts):
     return
 
 
-def add_prev_choices_to_choosers(choosers, choices, alts, stage):
+def add_prev_choices_to_choosers(
+    choosers: pd.DataFrame, choices: pd.Series, alts: pd.DataFrame, stage: str
+) -> pd.DataFrame:
     # adding choice details to chooser table
     escorting_choice = "school_escorting_" + stage
     choosers[escorting_choice] = choices
@@ -346,6 +353,62 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     return bundles
 
 
+class SchoolEscortSettings(BaseLogitComponentSettings):
+    """
+    Settings for the `telecommute_frequency` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    ALTS: Any
+
+    NUM_ESCORTEES: int = 3
+    NUM_CHAPERONES: int = 2
+
+    PERSONTYPE_COLUMN: str = "ptype"
+    GENDER_COLUMN: str = "sex"
+    AGE_COLUMN: str = "age"
+
+    ESCORTEE_AGE_CUTOFF: int = 16
+    CHAPERONE_AGE_CUTOFF: int = 18
+
+    PERSON_WEIGHT: float = 100.0
+    GENDER_WEIGHT: float = 10.0
+    AGE_WEIGHT: float = 1.0
+
+    sharrow_skip: bool | dict[str, bool] = False
+    """Setting to skip sharrow.
+
+    Sharrow can be skipped (or not) for all school escorting stages by giving
+    simply true or false.  Alternatively, it can be skipped only for particular
+    stages by giving a mapping of stage name to skipping.  For example:
+
+    ```yaml
+    sharrow_skip:
+        OUTBOUND: true
+        INBOUND: false
+        OUTBOUND_COND: true
+    ```
+    """
+
+    SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
+
+    SPEC: None = None
+    """The school escort model does not use this setting."""
+
+    OUTBOUND_SPEC: str = "school_escorting_outbound.csv"
+    OUTBOUND_COEFFICIENTS: str = "school_escorting_coefficients_outbound.csv"
+    INBOUND_SPEC: str = "school_escorting_inbound.csv"
+    INBOUND_COEFFICIENTS: str = "school_escorting_coefficients_inbound.csv"
+    OUTBOUND_COND_SPEC: str = "school_escorting_outbound_cond.csv"
+    OUTBOUND_COND_COEFFICIENTS: str = "school_escorting_coefficients_outbound_cond.csv"
+
+    preprocessor_outbound: PreprocessorSettings | None = None
+    preprocessor_inbound: PreprocessorSettings | None = None
+    preprocessor_outbound_cond: PreprocessorSettings | None = None
+
+
 @workflow.step
 def school_escorting(
     state: workflow.State,
@@ -353,6 +416,9 @@ def school_escorting(
     households_merged: pd.DataFrame,
     persons: pd.DataFrame,
     tours: pd.DataFrame,
+    model_settings: SchoolEscortSettings | None = None,
+    model_settings_file_name: str = "school_escorting.yaml",
+    trace_label: str = "school_escorting_simulate",
 ) -> None:
     """
     school escorting model
@@ -377,12 +443,15 @@ def school_escorting(
         - timetable to avoid joint tours scheduled over school escort tours
 
     """
-    trace_label = "school_escorting_simulate"
-    model_settings_file_name = "school_escorting.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = SchoolEscortSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
+
     trace_hh_id = state.settings.trace_hh_id
 
-    alts = simulate.read_model_alts(state, model_settings["ALTS"], set_index="Alt")
+    alts = simulate.read_model_alts(state, model_settings.ALTS, set_index="Alt")
 
     households_merged, participant_columns = determine_escorting_participants(
         households_merged, persons, model_settings
@@ -404,10 +473,10 @@ def school_escorting(
         )
 
         model_spec_raw = state.filesystem.read_model_spec(
-            file_name=model_settings[stage.upper() + "_SPEC"]
+            file_name=getattr(model_settings, stage.upper() + "_SPEC")
         )
         coefficients_df = state.filesystem.read_model_coefficients(
-            file_name=model_settings[stage.upper() + "_COEFFICIENTS"]
+            file_name=getattr(model_settings, stage.upper() + "_COEFFICIENTS")
         )
         model_spec = simulate.eval_coefficients(
             state, model_spec_raw, coefficients_df, estimator
@@ -415,7 +484,7 @@ def school_escorting(
 
         # allow for skipping sharrow entirely in this model with `sharrow_skip: true`
         # or skipping stages selectively with a mapping of the stages to skip
-        sharrow_skip = model_settings.get("sharrow_skip", False)
+        sharrow_skip = model_settings.sharrow_skip
         stage_sharrow_skip = False  # default is false unless set below
         if sharrow_skip:
             if isinstance(sharrow_skip, dict):
@@ -428,7 +497,7 @@ def school_escorting(
             locals_dict.pop("_sharrow_skip", None)
 
         # reduce memory by limiting columns if selected columns are supplied
-        chooser_columns = model_settings.get("SIMULATE_CHOOSER_COLUMNS", None)
+        chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
         if chooser_columns is not None:
             chooser_columns = chooser_columns + participant_columns
             choosers = households_merged[chooser_columns]
@@ -445,7 +514,7 @@ def school_escorting(
 
         logger.info("Running %s with %d households", stage_trace_label, len(choosers))
 
-        preprocessor_settings = model_settings.get("preprocessor_" + stage, None)
+        preprocessor_settings = getattr(model_settings, "preprocessor_" + stage, None)
         if preprocessor_settings:
             expressions.assign_columns(
                 state,
@@ -564,7 +633,7 @@ def school_escorting(
     # including mandatory tours because their start / end times may have
     # changed to match the school escort times
     for tour_category in tours.tour_category.unique():
-        for tour_num, nth_tours in tours[tours.tour_category == tour_category].groupby(
+        for _tour_num, nth_tours in tours[tours.tour_category == tour_category].groupby(
             "tour_num", sort=True
         ):
             timetable.assign(

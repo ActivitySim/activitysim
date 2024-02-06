@@ -480,7 +480,7 @@ def _validate_workflow_function(f):
     argspec = getfullargspec(f)
     if argspec.args[0] != "state":
         raise SyntaxError("workflow.func must have `state` as the first argument")
-    if annot.get("state") is not workflow.State:
+    if not issubclass(annot.get("state"), workflow.State):
         raise SyntaxError(
             "workflow.func must have `State` as the first argument annotation"
         )

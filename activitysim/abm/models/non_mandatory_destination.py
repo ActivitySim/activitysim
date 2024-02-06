@@ -8,6 +8,7 @@ import pandas as pd
 
 from activitysim.abm.models.util import annotate, tour_destination
 from activitysim.core import estimation, los, tracing, workflow
+from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,9 @@ def non_mandatory_tour_destination(
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     network_los: los.Network_LOS,
+    model_settings: TourLocationComponentSettings | None = None,
+    model_settings_file_name: str = "non_mandatory_tour_destination.yaml",
+    trace_label: str = "non_mandatory_tour_destination",
 ) -> None:
     """
     Given the tour generation from the above, each tour needs to have a
@@ -26,15 +30,18 @@ def non_mandatory_tour_destination(
     person that's making the tour)
     """
 
-    trace_label = "non_mandatory_tour_destination"
-    model_settings_file_name = "non_mandatory_tour_destination.yaml"
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = TourLocationComponentSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
+
     trace_hh_id = state.settings.trace_hh_id
 
-    logsum_column_name = model_settings.get("DEST_CHOICE_LOGSUM_COLUMN_NAME")
+    logsum_column_name = model_settings.DEST_CHOICE_LOGSUM_COLUMN_NAME
     want_logsums = logsum_column_name is not None
 
-    sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
+    sample_table_name = model_settings.DEST_CHOICE_SAMPLE_TABLE_NAME
     want_sample_table = (
         state.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
@@ -65,7 +72,7 @@ def non_mandatory_tour_destination(
         estimator.write_coefficients(model_settings=model_settings)
         # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
         estimator.write_spec(model_settings, tag="SPEC")
-        estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
+        estimator.set_alt_id(model_settings.ALT_DEST_COL_NAME)
         estimator.write_table(
             state.get_injectable("size_terms"), "size_terms", append=False
         )
@@ -122,7 +129,7 @@ def non_mandatory_tour_destination(
 
     state.add_table("tours", tours)
 
-    if model_settings.get("annotate_tours"):
+    if model_settings.annotate_tours:
         annotate.annotate_tours(state, model_settings, trace_label)
 
     if want_sample_table:

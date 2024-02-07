@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # ActivitySim documentation build configuration file, created by
 # sphinx-quickstart on Tue May 26 14:13:47 2016.
@@ -12,8 +11,9 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+from __future__ import annotations
+
 import os
-import sys
 
 # -- Get Package Version --------------------------------------------------
 import activitysim
@@ -36,17 +36,33 @@ extensions = [
     "sphinx.ext.mathjax",
     "numpydoc",
     "sphinx.ext.autosummary",
-    "myst_parser",
+    "myst_nb",
+    # "myst_parser",
     "sphinx_design",
     "sphinxarg.ext",
+    "sphinx.ext.intersphinx",
     "sphinxcontrib.autodoc_pydantic",
+    "sphinx_autosummary_accessors",
+    "sphinx_remove_toctrees",
+    "sphinx_copybutton",
+    "sphinx.ext.autosectionlabel",
 ]
 
+remove_from_toctrees = [
+    "dev-guide/_generated/*",
+    "dev-guide/_generated2/*",
+    "users-guide/_generated/*",
+]
 myst_enable_extensions = ["colon_fence"]
+myst_heading_anchors = 3
+nb_merge_streams = True
 numpydoc_show_class_members = False
 autosummary_generate = True
 autodoc_pydantic_model_signature_prefix = "settings"
 autodoc_pydantic_model_show_json = False
+
+autodoc_typehints_format = "short"
+python_use_unqualified_type_names = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -54,8 +70,8 @@ templates_path = ["_templates"]
 # The suffix of source filenames.
 source_suffix = {
     ".rst": "restructuredtext",
-    ".txt": "markdown",
-    ".md": "markdown",
+    # ".txt": "markdown",
+    # ".md": "markdown",
 }
 
 # The encoding of source files.
@@ -134,7 +150,7 @@ GITHUB_REPOSITORY_OWNER = os.environ.get(
 print("github repo owner: " + GITHUB_REPOSITORY_OWNER)
 
 html_theme_options = {
-    "footer_items": ["version-date", "sphinx-version"],
+    "footer_start": ["version-date", "sphinx-version"],
     "switcher": {
         "json_url": f"https://{GITHUB_REPOSITORY_OWNER}.github.io/activitysim/switcher.json",
         "version_match": version,
@@ -147,7 +163,7 @@ html_theme_options = {
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = f"ActivitySim {release}"
+html_title = "ActivitySim"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 # html_short_title = None
@@ -215,6 +231,14 @@ html_last_updated_fmt = "%b %d, %Y"
 # Output file base name for HTML help builder.
 htmlhelp_basename = "ActivitySimdoc"
 
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "pandas": ("http://pandas.pydata.org/pandas-docs/stable", None),
+    "xarray": ("https://docs.xarray.dev/en/stable", None),
+    "pyarrow": ("https://arrow.apache.org/docs", None),
+    "numba": ("https://numba.pydata.org/numba-doc/latest", None),
+    "psutil": ("https://psutil.readthedocs.io/en/latest", None),
+}
 
 # -- Options for LaTeX output ---------------------------------------------
 

@@ -28,7 +28,8 @@ logging:
 
     logfile:
       class: logging.FileHandler
-      filename: !!python/object/apply:activitysim.core.config.log_file_path ['activitysim.log']
+      filename:
+        get_log_file_path: 'activitysim.log'
       mode: w
       formatter: fileFormatter
       level: NOTSET

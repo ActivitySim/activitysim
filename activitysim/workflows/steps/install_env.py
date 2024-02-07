@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os.path
 import subprocess
@@ -15,6 +17,7 @@ def install_env(
     asim_version="1.0.4",
     cwd=None,
     label=None,
+    python_version="3.9",
 ):
     if os.path.exists(env_prefix):
         return 0
@@ -26,7 +29,7 @@ def install_env(
         "create",
         "--prefix",
         env_prefix,
-        f"python=3.9",
+        f"python={python_version}",
         f"activitysim={asim_version}",
         "-c",
         "conda-forge",

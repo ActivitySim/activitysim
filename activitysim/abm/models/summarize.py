@@ -1,19 +1,22 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 import os
 
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.trip_matrices import annotate_trips
-from activitysim.core import config, expressions, inject, pipeline
+from activitysim.core import expressions, workflow
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.los import Network_LOS
 
 logger = logging.getLogger(__name__)
 
 
 def wrap_skims(
-    network_los: pipeline.Pipeline, trips_merged: pd.DataFrame
+    network_los: Network_LOS, trips_merged: pd.DataFrame
 ) -> dict[str, object]:
     """
     Retrieve skim wrappers for merged trips.
@@ -198,18 +201,38 @@ def manual_breaks(
         return bins
 
 
-@inject.step()
+class SummarizeSettings(PydanticReadable, extra="allow"):
+    """
+    Settings for the `summarize` component.
+    """
+
+    SPECIFICATION: str = "summarize.csv"
+    """Filename for the summarize specification (csv) file."""
+
+    OUTPUT: str = "summarize"
+    """Output folder name."""
+
+    EXPORT_PIPELINE_TABLES: bool = True
+    """To export pipeline tables for expression development."""
+
+    preprocessor: PreprocessorSettings | None = None
+
+
+@workflow.step
 def summarize(
-    network_los: pipeline.Pipeline,
+    state: workflow.State,
+    network_los: Network_LOS,
     persons: pd.DataFrame,
     persons_merged: pd.DataFrame,
     households: pd.DataFrame,
     households_merged: pd.DataFrame,
     trips: pd.DataFrame,
-    tours: pd.DataFrame,
     tours_merged: pd.DataFrame,
     land_use: pd.DataFrame,
-):
+    model_settings: SummarizeSettings | None = None,
+    model_settings_file_name: str = "summarize.yaml",
+    trace_label: str = "summarize",
+) -> None:
     """
     A standard model that uses expression files to summarize pipeline tables for vizualization.
 
@@ -222,28 +245,23 @@ def summarize(
     Outputs a seperate csv summary file for each expression;
     outputs starting with '_' are saved as temporary local variables.
     """
-    trace_label = "summarize"
-    model_settings_file_name = "summarize.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
 
-    output_location = (
-        model_settings["OUTPUT"] if "OUTPUT" in model_settings else "summaries"
-    )
-    os.makedirs(config.output_file_path(output_location), exist_ok=True)
+    if model_settings is None:
+        model_settings = SummarizeSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
+
+    output_location = model_settings.OUTPUT
+    os.makedirs(state.get_output_file_path(output_location), exist_ok=True)
 
     spec = pd.read_csv(
-        config.config_file_path(model_settings["SPECIFICATION"]), comment="#"
+        state.filesystem.get_config_file_path(model_settings.SPECIFICATION),
+        comment="#",
     )
 
     # Load dataframes from pipeline
-    persons = persons.to_frame()
-    persons_merged = persons_merged.to_frame()
-    households = households.to_frame()
-    households_merged = households_merged.to_frame()
-    trips = trips.to_frame()
-    tours = tours_merged.to_frame()
-    tours_merged = tours_merged.to_frame()
-    land_use = land_use.to_frame()
+    tours = tours_merged
 
     # - trips_merged - merge trips and tours_merged
     trips_merged = pd.merge(
@@ -251,7 +269,7 @@ def summarize(
         tours_merged.drop(columns=["person_id", "household_id"]),
         left_on="tour_id",
         right_index=True,
-        suffixes=["_trip", "_tour"],
+        suffixes=("_trip", "_tour"),
         how="left",
     )
 
@@ -272,13 +290,12 @@ def summarize(
 
     # Annotate trips_merged
     expressions.annotate_preprocessors(
-        trips_merged, locals_d, skims, model_settings, "summarize"
+        state, trips_merged, locals_d, skims, model_settings, "summarize"
     )
 
     for table_name, df in locals_d.items():
-        if table_name in model_settings:
-
-            meta = model_settings[table_name]
+        if hasattr(model_settings, table_name):
+            meta = getattr(model_settings, table_name)
             df = eval(table_name)
 
             if "AGGREGATE" in meta and meta["AGGREGATE"]:
@@ -316,12 +333,14 @@ def summarize(
                         )
 
     # Output pipeline tables for expression development
-    if model_settings["EXPORT_PIPELINE_TABLES"] is True:
+    if model_settings.EXPORT_PIPELINE_TABLES is True:
         pipeline_table_dir = os.path.join(output_location, "pipeline_tables")
-        os.makedirs(config.output_file_path(pipeline_table_dir), exist_ok=True)
+        os.makedirs(state.get_output_file_path(pipeline_table_dir), exist_ok=True)
         for name, df in locals_d.items():
             df.to_csv(
-                config.output_file_path(os.path.join(pipeline_table_dir, f"{name}.csv"))
+                state.get_output_file_path(
+                    os.path.join(pipeline_table_dir, f"{name}.csv")
+                )
             )
 
     # Add classification functions to locals
@@ -335,13 +354,11 @@ def summarize(
     )
 
     for i, row in spec.iterrows():
-
         out_file = row["Output"]
         expr = row["Expression"]
 
         # Save temporary variables starting with underscores in locals_d
         if out_file.startswith("_"):
-
             logger.debug(f"Temp Variable: {expr} -> {out_file}")
 
             locals_d[out_file] = eval(expr, globals(), locals_d)
@@ -351,6 +368,8 @@ def summarize(
 
         resultset = eval(expr, globals(), locals_d)
         resultset.to_csv(
-            config.output_file_path(os.path.join(output_location, f"{out_file}.csv")),
+            state.get_output_file_path(
+                os.path.join(output_location, f"{out_file}.csv")
+            ),
             index=False,
         )

@@ -1,0 +1,7 @@
+Description,Target,Expression
+#,, annotate landuse table after import
+household_density,household_density,land_use.TOTHH / land_use.TOTACRE
+employment_density,employment_density,land_use.TOTEMP / land_use.TOTACRE
+population_density,population_density,land_use.TOTPOP / land_use.TOTACRE
+density_index,density_index,(household_density *employment_density) / (household_density + employment_density).clip(lower=1)
+is_parking_zone,is_parking_zone,"np.where(land_use.parkarea==1,True,False)"

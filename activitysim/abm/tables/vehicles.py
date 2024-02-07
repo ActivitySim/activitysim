@@ -1,14 +1,19 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
-from activitysim.core import inject, pipeline, tracing
+import pandas as pd
+
+from activitysim.abm.tables.util import simple_table_join
+from activitysim.core import workflow
 
 logger = logging.getLogger(__name__)
 
 
-@inject.table()
-def vehicles(households):
+@workflow.table
+def vehicles(state: workflow.State, households: pd.DataFrame):
     """Creates the vehicles table and load it as an injectable
 
     This method initializes the `vehicles` table, where the number of rows
@@ -16,7 +21,7 @@ def vehicles(households):
 
     Parameters
     ----------
-    households :  orca.DataFrameWrapper
+    households : DataFrame
 
     Returns
     -------
@@ -24,9 +29,7 @@ def vehicles(households):
     """
 
     # initialize vehicles table
-    vehicles = households.to_frame().loc[
-        households.index.repeat(households["auto_ownership"])
-    ]
+    vehicles = households.loc[households.index.repeat(households["auto_ownership"])]
     vehicles = vehicles.reset_index()[["household_id"]]
 
     vehicles["vehicle_num"] = vehicles.groupby("household_id").cumcount() + 1
@@ -35,34 +38,27 @@ def vehicles(households):
     vehicles.set_index("vehicle_id", inplace=True)
 
     # replace table function with dataframe
-    inject.add_table("vehicles", vehicles)
+    state.add_table("vehicles", vehicles)
 
-    pipeline.get_rn_generator().add_channel("vehicles", vehicles)
-    tracing.register_traceable_table("vehicles", vehicles)
+    state.get_rn_generator().add_channel("vehicles", vehicles)
+    state.tracing.register_traceable_table("vehicles", vehicles)
 
     return vehicles
 
 
-@inject.table()
-def vehicles_merged(vehicles, households_merged):
+@workflow.temp_table
+def vehicles_merged(
+    state: workflow.State, vehicles: pd.DataFrame, households_merged: pd.DataFrame
+):
     """Augments the vehicles table with household attributes
 
     Parameters
     ----------
-    vehicles :  orca.DataFrameWrapper
-    households_merged :  orca.DataFrameWrapper
+    vehicles :  DataFrame
+    households_merged :  DataFrame
 
     Returns
     -------
     vehicles_merged : pandas.DataFrame
     """
-
-    vehicles_merged = inject.merge_tables(
-        vehicles.name, tables=[vehicles, households_merged]
-    )
-    return vehicles_merged
-
-
-inject.broadcast(
-    "households_merged", "vehicles", cast_index=True, onto_on="household_id"
-)
+    return simple_table_join(vehicles, households_merged, "household_id")

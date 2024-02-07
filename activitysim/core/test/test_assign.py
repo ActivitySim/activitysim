@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 import logging.config
 import os.path
@@ -8,12 +10,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from .. import assign, config, inject, tracing
-
-
-def setup_function():
-    configs_dir = os.path.join(os.path.dirname(__file__), "configs")
-    inject.add_injectable("configs_dir", configs_dir)
+from activitysim.core import assign, workflow
 
 
 def close_handlers():
@@ -26,9 +23,11 @@ def close_handlers():
         logger.setLevel(logging.NOTSET)
 
 
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
+@pytest.fixture
+def state() -> workflow.State:
+    state = workflow.State()
+    state.initialize_filesystem(working_dir=os.path.dirname(__file__))
+    return state
 
 
 @pytest.fixture(scope="module")
@@ -51,22 +50,27 @@ def data(data_name):
     return pd.read_csv(data_name)
 
 
-def test_read_model_spec():
-    spec = assign.read_assignment_spec(config.config_file_path("assignment_spec.csv"))
+def test_read_model_spec(state: workflow.State):
+    spec = assign.read_assignment_spec(
+        state.filesystem.get_config_file_path("assignment_spec.csv")
+    )
 
     assert len(spec) == 8
 
     assert list(spec.columns) == ["description", "target", "expression"]
 
 
-def test_assign_variables(capsys, data):
+def test_assign_variables(state: workflow.State, capsys, data):
+    state.default_settings()
 
-    spec = assign.read_assignment_spec(config.config_file_path("assignment_spec.csv"))
+    spec = assign.read_assignment_spec(
+        state.filesystem.get_config_file_path("assignment_spec.csv")
+    )
 
     locals_d = {"CONSTANT": 7, "_shadow": 99}
 
     results, trace_results, trace_assigned_locals = assign.assign_variables(
-        spec, data, locals_d, trace_rows=None
+        state, spec, data, locals_d, trace_rows=None
     )
 
     print(results)
@@ -81,7 +85,7 @@ def test_assign_variables(capsys, data):
     trace_rows = [False, True, False]
 
     results, trace_results, trace_assigned_locals = assign.assign_variables(
-        spec, data, locals_d, trace_rows=trace_rows
+        state, spec, data, locals_d, trace_rows=trace_rows
     )
 
     # should get same results as before
@@ -108,10 +112,11 @@ def test_assign_variables(capsys, data):
     out, err = capsys.readouterr()
 
 
-def test_assign_variables_aliased(capsys, data):
+def test_assign_variables_aliased(state: workflow.State, capsys, data):
+    state.default_settings()
 
     spec = assign.read_assignment_spec(
-        config.config_file_path("assignment_spec_alias_df.csv")
+        state.filesystem.get_config_file_path("assignment_spec_alias_df.csv")
     )
 
     locals_d = {"CONSTANT": 7, "_shadow": 99}
@@ -119,7 +124,7 @@ def test_assign_variables_aliased(capsys, data):
     trace_rows = [False, True, False]
 
     results, trace_results, trace_assigned_locals = assign.assign_variables(
-        spec, data, locals_d, df_alias="aliased_df", trace_rows=trace_rows
+        state, spec, data, locals_d, df_alias="aliased_df", trace_rows=trace_rows
     )
 
     print(results)
@@ -146,17 +151,18 @@ def test_assign_variables_aliased(capsys, data):
     out, err = capsys.readouterr()
 
 
-def test_assign_variables_failing(capsys, data):
+def test_assign_variables_failing(state: workflow.State, capsys, data):
+    state.default_settings()
 
     close_handlers()
 
     output_dir = os.path.join(os.path.dirname(__file__), "output")
-    inject.add_injectable("output_dir", output_dir)
+    state.filesystem.output_dir = output_dir
 
-    tracing.config_logger(basic=True)
+    state.logging.config_logger(basic=True)
 
     spec = assign.read_assignment_spec(
-        config.config_file_path("assignment_spec_failing.csv")
+        state.filesystem.get_config_file_path("assignment_spec_failing.csv")
     )
 
     locals_d = {
@@ -166,8 +172,8 @@ def test_assign_variables_failing(capsys, data):
     }
 
     with pytest.raises(NameError) as excinfo:
-        results, trace_results = assign.assign_variables(
-            spec, data, locals_d, trace_rows=None
+        results, trace_results, trace_assigned_locals = assign.assign_variables(
+            state, spec, data, locals_d, trace_rows=None
         )
 
     out, err = capsys.readouterr()

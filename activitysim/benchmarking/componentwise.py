@@ -1,36 +1,38 @@
+from __future__ import annotations
+
 import glob
 import logging
 import logging.handlers
 import os
 import traceback
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import yaml
 
-from ..cli.create import get_example
-from ..cli.run import INJECTABLES, config, pipeline
-from ..core import inject, tracing
-from ..core.pipeline import open_pipeline, run_model
-from . import workspace
+from activitysim.benchmarking import workspace
+from activitysim.cli.create import get_example
+from activitysim.cli.run import INJECTABLES, config
+from activitysim.core import tracing, workflow
 
 logger = logging.getLogger(__name__)
 
 
-def reload_settings(settings_filename, **kwargs):
-    settings = config.read_settings_file(settings_filename, mandatory=True)
+def reload_settings(state, settings_filename, **kwargs):
+    settings = state.filesystem.read_settings_file(settings_filename, mandatory=True)
     for k in kwargs:
         settings[k] = kwargs[k]
-    inject.add_injectable("settings", settings)
+    state.add_injectable("settings", settings)
     return settings
 
 
-def component_logging(component_name):
+def component_logging(state: workflow.State, component_name):
     root_logger = logging.getLogger()
 
     CLOG_FMT = "%(asctime)s %(levelname)7s - %(name)s: %(message)s"
 
-    logfilename = config.log_file_path(f"asv-{component_name}.log")
+    logfilename = state.get_log_file_path(f"asv-{component_name}.log")
 
     # avoid creation of multiple file handlers for logging components
     # as we will re-enter this function for every component run
@@ -40,7 +42,7 @@ def component_logging(component_name):
         ):
             return
 
-    tracing.config_logger(basic=True)
+    state.logging.config_logger(basic=True)
     file_handler = logging.handlers.RotatingFileHandler(
         filename=logfilename,
         mode="a",
@@ -56,6 +58,7 @@ def component_logging(component_name):
 
 
 def setup_component(
+    state,
     component_name,
     working_dir=".",
     preload_injectables=(),
@@ -75,35 +78,36 @@ def setup_component(
     """
     if isinstance(configs_dirs, str):
         configs_dirs = [configs_dirs]
-    inject.add_injectable(
+    state.add_injectable(
         "configs_dir", [os.path.join(working_dir, i) for i in configs_dirs]
     )
-    inject.add_injectable("data_dir", os.path.join(working_dir, data_dir))
-    inject.add_injectable("output_dir", os.path.join(working_dir, output_dir))
+    state.add_injectable("data_dir", os.path.join(working_dir, data_dir))
+    state.add_injectable("output_dir", os.path.join(working_dir, output_dir))
 
     reload_settings(
+        state,
         settings_filename,
         benchmarking=component_name,
         checkpoints=False,
         **other_settings,
     )
 
-    component_logging(component_name)
+    component_logging(state, component_name)
     logger.info("connected to component logger")
     config.filter_warnings()
     logging.captureWarnings(capture=True)
 
     # register abm steps and other abm-specific injectables outside of
     # benchmark timing loop
-    if not inject.is_injectable("preload_injectables"):
+    if "preload_injectables" not in state.context:
         logger.info("preload_injectables yes import")
-        from activitysim import abm
+        from activitysim import abm  # noqa: F401
     else:
         logger.info("preload_injectables no import")
 
     # Extract the resume_after argument based on the model immediately
     # prior to the component being benchmarked.
-    models = config.setting("models")
+    models = state.settings.models
     try:
         component_index = models.index(component_name)
     except ValueError:
@@ -115,7 +119,7 @@ def setup_component(
     else:
         resume_after = None
 
-    if config.setting("multiprocess", False):
+    if state.settings.multiprocess:
         raise NotImplementedError(
             "multiprocess component benchmarking is not yet implemented"
         )
@@ -124,15 +128,15 @@ def setup_component(
         # components.  Instead, those benchmarks are generated in
         # aggregate during setup and then extracted from logs later.
     else:
-        open_pipeline(resume_after, mode="r")
+        state.checkpoint.restore(resume_after, mode="r")
 
     for k in preload_injectables:
-        if inject.get_injectable(k, None) is not None:
+        if state.get_injectable(k, None) is not None:
             logger.info("pre-loaded %s", k)
 
     # Directories Logging
     for k in ["configs_dir", "settings_file_name", "data_dir", "output_dir"]:
-        logger.info(f"DIRECTORY {k}: {inject.get_injectable(k, None)}")
+        logger.info(f"DIRECTORY {k}: {state.get_injectable(k, None)}")
 
     # Settings Logging
     log_settings = [
@@ -154,10 +158,10 @@ def setup_component(
     logger.info("setup_component completed: %s", component_name)
 
 
-def run_component(component_name):
+def run_component(state, component_name):
     logger.info("run_component: %s", component_name)
     try:
-        if config.setting("multiprocess", False):
+        if state.settings.multiprocess:
             raise NotImplementedError(
                 "multiprocess component benchmarking is not yet implemented"
             )
@@ -166,7 +170,7 @@ def run_component(component_name):
             # components.  Instead, those benchmarks are generated in
             # aggregate during setup and then extracted from logs later.
         else:
-            run_model(component_name)
+            state.run.by_name(component_name)
     except Exception as err:
         logger.exception("run_component exception: %s", component_name)
         raise
@@ -175,21 +179,21 @@ def run_component(component_name):
     return 0
 
 
-def teardown_component(component_name):
+def teardown_component(state, component_name):
     logger.info("teardown_component: %s", component_name)
 
-    # use the pipeline module to clear out all the orca tables, so
+    # use the pipeline module to clear out all the tables, so
     # the next benchmark run has a clean slate.
     # anything needed should be reloaded from the pipeline checkpoint file
-    pipeline_tables = pipeline.registered_tables()
+    pipeline_tables = state.registered_tables()
     for table_name in pipeline_tables:
         logger.info("dropping table %s", table_name)
-        pipeline.drop_table(table_name)
+        state.drop_table(table_name)
 
-    if config.setting("multiprocess", False):
+    if state.settings.multiprocess:
         raise NotImplementedError("multiprocess benchmarking is not yet implemented")
     else:
-        pipeline.close_pipeline()
+        state.checkpoint.close_store()
     logger.critical(
         "teardown_component completed: %s\n\n%s\n\n", component_name, "~" * 88
     )
@@ -197,6 +201,7 @@ def teardown_component(component_name):
 
 
 def pre_run(
+    state,
     model_working_dir,
     configs_dirs=None,
     data_dir="data",
@@ -229,40 +234,40 @@ def pre_run(
         for a model run.
     """
     if configs_dirs is None:
-        inject.add_injectable("configs_dir", os.path.join(model_working_dir, "configs"))
+        state.add_injectable("configs_dir", os.path.join(model_working_dir, "configs"))
     else:
         configs_dirs_ = [os.path.join(model_working_dir, i) for i in configs_dirs]
-        inject.add_injectable("configs_dir", configs_dirs_)
-    inject.add_injectable("data_dir", os.path.join(model_working_dir, data_dir))
-    inject.add_injectable("output_dir", os.path.join(model_working_dir, output_dir))
+        state.add_injectable("configs_dir", configs_dirs_)
+    state.add_injectable("data_dir", os.path.join(model_working_dir, data_dir))
+    state.add_injectable("output_dir", os.path.join(model_working_dir, output_dir))
 
     if settings_file_name is not None:
-        inject.add_injectable("settings_file_name", settings_file_name)
+        state.add_injectable("settings_file_name", settings_file_name)
 
     # Always pre_run from the beginning
     config.override_setting("resume_after", None)
 
     # register abm steps and other abm-specific injectables
-    if not inject.is_injectable("preload_injectables"):
-        from activitysim import (  # register abm steps and other abm-specific injectables
-            abm,
-        )
+    if "preload_injectables" not in state.context:
+        from activitysim import abm  # noqa: F401
+
+        # register abm steps and other abm-specific injectables
 
     if settings_file_name is not None:
-        inject.add_injectable("settings_file_name", settings_file_name)
+        state.add_injectable("settings_file_name", settings_file_name)
 
     # cleanup
     # cleanup_output_files()
 
-    tracing.config_logger(basic=False)
+    state.logging.config_logger(basic=False)
     config.filter_warnings()
     logging.captureWarnings(capture=True)
 
     # directories
     for k in ["configs_dir", "settings_file_name", "data_dir", "output_dir"]:
-        logger.info("SETTING %s: %s" % (k, inject.get_injectable(k, None)))
+        logger.info("SETTING %s: %s" % (k, state.get_injectable(k, None)))
 
-    log_settings = inject.get_injectable("log_settings", {})
+    log_settings = state.get_injectable("log_settings", {})
     for k in log_settings:
         logger.info("SETTING %s: %s" % (k, config.setting(k)))
 
@@ -297,37 +302,37 @@ def pre_run(
 
     logger.info(f"MODELS: {config.setting('models')}")
 
-    if config.setting("multiprocess", False):
+    if state.settings.multiprocess:
         logger.info("run multi-process complete simulation")
     else:
         logger.info("run single process simulation")
-        pipeline.run(models=config.setting("models"))
-        pipeline.close_pipeline()
+        state.run(models=state.settings.models)
+        state.checkpoint.close_store()
 
     tracing.print_elapsed_time("prerun required models for checkpointing", t0)
 
     return 0
 
 
-def run_multiprocess():
+def run_multiprocess(state: workflow.State):
     logger.info("run multiprocess simulation")
-    tracing.delete_trace_files()
-    tracing.delete_output_files("h5")
-    tracing.delete_output_files("csv")
-    tracing.delete_output_files("txt")
-    tracing.delete_output_files("yaml")
-    tracing.delete_output_files("prof")
-    tracing.delete_output_files("omx")
+    state.tracing.delete_trace_files()
+    state.tracing.delete_output_files("h5")
+    state.tracing.delete_output_files("csv")
+    state.tracing.delete_output_files("txt")
+    state.tracing.delete_output_files("yaml")
+    state.tracing.delete_output_files("prof")
+    state.tracing.delete_output_files("omx")
 
     from activitysim.core import mp_tasks
 
-    injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
-    mp_tasks.run_multiprocess(injectables)
+    injectables = {k: state.get_injectable(k) for k in INJECTABLES}
+    mp_tasks.run_multiprocess(state, injectables)
 
-    assert not pipeline.is_open()
-
-    if config.setting("cleanup_pipeline_after_run", False):
-        pipeline.cleanup_pipeline()
+    # assert not pipeline.is_open()
+    #
+    # if state.settings.cleanup_pipeline_after_run:
+    #     pipeline.cleanup_pipeline()
 
 
 ########
@@ -408,10 +413,8 @@ def template_setup_cache(
         os.makedirs(model_dir(example_name, config_overload_dir), exist_ok=True)
 
         # Find the settings file and extract the complete set of models included
-        from ..core.config import read_settings_file
-
         try:
-            existing_settings, settings_filenames = read_settings_file(
+            existing_settings, settings_filenames = state.filesystem.read_settings_file(
                 settings_filename,
                 mandatory=True,
                 include_stack=True,
@@ -490,6 +493,8 @@ def template_setup_cache(
 
         os.makedirs(model_dir(example_name, output_dir), exist_ok=True)
 
+        state = workflow.State.make_default(Path(model_dir(example_name)))
+
         # Running the model through all the steps and checkpointing everywhere is
         # expensive and only needs to be run once.  Once it is done we will write
         # out a completion token file to indicate to future benchmark attempts
@@ -502,6 +507,7 @@ def template_setup_cache(
         if not os.path.exists(token_file) and not use_multiprocess:
             try:
                 pre_run(
+                    state,
                     model_dir(example_name),
                     use_config_dirs,
                     data_dir,
@@ -530,13 +536,14 @@ def template_setup_cache(
             asv_commit = os.environ.get("ASV_COMMIT", "ASV_COMMIT_UNKNOWN")
             try:
                 pre_run(
+                    state,
                     model_dir(example_name),
                     use_config_dirs,
                     data_dir,
                     output_dir,
                     settings_filename,
                 )
-                run_multiprocess()
+                run_multiprocess(state)
             except Exception as err:
                 with open(
                     model_dir(
@@ -644,6 +651,7 @@ def template_component_timings(
 
 
 def template_component_timings_mp(
+    state: workflow.State,
     module_globals,
     component_names,
     example_name,
@@ -685,8 +693,8 @@ def template_component_timings_mp(
 
             def track_component(self):
                 durations = []
-                inject.add_injectable("output_dir", model_dir(example_name, output_dir))
-                logfiler = config.log_file_path(f"timing_log.mp_households_*.csv")
+                state.add_injectable("output_dir", model_dir(example_name, output_dir))
+                logfiler = state.get_log_file_path(f"timing_log.mp_households_*.csv")
                 for logfile in glob.glob(logfiler):
                     df = pd.read_csv(logfile)
                     dfq = df.query(f"component_name=='{self.component_name}'")

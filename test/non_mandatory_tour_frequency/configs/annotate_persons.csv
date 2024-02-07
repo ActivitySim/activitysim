@@ -1,0 +1,17 @@
+Description,Target,Expression
+#,, annotate persons table after import
+age_16_to_19,age_16_to_19,"persons.age.between(16, 19)"
+age_16_p,age_16_p,persons.age >= 16
+adult,adult,persons.age >= 18
+male,male,persons.sex == 1
+female,female,persons.sex == 2
+,ptype,0
+,ptype,"np.where(persons.type == 'Full-time worker', 1, ptype)"
+,ptype,"np.where(persons.type == 'Part-time worker', 2, ptype)"
+,ptype,"np.where(persons.type == 'University student', 3, ptype)"
+,ptype,"np.where(persons.type == 'Non-worker', 4, ptype)"
+,ptype,"np.where(persons.type == 'Retired', 5, ptype)"
+,ptype,"np.where(persons.type == 'Student of driving age', 6, ptype)"
+,ptype,"np.where(persons.type == 'Student of non-driving age', 7, ptype)"
+,ptype,"np.where(persons.type == 'Child too young for school', 8, ptype)"
+home_zone_id,home_zone_id,"reindex(households.home_zone_id, persons.household_id)"

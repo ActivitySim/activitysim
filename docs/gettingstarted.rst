@@ -24,7 +24,7 @@ installs a variety of things on your system, and it is quite likely to be flagge
 Windows, anti-virus, or institutional IT policies as "unusual" software, which
 may require special treatment to actually install and use.
 
-Download the installer from GitHub `here <https://github.com/ActivitySim/activitysim/releases/download/v1.2.0/Activitysim-1.2.0-Windows-x86_64.exe`__.
+Download the installer from GitHub `here <https://github.com/ActivitySim/activitysim/releases/download/v1.2.0/Activitysim-1.2.0-Windows-x86_64.exe>`_.
 It is strongly recommended to choose the option to install "for me only", as this
 should not require administrator privileges on your machine.  Pay attention
 to the *complete path* of the installation location. You will need to know
@@ -190,8 +190,14 @@ ActivitySim includes a :ref:`cli` for creating examples and running the model.
 To setup and run the primary example (see :ref:`examples`), do the following:
 
 * Open a command prompt
-* Activate the conda environment with ActivitySim installed (i.e. ``conda activate asim``)
-* Type ``activitysim create -e prototype_mtc -d test_prototype_mtc`` to copy the very small prototype_mtc example to a new test_prototype_mtc directory
+* If you installed ActivitySim using conda environments, activate the conda
+  environment with ActivitySim installed (i.e. ``conda activate asim``)
+* Or, if you used the :ref:`pre-packaged installer<Pre-packaged Installer>`,
+  replace all the commands below that call ``activitysim ...`` with the complete
+  path to your installed location, which is probably something
+  like ``c:\programdata\activitysim\scripts\activitysim.exe``.
+* Type ``activitysim create -e prototype_mtc -d test_prototype_mtc`` to copy
+  the very small prototype_mtc example to a new test_prototype_mtc directory
 * Change to the test_prototype_mtc directory
 * Type ``activitysim run -c configs -o output -d data`` to run the example
 * Review the outputs in the output directory

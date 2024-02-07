@@ -1,14 +1,14 @@
+from __future__ import annotations
+
 import logging
-import pandas as pd
+
 import numpy as np
-import warnings
+import pandas as pd
 
+from activitysim.abm.models.school_escorting import NUM_ESCORTEES
 from activitysim.abm.models.util import canonical_ids
-from activitysim.core import pipeline
-from activitysim.core import inject
+from activitysim.core import workflow
 from activitysim.core.util import reindex
-
-from ..school_escorting import NUM_ESCORTEES
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,6 @@ def create_chauf_trip_table(row):
 
 
 def create_chauf_escort_trips(bundles):
-
     chauf_trip_bundles = bundles.apply(lambda row: create_chauf_trip_table(row), axis=1)
     chauf_trip_bundles["tour_id"] = bundles["chauf_tour_id"].astype(int)
 
@@ -215,7 +214,6 @@ def create_child_escorting_stops(row, escortee_num):
 
 
 def create_escortee_trips(bundles):
-
     escortee_trips = []
     for escortee_num in range(0, int(bundles.num_escortees.max()) + 1):
         escortee_bundles = bundles.apply(
@@ -338,7 +336,7 @@ def add_school_escorting_type_to_tours_table(escort_bundles, tours):
     return tours
 
 
-def process_tours_after_escorting_model(escort_bundles, tours):
+def process_tours_after_escorting_model(state: workflow.State, escort_bundles, tours):
     # adding indicators to tours that include school escorting
     tours = add_school_escorting_type_to_tours_table(escort_bundles, tours)
 
@@ -376,7 +374,7 @@ def process_tours_after_escorting_model(escort_bundles, tours):
     tours.loc[bad_end_times, "end"] = tours.loc[bad_end_times, "start"]
 
     # updating tdd to match start and end times
-    tdd_alts = inject.get_injectable("tdd_alts")
+    tdd_alts = state.get_injectable("tdd_alts")
     tdd_alts["tdd"] = tdd_alts.index
     tours.drop(columns="tdd", inplace=True)
 
@@ -394,10 +392,10 @@ def process_tours_after_escorting_model(escort_bundles, tours):
     return tours
 
 
-def merge_school_escort_trips_into_pipeline():
-    school_escort_trips = pipeline.get_table("school_escort_trips")
-    tours = pipeline.get_table("tours")
-    trips = pipeline.get_table("trips")
+def merge_school_escort_trips_into_pipeline(state: workflow.State):
+    school_escort_trips = state.get_dataframe("school_escort_trips")
+    tours = state.get_dataframe("tours")
+    trips = state.get_dataframe("trips")
 
     # want to remove stops if school escorting takes place on that half tour so we can replace them with the actual stops
     out_se_tours = tours[
@@ -469,7 +467,7 @@ def merge_school_escort_trips_into_pipeline():
     trips["destination"] = trips["destination"].astype(int)
 
     # updating trip_id now that we have all trips
-    trips = canonical_ids.set_trip_index(trips)
+    trips = canonical_ids.set_trip_index(state, trips)
     school_escort_trip_id_map = {
         v: k
         for k, v in trips.loc[
@@ -492,10 +490,10 @@ def merge_school_escort_trips_into_pipeline():
     trips.drop(columns="school_escort_trip_id", inplace=True)
 
     # replace trip table and pipeline and register with the random number generator
-    pipeline.replace_table("trips", trips)
-    pipeline.get_rn_generator().drop_channel("trips")
-    pipeline.get_rn_generator().add_channel("trips", trips)
-    pipeline.replace_table("school_escort_trips", school_escort_trips)
+    state.add_table("trips", trips)
+    state.get_rn_generator().drop_channel("trips")
+    state.get_rn_generator().add_channel("trips", trips)
+    state.add_table("school_escort_trips", school_escort_trips)
 
     # updating stop frequency in tours tabel to be consistent
     num_outbound_stops = (
@@ -510,13 +508,13 @@ def merge_school_escort_trips_into_pipeline():
     tours.loc[stop_freq.index, "stop_frequency"] = stop_freq
 
     # no need to reset random number generator since no tours added
-    pipeline.replace_table("tours", tours)
+    state.add_table("tours", tours)
 
     return trips
 
 
-def recompute_tour_count_statistics():
-    tours = pipeline.get_table("tours")
+def recompute_tour_count_statistics(state: workflow.State):
+    tours = state.get_dataframe("tours")
 
     grouped = tours.groupby(["person_id", "tour_type"])
     tours["tour_type_num"] = grouped.cumcount() + 1
@@ -528,10 +526,10 @@ def recompute_tour_count_statistics():
     tours["tour_num"] = grouped.cumcount() + 1
     tours["tour_count"] = tours["tour_num"] + grouped.cumcount(ascending=False)
 
-    pipeline.replace_table("tours", tours)
+    state.add_table("tours", tours)
 
 
-def create_pure_school_escort_tours(bundles):
+def create_pure_school_escort_tours(state: workflow.State, bundles):
     # creating home to school tour for chauffers making pure escort tours
     # ride share tours are already created since they go off the mandatory tour
     pe_tours = bundles[bundles["escort_type"] == "pure_escort"]
@@ -582,7 +580,7 @@ def create_pure_school_escort_tours(bundles):
     pe_tours["tour_num"] = grouped.cumcount() + 1
     pe_tours["tour_count"] = pe_tours["tour_num"] + grouped.cumcount(ascending=False)
 
-    pe_tours = canonical_ids.set_tour_index(pe_tours, is_school_escorting=True)
+    pe_tours = canonical_ids.set_tour_index(state, pe_tours, is_school_escorting=True)
 
     return pe_tours
 
@@ -597,11 +595,11 @@ def split_out_school_escorting_trips(trips, school_escort_trips):
     return trips, se_trips, full_trips_index
 
 
-def force_escortee_tour_modes_to_match_chauffeur(tours):
+def force_escortee_tour_modes_to_match_chauffeur(state: workflow.State, tours):
     # FIXME: escortee tour can have different chauffeur in outbound vs inbound direction
     # which tour mode should it be set to?  Currently it's whatever comes last.
     # Does it even matter if trip modes are getting matched later?
-    escort_bundles = inject.get_table("escort_bundles").to_frame()
+    escort_bundles = state.get_dataframe("escort_bundles")
 
     # grabbing the school tour ids for each school escort bundle
     se_tours = escort_bundles[["school_tour_ids", "chauf_tour_id"]].copy()
@@ -628,8 +626,8 @@ def force_escortee_tour_modes_to_match_chauffeur(tours):
     return tours
 
 
-def force_escortee_trip_modes_to_match_chauffeur(trips):
-    school_escort_trips = inject.get_table("school_escort_trips").to_frame()
+def force_escortee_trip_modes_to_match_chauffeur(state: workflow.State, trips):
+    school_escort_trips = state.get_dataframe("school_escort_trips")
 
     # starting with only trips that are created as part of the school escorting model
     se_trips = trips[trips.index.isin(school_escort_trips.index)].copy()

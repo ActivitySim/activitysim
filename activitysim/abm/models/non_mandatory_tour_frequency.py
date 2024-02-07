@@ -3,18 +3,13 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util import annotate
-from activitysim.abm.models.util.overlap import person_max_window
-from activitysim.abm.models.util.school_escort_tours_trips import (
-    recompute_tour_count_statistics,
-)
-from activitysim.abm.models.util.tour_frequency import process_non_mandatory_tours
 from activitysim.core import (
     config,
     estimation,
@@ -203,6 +198,21 @@ def non_mandatory_tour_frequency(
     alternatives = simulate.read_model_alts(
         state, "non_mandatory_tour_frequency_alternatives.csv", set_index=None
     )
+    if "tot_tours" not in alternatives.columns:
+        # add a column for total tours
+        alternatives["tot_tours"] = alternatives.sum(axis=1)
+        warnings.warn(
+            "The 'tot_tours' column may not be automatically added in the future.",
+            FutureWarning,
+        )
+    else:
+        # tot_tours already exists, check if it is consistent with legacy behavior
+        if not (alternatives["tot_tours"] == alternatives.sum(axis=1)).all():
+            warnings.warn(
+                "The 'tot_tours' column in non_mandatory_tour_frequency_alternatives.csv "
+                "does not match the sum of the other columns.",
+                RuntimeWarning,
+            )
 
     # filter based on results of CDAP
     choosers = persons_merged

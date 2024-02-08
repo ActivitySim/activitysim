@@ -182,7 +182,7 @@ def determine_flavors_from_alts_file(
         flavors = {
             c: int(alts[c].max() + max_extension)
             for c in alts.columns
-            if all(alts[c].astype(str).str.isnumeric())
+            if all(alts[c].astype(str).str.isnumeric()) and (c != "tot_tours")
         }
         valid_flavors = all(
             [(isinstance(flavor, str) & (num >= 0)) for flavor, num in flavors.items()]

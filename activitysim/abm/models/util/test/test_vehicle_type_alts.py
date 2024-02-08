@@ -7,7 +7,7 @@ import pandas.testing as pdt
 from activitysim.abm.models.vehicle_type_choice import (
     get_combinatorial_vehicle_alternatives,
     construct_model_alternatives,
-    VehicleTypeChoiceSettings
+    VehicleTypeChoiceSettings,
 )
 from activitysim.core import workflow
 
@@ -37,7 +37,7 @@ def test_vehicle_type_alts():
         data={
             "body_type": ["Car", "Car", "Car", "SUV", "SUV"],
             "fuel_type": ["Gas", "Gas", "BEV", "Gas", "BEV"],
-            "age": ['1', '2', '3', '1', '2'],
+            "age": ["1", "2", "3", "1", "2"],
             "dummy_data": [1, 2, 3, 4, 5],
         },
         index=[0, 1, 2, 3, 4],
@@ -54,4 +54,6 @@ def test_vehicle_type_alts():
     pdt.assert_index_equal(alts_long.index, alts_wide.index)
 
     # columns need to be in correct order for downstream configs
-    pdt.assert_index_equal(alts_long.columns, pd.Index(["body_type", "age", "fuel_type"]))
+    pdt.assert_index_equal(
+        alts_long.columns, pd.Index(["body_type", "age", "fuel_type"])
+    )

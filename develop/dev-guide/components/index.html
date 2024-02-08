@@ -58,11 +58,11 @@
         </script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Trip Destination" href="trip_destination.html" />
-    <link rel="prev" title="Models" href="../../models.html" />
+    <link rel="next" title="Initialize" href="initialize.html" />
+    <link rel="prev" title="LogitNestSpec" href="../_generated/activitysim.core.configuration.logit.LogitNestSpec.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jan 31, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 08, 2024"/>
   </head>
   
   
@@ -323,13 +323,53 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="../workflows.html">Workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../development.html">Software Development</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../component-configs.html">Component Configuration</a></li>
 <li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Components</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="initialize.html">Initialize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initialize_los.html">Initialize LOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initialize_tours.html">Initialize Tours</a></li>
+<li class="toctree-l2"><a class="reference internal" href="accessibility.html">Accessibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auto_ownership.html">Auto Ownership</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vehicle_type_choice.html">Vehicle Type Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="telecommute_frequency.html">Telecommute Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cdap.html">Coordinated Daily Activity Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mandatory_tour_frequency.html">Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="school_escorting.html">School Escorting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_composition.html">Joint Tour Composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_participation.html">Joint Tour Participation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_destination.html">Joint Tour Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_scheduling.html">Joint Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="non_mandatory_tour_frequency.html">Non-Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="non_mandatory_destination.html">Non-Mandatory Destination Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="non_mandatory_scheduling.html">Non-Mandatory Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mandatory_scheduling.html">Mandatory Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="disaggregate_accessibility.html">Disaggregate Accessibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="free_parking.html">Free Parking Eligibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="school_location_choice.html">School Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit_pass_ownership.html">Transit Pass Ownership</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit_pass_subsidy.html">Transit Pass Subsidy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trip_destination.html">Trip Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="work_from_home.html">Work from Home</a></li>
+<li class="toctree-l2"><a class="reference internal" href="work_location_choice.html">Work Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tour_mode_choice.html">Tour Mode Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_frequency.html">At-work Subtours Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_destination.html">At-work Subtours Destination Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_scheduling.html">At-work Subtour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_mode_choice.html">At-work Subtour Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stop_frequency.html">Stop Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_purpose.html">Trip Purpose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_destination.html">Trip Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_purpose_and_destination.html">Trip Purpose and Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_scheduling_choice.html">Trip Scheduling Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_departure_choice.html">Trip Departure Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_mode_choice.html">Trip Mode Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parking_location_choice.html">Parking Location Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_trip_matrices.html">Write Trip Matrices</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../core.html">Core Components</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../benchmarking.html">Benchmarking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build-docs.html">Documentation</a></li>
 </ul>
 </div>
 </nav></div>
@@ -388,16 +428,365 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="components">
-<h1>Components<a class="headerlink" href="#components" title="Permalink to this heading">#</a></h1>
+<span id="dev-components"></span><h1>Components<a class="headerlink" href="#components" title="Permalink to this heading">#</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="trip_destination.html">Trip Destination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="initialize.html">Initialize</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="initialize.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="initialize_los.html">Initialize LOS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="initialize_los.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="initialize_tours.html">Initialize Tours</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="initialize_tours.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="accessibility.html">Accessibility</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="accessibility.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="accessibility.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="accessibility.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="accessibility.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="auto_ownership.html">Auto Ownership</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="auto_ownership.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auto_ownership.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="auto_ownership.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="auto_ownership.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vehicle_type_choice.html">Vehicle Type Choice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vehicle_type_choice.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vehicle_type_choice.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vehicle_type_choice.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vehicle_type_choice.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="telecommute_frequency.html">Telecommute Frequency</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="telecommute_frequency.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="telecommute_frequency.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="telecommute_frequency.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="telecommute_frequency.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cdap.html">Coordinated Daily Activity Pattern</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cdap.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cdap.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cdap.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cdap.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mandatory_tour_frequency.html">Mandatory Tour Frequency</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mandatory_tour_frequency.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mandatory_tour_frequency.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mandatory_tour_frequency.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mandatory_tour_frequency.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="school_escorting.html">School Escorting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="school_escorting.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="school_escorting.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="school_escorting.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="joint_tour_composition.html">Joint Tour Composition</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_composition.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_composition.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="joint_tour_composition.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_composition.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="joint_tour_participation.html">Joint Tour Participation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_participation.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_participation.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="joint_tour_participation.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_participation.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="joint_tour_destination.html">Joint Tour Destination</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_destination.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_destination.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="joint_tour_destination.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_destination.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="joint_tour_scheduling.html">Joint Tour Scheduling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_scheduling.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_scheduling.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="joint_tour_scheduling.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_scheduling.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="non_mandatory_tour_frequency.html">Non-Mandatory Tour Frequency</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="non_mandatory_tour_frequency.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="non_mandatory_tour_frequency.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="non_mandatory_tour_frequency.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="non_mandatory_tour_frequency.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="non_mandatory_destination.html">Non-Mandatory Destination Choice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="non_mandatory_destination.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="non_mandatory_destination.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="non_mandatory_destination.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="non_mandatory_destination.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="non_mandatory_scheduling.html">Non-Mandatory Tour Scheduling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="non_mandatory_scheduling.html#structure">Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="non_mandatory_scheduling.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="non_mandatory_scheduling.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mandatory_scheduling.html">Mandatory Tour Scheduling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mandatory_scheduling.html#structure">Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mandatory_scheduling.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mandatory_scheduling.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="disaggregate_accessibility.html">Disaggregate Accessibility</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="disaggregate_accessibility.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="disaggregate_accessibility.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="disaggregate_accessibility.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="disaggregate_accessibility.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="free_parking.html">Free Parking Eligibility</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="free_parking.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="free_parking.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="free_parking.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="free_parking.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="school_location_choice.html">School Location</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="school_location_choice.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="school_location_choice.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="school_location_choice.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="school_location_choice.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="transit_pass_ownership.html">Transit Pass Ownership</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="transit_pass_ownership.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit_pass_ownership.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transit_pass_ownership.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transit_pass_ownership.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="transit_pass_subsidy.html">Transit Pass Subsidy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="transit_pass_subsidy.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit_pass_subsidy.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transit_pass_subsidy.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transit_pass_subsidy.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="trip_destination.html">Trip Destination</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="trip_destination.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_destination.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="trip_destination.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="trip_destination.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_destination.html#context-variables">Context Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_destination.html#additional-related-functions">Additional Related Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="work_from_home.html">Work from Home</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="work_from_home.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="work_from_home.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="work_from_home.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="work_from_home.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="work_location_choice.html">Work Location</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="work_location_choice.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="work_location_choice.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="work_location_choice.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="work_location_choice.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tour_mode_choice.html">Tour Mode Choice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tour_mode_choice.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tour_mode_choice.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tour_mode_choice.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tour_mode_choice.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="atwork_subtour_frequency.html">At-work Subtours Frequency</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_frequency.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_frequency.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="atwork_subtour_frequency.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_frequency.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="atwork_subtour_destination.html">At-work Subtours Destination Choice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_destination.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_destination.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="atwork_subtour_destination.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_destination.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="atwork_subtour_scheduling.html">At-work Subtour Scheduling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_scheduling.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_scheduling.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="atwork_subtour_scheduling.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_scheduling.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="atwork_subtour_mode_choice.html">At-work Subtour Mode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_mode_choice.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_mode_choice.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="atwork_subtour_mode_choice.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_mode_choice.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="stop_frequency.html">Stop Frequency</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="stop_frequency.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stop_frequency.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="stop_frequency.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="stop_frequency.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="trip_purpose.html">Trip Purpose</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="trip_purpose.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_purpose.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="trip_purpose.html#note">Note</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trip_purpose.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="trip_purpose.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="trip_destination.html">Trip Destination</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="trip_destination.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_destination.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="trip_destination.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="trip_destination.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_destination.html#context-variables">Context Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_destination.html#additional-related-functions">Additional Related Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="trip_purpose_and_destination.html">Trip Purpose and Destination</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="trip_purpose_and_destination.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_purpose_and_destination.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="trip_purpose_and_destination.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="trip_purpose_and_destination.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="trip_scheduling_choice.html">Trip Scheduling Choice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="trip_scheduling_choice.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_scheduling_choice.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="trip_scheduling_choice.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="trip_scheduling_choice.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="trip_departure_choice.html">Trip Departure Choice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="trip_departure_choice.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_departure_choice.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="trip_departure_choice.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="trip_departure_choice.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="trip_mode_choice.html">Trip Mode Choice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="trip_mode_choice.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_mode_choice.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="trip_mode_choice.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="trip_mode_choice.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="parking_location_choice.html">Parking Location Choice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="parking_location_choice.html#structure">Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="parking_location_choice.html#required-yaml-attributes">Required YAML attributes:</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="parking_location_choice.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="parking_location_choice.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="parking_location_choice.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="write_trip_matrices.html">Write Trip Matrices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="write_trip_matrices.html#structure">Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_trip_matrices.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="write_trip_matrices.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="write_trip_matrices.html#implementation">Implementation</a></li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The documentation for individual components is being migrated to this
-section. See <a class="reference internal" href="../../models.html#models"><span class="std std-ref">Models</span></a> for other components.</p>
+section. See <a class="reference internal" href="../../development.html#models"><span class="std std-ref">Models</span></a> for other components.</p>
 </div>
 </section>
 
@@ -412,20 +801,20 @@ section. See <a class="reference internal" href="../../models.html#models"><span
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../../models.html"
+       href="../_generated/activitysim.core.configuration.logit.LogitNestSpec.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Models</p>
+        <p class="prev-next-title">LogitNestSpec</p>
       </div>
     </a>
     <a class="right-next"
-       href="trip_destination.html"
+       href="initialize.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Trip Destination</p>
+        <p class="prev-next-title">Initialize</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -471,7 +860,7 @@ section. See <a class="reference internal" href="../../models.html#models"><span
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev32+g3d661762, documentation last updated Jan 31, 2024.<br/>
+ActivitySim 1.2.3.dev547+g51419451, documentation last updated Feb 08, 2024.<br/>
 </p></div>
       
         <div class="footer-item">

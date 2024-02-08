@@ -58,11 +58,11 @@
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Getting Started" href="../gettingstarted.html" />
+    <link rel="next" title="Model Setup" href="modelsetup.html" />
     <link rel="prev" title="ActivitySim" href="../index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jan 31, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 08, 2024"/>
   </head>
   
   
@@ -310,15 +310,15 @@ document.write(`
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../gettingstarted.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cli-tools.html">Command Line Tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebook.html">Interactive Interface</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../examples.html">Built-in Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="external-examples.html">External Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../cli.html">Command Line Interface</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../estimation.html">Estimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modelsetup.html">Model Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ways_to_run.html">Ways to Run the Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run_primary_example.html">Run the Primary Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model_anatomy.html">Anatomy of a Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../howitworks.html">How the System Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model_dev.html">Model Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_models.html">Example Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other_examples.html">Other Example Models</a></li>
 </ul>
 </div>
 </nav></div>
@@ -384,155 +384,67 @@ and resources to support project development. New member agencies are welcome to
 the consortium. All member agencies help make decisions about development priorities
 and benefit from contributions of other agency partners.  Additional information about
 the development and management of the ActivitySim is on the <a class="reference external" href="http://www.activitysim.org">project site</a>.</p>
+<p>ActivitySim is a common <a class="reference external" href="https://github.com/activitysim">codebase</a> and individual implementations
+can vary in a lot of ways – in terms of space (one-zone or two-zone) and spatial fidelity; model components,
+or individual submodels; activity type segmentation (purposes, scheduling); mode alternatives; and other
+characteristics. Some <a class="reference external" href="https://activitysim.github.io/activitysim/v1.2.0/examples.html">example implementations</a> are
+openly available to any user.</p>
+<p>Note that these model files referenced and instructions provided in this User’s Guide are not complete models;
+only the ActivitySim component is included in the files and this User’s Guide. In practice, ActivitySim is a
+part of a model system that includes other components, such as network processing, skimming, and assignment,
+that generates inputs needed for ActivitySim and processes outputs of ActivitySim.</p>
 <section id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Permalink to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../gettingstarted.html">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#pre-packaged-installer">Pre-packaged Installer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#installation">Installation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#alternative-installation-methods">Alternative Installation Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modelsetup.html">Model Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modelsetup.html#quick-reference">Quick Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modelsetup.html#system-requirements">System Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modelsetup.html#installing-activitysim">Installing ActivitySim</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#run-the-primary-example">Run the Primary Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#try-the-notebooks">Try the Notebooks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#hardware">Hardware</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#mkl-settings">MKL Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ways_to_run.html">Ways to Run the Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ways_to_run.html#options-to-execute-a-model">Options to Execute a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ways_to_run.html#running-select-components-of-the-model">Running Select Components of the Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ways_to_run.html#advanced-configuration">Advanced Configuration</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="cli-tools.html">Command Line Tools</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cli-tools.html#activitysim-run">activitysim run</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="cli-tools.html#named-arguments">Named Arguments</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="cli-tools.html#activitysim-create">activitysim create</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="cli-tools.html#named-arguments">Named Arguments</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="notebook.html">Interactive Interface</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="notebook.html#manipulating-settings">Manipulating Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebook.html#model-execution">Model Execution</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebook.html#manipulating-data">Manipulating Data</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../examples.html">Built-in Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../examples.html#prototype-mtc">prototype_mtc</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#model-design">Model Design</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#setup">Setup</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#running-the-example">Running the example</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#outputs">Outputs</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../examples.html#prototype-mtc-extended">prototype_mtc_extended</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples.html#example-estimation">example_estimation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples.html#placeholder-multiple-zone">placeholder_multiple_zone</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#id8">Examples</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#settings">Settings</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#id9">Outputs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#presampling">Presampling</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../examples.html#prototype-marin">prototype_marin</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#id12">Example</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#id13">Settings</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../examples.html#prototype-arc">prototype_arc</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#example-arc-sub-model-specification-files">Example ARC Sub-Model Specification Files</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#id15">Example</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../examples.html#example-semcog">example_semcog</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#example-semcog-sub-model-specification-files">Example SEMCOG Sub-Model Specification Files</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#id18">Example</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../examples.html#placeholder-psrc">placeholder_psrc</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#id21">Example</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../examples.html#placeholder-sandag">placeholder_sandag</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#id24">Example</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../examples.html#prototype-sandag-xborder">prototype_sandag_xborder</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#id27">Example</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../examples.html#prototype-mwcog">prototype_mwcog</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../examples.html#id30">Example</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="external-examples.html">External Examples</a><ul class="simple">
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="configuration.html#top-level-settings">Top Level Settings</a><ul class="simple">
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="configuration.html#file-system">File System</a><ul class="simple">
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="configuration.html#network-level-of-service">Network Level of Service</a><ul class="simple">
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../cli.html">Command Line Interface</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../cli.html#create">Create</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../cli.html#module-activitysim.cli.create">API</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../cli.html#run">Run</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../cli.html#settings-file-inheritance">Settings File Inheritance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../cli.html#id2">API</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../estimation.html">Estimation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../estimation.html#workflow">Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../estimation.html#example">Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../estimation.html#settings">Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../estimation.html#estimation-notebooks">Estimation Notebooks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../estimation.html#module-activitysim.estimation.larch.general">General API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../estimation.html#module-activitysim.estimation.larch.auto_ownership">Models API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run_primary_example.html">Run the Primary Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model_anatomy.html">Anatomy of a Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="model_anatomy.html#input-data">Input Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_anatomy.html#zone-system">Zone System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_anatomy.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_anatomy.html#top-level-settings">Top Level Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_anatomy.html#file-system">File System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_anatomy.html#network-level-of-service">Network Level of Service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_anatomy.html#utility-specifications">Utility Specifications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_anatomy.html#id2">Outputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_anatomy.html#logging">Logging</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../howitworks.html">How the System Works</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../howitworks.html#execution-flow">Execution Flow</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#initialization">Initialization</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#initialize-households">Initialize Households</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#school-location">School Location</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#finishing-up">Finishing Up</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../howitworks.html#execution-flow">Execution Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../howitworks.html#components">Components</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../howitworks.html#additional-notes">Additional Notes</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#creating-new-tables">Creating New Tables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#vectorized-3d-skim-indexing">Vectorized 3D Skim Indexing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#accessibilities-model">Accessibilities Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model_dev.html">Model Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="model_dev.html#input-data-preparation">Input Data Preparation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_dev.html#estimation">Estimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_dev.html#calibration">Calibration</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../howitworks.html#multiprocessing">Multiprocessing</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#mutliprocessing-configuration">Mutliprocessing Configuration</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#shared-data">Shared Data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#outputs">Outputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#configure-the-summarize-model">Configure the Summarize Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#install-and-run-simwrapper">Install and Run Simwrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#navigate-simwrappper">Navigate SimWrappper</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../howitworks.html#data-schema">Data Schema</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#data-tables">Data Tables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#id3">Data Schema</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#skims">Skims</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_models.html">Example Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="example_models.html#prototype-mtc">prototype_mtc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example_models.html#prototype-semcog">prototype_semcog</a></li>
 </ul>
 </li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="other_examples.html">Other Example Models</a></li>
 </ul>
 </div>
 </section>
@@ -558,11 +470,11 @@ the development and management of the ActivitySim is on the <a class="reference 
       </div>
     </a>
     <a class="right-next"
-       href="../gettingstarted.html"
+       href="modelsetup.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Getting Started</p>
+        <p class="prev-next-title">Model Setup</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -620,7 +532,7 @@ the development and management of the ActivitySim is on the <a class="reference 
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev32+g3d661762, documentation last updated Jan 31, 2024.<br/>
+ActivitySim 1.2.3.dev547+g51419451, documentation last updated Feb 08, 2024.<br/>
 </p></div>
       
         <div class="footer-item">

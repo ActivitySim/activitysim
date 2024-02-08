@@ -58,11 +58,9 @@
         </script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="How the System Works" href="howitworks.html" />
-    <link rel="prev" title="Command Line Interface" href="cli.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jan 31, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 08, 2024"/>
   </head>
   
   
@@ -147,7 +145,7 @@
 <nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
-                    <li class="nav-item current active">
+                    <li class="nav-item">
                       <a class="nav-link nav-internal" href="users-guide/index.html">
                         Users Guide
                       </a>
@@ -241,7 +239,9 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
         
 
   
@@ -254,7 +254,7 @@ document.write(`
 <nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
-                    <li class="nav-item current active">
+                    <li class="nav-item">
                       <a class="nav-link nav-internal" href="users-guide/index.html">
                         Users Guide
                       </a>
@@ -304,26 +304,6 @@ document.write(`
     
   </div>
   
-    <div class="sidebar-primary-items__start sidebar-primary__section">
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
-     aria-label="Section Navigation">
-  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="users-guide/cli-tools.html">Command Line Tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="users-guide/notebook.html">Interactive Interface</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Built-in Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="users-guide/external-examples.html">External Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="users-guide/configuration.html">Configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Estimation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
-</ul>
-</div>
-</nav></div>
-    </div>
-  
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
   </div>
@@ -356,9 +336,6 @@ document.write(`
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    
-    <li class="breadcrumb-item"><a href="users-guide/index.html" class="nav-link">Users Guide</a></li>
-    
     <li class="breadcrumb-item active" aria-current="page">Estimation</li>
   </ul>
 </nav>
@@ -377,7 +354,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="estimation">
-<span id="id1"></span><h1>Estimation<a class="headerlink" href="#estimation" title="Permalink to this heading">#</a></h1>
+<span id="estimation-old"></span><h1>Estimation<a class="headerlink" href="#estimation" title="Permalink to this heading">#</a></h1>
 <p>ActivitySim includes the ability to re-estimate submodels using choice model estimation tools
 such as <a class="reference external" href="https://larch.newman.me/">larch</a>.  To do so, ActivitySim adopts the concept of an estimation
 data bundle (EDB), which is a collection of the necessary data to re-estimate a submodel.  For example, for the auto ownership submodel,
@@ -388,7 +365,7 @@ the EDB consists of the following files:</p>
 <li><p>utilities specification - the auto_ownership_SPEC.csv utility expressions file</p></li>
 <li><p>chooser and alternatives data - the auto_ownership_values_combined.csv file with all chooser and alternatives data such as household information, land use information, and the utility data components for each alternative</p></li>
 </ul>
-<p>ActivitySim also includes Jupyter <a class="reference internal" href="#estimation-example-notebooks"><span class="std std-ref">Estimation Notebooks</span></a> for estimating submodels with larch, as well as an <code class="docutils literal notranslate"><span class="pre">activitysim.estimation.larch</span></code> submodule that transforms EDBs into larch models.  Additional estimation software translators can be added later if desired.</p>
+<p>ActivitySim also includes Jupyter <a class="reference internal" href="users-guide/model_dev.html#estimation-example-notebooks"><span class="std std-ref">Estimation Notebooks</span></a> for estimating submodels with larch, as well as an <code class="docutils literal notranslate"><span class="pre">activitysim.estimation.larch</span></code> submodule that transforms EDBs into larch models.  Additional estimation software translators can be added later if desired.</p>
 <p>The combination of writing an EDB for a submodel + a larch estimation notebook means users can easily re-estimate submodels. This
 combination of functionality means:</p>
 <ul class="simple">
@@ -414,7 +391,7 @@ combination of functionality means:</p>
 <span id="estimation-example"></span><h2>Example<a class="headerlink" href="#example" title="Permalink to this heading">#</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The estimation_mode.ipynb Jupyter <a class="reference internal" href="#estimation-example-notebooks"><span class="std std-ref">Estimation Notebooks</span></a> also introduces estimation mode and walks the user through the process.</p>
+<p>The estimation_mode.ipynb Jupyter <a class="reference internal" href="users-guide/model_dev.html#estimation-example-notebooks"><span class="std std-ref">Estimation Notebooks</span></a> also introduces estimation mode and walks the user through the process.</p>
 </div>
 <p>To run the estimation example, do the following:</p>
 <ul class="simple">
@@ -433,7 +410,7 @@ combination of functionality means:</p>
 </div>
 <ul class="simple">
 <li><p>ActivitySim should log some information and write outputs to the output folder, including EDBs for each submodel.  The estimation example runs for about 15 minutes and writes EDBs for 2000 households.</p></li>
-<li><p>Open <a class="reference internal" href="#estimation-example-notebooks"><span class="std std-ref">Estimation Notebooks</span></a> for a specific submodel and then step through the notebook to re-estimate the sub-model.</p></li>
+<li><p>Open <a class="reference internal" href="users-guide/model_dev.html#estimation-example-notebooks"><span class="std std-ref">Estimation Notebooks</span></a> for a specific submodel and then step through the notebook to re-estimate the sub-model.</p></li>
 </ul>
 <p>The estimation example assumes the machine has sufficient RAM to run with chunking disabled (<cite>chunk_training_mode: disabled</cite>).  See <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a> for more information.</p>
 </section>
@@ -447,7 +424,7 @@ combination of functionality means:</p>
 </ul>
 </section>
 <section id="estimation-notebooks">
-<span id="estimation-example-notebooks"></span><h2>Estimation Notebooks<a class="headerlink" href="#estimation-notebooks" title="Permalink to this heading">#</a></h2>
+<span id="estimation-example-notebooks-old"></span><h2>Estimation Notebooks<a class="headerlink" href="#estimation-notebooks" title="Permalink to this heading">#</a></h2>
 <p>ActivitySim includes a <a class="reference external" href="https://jupyter.org">Jupyter Notebook</a> recipe book with interactive re-estimation examples for each estimatable submodel.  To run a Jupyter notebook, do the following:</p>
 <ul class="simple">
 <li><p>Open a conda prompt and activate the conda environment with ActivitySim installed</p></li>
@@ -979,24 +956,6 @@ have the same initial value are converted to have the same name
                 <footer class="prev-next-footer">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="cli.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Command Line Interface</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="howitworks.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">How the System Works</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
@@ -1056,7 +1015,7 @@ have the same initial value are converted to have the same name
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev32+g3d661762, documentation last updated Jan 31, 2024.<br/>
+ActivitySim 1.2.3.dev547+g51419451, documentation last updated Feb 08, 2024.<br/>
 </p></div>
       
         <div class="footer-item">

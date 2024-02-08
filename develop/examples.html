@@ -58,11 +58,9 @@
         </script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="External Examples" href="users-guide/external-examples.html" />
-    <link rel="prev" title="Interactive Interface" href="users-guide/notebook.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jan 31, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 08, 2024"/>
   </head>
   
   
@@ -147,7 +145,7 @@
 <nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
-                    <li class="nav-item current active">
+                    <li class="nav-item">
                       <a class="nav-link nav-internal" href="users-guide/index.html">
                         Users Guide
                       </a>
@@ -241,7 +239,9 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
         
 
   
@@ -254,7 +254,7 @@ document.write(`
 <nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
-                    <li class="nav-item current active">
+                    <li class="nav-item">
                       <a class="nav-link nav-internal" href="users-guide/index.html">
                         Users Guide
                       </a>
@@ -304,26 +304,6 @@ document.write(`
     
   </div>
   
-    <div class="sidebar-primary-items__start sidebar-primary__section">
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
-     aria-label="Section Navigation">
-  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="users-guide/cli-tools.html">Command Line Tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="users-guide/notebook.html">Interactive Interface</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Built-in Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="users-guide/external-examples.html">External Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="users-guide/configuration.html">Configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
-<li class="toctree-l1"><a class="reference internal" href="estimation.html">Estimation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
-</ul>
-</div>
-</nav></div>
-    </div>
-  
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
   </div>
@@ -356,9 +336,6 @@ document.write(`
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    
-    <li class="breadcrumb-item"><a href="users-guide/index.html" class="nav-link">Users Guide</a></li>
-    
     <li class="breadcrumb-item active" aria-current="page">Built-in Examples</li>
   </ul>
 </nav>
@@ -412,7 +389,7 @@ strongly cautioned not to use them for any policy or planning purpose.</p></li>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="#prototype-mtc"><span class="std std-ref">prototype_mtc</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="users-guide/example_models.html#prototype-mtc"><span class="std std-ref">prototype_mtc</span></a></p></td>
 <td><p>Original ActivitySim Example, derived from MTC TM1</p></td>
 <td><p>1</p></td>
 <td><p>Mature</p></td>
@@ -442,7 +419,7 @@ strongly cautioned not to use them for any policy or planning purpose.</p></li>
 <td><p>1</p></td>
 <td><p>In development</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#example-semcog"><span class="std std-ref">example_semcog</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#production-semcog"><span class="std std-ref">production_semcog</span></a></p></td>
 <td><p>SEMCOG agency example</p></td>
 <td><p>1</p></td>
 <td><p>In production</p></td>
@@ -476,7 +453,7 @@ contains example commands to create and run several versions of the examples.  S
 information on agency example models.</p>
 </div>
 <section id="prototype-mtc">
-<span id="id1"></span><h2>prototype_mtc<a class="headerlink" href="#prototype-mtc" title="Permalink to this heading">#</a></h2>
+<h2>prototype_mtc<a class="headerlink" href="#prototype-mtc" title="Permalink to this heading">#</a></h2>
 <p>The initial example implemented in ActivitySim was prototype_mtc.  This section described the prototype_mtc
 model design, how to setup and run the example, and how to review outputs. The default configuration of the
 example is limited to a small sample of households and zones so that it can be run quickly and require
@@ -1069,7 +1046,7 @@ no two individuals have the same person ID, even if they are in different househ
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>ActivitySim can optionally build an HDF5 file of the input CSV tables for use in subsequent runs since
-HDF5 is binary and therefore results in faster read times. see <a class="reference internal" href="users-guide/configuration.html#configuration"><span class="std std-ref">Configuration</span></a></p>
+HDF5 is binary and therefore results in faster read times. see <a class="reference internal" href="users-guide/model_anatomy.html#configuration"><span class="std std-ref">Configuration</span></a></p>
 <p>OMX and HDF5 files can be viewed with the <a class="reference external" href="https://github.com/osPlanning/omx/wiki/OMX-Viewer">OMX Viewer</a> or
 <a class="reference external" href="https://www.hdfgroup.org/downloads/hdfview">HDFView</a>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">other_resources\scripts\build_omx.py</span></code> script will build one OMX file containing all the skims. The original MTC TM1 skims were converted for the prototype from
@@ -1081,7 +1058,7 @@ skim inputs for a subset of user-defined zones.</p>
 </section>
 <section id="configuration">
 <h4>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">#</a></h4>
-<p>This section has been moved to <a class="reference internal" href="users-guide/configuration.html#configuration"><span class="std std-ref">Configuration</span></a>.</p>
+<p>This section has been moved to <a class="reference internal" href="users-guide/model_anatomy.html#configuration"><span class="std std-ref">Configuration</span></a>.</p>
 </section>
 <section id="sub-model-specification-files">
 <span id="sub-model-spec-files"></span><h4>Sub-Model Specification Files<a class="headerlink" href="#sub-model-specification-files" title="Permalink to this heading">#</a></h4>
@@ -1090,7 +1067,7 @@ Python/pandas/numpy expressions, alternatives, and other settings used by each m
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the <code class="docutils literal notranslate"><span class="pre">non_mandatory_tour_frequency_alternatives.csv</span></code> file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The  set of files for the prototype_mtc are below.  The
-<a class="reference internal" href="#prototype-arc"><span class="std std-ref">prototype_arc</span></a>, <a class="reference internal" href="#example-semcog"><span class="std std-ref">example_semcog</span></a>, and <a class="reference internal" href="#prototype-mtc-extended"><span class="std std-ref">prototype_mtc_extended</span></a> examples added additional submodels.</p>
+<a class="reference internal" href="#prototype-arc"><span class="std std-ref">prototype_arc</span></a>, <a class="reference internal" href="#production-semcog"><span class="std std-ref">production_semcog</span></a>, and <a class="reference internal" href="#prototype-mtc-extended"><span class="std std-ref">prototype_mtc_extended</span></a> examples added additional submodels.</p>
 <table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Model</p></th>
@@ -1098,21 +1075,21 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#initialize-landuse"><span class="std std-ref">Initialize</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">initialize_landuse</span></p></td>
 <td><ul class="simple">
 <li><p>initialize_landuse.yaml</p></li>
 <li><p>annotate_landuse.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#accessibility"><span class="std std-ref">Accessibility</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="dev-guide/components/accessibility.html#accessibility"><span class="std std-ref">Accessibility</span></a></p></td>
 <td><ul class="simple">
 <li><p>accessibility.yaml</p></li>
 <li><p>accessibility.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#initialize-households"><span class="std std-ref">Initialize</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">initialize_households</span></p></td>
 <td><ul class="simple">
 <li><p>initialize_households.yaml</p></li>
 <li><p>annotate_persons.csv</p></li>
@@ -1121,7 +1098,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#school-location"><span class="std std-ref">School Location</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">school_location</span></p></td>
 <td><ul class="simple">
 <li><p>school_location.yaml</p></li>
 <li><p>school_location_coeffs.csv</p></li>
@@ -1134,7 +1111,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#work-location"><span class="std std-ref">School Location</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">work_location</span></p></td>
 <td><ul class="simple">
 <li><p>workplace_location.yaml</p></li>
 <li><p>workplace_location_coeffs.csv</p></li>
@@ -1148,7 +1125,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#auto-ownership"><span class="std std-ref">Auto Ownership</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">auto_ownership</span></p></td>
 <td><ul class="simple">
 <li><p>auto_ownership.yaml</p></li>
 <li><p>auto_ownership_coeffs.csv</p></li>
@@ -1156,7 +1133,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#freeparking"><span class="std std-ref">Free Parking Eligibility</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">freeparking</span></p></td>
 <td><ul class="simple">
 <li><p>free_parking.yaml</p></li>
 <li><p>free_parking_coeffs.csv</p></li>
@@ -1165,7 +1142,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#cdap"><span class="std std-ref">Coordinated Daily Activity Pattern</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">cdap</span></p></td>
 <td><ul class="simple">
 <li><p>cdap.yaml</p></li>
 <li><p>annotate_persons_cdap.csv</p></li>
@@ -1176,7 +1153,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#mandatory-tour-frequency"><span class="std std-ref">Mandatory Tour Frequency</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">mandatory_tour_frequency</span></p></td>
 <td><ul class="simple">
 <li><p>mandatory_tour_frequency.yaml</p></li>
 <li><p>mandatory_tour_frequency_coeffs.csv</p></li>
@@ -1186,7 +1163,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#mandatory-tour-scheduling"><span class="std std-ref">Mandatory Tour Scheduling</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">mandatory_tour_scheduling</span></p></td>
 <td><ul class="simple">
 <li><p>mandatory_tour_scheduling.yaml</p></li>
 <li><p>tour_scheduling_work_coeffs.csv</p></li>
@@ -1197,7 +1174,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#joint-tour-frequency"><span class="std std-ref">Joint Tour Frequency</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">joint_tour_frequency</span></p></td>
 <td><ul class="simple">
 <li><p>joint_tour_frequency.yaml</p></li>
 <li><p>joint_tour_frequency_coeffs.csv</p></li>
@@ -1207,7 +1184,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#joint-tour-composition"><span class="std std-ref">Joint Tour Composition</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">joint_tour_composition</span></p></td>
 <td><ul class="simple">
 <li><p>joint_tour_composition.yaml</p></li>
 <li><p>joint_tour_composition_coefficients.csv</p></li>
@@ -1216,7 +1193,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#joint-tour-participation"><span class="std std-ref">Joint Tour Participation</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">joint_tour_participation</span></p></td>
 <td><ul class="simple">
 <li><p>joint_tour_participation.yaml</p></li>
 <li><p>joint_tour_participation_coefficients.csv</p></li>
@@ -1225,7 +1202,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#joint-tour-destination-choice"><span class="std std-ref">Joint Tour Destination Choice</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">joint_tour_destination_choice</span></p></td>
 <td><ul class="simple">
 <li><p>joint_tour_destination.yaml</p></li>
 <li><p>non_mandatory_tour_destination_coefficients.csv</p></li>
@@ -1236,7 +1213,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#joint-tour-scheduling"><span class="std std-ref">Joint Tour Scheduling</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">joint_tour_scheduling</span></p></td>
 <td><ul class="simple">
 <li><p>joint_tour_scheduling.yaml</p></li>
 <li><p>tour_scheduling_joint_coefficients.csv</p></li>
@@ -1246,7 +1223,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#non-mandatory-tour-frequency"><span class="std std-ref">Non-Mandatory Tour Frequency</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">non_mandatory_tour_frequency</span></p></td>
 <td><ul class="simple">
 <li><p>non_mandatory_tour_frequency.yaml</p></li>
 <li><p>non_mandatory_tour_frequency_coefficients_{ptype}.csv</p></li>
@@ -1258,7 +1235,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#non-mandatory-tour-destination-choice"><span class="std std-ref">Non-Mandatory Tour Destination Choice</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">non_mandatory_tour_destination_choice</span></p></td>
 <td><ul class="simple">
 <li><p>non_mandatory_tour_destination.yaml</p></li>
 <li><p>non_mandatory_tour_destination_coefficients.csv</p></li>
@@ -1269,7 +1246,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#non-mandatory-tour-scheduling"><span class="std std-ref">Non-Mandatory Tour Scheduling</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">non_mandatory_tour_scheduling</span></p></td>
 <td><ul class="simple">
 <li><p>non_mandatory_tour_scheduling.yaml</p></li>
 <li><p>tour_scheduling_nonmandatory_coefficients.csv</p></li>
@@ -1279,7 +1256,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#tour-mode-choice"><span class="std std-ref">Tour Mode Choice</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">tour_mode_choice</span></p></td>
 <td><ul class="simple">
 <li><p>tour_mode_choice.yaml</p></li>
 <li><p>tour_mode_choice_annotate_choosers_preprocessor.csv</p></li>
@@ -1289,7 +1266,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#atwork-subtour-frequency"><span class="std std-ref">At-work Subtours Frequency</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">atwork_subtour_frequency</span></p></td>
 <td><ul class="simple">
 <li><p>atwork_subtour_frequency.yaml</p></li>
 <li><p>atwork_subtour_frequency_coefficients.csv</p></li>
@@ -1299,7 +1276,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#atwork-subtour-destination"><span class="std std-ref">At-work Subtours Destination Choice</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">atwork_subtour_destination</span></p></td>
 <td><ul class="simple">
 <li><p>atwork_subtour_destination.yaml</p></li>
 <li><p>atwork_subtour_destination_coefficients.csv</p></li>
@@ -1310,7 +1287,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#atwork-subtour-scheduling"><span class="std std-ref">At-work Subtour Scheduling</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">atwork_subtour_scheduling</span></p></td>
 <td><ul class="simple">
 <li><p>tour_scheduling_atwork.yaml</p></li>
 <li><p>tour_scheduling_atwork_coefficients.csv</p></li>
@@ -1320,13 +1297,13 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#atwork-subtour-mode-choice"><span class="std std-ref">At-work Subtour Mode</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">atwork_subtour_mode_choice</span></p></td>
 <td><ul class="simple">
 <li><p>tour_mode_choice.yaml (and related files)</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#intermediate-stop-frequency"><span class="std std-ref">Intermediate Stop Frequency</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">intermediate_stop_frequency</span></p></td>
 <td><ul class="simple">
 <li><p>stop_frequency.yaml</p></li>
 <li><p>stop_frequency_annotate_tours_preprocessor.csv</p></li>
@@ -1345,7 +1322,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#trip-purpose"><span class="std std-ref">Trip Purpose</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">trip_purpose</span></p></td>
 <td><ul class="simple">
 <li><p>trip_purpose.yaml (+ trip_purpose_and_destination.yaml)</p></li>
 <li><p>trip_purpose_annotate_trips_preprocessor.csv</p></li>
@@ -1353,7 +1330,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#trip-destination-choice"><span class="std std-ref">Trip Destination Choice</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">trip_destination_choice</span></p></td>
 <td><ul class="simple">
 <li><p>trip_destination.yaml (+ trip_purpose_and_destination.yaml)</p></li>
 <li><p>trip_destination.csv</p></li>
@@ -1364,14 +1341,14 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#trip-scheduling"><span class="std std-ref">Trip Scheduling (Probabilistic)</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">trip_scheduling</span></p></td>
 <td><ul class="simple">
 <li><p>trip_scheduling.yaml</p></li>
 <li><p>trip_scheduling_probs.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#trip-mode-choice"><span class="std std-ref">Trip Mode Choice</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">trip_mode_choice</span></p></td>
 <td><ul class="simple">
 <li><p>trip_mode_choice.yaml</p></li>
 <li><p>trip_mode_choice_annotate_trips_preprocessor.csv</p></li>
@@ -1380,7 +1357,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#parking-location-choice"><span class="std std-ref">Parking Location Choice</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">parking_location_choice</span></p></td>
 <td><ul class="simple">
 <li><p>parking_location_choice.yaml</p></li>
 <li><p>parking_location_choice_annotate_trips_preprocessor.csv</p></li>
@@ -1389,7 +1366,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#write-trip-matrices"><span class="std std-ref">Write Trip Matrices</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">write_trip_matrices</span></p></td>
 <td><ul class="simple">
 <li><p>write_trip_matrices.yaml</p></li>
 <li><p>write_trip_matrices_annotate_trips_preprocessor.csv</p></li>
@@ -1490,7 +1467,7 @@ working directory by default.</p>
 </div>
 <section id="multiprocessing">
 <h4>Multiprocessing<a class="headerlink" href="#multiprocessing" title="Permalink to this heading">#</a></h4>
-<p>The model system is parallelized via <a class="reference internal" href="howitworks.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a>.  To setup and run the <a class="reference internal" href="#example"><span class="std std-ref">Built-in Examples</span></a> using
+<p>The model system is parallelized via <a class="reference internal" href="users-guide/ways_to_run.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a>.  To setup and run the <a class="reference internal" href="users-guide/model_dev.html#example"><span class="std std-ref">Example</span></a> using
 multiprocessing, follow the same steps as the above <a class="reference internal" href="#example-run"><span class="std std-ref">Running the example</span></a>, but add an additional <code class="docutils literal notranslate"><span class="pre">-c</span></code> flag to
 include the multiprocessing configuration settings via settings file inheritance (see <a class="reference internal" href="cli.html#cli"><span class="std std-ref">Command Line Interface</span></a>) as well:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_mp</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span>
@@ -1504,7 +1481,7 @@ commented out in the example settings file.  For example, the 100 percent sample
 The default setup runs with <code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">training</span></code> since no chunk cache file is present. To run the example
 significantly faster, try <code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">disabled</span></code> if the machine has sufficient RAM, or try
 <code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">production</span></code>.  To configure <code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">production</span></code>, first configure chunking as
-discussed below. See <a class="reference internal" href="howitworks.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a> and <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a> for more information.</p>
+discussed below. See <a class="reference internal" href="users-guide/ways_to_run.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a> and <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a> for more information.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">households_sample_size</span><span class="p">:</span> <span class="mi">0</span>
 <span class="n">num_processes</span><span class="p">:</span> <span class="mi">24</span>
 <span class="n">chunk_size</span><span class="p">:</span> <span class="mi">0</span>
@@ -1513,7 +1490,7 @@ discussed below. See <a class="reference internal" href="howitworks.html#multipr
 </div>
 </section>
 <section id="configuring-chunking">
-<span id="id2"></span><h4>Configuring chunking<a class="headerlink" href="#configuring-chunking" title="Permalink to this heading">#</a></h4>
+<span id="id1"></span><h4>Configuring chunking<a class="headerlink" href="#configuring-chunking" title="Permalink to this heading">#</a></h4>
 <p>To configure chunking, ActivitySim must first be trained to determine reasonable chunking settings given the
 model setup and machine.  The steps to configure chunking are:</p>
 <ul class="simple">
@@ -1733,16 +1710,16 @@ library.  The following key log files are created with a model run:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">timing_log.csv</span></code> - submodel step runtimes</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">omnibus_mem.csv</span></code> - multiprocessed submodel memory usage</p></li>
 </ul>
-<p>Refer to the <a class="reference internal" href="#tracing"><span class="std std-ref">Tracing</span></a> section for more detail on tracing.</p>
+<p>Refer to the <a class="reference internal" href="users-guide/ways_to_run.html#tracing"><span class="std std-ref">Tracing</span></a> section for more detail on tracing.</p>
 </section>
 <section id="trip-matrices">
 <h4>Trip Matrices<a class="headerlink" href="#trip-matrices" title="Permalink to this heading">#</a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">write_trip_matrices</span></code> step processes the trips table to create open matrix (OMX) trip matrices for
 assignment.  The matrices are configured and coded according to the expressions in the model step
-trip annotation file.  See <a class="reference internal" href="models.html#write-trip-matrices"><span class="std std-ref">Write Trip Matrices</span></a> for more information.</p>
+trip annotation file.  See <span class="xref std std-ref">write_trip_matrices</span> for more information.</p>
 </section>
 <section id="tracing">
-<span id="id3"></span><h4>Tracing<a class="headerlink" href="#tracing" title="Permalink to this heading">#</a></h4>
+<span id="id2"></span><h4>Tracing<a class="headerlink" href="#tracing" title="Permalink to this heading">#</a></h4>
 <p>There are two types of tracing in ActivtiySim: household and origin-destination (OD) pair.  If a household trace ID
 is specified, then ActivitySim will output a comprehensive set (i.e. hundreds) of trace files for all
 calculations for all household members:</p>
@@ -1758,7 +1735,7 @@ file:</p>
 help debug data and/or logic errors.</p>
 </section>
 <section id="writing-logsums">
-<span id="id4"></span><h4>Writing Logsums<a class="headerlink" href="#writing-logsums" title="Permalink to this heading">#</a></h4>
+<span id="id3"></span><h4>Writing Logsums<a class="headerlink" href="#writing-logsums" title="Permalink to this heading">#</a></h4>
 <p>The tour and trip destination and mode choice models calculate logsums but do not persist them by default.
 Mode and destination choice logsums are essential for re-estimating these models and can therefore be
 saved to the pipeline if desired.  To save the tour and trip destination and mode choice model logsums, include
@@ -1803,16 +1780,16 @@ only be activated when writing logsums for a small set of households for model e
 </section>
 </section>
 <section id="prototype-mtc-extended">
-<span id="id5"></span><h2>prototype_mtc_extended<a class="headerlink" href="#prototype-mtc-extended" title="Permalink to this heading">#</a></h2>
+<span id="id4"></span><h2>prototype_mtc_extended<a class="headerlink" href="#prototype-mtc-extended" title="Permalink to this heading">#</a></h2>
 <p>prototype_mtc_extended contains additional models that were developed to enhance ActivitySim’s modeling
 capabilities. This example inherets
 the data and configuration files from prototype_mtc. The current list of additional models included
 in this example are:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="models.html#vehicle-type-choice"><span class="std std-ref">Vehicle Type Choice</span></a>: Selects a vehicle type for each household vehicle. Runs after auto_ownership.</p></li>
-<li><p><a class="reference internal" href="models.html#vehicle-allocation"><span class="std std-ref">Vehicle Allocation</span></a>: Allocates a vehicle for each tour and each occupancy level.  Tour and trip mode choice
+<li><p><span class="xref std std-ref">vehicle_type_choice</span>: Selects a vehicle type for each household vehicle. Runs after auto_ownership.</p></li>
+<li><p><span class="xref std std-ref">vehicle_allocation</span>: Allocates a vehicle for each tour and each occupancy level.  Tour and trip mode choice
 auto operating costs are modified to reflect the allocated vehicle option.</p></li>
-<li><p><a class="reference internal" href="models.html#school-escorting"><span class="std std-ref">School Escorting</span></a>: Explicitly models school drop-off / pick-up of students to and from school.</p></li>
+<li><p><span class="xref std std-ref">school_escorting</span>: Explicitly models school drop-off / pick-up of students to and from school.</p></li>
 </ul>
 <p>The prototype_mtc_extended example also contains changes to test the flexible number of tour and trip ids.
 (Information in why this is important can be found <a class="reference external" href="https://github.com/ActivitySim/activitysim/wiki/Project-Meeting-2022.08.09">here</a>.)
@@ -1826,14 +1803,14 @@ other discretionary tour purpose where the fourth outbound trip rows were copied
 </ul>
 </section>
 <section id="example-estimation">
-<span id="id6"></span><h2>example_estimation<a class="headerlink" href="#example-estimation" title="Permalink to this heading">#</a></h2>
+<span id="id5"></span><h2>example_estimation<a class="headerlink" href="#example-estimation" title="Permalink to this heading">#</a></h2>
 <p>ActivitySim includes the ability to re-estimate submodels using choice model estimation tools
 such as <a class="reference external" href="https://larch.newman.me/">larch</a>.  In order to do so, ActivitySim adopts the concept of an estimation
-data bundle (EDB), which is a collection of the necessary data to re-estimate a submodel.  See <a class="reference internal" href="estimation.html#estimation"><span class="std std-ref">Estimation</span></a>
+data bundle (EDB), which is a collection of the necessary data to re-estimate a submodel.  See <a class="reference internal" href="users-guide/model_dev.html#estimation"><span class="std std-ref">Estimation</span></a>
 for examples that illustrate running ActivitySim in estimation mode and using larch to re-restimate submodels.</p>
 </section>
 <section id="placeholder-multiple-zone">
-<span id="multiple-zone-systems"></span><span id="index-3"></span><span id="id7"></span><h2>placeholder_multiple_zone<a class="headerlink" href="#placeholder-multiple-zone" title="Permalink to this heading">#</a></h2>
+<span id="placeholder-multiple-zone-old"></span><span id="multiple-zone-systems"></span><span id="index-3"></span><h2>placeholder_multiple_zone<a class="headerlink" href="#placeholder-multiple-zone" title="Permalink to this heading">#</a></h2>
 <p>In a multiple zone system approach, households, land use, and trips are modeled at the microzone (MAZ) level.  MAZs are smaller
 than traditional TAZs and therefore make for a more precise system.  However, when considering network level-of-service (LOS)
 indicators (e.g. skims), the model uses different spatial resolutions for different travel modes in order to reduce the network
@@ -1893,8 +1870,8 @@ initial development, these examples were insufficient for validation and perform
 the <a class="reference internal" href="#prototype-marin"><span class="std std-ref">prototype_marin</span></a> example was created.</p>
 </div>
 <p>Example simple test configurations and inputs for two and three-zone system models are described below.</p>
-<section id="id8">
-<h3>Examples<a class="headerlink" href="#id8" title="Permalink to this heading">#</a></h3>
+<section id="id6">
+<h3>Examples<a class="headerlink" href="#id6" title="Permalink to this heading">#</a></h3>
 <p>To run the two zone and three zone system examples, do the following:</p>
 <ul class="simple">
 <li><p>Activate the correct conda environment if needed</p></li>
@@ -1978,7 +1955,7 @@ same so the blending can happen on-the-fly or else a value of 0 is returned.</p>
 <p>In addition to the extra two zone system settings and inputs above, the following additional settings and inputs are required for a three zone system model.  Examples values are illustrated below.</p>
 <p>In <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">models</span></code> - add initialize_los and initialize_tvpb to load network LOS inputs / skims and pre-compute TAP to TAP utilities for TVPB.  See <a class="reference internal" href="models.html#initialize-los"><span class="std std-ref">Initialize LOS</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">models</span></code> - add initialize_los and initialize_tvpb to load network LOS inputs / skims and pre-compute TAP to TAP utilities for TVPB.  See <span class="xref std std-ref">initialize_los</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">want_dest_choice_presampling</span></code> - enable presampling for multizone systems, which means first select a TAZ using the sampling model and then select a microzone within the TAZ based on the microzone share of TAZ size term.</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">models</span><span class="p">:</span>
@@ -2111,18 +2088,18 @@ same so the blending can happen on-the-fly or else a value of 0 is returned.</p>
 </div>
 </section>
 </section>
-<section id="id9">
-<h3>Outputs<a class="headerlink" href="#id9" title="Permalink to this heading">#</a></h3>
+<section id="id7">
+<h3>Outputs<a class="headerlink" href="#id7" title="Permalink to this heading">#</a></h3>
 <p>Essentially the same set of outputs is created for a two or three zone system
 model as for a one zone system model.  However, the one key additional bit of
 information for a three zone system model is the boarding TAP, alighting TAP, and
 transit skim set is added to the relevant chooser table (e.g. tours and trips) when the
 chosen mode is transit.  Logging and tracing also work for two and three zone models,
-including tracing of the TVPB calculations. The <a class="reference internal" href="models.html#write-trip-matrices"><span class="std std-ref">Write Trip Matrices</span></a> step writes
+including tracing of the TVPB calculations. The <span class="xref std std-ref">write_trip_matrices</span> step writes
 both TAZ and TAP level matrices depending on the configured number of zone systems.</p>
 </section>
 <section id="presampling">
-<span id="id10"></span><h3>Presampling<a class="headerlink" href="#presampling" title="Permalink to this heading">#</a></h3>
+<span id="id8"></span><h3>Presampling<a class="headerlink" href="#presampling" title="Permalink to this heading">#</a></h3>
 <p>In multiple zone systems models, destination choice presampling is activated by default.  Destination
 choice presampling first aggregates microzone size terms to the TAZ level and then runs destination
 choice sampling at the TAZ level using the destination choice sampling models.  After sampling X
@@ -2132,14 +2109,14 @@ similar results.</p>
 </section>
 </section>
 <section id="prototype-marin">
-<span id="id11"></span><h2>prototype_marin<a class="headerlink" href="#prototype-marin" title="Permalink to this heading">#</a></h2>
+<span id="id9"></span><h2>prototype_marin<a class="headerlink" href="#prototype-marin" title="Permalink to this heading">#</a></h2>
 <p>To finalize development and verification of the multiple zone system and transit virtual path building components, the
 <a class="reference external" href="https://www.tam.ca.gov/">Transportation Authority of Marin County</a> version of MTC travel model two (TM2) work
 tour mode choice model was implemented.  This example was also developed to test multiprocessed runtime performance.
 The complete runnable setup is available from the ActivitySim command line interface as <cite>prototype_3_marin_full</cite>.  This example
 has essentially the same configuration as the simpler three zone example above.</p>
-<section id="id12">
-<h3>Example<a class="headerlink" href="#id12" title="Permalink to this heading">#</a></h3>
+<section id="id10">
+<h3>Example<a class="headerlink" href="#id10" title="Permalink to this heading">#</a></h3>
 <p>To run prototype_marin, do the following:</p>
 <ul class="simple">
 <li><p>Activate the correct conda environment if needed</p></li>
@@ -2161,8 +2138,8 @@ has essentially the same configuration as the simpler three zone example above.<
 <li><p>For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p></li>
 </ul>
 </section>
-<section id="id13">
-<h3>Settings<a class="headerlink" href="#id13" title="Permalink to this heading">#</a></h3>
+<section id="id11">
+<h3>Settings<a class="headerlink" href="#id11" title="Permalink to this heading">#</a></h3>
 <p>Additional settings for running the Marin TM2 tour mode choice example are in the <code class="docutils literal notranslate"><span class="pre">network_los.yaml</span></code> file.  The
 only additional notable setting is the <code class="docutils literal notranslate"><span class="pre">tap_lines</span></code> setting, which identifies a table of transit line names
 served for each TAP.  This file is used to trimmed the set of nearby TAP for each MAZ so only TAPs that are
@@ -2174,14 +2151,14 @@ file to include as it can considerably reduce runtimes.</p>
 </section>
 </section>
 <section id="prototype-arc">
-<span id="id14"></span><h2>prototype_arc<a class="headerlink" href="#prototype-arc" title="Permalink to this heading">#</a></h2>
+<span id="id12"></span><h2>prototype_arc<a class="headerlink" href="#prototype-arc" title="Permalink to this heading">#</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This example is in development</p>
 </div>
-<p>The prototype_arc added a <a class="reference internal" href="models.html#trip-scheduling-choice"><span class="std std-ref">Trip Scheduling Choice (Logit Choice)</span></a>, <a class="reference internal" href="models.html#trip-departure-choice"><span class="std std-ref">Trip Departure Choice (Logit Choice)</span></a>, and <a class="reference internal" href="models.html#parking-location-choice"><span class="std std-ref">Parking Location Choice</span></a>
-submodel.  These submodel specification files are below, and are in addition to the <a class="reference internal" href="#prototype-mtc"><span class="std std-ref">prototype_mtc</span></a>
-submodel <a class="reference internal" href="#sub-model-spec-files"><span class="std std-ref">Sub-Model Specification Files</span></a>.</p>
+<p>The prototype_arc added a <span class="xref std std-ref">trip_scheduling_choice</span>, <span class="xref std std-ref">trip_departure_choice</span>, and <span class="xref std std-ref">parking_location_choice</span>
+submodel.  These submodel specification files are below, and are in addition to the <a class="reference internal" href="users-guide/example_models.html#prototype-mtc"><span class="std std-ref">prototype_mtc</span></a>
+submodel <a class="reference internal" href="users-guide/example_models.html#sub-model-spec-files"><span class="std std-ref">Sub-Model Specification Files</span></a>.</p>
 <section id="example-arc-sub-model-specification-files">
 <span id="arc-sub-model-spec-files"></span><h3>Example ARC Sub-Model Specification Files<a class="headerlink" href="#example-arc-sub-model-specification-files" title="Permalink to this heading">#</a></h3>
 <table class="table">
@@ -2191,7 +2168,7 @@ submodel <a class="reference internal" href="#sub-model-spec-files"><span class=
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#trip-scheduling-choice"><span class="std std-ref">Trip Scheduling Choice (Logit Choice)</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">trip_scheduling_choice</span></p></td>
 <td><ul class="simple">
 <li><p>trip_scheduling_choice.yaml</p></li>
 <li><p>trip_scheduling_choice_preprocessor.csv</p></li>
@@ -2199,7 +2176,7 @@ submodel <a class="reference internal" href="#sub-model-spec-files"><span class=
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#trip-departure-choice"><span class="std std-ref">Trip Departure Choice (Logit Choice)</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">trip_departure_choice</span></p></td>
 <td><ul class="simple">
 <li><p>trip_departure_choice.yaml</p></li>
 <li><p>trip_departure_choice_preprocessor.csv</p></li>
@@ -2207,7 +2184,7 @@ submodel <a class="reference internal" href="#sub-model-spec-files"><span class=
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#parking-location-choice"><span class="std std-ref">Parking Location Choice</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">parking_location_choice</span></p></td>
 <td><ul class="simple">
 <li><p>parking_location_choice.yaml</p></li>
 <li><p>parking_location_choice_annotate_trips_preprocessor.csv</p></li>
@@ -2219,21 +2196,21 @@ submodel <a class="reference internal" href="#sub-model-spec-files"><span class=
 </tbody>
 </table>
 </section>
-<section id="id15">
-<h3>Example<a class="headerlink" href="#id15" title="Permalink to this heading">#</a></h3>
+<section id="id13">
+<h3>Example<a class="headerlink" href="#id13" title="Permalink to this heading">#</a></h3>
 <p>See example commands in <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
 for running prototype_arc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
 </section>
 </section>
-<section id="example-semcog">
-<span id="id17"></span><h2>example_semcog<a class="headerlink" href="#example-semcog" title="Permalink to this heading">#</a></h2>
+<section id="production-semcog">
+<h2>production_semcog<a class="headerlink" href="#production-semcog" title="Permalink to this heading">#</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This example is in development</p>
 </div>
-<p>The example_semcog added a <a class="reference internal" href="models.html#work-from-home"><span class="std std-ref">Work From Home</span></a>, <a class="reference internal" href="models.html#telecommute-frequency"><span class="std std-ref">Telecommute Frequency</span></a>, <a class="reference internal" href="models.html#transit-pass-subsidy"><span class="std std-ref">Transit Pass Subsidy</span></a>
-and <a class="reference internal" href="models.html#transit-pass-ownership"><span class="std std-ref">Transit Pass Ownership</span></a> submodel.  These submodel specification files are below, and are in addition to the <a class="reference internal" href="#prototype-mtc"><span class="std std-ref">prototype_mtc</span></a>
-submodel <a class="reference internal" href="#sub-model-spec-files"><span class="std std-ref">Sub-Model Specification Files</span></a>.  These submodels were added to prototype_semcog as extensions, which is a way for users to add
+<p>The production_semcog model added a <span class="xref std std-ref">work_from_home</span>, <span class="xref std std-ref">telecommute_frequency</span>, <span class="xref std std-ref">transit_pass_subsidy</span>
+and <span class="xref std std-ref">transit_pass_ownership</span> submodel.  These submodel specification files are below, and are in addition to the <a class="reference internal" href="users-guide/example_models.html#prototype-mtc"><span class="std std-ref">prototype_mtc</span></a>
+submodel <a class="reference internal" href="users-guide/example_models.html#sub-model-spec-files"><span class="std std-ref">Sub-Model Specification Files</span></a>.  These submodels were added to prototype_semcog as extensions, which is a way for users to add
 submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through
 the <cite>models</cite> settings.  However, the model must be run with the <cite>simulation.py</cite> script instead of the command line interface
 in order to load the extensions folder.</p>
@@ -2246,7 +2223,7 @@ in order to load the extensions folder.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#work-from-home"><span class="std std-ref">Work From Home</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">work_from_home</span></p></td>
 <td><ul class="simple">
 <li><p>work_from_home.yaml</p></li>
 <li><p>work_from_home.csv</p></li>
@@ -2254,7 +2231,7 @@ in order to load the extensions folder.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#telecommute-frequency"><span class="std std-ref">Telecommute Frequency</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">telecommute_frequency</span></p></td>
 <td><ul class="simple">
 <li><p>telecommute_frequency.yaml</p></li>
 <li><p>telecommute_frequency.csv</p></li>
@@ -2262,7 +2239,7 @@ in order to load the extensions folder.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#transit-pass-subsidy"><span class="std std-ref">Transit Pass Subsidy</span></a></p></td>
+<tr class="row-even"><td><p><span class="xref std std-ref">transit_pass_subsidy</span></p></td>
 <td><ul class="simple">
 <li><p>transit_pass_subsidy.yaml</p></li>
 <li><p>transit_pass_subsidy.csv</p></li>
@@ -2270,7 +2247,7 @@ in order to load the extensions folder.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#transit-pass-ownership"><span class="std std-ref">Transit Pass Ownership</span></a></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">transit_pass_ownership</span></p></td>
 <td><ul class="simple">
 <li><p>transit_pass_ownership.yaml</p></li>
 <li><p>transit_pass_ownership.csv</p></li>
@@ -2280,7 +2257,7 @@ in order to load the extensions folder.</p>
 </tr>
 </tbody>
 </table>
-<p>Additional extensions were included specifically as part of the example_semcog model to deal with the unique travel of
+<p>Additional extensions were included specifically as part of the production_semcog model to deal with the unique travel of
 university students attending the University of Michigan (UofM).  First off, UofM students have their school zones resampled
 weighted by enrollment. This happens after both school location choice in the university_location_zone_override model and
 after university trip destination choice in the trip_destination_univ_zone_override model. Next, parking trips are handled
@@ -2290,47 +2267,47 @@ inserted into the trips table to and from the parking lot locations in the stop_
 While a persons vehicle is parked, trip mode choice treats the tour mode as walk-transit to determine trip mode availability
 until the person returns back to their car.  For more information, please see SEMCOG’s final model documentation and the
 SEMCOG model user quide.</p>
-<p>These submodels were added to example_semcog as extensions, which is a way for users to add
+<p>These submodels were added to production_semcog as extensions, which is a way for users to add
 submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through
 the <cite>models</cite> settings.  However, the model must be run with the <cite>simulation.py</cite> script instead of the command line interface
 in order to load the extensions folder.</p>
 </section>
-<section id="id18">
-<h3>Example<a class="headerlink" href="#id18" title="Permalink to this heading">#</a></h3>
+<section id="id15">
+<h3>Example<a class="headerlink" href="#id15" title="Permalink to this heading">#</a></h3>
 <p>See example commands in <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
-for running example_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
+for running production_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
 </section>
 </section>
 <section id="placeholder-psrc">
-<span id="id20"></span><h2>placeholder_psrc<a class="headerlink" href="#placeholder-psrc" title="Permalink to this heading">#</a></h2>
+<span id="id17"></span><h2>placeholder_psrc<a class="headerlink" href="#placeholder-psrc" title="Permalink to this heading">#</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This example is a placeholder model used only for code development and debugging, and is not suitable for policy analysis</p>
 </div>
 <p>The placeholder_psrc is a two zone system (MAZs and TAZs) implementation of the
 prototype_mtc model design.  It uses PSRC zones, land use, synthetic population, and network LOS (skims).</p>
-<section id="id21">
-<h3>Example<a class="headerlink" href="#id21" title="Permalink to this heading">#</a></h3>
+<section id="id18">
+<h3>Example<a class="headerlink" href="#id18" title="Permalink to this heading">#</a></h3>
 <p>See example commands in <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
 for running placeholder_psrc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
 </section>
 </section>
 <section id="placeholder-sandag">
-<span id="id23"></span><h2>placeholder_sandag<a class="headerlink" href="#placeholder-sandag" title="Permalink to this heading">#</a></h2>
+<span id="id20"></span><h2>placeholder_sandag<a class="headerlink" href="#placeholder-sandag" title="Permalink to this heading">#</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This example is in development</p>
 </div>
 <p>The placeholder_sandag is a multi-part model, containing one-, two-, and three- zone system (MAZs, TAZs, and TAPs) implementation of the
 prototype_mtc model design.  It uses SANDAG zones, land use, synthetic population, and network LOS (skims).</p>
-<section id="id24">
-<h3>Example<a class="headerlink" href="#id24" title="Permalink to this heading">#</a></h3>
+<section id="id21">
+<h3>Example<a class="headerlink" href="#id21" title="Permalink to this heading">#</a></h3>
 <p>See example commands in <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
 for running placeholder_sandag.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
 </section>
 </section>
 <section id="prototype-sandag-xborder">
-<span id="id26"></span><h2>prototype_sandag_xborder<a class="headerlink" href="#prototype-sandag-xborder" title="Permalink to this heading">#</a></h2>
+<span id="id23"></span><h2>prototype_sandag_xborder<a class="headerlink" href="#prototype-sandag-xborder" title="Permalink to this heading">#</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This example is in development</p>
@@ -2343,17 +2320,17 @@ are no household or person-level attributes in the synthetic population. The
 principal difference between this and the standard 3-zone implementation is that
 since household do not have a default tour origin (home zones), a tour OD choice
 model is required to assign tour origins and destinations simultaneously.</p>
-<section id="id27">
-<h3>Example<a class="headerlink" href="#id27" title="Permalink to this heading">#</a></h3>
+<section id="id24">
+<h3>Example<a class="headerlink" href="#id24" title="Permalink to this heading">#</a></h3>
 <p>See example commands in <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
 for running prototype_sandag_xborder.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
 </section>
 </section>
 <section id="prototype-mwcog">
-<span id="id29"></span><h2>prototype_mwcog<a class="headerlink" href="#prototype-mwcog" title="Permalink to this heading">#</a></h2>
+<span id="id26"></span><h2>prototype_mwcog<a class="headerlink" href="#prototype-mwcog" title="Permalink to this heading">#</a></h2>
 <p>The prototype_mwcog is a one zone system (TAZs only).</p>
-<section id="id30">
-<h3>Example<a class="headerlink" href="#id30" title="Permalink to this heading">#</a></h3>
+<section id="id27">
+<h3>Example<a class="headerlink" href="#id27" title="Permalink to this heading">#</a></h3>
 <p>See example commands in <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
 for running prototype_mwcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
 </section>
@@ -2370,24 +2347,6 @@ for running prototype_mwcog.  For optimal performance, configure multiprocessing
                 <footer class="prev-next-footer">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="users-guide/notebook.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Interactive Interface</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="users-guide/external-examples.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">External Examples</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
@@ -2455,45 +2414,45 @@ for running prototype_mwcog.  For optimal performance, configure multiprocessing
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prototype-mtc-extended">prototype_mtc_extended</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-estimation">example_estimation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#placeholder-multiple-zone">placeholder_multiple_zone</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">Examples</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">Examples</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#settings">Settings</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#two-zone">Two Zone</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#three-zone">Three Zone</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">Outputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">Outputs</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#presampling">Presampling</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prototype-marin">prototype_marin</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">Example</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">Settings</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">Example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">Settings</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prototype-arc">prototype_arc</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-arc-sub-model-specification-files">Example ARC Sub-Model Specification Files</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">Example</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#production-semcog">production_semcog</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-semcog-sub-model-specification-files">Example SEMCOG Sub-Model Specification Files</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">Example</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-semcog">example_semcog</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-semcog-sub-model-specification-files">Example SEMCOG Sub-Model Specification Files</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#placeholder-psrc">placeholder_psrc</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">Example</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#placeholder-psrc">placeholder_psrc</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#placeholder-sandag">placeholder_sandag</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">Example</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#placeholder-sandag">placeholder_sandag</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prototype-sandag-xborder">prototype_sandag_xborder</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">Example</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prototype-sandag-xborder">prototype_sandag_xborder</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id27">Example</a></li>
-</ul>
-</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prototype-mwcog">prototype_mwcog</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id30">Example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id27">Example</a></li>
 </ul>
 </li>
 </ul>
@@ -2531,7 +2490,7 @@ for running prototype_mwcog.  For optimal performance, configure multiprocessing
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev32+g3d661762, documentation last updated Jan 31, 2024.<br/>
+ActivitySim 1.2.3.dev547+g51419451, documentation last updated Feb 08, 2024.<br/>
 </p></div>
       
         <div class="footer-item">

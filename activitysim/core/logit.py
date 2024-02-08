@@ -574,7 +574,7 @@ def each_nest(nest_spec: dict | LogitNestSpec, type=None, post_order=False):
         raise RuntimeError("Unknown nest type '%s' in call to each_nest" % type)
 
     if isinstance(nest_spec, dict):
-        nest_spec = LogitNestSpec.parse_obj(nest_spec)
+        nest_spec = LogitNestSpec.model_validate(nest_spec)
 
     for _node, nest in _each_nest(nest_spec, parent_nest=Nest(), post_order=post_order):
         if type is None or (type == nest.type):

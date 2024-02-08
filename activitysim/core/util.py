@@ -443,7 +443,7 @@ def suffix_tables_in_settings(
         model_settings = recursive_replace(model_settings, k, suffix + k)
 
     if model_settings_type is not None:
-        model_settings = model_settings_type.parse_obj(model_settings)
+        model_settings = model_settings_type.model_validate(model_settings)
 
     return model_settings
 

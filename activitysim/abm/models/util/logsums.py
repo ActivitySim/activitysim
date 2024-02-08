@@ -84,9 +84,9 @@ def compute_location_choice_logsums(
         computed logsums with same index as choosers
     """
     if isinstance(model_settings, dict):
-        model_settings = TourLocationComponentSettings.parse_obj(model_settings)
+        model_settings = TourLocationComponentSettings.model_validate(model_settings)
     if isinstance(logsum_settings, dict):
-        logsum_settings = TourModeComponentSettings.parse_obj(logsum_settings)
+        logsum_settings = TourModeComponentSettings.model_validate(logsum_settings)
 
     trace_label = tracing.extend_trace_label(trace_label, "compute_logsums")
     logger.debug(f"Running compute_logsums with {choosers.shape[0]:d} choosers")

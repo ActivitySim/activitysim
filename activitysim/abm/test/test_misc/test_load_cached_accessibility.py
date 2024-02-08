@@ -58,7 +58,7 @@ def test_load_cached_accessibility():
     settings = state.settings
     input_table_list = settings.input_table_list
     input_table_list.append(
-        configuration.InputTable.parse_obj(
+        configuration.InputTable.model_validate(
             {
                 "tablename": "accessibility",
                 "filename": "cached_accessibility.csv",

@@ -639,7 +639,7 @@ class FileSystem(PydanticBase, validate_assignment=True):
         include_stack: bool = False,
         configs_dir_list: tuple[Path] | None = None,
         validator_class: type[PydanticBase] | None = None,
-    ) -> dict | PydanticBase:
+    ) -> PydanticBase | dict:
         """
         Load settings from one or more yaml files.
 
@@ -817,7 +817,7 @@ class FileSystem(PydanticBase, validate_assignment=True):
         settings.pop("include_settings", None)
 
         if validator_class is not None:
-            settings = validator_class.parse_obj(settings)
+            settings = validator_class.model_validate(settings)
 
         if include_stack:
             # if we were called recursively, return an updated list of source_file_paths

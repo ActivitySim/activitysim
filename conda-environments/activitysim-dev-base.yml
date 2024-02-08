@@ -49,7 +49,7 @@ dependencies:
 - psutil = 5.9.*
 - pyarrow = 11.*
 - pycodestyle
-- pydantic = 1.10.*
+- pydantic = 2.6.*
 - pydata-sphinx-theme
 - pyinstrument = 4.4
 - pypyr = 5.8.*
@@ -75,4 +75,4 @@ dependencies:
 - zstandard
 
 - pip:
-  - autodoc_pydantic >=1.9,<2.0
+  - autodoc_pydantic

@@ -887,7 +887,6 @@ def setup_injectables_and_logging(injectables, locutor: bool = True) -> workflow
     state = workflow.State()
     state = state.initialize_filesystem(**injectables)
     state.settings = injectables.get("settings", Settings())
-    # state.settings = Settings.parse_obj(injectables.get("settings_package", {}))
 
     # register abm steps and other abm-specific injectables
     # by default, assume we are running activitysim.abm

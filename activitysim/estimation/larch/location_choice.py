@@ -208,12 +208,13 @@ def location_choice_model(
         time_start = datetime.now()
         # calculate num_chunks based on chunking_size (or max number of rows per chunk)
         num_chunks = int(len(alt_values) / chunking_size)
-        all_person_ids = list(alt_values["person_id"].unique())
-        split_ids = list(split(all_person_ids, num_chunks))
+        id_col_name = alt_values.columns[0]
+        all_ids = list(alt_values[id_col_name].unique())
+        split_ids = list(split(all_ids, num_chunks))
         x_ca_list = []
         i = 0
         for chunk_ids in split_ids:
-            alt_values_i = alt_values[alt_values["person_id"].isin(chunk_ids)]
+            alt_values_i = alt_values[alt_values[id_col_name].isin(chunk_ids)]
             x_ca_i = cv_to_ca(
                 alt_values_i.set_index([chooser_index_name, alt_values_i.columns[1]])
             )

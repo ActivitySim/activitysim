@@ -127,6 +127,8 @@ def _test_prototype_mtc_extended(
             example_mtc_path("data"),
             "-o",
             test_path(f"output_{int(sharrow)}{int(shadow_pricing)}"),
+            "--data_model",
+            example_path("data_model"),
         ]
     )
     kwargs["configs_dir"].append(example_path("configs"))
@@ -175,6 +177,7 @@ def test_prototype_mtc_extended_mp_shadow_pricing():
 
 
 EXPECTED_MODELS = [
+    "input_checker",
     "initialize_proto_population",
     "compute_disaggregate_accessibility",
     "initialize_landuse",
@@ -216,7 +219,6 @@ EXPECTED_MODELS = [
 ]
 
 
-@test.run_if_exists("prototype_mtc_extended_reference_pipeline.zip")
 def test_prototype_mtc_extended_progressive():
     import activitysim.abm  # register components
 
@@ -248,20 +250,13 @@ def test_prototype_mtc_extended_progressive():
     assert state.settings.chunk_size == 0
     assert state.settings.sharrow == False
 
-    for step_name in EXPECTED_MODELS:
-        state.run.by_name(step_name)
-        try:
-            state.checkpoint.check_against(
-                Path(__file__).parent.joinpath(
-                    "prototype_mtc_extended_reference_pipeline.zip"
-                ),
-                checkpoint_name=step_name,
-            )
-        except Exception:
-            print(f"> prototype_mtc_extended {step_name}: ERROR")
-            raise
-        else:
-            print(f"> prototype_mtc_extended {step_name}: ok")
+    ref_target = Path(__file__).parent.joinpath(
+        "prototype_mtc_extended_reference_pipeline.zip"
+    )
+
+    test.progressive_checkpoint_test(
+        state, ref_target, EXPECTED_MODELS, name="prototype_mtc_extended"
+    )
 
 
 @pytest.mark.parametrize(
@@ -304,20 +299,12 @@ def test_prototype_mtc_extended_with_chunking(chunksize):
     assert state.settings.sharrow == False
     assert state.settings.chunk_size == chunksize
 
-    for step_name in EXPECTED_MODELS:
-        state.run.by_name(step_name)
-        try:
-            state.checkpoint.check_against(
-                Path(__file__).parent.joinpath(
-                    "prototype_mtc_extended_reference_pipeline.zip"
-                ),
-                checkpoint_name=step_name,
-            )
-        except Exception:
-            print(f"> prototype_mtc_extended {step_name}: ERROR")
-            raise
-        else:
-            print(f"> prototype_mtc_extended {step_name}: ok")
+    test.progressive_checkpoint_test(
+        state,
+        Path(__file__).parent.joinpath("prototype_mtc_extended_reference_pipeline.zip"),
+        EXPECTED_MODELS,
+        name="prototype_mtc_extended_with_chunking",
+    )
 
 
 if __name__ == "__main__":

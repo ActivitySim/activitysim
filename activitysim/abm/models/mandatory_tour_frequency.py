@@ -30,7 +30,11 @@ def add_null_results(state, trace_label, mandatory_tour_frequency_settings):
     logger.info("Skipping %s: add_null_results", trace_label)
 
     persons = state.get_dataframe("persons")
-    persons["mandatory_tour_frequency"] = ""
+    persons["mandatory_tour_frequency"] = pd.categorical(
+        "",
+        categories=["", "work1", "work2", "school1", "school2", "work_and_school"],
+        ordered=False,
+    )
 
     tours = pd.DataFrame()
     tours["tour_category"] = None
@@ -134,6 +138,10 @@ def mandatory_tour_frequency(
 
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
+    cat_type = pd.api.types.CategoricalDtype(
+        model_spec.columns.tolist() + [""], ordered=False
+    )
+    choices = choices.astype(cat_type)
 
     if estimator:
         estimator.write_choices(choices)
@@ -158,6 +166,12 @@ def mandatory_tour_frequency(
         state, persons=choosers, mandatory_tour_frequency_alts=alternatives
     )
 
+    # convert purpose to pandas categoricals
+    purpose_type = pd.api.types.CategoricalDtype(
+        alternatives.columns.tolist() + ["univ", "home", "escort"], ordered=False
+    )
+    mandatory_tours["tour_type"] = mandatory_tours["tour_type"].astype(purpose_type)
+
     tours = state.extend_table("tours", mandatory_tours)
     state.tracing.register_traceable_table("tours", mandatory_tours)
     state.get_rn_generator().add_channel("tours", mandatory_tours)
@@ -166,9 +180,7 @@ def mandatory_tour_frequency(
     persons = state.get_dataframe("persons")
 
     # need to reindex as we only handled persons with cdap_activity == 'M'
-    persons["mandatory_tour_frequency"] = (
-        choices.reindex(persons.index).fillna("").astype(str)
-    )
+    persons["mandatory_tour_frequency"] = choices.reindex(persons.index).fillna("")
 
     expressions.assign_columns(
         state,

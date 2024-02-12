@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # ActivitySim documentation build configuration file, created by
 # sphinx-quickstart on Tue May 26 14:13:47 2016.
@@ -15,7 +14,6 @@
 from __future__ import annotations
 
 import os
-import sys
 
 # -- Get Package Version --------------------------------------------------
 import activitysim

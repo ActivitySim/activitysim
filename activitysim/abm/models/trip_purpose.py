@@ -161,6 +161,11 @@ def choose_intermediate_trip_purpose(
         state.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
 
     choices = choices.map(pd.Series(purpose_cols))
+    # expand the purpose categorical
+    for p in purpose_cols:
+        if not p in trips.primary_purpose.cat.categories:
+            trips.primary_purpose = trips.primary_purpose.cat.add_categories([p])
+    choices = choices.astype(trips["primary_purpose"].dtype)
     return choices
 
 
@@ -222,17 +227,25 @@ def run_trip_purpose(
 
     result_list = []
 
+    # add home to purpose categorical
+    # check if parking_name is in the purpose category
+    if not "home" in trips_df.primary_purpose.cat.categories:
+        trips_df.primary_purpose = trips_df.primary_purpose.cat.add_categories(["home"])
+
     # - last trip of outbound tour gets primary_purpose
     last_trip = trips_df.trip_num == trips_df.trip_count
     purpose = trips_df.primary_purpose[last_trip & trips_df.outbound]
+    print(purpose.value_counts(dropna=False))
     result_list.append(purpose)
     logger.info("assign purpose to %s last outbound trips", purpose.shape[0])
 
     # - last trip of inbound tour gets home (or work for atwork subtours)
     purpose = trips_df.primary_purpose[last_trip & ~trips_df.outbound]
+    print(purpose.value_counts(dropna=False))
     purpose = pd.Series(
         np.where(purpose == "atwork", "work", "home"), index=purpose.index
-    )
+    ).astype(trips_df.primary_purpose.dtype)
+    print(purpose.value_counts(dropna=False))
     result_list.append(purpose)
     logger.info("assign purpose to %s last inbound trips", purpose.shape[0])
 
@@ -270,7 +283,7 @@ def run_trip_purpose(
             trace_label=chunk_trace_label,
             chunk_sizer=chunk_sizer,
         )
-
+        print(choices.value_counts(dropna=False))
         result_list.append(choices)
 
         chunk_sizer.log_df(trace_label, "result_list", result_list)

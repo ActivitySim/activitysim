@@ -231,7 +231,12 @@ def trip_purpose_and_destination(
     )
 
     trips_df = trips
-    assign_in_place(trips_df, processed_trips)
+    assign_in_place(
+        trips_df,
+        processed_trips,
+        state.settings.downcast_int,
+        state.settings.downcast_float,
+    )
 
     trips_df = cleanup_failed_trips(trips_df)
 

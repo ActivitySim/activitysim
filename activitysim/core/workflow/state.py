@@ -437,7 +437,7 @@ class State:
         if cache_dir is not None:
             fs["cache_dir"] = cache_dir
         try:
-            self.filesystem: FileSystem = FileSystem.parse_obj(fs)
+            self.filesystem: FileSystem = FileSystem.model_validate(fs)
         except Exception as err:
             print(err)
             raise
@@ -485,7 +485,7 @@ class State:
                 logger.warning(f"settings file changes cache_dir to {cache_dir}")
                 self.filesystem.cache_dir = cache_dir
         settings_class = self.__class__.settings.member_type
-        self.settings: Settings = settings_class.parse_obj(raw_settings)
+        self.settings: Settings = settings_class.model_validate(raw_settings)
 
         extra_settings = set(self.settings.__dict__) - set(settings_class.__fields__)
 
@@ -1083,6 +1083,25 @@ class State:
                 new_df_columns = [c for c in df.columns if c not in table_df.columns]
                 df = df[new_df_columns]
                 missing_df_str_columns = []
+
+            # union categoricals
+            for c in table_df.columns:
+                if c in df.columns:
+                    if isinstance(table_df[c].dtype, pd.api.types.CategoricalDtype):
+                        if isinstance(df[c].dtype, pd.api.types.CategoricalDtype):
+                            from pandas.api.types import union_categoricals
+
+                            uc = union_categoricals([table_df[c], df[c]])
+                            table_df[c] = pd.Categorical(
+                                table_df[c], categories=uc.categories
+                            )
+                            df[c] = pd.Categorical(df[c], categories=uc.categories)
+                else:
+                    # when the existing categorical type has an empty string as a category,
+                    # we will use that as the missing value instead of NaN
+                    if isinstance(table_df[c].dtype, pd.api.types.CategoricalDtype):
+                        if "" in table_df[c].cat.categories:
+                            missing_df_str_columns.append(c)
 
             # preserve existing column order
             df = pd.concat([table_df, df], sort=False, axis=axis)

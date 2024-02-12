@@ -24,6 +24,10 @@ logger = logging.getLogger(__name__)
 def add_null_results(state, trace_label, tours):
     logger.info("Skipping %s: add_null_results" % trace_label)
     tours["composition"] = ""
+    cat_type = pd.api.types.CategoricalDtype(
+        ["", "adults", "children", "mixed"], ordered=False
+    )
+    tours["composition"] = tours["composition"].astype(cat_type)
     state.add_table("tours", tours)
 
 
@@ -123,6 +127,10 @@ def joint_tour_composition(
 
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
+    cat_type = pd.api.types.CategoricalDtype(
+        model_spec.columns.tolist() + [""], ordered=False
+    )
+    choices = choices.astype(cat_type)
 
     if estimator:
         estimator.write_choices(choices)
@@ -134,7 +142,7 @@ def joint_tour_composition(
     joint_tours["composition"] = choices
 
     # reindex since we ran model on a subset of households
-    tours["composition"] = choices.reindex(tours.index).fillna("").astype(str)
+    tours["composition"] = choices.reindex(tours.index).fillna("")
     state.add_table("tours", tours)
 
     tracing.print_summary(

@@ -208,7 +208,9 @@ def trip_mode_choice(
 
     choices_list = []
     cols_to_keep_list = []
-    for primary_purpose, trips_segment in trips_merged.groupby("primary_purpose"):
+    for primary_purpose, trips_segment in trips_merged.groupby(
+        "primary_purpose", observed=True
+    ):
         segment_trace_label = tracing.extend_trace_label(trace_label, primary_purpose)
 
         logger.info(
@@ -287,7 +289,12 @@ def trip_mode_choice(
             )
 
             # so we can trace with annotations
-            assign_in_place(trips_segment, choices)
+            assign_in_place(
+                trips_segment,
+                choices,
+                state.settings.downcast_int,
+                state.settings.downcast_float,
+            )
 
             state.tracing.trace_df(
                 trips_segment,
@@ -338,7 +345,9 @@ def trip_mode_choice(
         cols_to_keep_df = pd.concat(cols_to_keep_list)
         choices_df = pd.concat([choices_df, cols_to_keep_df], axis=1)
 
-    assign_in_place(trips_df, choices_df)
+    assign_in_place(
+        trips_df, choices_df, state.settings.downcast_int, state.settings.downcast_float
+    )
 
     if (
         state.is_table("school_escort_tours")

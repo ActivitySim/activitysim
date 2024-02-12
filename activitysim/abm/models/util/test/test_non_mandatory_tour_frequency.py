@@ -40,9 +40,22 @@ def test_nmtf():
         nmt.person_id, pd.Series([0, 2, 2, 3], index=idx, name="person_id")
     )
 
-    pdt.assert_series_equal(
-        nmt.tour_type,
-        pd.Series(
-            ["shopping", "escort", "escort", "othmaint"], index=idx, name="tour_type"
-        ),
-    )
+    # check if the tour_type variable is pandas categorical
+    if isinstance(nmt.tour_type.dtype, pd.api.types.CategoricalDtype):
+        pdt.assert_series_equal(
+            nmt.tour_type.astype(str),
+            pd.Series(
+                ["shopping", "escort", "escort", "othmaint"],
+                index=idx,
+                name="tour_type",
+            ),
+        )
+    else:
+        pdt.assert_series_equal(
+            nmt.tour_type,
+            pd.Series(
+                ["shopping", "escort", "escort", "othmaint"],
+                index=idx,
+                name="tour_type",
+            ),
+        )

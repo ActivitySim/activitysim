@@ -182,7 +182,7 @@ def determine_flavors_from_alts_file(
         flavors = {
             c: int(alts[c].max() + max_extension)
             for c in alts.columns
-            if all(alts[c].astype(str).str.isnumeric())
+            if all(alts[c].astype(str).str.isnumeric()) and (c != "tot_tours")
         }
         valid_flavors = all(
             [(isinstance(flavor, str) & (num >= 0)) for flavor, num in flavors.items()]
@@ -383,7 +383,7 @@ def set_tour_index(
     assert tour_num_col in tours.columns
 
     # create string tour_id corresonding to keys in possible_tours (e.g. 'work1', 'j_shopping2')
-    tours["tour_id"] = tours.tour_type + tours[tour_num_col].map(str)
+    tours["tour_id"] = tours.tour_type.astype(str) + tours[tour_num_col].map(str)
 
     if parent_tour_num_col:
         # we need to distinguish between subtours of different work tours

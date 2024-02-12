@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import logging
 import os
 import sys
 
@@ -67,10 +70,11 @@ def main():
                 sys.exit(workflows.main(sys.argv[2:]))
         else:
             sys.exit(asim.execute())
-    except Exception:
+    except Exception as err:
         # if we are in the debugger, re-raise the error instead of exiting
         if sys.gettrace() is not None:
             raise
+        logging.exception(err)
         sys.exit(99)
 
 

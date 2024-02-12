@@ -69,7 +69,7 @@ def test_csv_reader(seed_households, state):
     """
 
     settings = yaml.load(settings_yaml, Loader=yaml.SafeLoader)
-    settings = configuration.Settings.parse_obj(settings)
+    settings = configuration.Settings.model_validate(settings)
     state.settings = settings
 
     hh_file = state.filesystem.get_data_dir()[0].joinpath("households.csv")
@@ -94,7 +94,7 @@ def test_hdf_reader1(seed_households, state):
     """
 
     settings = yaml.load(settings_yaml, Loader=yaml.SafeLoader)
-    settings = configuration.Settings.parse_obj(settings)
+    settings = configuration.Settings.model_validate(settings)
     state.settings = settings
 
     hh_file = state.filesystem.get_data_dir()[0].joinpath("households.h5")
@@ -120,7 +120,7 @@ def test_hdf_reader2(seed_households, state):
     """
 
     settings = yaml.load(settings_yaml, Loader=yaml.SafeLoader)
-    settings = configuration.Settings.parse_obj(settings)
+    settings = configuration.Settings.model_validate(settings)
     state.settings = settings
 
     hh_file = state.filesystem.get_data_dir()[0].joinpath("households.h5")
@@ -145,7 +145,7 @@ def test_hdf_reader3(seed_households, state):
     """
 
     settings = yaml.load(settings_yaml, Loader=yaml.SafeLoader)
-    settings = configuration.Settings.parse_obj(settings)
+    settings = configuration.Settings.model_validate(settings)
     state.settings = settings
 
     hh_file = state.filesystem.get_data_dir()[0].joinpath("input_data.h5")
@@ -169,7 +169,7 @@ def test_missing_filename(seed_households, state):
     """
 
     settings = yaml.load(settings_yaml, Loader=yaml.SafeLoader)
-    settings = configuration.Settings.parse_obj(settings)
+    settings = configuration.Settings.model_validate(settings)
     state.settings = settings
 
     with pytest.raises(AssertionError) as excinfo:
@@ -191,7 +191,7 @@ def test_create_input_store(seed_households, state):
     """
 
     settings = yaml.load(settings_yaml, Loader=yaml.SafeLoader)
-    settings = configuration.Settings.parse_obj(settings)
+    settings = configuration.Settings.model_validate(settings)
     state.settings = settings
 
     hh_file = state.filesystem.get_data_dir()[0].joinpath("households.csv")

@@ -4,6 +4,7 @@ Description,Target,Expression
 # e.g. univ segment means there will be a spec called stop_frequency_univ.csv,,
 # so the 'school' tour_type can treat univ and non-univ school tours differently,,
 ,primary_purpose,"df.tour_type.where((df.tour_type != 'school') | ~df.is_university, 'univ')"
+# assigning category columns a new value can be problematic,,
 ,primary_purpose,"primary_purpose.where(df.tour_category!='atwork', 'atwork')"
 #,,
 ,distance_in_miles,od_skims['DIST']
@@ -45,3 +46,6 @@ AccesibilityADestination off-peak transit,_dest_trOpRetail,"reindex(accessibilit
 AccesibilityAtDestination if transit,pracc,"pracc.where(~tour_mode_is_transit, _dest_trPkRetail.where(_tour_starts_in_peak, _dest_trOpRetail))"
 AccesibilityAtDestination if non_motorized,pracc,"pracc.where(~tour_mode_is_non_motorized, reindex(accessibility.nmRetail, df.destination))"
 ,destination_area_type,"reindex(land_use.area_type, df.destination)"
+,is_mixed,df.composition=='mixed'
+,is_adults_tour,df.composition=='adults'
+,is_social,primary_purpose=='social'

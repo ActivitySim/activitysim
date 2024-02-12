@@ -244,7 +244,19 @@ def construct_model_alternatives(
             ), f"missing vehicle data for alternatives:\n {missing_alts}"
         else:
             # eliminate alternatives if no vehicle type data
+            num_alts_before_filer = len(alts_wide)
             alts_wide = alts_wide[alts_wide._merge != "left_only"]
+            logger.warning(
+                f"Removed {num_alts_before_filer - len(alts_wide)} alternatives not included in input vehicle type data."
+            )
+            # need to also remove any alts from alts_long
+            alts_long.set_index(["body_type", "age", "fuel_type"], inplace=True)
+            alts_long = alts_long[
+                alts_long.index.isin(
+                    alts_wide.set_index(["body_type", "age", "fuel_type"]).index
+                )
+            ].reset_index()
+            alts_long.index = alts_wide.index
         alts_wide.drop(columns="_merge", inplace=True)
 
     # converting age to integer to allow interactions in utilities
@@ -358,6 +370,8 @@ def iterate_vehicle_type_choice(
     else:
         vehicle_type_data = None
 
+    # initialize categorical type for vehicle_type
+    vehicle_type_cat = "category"
     # - Preparing alternatives
     # create alts on-the-fly as cartesian product of categorical values
     if alts_cats_dict:
@@ -365,11 +379,34 @@ def iterate_vehicle_type_choice(
         alts_wide, alts_long = construct_model_alternatives(
             state, model_settings, alts_cats_dict, vehicle_type_data
         )
+        # convert alternative names to categoricals
+        # body_type, fuel_type, vehicle_type
+        # age should be a int becuase it is used as a numeric value in utilities
+        body_type_cat = pd.api.types.CategoricalDtype(
+            alts_cats_dict["body_type"], ordered=False
+        )
+        fuel_type_cat = pd.api.types.CategoricalDtype(
+            alts_cats_dict["fuel_type"], ordered=False
+        )
+        vehicle_type_cat = pd.api.types.CategoricalDtype(
+            list(set(alts_wide["vehicle_type"])) + [""], ordered=False
+        )
+
+        alts_wide["body_type"] = alts_wide["body_type"].astype(body_type_cat)
+        alts_wide["fuel_type"] = alts_wide["fuel_type"].astype(fuel_type_cat)
+        alts_wide["vehicle_type"] = alts_wide["vehicle_type"].astype(vehicle_type_cat)
     else:
         alts_wide = alts_long = None
+        alts = model_spec.columns
+        vehicle_type_cat = pd.api.types.CategoricalDtype(
+            list(set(alts)) + [""], ordered=False
+        )
 
     # - preparing choosers for iterating
     vehicles_merged["already_owned_veh"] = ""
+    vehicles_merged["already_owned_veh"] = vehicles_merged["already_owned_veh"].astype(
+        vehicle_type_cat
+    )
     logger.info("Running %s with %d vehicles", trace_label, len(vehicles_merged))
     all_choosers = []
     all_choices = []
@@ -455,17 +492,20 @@ def iterate_vehicle_type_choice(
             alts = (
                 alts_long[alts_long.columns]
                 .apply(lambda row: "_".join(row.values.astype(str)), axis=1)
-                .values
+                .to_dict()
             )
         else:
-            alts = model_spec.columns
-        choices["vehicle_type"] = choices["vehicle_type"].map(dict(enumerate(alts)))
+            alts = enumerate(dict(model_spec.columns))
+        choices["vehicle_type"] = choices["vehicle_type"].map(alts)
 
         # STEP II: append probabilistic vehicle type attributes
         if probs_spec_file is not None:
             choices = append_probabilistic_vehtype_type_choices(
                 state, choices, model_settings, trace_label
             )
+
+        # convert vehicle_type to categorical
+        choices["vehicle_type"] = choices["vehicle_type"].astype(vehicle_type_cat)
 
         vehicles_merged.loc[choices.index, "already_owned_veh"] = choices[
             "vehicle_type"
@@ -481,6 +521,9 @@ def iterate_vehicle_type_choice(
     additional_cols = model_settings.COLS_TO_INCLUDE_IN_VEHICLE_TABLE
     if additional_cols:
         additional_cols.append("vehicle_type")
+        vehicle_type_data["vehicle_type"] = vehicle_type_data["vehicle_type"].astype(
+            vehicle_type_cat
+        )
         all_choices = (
             all_choices.reset_index()
             .merge(vehicle_type_data[additional_cols], how="left", on="vehicle_type")

@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Literal
 
+from pydantic import validator
+
 from activitysim.core.configuration.base import PydanticBase, Union
 
 
@@ -118,6 +120,11 @@ class OutputTables(PydanticBase):
 
     h5_store: bool = False
     """Write tables into a single HDF5 store instead of individual CSVs."""
+
+    file_type: Literal["csv", "parquet", "h5"] = "csv"
+    """
+    Specifies the file type for output tables. Options are limited to 'csv',
+    'h5' or 'parquet'. Only applied if h5_store is set to False."""
 
     action: str
     """Whether to 'include' or 'skip' the enumerated tables in `tables`."""
@@ -247,7 +254,7 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     multiprocess_steps: list[MultiprocessStep] = None
     """A list of multiprocess steps."""
 
-    resume_after: str = None
+    resume_after: str | None = None
     """to resume running the data pipeline after the last successful checkpoint"""
 
     input_table_list: list[InputTable] = None
@@ -269,14 +276,14 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
 
     If omitted or set to 0, ActivitySim will simulate all households.
     """
-    trace_hh_id: int = None
+    trace_hh_id: int | None = None
     """
     Trace this household id
 
     If omitted, no tracing is written out
     """
 
-    trace_od: tuple[int, int] = None
+    trace_od: tuple[int, int] | None = None
     """
     Trace origin, destination pair in accessibility calculation
 
@@ -284,7 +291,7 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     """
 
     chunk_training_mode: Literal[
-        "disabled", "training", "production", "adaptive"
+        "disabled", "training", "production", "adaptive", "explicit"
     ] = "disabled"
     """
     The method to use for chunk training.
@@ -633,6 +640,24 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     * "allow"
         Attempts to re-run a step are allowed, potentially overwriting
         the results from the previous time that step was run.
+    """
+
+    downcast_int: bool = False
+    """
+    automatically downcasting integer variables.
+
+    Use of this setting should be tested by the region to confirm result consistency.
+
+    .. versionadded:: 1.3
+    """
+
+    downcast_float: bool = False
+    """
+    automatically downcasting float variables.
+
+    Use of this setting should be tested by the region to confirm result consistency.
+
+    .. versionadded:: 1.3
     """
 
     other_settings: dict[str, Any] = None

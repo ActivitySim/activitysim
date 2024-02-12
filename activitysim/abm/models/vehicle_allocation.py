@@ -254,6 +254,7 @@ def vehicle_allocation(
         # creating a column for choice of each occupancy level
         tours_veh_occup_col = f"vehicle_occup_{occup}"
         tours[tours_veh_occup_col] = choices["choice"]
+        tours[tours_veh_occup_col] = tours[tours_veh_occup_col].astype("category")
         tours_veh_occup_cols.append(tours_veh_occup_col)
 
     if estimator:

@@ -62,7 +62,9 @@ def mandatory_tour_scheduling(
         tour_segment_col,
     )
 
-    assign_in_place(tours, choices)
+    assign_in_place(
+        tours, choices, state.settings.downcast_int, state.settings.downcast_float
+    )
     state.add_table("tours", tours)
 
     # updated df for tracing

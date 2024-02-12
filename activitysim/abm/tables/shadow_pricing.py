@@ -1233,7 +1233,7 @@ def load_shadow_price_calculator(
     spc : ShadowPriceCalculator
     """
     if not isinstance(model_settings, TourLocationComponentSettings):
-        model_settings = TourLocationComponentSettings.parse_obj(model_settings)
+        model_settings = TourLocationComponentSettings.model_validate(model_settings)
 
     num_processes = state.get_injectable("num_processes", 1)
 

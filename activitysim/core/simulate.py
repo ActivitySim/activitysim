@@ -467,7 +467,7 @@ def eval_nest_coefficients(
         coefficients = coefficients["value"].to_dict()
 
     if not isinstance(nest_spec, LogitNestSpec):
-        nest_spec = LogitNestSpec.parse_obj(nest_spec)
+        nest_spec = LogitNestSpec.model_validate(nest_spec)
 
     replace_coefficients(nest_spec)
 

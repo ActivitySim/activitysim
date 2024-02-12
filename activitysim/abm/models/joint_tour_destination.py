@@ -87,12 +87,22 @@ def joint_tour_destination(
 
     # add column as we want joint_tours table for tracing.
     joint_tours["destination"] = choices_df.choice
-    assign_in_place(tours, joint_tours[["destination"]])
+    assign_in_place(
+        tours,
+        joint_tours[["destination"]],
+        state.settings.downcast_int,
+        state.settings.downcast_float,
+    )
     state.add_table("tours", tours)
 
     if want_logsums:
         joint_tours[logsum_column_name] = choices_df["logsum"]
-        assign_in_place(tours, joint_tours[[logsum_column_name]])
+        assign_in_place(
+            tours,
+            joint_tours[[logsum_column_name]],
+            state.settings.downcast_int,
+            state.settings.downcast_float,
+        )
 
     tracing.print_summary("destination", joint_tours.destination, describe=True)
 

@@ -139,3 +139,43 @@ def assert_equal(x, y):
                 # pytest.approx() does not support nested data structures
                 for x_, y_ in zip(x, y):
                     assert x_ == pytest.approx(y_)
+
+
+def progressive_checkpoint_test(
+    state, ref_target: Path, expected_models: list[str], name: str = "unnamed-example"
+) -> None:
+    """
+    Compare the results of a pipeline to a reference pipeline.
+
+    Parameters
+    ----------
+    state : workflow.State
+    ref_target : Path
+        Location of the reference pipeline file.  If this file does not exist,
+        it will be created (and the test will fail).
+    expected_models : list[str]
+        List of model names to run and compare results against the reference
+        pipeline.
+    name : str, optional
+        Name of the test example used in logging, by default "unnamed-example"
+    """
+
+    for step_name in expected_models:
+        state.run.by_name(step_name)
+        if ref_target.exists():
+            try:
+                state.checkpoint.check_against(ref_target, checkpoint_name=step_name)
+            except Exception:
+                print(f"> {name} {step_name}: ERROR")
+                raise
+            else:
+                print(f"> {name} {step_name}: ok")
+        else:
+            print(f"> {name} {step_name}: regenerated")
+
+    # generate the reference pipeline if it did not exist
+    if not ref_target.exists():
+        state.checkpoint.store.make_zip_archive(ref_target)
+        raise RuntimeError(
+            f"Reference pipeline {ref_target} did not exist, so it was created."
+        )

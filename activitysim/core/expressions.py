@@ -171,7 +171,9 @@ def assign_columns(
 
     results = compute_columns(state, df, model_settings, locals_dict, trace_label)
 
-    assign_in_place(df, results)
+    assign_in_place(
+        df, results, state.settings.downcast_int, state.settings.downcast_float
+    )
 
 
 # ##################################################################################################
@@ -212,7 +214,9 @@ def annotate_preprocessors(
             trace_label=trace_label,
         )
 
-        assign_in_place(df, results)
+        assign_in_place(
+            df, results, state.settings.downcast_int, state.settings.downcast_float
+        )
 
 
 def filter_chooser_columns(choosers, chooser_columns):

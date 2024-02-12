@@ -69,9 +69,9 @@ def determine_escorting_participants(
     ]
 
     chaperones["chaperone_weight"] = (
-        (persontype_weight * chaperones[ptype_col])
-        + (gender_weight * np.where(chaperones[sex_col] == 1, 1, 2))
-        + (age_weight * np.where(chaperones[age_col] > 25, 1, 0))
+        (persontype_weight * chaperones[ptype_col].astype("int64"))
+        + (gender_weight * np.where(chaperones[sex_col].astype("int64") == 1, 1, 2))
+        + (age_weight * np.where(chaperones[age_col].astype("int64") > 25, 1, 0))
     )
 
     chaperones["chaperone_num"] = (
@@ -226,6 +226,14 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     )
     bundles["bundle_num"] = bundles.groupby("household_id").cumcount() + 1
 
+    # school escorting direction category
+    escort_direction_cat = pd.api.types.CategoricalDtype(
+        ["outbound", "inbound"], ordered=False
+    )
+    bundles["school_escort_direction"] = bundles["school_escort_direction"].astype(
+        escort_direction_cat
+    )
+
     # initialize values
     bundles["chauf_type_num"] = 0
 
@@ -291,9 +299,13 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     # odd chauf_type_num means ride share, even means pure escort
     # this comes from the way the alternatives file is constructed where chauf_id is
     # incremented for each possible chauffeur and for each tour type
+    escort_type_cat = pd.api.types.CategoricalDtype(
+        ["pure_escort", "ride_share"], ordered=False
+    )
     bundles["escort_type"] = np.where(
         bundles["chauf_type_num"].mod(2) == 1, "ride_share", "pure_escort"
     )
+    bundles["escort_type"] = bundles["escort_type"].astype(escort_type_cat)
 
     # This is just pulled from the pre-processor. Will break if removed or renamed in pre-processor
     # I think this is still a better implmentation than re-calculating here...
@@ -594,6 +606,13 @@ def school_escorting(
 
     school_escort_trips = school_escort_tours_trips.create_school_escort_trips(
         escort_bundles
+    )
+
+    school_escort_trips["primary_purpose"] = school_escort_trips[
+        "primary_purpose"
+    ].astype(state.get_dataframe("tours")["tour_type"].dtype)
+    school_escort_trips["purpose"] = school_escort_trips["purpose"].astype(
+        state.get_dataframe("tours")["tour_type"].dtype
     )
 
     # update pipeline

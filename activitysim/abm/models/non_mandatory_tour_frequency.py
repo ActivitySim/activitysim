@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -200,12 +201,24 @@ def non_mandatory_tour_frequency(
             model_settings_file_name,
         )
 
-    # FIXME kind of tacky both that we know to add this here and del it below
-    # 'tot_tours' is used in model_spec expressions
     alternatives = simulate.read_model_alts(
         state, "non_mandatory_tour_frequency_alternatives.csv", set_index=None
     )
-    alternatives["tot_tours"] = alternatives.sum(axis=1)
+    if "tot_tours" not in alternatives.columns:
+        # add a column for total tours
+        alternatives["tot_tours"] = alternatives.sum(axis=1)
+        warnings.warn(
+            "The 'tot_tours' column may not be automatically added in the future.",
+            FutureWarning,
+        )
+    else:
+        # tot_tours already exists, check if it is consistent with legacy behavior
+        if not (alternatives["tot_tours"] == alternatives.sum(axis=1)).all():
+            warnings.warn(
+                "The 'tot_tours' column in non_mandatory_tour_frequency_alternatives.csv "
+                "does not match the sum of the other columns.",
+                RuntimeWarning,
+            )
 
     # filter based on results of CDAP
     choosers = persons_merged
@@ -390,6 +403,14 @@ def non_mandatory_tour_frequency(
         state, persons, extended_tour_counts
     )
     assert len(non_mandatory_tours) == extended_tour_counts.sum().sum()
+
+    # convert purpose to pandas categoricals
+    purpose_type = pd.api.types.CategoricalDtype(
+        alternatives.columns.tolist(), ordered=False
+    )
+    non_mandatory_tours["tour_type"] = non_mandatory_tours["tour_type"].astype(
+        purpose_type
+    )
 
     if estimator:
         # make sure they created the right tours

@@ -77,11 +77,16 @@ def create_logsum_trips(
         Table of trips: 2 per tour, with O/D and purpose inherited from tour
     """
     stop_frequency_alts = state.get_injectable("stop_frequency_alts")
+    stop_freq_cat_type = pd.api.types.CategoricalDtype(
+        stop_frequency_alts.index.tolist() + [""], ordered=False
+    )
     stop_freq = "0out_0in"  # no intermediate stops
     tours["stop_frequency"] = stop_freq
+    tours["stop_frequency"] = tours["stop_frequency"].astype(stop_freq_cat_type)
     tours["primary_purpose"] = tours["tour_purpose"]
     trips = trip.initialize_from_tours(state, tours, stop_frequency_alts)
     trips["stop_frequency"] = stop_freq
+
     outbound = trips["outbound"]
     trips["depart"] = reindex(tours.start, trips.tour_id)
     trips.loc[~outbound, "depart"] = reindex(tours.end, trips.loc[~outbound, "tour_id"])
@@ -93,10 +98,12 @@ def create_logsum_trips(
         state, model_settings, segment_name, trace_label
     )
 
+    mode_cat_type = pd.api.types.CategoricalDtype(tour_mode_alts + [""], ordered=False)
     # repeat rows from the trips table iterating over tour mode
     logsum_trips = pd.DataFrame()
     for tour_mode in tour_mode_alts:
         trips["tour_mode"] = tour_mode
+        trips["tour_mode"] = trips["tour_mode"].astype(mode_cat_type)
         logsum_trips = pd.concat((logsum_trips, trips), ignore_index=True)
     assert len(logsum_trips) == len(trips) * len(tour_mode_alts)
     logsum_trips.index.name = "trip_id"
@@ -330,7 +337,7 @@ def tour_mode_choice_simulate(
 
     choices_list = []
     for tour_purpose, tours_segment in primary_tours_merged.groupby(
-        segment_column_name
+        segment_column_name, observed=True
     ):
         logger.info(
             "tour_mode_choice_simulate tour_type '%s' (%s tours)"
@@ -413,11 +420,21 @@ def tour_mode_choice_simulate(
     )
 
     # so we can trace with annotations
-    assign_in_place(primary_tours, choices_df)
+    assign_in_place(
+        primary_tours,
+        choices_df,
+        state.settings.downcast_int,
+        state.settings.downcast_float,
+    )
 
     # update tours table with mode choice (and optionally logsums)
     all_tours = tours
-    assign_in_place(all_tours, choices_df)
+    assign_in_place(
+        all_tours,
+        choices_df,
+        state.settings.downcast_int,
+        state.settings.downcast_float,
+    )
 
     if (
         state.is_table("school_escort_tours")

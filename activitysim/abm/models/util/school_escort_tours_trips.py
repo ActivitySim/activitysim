@@ -315,6 +315,14 @@ def add_pure_escort_tours(tours, school_escort_tours):
 def add_school_escorting_type_to_tours_table(escort_bundles, tours):
     school_tour = (tours.tour_type == "school") & (tours.tour_num == 1)
 
+    escort_type_cat = pd.api.types.CategoricalDtype(
+        ["pure_escort", "ride_share"], ordered=False
+    )
+    tours["school_esc_outbound"] = pd.NA
+    tours["school_esc_inbound"] = pd.NA
+    tours["school_esc_outbound"] = tours["school_esc_outbound"].astype(escort_type_cat)
+    tours["school_esc_inbound"] = tours["school_esc_inbound"].astype(escort_type_cat)
+
     for school_escort_direction in ["outbound", "inbound"]:
         for escort_type in ["ride_share", "pure_escort"]:
             bundles = escort_bundles[
@@ -438,6 +446,19 @@ def merge_school_escort_trips_into_pipeline(state: workflow.State):
     # for better merge with trips created in stop frequency
     school_escort_trips["failed"] = False
 
+    # make sure the pandas categorical columns share the same categories before cancat
+    # union categoricals
+    for c in trips.columns.intersection(school_escort_trips.columns):
+        if isinstance(trips[c].dtype, pd.api.types.CategoricalDtype):
+            if isinstance(school_escort_trips[c].dtype, pd.api.types.CategoricalDtype):
+                from pandas.api.types import union_categoricals
+
+                uc = union_categoricals([trips[c], school_escort_trips[c]])
+                trips[c] = pd.Categorical(trips[c], categories=uc.categories)
+                school_escort_trips[c] = pd.Categorical(
+                    school_escort_trips[c], categories=uc.categories
+                )
+
     trips = pd.concat(
         [
             trips,
@@ -465,6 +486,12 @@ def merge_school_escort_trips_into_pipeline(state: workflow.State):
     trips["outbound"] = trips["outbound"].astype(bool)
     trips["origin"] = trips["origin"].astype(int)
     trips["destination"] = trips["destination"].astype(int)
+
+    # converting to categoricals
+    trips["school_escort_direction"] = trips["school_escort_direction"].astype(
+        "category"
+    )
+    trips["escort_participants"] = trips["escort_participants"].astype("category")
 
     # updating trip_id now that we have all trips
     trips = canonical_ids.set_trip_index(state, trips)
@@ -526,6 +553,12 @@ def recompute_tour_count_statistics(state: workflow.State):
     tours["tour_num"] = grouped.cumcount() + 1
     tours["tour_count"] = tours["tour_num"] + grouped.cumcount(ascending=False)
 
+    # downcast
+    tours["tour_count"] = tours["tour_count"].astype("int8")
+    tours["tour_num"] = tours["tour_num"].astype("int8")
+    tours["tour_type_num"] = tours["tour_type_num"].astype("int8")
+    tours["tour_type_count"] = tours["tour_type_count"].astype("int8")
+
     state.add_table("tours", tours)
 
 
@@ -554,8 +587,16 @@ def create_pure_school_escort_tours(state: workflow.State, bundles):
     pe_tours["person_id"] = pe_tours["chauf_id"]
 
     pe_tours["tour_category"] = "non_mandatory"
+    # convert tour category to categorical
+    pe_tours["tour_category"] = pe_tours["tour_category"].astype(
+        state.get_dataframe("tours").tour_category.dtype
+    )
     pe_tours["number_of_participants"] = 1
     pe_tours["tour_type"] = "escort"
+    # convert tour type to categorical
+    pe_tours["tour_type"] = pe_tours["tour_type"].astype(
+        state.get_dataframe("tours").tour_type.dtype
+    )
     pe_tours["school_esc_outbound"] = np.where(
         pe_tours["school_escort_direction"] == "outbound", "pure_escort", pd.NA
     )

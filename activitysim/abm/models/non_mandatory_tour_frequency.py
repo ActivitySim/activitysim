@@ -404,6 +404,14 @@ def non_mandatory_tour_frequency(
     )
     assert len(non_mandatory_tours) == extended_tour_counts.sum().sum()
 
+    # convert purpose to pandas categoricals
+    purpose_type = pd.api.types.CategoricalDtype(
+        alternatives.columns.tolist(), ordered=False
+    )
+    non_mandatory_tours["tour_type"] = non_mandatory_tours["tour_type"].astype(
+        purpose_type
+    )
+
     if estimator:
         # make sure they created the right tours
         survey_tours = estimation.manager.get_survey_table("tours").sort_index()

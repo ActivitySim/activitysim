@@ -101,12 +101,23 @@ def create_tours(tour_counts, tour_category, parent_col="person_id"):
     # do not enforce this here, other categories are possible
     # assert tour_category in ["mandatory", "non_mandatory", "atwork", "joint"]
     tours["tour_category"] = tour_category
+    cat_tour_category = pd.api.types.CategoricalDtype(
+        ["mandatory", "joint", "non_mandatory", "atwork"], ordered=False
+    )
+    tours["tour_category"] = tours["tour_category"].astype(cat_tour_category)
 
     # for joint tours, the correct number will be filled in after participation step
     tours["number_of_participants"] = 1
 
     # index is arbitrary but don't want any duplicates in index
     tours.reset_index(drop=True, inplace=True)
+
+    # downcast
+    tours["tour_count"] = tours["tour_count"].astype("int8")
+    tours["tour_num"] = tours["tour_num"].astype("int8")
+    tours["tour_type_num"] = tours["tour_type_num"].astype("int8")
+    tours["tour_type_count"] = tours["tour_type_count"].astype("int8")
+    tours["number_of_participants"] = tours["number_of_participants"].astype("int8")
 
     return tours
 
@@ -718,6 +729,10 @@ def create_joint_tours(
     tours_comp.columns = [parent_col, "tour_id_temp", "composition"]
     tours_comp["tour_id_temp"] = range(1, 1 + len(tours_comp))
     tours_comp["composition"] = tours_comp["composition"].map(tour_comp_dict)
+    cat_tour_comp = pd.api.types.CategoricalDtype(
+        ["adults", "children", "mixed"], ordered=False
+    )
+    tours_comp["composition"] = tours_comp["composition"].astype(cat_tour_comp)
 
     """
         <parent_col> tour_id_temp  tour_composition
@@ -759,11 +774,22 @@ def create_joint_tours(
     # set these here to ensure consistency across different tour categories
     assert tour_category in ["mandatory", "non_mandatory", "atwork", "joint"]
     tours["tour_category"] = tour_category
+    cat_tour_category = pd.api.types.CategoricalDtype(
+        ["mandatory", "joint", "non_mandatory", "atwork"], ordered=False
+    )
+    tours["tour_category"] = tours["tour_category"].astype(cat_tour_category)
 
     # for joint tours, the correct number will be filled in after participation step
     tours["number_of_participants"] = 1
 
     # index is arbitrary but don't want any duplicates in index
     tours.reset_index(drop=True, inplace=True)
+
+    # downcast
+    tours["tour_count"] = tours["tour_count"].astype("int8")
+    tours["tour_num"] = tours["tour_num"].astype("int8")
+    tours["tour_type_num"] = tours["tour_type_num"].astype("int8")
+    tours["tour_type_count"] = tours["tour_type_count"].astype("int8")
+    tours["number_of_participants"] = tours["number_of_participants"].astype("int8")
 
     return tours

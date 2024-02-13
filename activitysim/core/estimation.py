@@ -701,6 +701,23 @@ class EstimationManager(object):
 
             values[c] = survey_values
 
+            # if the categorical column exists in the model data, use the same data type
+            if isinstance(model_values, pd.Series):
+                if isinstance(model_values.dtype, pd.api.types.CategoricalDtype):
+                    for v in values[c].dropna().unique():
+                        if not v in model_values.cat.categories:
+                            model_values = model_values.cat.add_categories([v])
+                    values[c] = values[c].astype(model_values.dtype)
+            elif isinstance(model_values, pd.DataFrame):
+                if c in model_values.columns:
+                    if isinstance(model_values[c].dtype, pd.api.types.CategoricalDtype):
+                        for v in values[c].dropna().unique():
+                            if not v in model_values[c].cat.categories:
+                                model_values[c] = model_values[c].cat.add_categories(
+                                    [v]
+                                )
+                        values[c] = values[c].astype(model_values[c].dtype)
+
         return values[column_name] if column_name else values
 
 

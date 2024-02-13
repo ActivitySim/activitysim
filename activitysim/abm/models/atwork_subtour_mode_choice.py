@@ -190,7 +190,9 @@ def atwork_subtour_mode_choice(
         "%s choices" % trace_label, choices_df[mode_column_name], value_counts=True
     )
 
-    assign_in_place(tours, choices_df)
+    assign_in_place(
+        tours, choices_df, state.settings.downcast_int, state.settings.downcast_float
+    )
     state.add_table("tours", tours)
 
     # - annotate tours table

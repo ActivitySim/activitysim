@@ -111,7 +111,9 @@ def atwork_subtour_scheduling(
         choices.to_frame("tdd"), tdd_alts, left_on=["tdd"], right_index=True, how="left"
     )
 
-    assign_in_place(tours, tdd_choices)
+    assign_in_place(
+        tours, tdd_choices, state.settings.downcast_int, state.settings.downcast_float
+    )
     state.add_table("tours", tours)
 
     if trace_hh_id:

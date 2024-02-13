@@ -1084,6 +1084,25 @@ class State:
                 df = df[new_df_columns]
                 missing_df_str_columns = []
 
+            # union categoricals
+            for c in table_df.columns:
+                if c in df.columns:
+                    if isinstance(table_df[c].dtype, pd.api.types.CategoricalDtype):
+                        if isinstance(df[c].dtype, pd.api.types.CategoricalDtype):
+                            from pandas.api.types import union_categoricals
+
+                            uc = union_categoricals([table_df[c], df[c]])
+                            table_df[c] = pd.Categorical(
+                                table_df[c], categories=uc.categories
+                            )
+                            df[c] = pd.Categorical(df[c], categories=uc.categories)
+                else:
+                    # when the existing categorical type has an empty string as a category,
+                    # we will use that as the missing value instead of NaN
+                    if isinstance(table_df[c].dtype, pd.api.types.CategoricalDtype):
+                        if "" in table_df[c].cat.categories:
+                            missing_df_str_columns.append(c)
+
             # preserve existing column order
             df = pd.concat([table_df, df], sort=False, axis=axis)
 

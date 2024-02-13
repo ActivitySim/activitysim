@@ -6,11 +6,12 @@ import argparse
 import collections
 import itertools
 import logging
+import numbers
 import os
 from collections.abc import Iterable
 from operator import itemgetter
 from pathlib import Path
-from typing import TypeVar
+from typing import Optional, TypeVar
 
 import cytoolz as tz
 import cytoolz.curried
@@ -313,7 +314,7 @@ def quick_loc_series(loc_list, target_series):
     return df.right
 
 
-def assign_in_place(df, df2):
+def assign_in_place(df, df2, downcast_int=False, downcast_float=False):
     """
     update existing row values in df from df2, adding columns to df if they are not there
 
@@ -323,6 +324,10 @@ def assign_in_place(df, df2):
         assignment left-hand-side (dest)
     df2: pd.DataFrame
         assignment right-hand-side (source)
+    downcast_int: bool
+        if True, downcast int columns if possible
+    downcast_float: bool
+        if True, downcast float columns if possible
     Returns
     -------
 
@@ -351,6 +356,9 @@ def assign_in_place(df, df2):
                         % (old_dtype, c, df[c].dtype)
                     )
 
+            if isinstance(old_dtype, pd.api.types.CategoricalDtype):
+                continue
+
             # if both df and df2 column were ints, but result is not
             if (
                 np.issubdtype(old_dtype, np.integer)
@@ -369,6 +377,77 @@ def assign_in_place(df, df2):
     new_columns = [c for c in df2.columns if c not in df.columns]
 
     df[new_columns] = df2[new_columns]
+
+    for c in new_columns:
+        if pd.api.types.is_object_dtype(df[c]):
+            df[c] = df[c].astype("category")
+
+    auto_opt_pd_dtypes(df, downcast_int, downcast_float, inplace=True)
+
+
+def auto_opt_pd_dtypes(
+    df_: pd.DataFrame, downcast_int=False, downcast_float=False, inplace=False
+) -> Optional[pd.DataFrame]:
+    """
+    Automatically downcast Number dtypes for minimal possible,
+    will not touch other (datetime, str, object, etc)
+
+    Parameters
+    ----------
+    df_ : pd.DataFrame
+        assignment left-hand-side (dest)
+    downcast_int: bool
+        if True, downcast int columns if possible
+    downcast_float: bool
+        if True, downcast float columns if possible
+    inplace: bool
+        if False, will return a copy of input dataset
+
+    Returns
+    -------
+        `None` if `inplace=True` or dataframe if `inplace=False`
+
+    """
+    df = df_ if inplace else df_.copy()
+
+    for col in df.columns:
+        dtype = df[col].dtype
+        # Skip optimizing floats for precision concerns
+        if pd.api.types.is_float_dtype(dtype):
+            if not downcast_float:
+                continue
+            else:
+                # there is a bug in pandas to_numeric
+                # when convert int and floats gt 16777216
+                # https://github.com/pandas-dev/pandas/issues/43693
+                # https://github.com/pandas-dev/pandas/issues/23676#issuecomment-438488603
+                if df[col].max() >= 16777216:
+                    continue
+                else:
+                    df[col] = pd.to_numeric(df[col], downcast="float")
+        # Skip if the column is already categorical
+        if pd.api.types.is_categorical_dtype(dtype):
+            continue
+        # Handle integer types
+        if pd.api.types.is_integer_dtype(dtype):
+            if not downcast_int:
+                continue
+            # there is a bug in pandas to_numeric
+            # when convert int and floats gt 16777216
+            # https://github.com/pandas-dev/pandas/issues/43693
+            # https://github.com/pandas-dev/pandas/issues/23676#issuecomment-438488603
+            if df[col].max() >= 16777216:
+                continue
+            else:
+                df[col] = pd.to_numeric(df[col], downcast="integer")
+                continue
+            # Initially thought of using unsigned integers, BUT:
+            # There are calculations in asim (e.g., UECs) that expect results in negative values,
+            # and operations on two unsigned types will not produce negative values,
+            # therefore, we did not use unsigned integers.
+
+    if not inplace:
+        return df
 
 
 def reindex_if_series(values, index):

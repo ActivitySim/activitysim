@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections import OrderedDict
 from pathlib import Path
 from typing import Any
 
@@ -189,13 +190,18 @@ def _compute_logsums(
 
         if preprocessor_settings:
             simulate.set_skim_wrapper_targets(choosers, skims)
-
+            logger.info(
+                f"{trace_label} start preprocessing prior to compute_logsums for {choosers.shape[0]} choosers {alt_tdd.shape[0]} alts"
+            )
             expressions.assign_columns(
                 state,
                 df=choosers,
                 model_settings=preprocessor_settings,
                 locals_dict=locals_dict,
                 trace_label=trace_label,
+            )
+            logger.info(
+                f"{trace_label} end preprocessing prior to compute_logsums for {choosers.shape[0]} choosers {alt_tdd.shape[0]} alts"
             )
 
         # - compute logsums
@@ -239,6 +245,10 @@ def dedupe_alt_tdd(state: workflow.State, alt_tdd, tour_purpose, trace_label):
         state, tracing.extend_trace_label(trace_label, "dedupe_alt_tdd")
     ) as chunk_sizer:
         if tdd_segments is not None:
+            tdd_segments["time_period"] = tdd_segments["time_period"].astype(
+                alt_tdd["out_period"].dtype
+            )
+
             dedupe_columns = ["out_period", "in_period"]
 
             # tdd_alt_segments is optionally segmented by tour purpose

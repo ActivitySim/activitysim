@@ -84,7 +84,12 @@ def cleanup_failed_trips(trips):
             ascending=False
         )
 
-        assign_in_place(trips, patch_trips[["trip_num", "trip_count"]])
+        assign_in_place(
+            trips,
+            patch_trips[["trip_num", "trip_count"]],
+            state.settings.downcast_int,
+            state.settings.downcast_float,
+        )
 
         # origin needs to match the previous destination
         # (leaving first origin alone as it's already set correctly)
@@ -171,6 +176,7 @@ def initialize_from_tours(
     """
 
     OUTBOUND_ALT = "out"
+    direction_cat_type = pd.api.types.CategoricalDtype(["out", "in"], ordered=False)
     assert OUTBOUND_ALT in stop_frequency_alts.columns
 
     # get the actual alternatives for each person - have to go back to the

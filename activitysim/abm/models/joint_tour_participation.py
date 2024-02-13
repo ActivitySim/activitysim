@@ -92,7 +92,7 @@ def get_tour_satisfaction(candidates, participate):
 
         x = (
             candidates[cols]
-            .groupby(["tour_id", "composition"])
+            .groupby(["tour_id", "composition"], observed=True)
             .agg(
                 participants=("adult", "size"),
                 adults=("adult", "sum"),
@@ -475,7 +475,12 @@ def joint_tour_participation(
     # update number_of_participants which was initialized to 1
     joint_tours["number_of_participants"] = participants.groupby("tour_id").size()
 
-    assign_in_place(tours, joint_tours[["person_id", "number_of_participants"]])
+    assign_in_place(
+        tours,
+        joint_tours[["person_id", "number_of_participants"]],
+        state.settings.downcast_int,
+        state.settings.downcast_float,
+    )
 
     state.add_table("tours", tours)
 

@@ -1,6 +1,6 @@
 Description,Target,Expression
 total household distance to work,total_hh_dist_to_work,persons.groupby('household_id')['distance_to_work'].sum().reindex(df.household_id).fillna(0)
-total household distance to work capped at 100 mi per worker,total_hh_dist_to_work_cap,"np.where(total_hh_dist_to_work > (100*df.num_workers.values), 100*df.num_workers.values, total_hh_dist_to_work)"
+total household distance to work capped at 100 mi per worker,total_hh_dist_to_work_cap,"np.where(total_hh_dist_to_work > (100*df.num_workers.astype('int64').values), 100*df.num_workers.astype('int64').values, total_hh_dist_to_work)"
 average household distance to work,avg_hh_dist_to_work,persons.groupby('household_id')['distance_to_work'].mean().reindex(df.household_id).fillna(0)
 household density per square mile,hh_per_mi,(df.TOTHH.values / df.TOTACRE.values) * 640
 number of vehicles is greater than the number of drivers,hh_veh_gt_drivers,"np.where(df.auto_ownership > df.num_drivers, 1, 0)"

@@ -118,7 +118,7 @@ class PreprocessorSettings(PydanticBase):
     The preprocessor will emit rows to a temporary table that match the rows
     in this table from the pipeline."""
 
-    TABLES: list[str] | None
+    TABLES: list[str] | None = None
     """Names of the additional tables to be merged for the preprocessor.
 
     Data from these tables will be merged into the primary table, according

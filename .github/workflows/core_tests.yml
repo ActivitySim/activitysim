@@ -49,7 +49,7 @@ jobs:
           mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
           mamba install --yes \
           	"psutil=5.9.5" \
-          	"pydantic=1.10.13" \
+          	"pydantic=2.6.1" \
           	"pypyr=5.8.0" \
           	"pytables=3.6.1" \
           	"pytest-cov" \
@@ -149,7 +149,7 @@ jobs:
           mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
           mamba install --yes \
           	"psutil=5.9.5" \
-          	"pydantic=1.10.13" \
+          	"pydantic=2.6.1" \
           	"pypyr=5.8.0" \
           	"pytables=3.6.1" \
           	"pytest-cov" \
@@ -247,7 +247,7 @@ jobs:
           mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
           mamba install --yes \
           	"psutil=5.9.5" \
-          	"pydantic=1.10.13" \
+          	"pydantic=2.6.1" \
           	"pypyr=5.8.0" \
           	"pytables=3.6.1" \
           	"pytest-cov" \
@@ -344,7 +344,7 @@ jobs:
           mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
           mamba install --yes \
           	"psutil=5.9.5" \
-          	"pydantic=1.10.13" \
+          	"pydantic=2.6.1" \
           	"pypyr=5.8.0" \
           	"pytables=3.6.1" \
           	"pytest-cov" \
@@ -411,7 +411,7 @@ jobs:
           mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
           mamba install --yes \
           	"psutil=5.9.5" \
-          	"pydantic=1.10.13" \
+          	"pydantic=2.6.1" \
           	"pypyr=5.8.0" \
           	"pytables=3.6.1" \
           	"pytest-cov" \
@@ -477,7 +477,7 @@ jobs:
           mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
           mamba install --yes \
           	"psutil=5.9.5" \
-          	"pydantic=1.10.13" \
+          	"pydantic=2.6.1" \
           	"pypyr=5.8.0" \
           	"pytables=3.6.1" \
           	"pytest-cov" \

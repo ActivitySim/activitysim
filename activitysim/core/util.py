@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 
 def si_units(x, kind="B", digits=3, shift=1000):
-
     #       nano micro milli    kilo mega giga tera peta exa  zeta yotta
     tiers = ["n", "µ", "m", "", "K", "M", "G", "T", "P", "E", "Z", "Y"]
 
@@ -347,7 +346,6 @@ def assign_in_place(df, df2, downcast_int=False, downcast_float=False):
         # this is a hack fix for a bug in pandas.update
         # github.com/pydata/pandas/issues/4094
         for c, old_dtype in zip(common_columns, old_dtypes):
-
             # if both df and df2 column were same type, but result is not
             if (old_dtype == df2[c].dtype) and (df[c].dtype != old_dtype):
                 try:
@@ -452,7 +450,20 @@ def auto_opt_pd_dtypes(
         return df
 
 
+def reindex_if_series(values, index):
+    if index is not None:
+        return values
+
+    if isinstance(values, pd.Series):
+        assert len(set(values.index).intersection(index)) == len(index)
+
+        if all(values.index != index):
+            return values.reindex(index=index)
+
+
 def df_from_dict(values, index=None):
+    # If value object is a series and has out of order index, reindex it
+    values = {k: reindex_if_series(v, index) for k, v in values.items()}
 
     df = pd.DataFrame.from_dict(values)
     if index is not None:
@@ -522,7 +533,7 @@ def suffix_tables_in_settings(
         model_settings = recursive_replace(model_settings, k, suffix + k)
 
     if model_settings_type is not None:
-        model_settings = model_settings_type.parse_obj(model_settings)
+        model_settings = model_settings_type.model_validate(model_settings)
 
     return model_settings
 

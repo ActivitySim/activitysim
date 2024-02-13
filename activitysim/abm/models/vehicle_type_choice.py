@@ -244,8 +244,19 @@ def construct_model_alternatives(
             ), f"missing vehicle data for alternatives:\n {missing_alts}"
         else:
             # eliminate alternatives if no vehicle type data
-            # if this happens, alts_wide is not the same length as alts_long
+            num_alts_before_filer = len(alts_wide)
             alts_wide = alts_wide[alts_wide._merge != "left_only"]
+            logger.warning(
+                f"Removed {num_alts_before_filer - len(alts_wide)} alternatives not included in input vehicle type data."
+            )
+            # need to also remove any alts from alts_long
+            alts_long.set_index(["body_type", "age", "fuel_type"], inplace=True)
+            alts_long = alts_long[
+                alts_long.index.isin(
+                    alts_wide.set_index(["body_type", "age", "fuel_type"]).index
+                )
+            ].reset_index()
+            alts_long.index = alts_wide.index
         alts_wide.drop(columns="_merge", inplace=True)
 
     # converting age to integer to allow interactions in utilities
@@ -481,11 +492,11 @@ def iterate_vehicle_type_choice(
             alts = (
                 alts_long[alts_long.columns]
                 .apply(lambda row: "_".join(row.values.astype(str)), axis=1)
-                .values
+                .to_dict()
             )
         else:
-            alts = model_spec.columns
-        choices["vehicle_type"] = choices["vehicle_type"].map(dict(enumerate(alts)))
+            alts = enumerate(dict(model_spec.columns))
+        choices["vehicle_type"] = choices["vehicle_type"].map(alts)
 
         # STEP II: append probabilistic vehicle type attributes
         if probs_spec_file is not None:

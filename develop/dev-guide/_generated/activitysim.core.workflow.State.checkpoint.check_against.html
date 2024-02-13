@@ -62,7 +62,7 @@
     <link rel="prev" title="State.checkpoint.restore_from" href="activitysim.core.workflow.State.checkpoint.restore_from.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Feb 09, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 13, 2024"/>
   </head>
   
   
@@ -439,13 +439,18 @@ document.write(`
 <h1>State.checkpoint.check_against<a class="headerlink" href="#state-checkpoint-check-against" title="Permalink to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.workflow.State.checkpoint.check_against">
-<span class="sig-prename descclassname"><span class="pre">State.checkpoint.</span></span><span class="sig-name descname"><span class="pre">check_against</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.12)"><span class="pre">Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.workflow.State.checkpoint.check_against" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">State.checkpoint.</span></span><span class="sig-name descname"><span class="pre">check_against</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.12)"><span class="pre">Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_categoricals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.workflow.State.checkpoint.check_against" title="Permalink to this definition">#</a></dt>
 <dd><p>Check that the tables in this State match those in an archived pipeline.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>location</strong><span class="classifier">Path-like</span></dt><dd></dd>
 <dt><strong>checkpoint_name</strong><span class="classifier">str</span></dt><dd></dd>
+<dt><strong>strict_categoricals</strong><span class="classifier">bool, default False</span></dt><dd><p>If True, check that categorical columns have the same categories
+in both the current state and the checkpoint.  Otherwise, the dtypes
+of categorical columns are ignored, and only the values themselves are
+checked to confirm they match.</p>
+</dd>
 </dl>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -529,7 +534,7 @@ document.write(`
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev557+ga2ad2a16, documentation last updated Feb 09, 2024.<br/>
+ActivitySim 1.2.3.dev608+g1f42cd36, documentation last updated Feb 13, 2024.<br/>
 </p></div>
       
         <div class="footer-item">

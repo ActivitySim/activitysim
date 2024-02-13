@@ -60,7 +60,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Feb 09, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 13, 2024"/>
   </head>
   
   
@@ -394,6 +394,8 @@ the model.</p>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_initial_rows_per_chunk</span> <span class="pre">(int)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">disable_destination_sampling</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">disable_zarr</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">downcast_float</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">downcast_int</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">duplicate_step_execution</span> <span class="pre">(Literal['error',</span> <span class="pre">'allow'])</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fail_fast</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">hh_ids</span> <span class="pre">(pathlib.Path)</span></code></p></li>
@@ -587,6 +589,26 @@ and data is found there.  If no data is found there, then original OMX skim
 data is loaded, any transformations or encodings are applied, and then this
 data is written out to a zarr file at that location.  Setting this option to
 True will disable the use of zarr.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.downcast_float">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">downcast_float</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.downcast_float" title="Permalink to this definition">#</a></dt>
+<dd><p>automatically downcasting float variables.</p>
+<p>Use of this setting should be tested by the region to confirm result consistency.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.3.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.downcast_int">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">downcast_int</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.downcast_int" title="Permalink to this definition">#</a></dt>
+<dd><p>automatically downcasting integer variables.</p>
+<p>Use of this setting should be tested by the region to confirm result consistency.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.3.</span></p>
+</div>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
@@ -975,7 +997,7 @@ recoding).</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev557+ga2ad2a16, documentation last updated Feb 09, 2024.<br/>
+ActivitySim 1.2.3.dev608+g1f42cd36, documentation last updated Feb 13, 2024.<br/>
 </p></div>
       
         <div class="footer-item">

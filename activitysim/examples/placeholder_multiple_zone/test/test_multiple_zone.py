@@ -1,20 +1,17 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 import pandas as pd
-import pandas.testing as pdt
 import pkg_resources
 import pytest
 
-from activitysim.core import inject
-
-
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
+from activitysim.core import test, workflow
 
 
 def example_path(dirname):
@@ -57,7 +54,9 @@ def run_test(zone, multiprocess=False):
             test_path(f"regress/final_tours_{zone}_zone_last_run.csv"), index=False
         )
         print("regress tours")
-        pdt.assert_frame_equal(tours_df, regress_tours_df, rtol=1e-03)
+        test.assert_frame_substantively_equal(
+            tours_df, regress_tours_df, rtol=1e-03, check_dtype=False
+        )
 
         # regress trips
         regress_trips_df = pd.read_csv(
@@ -68,7 +67,9 @@ def run_test(zone, multiprocess=False):
             test_path(f"regress/final_trips_{zone}_zone_last_run.csv"), index=False
         )
         print("regress trips")
-        pdt.assert_frame_equal(trips_df, regress_trips_df, rtol=1e-03)
+        test.assert_frame_substantively_equal(
+            trips_df, regress_trips_df, rtol=1e-03, check_dtype=False
+        )
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
 
@@ -114,6 +115,93 @@ def test_3_zone(data):
 
 def test_3_zone_mp(data):
     run_test(zone="3", multiprocess=True)
+
+
+EXPECTED_MODELS = [
+    "initialize_landuse",
+    "initialize_households",
+    "compute_accessibility",
+    "school_location",
+    "workplace_location",
+    "auto_ownership_simulate",
+    "free_parking",
+    "cdap_simulate",
+    "mandatory_tour_frequency",
+    "mandatory_tour_scheduling",
+    "joint_tour_frequency",
+    "joint_tour_composition",
+    "joint_tour_participation",
+    "joint_tour_destination",
+    "joint_tour_scheduling",
+    "non_mandatory_tour_frequency",
+    "non_mandatory_tour_destination",
+    "non_mandatory_tour_scheduling",
+    "tour_mode_choice_simulate",
+    "atwork_subtour_frequency",
+    "atwork_subtour_destination",
+    "atwork_subtour_scheduling",
+    "atwork_subtour_mode_choice",
+    "stop_frequency",
+    "trip_purpose",
+    "trip_destination",
+    "trip_purpose_and_destination",
+    "trip_scheduling",
+    "trip_mode_choice",
+    "write_data_dictionary",
+    "track_skim_usage",
+    "write_trip_matrices",
+    "write_tables",
+    "summarize",
+]
+
+
+@test.run_if_exists("reference_pipeline_2_zone.zip")
+def test_multizone_progressive(zone="2"):
+
+    zone = str(zone)
+
+    import activitysim.abm  # register components
+
+    def test_path(dirname):
+        return os.path.join(os.path.dirname(__file__), dirname)
+
+    if zone == "3":
+        settings_file_name = "settings_static.yaml"
+    else:
+        settings_file_name = "settings.yaml"
+
+    state = workflow.State.make_default(
+        configs_dir=(
+            test_path(f"configs_{zone}_zone"),
+            example_path(f"configs_{zone}_zone"),
+            mtc_example_path("configs"),
+        ),
+        data_dir=(example_path(f"data_{zone}"),),
+        output_dir=test_path("output"),
+        settings_file_name=settings_file_name,
+    )
+
+    assert state.settings.models == EXPECTED_MODELS
+    assert state.settings.chunk_size == 0
+    assert state.settings.sharrow == False
+
+    state.settings.trace_hh_id = 1099626
+    state.tracing.validation_directory = (
+        Path(__file__).parent / "reference_trace_2_zone"
+    )
+
+    for step_name in EXPECTED_MODELS:
+        state.run.by_name(step_name)
+        try:
+            state.checkpoint.check_against(
+                Path(__file__).parent.joinpath("reference_pipeline_2_zone.zip"),
+                checkpoint_name=step_name,
+            )
+        except Exception:
+            print(f"> {zone} zone {step_name}: ERROR")
+            raise
+        else:
+            print(f"> {zone} zone {step_name}: ok")
 
 
 if __name__ == "__main__":

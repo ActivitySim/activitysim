@@ -73,6 +73,7 @@ def setup_cache():
 
 
 template_component_timings_mp(
+    state,
     globals(),
     COMPONENT_NAMES,
     EXAMPLE_NAME,

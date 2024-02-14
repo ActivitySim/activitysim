@@ -1,25 +1,28 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate
+from activitysim.abm.models.util.tour_scheduling import run_tour_scheduling
 from activitysim.core import timetable as tt
-from activitysim.core import tracing
+from activitysim.core import tracing, workflow
 from activitysim.core.util import assign_in_place, reindex
-
-from .util import estimation
-from .util import vectorize_tour_scheduling as vts
-from .util.tour_scheduling import run_tour_scheduling
 
 logger = logging.getLogger(__name__)
 
 DUMP = False
 
 
-@inject.step()
-def mandatory_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_id):
+@workflow.step
+def mandatory_tour_scheduling(
+    state: workflow.State,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    tdd_alts: pd.DataFrame,
+) -> None:
     """
     This model predicts the departure time and duration of each activity for mandatory tours
     """
@@ -27,9 +30,6 @@ def mandatory_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace
     model_name = "mandatory_tour_scheduling"
     trace_label = model_name
 
-    persons_merged = persons_merged.to_frame()
-
-    tours = tours.to_frame()
     mandatory_tours = tours[tours.tour_category == "mandatory"]
 
     # - if no mandatory_tours
@@ -54,30 +54,31 @@ def mandatory_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace
     )
 
     choices = run_tour_scheduling(
+        state,
         model_name,
         mandatory_tours,
         persons_merged,
         tdd_alts,
         tour_segment_col,
-        chunk_size,
-        trace_hh_id,
     )
 
-    assign_in_place(tours, choices)
-    pipeline.replace_table("tours", tours)
+    assign_in_place(
+        tours, choices, state.settings.downcast_int, state.settings.downcast_float
+    )
+    state.add_table("tours", tours)
 
     # updated df for tracing
     mandatory_tours = tours[tours.tour_category == "mandatory"]
 
-    tracing.dump_df(
+    state.tracing.dump_df(
         DUMP,
         tt.tour_map(persons_merged, mandatory_tours, tdd_alts),
         trace_label,
         "tour_map",
     )
 
-    if trace_hh_id:
-        tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             mandatory_tours,
             label=trace_label,
             slicer="person_id",

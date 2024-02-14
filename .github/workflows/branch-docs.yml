@@ -1,13 +1,15 @@
 name: ActivitySim Branch Docs
 # This workflow is provided as a service for forks to build branch-specific documentation.
 
-on: push
+on:
+  - push
+  - workflow_dispatch
 
 jobs:
   docbuild:
     if: "contains(github.event.head_commit.message, '[makedocs]') && (github.repository_owner != 'ActivitySim') && (github.ref_name != 'develop')"
     # develop branch docs are built at the end of the core test workflow, regardless of repository owner or commit message flags
-    name: ubuntu-latest py3.9
+    name: ubuntu-latest py3.10
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -16,24 +18,35 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # get all tags, lets setuptools_scm do its thing
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-      - name: Install dependencies
+
+      - name: Setup Mambaforge
         uses: conda-incubator/setup-miniconda@v2
         with:
           miniforge-variant: Mambaforge
           miniforge-version: latest
           use-mamba: true
-          environment-file: conda-environments/docbuild.yml
-          python-version: 3.9
+          python-version: "3.10"
           activate-environment: docbuild
           auto-activate-base: false
           auto-update-conda: false
+
+      - name: Set cache date for year and month
+        run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        with:
+          path: /usr/share/miniconda3/envs/docbuild
+          key: linux-64-conda-${{ hashFiles('conda-environments/docbuild.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+        id: cache
+
+      - name: Update environment
+        run: mamba env update --verbose -n docbuild -f conda-environments/docbuild.yml
+        if: steps.cache.outputs.cache-hit != 'true'
+
       - name: Install activitysim
         run: |
           python -m pip install .
+
       - name: Conda checkup
         run: |
           conda info -a
@@ -41,11 +54,13 @@ jobs:
           echo REPOSITORY ${{ github.repository }}
           echo REF ${{ github.ref }}
           echo REF_NAME ${{ github.ref_name }}
+
       - name: Build the docs
         run: |
           cd docs
           make clean
           make html
+
       - name: Push to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3.8.0
         with:

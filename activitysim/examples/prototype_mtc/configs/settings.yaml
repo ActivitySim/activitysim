@@ -90,6 +90,7 @@ input_table_list:
 
 # convert input CSVs to HDF5 format and save to outputs directory
 # create_input_store: True
+recode_pipeline_columns: True
 
 #input_store: ../output/input_data.h5
 
@@ -262,4 +263,3 @@ household_median_value_of_time:
   2: 8.81
   3: 10.44
   4: 12.86
-

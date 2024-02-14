@@ -1,16 +1,21 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import logging
 import os
 import warnings
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
+from pydantic import ValidationError
 
-from activitysim.core import skim_dataset  # noqa: F401
-from activitysim.core import config, inject, pathbuilder, skim_dictionary, tracing, util
+from activitysim.core import config, input, pathbuilder, skim_dictionary, tracing, util
 from activitysim.core.cleaning import recode_based_on_table
+from activitysim.core.configuration.network import NetworkSettings, TAZ_Settings
 from activitysim.core.skim_dict_factory import MemMapSkimFactory, NumpyArraySkimFactory
 from activitysim.core.skim_dictionary import NOT_IN_SKIM_ZONE_ID
 
@@ -70,8 +75,8 @@ class Network_LOS(object):
       tap_tap_uid: TapTapUidCalculator
     """
 
-    def __init__(self, los_settings_file_name=LOS_SETTINGS_FILE_NAME):
-
+    def __init__(self, state, los_settings_file_name=LOS_SETTINGS_FILE_NAME):
+        self.state = state
         # Note: we require all skims to be of same dtype so they can share buffer - is that ok?
         # fixme is it ok to require skims be all the same type? if so, is this the right choice?
         self.skim_dtype_name = "float32"
@@ -93,6 +98,7 @@ class Network_LOS(object):
 
         self.los_settings_file_name = los_settings_file_name
         self.load_settings()
+        self.sharrow_enabled = state.settings.sharrow
 
         # dependency injection of skim factory (of type specified in skim_dict_factory setting)
         skim_dict_factory_name = self.setting("skim_dict_factory")
@@ -117,8 +123,16 @@ class Network_LOS(object):
         ), f"Should not even be asking about rebuild_tvpb_cache if not THREE_ZONE"
         return self.setting("rebuild_tvpb_cache")
 
-    def setting(self, keys, default="<REQUIRED>"):
+    def get_network_cache_dir(self) -> Path:
+        if self.los_settings.network_cache_dir:
+            result = self.state.filesystem.get_working_subdir(
+                self.los_settings.network_cache_dir
+            )
+            result.mkdir(parents=True, exist_ok=True)
+            return result
+        return self.state.filesystem.get_cache_dir()
 
+    def setting(self, keys, default: Any = "<REQUIRED>"):
         # if they dont specify a default, check the default defaults
         default = (
             DEFAULT_SETTINGS.get(keys, "<REQUIRED>")
@@ -130,20 +144,29 @@ class Network_LOS(object):
         key_list = keys.split(".")
         s = self.los_settings
         for key in key_list[:-1]:
-            s = s.get(key)
-            if default == "<REQUIRED>":
-                assert isinstance(
-                    s, dict
-                ), f"expected key '{key}' not found in '{keys}' in {self.los_settings_file_name}"
+            if isinstance(s, dict):
+                s = s.get(key, None)
+            else:
+                s = getattr(s, key, None)
+            if default == "<REQUIRED>" and s is None:
+                raise ValueError(
+                    f"expected key '{key}' not found in '{keys}' in {self.los_settings_file_name}"
+                )
+                # assert isinstance(
+                #     s, dict
+                # ), f"expected key '{key}' not found in '{keys}' in {self.los_settings_file_name}"
         key = key_list[-1]  # last key
         if default == "<REQUIRED>":
-            assert (
-                key in s
-            ), f"Expected setting {keys} not found in in {LOS_SETTINGS_FILE_NAME}"
+            if isinstance(s, dict):
+                assert (
+                    key in s
+                ), f"Expected setting {keys} not found in in {LOS_SETTINGS_FILE_NAME}"
+            else:
+                assert hasattr(s, key)
         if isinstance(s, dict):
             return s.get(key, default)
         else:
-            return default
+            return getattr(s, key, default)
 
     def load_settings(self):
         """
@@ -151,65 +174,19 @@ class Network_LOS(object):
         """
 
         try:
-            self.los_settings = config.read_settings_file(
-                self.los_settings_file_name, mandatory=True
+            self.los_settings = NetworkSettings.read_settings_file(
+                self.state.filesystem,
+                file_name=self.los_settings_file_name,
+                mandatory=True,
             )
-        except config.SettingsFileNotFound as e:
-
-            print(
-                f"los_settings_file_name {self.los_settings_file_name} not found - trying global settings"
-            )
-            print(f"skims_file: {config.setting('skims_file')}")
-            print(f"skim_time_periods: {config.setting('skim_time_periods')}")
-            print(f"source_file_paths: {config.setting('source_file_paths')}")
-            print(
-                f"inject.get_injectable('configs_dir') {inject.get_injectable('configs_dir')}"
-            )
-
-            # look for legacy 'skims_file' setting in global settings file
-            if config.setting("skims_file"):
-
-                warnings.warn(
-                    "Support for 'skims_file' setting in global settings file will be removed."
-                    "Use 'taz_skims' in network_los.yaml config file instead.",
-                    FutureWarning,
-                )
-
-                # in which case, we also expect to find skim_time_periods in settings file
-                skim_time_periods = config.setting("skim_time_periods")
-                assert (
-                    skim_time_periods is not None
-                ), "'skim_time_periods' setting not found."
-                warnings.warn(
-                    "Support for 'skim_time_periods' setting in global settings file will be removed."
-                    "Put 'skim_time_periods' in network_los.yaml config file instead.",
-                    FutureWarning,
-                )
-
-                self.los_settings = {
-                    "taz_skims": config.setting("skims_file"),
-                    "zone_system": ONE_ZONE,
-                    "skim_time_periods": skim_time_periods,
-                }
-
-            else:
-                raise e
+        except ValidationError as err:
+            err_msg = str(err)
+            print(err_msg)
+            raise
+        self.state.network_settings = self.los_settings
 
         # validate skim_time_periods
-        self.skim_time_periods = self.setting("skim_time_periods")
-        if "hours" in self.skim_time_periods:
-            self.skim_time_periods["periods"] = self.skim_time_periods.pop("hours")
-            warnings.warn(
-                "support for `skim_time_periods` key `hours` will be removed in "
-                "future verions. Use `periods` instead",
-                FutureWarning,
-            )
-        assert (
-            "periods" in self.skim_time_periods
-        ), "'periods' key not found in network_los.skim_time_periods"
-        assert (
-            "labels" in self.skim_time_periods
-        ), "'labels' key not found in network_los.skim_time_periods"
+        self.skim_time_periods = self.state.network_settings.skim_time_periods
 
         self.zone_system = self.setting("zone_system")
         assert self.zone_system in [
@@ -231,7 +208,6 @@ class Network_LOS(object):
 
         # validate skim_time_periods
         self.skim_time_periods = self.setting("skim_time_periods")
-        assert {"periods", "labels"}.issubset(set(self.skim_time_periods.keys()))
 
     def load_skim_info(self):
         """
@@ -242,16 +218,24 @@ class Network_LOS(object):
         """
         assert self.skim_dict_factory is not None
         # load taz skim_info
-        self.skims_info["taz"] = self.skim_dict_factory.load_skim_info("taz")
+        self.skims_info["taz"] = self.skim_dict_factory.load_skim_info(
+            self.state, "taz"
+        )
 
         if self.zone_system == THREE_ZONE:
             # load tap skim_info
-            self.skims_info["tap"] = self.skim_dict_factory.load_skim_info("tap")
+            self.skims_info["tap"] = self.skim_dict_factory.load_skim_info(
+                self.state, "tap"
+            )
 
         if self.zone_system == THREE_ZONE:
             # load this here rather than in load_data as it is required during multiprocessing to size TVPBCache
-            self.tap_df = pd.read_csv(
-                config.data_file_path(self.setting("tap"), mandatory=True)
+            self.tap_df = input.read_input_file(
+                self.state.filesystem.get_data_file_path(
+                    self.setting("tap"),
+                    mandatory=True,
+                    alternative_suffixes=(".csv.gz", ".parquet"),
+                )
             ).sort_values("TAP")
             self.tvpb = pathbuilder.TransitVirtualPathBuilder(
                 self
@@ -264,11 +248,14 @@ class Network_LOS(object):
 
         # load maz tables
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
-
             # maz
             file_name = self.setting("maz")
-            self.maz_taz_df = pd.read_csv(
-                config.data_file_path(file_name, mandatory=True)
+            self.maz_taz_df = input.read_input_file(
+                self.state.filesystem.get_data_file_path(
+                    file_name,
+                    mandatory=True,
+                    alternative_suffixes=(".csv.gz", ".parquet"),
+                )
             )
             self.maz_taz_df = self.maz_taz_df[["MAZ", "TAZ"]].sort_values(
                 by="MAZ"
@@ -276,10 +263,10 @@ class Network_LOS(object):
 
             # recode MAZs if needed
             self.maz_taz_df["MAZ"] = recode_based_on_table(
-                self.maz_taz_df["MAZ"], "land_use"
+                self.state, self.maz_taz_df["MAZ"], "land_use"
             )
             self.maz_taz_df["TAZ"] = recode_based_on_table(
-                self.maz_taz_df["TAZ"], "land_use_taz"
+                self.state, self.maz_taz_df["TAZ"], "land_use_taz"
             )
 
             self.maz_ceiling = self.maz_taz_df.MAZ.max() + 1
@@ -292,10 +279,30 @@ class Network_LOS(object):
                 else maz_to_maz_tables
             )
             for file_name in maz_to_maz_tables:
+                df = input.read_input_file(
+                    self.state.filesystem.get_data_file_path(
+                        file_name,
+                        mandatory=True,
+                        alternative_suffixes=(".csv.gz", ".parquet"),
+                    )
+                )
 
-                df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+                # recode MAZs if needed
+                df["OMAZ"] = recode_based_on_table(self.state, df["OMAZ"], "land_use")
+                df["DMAZ"] = recode_based_on_table(self.state, df["DMAZ"], "land_use")
 
-                df["i"] = df.OMAZ * self.maz_ceiling + df.DMAZ
+                if self.maz_ceiling > (1 << 31):
+                    raise ValueError("maz ceiling too high, will overflow int64")
+                elif self.maz_ceiling > 32767:
+                    # too many MAZs, or un-recoded MAZ ID's that are too large
+                    # will overflow a 32-bit index, so upgrade to 64bit.
+                    df["i"] = df.OMAZ.astype(np.int64) * np.int64(
+                        self.maz_ceiling
+                    ) + df.DMAZ.astype(np.int64)
+                else:
+                    df["i"] = df.OMAZ.astype(np.int32) * np.int32(
+                        self.maz_ceiling
+                    ) + df.DMAZ.astype(np.int32)
                 df.set_index("i", drop=True, inplace=True, verify_integrity=True)
                 logger.debug(
                     f"loading maz_to_maz table {file_name} with {len(df)} rows"
@@ -315,38 +322,45 @@ class Network_LOS(object):
 
         # load tap tables
         if self.zone_system == THREE_ZONE:
-
             # tap_df should already have been loaded by load_skim_info because,
             # during multiprocessing, it is required by TapTapUidCalculator to size TVPBCache
-            # self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True))
+            # self.tap_df = pd.read_csv(self.state.filesystem.get_data_file_path(self.setting('tap'), mandatory=True))
             assert self.tap_df is not None
 
             # maz_to_tap_dfs - different sized sparse arrays with different columns, so we keep them seperate
             for mode, maz_to_tap_settings in self.setting("maz_to_tap").items():
-
                 assert (
                     "table" in maz_to_tap_settings
                 ), f"Expected setting maz_to_tap.{mode}.table not found in in {LOS_SETTINGS_FILE_NAME}"
 
                 file_name = maz_to_tap_settings["table"]
-                df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+                df = input.read_input_file(
+                    self.state.filesystem.get_data_file_path(
+                        file_name,
+                        mandatory=True,
+                        alternative_suffixes=(".csv.gz", ".parquet"),
+                    )
+                )
 
                 # recode MAZs if needed
-                df["MAZ"] = recode_based_on_table(df["MAZ"], "land_use")
+                df["MAZ"] = recode_based_on_table(self.state, df["MAZ"], "land_use")
 
                 # trim tap set
                 # if provided, use tap_line_distance_col together with tap_lines table to trim the near tap set
                 # to only include the nearest tap to origin when more than one tap serves the same line
                 distance_col = maz_to_tap_settings.get("tap_line_distance_col")
                 if distance_col:
-
                     if self.tap_lines_df is None:
                         # load tap_lines on demand (required if they specify tap_line_distance_col)
                         tap_lines_file_name = self.setting(
                             "tap_lines",
                         )
-                        self.tap_lines_df = pd.read_csv(
-                            config.data_file_path(tap_lines_file_name, mandatory=True)
+                        self.tap_lines_df = input.read_input_file(
+                            self.state.filesystem.get_data_file_path(
+                                tap_lines_file_name,
+                                mandatory=True,
+                                alternative_suffixes=(".csv.gz", ".parquet"),
+                            )
                         )
 
                         # csv file has one row per TAP with space-delimited list of lines served by that TAP
@@ -402,7 +416,7 @@ class Network_LOS(object):
                         )
 
                     if TRACE_TRIMMED_MAZ_TO_TAP_TABLES:
-                        tracing.write_csv(
+                        self.state.tracing.write_csv(
                             df,
                             file_name=f"trimmed_{maz_to_tap_settings['table']}",
                             transpose=False,
@@ -423,11 +437,11 @@ class Network_LOS(object):
                 self.maz_to_tap_dfs[mode] = df
 
         # create taz skim dict
-        if not config.setting("sharrow", False):
+        if not self.sharrow_enabled:
             assert "taz" not in self.skim_dicts
             # If offset_preprocessing was completed, then TAZ values
             # will be pre-offset and there's no need to re-offset them.
-            if config.setting("offset_preprocessing", False):
+            if self.state.settings.offset_preprocessing:
                 _override_offset_int = 0
             else:
                 _override_offset_int = None
@@ -441,7 +455,7 @@ class Network_LOS(object):
 
         # create MazSkimDict facade
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
-            if not config.setting("sharrow", False):
+            if not self.sharrow_enabled:
                 # create MazSkimDict facade skim_dict
                 # (must have already loaded dependencies: taz skim_dict, maz_to_maz_df, and maz_taz_df)
                 assert "maz" not in self.skim_dicts
@@ -461,7 +475,7 @@ class Network_LOS(object):
 
         # create tap skim dict
         if self.zone_system == THREE_ZONE:
-            if not config.setting("sharrow", False):
+            if not self.sharrow_enabled:
                 assert "tap" not in self.skim_dicts
                 tap_skim_dict = self.create_skim_dict("tap")
                 self.skim_dicts["tap"] = tap_skim_dict
@@ -472,6 +486,18 @@ class Network_LOS(object):
                 ).any()
             else:
                 self.skim_dicts["tap"] = self.get_skim_dict("tap")
+
+        # check that the number of rows in land_use_taz matches the number of zones in the skims
+        if "land_use_taz" in self.state:
+            skims = self.get_skim_dict("taz")
+            if hasattr(skims, "zone_ids"):  # SkimDict
+                assert len(skims.zone_ids) == len(
+                    self.state.get_dataframe("land_use_taz")
+                )
+            else:  # SkimDataset
+                assert len(skims.dataset.indexes["otaz"]) == len(
+                    self.state.get_dataframe("land_use_taz")
+                )
 
     def create_skim_dict(self, skim_tag, _override_offset_int=None):
         """
@@ -501,11 +527,15 @@ class Network_LOS(object):
                 "taz" in self.skim_dicts
             ), f"create_skim_dict 'maz': backing taz skim_dict not in skim_dicts"
             taz_skim_dict = self.skim_dicts["taz"]
-            skim_dict = skim_dictionary.MazSkimDict("maz", self, taz_skim_dict)
+            skim_dict = skim_dictionary.MazSkimDict(
+                self.state, "maz", self, taz_skim_dict
+            )
         else:
             skim_info = self.skims_info[skim_tag]
             skim_data = self.skim_dict_factory.get_skim_data(skim_tag, skim_info)
-            skim_dict = skim_dictionary.SkimDict(skim_tag, skim_info, skim_data)
+            skim_dict = skim_dictionary.SkimDict(
+                self.state, skim_tag, skim_info, skim_data
+            )
 
         logger.debug(f"create_skim_dict {skim_tag} omx_shape {skim_dict.omx_shape}")
 
@@ -529,6 +559,8 @@ class Network_LOS(object):
         list of str
         """
         file_names = self.setting(f"{skim_tag}_skims")
+        if isinstance(file_names, TAZ_Settings):
+            file_names = file_names.omx
         if isinstance(file_names, dict):
             for i in ("file", "files", "omx"):
                 if i in file_names:
@@ -551,11 +583,13 @@ class Network_LOS(object):
 
         Returns
         -------
-        list of str
+        str
         """
         skim_setting = self.setting(f"{skim_tag}_skims")
         if isinstance(skim_setting, dict):
             return skim_setting.get("zarr", None)
+        elif isinstance(skim_setting, TAZ_Settings):
+            return skim_setting.zarr
         else:
             return None
 
@@ -597,7 +631,7 @@ class Network_LOS(object):
         -------
             bool
         """
-        is_multiprocess = config.setting("multiprocess", False)
+        is_multiprocess = self.state.settings.multiprocess
         return is_multiprocess
 
     def load_shared_data(self, shared_data_buffers):
@@ -625,7 +659,7 @@ class Network_LOS(object):
         if self.zone_system == THREE_ZONE:
             assert self.tvpb is not None
 
-            if self.rebuild_tvpb_cache and not config.setting("resume_after", None):
+            if self.rebuild_tvpb_cache and not self.state.settings.resume_after:
                 # delete old cache at start of new run so that stale cache is not loaded by load_data_to_buffer
                 # when singleprocess, this call is made (later in program flow) in the initialize_los step
                 self.tvpb.tap_cache.cleanup()
@@ -676,14 +710,14 @@ class Network_LOS(object):
 
         Returns
         -------
-        SkimDict or subclass (e.g. MazSkimDict)
+        SkimDict or subclass (e.g. MazSkimDict) or SkimDataset
         """
-        sharrow_enabled = config.setting("sharrow", False)
+        sharrow_enabled = self.sharrow_enabled
         if sharrow_enabled and skim_tag in ("taz", "maz"):
-            skim_dataset = inject.get_injectable("skim_dataset")
             # non-global import avoids circular references
             from .skim_dataset import SkimDataset
 
+            skim_dataset = self.state.get_injectable("skim_dataset")
             if skim_tag == "maz":
                 return SkimDataset(skim_dataset)
             else:
@@ -694,7 +728,7 @@ class Network_LOS(object):
                         del skim_dataset.attrs[f"dim_redirection_{dd}"]
                 return SkimDataset(skim_dataset)
         elif sharrow_enabled and skim_tag in ("tap"):
-            tap_dataset = inject.get_injectable("tap_dataset")
+            tap_dataset = self.state.get_injectable("tap_dataset")
             from .skim_dataset import SkimDataset
 
             return SkimDataset(tap_dataset)
@@ -739,7 +773,14 @@ class Network_LOS(object):
         #              how="left")[attribute]
 
         # synthetic index method i : omaz_dmaz
-        i = np.asanyarray(omaz) * self.maz_ceiling + np.asanyarray(dmaz)
+        if self.maz_ceiling > 32767:
+            # too many MAZs, or un-recoded MAZ ID's that are too large
+            # will overflow a 32-bit index, so upgrade to 64bit.
+            i = np.asanyarray(omaz, dtype=np.int64) * np.int64(
+                self.maz_ceiling
+            ) + np.asanyarray(dmaz, dtype=np.int64)
+        else:
+            i = np.asanyarray(omaz) * self.maz_ceiling + np.asanyarray(dmaz)
         s = util.quick_loc_df(i, self.maz_to_maz_df, attribute)
 
         # FIXME - no point in returning series?
@@ -797,7 +838,9 @@ class Network_LOS(object):
 
         return s.values
 
-    def skim_time_period_label(self, time_period):
+    def skim_time_period_label(
+        self, time_period, fillna=None, as_cat=False, broadcast_to=None
+    ):
         """
         convert time period times to skim time period labels (e.g. 9 -> 'AM')
 
@@ -816,43 +859,67 @@ class Network_LOS(object):
         ), "'skim_time_periods' setting not found."
 
         # Default to 60 minute time periods
-        period_minutes = self.skim_time_periods.get("period_minutes", 60)
+        period_minutes = self.skim_time_periods.period_minutes
 
         # Default to a day
-        model_time_window_min = self.skim_time_periods.get("time_window", 1440)
+        model_time_window_min = self.skim_time_periods.time_window
 
         # Check to make sure the intervals result in no remainder time through 24 hour day
         assert 0 == model_time_window_min % period_minutes
         total_periods = model_time_window_min / period_minutes
+
+        try:
+            time_label_dtype = self.skim_dicts["taz"].time_label_dtype
+        except (KeyError, AttributeError):
+            # if the "taz" skim_dict is missing, or if using old SkimDict
+            # instead of SkimDataset, this labeling shortcut is unavailable.
+            time_label_dtype = str
+            as_cat = False
 
         # FIXME - eventually test and use np version always?
         if np.isscalar(time_period):
             bin = (
                 np.digitize(
                     [time_period % total_periods],
-                    self.skim_time_periods["periods"],
+                    self.skim_time_periods.periods,
                     right=True,
                 )[0]
                 - 1
             )
-            result = self.skim_time_periods["labels"][bin]
+            if fillna is not None:
+                default = self.skim_time_periods.labels[fillna]
+                result = self.skim_time_periods.labels.get(bin, default=default)
+            else:
+                result = self.skim_time_periods.labels[bin]
+            if broadcast_to is not None:
+                result = pd.Series(
+                    data=result,
+                    index=broadcast_to,
+                    dtype=time_label_dtype if as_cat else str,
+                )
         else:
             result = pd.cut(
                 time_period,
-                self.skim_time_periods["periods"],
-                labels=self.skim_time_periods["labels"],
+                self.skim_time_periods.periods,
+                labels=self.skim_time_periods.labels,
                 ordered=False,
-            ).astype(str)
-
+            )
+            if fillna is not None:
+                default = self.skim_time_periods.labels[fillna]
+                result = result.fillna(default)
+            if as_cat:
+                result = result.astype(time_label_dtype)
+            else:
+                result = result.astype(str)
         return result
 
-    def get_tazs(self):
+    def get_tazs(self, state):
         # FIXME - should compute on init?
         if self.zone_system == ONE_ZONE:
-            tazs = inject.get_table("land_use").index.values
+            tazs = state.get_dataframe("land_use").index.values
         else:
             try:
-                land_use_taz = inject.get_table("land_use_taz").to_frame()
+                land_use_taz = state.get_dataframe("land_use_taz")
             except (RuntimeError, KeyError):
                 # land_use_taz is missing, use fallback
                 tazs = self.maz_taz_df.TAZ.unique()
@@ -878,17 +945,15 @@ class Network_LOS(object):
         assert isinstance(taps, np.ndarray)
         return taps
 
-    @property
-    def get_maz_to_taz_series(self):
+    def get_maz_to_taz_series(self, state):
         """
         pd.Series: Index is the MAZ, value is the corresponding TAZ
         """
-        sharrow_enabled = config.setting("sharrow", False)
-        if sharrow_enabled:
+        if self.sharrow_enabled:
             # FIXME:SHARROW - this assumes that both MAZ and TAZ have been recoded to
             #                 zero-based indexes, but what if that was not done?
             #                 Should we check it and error out here or bravely march forward?
-            skim_dataset = inject.get_injectable("skim_dataset")
+            skim_dataset = state.get_injectable("skim_dataset")
             maz_to_taz = skim_dataset["_digitized_otaz_of_omaz"].to_series()
         else:
             maz_to_taz = self.maz_taz_df[["MAZ", "TAZ"]].set_index("MAZ").TAZ
@@ -913,7 +978,7 @@ class Network_LOS(object):
             input_was_series = False
         else:
             input_was_series = True
-        out = s.map(self.get_maz_to_taz_series)
+        out = s.map(self.get_maz_to_taz_series(self.state))
         if np.issubdtype(out, np.floating):
             if out.isna().any():
                 raise KeyError("failed in mapping MAZ to TAZ")

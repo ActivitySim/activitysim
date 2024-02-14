@@ -1,33 +1,41 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
+import warnings
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
+from activitysim.abm.models.util import annotate
+from activitysim.abm.models.util.overlap import person_max_window
+from activitysim.abm.models.util.school_escort_tours_trips import (
+    recompute_tour_count_statistics,
+)
+from activitysim.abm.models.util.tour_frequency import process_non_mandatory_tours
 from activitysim.core import (
     config,
+    estimation,
     expressions,
-    inject,
     logit,
-    pipeline,
     simulate,
     tracing,
+    workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_simulate import interaction_simulate
-
-from .util import estimation
-from .util import annotate
-from .util.school_escort_tours_trips import recompute_tour_count_statistics
-
-from .util.overlap import person_max_window
-from .util.tour_frequency import process_non_mandatory_tours
 
 logger = logging.getLogger(__name__)
 
 
-def extension_probs():
-    f = config.config_file_path("non_mandatory_tour_frequency_extension_probs.csv")
+def extension_probs(state: workflow.State):
+    f = state.filesystem.get_config_file_path(
+        "non_mandatory_tour_frequency_extension_probs.csv"
+    )
     df = pd.read_csv(f, comment="#")
 
     # convert cum probs to individual probs
@@ -37,7 +45,13 @@ def extension_probs():
     return df
 
 
-def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_label):
+def extend_tour_counts(
+    state: workflow.State,
+    persons: pd.DataFrame,
+    tour_counts: pd.DataFrame,
+    alternatives,
+    trace_label: str,
+):
     """
     extend tour counts based on a probability table
 
@@ -55,7 +69,6 @@ def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_la
     alternatives
         alternatives from nmtv interaction_simulate
         only need this to know max possible frequency for a tour type
-    trace_hh_id
     trace_label
 
     Returns
@@ -77,7 +90,7 @@ def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_la
     JOIN_COLUMNS = ["ptype", "has_mandatory_tour", "has_joint_tour"]
     TOUR_TYPE_COL = "nonmandatory_tour_type"
 
-    probs_spec = extension_probs()
+    probs_spec = extension_probs(state)
     persons = persons[JOIN_COLUMNS]
 
     # only extend if there are 1 - 4 non_mandatory tours to start with
@@ -86,10 +99,11 @@ def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_la
         logger.info("extend_tour_counts - no persons eligible for tour_count extension")
         return tour_counts
 
-    have_trace_targets = trace_hh_id and tracing.has_trace_targets(extend_tour_counts)
+    have_trace_targets = state.settings.trace_hh_id and state.tracing.has_trace_targets(
+        extend_tour_counts
+    )
 
     for i, tour_type in enumerate(alternatives.columns):
-
         i_tour_type = i + 1  # (probs_spec nonmandatory_tour_type column is 1-based)
         tour_type_trace_label = tracing.extend_trace_label(trace_label, tour_type)
 
@@ -113,6 +127,7 @@ def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_la
 
         # - random choice of extension magnitude based on relative probs
         choices, rands = logit.make_choices(
+            state,
             choosers[PROBABILITY_COLUMNS],
             trace_label=tour_type_trace_label,
             trace_choosers=choosers,
@@ -123,12 +138,12 @@ def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_la
             tour_counts.loc[choices.index, tour_type] += choices
 
         if have_trace_targets:
-            tracing.trace_df(
+            state.tracing.trace_df(
                 choices,
                 tracing.extend_trace_label(tour_type_trace_label, "choices"),
                 columns=[None, "choice"],
             )
-            tracing.trace_df(
+            state.tracing.trace_df(
                 rands,
                 tracing.extend_trace_label(tour_type_trace_label, "rands"),
                 columns=[None, "rand"],
@@ -137,8 +152,42 @@ def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_la
     return tour_counts
 
 
-@inject.step()
-def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_id):
+class NonMandatoryTourSpecSegment(PydanticReadable):
+    NAME: str
+    PTYPE: int
+    COEFFICIENTS: Path
+
+
+class NonMandatoryTourFrequencySettings(LogitComponentSettings):
+    """
+    Settings for the `non_mandatory_tour_frequency` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+    SEGMENT_COL: str = "ptype"
+    # not used anymore TODO remove if needed
+
+    SPEC_SEGMENTS: list[NonMandatoryTourSpecSegment] = []
+    # check the above
+
+    annotate_persons: PreprocessorSettings | None = None
+    """Preprocessor settings to annotate persons"""
+
+    annotate_tours: PreprocessorSettings | None = None
+    """Preprocessor settings to annotate tours"""
+
+
+@workflow.step
+def non_mandatory_tour_frequency(
+    state: workflow.State,
+    persons: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    model_settings: NonMandatoryTourFrequencySettings | None = None,
+    model_settings_file_name: str = "non_mandatory_tour_frequency.yaml",
+    trace_label: str = "non_mandatory_tour_frequency",
+) -> None:
     """
     This model predicts the frequency of making non-mandatory trips
     (alternatives for this model come from a separate csv file which is
@@ -146,29 +195,42 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
     othdiscr, eatout, and social trips in various combination.
     """
 
-    trace_label = "non_mandatory_tour_frequency"
-    model_settings_file_name = "non_mandatory_tour_frequency.yaml"
+    if model_settings is None:
+        model_settings = NonMandatoryTourFrequencySettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
-    model_settings = config.read_model_settings(model_settings_file_name)
-
-    # FIXME kind of tacky both that we know to add this here and del it below
-    # 'tot_tours' is used in model_spec expressions
     alternatives = simulate.read_model_alts(
-        "non_mandatory_tour_frequency_alternatives.csv", set_index=None
+        state, "non_mandatory_tour_frequency_alternatives.csv", set_index=None
     )
-    alternatives["tot_tours"] = alternatives.sum(axis=1)
+    if "tot_tours" not in alternatives.columns:
+        # add a column for total tours
+        alternatives["tot_tours"] = alternatives.sum(axis=1)
+        warnings.warn(
+            "The 'tot_tours' column may not be automatically added in the future.",
+            FutureWarning,
+        )
+    else:
+        # tot_tours already exists, check if it is consistent with legacy behavior
+        if not (alternatives["tot_tours"] == alternatives.sum(axis=1)).all():
+            warnings.warn(
+                "The 'tot_tours' column in non_mandatory_tour_frequency_alternatives.csv "
+                "does not match the sum of the other columns.",
+                RuntimeWarning,
+            )
 
     # filter based on results of CDAP
-    choosers = persons_merged.to_frame()
+    choosers = persons_merged
     choosers = choosers[choosers.cdap_activity.isin(["M", "N"])]
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
-
-        locals_dict = {"person_max_window": person_max_window}
+        locals_dict = {"person_max_window": lambda x: person_max_window(state, x)}
 
         expressions.assign_columns(
+            state,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -179,15 +241,14 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
 
     constants = config.get_model_constants(model_settings)
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    spec_segments = model_settings.get("SPEC_SEGMENTS", {})
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
+    spec_segments = model_settings.SPEC_SEGMENTS
 
     # segment by person type and pick the right spec for each person type
     choices_list = []
     for segment_settings in spec_segments:
-
-        segment_name = segment_settings["NAME"]
-        ptype = segment_settings["PTYPE"]
+        segment_name = segment_settings.NAME
+        ptype = segment_settings.PTYPE
 
         # pick the spec column for the segment
         segment_spec = model_spec[[segment_name]]
@@ -203,12 +264,12 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
             continue
 
         estimator = estimation.manager.begin_estimation(
-            model_name=segment_name, bundle_name="non_mandatory_tour_frequency"
+            state, model_name=segment_name, bundle_name="non_mandatory_tour_frequency"
         )
 
-        coefficients_df = simulate.read_model_coefficients(segment_settings)
+        coefficients_df = state.filesystem.read_model_coefficients(segment_settings)
         segment_spec = simulate.eval_coefficients(
-            segment_spec, coefficients_df, estimator
+            state, segment_spec, coefficients_df, estimator
         )
 
         if estimator:
@@ -235,15 +296,16 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
 
             estimator.set_chooser_id(chooser_segment.index.name)
 
-        log_alt_losers = config.setting("log_alt_losers", False)
+        log_alt_losers = state.settings.log_alt_losers
 
         choices = interaction_simulate(
+            state,
             chooser_segment,
             alternatives,
             spec=segment_spec,
             log_alt_losers=log_alt_losers,
             locals_d=constants,
-            chunk_size=chunk_size,
+            chunk_size=state.settings.chunk_size,
             trace_label="non_mandatory_tour_frequency.%s" % segment_name,
             trace_choice_name="non_mandatory_tour_frequency",
             estimator=estimator,
@@ -266,7 +328,6 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
     choices = pd.concat(choices_list).sort_index()
 
     # add non_mandatory_tour_frequency column to persons
-    persons = persons.to_frame()
     # we expect there to be an alt with no tours - which we can use to backfill non-travelers
     no_tours_alt = (alternatives.sum(axis=1) == 0).index[0]
     # need to reindex as we only handled persons with cdap_activity in ['M', 'N']
@@ -299,10 +360,10 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
 
     # - extend_tour_counts - probabalistic
     extended_tour_counts = extend_tour_counts(
+        state,
         choosers,
         modeled_tour_counts.copy(),
         alternatives,
-        trace_hh_id,
         tracing.extend_trace_label(trace_label, "extend_tour_counts"),
     )
 
@@ -338,11 +399,20 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
     """
     create the non_mandatory tours based on extended_tour_counts
     """
-    non_mandatory_tours = process_non_mandatory_tours(persons, extended_tour_counts)
+    non_mandatory_tours = process_non_mandatory_tours(
+        state, persons, extended_tour_counts
+    )
     assert len(non_mandatory_tours) == extended_tour_counts.sum().sum()
 
-    if estimator:
+    # convert purpose to pandas categoricals
+    purpose_type = pd.api.types.CategoricalDtype(
+        alternatives.columns.tolist(), ordered=False
+    )
+    non_mandatory_tours["tour_type"] = non_mandatory_tours["tour_type"].astype(
+        purpose_type
+    )
 
+    if estimator:
         # make sure they created the right tours
         survey_tours = estimation.manager.get_survey_table("tours").sort_index()
         non_mandatory_survey_tours = survey_tours[
@@ -374,25 +444,26 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
 
         assert not tours_differ.any()
 
-    pipeline.extend_table("tours", non_mandatory_tours)
+    state.extend_table("tours", non_mandatory_tours)
 
-    tracing.register_traceable_table("tours", non_mandatory_tours)
-    pipeline.get_rn_generator().add_channel("tours", non_mandatory_tours)
+    state.tracing.register_traceable_table("tours", non_mandatory_tours)
+    state.get_rn_generator().add_channel("tours", non_mandatory_tours)
 
-    if pipeline.is_table("school_escort_tours"):
+    if state.is_table("school_escort_tours"):
         # need to re-compute tour frequency statistics to account for school escort tours
-        recompute_tour_count_statistics()
+        recompute_tour_count_statistics(state)
 
-    if model_settings.get("annotate_tours"):
-        annotate.annotate_tours(model_settings, trace_label)
+    if model_settings.annotate_tours:
+        annotate.annotate_tours(state, model_settings, trace_label)
 
     expressions.assign_columns(
+        state,
         df=persons,
-        model_settings=model_settings.get("annotate_persons"),
+        model_settings=model_settings.annotate_persons,
         trace_label=trace_label,
     )
 
-    pipeline.replace_table("persons", persons)
+    state.add_table("persons", persons)
 
     tracing.print_summary(
         "non_mandatory_tour_frequency",
@@ -400,18 +471,18 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
         value_counts=True,
     )
 
-    if trace_hh_id:
-        tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             non_mandatory_tours,
             label="non_mandatory_tour_frequency.non_mandatory_tours",
             warn_if_empty=True,
         )
 
-        tracing.trace_df(
+        state.tracing.trace_df(
             choosers, label="non_mandatory_tour_frequency.choosers", warn_if_empty=True
         )
 
-        tracing.trace_df(
+        state.tracing.trace_df(
             persons,
             label="non_mandatory_tour_frequency.annotated_persons",
             warn_if_empty=True,

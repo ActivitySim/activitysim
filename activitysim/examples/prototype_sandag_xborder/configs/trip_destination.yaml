@@ -4,9 +4,6 @@ COEFFICIENTS: trip_destination_coefficients.csv
 
 SAMPLE_SIZE: 30
 
-DESTINATION_SAMPLE_SPEC: trip_destination_sample.csv
-DESTINATION_SPEC: trip_destination.csv
-
 LOGSUM_SETTINGS: trip_mode_choice.yaml
 
 # optional (comment out if not desired)

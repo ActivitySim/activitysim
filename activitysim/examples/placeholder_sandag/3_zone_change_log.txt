@@ -23,7 +23,7 @@ multiprocess_steps:
       # except:
       #   - land_use
       # don't slice any tables not explicitly listed above in slice.tables
-      except: True
+      exclude: True
 
 
 # global switch to turn on or off presampling of destination alternatives at TAZ level (multizone models only)
@@ -87,7 +87,3 @@ maz_to_tap:
 #     # not trimming because drive_maz_tap utility calculations take into account both drive and walk time and cost
 #     # though some sort of trimming appears to have been done as there are not so many of these in marin data
 #     #tap_line_distance_col: DDIST
-
-
-
-

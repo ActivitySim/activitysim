@@ -64,20 +64,6 @@ API
 .. automodule:: activitysim.core.skim_dictionary
    :members:
 
-.. _pipeline_in_detail:
-
-Pipeline
-~~~~~~~~
-
-Data pipeline manager, which manages the list of model steps, runs them, reads
-and writes data tables from/to the pipeline datastore, and supports restarting of the pipeline
-at any model step.
-
-API
-^^^
-
-.. automodule:: activitysim.core.pipeline
-   :members:
 
 .. _random_in_detail:
 
@@ -122,6 +108,8 @@ API
 .. automodule:: activitysim.core.random
    :members:
 
+.. _trace :
+
 Tracing
 ~~~~~~~
 
@@ -141,7 +129,7 @@ API
    :members:
 
 
-.. _expressions:
+.. _util_expressions:
 
 Utility Expressions
 -------------------
@@ -717,19 +705,6 @@ API
 ^^^
 
 .. automodule:: activitysim.core.config
-   :members:
-
-.. _inject:
-
-Inject
-~~~~~~
-
-Model orchestration and data pipeline interaction.
-
-API
-^^^
-
-.. automodule:: activitysim.core.inject
    :members:
 
 Mem

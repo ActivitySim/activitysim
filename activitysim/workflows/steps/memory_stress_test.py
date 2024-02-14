@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import time
@@ -5,8 +7,8 @@ import time
 import numpy as np
 import psutil
 
-from ...core.util import si_units
-from .wrapping import workstep
+from activitysim.core.util import si_units
+from activitysim.workflows.steps.wrapping import workstep
 
 
 def ping_mem(pid=None):
@@ -31,5 +33,5 @@ def memory_stress_test(n=37):
     logging.critical(f"ping_mem = {ping_mem()}")
     time.sleep(5.0)
     logging.critical(f"ping_mem = {ping_mem()}")
-    logging.critical(f"bye")
+    logging.critical("bye")
     return {}

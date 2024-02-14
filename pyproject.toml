@@ -17,6 +17,7 @@ skip_gitignore = true
 float_to_top = true
 default_section = "THIRDPARTY"
 known_first_party = "activitysim"
+add_imports = "from __future__ import annotations"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -32,3 +33,17 @@ filterwarnings = [
 ]
 log_cli = true
 tb = "native"
+
+[tool.ruff]
+select = ["E", "F", "B", "UP", "TID"]
+line-length = 140
+
+[tool.ruff.isort]
+known-first-party = ["activitysim"]
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["E402", "F401"]  # Ignore import violations in all `__init__.py` files

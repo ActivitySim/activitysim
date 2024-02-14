@@ -1,0 +1,12 @@
+{{ objname }}
+{{ underline }}
+
+{% if module.startswith('activitysim.core.workflow') %}
+.. currentmodule:: {{ module.split('.')[:3] | join('.') }}
+
+.. autoaccessorattribute:: {{ (module.split('.')[3:] + [objname]) | join('.') }}
+{% else %}
+.. currentmodule:: {{ module.split('.')[0] }}
+
+.. autoaccessorattribute:: {{ (module.split('.')[1:] + [objname]) | join('.') }}
+{% endif %}

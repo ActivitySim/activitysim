@@ -1,12 +1,16 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config
 from activitysim.abm.models.util.canonical_ids import set_tour_index
+from activitysim.core import workflow
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
@@ -93,14 +97,27 @@ def create_tours(tour_counts, tour_category, parent_col="person_id"):
     """
 
     # set these here to ensure consistency across different tour categories
-    assert tour_category in ["mandatory", "non_mandatory", "atwork", "joint"]
+
+    # do not enforce this here, other categories are possible
+    # assert tour_category in ["mandatory", "non_mandatory", "atwork", "joint"]
     tours["tour_category"] = tour_category
+    cat_tour_category = pd.api.types.CategoricalDtype(
+        ["mandatory", "joint", "non_mandatory", "atwork"], ordered=False
+    )
+    tours["tour_category"] = tours["tour_category"].astype(cat_tour_category)
 
     # for joint tours, the correct number will be filled in after participation step
     tours["number_of_participants"] = 1
 
     # index is arbitrary but don't want any duplicates in index
     tours.reset_index(drop=True, inplace=True)
+
+    # downcast
+    tours["tour_count"] = tours["tour_count"].astype("int8")
+    tours["tour_num"] = tours["tour_num"].astype("int8")
+    tours["tour_type_num"] = tours["tour_type_num"].astype("int8")
+    tours["tour_type_count"] = tours["tour_type_count"].astype("int8")
+    tours["number_of_participants"] = tours["number_of_participants"].astype("int8")
 
     return tours
 
@@ -168,7 +185,9 @@ def process_tours(
     return tours
 
 
-def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
+def process_mandatory_tours(
+    state: workflow.State, persons, mandatory_tour_frequency_alts
+):
     """
     This method processes the mandatory_tour_frequency column that comes out of
     the model of the same name and turns into a DataFrame that represents the
@@ -239,7 +258,7 @@ def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
     tours["household_id"] = tours_merged.household_id
 
     # assign stable (predictable) tour_id
-    set_tour_index(tours)
+    set_tour_index(state, tours)
 
     """
                person_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count
@@ -258,7 +277,7 @@ def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
     return tours
 
 
-def process_non_mandatory_tours(persons, tour_counts):
+def process_non_mandatory_tours(state: workflow.State, persons, tour_counts):
     """
     This method processes the non_mandatory_tour_frequency column that comes
     out of the model of the same name and turns into a DataFrame that
@@ -292,7 +311,7 @@ def process_non_mandatory_tours(persons, tour_counts):
     tours["origin"] = reindex(persons.home_zone_id, tours.person_id)
 
     # assign stable (predictable) tour_id
-    set_tour_index(tours)
+    set_tour_index(state, tours)
 
     """
                person_id tour_type  tour_type_count  tour_type_num  tour_num   tour_count
@@ -311,8 +330,11 @@ def process_non_mandatory_tours(persons, tour_counts):
     return tours
 
 
-def process_atwork_subtours(work_tours, atwork_subtour_frequency_alts):
-
+def process_atwork_subtours(
+    state: workflow.State,
+    work_tours: pd.DataFrame,
+    atwork_subtour_frequency_alts: pd.DataFrame,
+):
     """
     This method processes the atwork_subtour_frequency column that comes
     out of the model of the same name and turns into a DataFrame that
@@ -378,7 +400,7 @@ def process_atwork_subtours(work_tours, atwork_subtour_frequency_alts):
     tours = pd.merge(tours, work_tours, left_on=parent_col, right_index=True)
 
     # assign stable (predictable) tour_id
-    set_tour_index(tours, parent_tour_num_col="parent_tour_num")
+    set_tour_index(state, tours, parent_tour_num_col="parent_tour_num")
 
     """
                person_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count
@@ -399,7 +421,12 @@ def process_atwork_subtours(work_tours, atwork_subtour_frequency_alts):
     return tours
 
 
-def process_joint_tours(joint_tour_frequency, joint_tour_frequency_alts, point_persons):
+def process_joint_tours(
+    state: workflow.State,
+    joint_tour_frequency,
+    joint_tour_frequency_alts,
+    point_persons,
+):
     """
     This method processes the joint_tour_frequency column that comes out of
     the model of the same name and turns into a DataFrame that represents the
@@ -443,7 +470,7 @@ def process_joint_tours(joint_tour_frequency, joint_tour_frequency_alts, point_p
     tours["origin"] = reindex(point_persons.home_zone_id, tours.household_id)
 
     # assign stable (predictable) tour_id
-    set_tour_index(tours, is_joint=True)
+    set_tour_index(state, tours, is_joint=True)
 
     """
                    household_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count
@@ -463,6 +490,7 @@ def process_joint_tours(joint_tour_frequency, joint_tour_frequency_alts, point_p
 
 
 def process_joint_tours_frequency_composition(
+    state: workflow.State,
     joint_tour_frequency_composition,
     joint_tour_frequency_composition_alts,
     point_persons,
@@ -496,6 +524,7 @@ def process_joint_tours_frequency_composition(
     assert not joint_tour_frequency_composition.isnull().any()
 
     tours = process_tours_frequency_composition(
+        state,
         joint_tour_frequency_composition.dropna(),
         joint_tour_frequency_composition_alts,
         tour_category="joint",
@@ -510,7 +539,7 @@ def process_joint_tours_frequency_composition(
     tours["origin"] = reindex(point_persons.home_zone_id, tours.household_id)
 
     # assign stable (predictable) tour_id
-    set_tour_index(tours, is_joint=True)
+    set_tour_index(state, tours, is_joint=True)
 
     """
                    household_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count
@@ -530,6 +559,7 @@ def process_joint_tours_frequency_composition(
 
 
 def process_tours_frequency_composition(
+    state: workflow.State,
     joint_tour_frequency_composition,
     joint_tour_frequency_composition_alts,
     tour_category,
@@ -592,12 +622,39 @@ def process_tours_frequency_composition(
     2588677       1         1         0
     """
 
-    tours = create_joint_tours(tour_counts, tour_category, parent_col)
+    tours = create_joint_tours(state, tour_counts, tour_category, parent_col)
 
     return tours
 
 
-def create_joint_tours(tour_counts, tour_category, parent_col="person_id"):
+class JointTourFreqCompContent(PydanticReadable):
+    VALUE_MAP: dict[int, str]
+    COLUMNS: list[str]
+
+
+class JointTourFreqCompAlts(PydanticReadable):
+    PURPOSE: JointTourFreqCompContent
+    COMPOSITION: JointTourFreqCompContent
+
+
+class JointTourFreqCompSettings(LogitComponentSettings):
+    """
+    Settings for joint tour frequency and composition.
+    """
+
+    ALTS_TABLE_STRUCTURE: JointTourFreqCompAlts
+    preprocessor: PreprocessorSettings | None = None
+    ALTS_PREPROCESSOR: PreprocessorSettings | None = None
+
+
+def create_joint_tours(
+    state: workflow.State,
+    tour_counts,
+    tour_category,
+    parent_col="person_id",
+    model_settings: JointTourFreqCompSettings | None = None,
+    model_settings_file_name: str = "joint_tour_frequency_composition.yaml",
+):
     """
     This method processes the tour_frequency column that comes
     out of the model of the same name and turns into a DataFrame that
@@ -637,36 +694,17 @@ def create_joint_tours(tour_counts, tour_category, parent_col="person_id"):
     2588676       2         0         0
     2588677       1         1         0
     """
-    model_settings_file_name = "joint_tour_frequency_composition.yaml"
 
-    model_settings = config.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = JointTourFreqCompSettings.read_settings_file(
+            state.filesystem, model_settings_file_name
+        )
 
-    alts_table_structure = model_settings.get("ALTS_TABLE_STRUCTURE", None)
-    assert (
-        alts_table_structure is not None
-    ), f"Expected to find ALTS_TABLE_STRUCTURE setting in joint_tour_frequency_composition.yaml"
-
-    tour_type_dict = alts_table_structure.get("PURPOSE", None).get("VALUE_MAP", None)
-    assert (
-        tour_type_dict is not None
-    ), f"Expected to find PURPOSE.VALUE_MAP setting in ALTS_TABLE_STRUCTURE"
-
-    tour_type_cols = alts_table_structure.get("PURPOSE", None).get("COLUMNS", None)
-    assert (
-        tour_type_cols is not None
-    ), f"Expected to find PURPOSE.COLUMNS setting in ALTS_TABLE_STRUCTURE"
-
-    tour_comp_dict = alts_table_structure.get("COMPOSITION", None).get(
-        "VALUE_MAP", None
-    )
-    assert (
-        tour_comp_dict is not None
-    ), f"Expected to find COMPOSITION.VALUE_MAP setting in ALTS_TABLE_STRUCTURE"
-
-    tour_comp_cols = alts_table_structure.get("COMPOSITION", None).get("COLUMNS", None)
-    assert (
-        tour_comp_cols is not None
-    ), f"Expected to find COMPOSITION.COLUMNS setting in ALTS_TABLE_STRUCTURE"
+    alts_table_structure = model_settings.ALTS_TABLE_STRUCTURE
+    tour_type_dict = alts_table_structure.PURPOSE.VALUE_MAP
+    tour_type_cols = alts_table_structure.PURPOSE.COLUMNS
+    tour_comp_dict = alts_table_structure.COMPOSITION.VALUE_MAP
+    tour_comp_cols = alts_table_structure.COMPOSITION.COLUMNS
 
     # reformat with the columns given below
     tours_purp = tour_counts[tour_type_cols].stack().reset_index()
@@ -691,6 +729,10 @@ def create_joint_tours(tour_counts, tour_category, parent_col="person_id"):
     tours_comp.columns = [parent_col, "tour_id_temp", "composition"]
     tours_comp["tour_id_temp"] = range(1, 1 + len(tours_comp))
     tours_comp["composition"] = tours_comp["composition"].map(tour_comp_dict)
+    cat_tour_comp = pd.api.types.CategoricalDtype(
+        ["adults", "children", "mixed"], ordered=False
+    )
+    tours_comp["composition"] = tours_comp["composition"].astype(cat_tour_comp)
 
     """
         <parent_col> tour_id_temp  tour_composition
@@ -732,11 +774,22 @@ def create_joint_tours(tour_counts, tour_category, parent_col="person_id"):
     # set these here to ensure consistency across different tour categories
     assert tour_category in ["mandatory", "non_mandatory", "atwork", "joint"]
     tours["tour_category"] = tour_category
+    cat_tour_category = pd.api.types.CategoricalDtype(
+        ["mandatory", "joint", "non_mandatory", "atwork"], ordered=False
+    )
+    tours["tour_category"] = tours["tour_category"].astype(cat_tour_category)
 
     # for joint tours, the correct number will be filled in after participation step
     tours["number_of_participants"] = 1
 
     # index is arbitrary but don't want any duplicates in index
     tours.reset_index(drop=True, inplace=True)
+
+    # downcast
+    tours["tour_count"] = tours["tour_count"].astype("int8")
+    tours["tour_num"] = tours["tour_num"].astype("int8")
+    tours["tour_type_num"] = tours["tour_type_num"].astype("int8")
+    tours["tour_type_count"] = tours["tour_type_count"].astype("int8")
+    tours["number_of_participants"] = tours["number_of_participants"].astype("int8")
 
     return tours

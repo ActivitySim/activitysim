@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 from builtins import object, zip
 from collections import OrderedDict
@@ -7,7 +9,7 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, config, pipeline, util
+from activitysim.core import chunk, util, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +80,7 @@ def read_assignment_spec(
 
     Parameters
     ----------
-    file_name : str
+    file_name : path-like
         Name of a CSV spec file.
     description_name : str, optional
         Name of the column in `fname` that contains the component description.
@@ -135,7 +137,7 @@ class NumpyLogger(object):
         )
 
 
-def local_utilities():
+def local_utilities(state):
     """
     Dict of useful modules and functions to provides as locals for use in eval of expressions
 
@@ -150,12 +152,12 @@ def local_utilities():
         "np": np,
         "reindex": util.reindex,
         "reindex_i": util.reindex_i,
-        "setting": config.setting,
+        "setting": lambda *arg: state.settings._get_attr(*arg),
         "other_than": util.other_than,
-        "rng": pipeline.get_rn_generator(),
+        "rng": state.get_rn_generator(),
     }
 
-    utility_dict.update(config.get_global_constants())
+    utility_dict.update(state.get_global_constants())
 
     return utility_dict
 
@@ -173,6 +175,7 @@ def is_temp(target):
 
 
 def assign_variables(
+    state,
     assignment_expressions,
     df,
     locals_dict,
@@ -218,8 +221,9 @@ def assign_variables(
     variables : pandas.DataFrame
         Will have the index of `df` and columns named by target and containing
         the result of evaluating expression
-    trace_df : pandas.DataFrame or None
+    trace_results : pandas.DataFrame or None
         a dataframe containing the eval result values for each assignment expression
+    trace_assigned_locals : dict or None
     """
 
     np_logger = NumpyLogger(logger)
@@ -234,7 +238,9 @@ def assign_variables(
         return target.startswith("_")
 
     def to_series(x):
-        if x is None or np.isscalar(x):
+        if np.isscalar(x):
+            return pd.Series(x, index=df.index)
+        if x is None:
             return pd.Series([x] * len(df.index), index=df.index)
         return x
 
@@ -250,7 +256,7 @@ def assign_variables(
             trace_assigned_locals = OrderedDict()
 
     # avoid touching caller's passed-in locals_d parameter (they may be looping)
-    _locals_dict = local_utilities()
+    _locals_dict = local_utilities(state)
     if locals_dict is not None:
         _locals_dict.update(locals_dict)
     if df_alias:
@@ -276,10 +282,9 @@ def assign_variables(
             n_randoms += 1
             assignment_expressions.loc[expression_idx, "expression"] = expression
     if n_randoms:
-        from activitysim.core import pipeline
 
         try:
-            random_draws = pipeline.get_rn_generator().normal_for_df(
+            random_draws = state.get_rn_generator().normal_for_df(
                 df, broadcast=True, size=n_randoms
             )
         except RuntimeError:
@@ -297,7 +302,7 @@ def assign_variables(
 
             _locals_dict["rng_lognormal"] = rng_lognormal
 
-    sharrow_enabled = config.setting("sharrow", False)
+    sharrow_enabled = state.settings.sharrow
 
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
@@ -343,7 +348,6 @@ def assign_variables(
             continue
 
         try:
-
             # FIXME - log any numpy warnings/errors but don't raise
             np_logger.target = str(target)
             np_logger.expression = str(expression)
@@ -354,17 +358,21 @@ def assign_variables(
             globals_dict = {}
             expr_values = to_series(eval(expression, globals_dict, _locals_dict))
 
-            if (
-                sharrow_enabled
-                and np.issubdtype(expr_values.dtype, np.floating)
-                and expr_values.dtype.itemsize < 4
-            ):
-                # promote to float32, numba is not presently compatible with
-                # any float less than 32 (i.e., float16)
-                # see https://github.com/numba/numba/issues/4402
-                # note this only applies to floats, signed and unsigned
-                # integers are readily supported down to 1 byte
-                expr_values = expr_values.astype(np.float32)
+            if sharrow_enabled:
+                if isinstance(expr_values.dtype, pd.api.types.CategoricalDtype):
+                    None
+                elif (
+                    np.issubdtype(expr_values.dtype, np.floating)
+                    and expr_values.dtype.itemsize < 4
+                ):
+                    # promote to float32, numba is not presently compatible with
+                    # any float less than 32 (i.e., float16)
+                    # see https://github.com/numba/numba/issues/4402
+                    # note this only applies to floats, signed and unsigned
+                    # integers are readily supported down to 1 byte
+                    expr_values = expr_values.astype(np.float32)
+                else:
+                    None
 
             np.seterr(**save_err)
             np.seterrcall(saved_handler)
@@ -388,7 +396,8 @@ def assign_variables(
 
         # just keeping track of temps so we can chunk.log_df
         if is_temp(target):
-            temps[target] = expr_values
+            if chunk_log:
+                temps[target] = expr_values
         else:
             variables[target] = expr_values
 
@@ -396,7 +405,6 @@ def assign_variables(
         _locals_dict[target] = expr_values
 
     if trace_results is not None:
-
         trace_results = pd.DataFrame.from_dict(trace_results)
 
         trace_results.index = df[trace_rows].index
@@ -407,13 +415,20 @@ def assign_variables(
     assert variables, "No non-temp variables were assigned."
 
     if chunk_log:
-        chunk.log_df(trace_label, "temps", temps)
-        chunk.log_df(trace_label, "variables", variables)
+        chunk_log.log_df(trace_label, "temps", temps)
+        chunk_log.log_df(trace_label, "variables", variables)
         # these are going away - let caller log result df
-        chunk.log_df(trace_label, "temps", None)
-        chunk.log_df(trace_label, "variables", None)
+        chunk_log.log_df(trace_label, "temps", None)
+        chunk_log.log_df(trace_label, "variables", None)
 
     # we stored result in dict - convert to df
     variables = util.df_from_dict(variables, index=df.index)
+
+    util.auto_opt_pd_dtypes(
+        variables,
+        downcast_int=state.settings.downcast_int,
+        downcast_float=state.settings.downcast_float,
+        inplace=True,
+    )
 
     return variables, trace_results, trace_assigned_locals

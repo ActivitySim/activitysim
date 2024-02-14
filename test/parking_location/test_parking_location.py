@@ -1,22 +1,21 @@
+from __future__ import annotations
+
 import logging
-import pytest
 import os
 import shutil
-import pandas as pd
+from pathlib import Path
+
 import numpy as np
+import pandas as pd
+import pytest
+import yaml
 from numpy import dot
 from numpy.linalg import norm
-import orca
 
-# import models is necessary to initalize the model steps with orca
+# import models is necessary to initalize the model steps
 from activitysim.abm import models
-from activitysim.core import pipeline, config
-from activitysim.core import tracing
-
-from activitysim.core import simulate
-from activitysim.core import config
-from activitysim.abm.models.util import estimation
-import yaml
+from activitysim.core import config, simulate, tracing, workflow
+from activitysim.core.util import read_csv, to_csv
 
 logger = logging.getLogger(__name__)
 
@@ -73,52 +72,56 @@ def load_checkpoint() -> bool:
     os.path.isfile("test/parking_location/output/pipeline.h5"),
     reason="no need to recreate pipeline store if already exist",
 )
-def test_prepare_input_pipeline(initialize_pipeline: pipeline.Pipeline, caplog):
+def test_prepare_input_pipeline(initialize_pipeline: workflow.State, caplog):
     # Run summarize model
     caplog.set_level(logging.INFO)
 
+    state = initialize_pipeline
+
     # run model step
-    pipeline.run(models=["initialize_landuse", "initialize_households"])
+    state.run(models=["initialize_landuse", "initialize_households"])
 
     # save the updated pipeline tables
-    person_df = pipeline.get_table("persons")
-    person_df.to_csv("test/parking_location/output/person.csv")
+    person_df = state.get_table("persons")
+    to_csv(person_df, state.filesystem.get_output_file_path("person.csv"))
 
-    household_df = pipeline.get_table("households")
-    household_df.to_csv("test/parking_location/output/household.csv")
+    household_df = state.get_table("households")
+    to_csv(household_df, state.filesystem.get_output_file_path("household.csv"))
 
-    land_use_df = pipeline.get_table("land_use")
-    land_use_df.to_csv("test/parking_location/output/land_use.csv")
+    land_use_df = state.get_table("land_use")
+    to_csv(land_use_df, state.filesystem.get_output_file_path("land_use.csv"))
 
-    accessibility_df = pipeline.get_table("accessibility")
-    accessibility_df.to_csv("test/parking_location/output/accessibility.csv")
+    accessibility_df = state.get_table("accessibility")
+    to_csv(accessibility_df, state.filesystem.get_output_file_path("accessibility.csv"))
 
-    tours_df = pipeline.get_table("tours")
-    tours_df.to_csv("test/parking_location/output/tours.csv")
+    tours_df = state.get_table("tours")
+    to_csv(tours_df, state.filesystem.get_output_file_path("tours.csv"))
 
-    trips_df = pipeline.get_table("trips")
-    trips_df.to_csv("test/parking_location/output/trips.csv")
+    trips_df = state.get_table("trips")
+    to_csv(trips_df, state.filesystem.get_output_file_path("trips.csv"))
 
-    pipeline.close_pipeline()
+    state.close_pipeline()
 
 
 # @pytest.mark.skip
-def test_parking_location(reconnect_pipeline: pipeline.Pipeline, caplog):
+def test_parking_location(reconnect_pipeline: workflow.State, caplog):
     # Run summarize model
     caplog.set_level(logging.INFO)
 
+    state = reconnect_pipeline
+
     # run model step
-    pipeline.run(models=["parking_location"], resume_after="initialize_households")
+    state.run(models=["parking_location"], resume_after="initialize_households")
 
     # get the updated trips data
-    trips_df = pipeline.get_table("trips")
-    trips_df.to_csv("test/parking_location/output/trips_after_parking_choice.csv")
+    trips_df = state.get_table("trips")
+    to_csv(trips_df, "test/parking_location/output/trips_after_parking_choice.csv")
 
 
 # fetch/prepare existing files for model inputs
 # e.g. read accessibilities.csv from ctramp result, rename columns, write out to accessibility.csv which is the input to activitysim
 @pytest.fixture(scope="module")
-def prepare_module_inputs() -> None:
+def prepare_module_inputs(tmp_path_module: Path) -> Path:
     """
 
     copy input files from sharepoint into test folder
@@ -144,7 +147,7 @@ def prepare_module_inputs() -> None:
     shutil.copy(landuse_file, os.path.join(test_dir, "land_use.csv"))
 
     # add original maz id to accessibility table
-    land_use_df = pd.read_csv(os.path.join(test_dir, "land_use.csv"))
+    land_use_df = read_csv(os.path.join(test_dir, "land_use.csv"))
 
     land_use_df.rename(
         columns={"MAZ": "maz", "MAZ_ORIGINAL": "maz_county_based"}, inplace=True
@@ -152,17 +155,17 @@ def prepare_module_inputs() -> None:
 
     land_use_df.to_csv(os.path.join(test_dir, "land_use.csv"), index=False)
 
-    accessibility_df = pd.read_csv(os.path.join(test_dir, "accessibility.csv"))
+    accessibility_df = read_csv(os.path.join(test_dir, "accessibility.csv"))
 
     accessibility_df["maz"] = accessibility_df["mgra"]
 
-    accessibility_df.to_csv(os.path.join(test_dir, "accessibility.csv"), index=False)
+    to_csv(accessibility_df, tmp_path.joinpath("accessibility.csv"), index=False)
 
     # currently household file has to have these two columns, even before annotation
     # because annotate person happens before household and uses these two columns
     # TODO find a way to get around this
     ####
-    household_df = pd.read_csv(os.path.join(test_dir, "households.csv"))
+    household_df = read_csv(os.path.join(test_dir, "households.csv"))
 
     household_columns_dict = {
         "HHID": "household_id",
@@ -172,7 +175,7 @@ def prepare_module_inputs() -> None:
 
     household_df.rename(columns=household_columns_dict, inplace=True)
 
-    tm2_simulated_household_df = pd.read_csv(
+    tm2_simulated_household_df = read_csv(
         os.path.join(test_dir, "tm2_outputs", "householdData_1.csv")
     )
     tm2_simulated_household_df.rename(columns={"hh_id": "household_id"}, inplace=True)
@@ -193,15 +196,15 @@ def prepare_module_inputs() -> None:
         on="household_id",
     )
 
-    household_df.to_csv(os.path.join(test_dir, "households.csv"), index=False)
+    to_csv(household_df, tmp_path.joinpath("households.csv"), index=False)
 
-    person_df = pd.read_csv(os.path.join(test_dir, "persons.csv"))
+    person_df = read_csv(os.path.join(test_dir, "persons.csv"))
 
     person_columns_dict = {"HHID": "household_id", "PERID": "person_id"}
 
     person_df.rename(columns=person_columns_dict, inplace=True)
 
-    tm2_simulated_person_df = pd.read_csv(
+    tm2_simulated_person_df = read_csv(
         os.path.join(test_dir, "tm2_outputs", "personData_1.csv")
     )
     tm2_simulated_person_df.rename(columns={"hh_id": "household_id"}, inplace=True)
@@ -229,8 +232,8 @@ def prepare_module_inputs() -> None:
     )
 
     # get tm2 simulated workplace and school location results
-    tm2_simulated_wsloc_df = pd.read_csv(
-        os.path.join(test_dir, "tm2_outputs", "wsLocResults_1.csv")
+    tm2_simulated_wsloc_df = read_csv(
+        ext_examp_dir.joinpath("tm2_outputs", "wsLocResults_3.csv.gz")
     )
     tm2_simulated_wsloc_df.rename(
         columns={"HHID": "household_id", "PersonID": "person_id"}, inplace=True
@@ -256,10 +259,10 @@ def prepare_module_inputs() -> None:
 
     ## get tour data from tm2 output
 
-    tm2_simulated_indiv_tour_df = pd.read_csv(
-        os.path.join(test_dir, "tm2_outputs", "indivTourData_1.csv")
+    tm2_simulated_indiv_tour_df = read_csv(
+        ext_examp_dir.joinpath("tm2_outputs", "indivTourData_1.csv.gz")
     )
-    tm2_simulated_joint_tour_df = pd.read_csv(
+    tm2_simulated_joint_tour_df = read_csv(
         os.path.join(test_dir, "tm2_outputs", "jointTourData_1.csv")
     )
 
@@ -274,10 +277,10 @@ def prepare_module_inputs() -> None:
     tm2_simulated_tour_df["unique_tour_id"] = range(1, len(tm2_simulated_tour_df) + 1)
 
     ## get trip data from tm2 output
-    tm2_simulated_indiv_trip_df = pd.read_csv(
+    tm2_simulated_indiv_trip_df = read_csv(
         os.path.join(test_dir, "tm2_outputs", "indivTripData_1.csv")
     )
-    tm2_simulated_joint_trip_df = pd.read_csv(
+    tm2_simulated_joint_trip_df = read_csv(
         os.path.join(test_dir, "tm2_outputs", "jointTripData_1.csv")
     )
 
@@ -325,7 +328,7 @@ def prepare_module_inputs() -> None:
 
     tm2_simulated_trip_df["purpose"] = tm2_simulated_trip_df["dest_purpose"].str.lower()
 
-    period_map_df = pd.read_csv(os.path.join(test_dir, "period_mapping_mtc.csv"))
+    period_map_df = read_csv(os.path.join(test_dir, "period_mapping_mtc.csv"))
 
     tm2_simulated_trip_df.sort_values(
         by=["household_id", "person_id", "person_num", "stop_period", "tour_id"],
@@ -396,9 +399,9 @@ def prepare_module_inputs() -> None:
     tm2_simulated_tour_df = tm2_simulated_tour_df[
         tm2_simulated_tour_df.household_id.isin(tm2_simulated_trip_df.household_id)
     ]
-    tm2_simulated_tour_df.to_csv(os.path.join(test_dir, "tours.csv"), index=False)
+    to_csv(tm2_simulated_tour_df, os.path.join(test_dir, "tours.csv"), index=False)
 
-    tm2_simulated_trip_df.to_csv(os.path.join(test_dir, "trips.csv"), index=False)
+    to_csv(tm2_simulated_trip_df, os.path.join(test_dir, "trips.csv"), index=False)
 
 
 def create_summary(input_df, key, out_col="Share") -> pd.DataFrame:

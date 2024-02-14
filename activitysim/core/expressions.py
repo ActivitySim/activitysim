@@ -1,8 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
-from activitysim.core import assign, config, inject, simulate, tracing
+import pandas as pd
+
+from activitysim.core import assign, simulate, tracing, workflow
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticBase
 from activitysim.core.util import (
     assign_in_place,
     parse_suffix_args,
@@ -12,7 +17,13 @@ from activitysim.core.util import (
 logger = logging.getLogger(__name__)
 
 
-def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
+def compute_columns(
+    state: workflow.State,
+    df: pd.DataFrame,
+    model_settings: str | dict | PydanticBase,
+    locals_dict: dict | None = None,
+    trace_label: str = None,
+) -> pd.DataFrame:
     """
     Evaluate expressions_spec in context of df, with optional additional pipeline tables in locals
 
@@ -27,7 +38,7 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
             TABLES - list of pipeline tables to load and make available as (read only) locals
         str:
             name of yaml file in configs_dir to load dict from
-    locals_dict : dict
+    locals_dict : dict, optional
         dict of locals (e.g. utility functions) to add to the execution environment
     trace_label
 
@@ -37,10 +48,17 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
         one column for each expression (except temps with ALL_CAP target names)
         same index as df
     """
+    if locals_dict is None:
+        locals_dict = {}
+
+    if isinstance(model_settings, PydanticBase):
+        model_settings = model_settings.dict()
 
     if isinstance(model_settings, str):
         model_settings_name = model_settings
-        model_settings = config.read_model_settings("%s.yaml" % model_settings)
+        model_settings = state.filesystem.read_model_settings(
+            "%s.yaml" % model_settings
+        )
         assert model_settings, "Found no model settings for %s" % model_settings_name
     else:
         model_settings_name = "dict"
@@ -49,7 +67,7 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
     assert "DF" in model_settings, "Expected to find 'DF' in %s" % model_settings_name
 
     df_name = model_settings.get("DF")
-    helper_table_names = model_settings.get("TABLES", [])
+    helper_table_names = model_settings.get("TABLES") or []
     expressions_spec_name = model_settings.get("SPEC", None)
 
     # Extract suffix for disaggregate accessibilities.
@@ -80,7 +98,7 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
     )
 
     expressions_spec = assign.read_assignment_spec(
-        config.config_file_path(expressions_spec_name)
+        state.filesystem.get_config_file_path(expressions_spec_name),
     )
 
     if suffix is not None and roots:
@@ -90,7 +108,7 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
         "Expected to find some assignment expressions in %s" % expressions_spec_name
     )
 
-    tables = {t: inject.get_table(t).to_frame() for t in helper_table_names}
+    tables = {t: state.get_dataframe(t) for t in helper_table_names}
 
     # if df was passed in, df might be a slice, or any other table, but DF is it's local alias
     assert df_name not in tables, "Did not expect to find df '%s' in TABLES" % df_name
@@ -99,30 +117,44 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
     # be nice and also give it to them as df?
     tables["df"] = df
 
-    _locals_dict = assign.local_utilities()
+    _locals_dict = assign.local_utilities(state)
     _locals_dict.update(locals_dict)
     _locals_dict.update(tables)
 
     # FIXME a number of asim model preprocessors want skim_dict - should they request it in model_settings.TABLES?
-    if config.setting("sharrow", False):
-        _locals_dict["skim_dict"] = inject.get_injectable("skim_dataset_dict", None)
-    else:
-        _locals_dict["skim_dict"] = inject.get_injectable("skim_dict", None)
+    try:
+        if state.settings.sharrow:
+            from activitysim.core.flow import skim_dataset_dict  # noqa F401
+            from activitysim.core.skim_dataset import skim_dataset  # noqa F401
+
+            _locals_dict["skim_dict"] = state.get_injectable("skim_dataset_dict")
+        else:
+            _locals_dict["skim_dict"] = state.get_injectable("skim_dict")
+    except FileNotFoundError:
+        pass  # maybe we don't even need the skims
 
     results, trace_results, trace_assigned_locals = assign.assign_variables(
-        expressions_spec, df, _locals_dict, trace_rows=tracing.trace_targets(df)
+        state,
+        expressions_spec,
+        df,
+        _locals_dict,
+        trace_rows=state.tracing.trace_targets(df),
     )
 
     if trace_results is not None:
-        tracing.trace_df(trace_results, label=trace_label, slicer="NONE")
+        state.tracing.trace_df(trace_results, label=trace_label, slicer="NONE")
 
     if trace_assigned_locals:
-        tracing.write_csv(trace_assigned_locals, file_name="%s_locals" % trace_label)
+        state.tracing.write_csv(
+            trace_assigned_locals, file_name="%s_locals" % trace_label
+        )
 
     return results
 
 
-def assign_columns(df, model_settings, locals_dict={}, trace_label=None):
+def assign_columns(
+    state: workflow.State, df, model_settings, locals_dict=None, trace_label=None
+):
     """
     Evaluate expressions in context of df and assign resulting target columns to df
 
@@ -131,13 +163,17 @@ def assign_columns(df, model_settings, locals_dict={}, trace_label=None):
     Parameters - same as for compute_columns except df must not be None
     Returns - nothing since we modify df in place
     """
+    if locals_dict is None:
+        locals_dict = {}
 
     assert df is not None
     assert model_settings is not None
 
-    results = compute_columns(df, model_settings, locals_dict, trace_label)
+    results = compute_columns(state, df, model_settings, locals_dict, trace_label)
 
-    assign_in_place(df, results)
+    assign_in_place(
+        df, results, state.settings.downcast_int, state.settings.downcast_float
+    )
 
 
 # ##################################################################################################
@@ -145,33 +181,45 @@ def assign_columns(df, model_settings, locals_dict={}, trace_label=None):
 # ##################################################################################################
 
 
-def annotate_preprocessors(df, locals_dict, skims, model_settings, trace_label):
-
+def annotate_preprocessors(
+    state: workflow.State,
+    df: pd.DataFrame,
+    locals_dict,
+    skims,
+    model_settings: PydanticBase | dict,
+    trace_label: str,
+):
     locals_d = {}
     locals_d.update(locals_dict)
     locals_d.update(skims)
 
-    preprocessor_settings = model_settings.get("preprocessor", [])
+    try:
+        preprocessor_settings = model_settings.preprocessor
+    except AttributeError:
+        preprocessor_settings = model_settings.get("preprocessor", [])
+    if preprocessor_settings is None:
+        preprocessor_settings = []
     if not isinstance(preprocessor_settings, list):
-        assert isinstance(preprocessor_settings, dict)
+        assert isinstance(preprocessor_settings, dict | PreprocessorSettings)
         preprocessor_settings = [preprocessor_settings]
 
     simulate.set_skim_wrapper_targets(df, skims)
 
-    for model_settings in preprocessor_settings:
-
+    for preproc_settings in preprocessor_settings:
         results = compute_columns(
+            state,
             df=df,
-            model_settings=model_settings,
+            model_settings=preproc_settings,
             locals_dict=locals_d,
             trace_label=trace_label,
         )
 
-        assign_in_place(df, results)
+        assign_in_place(
+            df, results, state.settings.downcast_int, state.settings.downcast_float
+        )
 
 
 def filter_chooser_columns(choosers, chooser_columns):
-
     missing_columns = [c for c in chooser_columns if c not in choosers]
     if missing_columns:
         logger.debug("filter_chooser_columns missing_columns %s" % missing_columns)

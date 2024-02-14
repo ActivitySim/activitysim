@@ -1,50 +1,79 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
-import numpy as np
+import pandas as pd
 
-from activitysim.abm.models.util import estimation
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    simulate,
+    tracing,
+    workflow,
+)
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger("activitysim")
 
 
-@inject.step()
-def transit_pass_subsidy(persons_merged, persons, chunk_size, trace_hh_id):
+class TransitPassSubsidySettings(LogitComponentSettings, extra="forbid"):
+    """
+    Settings for the `transit_pass_subsidy` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+
+@workflow.step
+def transit_pass_subsidy(
+    state: workflow.State,
+    persons_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+    model_settings: TransitPassSubsidySettings | None = None,
+    model_settings_file_name: str = "transit_pass_subsidy.yaml",
+    trace_label: str = "transit_pass_subsidy",
+) -> None:
     """
     Transit pass subsidy model.
     """
+    if model_settings is None:
+        model_settings = TransitPassSubsidySettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
-    trace_label = "transit_pass_subsidy"
-    model_settings_file_name = "transit_pass_subsidy.yaml"
-
-    choosers = persons_merged.to_frame()
+    choosers = persons_merged
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    model_settings = config.read_model_settings(model_settings_file_name)
-    estimator = estimation.manager.begin_estimation("transit_pass_subsidy")
+    estimator = estimation.manager.begin_estimation(state, "transit_pass_subsidy")
 
     constants = config.get_model_constants(model_settings)
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
-
         locals_d = {}
         if constants is not None:
             locals_d.update(constants)
 
         expressions.assign_columns(
+            state,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
             trace_label=trace_label,
         )
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    model_spec = state.filesystem.read_model_spec(model_settings.SPEC)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(
+        state, model_spec, coefficients_df, estimator
+    )
 
     nest_spec = config.get_logit_model_settings(model_settings)
 
@@ -55,11 +84,11 @@ def transit_pass_subsidy(persons_merged, persons, chunk_size, trace_hh_id):
         estimator.write_choosers(choosers)
 
     choices = simulate.simple_simulate(
+        state,
         choosers=choosers,
         spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
-        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name="transit_pass_subsidy",
         estimator=estimator,
@@ -73,14 +102,13 @@ def transit_pass_subsidy(persons_merged, persons, chunk_size, trace_hh_id):
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    persons = persons.to_frame()
     persons["transit_pass_subsidy"] = choices.reindex(persons.index)
 
-    pipeline.replace_table("persons", persons)
+    state.add_table("persons", persons)
 
     tracing.print_summary(
         "transit_pass_subsidy", persons.transit_pass_subsidy, value_counts=True
     )
 
-    if trace_hh_id:
-        tracing.trace_df(persons, label=trace_label, warn_if_empty=True)
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)

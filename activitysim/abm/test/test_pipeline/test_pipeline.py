@@ -1,18 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 import os
 
 import numpy as np
-import numpy.testing as npt
 import openmatrix as omx
 import pandas as pd
 import pandas.testing as pdt
 import pkg_resources
 import pytest
-import yaml
 
-from activitysim.core import config, inject, pipeline, random, tracing
+from activitysim.core import random, tracing, workflow
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 50
@@ -44,29 +44,25 @@ def setup_dirs(ancillary_configs_dir=None, data_dir=None):
     if ancillary_configs_dir is not None:
         configs_dir = [ancillary_configs_dir] + configs_dir
 
-    inject.add_injectable("configs_dir", configs_dir)
-
     output_dir = os.path.join(os.path.dirname(__file__), "output")
-    inject.add_injectable("output_dir", output_dir)
 
     if not data_dir:
         data_dir = example_path("data")
 
-    inject.add_injectable("data_dir", data_dir)
+    state = workflow.State.make_default(
+        configs_dir=configs_dir,
+        output_dir=output_dir,
+        data_dir=data_dir,
+    )
 
-    inject.clear_cache()
+    state.logging.config_logger()
 
-    tracing.config_logger()
+    state.tracing.delete_output_files("csv")
+    state.tracing.delete_output_files("txt")
+    state.tracing.delete_output_files("yaml")
+    state.tracing.delete_output_files("omx")
 
-    tracing.delete_output_files("csv")
-    tracing.delete_output_files("txt")
-    tracing.delete_output_files("yaml")
-    tracing.delete_output_files("omx")
-
-
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
+    return state
 
 
 def close_handlers():
@@ -79,35 +75,21 @@ def close_handlers():
         logger.setLevel(logging.NOTSET)
 
 
-def inject_settings(**kwargs):
-
-    settings = config.read_settings_file("settings.yaml", mandatory=True)
-
-    for k in kwargs:
-        settings[k] = kwargs[k]
-
-    inject.add_injectable("settings", settings)
-
-    return settings
-
-
 def test_rng_access():
 
-    setup_dirs()
+    state = setup_dirs()
+    state.settings.rng_base_seed = 0
 
-    inject.add_injectable("rng_base_seed", 0)
+    state.checkpoint.restore()
 
-    pipeline.open_pipeline()
-
-    rng = pipeline.get_rn_generator()
+    rng = state.get_rn_generator()
 
     assert isinstance(rng, random.Random)
 
-    pipeline.close_pipeline()
-    inject.clear_cache()
+    state.checkpoint.close_store()
 
 
-def regress_mini_auto():
+def regress_mini_auto(state: workflow.State):
 
     # regression test: these are among the middle households in households table
     # should be the same results as in run_mp (multiprocessing) test case
@@ -117,7 +99,9 @@ def regress_mini_auto():
         choices, index=pd.Index(hh_ids, name="household_id"), name="auto_ownership"
     )
 
-    auto_choice = pipeline.get_table("households").sort_index().auto_ownership
+    auto_choice = (
+        state.checkpoint.load_dataframe("households").sort_index().auto_ownership
+    )
 
     offset = (
         HOUSEHOLDS_SAMPLE_SIZE // 2
@@ -138,9 +122,11 @@ def regress_mini_auto():
     pdt.assert_series_equal(auto_choice, expected_choice, check_dtype=False)
 
 
-def regress_mini_mtf():
+def regress_mini_mtf(state: workflow.State):
 
-    mtf_choice = pipeline.get_table("persons").sort_index().mandatory_tour_frequency
+    mtf_choice = (
+        state.checkpoint.load_dataframe("persons").sort_index().mandatory_tour_frequency
+    )
 
     # these choices are for pure regression - their appropriateness has not been checked
     per_ids = [2566701, 2566702, 3061895]
@@ -165,13 +151,13 @@ def regress_mini_mtf():
     Name: mandatory_tour_frequency, dtype: object
     """
     pdt.assert_series_equal(
-        mtf_choice.reindex(per_ids), expected_choice, check_dtype=False
+        mtf_choice.astype(str).reindex(per_ids), expected_choice, check_dtype=False
     )
 
 
-def regress_mini_location_choice_logsums():
+def regress_mini_location_choice_logsums(state: workflow.State):
 
-    persons = pipeline.get_table("persons")
+    persons = state.checkpoint.load_dataframe("persons")
 
     # DEST_CHOICE_LOGSUM_COLUMN_NAME is specified in school_location.yaml and should be assigned
     assert "school_location_logsum" in persons
@@ -183,11 +169,13 @@ def regress_mini_location_choice_logsums():
 
 def test_mini_pipeline_run():
 
-    setup_dirs()
+    from activitysim.abm.tables.skims import network_los_preload
 
-    inject_settings(
-        households_sample_size=HOUSEHOLDS_SAMPLE_SIZE, write_skim_cache=True
-    )
+    state = setup_dirs()
+    state.get(network_los_preload)
+
+    state.settings.households_sample_size = HOUSEHOLDS_SAMPLE_SIZE
+    state.network_settings.write_skim_cache = True
 
     _MODELS = [
         "initialize_landuse",
@@ -198,32 +186,33 @@ def test_mini_pipeline_run():
         "auto_ownership_simulate",
     ]
 
-    pipeline.run(models=_MODELS, resume_after=None)
+    state.run(models=_MODELS, resume_after=None)
 
-    regress_mini_auto()
+    regress_mini_auto(state)
 
-    pipeline.run_model("cdap_simulate")
-    pipeline.run_model("mandatory_tour_frequency")
+    state.run.by_name("cdap_simulate")
+    state.run.by_name("mandatory_tour_frequency")
 
-    regress_mini_mtf()
-    regress_mini_location_choice_logsums()
+    regress_mini_mtf(state)
+    regress_mini_location_choice_logsums(state)
 
     # try to get a non-existant table
     with pytest.raises(RuntimeError) as excinfo:
-        pipeline.get_table("bogus")
+        state.checkpoint.load_dataframe("bogus")
     assert "never checkpointed" in str(excinfo.value)
 
     # try to get an existing table from a non-existant checkpoint
     with pytest.raises(RuntimeError) as excinfo:
-        pipeline.get_table("households", checkpoint_name="bogus")
+        state.checkpoint.load_dataframe("households", checkpoint_name="bogus")
     assert "not in checkpoints" in str(excinfo.value)
 
     # should create optional workplace_location_sample table
-    workplace_location_sample_df = pipeline.get_table("workplace_location_sample")
+    workplace_location_sample_df = state.checkpoint.load_dataframe(
+        "workplace_location_sample"
+    )
     assert "mode_choice_logsum" in workplace_location_sample_df
 
-    pipeline.close_pipeline()
-    inject.clear_cache()
+    state.checkpoint.close_store()
     close_handlers()
 
 
@@ -233,46 +222,50 @@ def test_mini_pipeline_run2():
     # exactly the same results as for test_mini_pipeline_run
     # when we restart pipeline
 
-    setup_dirs()
+    state = setup_dirs()
+    from activitysim.abm.tables.skims import network_los_preload
 
-    inject_settings(households_sample_size=HOUSEHOLDS_SAMPLE_SIZE, read_skim_cache=True)
+    state.get(network_los_preload)
+
+    state.settings.households_sample_size = HOUSEHOLDS_SAMPLE_SIZE
+    state.network_settings.read_skim_cache = True
 
     # should be able to get this BEFORE pipeline is opened
-    checkpoints_df = pipeline.get_checkpoints()
+    checkpoints_df = state.checkpoint.get_inventory()
     prev_checkpoint_count = len(checkpoints_df.index)
 
-    # print "checkpoints_df\n%s" % checkpoints_df[['checkpoint_name']]
-    assert prev_checkpoint_count == 9
+    assert "auto_ownership_simulate" in checkpoints_df.checkpoint_name.values
+    assert "cdap_simulate" in checkpoints_df.checkpoint_name.values
+    assert "mandatory_tour_frequency" in checkpoints_df.checkpoint_name.values
 
-    pipeline.open_pipeline("auto_ownership_simulate")
+    state.checkpoint.restore("auto_ownership_simulate")
 
-    regress_mini_auto()
+    regress_mini_auto(state)
 
     # try to run a model already in pipeline
     with pytest.raises(RuntimeError) as excinfo:
-        pipeline.run_model("auto_ownership_simulate")
+        state.run.by_name("auto_ownership_simulate")
     assert "run model 'auto_ownership_simulate' more than once" in str(excinfo.value)
 
     # and these new ones
-    pipeline.run_model("cdap_simulate")
-    pipeline.run_model("mandatory_tour_frequency")
+    state.run.by_name("cdap_simulate")
+    state.run.by_name("mandatory_tour_frequency")
 
-    regress_mini_mtf()
+    regress_mini_mtf(state)
 
     # should be able to get this before pipeline is closed (from existing open store)
-    checkpoints_df = pipeline.get_checkpoints()
+    checkpoints_df = state.checkpoint.get_inventory()
     assert len(checkpoints_df.index) == prev_checkpoint_count
 
     # - write list of override_hh_ids to override_hh_ids.csv in data for use in next test
     num_hh_ids = 10
-    hh_ids = pipeline.get_table("households").head(num_hh_ids).index.values
+    hh_ids = state.checkpoint.load_dataframe("households").head(num_hh_ids).index.values
     hh_ids = pd.DataFrame({"household_id": hh_ids})
 
-    hh_ids_path = config.data_file_path("override_hh_ids.csv")
+    hh_ids_path = state.filesystem.get_data_file_path("override_hh_ids.csv")
     hh_ids.to_csv(hh_ids_path, index=False, header=True)
 
-    pipeline.close_pipeline()
-    inject.clear_cache()
+    state.checkpoint.close_store()
     close_handlers()
 
 
@@ -280,12 +273,14 @@ def test_mini_pipeline_run3():
 
     # test that hh_ids setting overrides household sampling
 
-    setup_dirs()
-    inject_settings(hh_ids="override_hh_ids.csv")
+    state = setup_dirs()
+    state.settings.hh_ids = "override_hh_ids.csv"
 
-    households = inject.get_table("households").to_frame()
+    households = state.get_dataframe("households")
 
-    override_hh_ids = pd.read_csv(config.data_file_path("override_hh_ids.csv"))
+    override_hh_ids = pd.read_csv(
+        state.filesystem.get_data_file_path("override_hh_ids.csv")
+    )
 
     print("\noverride_hh_ids\n%s" % override_hh_ids)
 
@@ -294,7 +289,6 @@ def test_mini_pipeline_run3():
     assert households.shape[0] == override_hh_ids.shape[0]
     assert households.index.isin(override_hh_ids.household_id).all()
 
-    inject.clear_cache()
     close_handlers()
 
 
@@ -304,52 +298,30 @@ def full_run(
     households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
     trace_hh_id=None,
     trace_od=None,
-    check_for_variability=None,
+    check_for_variability=False,
 ):
 
-    setup_dirs()
+    state = setup_dirs()
 
-    settings = inject_settings(
-        households_sample_size=households_sample_size,
-        chunk_size=chunk_size,
-        trace_hh_id=trace_hh_id,
-        trace_od=trace_od,
-        testing_fail_trip_destination=False,
-        check_for_variability=check_for_variability,
-        want_dest_choice_sample_tables=False,
-        use_shadow_pricing=False,
-    )  # shadow pricing breaks replicability when sample_size varies
+    state.settings.households_sample_size = households_sample_size
+    state.settings.chunk_size = chunk_size
+    state.settings.trace_hh_id = trace_hh_id
+    state.settings.trace_od = trace_od
+    state.settings.testing_fail_trip_destination = False
+    state.settings.check_for_variability = check_for_variability
+    state.settings.want_dest_choice_sample_tables = False
+    state.settings.use_shadow_pricing = False
 
     # FIXME should enable testing_fail_trip_destination?
 
-    MODELS = settings["models"]
+    MODELS = state.settings.models
 
-    pipeline.run(models=MODELS, resume_after=resume_after)
+    state.run(models=MODELS, resume_after=resume_after)
 
-    tours = pipeline.get_table("tours")
+    tours = state.checkpoint.load_dataframe("tours")
     tour_count = len(tours.index)
 
-    return tour_count
-
-
-def get_trace_csv(file_name):
-
-    file_name = config.output_file_path(file_name)
-    df = pd.read_csv(file_name)
-
-    #        label    value_1    value_2    value_3    value_4
-    # 0    tour_id        38         201         39         40
-    # 1       mode  DRIVE_LOC  DRIVE_COM  DRIVE_LOC  DRIVE_LOC
-    # 2  person_id    1888694    1888695    1888695    1888696
-    # 3  tour_type       work   othmaint       work     school
-    # 4   tour_num          1          1          1          1
-
-    # transpose df and rename columns
-    labels = df.label.values
-    df = df.transpose()[1:]
-    df.columns = labels
-
-    return df
+    return state, tour_count
 
 
 EXPECT_TOUR_COUNT = 121
@@ -360,6 +332,8 @@ def regress_tour_modes(tours_df):
     mode_cols = ["tour_mode", "person_id", "tour_type", "tour_num", "tour_category"]
 
     tours_df = tours_df[tours_df.household_id == HH_ID]
+    # convert tour_category from categorical to string for comparison
+    tours_df.tour_category = tours_df.tour_category.astype(str)
     tours_df = tours_df.sort_values(by=["person_id", "tour_category", "tour_num"])
 
     print("mode_df\n%s" % tours_df[mode_cols])
@@ -397,13 +371,13 @@ def regress_tour_modes(tours_df):
 
     assert len(tours_df) == len(EXPECT_PERSON_IDS)
     assert (tours_df.person_id.values == EXPECT_PERSON_IDS).all()
-    assert (tours_df.tour_type.values == EXPECT_TOUR_TYPES).all()
-    assert (tours_df.tour_mode.values == EXPECT_MODES).all()
+    assert (tours_df.tour_type.astype(str).values == EXPECT_TOUR_TYPES).all()
+    assert (tours_df.tour_mode.astype(str).values == EXPECT_MODES).all()
 
 
-def regress():
+def regress(state: workflow.State):
 
-    persons_df = pipeline.get_table("persons")
+    persons_df = state.checkpoint.load_dataframe("persons")
     persons_df = persons_df[persons_df.household_id == HH_ID]
     print("persons_df\n%s" % persons_df[["value_of_time", "distance_to_work"]])
 
@@ -415,7 +389,7 @@ def regress():
     3249923        23.349532              0.62
     """
 
-    tours_df = pipeline.get_table("tours")
+    tours_df = state.checkpoint.load_dataframe("tours")
 
     regress_tour_modes(tours_df)
 
@@ -443,7 +417,7 @@ def regress():
     assert "mode_choice_logsum" in tours_df
     assert not tours_df.mode_choice_logsum.isnull().any()
 
-    trips_df = pipeline.get_table("trips")
+    trips_df = state.checkpoint.load_dataframe("trips")
     assert trips_df.shape[0] > 0
     assert not trips_df.purpose.isnull().any()
     assert not trips_df.depart.isnull().any()
@@ -456,7 +430,7 @@ def regress():
     assert trips_df.shape[0] >= 2 * tours_df.shape[0]
 
     # write_trip_matrices
-    trip_matrices_file = config.output_file_path("trips_md.omx")
+    trip_matrices_file = state.get_output_file_path("trips_md.omx")
     assert os.path.exists(trip_matrices_file)
     trip_matrices = omx.open_file(trip_matrices_file)
     assert trip_matrices.shape() == (25, 25)
@@ -473,7 +447,7 @@ def test_full_run1():
     if SKIP_FULL_RUN:
         return
 
-    tour_count = full_run(
+    state, tour_count = full_run(
         trace_hh_id=HH_ID,
         check_for_variability=True,
         households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
@@ -485,9 +459,9 @@ def test_full_run1():
         tour_count == EXPECT_TOUR_COUNT
     ), "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
 
-    regress()
+    regress(state)
 
-    pipeline.close_pipeline()
+    state.checkpoint.close_store()
 
 
 def test_full_run2():
@@ -497,7 +471,7 @@ def test_full_run2():
     if SKIP_FULL_RUN:
         return
 
-    tour_count = full_run(
+    state, tour_count = full_run(
         resume_after="non_mandatory_tour_scheduling", trace_hh_id=HH_ID
     )
 
@@ -505,9 +479,9 @@ def test_full_run2():
         tour_count == EXPECT_TOUR_COUNT
     ), "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
 
-    regress()
+    regress(state)
 
-    pipeline.close_pipeline()
+    state.checkpoint.close_store()
 
 
 def test_full_run3_with_chunks():
@@ -517,7 +491,7 @@ def test_full_run3_with_chunks():
     if SKIP_FULL_RUN:
         return
 
-    tour_count = full_run(
+    state, tour_count = full_run(
         trace_hh_id=HH_ID,
         households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
         chunk_size=500000,
@@ -527,9 +501,9 @@ def test_full_run3_with_chunks():
         tour_count == EXPECT_TOUR_COUNT
     ), "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
 
-    regress()
+    regress(state)
 
-    pipeline.close_pipeline()
+    state.checkpoint.close_store()
 
 
 def test_full_run4_stability():
@@ -539,13 +513,13 @@ def test_full_run4_stability():
     if SKIP_FULL_RUN:
         return
 
-    tour_count = full_run(
+    state, tour_count = full_run(
         trace_hh_id=HH_ID, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE - 10
     )
 
-    regress()
+    regress(state)
 
-    pipeline.close_pipeline()
+    state.checkpoint.close_store()
 
 
 def test_full_run5_singleton():
@@ -557,16 +531,16 @@ def test_full_run5_singleton():
     if SKIP_FULL_RUN:
         return
 
-    tour_count = full_run(trace_hh_id=HH_ID, households_sample_size=1, chunk_size=1)
+    state, tour_count = full_run(
+        trace_hh_id=HH_ID, households_sample_size=1, chunk_size=1
+    )
 
-    regress()
+    regress(state)
 
-    pipeline.close_pipeline()
+    state.checkpoint.close_store()
 
 
 if __name__ == "__main__":
-
-    from activitysim import abm  # register injectables
 
     print("running test_full_run1")
     test_full_run1()

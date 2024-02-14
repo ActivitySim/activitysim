@@ -15,7 +15,7 @@ a number of pre-packaged workflows that are included with ActivitySim.
 
 A collection of workflows used to compare the new *sharrow* code against
 legacy implementations can be found in the
-[sharrow-contrast](https://github.com/camsys/activitysim/tree/sharrow-black/activitysim/workflows/sharrow-contrast)
+[sharrow-contrast](https://github.com/ActivitySim/activitysim/tree/main/activitysim/workflows/sharrow-contrast)
 workflow subdirectory. Each of these first runs the relevant example model in
 test mode to compile the relevant functions, and then runs in production mode
 to measure runtime and memory usage.  This is followed by another run in

@@ -1,33 +1,34 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate
+from activitysim.abm.models.util.tour_scheduling import run_tour_scheduling
 from activitysim.core import timetable as tt
-from activitysim.core import tracing
+from activitysim.core import tracing, workflow
 from activitysim.core.util import assign_in_place
-from .util.tour_scheduling import run_tour_scheduling
 
 logger = logging.getLogger(__name__)
 DUMP = False
 
 
-@inject.step()
+@workflow.step
 def non_mandatory_tour_scheduling(
-    tours, persons_merged, tdd_alts, chunk_size, trace_hh_id
-):
+    state: workflow.State,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    tdd_alts: pd.DataFrame,
+) -> None:
     """
     This model predicts the departure time and duration of each activity for non-mandatory tours
     """
 
     model_name = "non_mandatory_tour_scheduling"
     trace_label = model_name
-
-    persons_merged = persons_merged.to_frame()
-
-    tours = tours.to_frame()
+    trace_hh_id = state.settings.trace_hh_id
     non_mandatory_tours = tours[tours.tour_category == "non_mandatory"]
 
     # - if no mandatory_tours
@@ -38,22 +39,23 @@ def non_mandatory_tour_scheduling(
     tour_segment_col = None
 
     choices = run_tour_scheduling(
+        state,
         model_name,
         non_mandatory_tours,
         persons_merged,
         tdd_alts,
         tour_segment_col,
-        chunk_size,
-        trace_hh_id,
     )
 
-    assign_in_place(tours, choices)
-    pipeline.replace_table("tours", tours)
+    assign_in_place(
+        tours, choices, state.settings.downcast_int, state.settings.downcast_float
+    )
+    state.add_table("tours", tours)
 
     # updated df for tracing
     non_mandatory_tours = tours[tours.tour_category == "non_mandatory"]
 
-    tracing.dump_df(
+    state.tracing.dump_df(
         DUMP,
         tt.tour_map(persons_merged, non_mandatory_tours, tdd_alts),
         trace_label,
@@ -61,7 +63,7 @@ def non_mandatory_tour_scheduling(
     )
 
     if trace_hh_id:
-        tracing.trace_df(
+        state.tracing.trace_df(
             non_mandatory_tours,
             label=trace_label,
             slicer="person_id",

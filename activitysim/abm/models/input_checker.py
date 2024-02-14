@@ -385,7 +385,7 @@ def input_checker(state: workflow.State):
     )
 
     data_model_dir = state.get_injectable("data_model_dir")[0]
-    logger.info("Data model directory:", data_model_dir)
+    logger.info("Data model directory: %s", data_model_dir)
 
     # FIXME: path doesn't recognize windows path object, so converting to string.
     # Is there a better way to get the data model directory than just adding it to the path?

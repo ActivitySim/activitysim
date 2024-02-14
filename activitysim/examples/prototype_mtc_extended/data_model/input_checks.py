@@ -3,24 +3,26 @@ Data Model for ActivitySim Inputs
 
 Instructions: customize these example values for your own ActivitySim implementation
 """
-from typing import List, Optional
-import os, sys, logging
+from __future__ import annotations
 
-from pydantic import BaseModel, validator
-import pandera as pa
-import numpy as np
-import pandas as pd
-import openmatrix as omx
+import csv
+import logging
+import os
 
 # for skim name parsing
 import re
-import csv
-
-from activitysim.core import config
+import sys
+from typing import List, Optional
 
 import enums as e
+import numpy as np
+import openmatrix as omx
+import pandas as pd
+import pandera as pa
+from pydantic import BaseModel, validator
 
 from activitysim.abm.models.input_checker import TABLE_STORE, log_info
+from activitysim.core import config
 
 logger = logging.getLogger(__name__)
 
@@ -225,12 +227,13 @@ class Landuse(pa.DataFrameModel):
     def check_pop_per_zone(cls, land_use: pd.DataFrame):
         persons = TABLE_STORE["persons"]
         households = TABLE_STORE["households"]
-        pop = persons.groupby(
-            persons.household_id.map(
-                lambda hhid: households.set_index("household_id").home_zone_id[hhid]
-            )
-        ).person_id.nunique()
-        return (pop == land_use.set_index("zone_id").TOTPOP).reindex(land_use.index)
+        persons_per_household = persons.groupby("household_id").size()
+        hh = households[["household_id", "home_zone_id"]].merge(
+            persons_per_household.rename("persons_per_household"), on="household_id"
+        )
+        pop = hh.groupby(households.home_zone_id)["persons_per_household"].sum()
+        lu = land_use.set_index("zone_id")
+        return pop.reindex(lu.index) == lu.TOTPOP
 
 
 class NetworkLinks(pa.DataFrameModel):

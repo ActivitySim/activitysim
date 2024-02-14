@@ -22,6 +22,7 @@ INJECTABLES = [
     "configs_dir",
     "data_model_dir",
     "output_dir",
+    "cache_dir",
     "settings_file_name",
     "imported_extensions",
 ]
@@ -375,7 +376,13 @@ def run(args):
 
             from activitysim.core import mp_tasks
 
-            injectables = {k: state.get_injectable(k) for k in INJECTABLES}
+            injectables = {}
+            for k in INJECTABLES:
+                try:
+                    injectables[k] = state.get_injectable(k)
+                except KeyError:
+                    # if injectable is not set, just ignore it
+                    pass
             injectables["settings"] = state.settings
             # injectables["settings_package"] = state.settings.dict()
             mp_tasks.run_multiprocess(state, injectables)

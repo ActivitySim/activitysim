@@ -125,8 +125,13 @@ class workstep:
                 reset_progress_step(description=progress_tag)
 
             return_type = _annotations.get("return", "<missing>")
-            _updates_context = updates_context or return_type in {dict, Context}
-            if return_type not in {None, dict, Context}:
+            _updates_context = updates_context or return_type in {
+                dict,
+                Context,
+                "dict",
+                "Context",
+            }
+            if return_type not in {None, dict, Context, "None", "dict", "Context"}:
                 if returns_names is None and not _updates_context:
                     context.assert_key_has_value(
                         key="report", caller=wrapped_func.__module__

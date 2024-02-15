@@ -52,7 +52,7 @@ def flag_failed_trip_leg_mates(trips_df, col_name):
     #     trips_df.loc[failed_trip_leg_mates, col_name] = True
 
 
-def cleanup_failed_trips(trips):
+def cleanup_failed_trips(state: workflow.State, trips: pd.DataFrame):
     """
     drop failed trips and cleanup fields in leg_mates:
 

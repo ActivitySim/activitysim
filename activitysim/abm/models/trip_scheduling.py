@@ -660,7 +660,7 @@ def trip_scheduling(
             )
 
         trips_df["failed"] = choices.isnull()
-        trips_df = cleanup_failed_trips(trips_df)
+        trips_df = cleanup_failed_trips(state, trips_df)
         choices = choices.reindex(trips_df.index)
 
     trips_df["depart"] = choices

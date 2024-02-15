@@ -1598,7 +1598,7 @@ def trip_destination(
                     trips_df.index[trips_df.failed], level="trip_id", inplace=True
                 )
 
-            trips_df = cleanup_failed_trips(trips_df)
+            trips_df = cleanup_failed_trips(state, trips_df)
 
         trips_df.drop(columns="failed", inplace=True, errors="ignore")
 

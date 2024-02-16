@@ -238,7 +238,7 @@ def trip_purpose_and_destination(
         state.settings.downcast_float,
     )
 
-    trips_df = cleanup_failed_trips(trips_df)
+    trips_df = cleanup_failed_trips(state, trips_df)
 
     state.add_table("trips", trips_df)
 

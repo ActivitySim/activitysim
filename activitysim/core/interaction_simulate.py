@@ -888,10 +888,10 @@ def interaction_simulate(
     skims=None,
     locals_d=None,
     sample_size=None,
-    chunk_size=0,
     trace_label=None,
     trace_choice_name=None,
     estimator=None,
+    explicit_chunk_size=0,
 ):
     """
     Run a simulation in the situation in which alternatives must
@@ -926,13 +926,14 @@ def interaction_simulate(
     sample_size : int, optional
         Sample alternatives with sample of given size.  By default is None,
         which does not sample alternatives.
-    chunk_size : int
-        if chunk_size > 0 iterates over choosers in chunk_size chunks
     trace_label: str
         This is the label to be used  for trace log file entries and dump file names
         when household tracing enabled. No tracing occurs if label is empty or None.
     trace_choice_name: str
         This is the column label to be used in trace file csv dump of choices
+    explicit_chunk_size : int, optional
+        If > 0, specifies the chunk size to use when chunking the interaction
+        simulation.
 
     Returns
     -------
@@ -952,7 +953,9 @@ def interaction_simulate(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(state, choosers, trace_label):
+    ) in chunk.adaptive_chunked_choosers(
+        state, choosers, trace_label, explicit_chunk_size=explicit_chunk_size
+    ):
         choices = _interaction_simulate(
             state,
             chooser_chunk,

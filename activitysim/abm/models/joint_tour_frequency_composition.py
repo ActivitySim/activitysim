@@ -132,10 +132,10 @@ def joint_tour_frequency_composition(
         alternatives=alt_tdd,
         spec=model_spec,
         locals_d=constants,
-        chunk_size=state.settings.chunk_size,
         trace_label=trace_label,
         trace_choice_name=trace_label,
         estimator=estimator,
+        explicit_chunk_size=0,
     )
 
     if estimator:

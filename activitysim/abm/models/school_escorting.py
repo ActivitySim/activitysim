@@ -408,6 +408,9 @@ class SchoolEscortSettings(BaseLogitComponentSettings):
     preprocessor_inbound: PreprocessorSettings | None = None
     preprocessor_outbound_cond: PreprocessorSettings | None = None
 
+    explicit_chunk: int = 0
+    """If > 0, use this chunk size instead of adaptive chunking."""
+
 
 @workflow.step
 def school_escorting(
@@ -539,10 +542,10 @@ def school_escorting(
             spec=model_spec,
             log_alt_losers=log_alt_losers,
             locals_d=locals_dict,
-            chunk_size=state.settings.chunk_size,
             trace_label=stage_trace_label,
             trace_choice_name="school_escorting_" + "stage",
             estimator=estimator,
+            explicit_chunk_size=model_settings.explicit_chunk,
         )
 
         if estimator:

@@ -402,6 +402,17 @@ def iterate_vehicle_type_choice(
             list(set(alts)) + [""], ordered=False
         )
 
+    # alts preprocessor
+    alts_preprocessor_settings = model_settings.alts_preprocessor
+    if alts_preprocessor_settings:
+        expressions.assign_columns(
+            state,
+            df=alts_wide,
+            model_settings=alts_preprocessor_settings,
+            locals_dict=locals_dict,
+            trace_label=trace_label,
+        )
+
     # - preparing choosers for iterating
     vehicles_merged["already_owned_veh"] = ""
     vehicles_merged["already_owned_veh"] = vehicles_merged["already_owned_veh"].astype(
@@ -437,6 +448,12 @@ def iterate_vehicle_type_choice(
             veh_num,
             len(choosers),
         )
+
+        # filter columns of alts and choosers
+        if len(model_settings.COLS_TO_INCLUDE_IN_CHOOSER_TABLE) > 0:
+            choosers = choosers[model_settings.COLS_TO_INCLUDE_IN_CHOOSER_TABLE]
+        if len(model_settings.COLS_TO_INCLUDE_IN_ALTS_TABLE) > 0:
+            alts_wide = alts_wide[model_settings.COLS_TO_INCLUDE_IN_ALTS_TABLE]
 
         # if there were so many alts that they had to be created programmatically,
         # by combining categorical variables, then the utility expressions should make
@@ -542,10 +559,16 @@ class VehicleTypeChoiceSettings(LogitComponentSettings):
     PROBS_SPEC: str | None = None
     combinatorial_alts: dict | None = None
     preprocessor: PreprocessorSettings | None = None
+    alts_preprocessor: PreprocessorSettings | None = None
     SIMULATION_TYPE: Literal[
         "simple_simulate", "interaction_simulate"
     ] = "interaction_simulate"
     COLS_TO_INCLUDE_IN_VEHICLE_TABLE: list[str] = []
+
+    COLS_TO_INCLUDE_IN_CHOOSER_TABLE: list[str] = []
+    """Columns to include in the chooser table for use in utility calculations."""
+    COLS_TO_INCLUDE_IN_ALTS_TABLE: list[str] = []
+    """Columns to include in the alternatives table for use in utility calculations."""
 
     annotate_households: PreprocessorSettings | None = None
     annotate_persons: PreprocessorSettings | None = None

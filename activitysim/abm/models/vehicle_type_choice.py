@@ -382,14 +382,18 @@ def iterate_vehicle_type_choice(
         # convert alternative names to categoricals
         # body_type, fuel_type, vehicle_type
         # age should be a int becuase it is used as a numeric value in utilities
+
+        # although the next three categorical types are not fundamentally "ordered",
+        # they are defined to be lexicographically sorted to ensure that sharrow
+        # recognizes them as a stable category dtype when compiling the model
         body_type_cat = pd.api.types.CategoricalDtype(
-            alts_cats_dict["body_type"], ordered=False
+            sorted(alts_cats_dict["body_type"]), ordered=False
         )
         fuel_type_cat = pd.api.types.CategoricalDtype(
-            alts_cats_dict["fuel_type"], ordered=False
+            sorted(alts_cats_dict["fuel_type"]), ordered=False
         )
         vehicle_type_cat = pd.api.types.CategoricalDtype(
-            list(set(alts_wide["vehicle_type"])) + [""], ordered=False
+            [""] + sorted(set(alts_wide["vehicle_type"])), ordered=False
         )
 
         alts_wide["body_type"] = alts_wide["body_type"].astype(body_type_cat)
@@ -399,7 +403,7 @@ def iterate_vehicle_type_choice(
         alts_wide = alts_long = None
         alts = model_spec.columns
         vehicle_type_cat = pd.api.types.CategoricalDtype(
-            list(set(alts)) + [""], ordered=False
+            [""] + sorted(set(alts)), ordered=False
         )
 
     # alts preprocessor

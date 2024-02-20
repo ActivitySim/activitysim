@@ -28,11 +28,7 @@ def add_null_results(state, trace_label, tours):
         [""],
         ordered=False,
     )
-    choices = choices.astype(cat_type)
-    tours["atwork_subtour_frequency"] = ""
-    tours["atwork_subtour_frequency"] = tours["atwork_subtour_frequency"].astype(
-        cat_type
-    )
+    tours["atwork_subtour_frequency"] = pd.Series("", dtype=cat_type, index=tours.index)
     state.add_table("tours", tours)
 
 

@@ -13,6 +13,13 @@ and resources to support project development. New member agencies are welcome to
 the consortium. All member agencies help make decisions about development priorities 
 and benefit from contributions of other agency partners. 
 
-## Documentation
+:fire: The `main` branch of this repository contains the Consortium's latest 
+in-development codebase.  It is not necessarily what you'll get if you install released 
+code from conda-forge or by downloading one of the "release" versions here on GitHub, 
+but it is generally expected that code in the `main` branch should be usable.  
 
-https://activitysim.github.io/activitysim   
+## Helpful Links
+
+- [AMPO Research Foundation](https://research.ampo.org/#research)
+- [Documentation](https://activitysim.github.io/activitysim)   
+- [Releases](https://github.com/ActivitySim/activitysim/releases)

@@ -296,7 +296,34 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     """
     The method to use for chunk training.
 
-    Valid values include {disabled, training, production, adaptive}.
+    * "disabled"
+        All chunking is disabled. If you have enough RAM, this is the fastest
+        mode, but it requires potentially a lot of RAM.
+    * "training"
+        The model is run in training mode, which tracks the amount of memory
+        used by each table by submodel and writes the results to a cache file
+        that is then re-used for production runs. This mode is significantly
+        slower than production mode since it does significantly more memory
+        inspection.
+    * "production"
+        The model is run in production mode, using the cache file created in
+        training mode. If no such file is found, the model falls back to
+        training mode. This mode is significantly faster than training mode, as
+        it uses the cached memory inspection results to determine chunk sizes.
+    * "adaptive"
+        Like production mode, any existing cache file is used to determine the
+        starting chunk settings, but the model also updates the cache settings
+        based on additional memory inspection. This may additionally improve the
+        cache settings to reduce runtimes when run in production mode, but at
+        the cost of some slowdown during the run to accommodate extra memory
+        inspection.
+    * "explicit"
+        The model is run without memory inspection, and the chunk cache file is
+        not used, even if it exists. Instead, the chunk size settings are
+        explicitly set in the settings file of each compatible model step.  Only
+        those steps that have an "explicit_chunk" setting are chunkable with
+        this mode, all other steps are run without chunking.
+
     See :ref:`chunk_size` for more details.
     """
 

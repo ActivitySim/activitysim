@@ -481,10 +481,10 @@ def iterate_vehicle_type_choice(
                 spec=model_spec,
                 log_alt_losers=log_alt_losers,
                 locals_d=locals_dict,
-                chunk_size=chunk_size,
                 trace_label=trace_label,
                 trace_choice_name="vehicle_type",
                 estimator=estimator,
+                explicit_chunk_size=model_settings.explicit_chunk,
             )
 
         # otherwise, "simple simulation" should suffice, with a model spec that enumerates
@@ -582,6 +582,9 @@ class VehicleTypeChoiceSettings(LogitComponentSettings):
     WRITE_OUT_ALTS_FILE: bool = False
 
     FLEET_YEAR: int
+
+    explicit_chunk: int = 0
+    """If > 0, use this chunk size instead of adaptive chunking."""
 
 
 @workflow.step

@@ -178,6 +178,9 @@ class NonMandatoryTourFrequencySettings(LogitComponentSettings):
     annotate_tours: PreprocessorSettings | None = None
     """Preprocessor settings to annotate tours"""
 
+    explicit_chunk: int = 0
+    """Number of rows to process in each chunk when explicit chunking is enabled"""
+
 
 @workflow.step
 def non_mandatory_tour_frequency(
@@ -305,10 +308,10 @@ def non_mandatory_tour_frequency(
             spec=segment_spec,
             log_alt_losers=log_alt_losers,
             locals_d=constants,
-            chunk_size=state.settings.chunk_size,
             trace_label="non_mandatory_tour_frequency.%s" % segment_name,
             trace_choice_name="non_mandatory_tour_frequency",
             estimator=estimator,
+            explicit_chunk_size=model_settings.explicit_chunk,
         )
 
         if estimator:

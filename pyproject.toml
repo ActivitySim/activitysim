@@ -36,6 +36,16 @@ requires-python = ">=3.9"
 activitysim = "activitysim.cli.main:main"
 activitysim_checksums = "activitysim.cli.create:display_sha256_checksums"
 
+[tool.setuptools.packages.find]
+exclude = [
+    "other*", "test*",
+    "activitysim/estimation/test*",
+    "activitysim/abm/test*",
+    "activitysim/cli/test*",
+    "activitysim/core/test*",
+    "activitysim/abm/models/util/test*",
+]
+
 [tool.setuptools_scm]
 fallback_version = "999"
 write_to = "activitysim/_generated_version.py"

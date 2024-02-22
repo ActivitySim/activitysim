@@ -3,8 +3,7 @@ name: Test to PyPI
 on:
   push:
     branches:
-      - 'main'
-      - 'develop'
+      - main
 
 # no need for concurrency limits
 

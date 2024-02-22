@@ -37,6 +37,8 @@ def determine_escorting_participants(
     Chauffers are those with the highest weight given by:
     weight = 100 * person type +  10 * gender + 1*(age > 25)
     and escortees are selected youngest to oldest.
+
+    Choosers are only those households with escortees.
     """
     global NUM_ESCORTEES
     global NUM_CHAPERONES
@@ -56,6 +58,7 @@ def determine_escorting_participants(
         & (persons.cdap_activity == "M")
     ]
     households_with_escortees = escortees["household_id"]
+    choosers = choosers[choosers.index.isin(households_with_escortees)]
 
     # can specify different weights to determine chaperones
     persontype_weight = model_settings.PERSON_WEIGHT
@@ -408,6 +411,9 @@ class SchoolEscortSettings(BaseLogitComponentSettings):
     preprocessor_inbound: PreprocessorSettings | None = None
     preprocessor_outbound_cond: PreprocessorSettings | None = None
 
+    no_escorting_alterative: int = 1
+    """The alternative number for no escorting. Used to set the choice for households with no escortees."""
+
     explicit_chunk: int = 0
     """If > 0, use this chunk size instead of adaptive chunking."""
 
@@ -456,7 +462,7 @@ def school_escorting(
 
     alts = simulate.read_model_alts(state, model_settings.ALTS, set_index="Alt")
 
-    households_merged, participant_columns = determine_escorting_participants(
+    choosers, participant_columns = determine_escorting_participants(
         households_merged, persons, model_settings
     )
 
@@ -503,9 +509,7 @@ def school_escorting(
         chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
         if chooser_columns is not None:
             chooser_columns = chooser_columns + participant_columns
-            choosers = households_merged[chooser_columns]
-        else:
-            choosers = households_merged
+            choosers = choosers[chooser_columns]
 
         # add previous data to stage
         if stage_num >= 1:
@@ -543,7 +547,7 @@ def school_escorting(
             log_alt_losers=log_alt_losers,
             locals_d=locals_dict,
             trace_label=stage_trace_label,
-            trace_choice_name="school_escorting_" + "stage",
+            trace_choice_name="school_escorting_" + stage,
             estimator=estimator,
             explicit_chunk_size=model_settings.explicit_chunk,
         )
@@ -556,9 +560,13 @@ def school_escorting(
             estimator.write_override_choices(choices)
             estimator.end_estimation()
 
-        # no need to reindex as we used all households
+        # choices are merged into households by index (household_id)
+        # households that do not have an escortee are assigned the no_escorting_alterative
         escorting_choice = "school_escorting_" + stage
         households[escorting_choice] = choices
+        households[escorting_choice].fillna(
+            model_settings.no_escorting_alterative, inplace=True
+        )
 
         # tracing each step -- outbound, inbound, outbound_cond
         tracing.print_summary(
@@ -601,6 +609,9 @@ def school_escorting(
         escort_bundles["first_mand_tour_id"],
         escort_bundles["bundle_id"].map(chauf_tour_id_map),
     )
+    assert (
+        escort_bundles["chauf_tour_id"].notnull().all()
+    ), f"chauf_tour_id is null for {escort_bundles[escort_bundles['chauf_tour_id'].isna()]}. Check availability conditions."
 
     tours = school_escort_tours_trips.add_pure_escort_tours(tours, school_escort_tours)
     tours = school_escort_tours_trips.process_tours_after_escorting_model(

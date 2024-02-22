@@ -30,7 +30,7 @@ dependencies = [
     "xarray >= 0.21"
 ]
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 [project.scripts]
 activitysim = "activitysim.cli.main:main"

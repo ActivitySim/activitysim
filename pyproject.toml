@@ -26,6 +26,7 @@ dependencies = [
     "scikit-learn >= 1.1",
     "sharrow >= 2.6",
     "simwrapper > 1.7",
+    "sparse",
     "tables >= 3.5.1",
     "xarray >= 0.21"
 ]

@@ -489,9 +489,10 @@ def merge_school_escort_trips_into_pipeline(state: workflow.State):
 
     # converting to categoricals
     trips["school_escort_direction"] = trips["school_escort_direction"].astype(
-        "category"
+        pd.api.types.CategoricalDtype(["outbound", "inbound"], ordered=False)
     )
-    trips["escort_participants"] = trips["escort_participants"].astype("category")
+    # trips["escort_participants"] is left with dtype of object (i.e. Python strings)
+    #  as it doesn't have a fixed number of categories
 
     # updating trip_id now that we have all trips
     trips = canonical_ids.set_trip_index(state, trips)

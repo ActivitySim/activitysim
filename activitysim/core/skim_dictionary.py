@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 from __future__ import annotations
+from collections import OrderedDict
 
 import logging
 from builtins import object, range
@@ -164,6 +165,11 @@ class SkimDict:
         self.skim_tag = skim_tag
         self.skim_info = skim_info
         self.usage = set()  # track keys of skims looked up
+
+        self.time_label_dtype = pd.api.types.CategoricalDtype(
+            list(OrderedDict.fromkeys(state.network_settings.skim_time_periods.labels)),
+            ordered=True,
+        )
 
         self.offset_mapper = self._offset_mapper(
             state

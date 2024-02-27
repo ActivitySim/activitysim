@@ -1278,6 +1278,7 @@ def eval_nl(
     trace_column_names=None,
     *,
     chunk_sizer: chunk.ChunkSizer,
+    overflow_protection: bool = True,
 ):
     """
     Run a nested-logit simulation for when the model spec does not involve alternative
@@ -1308,6 +1309,21 @@ def eval_nl(
         This is the column label to be used in trace file csv dump of choices
     trace_column_names: str or list of str
         chooser columns to include when tracing expression_values
+    overflow_protection: bool, default True
+        Always shift utility values such that the maximum utility in each row is
+        zero.  This constant per-row shift should not fundamentally alter the
+        computed probabilities, but will ensure that an overflow does not occur
+        that will create infinite or NaN values.  This will also provide effective
+        protection against underflow; extremely rare probabilities will round to
+        zero, but by definition they are extremely rare and losing them entirely
+        should not impact the simulation in a measurable fashion, and at least one
+        (and sometimes only one) alternative is guaranteed to have non-zero
+        probability, as long as at least one alternative has a finite utility value.
+        If utility values are certain to be well-behaved and non-extreme, enabling
+        overflow_protection will have no benefit but impose a modest computational
+        overhead cost.  Overflow protection is automatically activated even when
+        this setting is False if the utility array dtype is float32 and the
+        maximum value is greater than 85.
 
     Returns
     -------
@@ -1349,6 +1365,17 @@ def eval_nl(
             column_labels=["alternative", "utility"],
         )
 
+    overflow_protection = overflow_protection or (
+        raw_utilities.dtype == np.float32 and raw_utilities.max() > 85
+    )
+
+    if overflow_protection:
+        # exponentiated utils may overflow, downshift them
+        shifts = raw_utilities.to_numpy().max(1, keepdims=True)
+        raw_utilities -= shifts
+    else:
+        shifts = None
+
     # exponentiated utilities of leaves and nests
     nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
     chunk_sizer.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
@@ -1371,7 +1398,10 @@ def eval_nl(
 
     if want_logsums:
         # logsum of nest root
-        logsums = pd.Series(np.log(nested_exp_utilities.root), index=choosers.index)
+        logsums = np.log(nested_exp_utilities.root)
+        if shifts is not None:
+            logsums += np.squeeze(shifts, 1)
+        logsums = pd.Series(logsums, index=choosers.index)
         chunk_sizer.log_df(trace_label, "logsums", logsums)
 
     del nested_exp_utilities

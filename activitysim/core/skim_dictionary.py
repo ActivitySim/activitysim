@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core import workflow
+from activitysim.core.exceptions import StateAccessError
 
 logger = logging.getLogger(__name__)
 
@@ -166,10 +167,13 @@ class SkimDict:
         self.skim_info = skim_info
         self.usage = set()  # track keys of skims looked up
 
-        self.time_label_dtype = pd.api.types.CategoricalDtype(
-            list(OrderedDict.fromkeys(state.network_settings.skim_time_periods.labels)),
-            ordered=True,
-        )
+        try:
+            self.time_label_dtype = pd.api.types.CategoricalDtype(
+                list(OrderedDict.fromkeys(state.network_settings.skim_time_periods.labels)),
+                ordered=True,
+            )
+        except StateAccessError:
+            logger.info(f"Cannot access state.network_settings.skim_time_periods.labels. SkimDict.time_label_dtype is not set")
 
         self.offset_mapper = self._offset_mapper(
             state

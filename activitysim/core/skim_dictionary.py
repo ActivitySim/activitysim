@@ -169,11 +169,17 @@ class SkimDict:
 
         try:
             self.time_label_dtype = pd.api.types.CategoricalDtype(
-                list(OrderedDict.fromkeys(state.network_settings.skim_time_periods.labels)),
+                list(
+                    OrderedDict.fromkeys(
+                        state.network_settings.skim_time_periods.labels
+                    )
+                ),
                 ordered=True,
             )
         except StateAccessError:
-            logger.info(f"Cannot access state.network_settings.skim_time_periods.labels. SkimDict.time_label_dtype is not set")
+            logger.info(
+                f"Cannot access state.network_settings.skim_time_periods.labels. SkimDict.time_label_dtype is not set"
+            )
 
         self.offset_mapper = self._offset_mapper(
             state

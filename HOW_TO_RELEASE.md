@@ -10,7 +10,7 @@
     by starting where ActivitySim is not yet cloned (e.g. in an empty
     directory) and running:
     ```sh
-    conda create -n TEMP-ASIM-DEV python=3.9 git gh -c conda-forge --override-channels
+    conda create -n TEMP-ASIM-DEV python=3.10 git gh -c conda-forge --override-channels
     conda activate TEMP-ASIM-DEV
     gh auth login   # <--- (only needed if gh is not logged in)
     gh repo clone ActivitySim/activitysim

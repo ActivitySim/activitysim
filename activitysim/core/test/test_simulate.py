@@ -129,29 +129,38 @@ def test_eval_utilities(state, data, spec):
     )
 
 
-def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
+@pytest.mark.parametrize("overflow_protection", [True, False])
+def test_simple_simulate_with_nest_spec(state, overflow_protection):
     state.settings.check_for_variability = False
 
     data = pd.DataFrame(
         {
-            "var1": [1, 0, 0, 0, 0],
-            "var2": [0, 1, 1, 0, 2],
-            "var3": [4, -4, 5, 0, -1],
-            "var4": [1, 1, 1, 0, 0],
-            "var5": [0, 0, 0, 0, 1],
+            "var0": [0, 0, 0, 0, 0, 0, 5, 0],
+            "var1": [1, 0, 0, 0, 0, 0, 5, 0],
+            "var2": [0, 1, 1, 0, 2, 0, 5, 0],
+            "var3": [4, -4, 5, 0, -1, 0, 5, 0],
+            "var4": [1, 1, 1, 0, 0, 0, 5, 0],
+            "var5": [0, 0, 0, 0, 1, 1, 1, 0],
+            "var6": [0, 0, 0, 0, 0, 0, 0, 1.1],
+            "var7": [0, 0, 0, 0, 0, 0, 0, -1.1],
         },
-        index=pd.Index([1001, 1002, 1003, 1004, 1005], name="chooser_id"),
+        index=pd.Index(
+            [1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008], name="chooser_id"
+        ),
     )
 
     spec = pd.DataFrame(
         {
-            "DRIVE": [0, 0, 0, 0, -999.9],
-            "WALK_TO_TRANSIT": [1, 0, 0, 0, -999.9],
-            "DRIVE_TO_TRANSIT": [0, 1, 0, 0, -999.9],
-            "WALK": [0, 0, 1, 0, -999.9],
-            "BIKE": [0, 0, 0, 1, -999.9],
+            "DRIVE": [1, 0, 0, 0, 0, -999.9, 2.0, 0],
+            "WALK_TO_TRANSIT": [0, 1, 0, 0, 0, -999.9, 2.0, 0],
+            "DRIVE_TO_TRANSIT": [0, 0, 1, 0, 0, -999.9, 2.0, 0],
+            "WALK": [0, 0, 0, 1, 0, -999.9, 0, 2.0],
+            "BIKE": [0, 0, 0, 0, 1, -999.9, 0, 2.0],
         },
-        index=pd.Index(["var1", "var2", "var3", "var4", "var5"], name="Expression"),
+        index=pd.Index(
+            ["var0", "var1", "var2", "var3", "var4", "var5", "var6", "var7"],
+            name="Expression",
+        ),
     )
 
     component_settings = LogitComponentSettings.model_validate(
@@ -212,11 +221,56 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
         chunk_sizer=chunk_sizer,
     )
     expected_utilities = {
-        "DRIVE": {1001: 0.0, 1002: 0.0, 1003: 0.0, 1004: 0.0, 1005: -999.9},
-        "WALK_TO_TRANSIT": {1001: 1.0, 1002: 0.0, 1003: 0.0, 1004: 0.0, 1005: -999.9},
-        "DRIVE_TO_TRANSIT": {1001: 0.0, 1002: 1.0, 1003: 1.0, 1004: 0.0, 1005: -997.9},
-        "WALK": {1001: 4.0, 1002: -4.0, 1003: 5.0, 1004: 0.0, 1005: -1000.9},
-        "BIKE": {1001: 1.0, 1002: 1.0, 1003: 1.0, 1004: 0.0, 1005: -999.9},
+        "DRIVE": {
+            1001: 0.0,
+            1002: 0.0,
+            1003: 0.0,
+            1004: 0.0,
+            1005: -999.9,
+            1006: -999.9,
+            1007: -994.9,
+            1008: 2.2,
+        },
+        "WALK_TO_TRANSIT": {
+            1001: 1.0,
+            1002: 0.0,
+            1003: 0.0,
+            1004: 0.0,
+            1005: -999.9,
+            1006: -999.9,
+            1007: -994.9,
+            1008: 2.2,
+        },
+        "DRIVE_TO_TRANSIT": {
+            1001: 0.0,
+            1002: 1.0,
+            1003: 1.0,
+            1004: 0.0,
+            1005: -997.9,
+            1006: -999.9,
+            1007: -994.9,
+            1008: 2.2,
+        },
+        "WALK": {
+            1001: 4.0,
+            1002: -4.0,
+            1003: 5.0,
+            1004: 0.0,
+            1005: -1000.9,
+            1006: -999.9,
+            1007: -994.9,
+            1008: -2.2,
+        },
+        "BIKE": {
+            1001: 1.0,
+            1002: 1.0,
+            1003: 1.0,
+            1004: 0.0,
+            1005: -999.9,
+            1006: -999.9,
+            1007: -994.9,
+            1008: -2.2,
+        },
     }
     pd.testing.assert_frame_equal(
         raw_utilities,
@@ -235,13 +289,25 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
         raw_utilities, nest_spec
     )
     expected_nested_exp_utilities = {
-        "DRIVE": {1001: 1.0, 1002: 1.0, 1003: 1.0, 1004: 1.0, 1005: 0.0},
+        "DRIVE": {
+            1001: 1.0,
+            1002: 1.0,
+            1003: 1.0,
+            1004: 1.0,
+            1005: 0.0,
+            1006: 0,
+            1007: 0,
+            1008: 81.45086866496814,
+        },
         "WALK_TO_TRANSIT": {
             1001: 2980.9579870417283,
             1002: 1.0,
             1003: 1.0,
             1004: 1.0,
             1005: 0.0,
+            1006: 0,
+            1007: 0,
+            1008: 44013193.53483411,
         },
         "DRIVE_TO_TRANSIT": {
             1001: 1.0,
@@ -249,6 +315,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 2980.9579870417283,
             1004: 1.0,
             1005: 0.0,
+            1006: 0,
+            1007: 0,
+            1008: 44013193.53483411,
         },
         "TRANSIT": {
             1001: 7.389675709034251,
@@ -256,6 +325,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 7.389675709034251,
             1004: 1.189207115002721,
             1005: 0.0,
+            1006: 0,
+            1007: 0,
+            1008: 96.86195253953227,
         },
         "MOTORIZED": {
             1001: 2.896493692213786,
@@ -263,6 +335,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 2.896493692213786,
             1004: 1.4795969434284193,
             1005: 0.0,
+            1006: 0,
+            1007: 0,
+            1008: 13.353382388162945,
         },
         "WALK": {
             1001: 2980.9579870417283,
@@ -270,6 +345,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 22026.465794806718,
             1004: 1.0,
             1005: 0.0,
+            1006: 0,
+            1007: 0,
+            1008: 0.012277339903068436,
         },
         "BIKE": {
             1001: 7.38905609893065,
@@ -277,6 +355,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 7.38905609893065,
             1004: 1.0,
             1005: 0.0,
+            1006: 0,
+            1007: 0,
+            1008: 0.012277339903068436,
         },
         "NONMOTORIZED": {
             1001: 54.66577579382422,
@@ -284,6 +365,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 148.43805054939804,
             1004: 1.414213562373095,
             1005: 0.0,
+            1006: 0,
+            1007: 0,
+            1008: 0.1566993293097864,
         },
         "root": {
             1001: 57.562269486038,
@@ -291,6 +375,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 151.33454424161187,
             1004: 2.893810505801514,
             1005: 0.0,
+            1006: 0,
+            1007: 0,
+            1008: 13.510081717472728,
         },
     }
     if not overflow_protection:
@@ -312,6 +399,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 0.019139673012061372,
             1004: 0.5112971082460728,
             1005: 0.8749672738657182 if overflow_protection else 0.0,
+            1006: 0.5112971082460728 if overflow_protection else 0.0,
+            1007: 0.5112971082460728 if overflow_protection else 0.0,
+            1008: 0.9884013041085367,
         },
         "NONMOTORIZED": {
             1001: 0.9496806898324892,
@@ -319,6 +409,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 0.9808603269879386,
             1004: 0.4887028917539273,
             1005: 0.12503272613428196 if overflow_protection else 0.0,
+            1006: 0.4887028917539273 if overflow_protection else 0.0,
+            1007: 0.4887028917539273 if overflow_protection else 0.0,
+            1008: 0.011598695891463442,
         },
         "DRIVE": {
             1001: 0.11919411842381113,
@@ -326,6 +419,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 0.11919411842381113,
             1004: 0.45678638313705516,
             1005: 0.01798620946517266 if overflow_protection else 0.0,
+            1006: 0.45678638313705516 if overflow_protection else 0.0,
+            1007: 0.45678638313705516 if overflow_protection else 0.0,
+            1008: 0.45678638313705516,
         },
         "TRANSIT": {
             1001: 0.880805881576189,
@@ -333,6 +429,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 0.880805881576189,
             1004: 0.5432136168629449,
             1005: 0.9820137905348273 if overflow_protection else 0.0,
+            1006: 0.5432136168629449 if overflow_protection else 0.0,
+            1007: 0.5432136168629449 if overflow_protection else 0.0,
+            1008: 0.5432136168629449,
         },
         "WALK_TO_TRANSIT": {
             1001: 0.9996646498695335,
@@ -340,6 +439,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 0.0003353501304664781,
             1004: 0.5,
             1005: 1.12535162055095e-07 if overflow_protection else 0.0,
+            1006: 0.5 if overflow_protection else 0.0,
+            1007: 0.5 if overflow_protection else 0.0,
+            1008: 0.5,
         },
         "DRIVE_TO_TRANSIT": {
             1001: 0.0003353501304664781,
@@ -347,6 +449,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 0.9996646498695335,
             1004: 0.5,
             1005: 0.9999998874648379 if overflow_protection else 0.0,
+            1006: 0.5 if overflow_protection else 0.0,
+            1007: 0.5 if overflow_protection else 0.0,
+            1008: 0.5,
         },
         "WALK": {
             1001: 0.9975273768433652,
@@ -354,6 +459,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 0.9996646498695335,
             1004: 0.5,
             1005: 0.11920292202211756 if overflow_protection else 0.0,
+            1006: 0.5 if overflow_protection else 0.0,
+            1007: 0.5 if overflow_protection else 0.0,
+            1008: 0.5,
         },
         "BIKE": {
             1001: 0.0024726231566347743,
@@ -361,6 +469,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 0.0003353501304664781,
             1004: 0.5,
             1005: 0.8807970779778824 if overflow_protection else 0.0,
+            1006: 0.5 if overflow_protection else 0.0,
+            1007: 0.5 if overflow_protection else 0.0,
+            1008: 0.5,
         },
     }
     pd.testing.assert_frame_equal(
@@ -381,6 +492,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 5.01949291093778,
             1004: 1.062574147766087,
             1005: -997.7573562276069 if overflow_protection else -np.inf,
+            1006: -998.8374258522339 if overflow_protection else -np.inf,
+            1007: -993.8374258522339 if overflow_protection else -np.inf,
+            1008: 2.60343620061945,
         }
     )
 
@@ -394,6 +508,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 0.002281336451592665,
             1004: 0.23355355678415896,
             1005: 0.0157373446629199 if overflow_protection else 0.0,
+            1006: 0.23355355678415896 if overflow_protection else 0.0,
+            1007: 0.23355355678415896 if overflow_protection else 0.0,
+            1008: 0.451488256791687,
         },
         "WALK_TO_TRANSIT": {
             1001: 0.04430668111671894,
@@ -401,6 +518,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 5.65344536500098e-06,
             1004: 0.1388717757309569,
             1005: 9.669357932542469e-08 if overflow_protection else 0.0,
+            1006: 0.1388717757309569 if overflow_protection else 0.0,
+            1007: 0.1388717757309569 if overflow_protection else 0.0,
+            1008: 0.2684565236584249,
         },
         "DRIVE_TO_TRANSIT": {
             1001: 1.4863235681053134e-05,
@@ -408,6 +528,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 0.01685268311510371,
             1004: 0.1388717757309569,
             1005: 0.8592298325092188 if overflow_protection else 0.0,
+            1006: 0.1388717757309569 if overflow_protection else 0.0,
+            1007: 0.1388717757309569 if overflow_protection else 0.0,
+            1008: 0.2684565236584249,
         },
         "WALK": {
             1001: 0.9473324873674005,
@@ -415,6 +538,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 0.9805313953493138,
             1004: 0.24435144587696364,
             1005: 0.014904266303597593 if overflow_protection else 0.0,
+            1006: 0.24435144587696364 if overflow_protection else 0.0,
+            1007: 0.24435144587696364 if overflow_protection else 0.0,
+            1008: 0.005799347945731721,
         },
         "BIKE": {
             1001: 0.0023482024650886995,
@@ -422,6 +548,9 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
             1003: 0.0003289316386247976,
             1004: 0.24435144587696364,
             1005: 0.11012845983068437 if overflow_protection else 0.0,
+            1006: 0.24435144587696364 if overflow_protection else 0.0,
+            1007: 0.24435144587696364 if overflow_protection else 0.0,
+            1008: 0.005799347945731721,
         },
     }
     pd.testing.assert_frame_equal(
@@ -434,6 +563,6 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection=True):
     no_choices = (base_probabilities.sum(axis=1) - 1).abs() > BAD_PROB_THRESHOLD
 
     if not overflow_protection:
-        assert no_choices.sum() == 1
+        assert no_choices.sum() == 3
     else:
         assert no_choices.sum() == 0

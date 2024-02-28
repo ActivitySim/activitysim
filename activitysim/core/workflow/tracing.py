@@ -397,10 +397,10 @@ class Tracing(StateAccessor):
                                     [i[1:] for i in that_blob],
                                 )
                             )
-                            assert_equal(this_dict, that_dict)
+                            assert_equal(this_dict, that_dict, message=that_path)
                         else:
                             try:
-                                assert_equal(this_blob, that_blob)
+                                assert_equal(this_blob, that_blob, message=that_path)
                             except:
                                 logger.error(f"trace validation BAD: {label}")
                                 raise

@@ -21,12 +21,12 @@ prototype_mtc:
       sha256: 394e5b403d4c61d5214493cefe161432db840ba4967c23c999d914178d43a1f0
 
 prototype_mtc_extended:
-  url: https://github.com/ActivitySim/activitysim-prototype-mtc/archive/refs/tags/v1.3.2.tar.gz
-  sha256: b3f8f60f6354a0ffce80dd67f058c2ef81645d2c8bedddfcb989d3878651f045
+  url: https://github.com/ActivitySim/activitysim-prototype-mtc/archive/refs/tags/v1.3.5.tar.gz
+  sha256: b9a4f3d5ef8c6a74c5ed9f07f445b81209187987a5ff5d477cb7e4b33dee10f1
   assets:
     mtc_data_full.tar.zst:
-      url: https://github.com/ActivitySim/activitysim-prototype-mtc/releases/download/v1.3.2/mtc_data_full.tar.zst
-      sha256: ffc22b34b4990a1459829b101b43180d0f5d41da0d4535d58588f232c98bd44e
+      url: https://github.com/ActivitySim/activitysim-prototype-mtc/releases/download/v1.3.4/data_full.tar.zst
+      sha256: b402506a61055e2d38621416dd9a5c7e3cf7517c0a9ae5869f6d760c03284ef3
       unpack: data_full
     test/prototype_mtc_reference_pipeline.zip:
       url: https://github.com/ActivitySim/activitysim-prototype-mtc/releases/download/v1.3.2/prototype_mtc_extended_reference_pipeline.zip

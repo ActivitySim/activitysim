@@ -310,6 +310,7 @@ jobs:
         region:
           - prototype_mtc
           - prototype_psrc_in_development
+          - prototype_mtc_extended
       fail-fast: false
     defaults:
       run:

@@ -55,7 +55,7 @@ def joint_tour_frequency_composition(
             model_settings_file_name,
         )
 
-    alt_tdd = simulate.read_model_alts(
+    alts = simulate.read_model_alts(
         state, "joint_tour_frequency_composition_alternatives.csv", set_index="alt"
     )
 
@@ -73,11 +73,11 @@ def joint_tour_frequency_composition(
     if alt_preprocessor_settings:
         locals_dict = {}
 
-        alt_tdd = alt_tdd.copy()
+        alts = alts.copy()
 
         expressions.assign_columns(
             state,
-            df=alt_tdd,
+            df=alts,
             model_settings=alt_preprocessor_settings,
             locals_dict=locals_dict,
             trace_label=trace_label,
@@ -129,7 +129,7 @@ def joint_tour_frequency_composition(
     choices = interaction_simulate(
         state,
         choosers=choosers,
-        alternatives=alt_tdd,
+        alternatives=alts,
         spec=model_spec,
         locals_d=constants,
         trace_label=trace_label,
@@ -185,7 +185,7 @@ def joint_tour_frequency_composition(
     # 33333	shop	joint	    adults
 
     joint_tours = process_joint_tours_frequency_composition(
-        state, choices, alt_tdd, temp_point_persons
+        state, choices, alts, temp_point_persons
     )
 
     tours = state.extend_table("tours", joint_tours)

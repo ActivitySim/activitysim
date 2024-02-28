@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>School Location &#8212; ActivitySim</title>
   
@@ -29,31 +28,29 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/clipboard.min.js"></script>
-    <script src="../../_static/copybutton.js"></script>
-    <script src="../../_static/design-tabs.js"></script>
+    <script src="../../_static/documentation_options.js?v=3d11cf77"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/components/school_location_choice';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -62,7 +59,7 @@
     <link rel="prev" title="Free Parking Eligibility" href="free_parking.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Feb 14, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 28, 2024"/>
   </head>
   
   
@@ -431,7 +428,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="school-location">
-<span id="component-location-choice"></span><h1>School Location<a class="headerlink" href="#school-location" title="Permalink to this heading">#</a></h1>
+<span id="component-location-choice"></span><h1>School Location<a class="headerlink" href="#school-location" title="Link to this heading">#</a></h1>
 <p>The usual school location choice models assign a usual school location for the primary
 mandatory activity of each child and university student in the
 synthetic population. The models are composed of a set of accessibility-based parameters
@@ -449,10 +446,10 @@ destination.</p>
 </ul>
 <p>These steps are repeated until shadow pricing convergence criteria are satisfied or a max number of iterations is reached. See <a class="reference internal" href="shadow_pricing.html"><span class="doc std std-doc">shadow_pricing</span></a>.</p>
 <p>School location choice for <a class="reference internal" href="../../examples.html#multiple-zone-systems"><span class="std std-ref">multiple_zone_systems</span></a> models uses <a class="reference internal" href="../../users-guide/model_anatomy.html#presampling"><span class="std std-ref">presampling</span></a> by default.</p>
-<p>The main interfaces to the model is the <span class="xref myst">school_location</span> function.
+<p>The main interfaces to the model is the <a class="reference internal" href="#activitysim.abm.models.location_choice.school_location"><span class="xref myst">school_location</span></a> function.
 This function is registered as an Inject step in the example Pipeline. <a class="reference internal" href="../../users-guide/example_models.html#writing-logsums"><span class="std std-ref">writing_logsums</span></a> for how to write logsums for estimation.</p>
 <section id="structure">
-<h2>Structure<a class="headerlink" href="#structure" title="Permalink to this heading">#</a></h2>
+<h2>Structure<a class="headerlink" href="#structure" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><em>Configuration File</em>: <code class="docutils literal notranslate"><span class="pre">school_location.yaml</span></code></p></li>
 <li><p><em>Core Table</em>: <code class="docutils literal notranslate"><span class="pre">persons</span></code></p></li>
@@ -461,9 +458,9 @@ This function is registered as an Inject step in the example Pipeline. <a class=
 </ul>
 </section>
 <section id="configuration">
-<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">#</a></h2>
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
 <section id="examples">
-<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">#</a></h3>
+<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/configs/school_location.yaml">Prototype MTC</a></p></li>
 <li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mwcog/configs/school_location.yaml">Prototype MWCOG</a></p></li>
@@ -471,7 +468,7 @@ This function is registered as an Inject step in the example Pipeline. <a class=
 </section>
 </section>
 <section id="implementation">
-<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this heading">#</a></h2>
+<h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading">#</a></h2>
 </section>
 </section>
 
@@ -562,13 +559,13 @@ This function is registered as an Inject step in the example Pipeline. <a class=
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev624+g57995350, documentation last updated Feb 14, 2024.<br/>
+ActivitySim 1.3.0b2.dev25+g2f9afa0a, documentation last updated Feb 28, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     <br/>
   </p>
 </div>

@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="./" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>How the System Works &#8212; ActivitySim</title>
   
@@ -29,31 +28,29 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
-    <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/clipboard.min.js"></script>
-    <script src="_static/copybutton.js"></script>
-    <script src="_static/design-tabs.js"></script>
+    <script src="_static/documentation_options.js?v=3d11cf77"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'howitworks';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -62,7 +59,7 @@
     <link rel="prev" title="Anatomy of a Model" href="users-guide/model_anatomy.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Feb 14, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 28, 2024"/>
   </head>
   
   
@@ -377,14 +374,14 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="how-the-system-works">
-<h1>How the System Works<a class="headerlink" href="#how-the-system-works" title="Permalink to this heading">#</a></h1>
+<h1>How the System Works<a class="headerlink" href="#how-the-system-works" title="Link to this heading">#</a></h1>
 <p>This page describes how the software works, how multiprocessing works, and the primary example model data schema.  The code snippets below may not exactly match the latest version of the software, but they are close enough to illustrate how the system works.</p>
 <section id="execution-flow">
-<span id="id1"></span><h2>Execution Flow<a class="headerlink" href="#execution-flow" title="Permalink to this heading">#</a></h2>
+<span id="id1"></span><h2>Execution Flow<a class="headerlink" href="#execution-flow" title="Link to this heading">#</a></h2>
 <p>An example model run starts by running the steps in <a class="reference internal" href="examples.html#example-run"><span class="std std-ref">Running the example</span></a>. The following flow chart represents steps of ActivitySim, but specific implementations will have different individual model components in their execution.</p>
 <img alt="_images/example_flowchart.png" src="_images/example_flowchart.png" />
 <section id="initialization">
-<h3>Initialization<a class="headerlink" href="#initialization" title="Permalink to this heading">#</a></h3>
+<h3>Initialization<a class="headerlink" href="#initialization" title="Link to this heading">#</a></h3>
 <p>The first significant step of the <code class="docutils literal notranslate"><span class="pre">run</span></code> command is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">activitysim</span> <span class="kn">import</span> <span class="n">abm</span>
 </pre></div>
@@ -468,7 +465,7 @@ and manages the data pipeline.  The first disaggregate data processing step (or 
 households and persons into memory.</p>
 </section>
 <section id="initialize-households">
-<h3>Initialize Households<a class="headerlink" href="#initialize-households" title="Permalink to this heading">#</a></h3>
+<h3>Initialize Households<a class="headerlink" href="#initialize-households" title="Link to this heading">#</a></h3>
 <p>The initialize households step/model is run via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inject</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">initialize_households</span><span class="p">():</span>
@@ -574,11 +571,11 @@ actually reads the input tables from the input HDF5 or CSV file using the <code 
 </div>
 </section>
 <section id="running-model-components">
-<h3>Running Model Components<a class="headerlink" href="#running-model-components" title="Permalink to this heading">#</a></h3>
+<h3>Running Model Components<a class="headerlink" href="#running-model-components" title="Link to this heading">#</a></h3>
 <p>The next steps include running the model components specific to the individual implementation that you are running and as specified in the <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code> file.</p>
 </section>
 <section id="finishing-up">
-<h3>Finishing Up<a class="headerlink" href="#finishing-up" title="Permalink to this heading">#</a></h3>
+<h3>Finishing Up<a class="headerlink" href="#finishing-up" title="Link to this heading">#</a></h3>
 <p>The last models to be run by the data pipeline are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">write_data_dictionary</span></code>, which writes the table_name, number of rows, number of columns, and number of bytes for each checkpointed table</p></li>
@@ -592,7 +589,7 @@ actually reads the input tables from the input HDF5 or CSV file using the <code 
 </section>
 </section>
 <section id="components">
-<h2>Components<a class="headerlink" href="#components" title="Permalink to this heading">#</a></h2>
+<h2>Components<a class="headerlink" href="#components" title="Link to this heading">#</a></h2>
 <p>Individual models and components are defined and described in the Developers Guide. Please refer to the <a class="reference internal" href="dev-guide/components/index.html#dev-components"><span class="std std-ref">Components</span></a> section.</p>
 </section>
 </section>
@@ -686,13 +683,13 @@ actually reads the input tables from the input HDF5 or CSV file using the <code 
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev624+g57995350, documentation last updated Feb 14, 2024.<br/>
+ActivitySim 1.3.0b2.dev25+g2f9afa0a, documentation last updated Feb 28, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     <br/>
   </p>
 </div>

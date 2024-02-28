@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Parking Location Choice &#8212; ActivitySim</title>
   
@@ -29,31 +28,29 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/clipboard.min.js"></script>
-    <script src="../../_static/copybutton.js"></script>
-    <script src="../../_static/design-tabs.js"></script>
+    <script src="../../_static/documentation_options.js?v=3d11cf77"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/components/parking_location_choice';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -62,7 +59,7 @@
     <link rel="prev" title="Trip Mode Choice" href="trip_mode_choice.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Feb 14, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 28, 2024"/>
   </head>
   
   
@@ -431,7 +428,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="parking-location-choice">
-<span id="component-parking-location-choice"></span><h1>Parking Location Choice<a class="headerlink" href="#parking-location-choice" title="Permalink to this heading">#</a></h1>
+<span id="component-parking-location-choice"></span><h1>Parking Location Choice<a class="headerlink" href="#parking-location-choice" title="Link to this heading">#</a></h1>
 <p>The parking location choice model selects a parking location for specified trips. While the model does not
 require parking location be applied to any specific set of trips, it is usually applied for drive trips to
 specific zones (e.g., CBD) in the model.</p>
@@ -441,10 +438,10 @@ dataframe.</p>
 <p>If this model is specified in the pipeline, the <code class="docutils literal notranslate"><span class="pre">Write</span> <span class="pre">Trip</span> <span class="pre">Matrices</span></code>_ step will using the parking location
 choice results to build trip tables in lieu of the trip destination.</p>
 <p>The main interface to the trip mode choice model is the
-<span class="xref myst">parking_location_choice</span> function.  This function
+<a class="reference internal" href="#activitysim.abm.models.parking_location_choice.parking_location_choice"><span class="xref myst">parking_location_choice</span></a> function.  This function
 is registered as an Inject step, and it is available from the pipeline.</p>
 <section id="structure">
-<h2>Structure<a class="headerlink" href="#structure" title="Permalink to this heading">#</a></h2>
+<h2>Structure<a class="headerlink" href="#structure" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><em>Configuration File</em>: <code class="docutils literal notranslate"><span class="pre">parking_location_choice.yaml</span></code></p></li>
 <li><p><em>Core Table</em>: <code class="docutils literal notranslate"><span class="pre">trips</span></code></p></li>
@@ -455,7 +452,7 @@ is registered as an Inject step, and it is available from the pipeline.</p>
 <code class="docutils literal notranslate"><span class="pre">pd_skims:</span> <span class="pre">Parking</span> <span class="pre">Zone</span> <span class="pre">to</span> <span class="pre">Destination</span></code></p></li>
 </ul>
 <section id="required-yaml-attributes">
-<h3>Required YAML attributes:<a class="headerlink" href="#required-yaml-attributes" title="Permalink to this heading">#</a></h3>
+<h3>Required YAML attributes:<a class="headerlink" href="#required-yaml-attributes" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">SPECIFICATION</span></code>:
 This file defines the logit specification for each chooser segment.</p></li>
@@ -484,16 +481,16 @@ Destination field on the chooser trip table</p></li>
 </section>
 </section>
 <section id="configuration">
-<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">#</a></h2>
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
 <section id="examples">
-<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">#</a></h3>
+<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_arc/configs/parking_location_choice.yaml">Prototype ARC</a></p></li>
 </ul>
 </section>
 </section>
 <section id="implementation">
-<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this heading">#</a></h2>
+<h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading">#</a></h2>
 </section>
 </section>
 
@@ -587,13 +584,13 @@ Destination field on the chooser trip table</p></li>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev624+g57995350, documentation last updated Feb 14, 2024.<br/>
+ActivitySim 1.3.0b2.dev25+g2f9afa0a, documentation last updated Feb 28, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     <br/>
   </p>
 </div>

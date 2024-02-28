@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Model Setup &#8212; ActivitySim</title>
   
@@ -29,31 +28,29 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/documentation_options.js?v=3d11cf77"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'users-guide/modelsetup';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -62,7 +59,7 @@
     <link rel="prev" title="Users Guide" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Feb 14, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 28, 2024"/>
   </head>
   
   
@@ -377,14 +374,14 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="model-setup">
-<h1>Model Setup<a class="headerlink" href="#model-setup" title="Permalink to this heading">#</a></h1>
+<h1>Model Setup<a class="headerlink" href="#model-setup" title="Link to this heading">#</a></h1>
 <p>This page describes the system requirements and installation procedures to set up ActivitySim.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>ActivitySim is under active development</p>
 </div>
 <section id="quick-reference">
-<h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Permalink to this heading">#</a></h2>
+<h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Link to this heading">#</a></h2>
 <p>This section briefly describes the quickest way to install and start running ActivitySim. This section
 assumes the user is more experienced in running travel demand models and proficient in Python, but has not
 used ActivitySim or has not used recent versions of ActivitySim. More detailed instructions for installing
@@ -396,10 +393,10 @@ and running ActivitySim are also available in this Users Guide.</p>
 </ul>
 </section>
 <section id="system-requirements">
-<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Permalink to this heading">#</a></h2>
+<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Link to this heading">#</a></h2>
 <p>This section highlights the software requirements for any implementation, as well as hardware recommendations.</p>
 <section id="hardware">
-<h3>Hardware<a class="headerlink" href="#hardware" title="Permalink to this heading">#</a></h3>
+<h3>Hardware<a class="headerlink" href="#hardware" title="Link to this heading">#</a></h3>
 <p>The computing hardware required to run a model implemented in the ActivitySim framework generally depends on:</p>
 <ul class="simple">
 <li><dl class="simple">
@@ -466,7 +463,7 @@ scripts, and runtimes are in the &lt;todo: cross-ref&gt; <code class="docutils l
 </div>
 </section>
 <section id="software">
-<h3>Software<a class="headerlink" href="#software" title="Permalink to this heading">#</a></h3>
+<h3>Software<a class="headerlink" href="#software" title="Link to this heading">#</a></h3>
 <p>Activitysim is implemented in the Python programming language. It also uses several open source Python packages such as pandas, numpy, pytables, openmatrix etc. Hence it is recommended that you install and use a <em>conda</em> package manager for your system.
 One easy way to do so is by using
 <a class="reference external" href="https://github.com/conda-forge/miniforge#mambaforge">Mambaforge</a>.
@@ -494,7 +491,7 @@ home installation folder, such as:</p>
 </section>
 </section>
 <section id="installing-activitysim">
-<h2>Installing ActivitySim<a class="headerlink" href="#installing-activitysim" title="Permalink to this heading">#</a></h2>
+<h2>Installing ActivitySim<a class="headerlink" href="#installing-activitysim" title="Link to this heading">#</a></h2>
 <p>There are multiple ways to install the ActivitySim codebase:</p>
 <ol class="arabic simple">
 <li><p>Using a <a class="reference internal" href="#pre-packaged-installer"><span class="std std-ref">Pre-packaged Installer</span></a> (recommended for users who do not need to change the Python code)</p></li>
@@ -502,7 +499,7 @@ home installation folder, such as:</p>
 <li><p>Using <a class="reference internal" href="#using-pip-python-s-standard-package-manager"><span class="std std-ref">pip - Python’s standard package manager</span></a></p></li>
 </ol>
 <section id="pre-packaged-installer">
-<h3>Pre-packaged Installer<a class="headerlink" href="#pre-packaged-installer" title="Permalink to this heading">#</a></h3>
+<h3>Pre-packaged Installer<a class="headerlink" href="#pre-packaged-installer" title="Link to this heading">#</a></h3>
 <p>Begining with version 1.2, ActivitySim is now available for Windows via a
 pre-packaged installer.  This installer provides everything you need to run
 ActivitySim, including Python, all the necessary supporting packages, and
@@ -523,7 +520,7 @@ be available without knowing the path to where the install has happened.</p>
 prompt by running <cite>&lt;install_location&gt;/Scripts/ActivitySim.exe</cite>.</p>
 </section>
 <section id="using-mamba-package-manager">
-<h3>Using <em>mamba</em> package manager<a class="headerlink" href="#using-mamba-package-manager" title="Permalink to this heading">#</a></h3>
+<h3>Using <em>mamba</em> package manager<a class="headerlink" href="#using-mamba-package-manager" title="Link to this heading">#</a></h3>
 <p>This method is recommended for ActivitySim users who also wish to customize the Python code to run their models. The steps involved are described as follows:</p>
 <ol class="arabic simple">
 <li><p>Install the <em>mamba</em> package manager as described in the <a class="reference internal" href="#software"><span class="std std-ref">Software Requirements</span></a> subsection.</p></li>
@@ -584,7 +581,7 @@ You can swap almost all commands between conda &amp; mamba. For more details, re
 </div>
 </section>
 <section id="using-pip-python-s-standard-package-manager">
-<h3>Using <em>pip</em> - Python’s standard package manager<a class="headerlink" href="#using-pip-python-s-standard-package-manager" title="Permalink to this heading">#</a></h3>
+<h3>Using <em>pip</em> - Python’s standard package manager<a class="headerlink" href="#using-pip-python-s-standard-package-manager" title="Link to this heading">#</a></h3>
 <p>If you prefer to install ActivitySim without a package manager like <em>mamba</em> or <em>conda</em>, it is possible to
 do so with pip, although you may find it more difficult to get all of the
 required dependencies installed correctly.  If you can use conda for
@@ -732,13 +729,13 @@ check the current active environment with <code class="docutils literal notransl
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev624+g57995350, documentation last updated Feb 14, 2024.<br/>
+ActivitySim 1.3.0b2.dev25+g2f9afa0a, documentation last updated Feb 28, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     <br/>
   </p>
 </div>

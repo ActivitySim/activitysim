@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Documentation &#8212; ActivitySim</title>
   
@@ -29,31 +28,29 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/documentation_options.js?v=3d11cf77"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/build-docs';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -61,7 +58,7 @@
     <link rel="prev" title="Benchmarking" href="../benchmarking.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Feb 14, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 28, 2024"/>
   </head>
   
   
@@ -427,7 +424,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="documentation">
-<span id="write-docs"></span><h1>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading">#</a></h1>
+<span id="write-docs"></span><h1>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">#</a></h1>
 <p>The core documentation for ActivitySim is built with <a class="reference external" href="https://www.sphinx-doc.org">Sphinx</a>.
 The input files for this documentation can be written either in
 <a class="reference external" href="https://www.markdownguide.org">markdown</a> with filenames ending in <code class="docutils literal notranslate"><span class="pre">.md</span></code> (preferred
@@ -438,7 +435,7 @@ to html format, Sphinx can also read the inline Python docstrings and convert
 them into html as well.  ActivitySim’s docstrings are written in
 <a class="reference external" href="https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard">numpydoc</a> format.</p>
 <section id="building-the-documentation">
-<h2>Building the Documentation<a class="headerlink" href="#building-the-documentation" title="Permalink to this heading">#</a></h2>
+<h2>Building the Documentation<a class="headerlink" href="#building-the-documentation" title="Link to this heading">#</a></h2>
 <p>Developers who want to test a build of the ActivitySim documentation locally can
 do so using <code class="docutils literal notranslate"><span class="pre">sphinx</span></code>.  A pre-packaged conda environment is available to simplify this
 process. On the command line, starting from the <code class="docutils literal notranslate"><span class="pre">activitysim</span></code> directory that constitutes the
@@ -457,7 +454,7 @@ in a web browser using the <code class="docutils literal notranslate"><span clas
 <code class="docutils literal notranslate"><span class="pre">index.html</span></code> file (or any other .html file in that directory).</p>
 </section>
 <section id="automatic-documentation-builds">
-<h2>Automatic Documentation Builds<a class="headerlink" href="#automatic-documentation-builds" title="Permalink to this heading">#</a></h2>
+<h2>Automatic Documentation Builds<a class="headerlink" href="#automatic-documentation-builds" title="Link to this heading">#</a></h2>
 <p>Documentation can also be rendered online automatically by GitHub.  Several scripts
 are included in this repository’s GitHub Actions to do so when updates are made
 to the <code class="docutils literal notranslate"><span class="pre">main</span></code> or <code class="docutils literal notranslate"><span class="pre">develop</span></code> branches in the primary <code class="docutils literal notranslate"><span class="pre">ActivitySim</span></code> repository.</p>
@@ -546,13 +543,13 @@ documentation build at <code class="docutils literal notranslate"><span class="p
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev624+g57995350, documentation last updated Feb 14, 2024.<br/>
+ActivitySim 1.3.0b2.dev25+g2f9afa0a, documentation last updated Feb 28, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     <br/>
   </p>
 </div>

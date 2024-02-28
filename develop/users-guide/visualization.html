@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Visualization &#8212; ActivitySim</title>
   
@@ -29,31 +28,29 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/documentation_options.js?v=3d11cf77"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'users-guide/visualization';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -62,7 +59,7 @@
     <link rel="prev" title="Model Development" href="model_dev.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Feb 14, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 28, 2024"/>
   </head>
   
   
@@ -377,7 +374,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="visualization">
-<h1>Visualization<a class="headerlink" href="#visualization" title="Permalink to this heading">#</a></h1>
+<h1>Visualization<a class="headerlink" href="#visualization" title="Link to this heading">#</a></h1>
 <p>Visualization capabilities are provided with SimWrapper, a standalone browser-based software that creates interactive, graphical visualizations of ActivitySim outputs. SimWrapper builds graphs and other visualization components from CSV summary tables that are produced by the <em>summarize</em> model step. Once the model run is complete, Simwrapper can be started and stopped at any time, independent of ActivitySim to visualize outputs. The tool currently allows users to view dashboards for multiple model runs side-by-side in the browser. The ability to compute and visualize the differences between two model runs is a planned future enhancement.</p>
 <p>To use set up the summarize model to produce tables for SimWrapper, add <code class="docutils literal notranslate"><span class="pre">summarize</span></code> to the list of models in <code class="docutils literal notranslate"><span class="pre">configs_mp/settings.yaml</span></code> and add the following files to the <cite>config</cite> directory:</p>
 <ul class="simple">
@@ -394,9 +391,9 @@ document.write(`
 </ul>
 <p>At present, example versions of all of the items above are located in the prototype MTC example model: <code class="docutils literal notranslate"><span class="pre">/activitysim/examples/prototype_mtc</span></code>. Complete documentation for configuring dashboards is available in the <a class="reference external" href="https://simwrapper.github.io/docs/simwrapper-intro">SimWrapper Docs</a>.</p>
 <section id="configure-the-summarize-model">
-<h2>Configure the Summarize Model<a class="headerlink" href="#configure-the-summarize-model" title="Permalink to this heading">#</a></h2>
+<h2>Configure the Summarize Model<a class="headerlink" href="#configure-the-summarize-model" title="Link to this heading">#</a></h2>
 <section id="summary-expressions">
-<h3>Summary Expressions<a class="headerlink" href="#summary-expressions" title="Permalink to this heading">#</a></h3>
+<h3>Summary Expressions<a class="headerlink" href="#summary-expressions" title="Link to this heading">#</a></h3>
 <p>Example configuration files for the summarize model step (as listed above) are included in prototype MTC example. These files will need to be adjusted to produce customized SimWrapper dashboards. These files are structured as standard ActivitySim expression (CSV) and configuration (YAML) files. More detailed information about configuration of the summarize model step is available in the Models documentation.</p>
 <p>You may wish to manipulate the default expression files to suit your particular needs. Expression files are formatted as CSVs and structured according to ActivitySim conventions with three columns:</p>
 <ul class="simple">
@@ -428,7 +425,7 @@ document.write(`
 <p>Examples of each summarize function are included in the <code class="docutils literal notranslate"><span class="pre">summarize.csv</span></code> expression file for the prototype MTC example. Consult the docstrings for each function in the <code class="docutils literal notranslate"><span class="pre">/activitysim/abm/models/summarize.py</span></code> module for complete specification of parameters.</p>
 </section>
 <section id="preprocessing">
-<h3>Preprocessing<a class="headerlink" href="#preprocessing" title="Permalink to this heading">#</a></h3>
+<h3>Preprocessing<a class="headerlink" href="#preprocessing" title="Link to this heading">#</a></h3>
 <p>Pipeline tables available for summarization can be preprocessed to include columns that bin or aggregate existing columns into categories or add skim data related to trips or tours. Preprocessing is configured both in <code class="docutils literal notranslate"><span class="pre">summarize.yaml</span></code> and <code class="docutils literal notranslate"><span class="pre">summarize_preprocessor.csv</span></code>.</p>
 <p>Binning and aggregation operations that should take place <em>before</em> expressions are calculated, in order to produce a new column in a pipeline table, can be specified in <code class="docutils literal notranslate"><span class="pre">summarize.yaml</span></code>. This can be useful for reducing clutter and redundancy in the summary expressions file.</p>
 <p>Binning during the preprocessing stage uses the same convenience functions available for expression files but specifies them in the configuration YAML. To calculate manually-defined income categories, for example, the YAML would include:</p>
@@ -488,7 +485,7 @@ document.write(`
 </section>
 </section>
 <section id="install-and-run-simwrapper">
-<h2>Install and Run Simwrapper<a class="headerlink" href="#install-and-run-simwrapper" title="Permalink to this heading">#</a></h2>
+<h2>Install and Run Simwrapper<a class="headerlink" href="#install-and-run-simwrapper" title="Link to this heading">#</a></h2>
 <p>The SimWrapper Python package, which contains convenience functions for initiating the SimWrapper app in the browser and a local file server for accessing summary tables from this app, is automatically installed as a dependency of ActivitySim. However, you can also use SimWrapper independent of ActivitySim to, for example, visualize summaries on a different workstation. SimWrapper is available on both conda-forge and pip:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">simwrapper</span>
 </pre></div>
@@ -505,7 +502,7 @@ document.write(`
 <p>This will start SimWrapper in your default browser. If this directory contains the appropriate configuration files for a dashboard (see above), the dashboard will open automatically. Otherwise, SimWrapper will show a file browser with the contents of the directory.</p>
 </section>
 <section id="navigate-simwrappper">
-<h2>Navigate SimWrappper<a class="headerlink" href="#navigate-simwrappper" title="Permalink to this heading">#</a></h2>
+<h2>Navigate SimWrappper<a class="headerlink" href="#navigate-simwrappper" title="Link to this heading">#</a></h2>
 <p>When Simwrapper launches, the dashboard is displayed in the scrollable field in the main part of the browser window, and there are
 two sets of navigation controls.  The left-hand sidebar contains a menu of the available simulation outputs you can access from the
 current directory, including a number of sample outputs:</p>
@@ -620,13 +617,13 @@ However, panning and zooming on any one map object controls all maps on both sid
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev624+g57995350, documentation last updated Feb 14, 2024.<br/>
+ActivitySim 1.3.0b2.dev25+g2f9afa0a, documentation last updated Feb 28, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     <br/>
   </p>
 </div>

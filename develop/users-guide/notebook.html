@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Interactive Interface &#8212; ActivitySim</title>
   
@@ -29,38 +28,36 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/documentation_options.js?v=3d11cf77"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'users-guide/notebook';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Feb 14, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 28, 2024"/>
   </head>
   
   
@@ -354,7 +351,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="interactive-interface">
-<h1>Interactive Interface<a class="headerlink" href="#interactive-interface" title="Permalink to this heading">#</a></h1>
+<h1>Interactive Interface<a class="headerlink" href="#interactive-interface" title="Link to this heading">#</a></h1>
 <p>In addition to the command line tools, you can also work with an ActivitySim
 model in an interactive environment, such as a Jupyter Notebook.  Much of the
 interface for working in this way can be found in the <code class="docutils literal notranslate"><span class="pre">activitysim.core.workflow</span></code>
@@ -469,7 +466,7 @@ function shortcut to get a model state to experiment with.</p>
 </div>
 </div>
 <section id="manipulating-settings">
-<h2>Manipulating Settings<a class="headerlink" href="#manipulating-settings" title="Permalink to this heading">#</a></h2>
+<h2>Manipulating Settings<a class="headerlink" href="#manipulating-settings" title="Link to this heading">#</a></h2>
 <p>On major advantage of running ActivitySim in an interactive environment
 is the ability to manipulate model features (e.g. settings, file locations)
 before executing the model.  For example, we can see and alter the number of
@@ -524,7 +521,7 @@ will be coerced to an integer (by dropping the fractional part).</p>
 </div>
 </section>
 <section id="model-execution">
-<h2>Model Execution<a class="headerlink" href="#model-execution" title="Permalink to this heading">#</a></h2>
+<h2>Model Execution<a class="headerlink" href="#model-execution" title="Link to this heading">#</a></h2>
 <p>Once you are done editing any settings or configs, you can run the model, either all at once, or stepwise through individual components; the
 <a class="reference internal" href="../dev-guide/_generated2/activitysim.core.workflow.State.run.html#activitysim.core.workflow.State.run" title="activitysim.core.workflow.State.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">State.run</span></code></a>
 accessor allows for either.  To run an individual component, you can
@@ -562,7 +559,7 @@ components in the correct order, or otherwise manually preparing the data
 tables with the necessary values.</p>
 </section>
 <section id="manipulating-data">
-<h2>Manipulating Data<a class="headerlink" href="#manipulating-data" title="Permalink to this heading">#</a></h2>
+<h2>Manipulating Data<a class="headerlink" href="#manipulating-data" title="Link to this heading">#</a></h2>
 <p>In addition to manipulating settings, running interactively allows a user to
 read (and potentially write) to data tables at intermediate points within the model
 stream.  For example, the
@@ -691,13 +688,13 @@ that can generate histograms or nominal distributions of data features.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev624+g57995350, documentation last updated Feb 14, 2024.<br/>
+ActivitySim 1.3.0b2.dev25+g2f9afa0a, documentation last updated Feb 28, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     <br/>
   </p>
 </div>

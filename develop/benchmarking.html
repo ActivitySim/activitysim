@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="./" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Benchmarking &#8212; ActivitySim</title>
   
@@ -29,31 +28,29 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
-    <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/clipboard.min.js"></script>
-    <script src="_static/copybutton.js"></script>
-    <script src="_static/design-tabs.js"></script>
+    <script src="_static/documentation_options.js?v=3d11cf77"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'benchmarking';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -62,7 +59,7 @@
     <link rel="prev" title="Core Components" href="core.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Feb 14, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 28, 2024"/>
   </head>
   
   
@@ -428,7 +425,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="benchmarking">
-<span id="id1"></span><h1>Benchmarking<a class="headerlink" href="#benchmarking" title="Permalink to this heading">#</a></h1>
+<span id="id1"></span><h1>Benchmarking<a class="headerlink" href="#benchmarking" title="Link to this heading">#</a></h1>
 <p>A key focus of the ActivitySim project is <em>performance</em>.  It’s not enough
 to build a new modeling platform that’s mathematically sound and simulates
 travel behavior as expected.  It’s also required that it do so quickly.
@@ -443,7 +440,7 @@ called <a class="reference external" href="https://asv.readthedocs.io/en/stable/
 <p>The benchmarking process is closely tied to ActivitySim’s <em>git</em> repository,
 so it is recommended that you use Git to clone the repository from GitHub.</p>
 <section id="benchmarking-setup">
-<h2>Benchmarking Setup<a class="headerlink" href="#benchmarking-setup" title="Permalink to this heading">#</a></h2>
+<h2>Benchmarking Setup<a class="headerlink" href="#benchmarking-setup" title="Link to this heading">#</a></h2>
 <p>The first step in running benchmarks is to have a conda environment for
 benchmarking, as well as a local clone of the main ActivitySim repository,
 plus one of the <code class="docutils literal notranslate"><span class="pre">asim-benchmarks</span></code> repository. If you plan to submit your
@@ -498,7 +495,7 @@ accept all.  For example, under “arch” it may suggest “AMD64”, but for c
 you can change that to “x86_64”, which is the same thing by a different name.</p>
 </section>
 <section id="running-benchmarks">
-<h2>Running Benchmarks<a class="headerlink" href="#running-benchmarks" title="Permalink to this heading">#</a></h2>
+<h2>Running Benchmarks<a class="headerlink" href="#running-benchmarks" title="Link to this heading">#</a></h2>
 <p>ActivitySim automates the process of running many benchmarks. It can also easily
 accumulate and analyze benchmark results across many different machines, as long as the
 benchmarks are all run in the same (relative) place. So before running benchmarks,
@@ -566,7 +563,7 @@ into a text file, and then point to that file using the <cite>batch</cite> comma
 </div>
 </section>
 <section id="threading-limits">
-<h2>Threading Limits<a class="headerlink" href="#threading-limits" title="Permalink to this heading">#</a></h2>
+<h2>Threading Limits<a class="headerlink" href="#threading-limits" title="Link to this heading">#</a></h2>
 <p>When you run benchmarking using the <cite>activitysim benchmark</cite> command, the
 following environment variable are set automatically before benchmarking begins:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MKL_NUM_THREADS</span> <span class="o">=</span> <span class="mi">1</span>
@@ -582,7 +579,7 @@ mode.  This still allows ActivitySim itself to spin up multiple processes if the
 item being timed is a multiprocess benchmark.</p>
 </section>
 <section id="submitting-benchmarks">
-<h2>Submitting Benchmarks<a class="headerlink" href="#submitting-benchmarks" title="Permalink to this heading">#</a></h2>
+<h2>Submitting Benchmarks<a class="headerlink" href="#submitting-benchmarks" title="Link to this heading">#</a></h2>
 <p>One of the useful features of the airspeed velocity benchmarking engine is the
 opportunity to compare performance benchmarks across different machines. The
 ActivitySim community is interested in aggregating such results from a number
@@ -614,7 +611,7 @@ pre-commit step is required.</p>
 visit their fork on GitHub.com to use the web interface to open a pull request.</p>
 </section>
 <section id="publishing-to-github-pages">
-<h2>Publishing to Github Pages<a class="headerlink" href="#publishing-to-github-pages" title="Permalink to this heading">#</a></h2>
+<h2>Publishing to Github Pages<a class="headerlink" href="#publishing-to-github-pages" title="Link to this heading">#</a></h2>
 <p>Publishing the standard airspeed velocity content to GitHub pages is a built-in
 feature of the command line tool, available to users who have write-access to the
 asim-benchmarks GitHub repository.  Be sure you have all the relevant branches
@@ -624,7 +621,7 @@ tracked locally (especially main and develop) and then run:</p>
 </div>
 </section>
 <section id="profiling">
-<h2>Profiling<a class="headerlink" href="#profiling" title="Permalink to this heading">#</a></h2>
+<h2>Profiling<a class="headerlink" href="#profiling" title="Link to this heading">#</a></h2>
 <p>The benchmarking tool can also be used for profiling, which allows a developer to
 inspect the timings for various commands <em>inside</em> a particular benchmark. This is
 most conveniently accomplished using the <code class="docutils literal notranslate"><span class="pre">snakeviz</span></code> tool, which should be installed
@@ -652,7 +649,7 @@ json result file.  For example:</p>
 interface.</p>
 </section>
 <section id="writing-new-benchmarks">
-<h2>Writing New Benchmarks<a class="headerlink" href="#writing-new-benchmarks" title="Permalink to this heading">#</a></h2>
+<h2>Writing New Benchmarks<a class="headerlink" href="#writing-new-benchmarks" title="Link to this heading">#</a></h2>
 <p>New benchmarks for other model examples can be added to
 <code class="docutils literal notranslate"><span class="pre">activitysim/benchmarking/benchmarks</span></code>. A basic template structure has been used,
 so that it should be relatively straight-forward to implement component-level
@@ -664,7 +661,7 @@ a stable process to execute chunking training for each machine prior to running
 the production-version benchmarks that will be meaningful for users.</p>
 </section>
 <section id="running-benchmarks-for-pull-requests">
-<h2>Running Benchmarks for Pull Requests<a class="headerlink" href="#running-benchmarks-for-pull-requests" title="Permalink to this heading">#</a></h2>
+<h2>Running Benchmarks for Pull Requests<a class="headerlink" href="#running-benchmarks-for-pull-requests" title="Link to this heading">#</a></h2>
 <p>The complete set of performance benchmarks is too large to include in ActivitySim’s
 automatic continuous integration (CI) testing, both by compute time and by memory usage.
 However, it is valuable to run these tests once against the final version of
@@ -774,13 +771,13 @@ mitigate problems promptly if desired.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev624+g57995350, documentation last updated Feb 14, 2024.<br/>
+ActivitySim 1.3.0b2.dev25+g2f9afa0a, documentation last updated Feb 28, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     <br/>
   </p>
 </div>

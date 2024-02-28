@@ -70,7 +70,7 @@ home installation folder, such as:
 3. Create a conda environment (basically a Python install just for this project)
 using conda Prompt (on Windows) or the terminal (macOS or Linux)::
 
-  mamba create -n asim python=3.9 activitysim -c conda-forge --override-channels
+  mamba create -n asim python=3.10 activitysim -c conda-forge --override-channels
 
 This command will create the environment and install all the dependencies
 required for running ActivitySim.  It is only necessary to create the environment
@@ -78,13 +78,13 @@ once per machine, you do not need to (re)create the environment for each session
 If you would also like to install other tools or optional dependencies, it is
 possible to do so by adding additional libraries to this command.  For example::
 
-  mamba create -n asim python=3.9 activitysim jupyterlab larch -c conda-forge --override-channels
+  mamba create -n asim python=3.10 activitysim jupyterlab larch -c conda-forge --override-channels
 
-This example installs a specific version of Python, version 3.9.  A similar
+This example installs a specific version of Python, version 3.10.  A similar
 approach can be used to install specific versions of other libraries as well,
 including ActivitySim, itself. For example::
 
-  mamba create -n asim python=3.9 activitysim=1.0.2 -c conda-forge --override-channels
+  mamba create -n asim python=3.10 activitysim=1.0.2 -c conda-forge --override-channels
 
 Additional libraries can also be installed later.  You may want to consider these
 tools for certain development tasks::

@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Workflows &#8212; ActivitySim</title>
   
@@ -29,31 +28,29 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/documentation_options.js?v=3d11cf77"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/workflows';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -62,7 +59,7 @@
     <link rel="prev" title="ParquetStore.is_readonly" href="_generated/activitysim.core.workflow.checkpoint.ParquetStore.is_readonly.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Feb 14, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 28, 2024"/>
   </head>
   
   
@@ -428,7 +425,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="workflows">
-<span id="id1"></span><h1>Workflows<a class="headerlink" href="#workflows" title="Permalink to this heading">#</a></h1>
+<span id="id1"></span><h1>Workflows<a class="headerlink" href="#workflows" title="Link to this heading">#</a></h1>
 <p>ActivitySim workflows use the <a class="reference external" href="https://pypyr.io/"><code class="docutils literal notranslate"><span class="pre">pypyr</span></code></a> library. This
 task runner is more flexible than orca, and relies on isolated ‘context’
 namespaces rather than storing tables and configurations in Python’s
@@ -437,7 +434,7 @@ command line interface.</p>
 <p>You can run a workflow from a local working directory, or one of
 a number of pre-packaged workflows that are included with ActivitySim.</p>
 <section id="workflows-for-performance-monitoring">
-<h2>Workflows for Performance Monitoring<a class="headerlink" href="#workflows-for-performance-monitoring" title="Permalink to this heading">#</a></h2>
+<h2>Workflows for Performance Monitoring<a class="headerlink" href="#workflows-for-performance-monitoring" title="Link to this heading">#</a></h2>
 <p>A collection of workflows used to compare the new <em>sharrow</em> code against
 legacy implementations can be found in the
 <a class="reference external" href="https://github.com/ActivitySim/activitysim/tree/main/activitysim/workflows/sharrow-contrast">sharrow-contrast</a>
@@ -449,7 +446,7 @@ implementation (version 1.1.3).  Finally, a report is generated comparing the
 results of these various runs, to illustrate performance and validiate output
 quality.</p>
 <section id="mini-examples">
-<h3>Mini Examples<a class="headerlink" href="#mini-examples" title="Permalink to this heading">#</a></h3>
+<h3>Mini Examples<a class="headerlink" href="#mini-examples" title="Link to this heading">#</a></h3>
 <p>A collection of “mini” example workflows is provided for typical performance analysis.
 Each mini example is based on a small or medium size subarea for each model,
 and each runs in single-process mode to illustrate the performance and memory
@@ -496,7 +493,7 @@ For example, to run the workflow of all “mini” examples, run:</p>
 </div>
 </section>
 <section id="full-size-examples">
-<h3>Full Size Examples<a class="headerlink" href="#full-size-examples" title="Permalink to this heading">#</a></h3>
+<h3>Full Size Examples<a class="headerlink" href="#full-size-examples" title="Link to this heading">#</a></h3>
 <p>Running a “full size” example of an ActivitySim model generally requires more
 compute resources than the smaller performance tests shown above.  These models
 generally require <a class="reference internal" href="../core.html#chunk-size"><span class="std std-ref">chunking</span></a> to run, and servers with substantial
@@ -613,13 +610,13 @@ require substantial resources and may not run correctly on inadequate hardware.<
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev624+g57995350, documentation last updated Feb 14, 2024.<br/>
+ActivitySim 1.3.0b2.dev25+g2f9afa0a, documentation last updated Feb 28, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     <br/>
   </p>
 </div>

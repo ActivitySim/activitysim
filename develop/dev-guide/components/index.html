@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Components &#8212; ActivitySim</title>
   
@@ -29,31 +28,29 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/clipboard.min.js"></script>
-    <script src="../../_static/copybutton.js"></script>
-    <script src="../../_static/design-tabs.js"></script>
+    <script src="../../_static/documentation_options.js?v=3d11cf77"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/components/index';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -62,7 +59,7 @@
     <link rel="prev" title="LogitNestSpec" href="../_generated/activitysim.core.configuration.logit.LogitNestSpec.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Feb 14, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 28, 2024"/>
   </head>
   
   
@@ -428,37 +425,75 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="components">
-<span id="dev-components"></span><h1>Components<a class="headerlink" href="#components" title="Permalink to this heading">#</a></h1>
+<span id="dev-components"></span><h1>Components<a class="headerlink" href="#components" title="Link to this heading">#</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="initialize.html">Initialize</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="initialize.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initialize.html#implementation">Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="initialize.html#activitysim.abm.models.initialize.initialize_landuse"><code class="docutils literal notranslate"><span class="pre">initialize_landuse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="initialize.html#activitysim.abm.models.initialize.initialize_households"><code class="docutils literal notranslate"><span class="pre">initialize_households()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="initialize_los.html">Initialize LOS</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="initialize_los.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initialize_los.html#implementation">Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="initialize_los.html#activitysim.abm.models.initialize_los.initialize_los"><code class="docutils literal notranslate"><span class="pre">initialize_los()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="initialize_los.html#activitysim.abm.models.initialize_los.compute_utilities_for_attribute_tuple"><code class="docutils literal notranslate"><span class="pre">compute_utilities_for_attribute_tuple()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="initialize_los.html#activitysim.abm.models.initialize_los.initialize_tvpb"><code class="docutils literal notranslate"><span class="pre">initialize_tvpb()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="initialize_tours.html">Initialize Tours</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="initialize_tours.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initialize_tours.html#implementation">Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="initialize_tours.html#activitysim.abm.models.initialize_tours.initialize_tours"><code class="docutils literal notranslate"><span class="pre">initialize_tours()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="accessibility.html">Accessibility</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="accessibility.html#structure">Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="accessibility.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="accessibility.html#activitysim.abm.models.accessibility.AccessibilitySettings"><code class="docutils literal notranslate"><span class="pre">AccessibilitySettings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="accessibility.html#activitysim.abm.models.accessibility.AccessibilitySettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">AccessibilitySettings.CONSTANTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="accessibility.html#activitysim.abm.models.accessibility.AccessibilitySettings.SPEC"><code class="docutils literal notranslate"><span class="pre">AccessibilitySettings.SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="accessibility.html#activitysim.abm.models.accessibility.AccessibilitySettings.explicit_chunk"><code class="docutils literal notranslate"><span class="pre">AccessibilitySettings.explicit_chunk</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="accessibility.html#activitysim.abm.models.accessibility.AccessibilitySettings.land_use_columns"><code class="docutils literal notranslate"><span class="pre">AccessibilitySettings.land_use_columns</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="accessibility.html#activitysim.abm.models.accessibility.AccessibilitySettings.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">AccessibilitySettings.model_computed_fields</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="accessibility.html#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="accessibility.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="accessibility.html#implementation">Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="accessibility.html#activitysim.abm.models.accessibility.compute_accessibility"><code class="docutils literal notranslate"><span class="pre">compute_accessibility()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="auto_ownership.html">Auto Ownership</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="auto_ownership.html#structure">Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="auto_ownership.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings"><code class="docutils literal notranslate"><span class="pre">AutoOwnershipSettings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">AutoOwnershipSettings.COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">AutoOwnershipSettings.CONSTANTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.LOGIT_TYPE"><code class="docutils literal notranslate"><span class="pre">AutoOwnershipSettings.LOGIT_TYPE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.NESTS"><code class="docutils literal notranslate"><span class="pre">AutoOwnershipSettings.NESTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.SPEC"><code class="docutils literal notranslate"><span class="pre">AutoOwnershipSettings.SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.sharrow_skip"><code class="docutils literal notranslate"><span class="pre">AutoOwnershipSettings.sharrow_skip</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">AutoOwnershipSettings.source_file_paths</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">AutoOwnershipSettings.nests_are_for_nl()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">AutoOwnershipSettings.model_computed_fields</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="auto_ownership.html#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="auto_ownership.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auto_ownership.html#implementation">Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="auto_ownership.html#activitysim.abm.models.auto_ownership.auto_ownership_simulate"><code class="docutils literal notranslate"><span class="pre">auto_ownership_simulate()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="vehicle_type_choice.html">Vehicle Type Choice</a><ul>
@@ -482,10 +517,27 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="cdap.html">Coordinated Daily Activity Pattern</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cdap.html#structure">Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cdap.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cdap.html#activitysim.abm.models.cdap.CdapSettings"><code class="docutils literal notranslate"><span class="pre">CdapSettings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cdap.html#activitysim.abm.models.cdap.CdapSettings.ADD_JOINT_TOUR_UTILITY"><code class="docutils literal notranslate"><span class="pre">CdapSettings.ADD_JOINT_TOUR_UTILITY</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cdap.html#activitysim.abm.models.cdap.CdapSettings.COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">CdapSettings.COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cdap.html#activitysim.abm.models.cdap.CdapSettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">CdapSettings.CONSTANTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cdap.html#activitysim.abm.models.cdap.CdapSettings.FIXED_RELATIVE_PROPORTIONS_SPEC"><code class="docutils literal notranslate"><span class="pre">CdapSettings.FIXED_RELATIVE_PROPORTIONS_SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cdap.html#activitysim.abm.models.cdap.CdapSettings.INDIV_AND_HHSIZE1_SPEC"><code class="docutils literal notranslate"><span class="pre">CdapSettings.INDIV_AND_HHSIZE1_SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cdap.html#activitysim.abm.models.cdap.CdapSettings.INTERACTION_COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">CdapSettings.INTERACTION_COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cdap.html#activitysim.abm.models.cdap.CdapSettings.JOINT_TOUR_COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">CdapSettings.JOINT_TOUR_COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cdap.html#activitysim.abm.models.cdap.CdapSettings.PERSON_TYPE_MAP"><code class="docutils literal notranslate"><span class="pre">CdapSettings.PERSON_TYPE_MAP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cdap.html#activitysim.abm.models.cdap.CdapSettings.annotate_households"><code class="docutils literal notranslate"><span class="pre">CdapSettings.annotate_households</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cdap.html#activitysim.abm.models.cdap.CdapSettings.annotate_persons"><code class="docutils literal notranslate"><span class="pre">CdapSettings.annotate_persons</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cdap.html#activitysim.abm.models.cdap.CdapSettings.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">CdapSettings.model_computed_fields</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="cdap.html#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="cdap.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cdap.html#implementation">Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cdap.html#activitysim.abm.models.cdap.cdap_simulate"><code class="docutils literal notranslate"><span class="pre">cdap_simulate()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="mandatory_tour_frequency.html">Mandatory Tour Frequency</a><ul>
@@ -499,10 +551,45 @@ document.write(`
 </li>
 <li class="toctree-l1"><a class="reference internal" href="school_escorting.html">School Escorting</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="school_escorting.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.AGE_COLUMN"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.AGE_COLUMN</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.AGE_WEIGHT"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.AGE_WEIGHT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.ALTS"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.ALTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.CHAPERONE_AGE_CUTOFF"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.CHAPERONE_AGE_CUTOFF</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.CONSTANTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.ESCORTEE_AGE_CUTOFF"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.ESCORTEE_AGE_CUTOFF</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.GENDER_COLUMN"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.GENDER_COLUMN</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.GENDER_WEIGHT"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.GENDER_WEIGHT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.INBOUND_COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.INBOUND_COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.INBOUND_SPEC"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.INBOUND_SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.NUM_CHAPERONES"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.NUM_CHAPERONES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.NUM_ESCORTEES"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.NUM_ESCORTEES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.OUTBOUND_COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_COND_COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.OUTBOUND_COND_COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_COND_SPEC"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.OUTBOUND_COND_SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_SPEC"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.OUTBOUND_SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.PERSONTYPE_COLUMN"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.PERSONTYPE_COLUMN</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.PERSON_WEIGHT"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.PERSON_WEIGHT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.SPEC"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.explicit_chunk"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.explicit_chunk</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.no_escorting_alterative"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.no_escorting_alterative</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_inbound"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.preprocessor_inbound</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_outbound"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.preprocessor_outbound</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_outbound_cond"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.preprocessor_outbound_cond</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.sharrow_skip"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.sharrow_skip</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.model_computed_fields</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="school_escorting.html#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="school_escorting.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="school_escorting.html#implementation">Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="school_escorting.html#activitysim.abm.models.school_escorting.school_escorting"><code class="docutils literal notranslate"><span class="pre">school_escorting()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="joint_tour_composition.html">Joint Tour Composition</a><ul>
@@ -578,6 +665,23 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="disaggregate_accessibility.html">Disaggregate Accessibility</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="disaggregate_accessibility.html#structure">Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="disaggregate_accessibility.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.BASE_RANDOM_SEED"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.BASE_RANDOM_SEED</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.CREATE_TABLES"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.CREATE_TABLES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.DESTINATION_SAMPLE_SIZE"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.DESTINATION_SAMPLE_SIZE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.FROM_TEMPLATES"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.FROM_TEMPLATES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.MERGE_ON"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.MERGE_ON</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.NEAREST_METHOD"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.NEAREST_METHOD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.ORIGIN_SAMPLE_METHOD"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.ORIGIN_SAMPLE_METHOD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.ORIGIN_SAMPLE_SIZE"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.ORIGIN_SAMPLE_SIZE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.ORIGIN_WEIGHTING_COLUMN"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.ORIGIN_WEIGHTING_COLUMN</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.add_size_tables"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.add_size_tables</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.annotate_proto_tables"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.annotate_proto_tables</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.suffixes"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.suffixes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.zone_id_names"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.zone_id_names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.model_computed_fields</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="disaggregate_accessibility.html#examples">Examples</a></li>
 </ul>
 </li>
@@ -587,10 +691,27 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="free_parking.html">Free Parking Eligibility</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="free_parking.html#structure">Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="free_parking.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings"><code class="docutils literal notranslate"><span class="pre">FreeParkingSettings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">FreeParkingSettings.COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">FreeParkingSettings.CONSTANTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.FREE_PARKING_ALT"><code class="docutils literal notranslate"><span class="pre">FreeParkingSettings.FREE_PARKING_ALT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.LOGIT_TYPE"><code class="docutils literal notranslate"><span class="pre">FreeParkingSettings.LOGIT_TYPE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.NESTS"><code class="docutils literal notranslate"><span class="pre">FreeParkingSettings.NESTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.SPEC"><code class="docutils literal notranslate"><span class="pre">FreeParkingSettings.SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">FreeParkingSettings.preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.sharrow_skip"><code class="docutils literal notranslate"><span class="pre">FreeParkingSettings.sharrow_skip</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">FreeParkingSettings.source_file_paths</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">FreeParkingSettings.nests_are_for_nl()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">FreeParkingSettings.model_computed_fields</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="free_parking.html#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="free_parking.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="free_parking.html#implementation">Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="free_parking.html#activitysim.abm.models.free_parking.free_parking"><code class="docutils literal notranslate"><span class="pre">free_parking()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="school_location_choice.html">School Location</a><ul>
@@ -652,46 +773,178 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="tour_mode_choice.html">Tour Mode Choice</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="tour_mode_choice.html#structure">Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tour_mode_choice.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.COEFFICIENT_TEMPLATE"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.COEFFICIENT_TEMPLATE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.COMPUTE_TRIP_MODE_CHOICE_LOGSUMS"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.COMPUTE_TRIP_MODE_CHOICE_LOGSUMS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.CONSTANTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.LOGIT_TYPE"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.LOGIT_TYPE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.LOGSUM_CHOOSER_COLUMNS"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.LOGSUM_CHOOSER_COLUMNS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.MODE_CHOICE_LOGSUM_COLUMN_NAME"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.MODE_CHOICE_LOGSUM_COLUMN_NAME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.NESTS"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.NESTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.SPEC"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.annotate_tours"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.annotate_tours</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.nontour_preprocessor"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.nontour_preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.sharrow_skip"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.sharrow_skip</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.source_file_paths</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.tvpb_mode_path_types"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.tvpb_mode_path_types</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.use_TVPB_constants"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.use_TVPB_constants</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.nests_are_for_nl()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.model_computed_fields</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="tour_mode_choice.html#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="tour_mode_choice.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tour_mode_choice.html#implementation">Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.tour_mode_choice_simulate"><code class="docutils literal notranslate"><span class="pre">tour_mode_choice_simulate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.create_logsum_trips"><code class="docutils literal notranslate"><span class="pre">create_logsum_trips()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.append_tour_leg_trip_mode_choice_logsums"><code class="docutils literal notranslate"><span class="pre">append_tour_leg_trip_mode_choice_logsums()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.get_trip_mc_logsums_for_all_modes"><code class="docutils literal notranslate"><span class="pre">get_trip_mc_logsums_for_all_modes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tour_mode_choice.html#id0"><code class="docutils literal notranslate"><span class="pre">get_trip_mc_logsums_for_all_modes()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="atwork_subtour_frequency.html">At-work Subtours Frequency</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atwork_subtour_frequency.html#structure">Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atwork_subtour_frequency.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings"><code class="docutils literal notranslate"><span class="pre">AtworkSubtourFrequencySettings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">AtworkSubtourFrequencySettings.COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">AtworkSubtourFrequencySettings.CONSTANTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.LOGIT_TYPE"><code class="docutils literal notranslate"><span class="pre">AtworkSubtourFrequencySettings.LOGIT_TYPE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.NESTS"><code class="docutils literal notranslate"><span class="pre">AtworkSubtourFrequencySettings.NESTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.SPEC"><code class="docutils literal notranslate"><span class="pre">AtworkSubtourFrequencySettings.SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">AtworkSubtourFrequencySettings.preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.sharrow_skip"><code class="docutils literal notranslate"><span class="pre">AtworkSubtourFrequencySettings.sharrow_skip</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">AtworkSubtourFrequencySettings.source_file_paths</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">AtworkSubtourFrequencySettings.nests_are_for_nl()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">AtworkSubtourFrequencySettings.model_computed_fields</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="atwork_subtour_frequency.html#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_frequency.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_frequency.html#implementation">Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.atwork_subtour_frequency"><code class="docutils literal notranslate"><span class="pre">atwork_subtour_frequency()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="atwork_subtour_destination.html">At-work Subtours Destination Choice</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atwork_subtour_destination.html#structure">Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atwork_subtour_destination.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.ALT_DEST_COL_NAME"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.ALT_DEST_COL_NAME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.CHOOSER_FILTER_COLUMN_NAME"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.CHOOSER_FILTER_COLUMN_NAME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.CHOOSER_ID_COLUMN"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.CHOOSER_ID_COLUMN</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.CHOOSER_ORIG_COL_NAME"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.CHOOSER_ORIG_COL_NAME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.CHOOSER_SEGMENT_COLUMN_NAME"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.CHOOSER_SEGMENT_COLUMN_NAME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.CHOOSER_TABLE_NAME"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.CHOOSER_TABLE_NAME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.CONSTANTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.DEST_CHOICE_COLUMN_NAME"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.DEST_CHOICE_COLUMN_NAME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.DEST_CHOICE_LOGSUM_COLUMN_NAME"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.DEST_CHOICE_LOGSUM_COLUMN_NAME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.DEST_CHOICE_SAMPLE_TABLE_NAME"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.DEST_CHOICE_SAMPLE_TABLE_NAME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.IN_PERIOD"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.IN_PERIOD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.LOGSUM_PREPROCESSOR"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.LOGSUM_PREPROCESSOR</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.LOGSUM_SETTINGS"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.LOGSUM_SETTINGS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.LOGSUM_TOUR_PURPOSE"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.LOGSUM_TOUR_PURPOSE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.MODELED_SIZE_TABLE"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.MODELED_SIZE_TABLE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.MODEL_SELECTOR"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.MODEL_SELECTOR</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.ORIG_ZONE_ID"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.ORIG_ZONE_ID</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.OUT_PERIOD"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.OUT_PERIOD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.SAMPLE_SIZE"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.SAMPLE_SIZE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.SAMPLE_SPEC"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.SAMPLE_SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.SAVED_SHADOW_PRICE_TABLE_NAME"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.SAVED_SHADOW_PRICE_TABLE_NAME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.SEGMENTS"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.SEGMENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.SEGMENT_IDS"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.SEGMENT_IDS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.SHADOW_PRICE_TABLE"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.SHADOW_PRICE_TABLE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.SIMULATE_CHOOSER_COLUMNS"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.SIMULATE_CHOOSER_COLUMNS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.SIZE_TERM_SELECTOR"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.SIZE_TERM_SELECTOR</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.SPEC"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.annotate_households"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.annotate_households</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.annotate_persons"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.annotate_persons</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.annotate_tours"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.annotate_tours</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.sharrow_skip"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.sharrow_skip</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.model_computed_fields</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="atwork_subtour_destination.html#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_destination.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_destination.html#implementation">Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination"><code class="docutils literal notranslate"><span class="pre">atwork_subtour_destination()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="atwork_subtour_scheduling.html">At-work Subtour Scheduling</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atwork_subtour_scheduling.html#structure">Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atwork_subtour_scheduling.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.ALTS_PREPROCESSOR"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.ALTS_PREPROCESSOR</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.CONSTANTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.DESTINATION_FOR_TOUR_PURPOSE"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.DESTINATION_FOR_TOUR_PURPOSE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.LOGIT_TYPE"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.LOGIT_TYPE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.LOGSUM_PREPROCESSOR"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.LOGSUM_PREPROCESSOR</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.LOGSUM_SETTINGS"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.LOGSUM_SETTINGS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.NESTS"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.NESTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.SIMULATE_CHOOSER_COLUMNS"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.SIMULATE_CHOOSER_COLUMNS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.SPEC"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.SPEC_SEGMENTS"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.SPEC_SEGMENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.TOUR_SPEC_SEGMENTS"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.TOUR_SPEC_SEGMENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.sharrow_skip"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.sharrow_skip</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.source_file_paths</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.nests_are_for_nl()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">TourSchedulingSettings.model_computed_fields</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="atwork_subtour_scheduling.html#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_scheduling.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_scheduling.html#implementation">Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.atwork_subtour_scheduling"><code class="docutils literal notranslate"><span class="pre">atwork_subtour_scheduling()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="atwork_subtour_mode_choice.html">At-work Subtour Mode</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atwork_subtour_mode_choice.html#structure">Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atwork_subtour_mode_choice.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.COEFFICIENT_TEMPLATE"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.COEFFICIENT_TEMPLATE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.COMPUTE_TRIP_MODE_CHOICE_LOGSUMS"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.COMPUTE_TRIP_MODE_CHOICE_LOGSUMS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.CONSTANTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.LOGIT_TYPE"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.LOGIT_TYPE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.LOGSUM_CHOOSER_COLUMNS"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.LOGSUM_CHOOSER_COLUMNS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.MODE_CHOICE_LOGSUM_COLUMN_NAME"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.MODE_CHOICE_LOGSUM_COLUMN_NAME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.NESTS"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.NESTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.SPEC"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.annotate_tours"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.annotate_tours</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.nontour_preprocessor"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.nontour_preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.sharrow_skip"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.sharrow_skip</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.source_file_paths</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.tvpb_mode_path_types"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.tvpb_mode_path_types</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.use_TVPB_constants"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.use_TVPB_constants</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.nests_are_for_nl()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.model_computed_fields</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="atwork_subtour_mode_choice.html#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_mode_choice.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_mode_choice.html#implementation">Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.atwork_subtour_mode_choice"><code class="docutils literal notranslate"><span class="pre">atwork_subtour_mode_choice()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="stop_frequency.html">Stop Frequency</a><ul>
@@ -860,13 +1113,13 @@ section. See <a class="reference internal" href="../../development.html#models">
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev624+g57995350, documentation last updated Feb 14, 2024.<br/>
+ActivitySim 1.3.0b2.dev25+g2f9afa0a, documentation last updated Feb 28, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     <br/>
   </p>
 </div>

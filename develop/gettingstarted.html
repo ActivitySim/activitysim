@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="./" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Getting Started &#8212; ActivitySim</title>
   
@@ -29,38 +28,36 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
-    <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/clipboard.min.js"></script>
-    <script src="_static/copybutton.js"></script>
-    <script src="_static/design-tabs.js"></script>
+    <script src="_static/documentation_options.js?v=3d11cf77"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'gettingstarted';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Feb 14, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 28, 2024"/>
   </head>
   
   
@@ -354,14 +351,14 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="getting-started">
-<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading">#</a></h1>
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">#</a></h1>
 <p>This page describes how to get started with ActivitySim.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>ActivitySim is under active development</p>
 </div>
 <section id="pre-packaged-installer">
-<span id="index-0"></span><h2>Pre-packaged Installer<a class="headerlink" href="#pre-packaged-installer" title="Permalink to this heading">#</a></h2>
+<span id="index-0"></span><h2>Pre-packaged Installer<a class="headerlink" href="#pre-packaged-installer" title="Link to this heading">#</a></h2>
 <p>Begining with version 1.2, ActivitySim is now available for Windows via a
 pre-packaged installer.  This installer provides everything you need to run
 ActivitySim, including Python, all the necessary supporting packages, and
@@ -382,7 +379,7 @@ be available without knowing the path to where the install has happened.</p>
 prompt by running <cite>&lt;install_location&gt;/Scripts/ActivitySim.exe</cite>.</p>
 </section>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">#</a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h2>
 <p>1. It is recommended that you install and use a <em>conda</em> package manager
 for your system. One easy way to do so is by using
 <a class="reference external" href="https://github.com/conda-forge/miniforge#mambaforge">Mambaforge</a>.
@@ -409,7 +406,7 @@ home installation folder, such as:</p>
 </div>
 <p>3. Create a conda environment (basically a Python install just for this project)
 using conda Prompt (on Windows) or the terminal (macOS or Linux):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mamba</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span> <span class="n">activitysim</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mamba</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.10</span> <span class="n">activitysim</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span>
 </pre></div>
 </div>
 <p>This command will create the environment and install all the dependencies
@@ -417,13 +414,13 @@ required for running ActivitySim.  It is only necessary to create the environmen
 once per machine, you do not need to (re)create the environment for each session.
 If you would also like to install other tools or optional dependencies, it is
 possible to do so by adding additional libraries to this command.  For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mamba</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span> <span class="n">activitysim</span> <span class="n">jupyterlab</span> <span class="n">larch</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mamba</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.10</span> <span class="n">activitysim</span> <span class="n">jupyterlab</span> <span class="n">larch</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span>
 </pre></div>
 </div>
-<p>This example installs a specific version of Python, version 3.9.  A similar
+<p>This example installs a specific version of Python, version 3.10.  A similar
 approach can be used to install specific versions of other libraries as well,
 including ActivitySim, itself. For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mamba</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span> <span class="n">activitysim</span><span class="o">=</span><span class="mf">1.0.2</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mamba</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.10</span> <span class="n">activitysim</span><span class="o">=</span><span class="mf">1.0.2</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span>
 </pre></div>
 </div>
 <p>Additional libraries can also be installed later.  You may want to consider these
@@ -457,7 +454,7 @@ start a new session (e.g. opening a new conda Prompt window).  Note that
 the <em>activate</em> and <em>deactivate</em> commands to start and stop using environments
 are called as <cite>conda</cite> even if you are otherwise using <cite>mamba</cite>.</p>
 <section id="alternative-installation-methods">
-<h3>Alternative Installation Methods<a class="headerlink" href="#alternative-installation-methods" title="Permalink to this heading">#</a></h3>
+<h3>Alternative Installation Methods<a class="headerlink" href="#alternative-installation-methods" title="Link to this heading">#</a></h3>
 <p>If you prefer to install ActivitySim without conda, it is possible to
 do so with pip, although you may find it more difficult to get all of the
 required dependencies installed correctly.  If you can use conda for
@@ -511,7 +508,7 @@ check the current active environment with <code class="docutils literal notransl
 </section>
 </section>
 <section id="run-the-primary-example">
-<h2>Run the Primary Example<a class="headerlink" href="#run-the-primary-example" title="Permalink to this heading">#</a></h2>
+<h2>Run the Primary Example<a class="headerlink" href="#run-the-primary-example" title="Link to this heading">#</a></h2>
 <p>ActivitySim includes a <a class="reference internal" href="cli.html#cli"><span class="std std-ref">Command Line Interface</span></a> for creating examples and running the model.</p>
 <p>To setup and run the primary example (see <a class="reference internal" href="users-guide/model_anatomy.html#examples"><span class="std std-ref">Examples</span></a>), do the following:</p>
 <ul class="simple">
@@ -538,7 +535,7 @@ and examples for agency partners are available for creation by typing <code clas
 the <a class="reference external" href="https://github.com/rsginc/activitysim_resources">ActivitySim resources</a> repository.  See <a class="reference internal" href="users-guide/model_anatomy.html#examples"><span class="std std-ref">Examples</span></a> for more information.</p>
 </section>
 <section id="try-the-notebooks">
-<h2>Try the Notebooks<a class="headerlink" href="#try-the-notebooks" title="Permalink to this heading">#</a></h2>
+<h2>Try the Notebooks<a class="headerlink" href="#try-the-notebooks" title="Link to this heading">#</a></h2>
 <p>ActivitySim includes a <a class="reference external" href="https://jupyter.org">Jupyter Notebook</a> recipe book with interactive examples.  To run a Jupyter notebook, do the following:</p>
 <ul class="simple">
 <li><p>Open a conda prompt and activate the conda environment with ActivitySim installed</p></li>
@@ -556,7 +553,7 @@ the <a class="reference external" href="https://github.com/rsginc/activitysim_re
 </ul>
 </section>
 <section id="hardware">
-<h2>Hardware<a class="headerlink" href="#hardware" title="Permalink to this heading">#</a></h2>
+<h2>Hardware<a class="headerlink" href="#hardware" title="Link to this heading">#</a></h2>
 <p>The computing hardware required to run a model implemented in the ActivitySim framework generally depends on:</p>
 <ul class="simple">
 <li><p>The number of households to be simulated for disaggregate model steps</p></li>
@@ -576,7 +573,7 @@ on the amount of RAM and number of processors allocated.  See <a class="referenc
 scripts, and runtimes are in the <code class="docutils literal notranslate"><span class="pre">other_resources\example_azure</span></code> folder.</p>
 </div>
 <section id="mkl-settings">
-<span id="id1"></span><h3>MKL Settings<a class="headerlink" href="#mkl-settings" title="Permalink to this heading">#</a></h3>
+<span id="id1"></span><h3>MKL Settings<a class="headerlink" href="#mkl-settings" title="Link to this heading">#</a></h3>
 <p>Anaconda Python on Windows uses the <a class="reference external" href="https://software.intel.com/en-us/mkl">Intel Math Kernel Library</a> for
 many of its computationally intensive low-level C/C++ calculations.  By default, MKL threads many of its routines
 in order to be performant out-of-the-box.  However, for ActivitySim multiprocessing, which processes households in
@@ -663,13 +660,13 @@ line as follows: <code class="docutils literal notranslate"><span class="pre">SE
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.3.dev624+g57995350, documentation last updated Feb 14, 2024.<br/>
+ActivitySim 1.3.0b2.dev25+g2f9afa0a, documentation last updated Feb 28, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     <br/>
   </p>
 </div>

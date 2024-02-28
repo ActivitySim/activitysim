@@ -69,15 +69,6 @@ class FileSystem(PydanticBase, validate_assignment=True):
     Name of the data model directory.
     """
 
-    @validator("data_model_dir")
-    def data_model_dirs_must_exist(cls, data_model_dir, values):
-        working_dir = values.get("working_dir", None) or Path.cwd()
-        for d in data_model_dir:
-            d_full = working_dir.joinpath(d)
-            if not d_full.exists():
-                raise ValueError(f"data model directory {d_full} does not exist")
-        return data_model_dir
-
     output_dir: Path = "output"
     """
     Name of the output directory.

@@ -315,7 +315,7 @@ jobs:
     defaults:
       run:
         shell: bash -l {0}
-    name: ${{ matrix.region }}
+    name: ${{ matrix.region }} (external)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

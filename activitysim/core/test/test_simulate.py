@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os.path
+import warnings
 
 import numpy as np
 import numpy.testing as npt
@@ -129,10 +130,8 @@ def test_eval_utilities(state, data, spec):
     )
 
 
-@pytest.mark.parametrize("overflow_protection", [True, False])
-def test_simple_simulate_with_nest_spec(state, overflow_protection):
-    state.settings.check_for_variability = False
-
+@pytest.fixture
+def eval_nl_setup(state):
     data = pd.DataFrame(
         {
             "var0": [0, 0, 0, 0, 0, 0, 5, 0],
@@ -198,6 +197,71 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection):
             },
         }
     )
+
+    return data, spec, component_settings
+
+
+@pytest.mark.parametrize("overflow_protection", [True, False])
+def test_eval_nl(state, overflow_protection, eval_nl_setup):
+
+    locals_d = {}
+    log_alt_losers = False
+    have_trace_targets = False
+    trace_label = "test_eval_utilities"
+    estimator = None
+    trace_column_names = []
+    spec_sh = None
+    data, spec, component_settings = eval_nl_setup
+    nest_spec = get_logit_model_settings(component_settings)
+    chunk_sizer = ChunkSizer(
+        state, "chunkless", trace_label, 0, 0, state.settings.chunk_training_mode
+    )
+
+    if overflow_protection:
+        with pytest.warns(
+            RuntimeWarning, match="overflow protection is making 3 choices"
+        ):
+            simulate.eval_nl(
+                state,
+                data,
+                spec,
+                nest_spec,
+                locals_d,
+                custom_chooser=None,
+                estimator=None,
+                log_alt_losers=False,
+                want_logsums=False,
+                trace_label="None",
+                trace_choice_name=None,
+                trace_column_names=None,
+                chunk_sizer=chunk_sizer,
+                overflow_protection=overflow_protection,
+            )
+    else:
+        with pytest.raises(RuntimeError):
+            simulate.eval_nl(
+                state,
+                data,
+                spec,
+                nest_spec,
+                locals_d,
+                custom_chooser=None,
+                estimator=None,
+                log_alt_losers=False,
+                want_logsums=False,
+                trace_label="None",
+                trace_choice_name=None,
+                trace_column_names=None,
+                chunk_sizer=chunk_sizer,
+                overflow_protection=overflow_protection,
+            )
+
+
+@pytest.mark.parametrize("overflow_protection", [True, False])
+def test_simple_simulate_with_nest_spec(state, overflow_protection, eval_nl_setup):
+    state.settings.check_for_variability = False
+
+    data, spec, component_settings = eval_nl_setup
 
     nest_spec = get_logit_model_settings(component_settings)
     trace_label = "test_simple_simulate_with_nest_spec"
@@ -281,6 +345,11 @@ def test_simple_simulate_with_nest_spec(state, overflow_protection):
     if overflow_protection:
         # exponentiated utils may overflow, downshift them
         shifts = raw_utilities.to_numpy().max(1, keepdims=True)
+        if shifts.min() < -85:
+            warnings.warn(
+                "overflow protection is making choices for choosers "
+                "who appear to have no valid alternatives"
+            )
         raw_utilities -= shifts
     else:
         shifts = None

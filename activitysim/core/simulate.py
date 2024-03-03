@@ -1366,12 +1366,25 @@ def eval_nl(
         )
 
     overflow_protection = overflow_protection or (
-        raw_utilities.dtype == np.float32 and raw_utilities.max() > 85
+        raw_utilities.to_numpy().dtype == np.float32 and raw_utilities.max() > 85
     )
 
     if overflow_protection:
         # exponentiated utils may overflow, downshift them
         shifts = raw_utilities.to_numpy().max(1, keepdims=True)
+        if shifts.min() < -85:
+            n_bad = (shifts < -85).sum()
+            selected_bad = raw_utilities.index[np.where(shifts < -85)[0]]
+            warnings.warn(
+                f"overflow protection is making {n_bad} choices for "
+                "choosers who appear to have no valid alternatives",
+                category=RuntimeWarning,
+            )
+            logger.warning(
+                f"overflow protection is making {n_bad} choices for "
+                "choosers who appear to have no valid alternatives, "
+                f"including choosers at these indices: {selected_bad}"
+            )
         raw_utilities -= shifts
     else:
         shifts = None

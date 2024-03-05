@@ -67,6 +67,7 @@ dependencies:
 - scikit-learn = 1.2.*
 - simwrapper > 1.7
 - snakeviz  # for profiling
+- sparse
 - sphinx = 6.1.*
 - sphinx_rtd_theme = 1.2.*
 - sphinx-argparse = 0.4.*

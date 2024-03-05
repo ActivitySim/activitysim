@@ -511,7 +511,7 @@ jobs:
 
   develop-docbuild:
     needs: foundation
-    if: github.ref_name == 'develop'
+    if: github.ref_name == 'main'
     name: develop-docbuild
     runs-on: ubuntu-latest
     defaults:

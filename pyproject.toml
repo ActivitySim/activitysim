@@ -1,10 +1,51 @@
 [build-system]
 requires = [
-    "setuptools>=42,<64",
+    "setuptools>=69",
     "wheel",
-    "setuptools_scm[toml]>=7.0",
+    "setuptools_scm>=8.0",
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "activitysim"
+dynamic = ["version"]
+dependencies = [
+    "cytoolz >= 0.8.1",
+    "numba >= 0.55.2",
+    "numpy >= 1.16.1",
+    "openmatrix >= 0.3.4.1",
+    "orca >= 1.6",
+    "pandas >= 1.4, <2",
+    "platformdirs",
+    "psutil >= 4.1",
+    "pyarrow >= 2.0",
+    "pydantic >= 2.6",
+    "pypyr >= 5.3",
+    "pyyaml >= 5.1",
+    "requests >= 2.7",
+    "scikit-learn >= 1.1",
+    "sharrow >= 2.6",
+    "simwrapper > 1.7",
+    "sparse",
+    "tables >= 3.5.1",
+    "xarray >= 0.21"
+]
+readme = "README.md"
+requires-python = ">=3.10"
+
+[project.scripts]
+activitysim = "activitysim.cli.main:main"
+activitysim_checksums = "activitysim.cli.create:display_sha256_checksums"
+
+[tool.setuptools.packages.find]
+exclude = [
+    "other*", "test*",
+    "activitysim/estimation/test*",
+    "activitysim/abm/test*",
+    "activitysim/cli/test*",
+    "activitysim/core/test*",
+    "activitysim/abm/models/util/test*",
+]
 
 [tool.setuptools_scm]
 fallback_version = "999"
@@ -36,6 +77,15 @@ tb = "native"
 [tool.ruff]
 select = ["E", "F", "B", "UP", "TID"]
 line-length = 140
+exclude = [
+    ".git",
+    "__pycache__",
+    "docs/_build",
+    "docs/conf.py",
+    "**/__sharrowcache__",
+    "other_resources/",
+    "sandbox/"
+]
 
 [tool.ruff.isort]
 known-first-party = ["activitysim"]

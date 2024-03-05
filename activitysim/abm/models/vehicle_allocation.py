@@ -201,8 +201,6 @@ def vehicle_allocation(
     veh_type_dtype = vehicles["vehicle_type"].dtype
     if isinstance(veh_type_dtype, pd.CategoricalDtype):
         veh_categories = list(veh_type_dtype.categories)
-        if "" not in veh_categories:
-            veh_categories.insert(0, "")
         if "non_hh_veh" not in veh_categories:
             veh_categories.append("non_hh_veh")
         veh_choice_dtype = pd.CategoricalDtype(veh_categories, ordered=False)

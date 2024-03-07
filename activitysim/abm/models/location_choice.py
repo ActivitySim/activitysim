@@ -159,7 +159,7 @@ def _location_sample(
         "dest_col_name": skims.dest_key,  # added for sharrow flows
         "timeframe": "timeless",
         "reindex": reindex,
-        "land_use": inject.get_table("land_use").to_frame(),
+        "land_use": state.get_dataframe("land_use"),
     }
     locals_d.update(model_settings.CONSTANTS or {})
 
@@ -624,7 +624,7 @@ def run_location_simulate(
         "dest_col_name": skims.dest_key,  # added for sharrow flows
         "timeframe": "timeless",
         "reindex": reindex,
-        "land_use": inject.get_table("land_use").to_frame(),
+        "land_use": state.get_dataframe("land_use"),
     }
     locals_d.update(model_settings.CONSTANTS or {})
 

@@ -193,7 +193,7 @@ def _destination_sample(
             "size_terms": size_term_matrix,
             "size_terms_array": size_term_matrix.df.to_numpy(),
             "timeframe": "trip",
-            "land_use": inject.get_table("land_use").to_frame(),
+            "land_use": state.get_dataframe("land_use"),
         }
     )
     locals_dict.update(skims)
@@ -926,7 +926,7 @@ def trip_destination_simulate(
             "size_terms": size_term_matrix,
             "size_terms_array": size_term_matrix.df.to_numpy(),
             "timeframe": "trip",
-            "land_use": inject.get_table("land_use").to_frame(),
+            "land_use": state.get_dataframe("land_use"),
         }
     )
     locals_dict.update(skims)

@@ -152,7 +152,7 @@ def _location_sample(
         logger.info(
             f"SAMPLE_SIZE set to 0 for {trace_label} because disable_destination_sampling is set"
         )
-    
+
     locals_d = {
         "skims": skims,
         "segment_size": segment_name,

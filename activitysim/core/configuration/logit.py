@@ -203,7 +203,6 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     Larch does not yet support sampling alternatives for estimation, 
     but this setting is still helpful for estimation mode runtime.
     """
-    
 
 
 class TourModeComponentSettings(TemplatedLogitComponentSettings, extra="forbid"):

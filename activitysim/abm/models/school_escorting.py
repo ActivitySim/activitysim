@@ -486,7 +486,9 @@ def school_escorting(
     for stage_num, stage in enumerate(school_escorting_stages):
         stage_trace_label = trace_label + "_" + stage
         estimator = estimation.manager.begin_estimation(
-            state, model_name="school_escorting_" + stage, bundle_name="school_escorting"
+            state,
+            model_name="school_escorting_" + stage,
+            bundle_name="school_escorting",
         )
 
         model_spec_raw = simulate.read_model_spec(

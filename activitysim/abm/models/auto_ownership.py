@@ -26,8 +26,8 @@ class AutoOwnershipSettings(LogitComponentSettings):
     """
     Settings for the `auto_ownership` component.
     """
-
-    # This model is relatively simple and has no unique settings
+    preprocessor: PreprocessorSettings | None = None
+    annotate_households: PreprocessorSettings | None = None
 
 
 @workflow.step
@@ -66,7 +66,7 @@ def auto_ownership_simulate(
     logger.info("Running %s with %d households", trace_label, len(choosers))
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
 
         locals_d = {}
@@ -115,7 +115,7 @@ def auto_ownership_simulate(
         "auto_ownership", households.auto_ownership, value_counts=True
     )
 
-    if model_settings.get("annotate_households"):
+    if model_settings.annotate_households:
         annotate.annotate_households(model_settings, trace_label)
 
     if trace_hh_id:

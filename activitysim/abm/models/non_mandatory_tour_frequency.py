@@ -27,7 +27,6 @@ from activitysim.core import (
     simulate,
     tracing,
     workflow,
-    annotate,
 )
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.configuration.logit import LogitComponentSettings

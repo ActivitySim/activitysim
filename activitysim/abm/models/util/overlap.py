@@ -278,7 +278,9 @@ def calculate_consecutive(array):
     return out
 
 
-def person_available_periods(state: workflow.State, persons, start_bin=None, end_bin=None, continuous=False):
+def person_available_periods(
+    state: workflow.State, persons, start_bin=None, end_bin=None, continuous=False
+):
     """
     Returns the number of available time period bins foreach person in persons.
     Can limit the calculation to include starting and/or ending bins.

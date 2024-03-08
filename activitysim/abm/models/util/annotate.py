@@ -17,10 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 def annotate_households(
-        state: workflow.State,
-        model_settings: dict | PydanticBase,
-        trace_label: str,
-        locals_dict: dict | None = None,
+    state: workflow.State,
+    model_settings: dict | PydanticBase,
+    trace_label: str,
+    locals_dict: dict | None = None,
 ):
     """
     Add columns to the households table in the pipeline according to spec.
@@ -45,10 +45,10 @@ def annotate_households(
 
 
 def annotate_persons(
-        state: workflow.State,
-        model_settings: dict | PydanticBase,
-        trace_label: str,
-        locals_dict: dict | None = None,
+    state: workflow.State,
+    model_settings: dict | PydanticBase,
+    trace_label: str,
+    locals_dict: dict | None = None,
 ):
     """
     Add columns to the persons table in the pipeline according to spec.

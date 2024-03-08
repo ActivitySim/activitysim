@@ -17,7 +17,7 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.configuration.logit import LogitComponentSettings
-from .util import estimation, annotate
+from .util import annotate
 
 logger = logging.getLogger(__name__)
 

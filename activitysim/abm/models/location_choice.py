@@ -841,13 +841,13 @@ def run_location_choice(
                 pd.merge(
                     choices_df.reset_index(),
                     location_sample_df.reset_index()[
-                        [index_name, model_settings["ALT_DEST_COL_NAME"], ALT_LOGSUM]
+                        [index_name, model_settings.ALT_DEST_COL_NAME, ALT_LOGSUM]
                     ],
                     how="left",
                     left_on=[index_name, "choice"],
-                    right_on=[index_name, model_settings["ALT_DEST_COL_NAME"]],
+                    right_on=[index_name, model_settings.ALT_DEST_COL_NAME],
                 )
-                .drop(columns=model_settings["ALT_DEST_COL_NAME"])
+                .drop(columns=model_settings.ALT_DEST_COL_NAME)
                 .set_index(index_name)
             )
 

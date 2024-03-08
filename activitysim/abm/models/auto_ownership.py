@@ -26,6 +26,7 @@ class AutoOwnershipSettings(LogitComponentSettings):
     """
     Settings for the `auto_ownership` component.
     """
+
     preprocessor: PreprocessorSettings | None = None
     annotate_households: PreprocessorSettings | None = None
 

@@ -412,8 +412,6 @@ def cdap_data(
     if person_type_map is None:
         raise KeyError("PERSON_TYPE_MAP missing from cdap_settings.yaml")
 
-    person_rank = cdap.assign_cdap_rank(None, persons, person_type_map)
-
     coefficients = read_csv(
         coefficients_file,
         index_col="coefficient_name",
@@ -443,6 +441,7 @@ def cdap_data(
     spec1 = read_csv(spec1_file, comment="#")
     values = read_csv(chooser_data_file, comment="#")
     person_rank = cdap.assign_cdap_rank(
+        None,
         persons[persons.household_id.isin(values.household_id)]
         .set_index("person_id")
         .reindex(values.person_id),

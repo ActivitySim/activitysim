@@ -466,8 +466,8 @@ def school_escorting(
 
     # FIXME setting index as "Alt" causes crash in estimation mode...
     # happens in joint_tour_frequency_composition too!
-    # alts = simulate.read_model_alts(state, model_settings["ALTS"], set_index="Alt")
-    alts = simulate.read_model_alts(state, model_settings["ALTS"], set_index=None)
+    # alts = simulate.read_model_alts(state, model_settings.ALTS, set_index="Alt")
+    alts = simulate.read_model_alts(state, model_settings.ALTS, set_index=None)
     alts.index = alts["Alt"].values
 
     choosers, participant_columns = determine_escorting_participants(
@@ -491,8 +491,8 @@ def school_escorting(
             bundle_name="school_escorting",
         )
 
-        model_spec_raw = simulate.read_model_spec(
-            file_name=model_settings[stage.upper() + "_SPEC"]
+        model_spec_raw = state.filesystem.read_model_spec(
+            file_name=getattr(model_settings, stage.upper() + "_SPEC")
         )
 
         model_spec_raw = state.filesystem.read_model_spec(
@@ -633,7 +633,7 @@ def school_escorting(
         )
 
         school_escort_tours = school_escort_tours_trips.create_pure_school_escort_tours(
-            escort_bundles
+            state, escort_bundles
         )
         chauf_tour_id_map = {
             v: k for k, v in school_escort_tours["bundle_id"].to_dict().items()
@@ -652,9 +652,8 @@ def school_escorting(
             tours, school_escort_tours
         )
         tours = school_escort_tours_trips.process_tours_after_escorting_model(
-            escort_bundles, tours
+            state, escort_bundles, tours
         )
-
         school_escort_trips = school_escort_tours_trips.create_school_escort_trips(
             escort_bundles
         )

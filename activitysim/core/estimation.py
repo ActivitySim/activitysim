@@ -220,7 +220,9 @@ class Estimator:
         if len(self.omnibus_tables) == 0:
             return
 
-        settings = config.read_model_settings(ESTIMATION_SETTINGS_FILE_NAME)
+        settings = self.state.filesystem.read_model_settings(
+            ESTIMATION_SETTINGS_FILE_NAME, mandatory=False
+        )
 
         edbs_to_skip = settings.get("SKIP_BUNDLE_WRITE_FOR", [])
         if self.bundle_name in edbs_to_skip:

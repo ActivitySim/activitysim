@@ -279,8 +279,7 @@ def nonmand_tour_freq_model(
         d = DataFrames(
             co=x_co,
             ca=x_ca,
-            av=True,
-            # av=~unavail(segment_model, x_ca),
+            av=~unavail(segment_model, x_ca),
         )
         m[segment_name].dataservice = d
 

@@ -95,9 +95,11 @@ def eval_interaction_utilities(
     import re
 
     # define a regular expression to find variables in spec
-    pattern = r'[a-zA-Z_][a-zA-Z0-9_]*'
+    pattern = r"[a-zA-Z_][a-zA-Z0-9_]*"
 
-    unique_variables_in_spec = set(spec.reset_index()["Expression"].apply(lambda x: re.findall(pattern, x)).sum())
+    unique_variables_in_spec = set(
+        spec.reset_index()["Expression"].apply(lambda x: re.findall(pattern, x)).sum()
+    )
 
     # when sharrow mode, need to keep skim variables in the chooser table
     if sharrow_enabled:

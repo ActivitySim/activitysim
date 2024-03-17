@@ -1513,14 +1513,16 @@ def _simple_simulate(
 
     if skims is not None:
         set_skim_wrapper_targets(choosers, skims)
-    
+
     # keep only variables needed for spec
     import re
 
     # define a regular expression to find variables in spec
-    pattern = r'[a-zA-Z_][a-zA-Z0-9_]*'
+    pattern = r"[a-zA-Z_][a-zA-Z0-9_]*"
 
-    unique_variables_in_spec = set(spec.reset_index()["Expression"].apply(lambda x: re.findall(pattern, x)).sum())
+    unique_variables_in_spec = set(
+        spec.reset_index()["Expression"].apply(lambda x: re.findall(pattern, x)).sum()
+    )
 
     sharrow_enabled = state.settings.sharrow
 

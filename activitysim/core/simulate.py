@@ -1513,6 +1513,29 @@ def _simple_simulate(
 
     if skims is not None:
         set_skim_wrapper_targets(choosers, skims)
+    
+    # keep only variables needed for spec
+    import re
+
+    # define a regular expression to find variables in spec
+    pattern = r'[a-zA-Z_][a-zA-Z0-9_]*'
+
+    unique_variables_in_spec = set(spec.reset_index()["Expression"].apply(lambda x: re.findall(pattern, x)).sum())
+
+    sharrow_enabled = state.settings.sharrow
+
+    # when sharrow mode, need to keep skim variables in the chooser table
+    if sharrow_enabled:
+        unique_variables_in_spec.add(locals_d.get("orig_col_name", None))
+        unique_variables_in_spec.add(locals_d.get("dest_col_name", None))
+        unique_variables_in_spec.add(locals_d.get("out_time_col_name", None))
+        unique_variables_in_spec.add(locals_d.get("in_time_col_name", None))
+        unique_variables_in_spec.add("out_period")
+        unique_variables_in_spec.add("in_period")
+        unique_variables_in_spec.add("trip_period")
+
+    # keep only variables needed for spec
+    choosers = choosers[[c for c in choosers.columns if c in unique_variables_in_spec]]
 
     if nest_spec is None:
         choices = eval_mnl(

@@ -674,6 +674,8 @@ def school_escorting(
             "depart",
             "purpose",
             "destination",
+            "escort_participants",
+            "chauf_tour_id",
         ]
         school_escort_trips = pd.DataFrame(columns=trip_cols)
 

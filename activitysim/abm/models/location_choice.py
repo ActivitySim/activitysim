@@ -17,6 +17,7 @@ from activitysim.core.configuration.logit import (
 )
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
+from activitysim.core.util import reindex
 
 # import multiprocessing
 
@@ -159,6 +160,8 @@ def _location_sample(
         "orig_col_name": skims.orig_key,  # added for sharrow flows
         "dest_col_name": skims.dest_key,  # added for sharrow flows
         "timeframe": "timeless",
+        "reindex": reindex,
+        "land_use": state.get_dataframe("land_use"),
     }
     locals_d.update(model_settings.CONSTANTS or {})
 
@@ -654,6 +657,8 @@ def run_location_simulate(
         "orig_col_name": skims.orig_key,  # added for sharrow flows
         "dest_col_name": skims.dest_key,  # added for sharrow flows
         "timeframe": "timeless",
+        "reindex": reindex,
+        "land_use": state.get_dataframe("land_use"),
     }
     locals_d.update(model_settings.CONSTANTS or {})
 

@@ -24,7 +24,7 @@ dependencies:
 - pyarrow = 11.*
 - pydantic = 2.6.*
 - pypyr = 5.8.*
-- pytables >= 3.7
+- pytables >= 3.9
 - pytest = 7.2.*
 - pytest-cov
 - pytest-regressions

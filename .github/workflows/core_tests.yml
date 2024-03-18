@@ -51,7 +51,7 @@ jobs:
           	"psutil=5.9.5" \
           	"pydantic=2.6.1" \
           	"pypyr=5.8.0" \
-          	"pytables=3.6.1" \
+          	"pytables=3.9.2" \
           	"pytest-cov" \
           	"pytest-regressions=2.5.0" \
           	"scikit-learn=1.2.2" \
@@ -150,7 +150,7 @@ jobs:
           	"psutil=5.9.5" \
           	"pydantic=2.6.1" \
           	"pypyr=5.8.0" \
-          	"pytables=3.6.1" \
+          	"pytables=3.9.2" \
           	"pytest-cov" \
           	"pytest-regressions=2.5.0" \
           	"scikit-learn=1.2.2" \
@@ -247,7 +247,7 @@ jobs:
           	"psutil=5.9.5" \
           	"pydantic=2.6.1" \
           	"pypyr=5.8.0" \
-          	"pytables=3.6.1" \
+          	"pytables=3.9.2" \
           	"pytest-cov" \
           	"pytest-regressions=2.5.0" \
           	"scikit-learn=1.2.2" \
@@ -343,7 +343,7 @@ jobs:
           	"psutil=5.9.5" \
           	"pydantic=2.6.1" \
           	"pypyr=5.8.0" \
-          	"pytables=3.6.1" \
+          	"pytables=3.9.2" \
           	"pytest-cov" \
           	"pytest-regressions=2.5.0" \
           	"scikit-learn=1.2.2" \
@@ -409,7 +409,7 @@ jobs:
           	"psutil=5.9.5" \
           	"pydantic=2.6.1" \
           	"pypyr=5.8.0" \
-          	"pytables=3.6.1" \
+          	"pytables=3.9.2" \
           	"pytest-cov" \
           	"pytest-regressions=2.5.0" \
           	"scikit-learn=1.2.2" \
@@ -474,7 +474,7 @@ jobs:
           	"psutil=5.9.5" \
           	"pydantic=2.6.1" \
           	"pypyr=5.8.0" \
-          	"pytables=3.6.1" \
+          	"pytables=3.9.2" \
           	"pytest-cov" \
           	"pytest-regressions=2.5.0" \
           	"scikit-learn=1.2.2" \

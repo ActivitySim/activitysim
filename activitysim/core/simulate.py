@@ -1536,6 +1536,12 @@ def _simple_simulate(
         unique_variables_in_spec.add("in_period")
         unique_variables_in_spec.add("trip_period")
 
+    if custom_chooser:
+        import inspect
+
+        custom_chooser_lines = inspect.getsource(custom_chooser)
+        unique_variables_in_spec.update(re.findall(pattern, custom_chooser_lines))
+
     # keep only variables needed for spec
     choosers = choosers[[c for c in choosers.columns if c in unique_variables_in_spec]]
 

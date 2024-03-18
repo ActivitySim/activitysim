@@ -31,7 +31,6 @@ dependencies:
 - ipykernel  # so this env will appear in jupyter as a selection
 - isort
 - jupyterlab
-- larch = 5.7.*
 - matplotlib
 - myst-parser  # allows markdown in sphinx
 - nbconvert
@@ -43,7 +42,7 @@ dependencies:
 - numpydoc
 - openmatrix = 0.3.*
 - orca = 1.8
-- pandas = 1.4.*
+- pandas >= 2.2
 - pandera >= 0.15
 - platformdirs = 3.2.*
 - pre-commit
@@ -71,10 +70,11 @@ dependencies:
 - sphinx = 6.1.*
 - sphinx_rtd_theme = 1.2.*
 - sphinx-argparse = 0.4.*
-- xarray = 2023.2.*
+- xarray >= 2023.2
 - xmle
 - zarr = 2.14.*
 - zstandard
 
 - pip:
   - autodoc_pydantic
+  - larch6

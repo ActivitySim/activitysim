@@ -32,7 +32,7 @@ dependencies:
 - numpydoc
 - openmatrix >= 0.3.4.1
 - orca >= 1.6
-- pandas >= 1.1.0,<2
+- pandas >= 2.2
 - platformdirs
 - psutil >= 4.1
 - pyarrow >= 2.0
@@ -45,7 +45,7 @@ dependencies:
 - pyyaml >= 5.1
 - requests >= 2.7
 - scikit-learn >= 1.1
-- sharrow >= 2.6.0
+- sharrow >= 2.7.0
 - simwrapper > 1.7
 - sparse
 - sphinx-argparse

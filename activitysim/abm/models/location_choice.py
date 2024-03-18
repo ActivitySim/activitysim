@@ -872,6 +872,24 @@ def run_location_choice(
                 )
                 state.tracing.trace_df(choices_df, estimation_trace_label)
 
+        if want_logsums & (not skip_choice):
+            # grabbing index, could be person_id or proto_person_id
+            index_name = choices_df.index.name
+            # merging mode choice logsum of chosen alternative to choices
+            choices_df = (
+                pd.merge(
+                    choices_df.reset_index(),
+                    location_sample_df.reset_index()[
+                        [index_name, model_settings.ALT_DEST_COL_NAME, ALT_LOGSUM]
+                    ],
+                    how="left",
+                    left_on=[index_name, "choice"],
+                    right_on=[index_name, model_settings.ALT_DEST_COL_NAME],
+                )
+                .drop(columns=model_settings.ALT_DEST_COL_NAME)
+                .set_index(index_name)
+            )
+
         choices_list.append(choices_df)
 
         if want_sample_table:
@@ -889,7 +907,7 @@ def run_location_choice(
     else:
         # this will only happen with small samples (e.g. singleton) with no (e.g.) school segs
         logger.warning("%s no choices", trace_label)
-        choices_df = pd.DataFrame(columns=["choice", "logsum"])
+        choices_df = pd.DataFrame(columns=["choice", "logsum", ALT_LOGSUM])
 
     if len(sample_list) > 0:
         save_sample_df = pd.concat(sample_list)
@@ -932,7 +950,8 @@ def iterate_location_choice(
     Returns
     -------
     adds choice column model_settings['DEST_CHOICE_COLUMN_NAME']
-    adds logsum column model_settings['DEST_CHOICE_LOGSUM_COLUMN_NAME']- if provided
+    adds destination choice logsum column model_settings['DEST_CHOICE_LOGSUM_COLUMN_NAME']- if provided
+    adds mode choice logsum to selected destination column model_settings['MODE_CHOICE_LOGSUM_COLUMN_NAME']- if provided
     adds annotations to persons table
     """
 
@@ -942,7 +961,11 @@ def iterate_location_choice(
     chooser_filter_column = model_settings.CHOOSER_FILTER_COLUMN_NAME
 
     dest_choice_column_name = model_settings.DEST_CHOICE_COLUMN_NAME
-    logsum_column_name = model_settings.DEST_CHOICE_LOGSUM_COLUMN_NAME
+    dc_logsum_column_name = model_settings.DEST_CHOICE_LOGSUM_COLUMN_NAME
+    mc_logsum_column_name = model_settings.MODE_CHOICE_LOGSUM_COLUMN_NAME
+    want_logsums = (dc_logsum_column_name is not None) | (
+        mc_logsum_column_name is not None
+    )
 
     sample_table_name = model_settings.DEST_CHOICE_SAMPLE_TABLE_NAME
     want_sample_table = (
@@ -993,7 +1016,7 @@ def iterate_location_choice(
             persons_merged_df_,
             network_los,
             shadow_price_calculator=spc,
-            want_logsums=logsum_column_name is not None,
+            want_logsums=want_logsums,
             want_sample_table=want_sample_table,
             estimator=estimator,
             model_settings=model_settings,
@@ -1068,9 +1091,14 @@ def iterate_location_choice(
     )
 
     # add the dest_choice_logsum column to persons dataframe
-    if logsum_column_name:
-        persons_df[logsum_column_name] = (
+    if dc_logsum_column_name:
+        persons_df[dc_logsum_column_name] = (
             choices_df["logsum"].reindex(persons_df.index).astype("float")
+        )
+    # add the mode choice logsum column to persons dataframe
+    if mc_logsum_column_name:
+        persons_df[mc_logsum_column_name] = (
+            choices_df[ALT_LOGSUM].reindex(persons_df.index).astype("float")
         )
 
     if save_sample_df is not None:
@@ -1111,9 +1139,13 @@ def iterate_location_choice(
         if state.settings.trace_hh_id:
             state.tracing.trace_df(households_df, label=trace_label, warn_if_empty=True)
 
-    if logsum_column_name:
+    if dc_logsum_column_name:
         tracing.print_summary(
-            logsum_column_name, choices_df["logsum"], value_counts=True
+            dc_logsum_column_name, choices_df["logsum"], value_counts=True
+        )
+    if mc_logsum_column_name:
+        tracing.print_summary(
+            mc_logsum_column_name, choices_df[ALT_LOGSUM], value_counts=True
         )
 
     return persons_df

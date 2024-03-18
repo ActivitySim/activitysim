@@ -164,6 +164,11 @@ class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
     """
     NEAREST_METHOD: str = "skims"
 
+    postprocess_proto_tables: list[DisaggregateAccessibilityAnnotateSettings] = []
+    """
+    List of preprocessor settings to apply to the proto-population tables after generation.
+    """
+
 
 def read_disaggregate_accessibility_yaml(
     state: workflow.State, file_name
@@ -846,6 +851,10 @@ def compute_disaggregate_accessibility(
             state.tracing.register_traceable_table(tablename, df)
         del df
 
+    disagg_model_settings = read_disaggregate_accessibility_yaml(
+        state, "disaggregate_accessibility.yaml"
+    )
+
     # Run location choice
     logsums = get_disaggregate_logsums(
         state,
@@ -905,5 +914,23 @@ def compute_disaggregate_accessibility(
     # Inject accessibility results into pipeline
     for k, df in logsums.items():
         state.add_table(k, df)
+
+    # available post-processing
+    for annotations in disagg_model_settings.postprocess_proto_tables:
+        tablename = annotations.tablename
+        df = state.get_dataframe(tablename)
+        assert df is not None
+        assert annotations is not None
+        assign_columns(
+            df=df,
+            model_settings={
+                **annotations.annotate.dict(),
+                **disagg_model_settings.suffixes.dict(),
+            },
+            trace_label=tracing.extend_trace_label(
+                "disaggregate_accessibility.postprocess", tablename
+            ),
+        )
+        state.add_table(tablename, df)
 
     return

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
 
@@ -28,6 +30,9 @@ def directory_prep(
 ):
     archive_dir = f"{workspace}/{example_name}/output-{tag}"
     os.makedirs(archive_dir, exist_ok=True)
+    gitignore = Path(archive_dir) / ".gitignore"
+    if not gitignore.exists():
+        gitignore.write_text("**\n")
     if compile:
         _prep_dir(f"{archive_dir}/output-compile")
     if sharrow:

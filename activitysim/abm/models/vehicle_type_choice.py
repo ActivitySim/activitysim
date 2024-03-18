@@ -393,7 +393,7 @@ def iterate_vehicle_type_choice(
             sorted(alts_cats_dict["fuel_type"]), ordered=False
         )
         vehicle_type_cat = pd.api.types.CategoricalDtype(
-            [""] + sorted(set(alts_wide["vehicle_type"])), ordered=False
+            sorted(set(alts_wide["vehicle_type"])), ordered=False
         )
 
         alts_wide["body_type"] = alts_wide["body_type"].astype(body_type_cat)
@@ -403,7 +403,7 @@ def iterate_vehicle_type_choice(
         alts_wide = alts_long = None
         alts = model_spec.columns
         vehicle_type_cat = pd.api.types.CategoricalDtype(
-            [""] + sorted(set(alts)), ordered=False
+            sorted(set(alts)), ordered=False
         )
 
     # alts preprocessor

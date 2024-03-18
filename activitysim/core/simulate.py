@@ -1517,8 +1517,9 @@ def _simple_simulate(
     # check if tracing is enabled and if we have trace targets
     have_trace_targets = state.tracing.has_trace_targets(choosers)
 
-    # if tracing is not enabled, drop unsed columns
-    if not have_trace_targets:
+    # if tracing is not enabled, drop unused columns
+    # if not estimation mode, drop unused columns
+    if (not have_trace_targets) and (estimator is None):
 
         # keep only variables needed for spec
         import re

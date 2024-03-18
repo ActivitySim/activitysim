@@ -92,7 +92,8 @@ def eval_interaction_utilities(
     logger.info(f"{trace_label} sharrow_enabled is {sharrow_enabled}")
 
     # check if tracing is enabled and if we have trace targets
-    if (trace_rows is None) or (not trace_rows.any()):
+    # if not estimation mode, drop unused columns
+    if ((trace_rows is None) or (not trace_rows.any())) and (estimator is None):
 
         # keep only variables needed for spec
         import re
@@ -108,29 +109,30 @@ def eval_interaction_utilities(
 
         # when sharrow mode, need to keep skim variables in the chooser table
         if sharrow_enabled:
-            unique_variables_in_spec.add(locals_d.get("orig_col_name", None))
-            unique_variables_in_spec.add(locals_d.get("dest_col_name", None))
-            if locals_d.get("timeframe") == "trip":
-                orig_col_name = locals_d.get("ORIGIN", None)
-                dest_col_name = locals_d.get("DESTINATION", None)
-                stop_col_name = None
-                parking_col_name = None
-                primary_origin_col_name = None
-                if orig_col_name is None and "od_skims" in locals_d:
-                    orig_col_name = locals_d["od_skims"].orig_key
-                if dest_col_name is None and "od_skims" in locals_d:
-                    dest_col_name = locals_d["od_skims"].dest_key
-                if stop_col_name is None and "dp_skims" in locals_d:
-                    stop_col_name = locals_d["dp_skims"].dest_key
-                if primary_origin_col_name is None and "dnt_skims" in locals_d:
-                    primary_origin_col_name = locals_d["dnt_skims"].dest_key
-                unique_variables_in_spec.add(orig_col_name)
-                unique_variables_in_spec.add(dest_col_name)
-                unique_variables_in_spec.add(parking_col_name)
-                unique_variables_in_spec.add(primary_origin_col_name)
-                unique_variables_in_spec.add(stop_col_name)
-                unique_variables_in_spec.add("trip_period")
-                unique_variables_in_spec.add("purpose_index_num")
+            if locals_d:
+                unique_variables_in_spec.add(locals_d.get("orig_col_name", None))
+                unique_variables_in_spec.add(locals_d.get("dest_col_name", None))
+                if locals_d.get("timeframe") == "trip":
+                    orig_col_name = locals_d.get("ORIGIN", None)
+                    dest_col_name = locals_d.get("DESTINATION", None)
+                    stop_col_name = None
+                    parking_col_name = None
+                    primary_origin_col_name = None
+                    if orig_col_name is None and "od_skims" in locals_d:
+                        orig_col_name = locals_d["od_skims"].orig_key
+                    if dest_col_name is None and "od_skims" in locals_d:
+                        dest_col_name = locals_d["od_skims"].dest_key
+                    if stop_col_name is None and "dp_skims" in locals_d:
+                        stop_col_name = locals_d["dp_skims"].dest_key
+                    if primary_origin_col_name is None and "dnt_skims" in locals_d:
+                        primary_origin_col_name = locals_d["dnt_skims"].dest_key
+                    unique_variables_in_spec.add(orig_col_name)
+                    unique_variables_in_spec.add(dest_col_name)
+                    unique_variables_in_spec.add(parking_col_name)
+                    unique_variables_in_spec.add(primary_origin_col_name)
+                    unique_variables_in_spec.add(stop_col_name)
+                    unique_variables_in_spec.add("trip_period")
+                    unique_variables_in_spec.add("purpose_index_num")
 
         # keep only variables needed for spec
         df = df[[c for c in df.columns if c in unique_variables_in_spec]]

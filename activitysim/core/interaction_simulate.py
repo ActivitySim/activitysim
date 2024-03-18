@@ -32,6 +32,7 @@ def eval_interaction_utilities(
     log_alt_losers=False,
     extra_data=None,
     zone_layer=None,
+    fastmath=True,
 ):
     """
     Compute the utilities for a single-alternative spec evaluated in the context of df
@@ -184,6 +185,7 @@ def eval_interaction_utilities(
                 trace_label,
                 interacts=extra_data,
                 zone_layer=zone_layer,
+                fastmath=fastmath,
             )
             if sh_util is not None:
                 chunk_sizer.log_df(trace_label, "sh_util", sh_util)
@@ -607,6 +609,7 @@ def _interaction_simulate(
     log_alt_losers=False,
     estimator=None,
     chunk_sizer=None,
+    fastmath: bool = True,
 ):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -722,6 +725,7 @@ def _interaction_simulate(
             estimator=estimator,
             log_alt_losers=log_alt_losers,
             extra_data=alternatives,
+            fastmath=fastmath,
         )
 
         # set this index here as this is how later code extracts the chosen alt id's
@@ -786,6 +790,7 @@ def _interaction_simulate(
             trace_rows,
             estimator=estimator,
             log_alt_losers=log_alt_losers,
+            fastmath=fastmath,
         )
         chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
         # mem.trace_memory_info(f"{trace_label}.init interaction_utilities", force_garbage_collect=True)
@@ -893,6 +898,7 @@ def interaction_simulate(
     trace_choice_name=None,
     estimator=None,
     explicit_chunk_size=0,
+    fastmath: bool = True,
 ):
     """
     Run a simulation in the situation in which alternatives must
@@ -970,6 +976,7 @@ def interaction_simulate(
             log_alt_losers=log_alt_losers,
             estimator=estimator,
             chunk_sizer=chunk_sizer,
+            fastmath=fastmath,
         )
 
         result_list.append(choices)

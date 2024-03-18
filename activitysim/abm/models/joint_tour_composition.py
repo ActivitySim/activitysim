@@ -123,6 +123,7 @@ def joint_tour_composition(
         trace_label=trace_label,
         trace_choice_name="composition",
         estimator=estimator,
+        fastmath=model_settings.sharrow_fastmath,
     )
 
     # convert indexes to alternative names

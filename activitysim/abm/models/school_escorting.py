@@ -550,6 +550,7 @@ def school_escorting(
             trace_choice_name="school_escorting_" + stage,
             estimator=estimator,
             explicit_chunk_size=model_settings.explicit_chunk,
+            fastmath=model_settings.sharrow_fastmath,
         )
 
         if estimator:

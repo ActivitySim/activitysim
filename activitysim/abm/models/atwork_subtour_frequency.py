@@ -117,6 +117,7 @@ def atwork_subtour_frequency(
         trace_label=trace_label,
         trace_choice_name="atwork_subtour_frequency",
         estimator=estimator,
+        fastmath=model_settings.sharrow_fastmath,
     )
 
     # convert indexes to alternative names

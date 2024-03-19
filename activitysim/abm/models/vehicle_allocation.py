@@ -258,6 +258,7 @@ def vehicle_allocation(
             choices.loc[choices["alt_choice"] == alt, "choice"] = choosers.loc[
                 choices["alt_choice"] == alt, alt
             ]
+        choices["choice"] = choices["choice"].astype(veh_choice_dtype)
         choices.loc[
             choices["alt_choice"] == alts_from_spec[-1], "choice"
         ] = alts_from_spec[-1]

@@ -154,7 +154,7 @@ class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
       procedure work.
     """
 
-    KEEP_COLS: list[str] | None
+    KEEP_COLS: list[str] | None = None
     """
     Disaggreate accessibility table is grouped by the "by" cols above and the KEEP_COLS are averaged
     across the group.  Initializing the below as NA if not in the auto ownership level, they are skipped

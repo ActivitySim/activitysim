@@ -183,7 +183,7 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     DEST_CHOICE_SAMPLE_TABLE_NAME: str | None = None
     CHOOSER_TABLE_NAME: str | None = None
     CHOOSER_SEGMENT_COLUMN_NAME: str | None = None
-    SEGMENT_IDS: dict[str, int] | None = None
+    SEGMENT_IDS: dict[str, int] | dict[str, str] | dict[str, bool] | None = None
     SHADOW_PRICE_TABLE: str | None = None
     MODELED_SIZE_TABLE: str | None = None
     annotate_persons: PreprocessorSettings | None = None
@@ -191,7 +191,7 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
     ALT_DEST_COL_NAME: str
     LOGSUM_TOUR_PURPOSE: str | dict[str, str] | None = None
-    MODEL_SELECTOR: Literal["workplace", "school", None] = None
+    MODEL_SELECTOR: str | None = None
     SAVED_SHADOW_PRICE_TABLE_NAME: str | None = None
     CHOOSER_ID_COLUMN: str = "person_id"
 

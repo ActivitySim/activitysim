@@ -931,6 +931,7 @@ def compute_disaggregate_accessibility(
         assert df is not None
         assert annotations is not None
         assign_columns(
+            state,
             df=df,
             model_settings={
                 **annotations.annotate.dict(),

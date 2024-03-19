@@ -58,7 +58,14 @@ def determine_escorting_participants(
         & (persons.cdap_activity == "M")
     ]
     households_with_escortees = escortees["household_id"]
-    choosers = choosers[choosers.index.isin(households_with_escortees)]
+    if len(households_with_escortees) == 0:
+        logger.warning("No households with escortees found!")
+    else:
+        tot_households = len(choosers)
+        choosers = choosers[choosers.index.isin(households_with_escortees)]
+        logger.info(
+            f"Proceeding with {len(choosers)} households with escortees out of {tot_households} total households"
+        )
 
     # can specify different weights to determine chaperones
     persontype_weight = model_settings.PERSON_WEIGHT
@@ -676,6 +683,7 @@ def school_escorting(
             "destination",
             "escort_participants",
             "chauf_tour_id",
+            "primary_purpose",
         ]
         school_escort_trips = pd.DataFrame(columns=trip_cols)
 

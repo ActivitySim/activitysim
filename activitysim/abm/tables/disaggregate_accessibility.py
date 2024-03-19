@@ -107,7 +107,7 @@ def maz_centroids(state: workflow.State):
 
 
 @workflow.table
-def proto_disaggregate_accessibility(state: workflow.State):
+def proto_disaggregate_accessibility(state: workflow.State) -> pd.DataFrame:
     # Read existing accessibilities, but is not required to enable model compatibility
     df = input.read_input_table(
         state, "proto_disaggregate_accessibility", required=False
@@ -130,7 +130,7 @@ def proto_disaggregate_accessibility(state: workflow.State):
 
 
 @workflow.table
-def disaggregate_accessibility(state: workflow.State):
+def disaggregate_accessibility(state: workflow.State) -> pd.DataFrame:
     """
     This step initializes pre-computed disaggregate accessibility and merges it onto the full synthetic population.
     Function adds merged all disaggregate accessibility tables to the pipeline but returns nothing.
@@ -283,5 +283,7 @@ def disaggregate_accessibility(state: workflow.State):
 
     # Inject merged accessibilities so that it can be included in persons_merged function
     state.add_table("disaggregate_accessibility", merge_df[keep_cols])
+    # need to also save changed to persons_merged
+    # state.add_table("persons_merged", persons_merged_df)
 
     return merge_df[keep_cols]

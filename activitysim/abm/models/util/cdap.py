@@ -218,8 +218,10 @@ def individual_utilities(
     indiv_utils[useful_columns] = persons[useful_columns]
 
     # add attributes for joint tour utility
-    model_settings = state.filesystem.read_model_settings("cdap.yaml")
-    additional_useful_columns = model_settings.get("JOINT_TOUR_USEFUL_COLUMNS", None)
+    from activitysim.abm.models.cdap import CdapSettings
+
+    model_settings = CdapSettings.read_settings_file(state.filesystem, "cdap.yaml")
+    additional_useful_columns = model_settings.JOINT_TOUR_USEFUL_COLUMNS
     if additional_useful_columns is not None:
         indiv_utils[additional_useful_columns] = persons[additional_useful_columns]
 
@@ -847,8 +849,10 @@ def hh_choosers(state: workflow.State, indiv_utils, hhsize):
     merge_cols = [_hh_id_, _ptype_, "M", "N", "H"]
 
     # add attributes for joint tour utility
-    model_settings = state.filesystem.read_model_settings("cdap.yaml")
-    additional_merge_cols = model_settings.get("JOINT_TOUR_USEFUL_COLUMNS", None)
+    from activitysim.abm.models.cdap import CdapSettings
+
+    model_settings = CdapSettings.read_settings_file(state.filesystem, "cdap.yaml")
+    additional_merge_cols = model_settings.JOINT_TOUR_USEFUL_COLUMNS
     if additional_merge_cols is not None:
         merge_cols.extend(additional_merge_cols)
 
@@ -1264,20 +1268,6 @@ def _run_cdap(
 
     persons["cdap_activity"] = person_choices
     chunk_sizer.log_df(trace_label, "persons", persons)
-
-    # return household joint tour flag
-    if add_joint_tour_utility:
-        hh_activity_choices = hh_activity_choices.to_frame(name="hh_choices")
-        hh_activity_choices["has_joint_tour"] = hh_activity_choices["hh_choices"].apply(
-            lambda x: 1 if "J" in x else 0
-        )
-
-    # return household joint tour flag
-    if add_joint_tour_utility:
-        hh_activity_choices = hh_activity_choices.to_frame(name="hh_choices")
-        hh_activity_choices["has_joint_tour"] = hh_activity_choices["hh_choices"].apply(
-            lambda x: 1 if "J" in x else 0
-        )
 
     # return household joint tour flag
     if add_joint_tour_utility:

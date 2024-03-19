@@ -236,7 +236,9 @@ def non_mandatory_tour_frequency(
 
         locals_dict = {
             "person_max_window": lambda x: person_max_window(state, x),
-            "person_available_periods": lambda x: person_available_periods(state, x),
+            "person_available_periods": lambda persons, start_bin, end_bin, continuous: person_available_periods(
+                state, persons, start_bin, end_bin, continuous
+            ),
         }
 
         expressions.assign_columns(

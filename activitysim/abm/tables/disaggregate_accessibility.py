@@ -172,7 +172,9 @@ def disaggregate_accessibility(state: workflow.State):
     accessibility_cols = [
         x for x in proto_accessibility_df.columns if "accessibility" in x
     ]
-    keep_cols = model_settings.get("KEEP_COLS", accessibility_cols)
+    keep_cols = model_settings.KEEP_COLS
+    if keep_cols is None:
+        keep_cols = accessibility_cols
 
     # Parse the merging parameters
     assert merging_params is not None

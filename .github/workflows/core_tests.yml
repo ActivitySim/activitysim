@@ -310,11 +310,12 @@ jobs:
         region:
           - prototype_mtc
           - prototype_psrc_in_development
+          - prototype_mtc_extended
       fail-fast: false
     defaults:
       run:
         shell: bash -l {0}
-    name: ${{ matrix.region }}
+    name: ${{ matrix.region }} (external)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

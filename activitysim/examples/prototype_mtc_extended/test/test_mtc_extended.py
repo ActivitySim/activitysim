@@ -143,7 +143,7 @@ def _test_prototype_mtc_extended(
             [sys.executable, "-m", "activitysim", "run"] + run_args, check=True
         )
     else:
-        import activitysim.abm
+        import activitysim.abm  # noqa: F401
 
         state = workflow.State.make_default(**kwargs)
         state.run.all()

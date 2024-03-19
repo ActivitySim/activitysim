@@ -359,6 +359,7 @@ class State:
         *,
         configs_dir: Path | tuple[Path, ...] = ("configs",),
         data_dir: Path | tuple[Path, ...] = ("data",),
+        data_model_dir: Path | tuple[Path, ...] = ("data_model",),
         output_dir: str | Path = "output",
         profile_dir: Path | None = None,
         cache_dir: Path | None = None,
@@ -394,6 +395,8 @@ class State:
             their inputs and settings.
         data_dir : path-like or tuple of path-like, default "data"
             The directories where input data files can be found.
+        data_model_dir : path-like or tuple of path-like, default "data_model"
+            The directories where data model files can be found.
         output_dir : path-like, default "output"
             Most ActivitySim output will be written to this directory (or
             subdirectories within it).
@@ -422,10 +425,13 @@ class State:
             configs_dir = (configs_dir,)
         if isinstance(data_dir, str | Path):
             data_dir = (data_dir,)
+        if isinstance(data_model_dir, str | Path):
+            data_model_dir = (data_model_dir,)
 
         fs = dict(
             configs_dir=configs_dir,
             data_dir=data_dir,
+            data_model_dir=data_model_dir,
             output_dir=output_dir,
             settings_file_name=settings_file_name,
             pipeline_file_name=pipeline_file_name,

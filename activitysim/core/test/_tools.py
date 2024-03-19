@@ -119,8 +119,12 @@ def assert_frame_substantively_equal(
         raise
 
 
-def assert_equal(x, y):
+def assert_equal(x, y, message=None):
     __tracebackhide__ = True  # don't show this code in pytest outputs
+    if message is None:
+        message = ""
+    elif isinstance(message, str) and len(message) > 0 and message[0] != "\n":
+        message = "\n" + message
     try:
         import pytest
     except ImportError:
@@ -128,17 +132,17 @@ def assert_equal(x, y):
     else:
         if isinstance(x, list) and isinstance(y, list) and len(x) == len(y):
             for n_, (x_, y_) in enumerate(zip(x, y)):
-                assert x_ == pytest.approx(y_), f"error at index {n_}"
+                assert y_ == pytest.approx(x_), f"error at index {n_}{message}"
         elif isinstance(x, dict) and isinstance(y, dict) and x.keys() == y.keys():
             for n_ in x.keys():
-                assert x[n_] == pytest.approx(y[n_]), f"error at key {n_}"
+                assert y[n_] == pytest.approx(x[n_]), f"error at key {n_}{message}"
         else:
             try:
-                assert x == pytest.approx(y)
+                assert y == pytest.approx(x)
             except (TypeError, AssertionError):
                 # pytest.approx() does not support nested data structures
                 for x_, y_ in zip(x, y):
-                    assert x_ == pytest.approx(y_)
+                    assert y_ == pytest.approx(x_), f"error in an item{message}"
 
 
 def progressive_checkpoint_test(

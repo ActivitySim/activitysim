@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import warnings
+from typing import Iterator
 
 import numpy as np
 import pandas as pd
@@ -548,7 +549,9 @@ def _each_nest(spec: LogitNestSpec, parent_nest, post_order):
         yield spec, nest
 
 
-def each_nest(nest_spec: dict | LogitNestSpec, type=None, post_order=False):
+def each_nest(
+    nest_spec: dict | LogitNestSpec, type=None, post_order=False
+) -> Iterator[Nest]:
     """
     Iterate over each nest or leaf node in the tree (of subtree)
 
@@ -567,8 +570,8 @@ def each_nest(nest_spec: dict | LogitNestSpec, type=None, post_order=False):
 
     Yields
     ------
-        nest : Nest
-            Nest object with info about the current node (nest or leaf)
+    nest : Nest
+        Nest object with info about the current node (nest or leaf)
     """
     if type is not None and type not in Nest.nest_types():
         raise RuntimeError("Unknown nest type '%s' in call to each_nest" % type)

@@ -154,6 +154,15 @@ class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
       procedure work.
     """
 
+    KEEP_COLS: list[str] | None
+    """
+    Disaggreate accessibility table is grouped by the "by" cols above and the KEEP_COLS are averaged
+    across the group.  Initializing the below as NA if not in the auto ownership level, they are skipped
+    in the groupby mean and the values are correct. 
+    (It's a way to avoid having to update code to reshape the table and introduce new functionality there.)
+    If none, will keep all of the columns with "accessibility" in the name.
+    """
+
     FROM_TEMPLATES: bool = False
     annotate_proto_tables: list[DisaggregateAccessibilityAnnotateSettings] = []
     """

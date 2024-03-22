@@ -236,6 +236,8 @@ def vehicle_allocation(
         logger.info("Running for occupancy = %d", occup)
         # setting occup for access in spec expressions
         locals_dict.update({"occup": occup})
+        if model_settings.sharrow_skip:
+            locals_dict["disable_sharrow"] = True
 
         choices = simulate.simple_simulate(
             state,

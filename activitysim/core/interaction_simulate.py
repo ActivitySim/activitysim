@@ -742,7 +742,7 @@ def _interaction_simulate(
                     unique_variables_in_spec.add(stop_col_name)
                     unique_variables_in_spec.add("trip_period")
                     unique_variables_in_spec.add("purpose_index_num")
-        
+
         logger.info("Dropping unused variables in chooser table")
 
         if "school_escorting" not in trace_label:

@@ -139,7 +139,7 @@ def _interaction_sample_simulate(
 
     # check if tracing is enabled and if we have trace targets
     # if not estimation mode, drop unused columns
-    if (not have_trace_targets):
+    if not have_trace_targets:
 
         # keep only variables needed for spec
         import re
@@ -179,7 +179,7 @@ def _interaction_sample_simulate(
                 unique_variables_in_spec.add(stop_col_name)
                 unique_variables_in_spec.add("trip_period")
                 unique_variables_in_spec.add("purpose_index_num")
-        
+
         unique_variables_in_spec.add("proto_person_id")
         unique_variables_in_spec.add("person_id")
         unique_variables_in_spec.add("tour_id")

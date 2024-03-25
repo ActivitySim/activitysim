@@ -236,7 +236,7 @@ def _interaction_sample(
 
     # check if tracing is enabled and if we have trace targets
     # if not estimation mode, drop unused columns
-    if (not have_trace_targets):
+    if not have_trace_targets:
 
         # keep only variables needed for spec
         import re
@@ -276,7 +276,7 @@ def _interaction_sample(
                 unique_variables_in_spec.add(stop_col_name)
                 unique_variables_in_spec.add("trip_period")
                 unique_variables_in_spec.add("purpose_index_num")
-        
+
         unique_variables_in_spec.add("proto_person_id")
         unique_variables_in_spec.add("person_id")
         unique_variables_in_spec.add("tour_id")
@@ -284,9 +284,19 @@ def _interaction_sample(
         logger.info("Dropping unused variables in chooser table")
 
         if "school_escorting" not in trace_label:
+            logger.info(
+                "before dropping, the choosers table has {} columns: {}".format(
+                    len(choosers.columns), choosers.columns
+                )
+            )
             for c in choosers.columns:
                 if c not in unique_variables_in_spec:
                     choosers.drop(c, axis=1, inplace=True)
+            logger.info(
+                "after dropping, the choosers table has {} columns: {}".format(
+                    len(choosers.columns), choosers.columns
+                )
+            )
 
     if sharrow_enabled:
         (

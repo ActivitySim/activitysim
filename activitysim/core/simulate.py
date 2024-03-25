@@ -1550,6 +1550,8 @@ def _simple_simulate(
 
             custom_chooser_lines = inspect.getsource(custom_chooser)
             unique_variables_in_spec.update(re.findall(pattern, custom_chooser_lines))
+        
+        logger.info("Dropping unused variables in chooser table")
 
         # keep only variables needed for spec
         choosers = choosers[

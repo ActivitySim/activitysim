@@ -628,7 +628,9 @@ class ProtoPop:
                 .set_index("index")
                 .rename(columns={"hhid": hhid})
             )
-            persons = rep.join(persons).sort_values(hhid).reset_index(drop=True)
+            persons = (
+                rep.join(persons, sort=True).sort_values(hhid).reset_index(drop=True)
+            )
             persons[perid] = persons.index + 1
 
             # Assign persons to tours

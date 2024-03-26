@@ -99,7 +99,8 @@ def persons_merged(
         households,
         left_on="household_id",
     )
-    if disaggregate_accessibility is not None and not disaggregate_accessibility.empty:
+    if state.is_table("disaggregate_accessibility"):
+        disaggregate_accessibility = state.get_table("disaggregate_accessibility")
         persons = simple_table_join(
             persons,
             disaggregate_accessibility,

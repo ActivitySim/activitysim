@@ -30,6 +30,8 @@ class CdapSettings(PydanticReadable, extra="forbid"):
     FIXED_RELATIVE_PROPORTIONS_SPEC: str = "cdap_fixed_relative_proportions.csv"
     ADD_JOINT_TOUR_UTILITY: bool = False
     JOINT_TOUR_COEFFICIENTS: str = "cdap_joint_tour_coefficients.csv"
+    JOINT_TOUR_USEFUL_COLUMNS: list[str] | None = None
+    """Columns to include from the persons table that will be need to calculate household joint tour utility."""
     annotate_persons: PreprocessorSettings | None = None
     annotate_households: PreprocessorSettings | None = None
     COEFFICIENTS: Path
@@ -181,6 +183,11 @@ def cdap_simulate(
         for hhsize in range(2, cdap.MAX_HHSIZE + 1):
             spec = cdap.get_cached_spec(state, hhsize)
             estimator.write_table(spec, "spec_%s" % hhsize, append=False)
+            if add_joint_tour_utility:
+                joint_spec = cdap.get_cached_joint_spec(hhsize)
+                estimator.write_table(
+                    joint_spec, "joint_spec_%s" % hhsize, append=False
+                )
 
     logger.info("Running cdap_simulate with %d persons", len(persons_merged.index))
 
@@ -215,6 +222,11 @@ def cdap_simulate(
     if estimator:
         estimator.write_choices(choices)
         choices = estimator.get_survey_values(choices, "persons", "cdap_activity")
+        if add_joint_tour_utility:
+            hh_joint.index.name = "household_id"
+            hh_joint = estimator.get_survey_values(
+                hh_joint, "households", "has_joint_tour"
+            )
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 

@@ -28,6 +28,9 @@ class TransitPassSubsidySettings(LogitComponentSettings, extra="forbid"):
     preprocessor: PreprocessorSettings | None = None
     """Setting for the preprocessor."""
 
+    CHOOSER_FILTER_COLUMN_NAME: str | None = None
+    """Column name which selects choosers. If None, all persons are choosers."""
+
 
 @workflow.step
 def transit_pass_subsidy(
@@ -47,7 +50,11 @@ def transit_pass_subsidy(
             model_settings_file_name,
         )
 
-    choosers = persons_merged
+    filter_col = model_settings.CHOOSER_FILTER_COLUMN_NAME
+    if filter_col is None:
+        choosers = persons_merged
+    else:
+        choosers = persons_merged[persons_merged[filter_col]]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
     estimator = estimation.manager.begin_estimation(state, "transit_pass_subsidy")

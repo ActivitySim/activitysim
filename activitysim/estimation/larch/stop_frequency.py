@@ -42,8 +42,7 @@ def stop_frequency_data(
         seg_purpose = seg_["primary_purpose"]
         seg_subdir = Path(os.path.join(edb_directory, seg_purpose))
         segment_coef[seg_["primary_purpose"]] = pd.read_csv(
-            seg_subdir / seg_["COEFFICIENTS"],
-            index_col="coefficient_name",
+            seg_subdir / seg_["COEFFICIENTS"], index_col="coefficient_name", comment="#"
         )
 
     for seg in segments:
@@ -89,13 +88,13 @@ def stop_frequency_data(
         seg_purpose = seg["primary_purpose"]
         seg_subdir = Path(os.path.join(edb_directory, seg_purpose))
         coeffs_ = pd.read_csv(
-            seg_subdir / seg["COEFFICIENTS"], index_col="coefficient_name"
+            seg_subdir / seg["COEFFICIENTS"], index_col="coefficient_name", comment="#"
         )
         coeffs_.index = pd.Index(
             [f"{i}_{seg_purpose}" for i in coeffs_.index], name="coefficient_name"
         )
         seg_coefficients.append(coeffs_)
-        spec = pd.read_csv(seg_subdir / "stop_frequency_SPEC_.csv")
+        spec = pd.read_csv(seg_subdir / "stop_frequency_SPEC_.csv", comment="#")
         spec = remove_apostrophes(spec, ["Label"])
         # spec.iloc[:, 3:] = spec.iloc[:, 3:].applymap(lambda x: f"{x}_{seg_purpose}" if not pd.isna(x) else x)
         seg_spec.append(spec)

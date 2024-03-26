@@ -6,3 +6,6 @@ PERSON_TYPE_MAP:
     - 6
     - 7
     - 8
+
+INDIV_AND_HHSIZE1_SPEC: cdap_indiv_and_hhsize1.csv
+COEFFICIENTS: cdap_coefficients.csv

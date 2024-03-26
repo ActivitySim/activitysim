@@ -144,6 +144,9 @@ def location_choice_model(
         .set_index("segment")
     )
     size_spec = size_spec.loc[:, size_spec.max() > 0]
+    assert (
+        len(size_spec) > 0
+    ), f"Empty size_spec, is model_selector {SIZE_TERM_SELECTOR} in your size term file?"
 
     size_coef = size_coefficients_from_spec(size_spec)
 
@@ -293,6 +296,9 @@ def location_choice_model(
         )
     else:
         av = 1
+
+    assert len(x_co) > 0, "Empty chooser dataframe"
+    assert len(x_ca_1) > 0, "Empty alternatives dataframe"
 
     d = DataFrames(co=x_co, ca=x_ca_1, av=av)
 

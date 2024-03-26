@@ -188,10 +188,9 @@ def _interaction_sample_simulate(
         unique_variables_in_spec.add("parent_tour_id")
         logger.info("Dropping unused variables in chooser table")
 
-        if "school_escorting" not in trace_label:
-            for c in choosers.columns:
-                if c not in unique_variables_in_spec:
-                    choosers.drop(c, axis=1, inplace=True)
+        for c in choosers.columns:
+            if c not in unique_variables_in_spec:
+                choosers = choosers.drop(c, axis=1)
 
     interaction_df = alternatives.join(choosers, how="left", rsuffix="_chooser")
     logger.info(

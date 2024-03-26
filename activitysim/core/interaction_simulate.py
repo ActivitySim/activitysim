@@ -745,10 +745,9 @@ def _interaction_simulate(
 
         logger.info("Dropping unused variables in chooser table")
 
-        if "school_escorting" not in trace_label:
-            for c in choosers.columns:
-                if c not in unique_variables_in_spec:
-                    choosers.drop(c, axis=1, inplace=True)
+        for c in choosers.columns:
+            if c not in unique_variables_in_spec:
+                choosers = choosers.drop(c, axis=1)
 
     if locals_d is not None and locals_d.get("_sharrow_skip", False):
         sharrow_enabled = False

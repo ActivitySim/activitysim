@@ -283,20 +283,19 @@ def _interaction_sample(
         unique_variables_in_spec.add("tour_mode")
         logger.info("Dropping unused variables in chooser table")
 
-        if "school_escorting" not in trace_label:
-            logger.info(
-                "before dropping, the choosers table has {} columns: {}".format(
-                    len(choosers.columns), choosers.columns
-                )
+        logger.info(
+            "before dropping, the choosers table has {} columns: {}".format(
+                len(choosers.columns), choosers.columns
             )
-            for c in choosers.columns:
-                if c not in unique_variables_in_spec:
-                    choosers.drop(c, axis=1, inplace=True)
-            logger.info(
-                "after dropping, the choosers table has {} columns: {}".format(
-                    len(choosers.columns), choosers.columns
-                )
+        )
+        for c in choosers.columns:
+            if c not in unique_variables_in_spec:
+                choosers = choosers.drop(c, axis=1)
+        logger.info(
+            "after dropping, the choosers table has {} columns: {}".format(
+                len(choosers.columns), choosers.columns
             )
+        )
 
     if sharrow_enabled:
         (

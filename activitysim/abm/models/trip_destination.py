@@ -995,7 +995,7 @@ def choose_trip_destination(
     destination_sample = trip_destination_sample(
         state,
         primary_purpose=primary_purpose,
-        trips=trips.copy(),
+        trips=trips,
         alternatives=alternatives,
         model_settings=model_settings,
         size_term_matrix=size_term_matrix,
@@ -1023,7 +1023,7 @@ def choose_trip_destination(
     destination_sample = compute_logsums(
         state,
         primary_purpose=primary_purpose,
-        trips=trips.copy(),
+        trips=trips,
         destination_sample=destination_sample,
         tours_merged=tours_merged,
         model_settings=model_settings,
@@ -1036,7 +1036,7 @@ def choose_trip_destination(
     destinations = trip_destination_simulate(
         state,
         primary_purpose=primary_purpose,
-        trips=trips.copy(),
+        trips=trips,
         destination_sample=destination_sample,
         model_settings=model_settings,
         want_logsums=want_logsums,

@@ -107,7 +107,7 @@ def maz_centroids(state: workflow.State):
 
 
 @workflow.table
-def proto_disaggregate_accessibility(state: workflow.State):
+def proto_disaggregate_accessibility(state: workflow.State) -> pd.DataFrame:
     # Read existing accessibilities, but is not required to enable model compatibility
     df = input.read_input_table(
         state, "proto_disaggregate_accessibility", required=False
@@ -130,7 +130,7 @@ def proto_disaggregate_accessibility(state: workflow.State):
 
 
 @workflow.table
-def disaggregate_accessibility(state: workflow.State):
+def disaggregate_accessibility(state: workflow.State) -> pd.DataFrame:
     """
     This step initializes pre-computed disaggregate accessibility and merges it onto the full synthetic population.
     Function adds merged all disaggregate accessibility tables to the pipeline but returns nothing.
@@ -169,12 +169,11 @@ def disaggregate_accessibility(state: workflow.State):
     )
     merging_params = model_settings.MERGE_ON
     nearest_method = model_settings.NEAREST_METHOD
-    accessibility_cols = [
-        x for x in proto_accessibility_df.columns if "accessibility" in x
-    ]
-    keep_cols = model_settings.KEEP_COLS
-    if keep_cols is None:
-        keep_cols = accessibility_cols
+
+    if model_settings.KEEP_COLS is None:
+        keep_cols = [x for x in proto_accessibility_df.columns if "accessibility" in x]
+    else:
+        keep_cols = model_settings.KEEP_COLS
 
     # Parse the merging parameters
     assert merging_params is not None

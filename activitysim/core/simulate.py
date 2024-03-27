@@ -1514,6 +1514,23 @@ def _simple_simulate(
     if skims is not None:
         set_skim_wrapper_targets(choosers, skims)
 
+    # check if tracing is enabled and if we have trace targets
+    have_trace_targets = state.tracing.has_trace_targets(choosers)
+
+    sharrow_enabled = state.settings.sharrow
+
+    # if tracing is not enabled, drop unused columns
+    # if not estimation mode, drop unused columns
+    if (not have_trace_targets) and (estimator is None):
+        # drop unused variables in chooser table
+        choosers = util.drop_unused_chooser_columns(
+            choosers,
+            spec,
+            locals_d,
+            custom_chooser,
+            sharrow_enabled=sharrow_enabled,
+        )
+
     if nest_spec is None:
         choices = eval_mnl(
             state,

@@ -13,6 +13,200 @@ from activitysim.core.util import reindex
 logger = logging.getLogger(__name__)
 
 
+def create_bundle_attributes(bundles):
+    """
+    Create attributes for school escorting bundles.
+    Majority of the code is to handle the different combinations of child order.
+    Structure is optimized for speed
+    (readability would be much better with pd.apply(), but this is too slow!)
+
+    Parameters
+    ----------
+    bundles : pandas.DataFrame
+        School escorting bundles
+
+    Returns
+    -------
+    pandas.DataFrame
+
+    """
+
+    # Initialize columns
+    bundles["escortees"] = ""
+    bundles["escortee_nums"] = ""
+    bundles["num_escortees"] = ""
+    bundles["school_destinations"] = ""
+    bundles["school_starts"] = ""
+    bundles["school_ends"] = ""
+    bundles["school_tour_ids"] = ""
+
+    bundles[["first_child", "second_child", "third_child"]] = pd.DataFrame(
+        bundles["child_order"].to_list(), index=bundles.index
+    ).astype(int)
+
+    # index needs to be unique for filtering below
+    original_idx = bundles.index
+    bundles = bundles.reset_index(drop=True)
+
+    def join_attributes(df, column_names):
+        """
+        Concatenate the values of the columns in column_names into a single string.
+
+        e.g. bundle_child[1,2,3] contains person_ids of children in the bundle with -1 filled in for no child escorted,
+        Passing these into the function would return a series with the person_ids concatenated with '_' and leading and trailing underscores removed.
+        So if the first child escorted has id 200 and the second child escorted has id 300, the output would be "200_300"
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            DataFrame containing the columns to be concatenated
+        column_names : list
+            List of column names to be concatenated
+
+        Returns
+        -------
+        pandas.Series
+        """
+
+        # intialize series with empty strings
+        out_series = pd.Series("", index=df.index)
+        # loop through all columns and concatenate the values
+        for col in column_names:
+            series = (
+                df[col]
+                .fillna(-1)
+                .astype(int)
+                .astype(str)
+                .replace("-1", "", regex=False)
+            )
+            out_series = out_series.str.cat(series, sep="_")
+
+        # return series with leading and trailing underscores removed
+        return out_series.str.replace(r"^_+", "", regex=True).str.replace(
+            r"_+$", "", regex=True
+        )
+
+    # Loop through all possible combinations of child order
+    # once the order is known, we can fill in the escorting information in the child order
+    for first_child in [1, 2, 3]:
+        for second_child in [1, 2, 3]:
+            for third_child in [1, 2, 3]:
+                if (
+                    (first_child == second_child)
+                    | (first_child == third_child)
+                    | (second_child == third_child)
+                ):
+                    # children order is not unique
+                    continue
+
+                filtered_bundles = bundles[
+                    (bundles.first_child == first_child)
+                    & (bundles.second_child == second_child)
+                    & (bundles.third_child == third_child)
+                ]
+
+                if len(filtered_bundles) == 0:
+                    # no bundles for this combination of child order
+                    continue
+
+                bundles.loc[filtered_bundles.index, "escortees"] = join_attributes(
+                    filtered_bundles,
+                    [
+                        f"bundle_child{first_child}",
+                        f"bundle_child{second_child}",
+                        f"bundle_child{third_child}",
+                    ],
+                )
+
+                # escortee_nums contain the child number of the escortees concatenated with '_'
+                escortee_num1 = pd.Series(
+                    np.where(
+                        filtered_bundles[f"bundle_child{first_child}"] > 0,
+                        first_child,
+                        "",
+                    ),
+                    index=filtered_bundles.index,
+                ).astype(str)
+                escortee_num2 = pd.Series(
+                    np.where(
+                        filtered_bundles[f"bundle_child{second_child}"] > 0,
+                        second_child,
+                        "",
+                    ),
+                    index=filtered_bundles.index,
+                ).astype(str)
+                escortee_num3 = pd.Series(
+                    np.where(
+                        filtered_bundles[f"bundle_child{third_child}"] > 0,
+                        third_child,
+                        "",
+                    ),
+                    index=filtered_bundles.index,
+                ).astype(str)
+                bundles.loc[filtered_bundles.index, "escortee_nums"] = (
+                    (escortee_num1 + "_" + escortee_num2 + "_" + escortee_num3)
+                    .str.replace(r"^_+", "", regex=True)
+                    .str.replace(r"_+$", "", regex=True)
+                )
+
+                # num_escortees contain the number of escortees
+                bundles.loc[filtered_bundles.index, "num_escortees"] = (
+                    filtered_bundles[
+                        [
+                            f"bundle_child{first_child}",
+                            f"bundle_child{second_child}",
+                            f"bundle_child{third_child}",
+                        ]
+                    ]
+                    > 0
+                ).sum(axis=1)
+
+                # school_destinations, school_starts, school_ends, and school_tour_ids are concatenated
+                bundles.loc[
+                    filtered_bundles.index, "school_destinations"
+                ] = join_attributes(
+                    filtered_bundles,
+                    [
+                        f"school_destination_child{first_child}",
+                        f"school_destination_child{second_child}",
+                        f"school_destination_child{third_child}",
+                    ],
+                )
+
+                bundles.loc[filtered_bundles.index, "school_starts"] = join_attributes(
+                    filtered_bundles,
+                    [
+                        f"school_start_child{first_child}",
+                        f"school_start_child{second_child}",
+                        f"school_start_child{third_child}",
+                    ],
+                )
+
+                bundles.loc[filtered_bundles.index, "school_ends"] = join_attributes(
+                    filtered_bundles,
+                    [
+                        f"school_end_child{first_child}",
+                        f"school_end_child{second_child}",
+                        f"school_end_child{third_child}",
+                    ],
+                )
+
+                bundles.loc[
+                    filtered_bundles.index, "school_tour_ids"
+                ] = join_attributes(
+                    filtered_bundles,
+                    [
+                        f"school_tour_id_child{first_child}",
+                        f"school_tour_id_child{second_child}",
+                        f"school_tour_id_child{third_child}",
+                    ],
+                )
+
+    bundles.drop(columns=["first_child", "second_child", "third_child"], inplace=True)
+
+    return bundles.set_index(original_idx)
+
+
 def determine_chauf_outbound_flag(row, i):
     if row["school_escort_direction"] == "outbound":
         outbound = True

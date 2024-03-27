@@ -395,6 +395,22 @@ class SchoolEscortSettings(BaseLogitComponentSettings):
     ```
     """
 
+    sharrow_fastmath: bool = False
+    """Use fastmath when evaluating this component with sharrow.
+
+    The fastmath option can be used to speed up the evaluation of expressions in
+    this component's spec files, but it does so by making some simplifying
+    assumptions about the math, e.g. that neither inputs nor outputs of any
+    computations are NaN or Inf.  This can lead to errors when the assumptions
+    are violated.  If running in sharrow test mode generates errors, try turning
+    this setting off.
+
+    The default for most components is True, but due to the prevalence of NaN
+    values in the school escorting model, the default is False for this
+    component. It can be turned on if desired, but it is recommended to test
+    carefully that results are as expected.
+    """
+
     SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
 
     SPEC: None = None

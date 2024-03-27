@@ -1517,46 +1517,19 @@ def _simple_simulate(
     # check if tracing is enabled and if we have trace targets
     have_trace_targets = state.tracing.has_trace_targets(choosers)
 
+    sharrow_enabled = state.settings.sharrow
+
     # if tracing is not enabled, drop unused columns
     # if not estimation mode, drop unused columns
     if (not have_trace_targets) and (estimator is None):
-
-        # keep only variables needed for spec
-        import re
-
-        # define a regular expression to find variables in spec
-        pattern = r"[a-zA-Z_][a-zA-Z0-9_]*"
-
-        unique_variables_in_spec = set(
-            spec.reset_index()["Expression"]
-            .apply(lambda x: re.findall(pattern, x))
-            .sum()
+        # drop unused variables in chooser table
+        choosers = util.drop_unused_chooser_columns(
+            choosers,
+            spec,
+            locals_d,
+            custom_chooser,
+            sharrow_enabled=sharrow_enabled,
         )
-
-        sharrow_enabled = state.settings.sharrow
-
-        # when sharrow mode, need to keep skim variables in the chooser table
-        if sharrow_enabled:
-            unique_variables_in_spec.add(locals_d.get("orig_col_name", None))
-            unique_variables_in_spec.add(locals_d.get("dest_col_name", None))
-            unique_variables_in_spec.add(locals_d.get("out_time_col_name", None))
-            unique_variables_in_spec.add(locals_d.get("in_time_col_name", None))
-            unique_variables_in_spec.add("out_period")
-            unique_variables_in_spec.add("in_period")
-            unique_variables_in_spec.add("trip_period")
-
-        if custom_chooser:
-            import inspect
-
-            custom_chooser_lines = inspect.getsource(custom_chooser)
-            unique_variables_in_spec.update(re.findall(pattern, custom_chooser_lines))
-
-        logger.info("Dropping unused variables in chooser table")
-
-        # keep only variables needed for spec
-        choosers = choosers[
-            [c for c in choosers.columns if c in unique_variables_in_spec]
-        ]
 
     if nest_spec is None:
         choices = eval_mnl(

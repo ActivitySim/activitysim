@@ -152,6 +152,7 @@ def work_from_home(
             trace_label=trace_label,
             trace_choice_name="work_from_home",
             estimator=estimator,
+            fastmath=model_settings.sharrow_fastmath,
         )
 
         if iterations_target_percent is not None:

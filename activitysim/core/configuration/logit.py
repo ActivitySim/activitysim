@@ -78,6 +78,17 @@ class BaseLogitComponentSettings(PydanticReadable):
     sharrow_skip: bool = False
     """Skip sharrow when evaluating this component."""
 
+    sharrow_fastmath: bool = True
+    """Use fastmath when evaluating this component with sharrow.
+
+    The fastmath option can be used to speed up the evaluation of expressions in
+    this component's spec files, but it does so by making some simplifying
+    assumptions about the math, e.g. that neither inputs nor outputs of any
+    computations are NaN or Inf.  This can lead to errors when the assumptions
+    are violated.  If running in sharrow test mode generates errors, try turning
+    this setting off.
+    """
+
 
 class LogitComponentSettings(BaseLogitComponentSettings):
     """

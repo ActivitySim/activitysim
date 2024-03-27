@@ -532,6 +532,7 @@ def eval_utilities(
     spec_sh=None,
     *,
     chunk_sizer,
+    fastmath=True,
 ):
     """
     Evaluate a utility function as defined in a spec file.
@@ -571,6 +572,8 @@ def eval_utilities(
         This is meant to give the same result, but allows for some optimizations
         or preprocessing outside the sharrow framework (e.g. to run the Python
         based transit virtual path builder and cache relevant values).
+    fastmath : bool, default True
+        Use fastmath for sharrow compiled code.
 
     Returns
     -------
@@ -610,6 +613,7 @@ def eval_utilities(
             trace_label,
             sharrow_enabled == "require",
             zone_layer=zone_layer,
+            fastmath=fastmath,
         )
         utilities = sh_util
         timelogger.mark("sharrow flow", True, logger, trace_label)
@@ -1157,6 +1161,7 @@ def eval_mnl(
     trace_column_names=None,
     *,
     chunk_sizer,
+    fastmath=True,
 ):
     """
     Run a simulation for when the model spec does not involve alternative
@@ -1220,6 +1225,7 @@ def eval_mnl(
         estimator=estimator,
         trace_column_names=trace_column_names,
         chunk_sizer=chunk_sizer,
+        fastmath=fastmath,
     )
     chunk_sizer.log_df(trace_label, "utilities", utilities)
 
@@ -1278,6 +1284,7 @@ def eval_nl(
     trace_column_names=None,
     *,
     chunk_sizer: chunk.ChunkSizer,
+    fastmath: bool = True,
 ):
     """
     Run a nested-logit simulation for when the model spec does not involve alternative
@@ -1308,6 +1315,8 @@ def eval_nl(
         This is the column label to be used in trace file csv dump of choices
     trace_column_names: str or list of str
         chooser columns to include when tracing expression_values
+    fastmath : bool, default True
+        Use fastmath for sharrow compiled code.
 
     Returns
     -------
@@ -1339,6 +1348,7 @@ def eval_nl(
         trace_column_names=trace_column_names,
         spec_sh=spec_sh,
         chunk_sizer=chunk_sizer,
+        fastmath=fastmath,
     )
     chunk_sizer.log_df(trace_label, "raw_utilities", raw_utilities)
 
@@ -1465,6 +1475,7 @@ def _simple_simulate(
     trace_column_names=None,
     *,
     chunk_sizer,
+    fastmath=True,
 ):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
@@ -1528,6 +1539,7 @@ def _simple_simulate(
             trace_choice_name=trace_choice_name,
             trace_column_names=trace_column_names,
             chunk_sizer=chunk_sizer,
+            fastmath=fastmath,
         )
     else:
         choices = eval_nl(
@@ -1544,6 +1556,7 @@ def _simple_simulate(
             trace_choice_name=trace_choice_name,
             trace_column_names=trace_column_names,
             chunk_sizer=chunk_sizer,
+            fastmath=fastmath,
         )
 
     return choices
@@ -1582,6 +1595,7 @@ def simple_simulate(
     trace_label=None,
     trace_choice_name=None,
     trace_column_names=None,
+    fastmath: bool = True,
 ):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
@@ -1616,6 +1630,7 @@ def simple_simulate(
             trace_choice_name=trace_choice_name,
             trace_column_names=trace_column_names,
             chunk_sizer=chunk_sizer,
+            fastmath=fastmath,
         )
 
         result_list.append(choices)
@@ -1643,6 +1658,7 @@ def simple_simulate_by_chunk_id(
     estimator=None,
     trace_label=None,
     trace_choice_name=None,
+    fastmath: bool = True,
 ):
     """
     chunk_by_chunk_id wrapper for simple_simulate
@@ -1669,6 +1685,7 @@ def simple_simulate_by_chunk_id(
             trace_label=chunk_trace_label,
             trace_choice_name=trace_choice_name,
             chunk_sizer=chunk_sizer,
+            fastmath=fastmath,
         )
 
         result_list.append(choices)
@@ -1682,7 +1699,14 @@ def simple_simulate_by_chunk_id(
 
 
 def eval_mnl_logsums(
-    state: workflow.State, choosers, spec, locals_d, trace_label=None, *, chunk_sizer
+    state: workflow.State,
+    choosers,
+    spec,
+    locals_d,
+    trace_label=None,
+    *,
+    chunk_sizer,
+    fastmath: bool = True,
 ):
     """
     like eval_nl except return logsums instead of making choices
@@ -1712,6 +1736,7 @@ def eval_mnl_logsums(
         trace_label,
         have_trace_targets,
         chunk_sizer=chunk_sizer,
+        fastmath=fastmath,
     )
     chunk_sizer.log_df(trace_label, "utilities", utilities)
 
@@ -1825,6 +1850,7 @@ def eval_nl_logsums(
     trace_label=None,
     *,
     chunk_sizer: chunk.ChunkSizer,
+    fastmath: bool = True,
 ):
     """
     like eval_nl except return logsums instead of making choices
@@ -1855,6 +1881,7 @@ def eval_nl_logsums(
         have_trace_targets=have_trace_targets,
         spec_sh=spec_sh,
         chunk_sizer=chunk_sizer,
+        fastmath=fastmath,
     )
     chunk_sizer.log_df(trace_label, "raw_utilities", raw_utilities)
 
@@ -1905,6 +1932,7 @@ def _simple_simulate_logsums(
     trace_label=None,
     *,
     chunk_sizer,
+    fastmath: bool = True,
 ):
     """
     like simple_simulate except return logsums instead of making choices
@@ -1926,6 +1954,7 @@ def _simple_simulate_logsums(
             locals_d,
             trace_label=trace_label,
             chunk_sizer=chunk_sizer,
+            fastmath=fastmath,
         )
     else:
         logsums = eval_nl_logsums(
@@ -1936,6 +1965,7 @@ def _simple_simulate_logsums(
             locals_d,
             trace_label=trace_label,
             chunk_sizer=chunk_sizer,
+            fastmath=fastmath,
         )
 
     return logsums

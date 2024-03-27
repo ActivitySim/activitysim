@@ -247,6 +247,7 @@ def vehicle_allocation(
             trace_label=trace_label,
             trace_choice_name="vehicle_allocation",
             estimator=estimator,
+            fastmath=model_settings.sharrow_fastmath,
         )
 
         # matching alt names to choices

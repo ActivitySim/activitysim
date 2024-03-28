@@ -169,12 +169,11 @@ def disaggregate_accessibility(state: workflow.State) -> pd.DataFrame:
     )
     merging_params = model_settings.MERGE_ON
     nearest_method = model_settings.NEAREST_METHOD
-    accessibility_cols = [
-        x for x in proto_accessibility_df.columns if "accessibility" in x
-    ]
-    keep_cols = model_settings.KEEP_COLS
-    if keep_cols is None:
-        keep_cols = accessibility_cols
+
+    if model_settings.KEEP_COLS is None:
+        keep_cols = [x for x in proto_accessibility_df.columns if "accessibility" in x]
+    else:
+        keep_cols = model_settings.KEEP_COLS
 
     # Parse the merging parameters
     assert merging_params is not None
@@ -283,7 +282,5 @@ def disaggregate_accessibility(state: workflow.State) -> pd.DataFrame:
 
     # Inject merged accessibilities so that it can be included in persons_merged function
     state.add_table("disaggregate_accessibility", merge_df[keep_cols])
-    # need to also save changed to persons_merged
-    # state.add_table("persons_merged", persons_merged_df)
 
     return merge_df[keep_cols]

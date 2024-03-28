@@ -415,7 +415,7 @@ def merge_school_escort_trips_into_pipeline(state: workflow.State):
                 "school_escort_trip_id",
             ]
         ] = pd.NA
-        state.replace_table("trips", trips)
+        state.add_table("trips", trips)
         return trips
 
     # want to remove stops if school escorting takes place on that half tour so we can replace them with the actual stops

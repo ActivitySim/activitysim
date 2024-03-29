@@ -330,6 +330,10 @@ class ParkingLocationSettings(LogitComponentSettings, extra="forbid"):
 
     SEGMENTS: list[str] | None = None
 
+    AUTO_MODES: list[str]
+    """List of auto modes that use parking. AUTO_MODES are used in write_trip_matrices to make sure
+    parking locations are accurately represented in the output trip matrices."""
+
 
 @workflow.step
 def parking_location(

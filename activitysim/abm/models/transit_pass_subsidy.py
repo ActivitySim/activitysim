@@ -50,12 +50,7 @@ def transit_pass_subsidy(
             model_settings_file_name,
         )
 
-    filter_col = model_settings.CHOOSER_FILTER_COLUMN_NAME
-    if filter_col is None:
-        choosers = persons_merged
-    else:
-        choosers = persons_merged[persons_merged[filter_col]]
-    logger.info("Running %s with %d persons", trace_label, len(choosers))
+    choosers = persons_merged
 
     estimator = estimation.manager.begin_estimation(state, "transit_pass_subsidy")
 
@@ -75,6 +70,13 @@ def transit_pass_subsidy(
             locals_dict=locals_d,
             trace_label=trace_label,
         )
+
+    filter_col = model_settings.CHOOSER_FILTER_COLUMN_NAME
+    if filter_col is None:
+        choosers = persons_merged
+    else:
+        choosers = persons_merged[persons_merged[filter_col]]
+    logger.info("Running %s with %d persons", trace_label, len(choosers))
 
     model_spec = state.filesystem.read_model_spec(model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
@@ -109,7 +111,7 @@ def transit_pass_subsidy(
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    persons["transit_pass_subsidy"] = choices.reindex(persons.index)
+    persons["transit_pass_subsidy"] = choices.reindex(persons.index).fillna(0).astype(int)
 
     state.add_table("persons", persons)
 

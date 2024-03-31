@@ -84,19 +84,27 @@ class BaseLogitComponentSettings(PydanticSharrow):
         if isinstance(data, dict):
             if "sharrow_skip" in data:
                 if "sharrow_settings" not in data:
-                    data["sharrow_settings"] = {}
+                    # move to new format
+                    data["sharrow_settings"] = {"skip": data["sharrow_skip"]}
+                    del data["sharrow_skip"]
+                    warnings.warn(
+                        "sharrow_skip is deprecated in favor of sharrow_settings.skip",
+                        DeprecationWarning,
+                    )
+                elif (
+                    isinstance(data["sharrow_settings"], dict)
+                    and "skip" not in data["sharrow_settings"]
+                ):
+                    data["sharrow_settings"]["skip"] = data["sharrow_skip"]
+                    del data["sharrow_skip"]
+                    warnings.warn(
+                        "sharrow_skip is deprecated in favor of sharrow_settings.skip",
+                        DeprecationWarning,
+                    )
                 elif "skip" in data["sharrow_settings"]:
                     raise ValueError(
                         "sharrow_skip and sharrow_settings.skip cannot both be defined"
                     )
-            else:
-                # move to new format
-                data["sharrow_settings"] = {"skip": data["sharrow_skip"]}
-                del data["sharrow_skip"]
-                warnings.warn(
-                    "sharrow_skip is deprecated in favor of sharrow_settings.skip",
-                    DeprecationWarning,
-                )
         return data
 
 

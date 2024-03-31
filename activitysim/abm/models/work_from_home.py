@@ -50,9 +50,6 @@ class WorkFromHomeSettings(LogitComponentSettings, extra="forbid"):
     WORK_FROM_HOME_TARGET_PERCENT_TOLERANCE: float = None
     """Setting to set work from home target percent tolerance."""
 
-    sharrow_skip: bool = False
-    """Setting to skip sharrow."""
-
     DEST_CHOICE_COLUMN_NAME: str = "workplace_zone_id"
     """Column name in persons dataframe to specify the workplace zone id. """
 
@@ -140,9 +137,6 @@ def work_from_home(
             state, model_spec, coefficients_df, estimator
         )
 
-        if model_settings.sharrow_skip:
-            constants["disable_sharrow"] = True
-
         choices = simulate.simple_simulate(
             state,
             choosers=choosers,
@@ -152,7 +146,7 @@ def work_from_home(
             trace_label=trace_label,
             trace_choice_name="work_from_home",
             estimator=estimator,
-            fastmath=model_settings.sharrow_fastmath,
+            sharrow_settings=model_settings.sharrow_settings,
         )
 
         if iterations_target_percent is not None:

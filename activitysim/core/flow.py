@@ -16,6 +16,7 @@ import pandas as pd
 import activitysim.core.skim_dataset  # noqa: F401
 from activitysim import __version__
 from activitysim.core import tracing, workflow
+from activitysim.core.configuration.base import SharrowSettings
 from activitysim.core.simulate_consts import SPEC_EXPRESSION_NAME, SPEC_LABEL_NAME
 from activitysim.core.timetable import (
     sharrow_tt_adjacent_window_after,
@@ -142,7 +143,7 @@ def get_flow(
     choosers=None,
     interacts=None,
     zone_layer=None,
-    fastmath=True,
+    sharrow_settings: SharrowSettings | None = None,
 ):
     extra_vars = only_simple(local_d)
     orig_col_name = local_d.get("orig_col_name", None)
@@ -185,7 +186,7 @@ def get_flow(
         zone_layer=zone_layer,
         aux_vars=aux_vars,
         primary_origin_col_name=primary_origin_col_name,
-        fastmath=fastmath,
+        sharrow_settings=sharrow_settings,
     )
     flow.tree.aux_vars = aux_vars
     return flow
@@ -467,7 +468,7 @@ def new_flow(
     zone_layer=None,
     aux_vars=None,
     primary_origin_col_name=None,
-    fastmath=True,
+    sharrow_settings: SharrowSettings | None = None,
 ):
     """
     Setup a new sharrow flow.
@@ -519,17 +520,15 @@ def new_flow(
     aux_vars : Mapping
         Extra values that are available to expressions and which are written
         only by reference into compiled code (and thus can be changed later).
-    fastmath : bool, default True
-        Whether to use fastmath in the numba compiled code. Leaving this option
-        set to "True" is generally a good idea to maximize performance, but it
-        can be turned off if some expressions are not compatible with fastmath,
-        i.e. when they include "NaN" or "Inf" values.
+    sharrow_settings : SharrowSettings, optional
+        Settings for the sharrow flow.
 
     Returns
     -------
     sharrow.Flow
     """
-
+    if sharrow_settings is None:
+        sharrow_settings = SharrowSettings()
     with logtime(f"setting up flow {trace_label}"):
         if choosers is None:
             chooser_cols = []
@@ -708,7 +707,7 @@ def new_flow(
             extra_hash_data=extra_hash_data,
             hashing_level=0,
             boundscheck=False,
-            fastmath=fastmath,
+            fastmath=sharrow_settings.fastmath,
         )
 
 
@@ -759,7 +758,7 @@ def apply_flow(
     required=False,
     interacts=None,
     zone_layer=None,
-    fastmath=True,
+    sharrow_settings: SharrowSettings | None = None,
 ):
     """
     Apply a sharrow flow.
@@ -789,11 +788,8 @@ def apply_flow(
         Specify which zone layer of the skims is to be used.  You cannot use the
         'maz' zone layer in a one-zone model, but you can use the 'taz' layer in
         a two- or three-zone model (e.g. for destination pre-sampling).
-    fastmath : bool, default True
-        Whether to use fastmath in the numba compiled code. Leaving this option
-        set to "True" is generally a good idea to maximize performance, but it
-        can be turned off if some expressions are not compatible with fastmath,
-        i.e. when they include "NaN" or "Inf" values.
+    sharrow_settings : SharrowSettings, optional
+        Settings for the sharrow flow, including for skipping and fastmath.
 
     Returns
     -------
@@ -822,7 +818,7 @@ def apply_flow(
                 choosers=choosers,
                 interacts=interacts,
                 zone_layer=zone_layer,
-                fastmath=fastmath,
+                sharrow_settings=sharrow_settings,
             )
         except ValueError as err:
             if "unable to rewrite" in str(err):

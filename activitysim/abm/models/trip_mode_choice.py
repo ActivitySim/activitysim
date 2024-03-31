@@ -277,7 +277,7 @@ def trip_mode_choice(
             trace_label=segment_trace_label,
             trace_choice_name="trip_mode_choice",
             estimator=estimator,
-            fastmath=model_settings.sharrow_fastmath,
+            sharrow_settings=model_settings.sharrow_settings,
         )
 
         if state.settings.trace_hh_id:

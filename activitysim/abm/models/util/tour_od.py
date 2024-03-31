@@ -216,6 +216,9 @@ def _od_sample(
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer="taz",
+        sharrow_settings=model_settings.sharrow_settings.subcomponent_settings(
+            "sample"
+        ),
     )
 
     return choices

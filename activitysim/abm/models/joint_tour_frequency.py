@@ -112,7 +112,7 @@ def joint_tour_frequency(
         trace_label=trace_label,
         trace_choice_name="joint_tour_frequency",
         estimator=estimator,
-        fastmath=model_settings.sharrow_fastmath,
+        sharrow_settings=model_settings.sharrow_settings,
     )
 
     # convert indexes to alternative names

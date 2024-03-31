@@ -100,7 +100,7 @@ def auto_ownership_simulate(
         trace_choice_name="auto_ownership",
         log_alt_losers=log_alt_losers,
         estimator=estimator,
-        fastmath=model_settings.sharrow_fastmath,
+        sharrow_settings=model_settings.sharrow_settings,
     )
 
     if estimator:

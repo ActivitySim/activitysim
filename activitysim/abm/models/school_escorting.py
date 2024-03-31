@@ -380,37 +380,6 @@ class SchoolEscortSettings(BaseLogitComponentSettings):
     GENDER_WEIGHT: float = 10.0
     AGE_WEIGHT: float = 1.0
 
-    sharrow_skip: bool | dict[str, bool] = False
-    """Setting to skip sharrow.
-
-    Sharrow can be skipped (or not) for all school escorting stages by giving
-    simply true or false.  Alternatively, it can be skipped only for particular
-    stages by giving a mapping of stage name to skipping.  For example:
-
-    ```yaml
-    sharrow_skip:
-        OUTBOUND: true
-        INBOUND: false
-        OUTBOUND_COND: true
-    ```
-    """
-
-    sharrow_fastmath: bool = False
-    """Use fastmath when evaluating this component with sharrow.
-
-    The fastmath option can be used to speed up the evaluation of expressions in
-    this component's spec files, but it does so by making some simplifying
-    assumptions about the math, e.g. that neither inputs nor outputs of any
-    computations are NaN or Inf.  This can lead to errors when the assumptions
-    are violated.  If running in sharrow test mode generates errors, try turning
-    this setting off.
-
-    The default for most components is True, but due to the prevalence of NaN
-    values in the school escorting model, the default is False for this
-    component. It can be turned on if desired, but it is recommended to test
-    carefully that results are as expected.
-    """
-
     SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
 
     SPEC: None = None
@@ -507,19 +476,15 @@ def school_escorting(
             state, model_spec_raw, coefficients_df, estimator
         )
 
-        # allow for skipping sharrow entirely in this model with `sharrow_skip: true`
+        # allow for skipping sharrow entirely in this model with `sharrow_settings.skip: true`
         # or skipping stages selectively with a mapping of the stages to skip
-        sharrow_skip = model_settings.sharrow_skip
-        stage_sharrow_skip = False  # default is false unless set below
-        if sharrow_skip:
-            if isinstance(sharrow_skip, dict):
-                stage_sharrow_skip = sharrow_skip.get(stage.upper(), False)
-            else:
-                stage_sharrow_skip = True
-        if stage_sharrow_skip:
-            locals_dict["_sharrow_skip"] = True
-        else:
-            locals_dict.pop("_sharrow_skip", None)
+        stage_sharrow_settings = model_settings.sharrow_settings.subcomponent_settings(
+            stage.upper()
+        )
+        # if stage_sharrow_skip:
+        #     locals_dict["_sharrow_skip"] = True
+        # else:
+        #     locals_dict.pop("_sharrow_skip", None)
 
         # reduce memory by limiting columns if selected columns are supplied
         chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
@@ -566,7 +531,7 @@ def school_escorting(
             trace_choice_name="school_escorting_" + stage,
             estimator=estimator,
             explicit_chunk_size=model_settings.explicit_chunk,
-            fastmath=model_settings.sharrow_fastmath,
+            sharrow_settings=stage_sharrow_settings,
         )
 
         if estimator:
@@ -626,9 +591,10 @@ def school_escorting(
         escort_bundles["first_mand_tour_id"],
         escort_bundles["bundle_id"].map(chauf_tour_id_map),
     )
-    assert (
-        escort_bundles["chauf_tour_id"].notnull().all()
-    ), f"chauf_tour_id is null for {escort_bundles[escort_bundles['chauf_tour_id'].isna()]}. Check availability conditions."
+    assert escort_bundles["chauf_tour_id"].notnull().all(), (
+        f"chauf_tour_id is null for {escort_bundles[escort_bundles['chauf_tour_id'].isna()]}. "
+        f"Check availability conditions."
+    )
 
     tours = school_escort_tours_trips.add_pure_escort_tours(tours, school_escort_tours)
     tours = school_escort_tours_trips.process_tours_after_escorting_model(

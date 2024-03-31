@@ -123,6 +123,9 @@ def _destination_sample(
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer=zone_layer,
+        sharrow_settings=model_settings.sharrow_settings.subcomponent_settings(
+            "sample"
+        ),
     )
 
     # if special person id is passed

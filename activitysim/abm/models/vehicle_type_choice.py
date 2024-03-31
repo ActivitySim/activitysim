@@ -485,7 +485,7 @@ def iterate_vehicle_type_choice(
                 trace_choice_name="vehicle_type",
                 estimator=estimator,
                 explicit_chunk_size=model_settings.explicit_chunk,
-                fastmath=model_settings.sharrow_fastmath,
+                sharrow_settings=model_settings.sharrow_settings,
             )
 
         # otherwise, "simple simulation" should suffice, with a model spec that enumerates
@@ -501,7 +501,7 @@ def iterate_vehicle_type_choice(
                 trace_label=trace_label,
                 trace_choice_name="vehicle_type",
                 estimator=estimator,
-                fastmath=model_settings.sharrow_fastmath,
+                sharrow_settings=model_settings.sharrow_settings,
             )
         else:
             raise NotImplementedError(simulation_type)

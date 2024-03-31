@@ -56,7 +56,6 @@ def atwork_subtour_scheduling(
     estimator = estimation.manager.begin_estimation(state, "atwork_subtour_scheduling")
 
     model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
-    sharrow_skip = model_settings.sharrow_skip
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         state, model_spec, coefficients_df, estimator
@@ -96,7 +95,7 @@ def atwork_subtour_scheduling(
         estimator=estimator,
         chunk_size=state.settings.chunk_size,
         trace_label=trace_label,
-        sharrow_skip=sharrow_skip,
+        sharrow_settings=model_settings.sharrow_settings,
     )
 
     if estimator:

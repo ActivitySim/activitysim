@@ -214,7 +214,7 @@ def stop_frequency(
             trace_label=tracing.extend_trace_label(trace_label, segment_name),
             trace_choice_name="stops",
             estimator=estimator,
-            fastmath=model_settings.sharrow_fastmath,
+            sharrow_settings=model_settings.sharrow_settings,
         )
 
         # convert indexes to alternative names

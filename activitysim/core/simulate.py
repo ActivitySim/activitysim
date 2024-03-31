@@ -25,7 +25,7 @@ from activitysim.core import (
     util,
     workflow,
 )
-from activitysim.core.configuration.base import PydanticBase
+from activitysim.core.configuration.base import PydanticBase, SharrowSettings
 from activitysim.core.configuration.logit import (
     BaseLogitComponentSettings,
     LogitNestSpec,
@@ -57,7 +57,7 @@ def random_rows(state: workflow.State, df, n):
         return df
 
 
-def uniquify_spec_index(spec):
+def uniquify_spec_index(spec: pd.DataFrame):
     # uniquify spec index inplace
     # ensure uniqueness of spec index by appending comment with dupe count
     # this allows us to use pandas dot to compute_utilities
@@ -532,7 +532,7 @@ def eval_utilities(
     spec_sh=None,
     *,
     chunk_sizer,
-    fastmath=True,
+    sharrow_settings: SharrowSettings | None = None,
 ):
     """
     Evaluate a utility function as defined in a spec file.
@@ -613,7 +613,7 @@ def eval_utilities(
             trace_label,
             sharrow_enabled == "require",
             zone_layer=zone_layer,
-            fastmath=fastmath,
+            sharrow_settings=sharrow_settings,
         )
         utilities = sh_util
         timelogger.mark("sharrow flow", True, logger, trace_label)
@@ -1161,7 +1161,7 @@ def eval_mnl(
     trace_column_names=None,
     *,
     chunk_sizer,
-    fastmath=True,
+    sharrow_settings: SharrowSettings | None = None,
 ):
     """
     Run a simulation for when the model spec does not involve alternative
@@ -1225,7 +1225,7 @@ def eval_mnl(
         estimator=estimator,
         trace_column_names=trace_column_names,
         chunk_sizer=chunk_sizer,
-        fastmath=fastmath,
+        sharrow_settings=sharrow_settings,
     )
     chunk_sizer.log_df(trace_label, "utilities", utilities)
 
@@ -1284,7 +1284,7 @@ def eval_nl(
     trace_column_names=None,
     *,
     chunk_sizer: chunk.ChunkSizer,
-    fastmath: bool = True,
+    sharrow_settings: SharrowSettings | None = None,
 ):
     """
     Run a nested-logit simulation for when the model spec does not involve alternative
@@ -1348,7 +1348,7 @@ def eval_nl(
         trace_column_names=trace_column_names,
         spec_sh=spec_sh,
         chunk_sizer=chunk_sizer,
-        fastmath=fastmath,
+        sharrow_settings=sharrow_settings,
     )
     chunk_sizer.log_df(trace_label, "raw_utilities", raw_utilities)
 
@@ -1475,7 +1475,7 @@ def _simple_simulate(
     trace_column_names=None,
     *,
     chunk_sizer,
-    fastmath=True,
+    sharrow_settings: SharrowSettings | None = None,
 ):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
@@ -1539,7 +1539,7 @@ def _simple_simulate(
             trace_choice_name=trace_choice_name,
             trace_column_names=trace_column_names,
             chunk_sizer=chunk_sizer,
-            fastmath=fastmath,
+            sharrow_settings=sharrow_settings,
         )
     else:
         choices = eval_nl(
@@ -1556,7 +1556,7 @@ def _simple_simulate(
             trace_choice_name=trace_choice_name,
             trace_column_names=trace_column_names,
             chunk_sizer=chunk_sizer,
-            fastmath=fastmath,
+            sharrow_settings=sharrow_settings,
         )
 
     return choices
@@ -1595,7 +1595,7 @@ def simple_simulate(
     trace_label=None,
     trace_choice_name=None,
     trace_column_names=None,
-    fastmath: bool = True,
+    sharrow_settings: SharrowSettings | None = None,
 ):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
@@ -1630,7 +1630,7 @@ def simple_simulate(
             trace_choice_name=trace_choice_name,
             trace_column_names=trace_column_names,
             chunk_sizer=chunk_sizer,
-            fastmath=fastmath,
+            sharrow_settings=sharrow_settings,
         )
 
         result_list.append(choices)
@@ -1658,7 +1658,7 @@ def simple_simulate_by_chunk_id(
     estimator=None,
     trace_label=None,
     trace_choice_name=None,
-    fastmath: bool = True,
+    sharrow_settings: SharrowSettings | None = None,
 ):
     """
     chunk_by_chunk_id wrapper for simple_simulate
@@ -1685,7 +1685,7 @@ def simple_simulate_by_chunk_id(
             trace_label=chunk_trace_label,
             trace_choice_name=trace_choice_name,
             chunk_sizer=chunk_sizer,
-            fastmath=fastmath,
+            sharrow_settings=sharrow_settings,
         )
 
         result_list.append(choices)
@@ -1706,7 +1706,7 @@ def eval_mnl_logsums(
     trace_label=None,
     *,
     chunk_sizer,
-    fastmath: bool = True,
+    sharrow_settings: SharrowSettings | None = None,
 ):
     """
     like eval_nl except return logsums instead of making choices
@@ -1736,7 +1736,7 @@ def eval_mnl_logsums(
         trace_label,
         have_trace_targets,
         chunk_sizer=chunk_sizer,
-        fastmath=fastmath,
+        sharrow_settings=sharrow_settings,
     )
     chunk_sizer.log_df(trace_label, "utilities", utilities)
 
@@ -1850,7 +1850,7 @@ def eval_nl_logsums(
     trace_label=None,
     *,
     chunk_sizer: chunk.ChunkSizer,
-    fastmath: bool = True,
+    sharrow_settings: SharrowSettings | None = None,
 ):
     """
     like eval_nl except return logsums instead of making choices
@@ -1881,7 +1881,7 @@ def eval_nl_logsums(
         have_trace_targets=have_trace_targets,
         spec_sh=spec_sh,
         chunk_sizer=chunk_sizer,
-        fastmath=fastmath,
+        sharrow_settings=sharrow_settings,
     )
     chunk_sizer.log_df(trace_label, "raw_utilities", raw_utilities)
 
@@ -1932,7 +1932,7 @@ def _simple_simulate_logsums(
     trace_label=None,
     *,
     chunk_sizer,
-    fastmath: bool = True,
+    sharrow_settings: SharrowSettings | None = None,
 ):
     """
     like simple_simulate except return logsums instead of making choices
@@ -1954,7 +1954,7 @@ def _simple_simulate_logsums(
             locals_d,
             trace_label=trace_label,
             chunk_sizer=chunk_sizer,
-            fastmath=fastmath,
+            sharrow_settings=sharrow_settings,
         )
     else:
         logsums = eval_nl_logsums(
@@ -1965,7 +1965,7 @@ def _simple_simulate_logsums(
             locals_d,
             trace_label=trace_label,
             chunk_sizer=chunk_sizer,
-            fastmath=fastmath,
+            sharrow_settings=sharrow_settings,
         )
 
     return logsums
@@ -1982,6 +1982,7 @@ def simple_simulate_logsums(
     chunk_size=0,
     trace_label=None,
     chunk_tag=None,
+    sharrow_settings: SharrowSettings | None = None,
 ):
     """
     like simple_simulate except return logsums instead of making choices
@@ -2014,6 +2015,7 @@ def simple_simulate_logsums(
             locals_d,
             chunk_trace_label,
             chunk_sizer=chunk_sizer,
+            sharrow_settings=sharrow_settings,
         )
 
         result_list.append(logsums)

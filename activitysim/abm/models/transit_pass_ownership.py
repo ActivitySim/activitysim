@@ -93,7 +93,7 @@ def transit_pass_ownership(
         trace_label=trace_label,
         trace_choice_name="transit_pass_ownership",
         estimator=estimator,
-        fastmath=model_settings.sharrow_fastmath,
+        sharrow_settings=model_settings.sharrow_settings,
     )
 
     if estimator:

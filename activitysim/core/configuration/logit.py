@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Any, Literal
 
+import pydantic
 from pydantic import BaseModel as PydanticBase
-from pydantic import validator
+from pydantic import model_validator, validator
 
-from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticSharrow
 
 
 class LogitNestSpec(PydanticBase):
@@ -43,7 +45,7 @@ class LogitNestSpec(PydanticBase):
         return coefficient_value
 
 
-class BaseLogitComponentSettings(PydanticReadable):
+class BaseLogitComponentSettings(PydanticSharrow):
     """
     Base configuration class for components that are logit models.
 
@@ -75,19 +77,27 @@ class BaseLogitComponentSettings(PydanticReadable):
     CONSTANTS: dict[str, Any] = {}
     """Named constants usable in the utility expressions."""
 
-    sharrow_skip: bool = False
-    """Skip sharrow when evaluating this component."""
-
-    sharrow_fastmath: bool = True
-    """Use fastmath when evaluating this component with sharrow.
-
-    The fastmath option can be used to speed up the evaluation of expressions in
-    this component's spec files, but it does so by making some simplifying
-    assumptions about the math, e.g. that neither inputs nor outputs of any
-    computations are NaN or Inf.  This can lead to errors when the assumptions
-    are violated.  If running in sharrow test mode generates errors, try turning
-    this setting off.
-    """
+    # sharrow_skip is deprecated in factor of sharrow_settings.skip
+    @model_validator(mode="before")
+    @classmethod
+    def update_sharrow_skip(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "sharrow_skip" in data:
+                if "sharrow_settings" not in data:
+                    data["sharrow_settings"] = {}
+                elif "skip" in data["sharrow_settings"]:
+                    raise ValueError(
+                        "sharrow_skip and sharrow_settings.skip cannot both be defined"
+                    )
+            else:
+                # move to new format
+                data["sharrow_settings"] = {"skip": data["sharrow_skip"]}
+                del data["sharrow_skip"]
+                warnings.warn(
+                    "sharrow_skip is deprecated in favor of sharrow_settings.skip",
+                    DeprecationWarning,
+                )
+        return data
 
 
 class LogitComponentSettings(BaseLogitComponentSettings):
@@ -214,7 +224,7 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     The number of alternatives to sample for estimation mode.
     If zero, then all alternatives are used.
     Truth alternative will be included in the sample.
-    Larch does not yet support sampling alternatives for estimation, 
+    Larch does not yet support sampling alternatives for estimation,
     but this setting is still helpful for estimation mode runtime.
     """
 

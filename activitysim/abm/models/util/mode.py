@@ -9,6 +9,7 @@ from typing import Optional
 import pandas as pd
 
 from activitysim.core import config, expressions, simulate, workflow
+from activitysim.core.configuration.base import SharrowSettings
 from activitysim.core.configuration.logit import TourModeComponentSettings
 from activitysim.core.estimation import Estimator
 
@@ -34,7 +35,7 @@ def mode_choice_simulate(
     trace_choice_name,
     trace_column_names=None,
     estimator: Optional[Estimator] = None,
-    fastmath: bool = True,
+    sharrow_settings: SharrowSettings | None = None,
 ):
     """
     common method for  both tour_mode_choice and trip_mode_choice
@@ -52,7 +53,7 @@ def mode_choice_simulate(
     trace_label
     trace_choice_name
     estimator
-    fastmath
+    sharrow_settings : SharrowSettings
 
     Returns
     -------
@@ -72,7 +73,7 @@ def mode_choice_simulate(
         trace_choice_name=trace_choice_name,
         estimator=estimator,
         trace_column_names=trace_column_names,
-        fastmath=fastmath,
+        sharrow_settings=sharrow_settings,
     )
 
     # for consistency, always return dataframe, whether or not logsums were requested
@@ -173,7 +174,7 @@ def run_tour_mode_choice_simulate(
         trace_choice_name=trace_choice_name,
         trace_column_names=trace_column_names,
         estimator=estimator,
-        fastmath=model_settings.sharrow_fastmath,
+        sharrow_settings=model_settings.sharrow_settings,
     )
 
     return choices

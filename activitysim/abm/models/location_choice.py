@@ -17,6 +17,7 @@ from activitysim.core.configuration.logit import (
 )
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
+from activitysim.core.util import reindex
 
 # import multiprocessing
 
@@ -141,15 +142,17 @@ def _location_sample(
 
     sample_size = model_settings.SAMPLE_SIZE
 
-    if state.settings.disable_destination_sampling or (
-        estimator and estimator.want_unsampled_alternatives
-    ):
-        # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
+    if estimator:
+        sample_size = model_settings.ESTIMATION_SAMPLE_SIZE
         logger.info(
-            "Estimation mode for %s using unsampled alternatives short_circuit_choices"
-            % (trace_label,)
+            f"Estimation mode for {trace_label} using sample size of {sample_size}"
         )
+
+    if state.settings.disable_destination_sampling:
         sample_size = 0
+        logger.info(
+            f"SAMPLE_SIZE set to 0 for {trace_label} because disable_destination_sampling is set"
+        )
 
     locals_d = {
         "skims": skims,
@@ -157,6 +160,8 @@ def _location_sample(
         "orig_col_name": skims.orig_key,  # added for sharrow flows
         "dest_col_name": skims.dest_key,  # added for sharrow flows
         "timeframe": "timeless",
+        "reindex": reindex,
+        "land_use": state.get_dataframe("land_use"),
     }
     locals_d.update(model_settings.CONSTANTS or {})
 
@@ -484,6 +489,38 @@ def run_location_sample(
             trace_label=trace_label,
         )
 
+    # adding observed choice to alt set when running in estimation mode
+    if estimator:
+        # grabbing survey values
+        survey_persons = estimation.manager.get_survey_table("persons")
+        if "school_location" in trace_label:
+            survey_choices = survey_persons["school_zone_id"].reset_index()
+        elif ("workplace_location" in trace_label) and ("external" not in trace_label):
+            survey_choices = survey_persons["workplace_zone_id"].reset_index()
+        else:
+            return choices
+        survey_choices.columns = ["person_id", "alt_dest"]
+        survey_choices = survey_choices[
+            survey_choices["person_id"].isin(choices.index)
+            & (survey_choices.alt_dest > 0)
+        ]
+        # merging survey destination into table if not available
+        joined_data = survey_choices.merge(
+            choices, on=["person_id", "alt_dest"], how="left", indicator=True
+        )
+        missing_rows = joined_data[joined_data["_merge"] == "left_only"]
+        missing_rows["pick_count"] = 1
+        if len(missing_rows) > 0:
+            new_choices = missing_rows[
+                ["person_id", "alt_dest", "prob", "pick_count"]
+            ].set_index("person_id")
+            choices = choices.append(new_choices, ignore_index=False).sort_index()
+            # making probability the mean of all other sampled destinations by person
+            # FIXME is there a better way to do this? Does this even matter for estimation?
+            choices["prob"] = choices["prob"].fillna(
+                choices.groupby("person_id")["prob"].transform("mean")
+            )
+
     return choices
 
 
@@ -620,6 +657,8 @@ def run_location_simulate(
         "orig_col_name": skims.orig_key,  # added for sharrow flows
         "dest_col_name": skims.dest_key,  # added for sharrow flows
         "timeframe": "timeless",
+        "reindex": reindex,
+        "land_use": state.get_dataframe("land_use"),
     }
     locals_d.update(model_settings.CONSTANTS or {})
 
@@ -833,6 +872,24 @@ def run_location_choice(
                 )
                 state.tracing.trace_df(choices_df, estimation_trace_label)
 
+        if want_logsums & (not skip_choice):
+            # grabbing index, could be person_id or proto_person_id
+            index_name = choices_df.index.name
+            # merging mode choice logsum of chosen alternative to choices
+            choices_df = (
+                pd.merge(
+                    choices_df.reset_index(),
+                    location_sample_df.reset_index()[
+                        [index_name, model_settings.ALT_DEST_COL_NAME, ALT_LOGSUM]
+                    ],
+                    how="left",
+                    left_on=[index_name, "choice"],
+                    right_on=[index_name, model_settings.ALT_DEST_COL_NAME],
+                )
+                .drop(columns=model_settings.ALT_DEST_COL_NAME)
+                .set_index(index_name)
+            )
+
         choices_list.append(choices_df)
 
         if want_sample_table:
@@ -850,7 +907,7 @@ def run_location_choice(
     else:
         # this will only happen with small samples (e.g. singleton) with no (e.g.) school segs
         logger.warning("%s no choices", trace_label)
-        choices_df = pd.DataFrame(columns=["choice", "logsum"])
+        choices_df = pd.DataFrame(columns=["choice", "logsum", ALT_LOGSUM])
 
     if len(sample_list) > 0:
         save_sample_df = pd.concat(sample_list)
@@ -893,7 +950,8 @@ def iterate_location_choice(
     Returns
     -------
     adds choice column model_settings['DEST_CHOICE_COLUMN_NAME']
-    adds logsum column model_settings['DEST_CHOICE_LOGSUM_COLUMN_NAME']- if provided
+    adds destination choice logsum column model_settings['DEST_CHOICE_LOGSUM_COLUMN_NAME']- if provided
+    adds mode choice logsum to selected destination column model_settings['MODE_CHOICE_LOGSUM_COLUMN_NAME']- if provided
     adds annotations to persons table
     """
 
@@ -903,7 +961,11 @@ def iterate_location_choice(
     chooser_filter_column = model_settings.CHOOSER_FILTER_COLUMN_NAME
 
     dest_choice_column_name = model_settings.DEST_CHOICE_COLUMN_NAME
-    logsum_column_name = model_settings.DEST_CHOICE_LOGSUM_COLUMN_NAME
+    dc_logsum_column_name = model_settings.DEST_CHOICE_LOGSUM_COLUMN_NAME
+    mc_logsum_column_name = model_settings.MODE_CHOICE_LOGSUM_COLUMN_NAME
+    want_logsums = (dc_logsum_column_name is not None) | (
+        mc_logsum_column_name is not None
+    )
 
     sample_table_name = model_settings.DEST_CHOICE_SAMPLE_TABLE_NAME
     want_sample_table = (
@@ -954,7 +1016,7 @@ def iterate_location_choice(
             persons_merged_df_,
             network_los,
             shadow_price_calculator=spc,
-            want_logsums=logsum_column_name is not None,
+            want_logsums=want_logsums,
             want_sample_table=want_sample_table,
             estimator=estimator,
             model_settings=model_settings,
@@ -1029,9 +1091,14 @@ def iterate_location_choice(
     )
 
     # add the dest_choice_logsum column to persons dataframe
-    if logsum_column_name:
-        persons_df[logsum_column_name] = (
+    if dc_logsum_column_name:
+        persons_df[dc_logsum_column_name] = (
             choices_df["logsum"].reindex(persons_df.index).astype("float")
+        )
+    # add the mode choice logsum column to persons dataframe
+    if mc_logsum_column_name:
+        persons_df[mc_logsum_column_name] = (
+            choices_df[ALT_LOGSUM].reindex(persons_df.index).astype("float")
         )
 
     if save_sample_df is not None:
@@ -1072,9 +1139,13 @@ def iterate_location_choice(
         if state.settings.trace_hh_id:
             state.tracing.trace_df(households_df, label=trace_label, warn_if_empty=True)
 
-    if logsum_column_name:
+    if dc_logsum_column_name:
         tracing.print_summary(
-            logsum_column_name, choices_df["logsum"], value_counts=True
+            dc_logsum_column_name, choices_df["logsum"], value_counts=True
+        )
+    if mc_logsum_column_name:
+        tracing.print_summary(
+            mc_logsum_column_name, choices_df[ALT_LOGSUM], value_counts=True
         )
 
     return persons_df

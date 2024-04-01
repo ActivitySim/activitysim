@@ -67,7 +67,7 @@ def joint_tour_destination(
 
     choices_df, save_sample_df = tour_destination.run_tour_destination(
         state,
-        tours,
+        joint_tours,
         persons_merged,
         want_logsums,
         want_sample_table,

@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script src="../_static/documentation_options.js?v=6f883192"></script>
+    <script src="../_static/documentation_options.js?v=f0028a10"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <link rel="prev" title="How the System Works" href="../howitworks.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Mar 28, 2024"/>
+    <meta name="docbuild:last-update" content="Apr 01, 2024"/>
   </head>
   
   
@@ -860,7 +860,7 @@ of cdap_INDIV_AND_HHSIZE1_SPEC.csv, or similar.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.cdap_base_utility_by_person">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">cdap_base_utility_by_person</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_tokens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.cdap_base_utility_by_person" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">cdap_base_utility_by_person</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_tokens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_joint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.cdap_base_utility_by_person" title="Link to this definition">#</a></dt>
 <dd><p>Build the base utility by person for each pattern.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -887,8 +887,16 @@ from the estimation data bundle.  Only used when
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.cdap_joint_tour_utility">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">cdap_joint_tour_utility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.cdap_joint_tour_utility" title="Link to this definition">#</a></dt>
+<dd><p>FIXME: Not fully implemented!!!!</p>
+<p>Code is adapted from the cdap model in ActivitySim with the joint tour component
+Structure is pretty much in place, but dependencies need to be filtered out.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.generate_alternatives">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">generate_alternatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.generate_alternatives" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">generate_alternatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_joint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.generate_alternatives" title="Link to this definition">#</a></dt>
 <dd><p>Generate a dictionary of CDAP alternatives.</p>
 <p>The keys are the names of the patterns, and
 the values are the alternative code numbers.</p>
@@ -1047,6 +1055,7 @@ have the same initial value are converted to have the same name
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-activitysim.estimation.larch.auto_ownership">Models API</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.estimation.larch.cdap.apply_replacements"><code class="docutils literal notranslate"><span class="pre">apply_replacements()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.estimation.larch.cdap.cdap_base_utility_by_person"><code class="docutils literal notranslate"><span class="pre">cdap_base_utility_by_person()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.estimation.larch.cdap.cdap_joint_tour_utility"><code class="docutils literal notranslate"><span class="pre">cdap_joint_tour_utility()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.estimation.larch.cdap.generate_alternatives"><code class="docutils literal notranslate"><span class="pre">generate_alternatives()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.estimation.larch.cdap.interact_pattern"><code class="docutils literal notranslate"><span class="pre">interact_pattern()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.estimation.larch.nonmand_tour_freq.nonmand_tour_freq_model"><code class="docutils literal notranslate"><span class="pre">nonmand_tour_freq_model()</span></code></a></li>
@@ -1091,7 +1100,7 @@ have the same initial value are converted to have the same name
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.0b2.dev54+gf15486c8, documentation last updated Mar 28, 2024.<br/>
+ActivitySim 1.3.0b2.dev55+gade9aa46, documentation last updated Apr 01, 2024.<br/>
 </p></div>
       
         <div class="footer-item">

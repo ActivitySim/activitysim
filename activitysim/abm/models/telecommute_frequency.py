@@ -20,7 +20,7 @@ from activitysim.core.configuration.logit import LogitComponentSettings
 logger = logging.getLogger("activitysim")
 
 
-class TelecommuteFrequencySettings(LogitComponentSettings):
+class TelecommuteFrequencySettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `telecommute_frequency` component.
     """

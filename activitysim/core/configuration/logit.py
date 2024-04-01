@@ -163,7 +163,7 @@ class LogitComponentSettings(BaseLogitComponentSettings):
         return nests
 
 
-class TemplatedLogitComponentSettings(LogitComponentSettings):
+class TemplatedLogitComponentSettings(LogitComponentSettings, extra="forbid"):
     """
     Base configuration for segmented logit models with a coefficient template.
     """

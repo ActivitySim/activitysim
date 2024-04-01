@@ -23,7 +23,7 @@ from .util import annotate
 logger = logging.getLogger(__name__)
 
 
-class AutoOwnershipSettings(LogitComponentSettings):
+class AutoOwnershipSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `auto_ownership` component.
     """

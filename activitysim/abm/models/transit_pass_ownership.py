@@ -20,7 +20,7 @@ from activitysim.core.configuration.logit import LogitComponentSettings
 logger = logging.getLogger("activitysim")
 
 
-class TransitPassOwnershipSettings(LogitComponentSettings):
+class TransitPassOwnershipSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `transit_pass_ownership` component.
     """

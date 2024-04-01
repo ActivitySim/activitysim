@@ -158,7 +158,7 @@ class NonMandatoryTourSpecSegment(PydanticReadable):
     COEFFICIENTS: Path
 
 
-class NonMandatoryTourFrequencySettings(LogitComponentSettings):
+class NonMandatoryTourFrequencySettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `non_mandatory_tour_frequency` component.
     """

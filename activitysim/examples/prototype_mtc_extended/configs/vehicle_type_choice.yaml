@@ -2,7 +2,7 @@
 
 SPEC: vehicle_type_choice_op4.csv
 COEFFICIENTS: vehicle_type_choice_op4_coefficients.csv
-ALTS: vehicle_type_choice_op4_alternatives.csv
+#ALTS: vehicle_type_choice_op4_alternatives.csv
 
 # SPEC: vehicle_type_choice_op2.csv
 # COEFFICIENTS: vehicle_type_choice_op2_coefficients.csv

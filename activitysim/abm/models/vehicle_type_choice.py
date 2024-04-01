@@ -556,7 +556,7 @@ def iterate_vehicle_type_choice(
     return all_choices, all_choosers
 
 
-class VehicleTypeChoiceSettings(LogitComponentSettings):
+class VehicleTypeChoiceSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `vehicle_type_choice` component.
     """

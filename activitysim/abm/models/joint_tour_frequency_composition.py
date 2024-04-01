@@ -26,7 +26,7 @@ from activitysim.core.interaction_simulate import interaction_simulate
 logger = logging.getLogger(__name__)
 
 
-class JointTourFrequencyCompositionSettings(LogitComponentSettings):
+class JointTourFrequencyCompositionSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `joint_tour_frequency_composition` component.
     """

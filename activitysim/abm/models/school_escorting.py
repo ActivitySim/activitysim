@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -356,7 +356,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     return bundles
 
 
-class SchoolEscortSettings(BaseLogitComponentSettings):
+class SchoolEscortSettings(BaseLogitComponentSettings, extra="forbid"):
     """
     Settings for the `telecommute_frequency` component.
     """
@@ -401,6 +401,13 @@ class SchoolEscortSettings(BaseLogitComponentSettings):
 
     explicit_chunk: int = 0
     """If > 0, use this chunk size instead of adaptive chunking."""
+
+    LOGIT_TYPE: Literal["MNL"] = "MNL"
+    """Logit model mathematical form.
+
+    * "MNL"
+        Multinomial logit model.
+    """
 
 
 @workflow.step

@@ -11,7 +11,10 @@ import numpy as np
 import pandas as pd
 
 from activitysim.abm.models.util import annotate
-from activitysim.abm.models.util.overlap import person_max_window
+from activitysim.abm.models.util.overlap import (
+    person_max_window,
+    person_available_periods,
+)
 from activitysim.abm.models.util.school_escort_tours_trips import (
     recompute_tour_count_statistics,
 )
@@ -230,7 +233,13 @@ def non_mandatory_tour_frequency(
     # - preprocessor
     preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
-        locals_dict = {"person_max_window": lambda x: person_max_window(state, x)}
+
+        locals_dict = {
+            "person_max_window": lambda x: person_max_window(state, x),
+            "person_available_periods": lambda persons, start_bin, end_bin, continuous: person_available_periods(
+                state, persons, start_bin, end_bin, continuous
+            ),
+        }
 
         expressions.assign_columns(
             state,
@@ -422,6 +431,14 @@ def non_mandatory_tour_frequency(
         non_mandatory_survey_tours = survey_tours[
             survey_tours.tour_category == "non_mandatory"
         ]
+        # need to remove the pure-escort tours from the survey tours table for comparison below
+        if state.is_table("school_escort_tours"):
+            non_mandatory_survey_tours = non_mandatory_survey_tours[
+                ~non_mandatory_survey_tours.index.isin(
+                    state.get_table("school_escort_tours").index
+                )
+            ]
+
         assert len(non_mandatory_survey_tours) == len(non_mandatory_tours)
         assert non_mandatory_survey_tours.index.equals(
             non_mandatory_tours.sort_index().index

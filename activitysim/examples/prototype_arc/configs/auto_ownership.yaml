@@ -17,8 +17,3 @@ NESTS:
 
 SPEC: auto_ownership.csv
 COEFFICIENTS: auto_ownership_coeffs.csv
-
-LOGSUM_CHOOSER_COLUMNS:
-  - num_drivers
-  - num_workers
-  

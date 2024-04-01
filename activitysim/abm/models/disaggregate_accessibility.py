@@ -154,6 +154,15 @@ class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
       procedure work.
     """
 
+    KEEP_COLS: list[str] | None = None
+    """
+    Disaggreate accessibility table is grouped by the "by" cols above and the KEEP_COLS are averaged
+    across the group.  Initializing the below as NA if not in the auto ownership level, they are skipped
+    in the groupby mean and the values are correct. 
+    (It's a way to avoid having to update code to reshape the table and introduce new functionality there.)
+    If none, will keep all of the columns with "accessibility" in the name.
+    """
+
     FROM_TEMPLATES: bool = False
     annotate_proto_tables: list[DisaggregateAccessibilityAnnotateSettings] = []
     """
@@ -163,6 +172,11 @@ class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
     proto-population beyond basic generation in the YAML.
     """
     NEAREST_METHOD: str = "skims"
+
+    postprocess_proto_tables: list[DisaggregateAccessibilityAnnotateSettings] = []
+    """
+    List of preprocessor settings to apply to the proto-population tables after generation.
+    """
 
 
 def read_disaggregate_accessibility_yaml(
@@ -849,6 +863,10 @@ def compute_disaggregate_accessibility(
             state.tracing.register_traceable_table(tablename, df)
         del df
 
+    disagg_model_settings = read_disaggregate_accessibility_yaml(
+        state, "disaggregate_accessibility.yaml"
+    )
+
     # Run location choice
     logsums = get_disaggregate_logsums(
         state,
@@ -908,5 +926,24 @@ def compute_disaggregate_accessibility(
     # Inject accessibility results into pipeline
     for k, df in logsums.items():
         state.add_table(k, df)
+
+    # available post-processing
+    for annotations in disagg_model_settings.postprocess_proto_tables:
+        tablename = annotations.tablename
+        df = state.get_dataframe(tablename)
+        assert df is not None
+        assert annotations is not None
+        assign_columns(
+            state,
+            df=df,
+            model_settings={
+                **annotations.annotate.dict(),
+                **disagg_model_settings.suffixes.dict(),
+            },
+            trace_label=tracing.extend_trace_label(
+                "disaggregate_accessibility.postprocess", tablename
+            ),
+        )
+        state.add_table(tablename, df)
 
     return

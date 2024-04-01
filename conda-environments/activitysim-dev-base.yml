@@ -42,14 +42,14 @@ dependencies:
 - numpydoc
 - openmatrix = 0.3.*
 - orca = 1.8
-- pandas >= 2.2
-- pandera >= 0.15
+- pandas = 2.2.*
+- pandera >= 0.15, <0.18.1
 - platformdirs = 3.2.*
 - pre-commit
 - psutil = 5.9.*
 - pyarrow = 11.*
 - pycodestyle
-- pydantic = 2.6.*
+- pydantic = 2.6.0
 - pydata-sphinx-theme
 - pyinstrument = 4.4
 - pypyr = 5.8.*
@@ -77,4 +77,3 @@ dependencies:
 
 - pip:
   - autodoc_pydantic
-  - larch6

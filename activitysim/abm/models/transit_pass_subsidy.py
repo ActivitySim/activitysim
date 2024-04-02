@@ -111,7 +111,9 @@ def transit_pass_subsidy(
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    persons["transit_pass_subsidy"] = choices.reindex(persons.index).fillna(0).astype(int)
+    persons["transit_pass_subsidy"] = (
+        choices.reindex(persons.index).fillna(0).astype(int)
+    )
 
     state.add_table("persons", persons)
 

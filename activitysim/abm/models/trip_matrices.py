@@ -294,13 +294,19 @@ def write_trip_matrices(
         trips_df["origin"] = trips_df["true_origin"]
         trips_df["destination"] = trips_df["true_destination"]
         del trips_df["true_origin"], trips_df["true_destination"]
-        if network_los.zone_system == los.TWO_ZONE or network_los.zone_system == los.THREE_ZONE:
+        if (
+            network_los.zone_system == los.TWO_ZONE
+            or network_los.zone_system == los.THREE_ZONE
+        ):
             trips_df["otaz"] = (
                 state.get_table("land_use").reindex(trips_df["origin"]).TAZ.tolist()
             )
             trips_df["dtaz"] = (
-                state.get_table("land_use").reindex(trips_df["destination"]).TAZ.tolist()
+                state.get_table("land_use")
+                .reindex(trips_df["destination"])
+                .TAZ.tolist()
             )
+
 
 def annotate_trips(
     state: workflow.State,

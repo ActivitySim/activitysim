@@ -967,7 +967,6 @@ def household_activity_choices(
     if len(utils.index) == 0:
         return pd.Series(dtype="float64")
 
-    probs = logit.utils_to_probs(state, utils, trace_label=trace_label)
     # calculate joint tour utility
     if add_joint_tour_utility & (hhsize > 1):
         # calculate joint utils
@@ -990,6 +989,8 @@ def household_activity_choices(
         # add joint util to util
         utils = utils.add(joint_tour_utils)
 
+    probs = logit.utils_to_probs(state, utils, trace_label=trace_label)
+    
     # select an activity pattern alternative for each household based on probability
     # result is a series indexed on _hh_index_ with the (0 based) index of the column from probs
     idx_choices, rands = logit.make_choices(state, probs, trace_label=trace_label)

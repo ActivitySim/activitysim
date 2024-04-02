@@ -255,12 +255,6 @@ def write_trip_matrices(
             state, aggregate_trips, zone_index, orig_index, dest_index, model_settings
         )
 
-        if "parking_location" in state.settings.models:
-            # Set trip origin and destination to be the actual location the person is and not where their vehicle is parked
-            trips_df["origin"] = trips_df["true_origin"]
-            trips_df["destination"] = trips_df["true_destination"]
-            del trips_df["true_origin"], trips_df["true_destination"]
-
         logger.info("aggregating trips three zone tap...")
         aggregate_trips = trips_df.groupby(["btap", "atap"], sort=False).sum(
             numeric_only=True
@@ -295,6 +289,18 @@ def write_trip_matrices(
             True,
         )
 
+    if "parking_location" in state.settings.models:
+        # Set trip origin and destination to be the actual location the person is and not where their vehicle is parked
+        trips_df["origin"] = trips_df["true_origin"]
+        trips_df["destination"] = trips_df["true_destination"]
+        del trips_df["true_origin"], trips_df["true_destination"]
+        if network_los.zone_system == los.TWO_ZONE or network_los.zone_system == los.THREE_ZONE:
+            trips_df["otaz"] = (
+                state.get_table("land_use").reindex(trips_df["origin"]).TAZ.tolist()
+            )
+            trips_df["dtaz"] = (
+                state.get_table("land_use").reindex(trips_df["destination"]).TAZ.tolist()
+            )
 
 def annotate_trips(
     state: workflow.State,

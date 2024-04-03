@@ -9,6 +9,7 @@ import pandas as pd
 
 from activitysim.abm.models.util.overlap import hh_time_window_overlap
 from activitysim.abm.models.util.tour_frequency import (
+    JointTourFreqCompSettings,
     process_joint_tours_frequency_composition,
 )
 from activitysim.core import (
@@ -26,23 +27,12 @@ from activitysim.core.interaction_simulate import interaction_simulate
 logger = logging.getLogger(__name__)
 
 
-class JointTourFrequencyCompositionSettings(LogitComponentSettings, extra="forbid"):
-    """
-    Settings for the `joint_tour_frequency_composition` component.
-    """
-
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
-
-    ALTS_PREPROCESSOR: PreprocessorSettings | None = None
-
-
 @workflow.step
 def joint_tour_frequency_composition(
     state: workflow.State,
     households_merged: pd.DataFrame,
     persons: pd.DataFrame,
-    model_settings: JointTourFrequencyCompositionSettings | None = None,
+    model_settings: JointTourFreqCompSettings | None = None,
     model_settings_file_name: str = "joint_tour_frequency_composition.yaml",
     trace_label: str = "joint_tour_frequency_composition",
 ) -> None:
@@ -50,7 +40,7 @@ def joint_tour_frequency_composition(
     This model predicts the frequency and composition of fully joint tours.
     """
     if model_settings is None:
-        model_settings = JointTourFrequencyCompositionSettings.read_settings_file(
+        model_settings = JointTourFreqCompSettings.read_settings_file(
             state.filesystem,
             model_settings_file_name,
         )

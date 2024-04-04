@@ -572,8 +572,8 @@ def eval_utilities(
         This is meant to give the same result, but allows for some optimizations
         or preprocessing outside the sharrow framework (e.g. to run the Python
         based transit virtual path builder and cache relevant values).
-    fastmath : bool, default True
-        Use fastmath for sharrow compiled code.
+    sharrow_settings : SharrowSettings, optional
+        Settings for sharrow. If not given, the default settings are used.
 
     Returns
     -------
@@ -595,7 +595,7 @@ def eval_utilities(
     if spec_sh is None:
         spec_sh = spec
 
-    if locals_d is not None and "disable_sharrow" in locals_d:
+    if sharrow_settings is not None and sharrow_settings.skip:
         sharrow_enabled = False
 
     if sharrow_enabled:

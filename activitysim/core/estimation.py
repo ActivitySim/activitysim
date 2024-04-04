@@ -220,6 +220,15 @@ class Estimator:
         if len(self.omnibus_tables) == 0:
             return
 
+        settings = self.state.filesystem.read_model_settings(
+            ESTIMATION_SETTINGS_FILE_NAME, mandatory=False
+        )
+
+        edbs_to_skip = settings.get("SKIP_BUNDLE_WRITE_FOR", [])
+        if self.bundle_name in edbs_to_skip:
+            self.debug(f"Skipping write to disk for {self.bundle_name}")
+            return
+
         for omnibus_table, table_names in self.omnibus_tables.items():
             self.debug(
                 "write_omnibus_table: %s table_names: %s" % (omnibus_table, table_names)
@@ -237,12 +246,19 @@ class Estimator:
                 1 if omnibus_table in self.omnibus_tables_append_columns else 0
             )
 
-            df = pd.concat([self.tables[t] for t in table_names], axis=concat_axis)
+            if len(table_names) == 0:
+                # empty tables
+                df = pd.DataFrame()
+            else:
+                df = pd.concat([self.tables[t] for t in table_names], axis=concat_axis)
+
+            self.debug(f"sorting tables: {table_names}")
             df.sort_index(ascending=True, inplace=True, kind="mergesort")
 
             file_path = self.output_file_path(omnibus_table, "csv")
             assert not os.path.isfile(file_path)
 
+            self.debug(f"writing table: {file_path}")
             df.to_csv(file_path, mode="a", index=True, header=True)
 
             self.debug("write_omnibus_choosers: %s" % file_path)

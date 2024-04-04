@@ -565,9 +565,7 @@ def eval_interaction_utilities(
                     retrace_eval_data_ = pd.concat(retrace_eval_data, axis=1)
                     retrace_eval_parts_ = pd.concat(retrace_eval_parts, axis=1)
 
-                    re_sh_flow_load = sh_flow.load(
-                        dtype=np.float32,
-                    )
+                    re_sh_flow_load = sh_flow.load(sh_tree, dtype=np.float32)
                     re_sh_flow_load_ = re_sh_flow_load[re_trace]
 
                     look_for_problems_here = np.where(

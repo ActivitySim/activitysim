@@ -177,6 +177,9 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     CHOOSER_FILTER_COLUMN_NAME: str | None = None
     DEST_CHOICE_COLUMN_NAME: str | None = None
     DEST_CHOICE_LOGSUM_COLUMN_NAME: str | None = None
+    """Column name for logsum calculated across all sampled destinations."""
+    MODE_CHOICE_LOGSUM_COLUMN_NAME: str | None = None
+    """Column name for logsum calculated across all sampled modes to selected destination."""
     DEST_CHOICE_SAMPLE_TABLE_NAME: str | None = None
     CHOOSER_TABLE_NAME: str | None = None
     CHOOSER_SEGMENT_COLUMN_NAME: str | None = None
@@ -194,6 +197,15 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
 
     ORIG_ZONE_ID: str | None = None
     """This setting appears to do nothing..."""
+
+    ESTIMATION_SAMPLE_SIZE: int = 0
+    """
+    The number of alternatives to sample for estimation mode.
+    If zero, then all alternatives are used.
+    Truth alternative will be included in the sample.
+    Larch does not yet support sampling alternatives for estimation, 
+    but this setting is still helpful for estimation mode runtime.
+    """
 
 
 class TourModeComponentSettings(TemplatedLogitComponentSettings, extra="forbid"):

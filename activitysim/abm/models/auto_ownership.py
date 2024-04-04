@@ -7,9 +7,17 @@ import logging
 import pandas as pd
 from pydantic import validator
 
-from activitysim.core import config, estimation, simulate, tracing, workflow
+from activitysim.core import (
+    config,
+    expressions,
+    estimation,
+    simulate,
+    tracing,
+    workflow,
+)
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.configuration.logit import LogitComponentSettings
+from .util import annotate
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +27,8 @@ class AutoOwnershipSettings(LogitComponentSettings):
     Settings for the `auto_ownership` component.
     """
 
-    # This model is relatively simple and has no unique settings
+    preprocessor: PreprocessorSettings | None = None
+    annotate_households: PreprocessorSettings | None = None
 
 
 @workflow.step
@@ -57,6 +66,21 @@ def auto_ownership_simulate(
 
     logger.info("Running %s with %d households", trace_label, len(choosers))
 
+    # - preprocessor
+    preprocessor_settings = model_settings.preprocessor
+    if preprocessor_settings:
+
+        locals_d = {}
+        if constants is not None:
+            locals_d.update(constants)
+
+        expressions.assign_columns(
+            df=choosers,
+            model_settings=preprocessor_settings,
+            locals_dict=locals_d,
+            trace_label=trace_label,
+        )
+
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_spec(model_settings)
@@ -91,6 +115,9 @@ def auto_ownership_simulate(
     tracing.print_summary(
         "auto_ownership", households.auto_ownership, value_counts=True
     )
+
+    if model_settings.annotate_households:
+        annotate.annotate_households(model_settings, trace_label)
 
     if trace_hh_id:
         state.tracing.trace_df(households, label="auto_ownership", warn_if_empty=True)

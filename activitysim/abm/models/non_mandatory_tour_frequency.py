@@ -430,14 +430,21 @@ def non_mandatory_tour_frequency(
     if estimator:
         # make sure they created the right tours
         survey_tours = estimation.manager.get_survey_table("tours").sort_index()
-        # FIXME below check needs to remove the pure-escort tours from the survey tours table
-        # non_mandatory_survey_tours = survey_tours[
-        #     survey_tours.tour_category == "non_mandatory"
-        # ]
-        # assert len(non_mandatory_survey_tours) == len(non_mandatory_tours)
-        # assert non_mandatory_survey_tours.index.equals(
-        #     non_mandatory_tours.sort_index().index
-        # )
+        non_mandatory_survey_tours = survey_tours[
+            survey_tours.tour_category == "non_mandatory"
+        ]
+        # need to remove the pure-escort tours from the survey tours table for comparison below
+        if state.is_table("school_escort_tours"):
+            non_mandatory_survey_tours = non_mandatory_survey_tours[
+                ~non_mandatory_survey_tours.index.isin(
+                    state.get_table("school_escort_tours").index
+                )
+            ]
+
+        assert len(non_mandatory_survey_tours) == len(non_mandatory_tours)
+        assert non_mandatory_survey_tours.index.equals(
+            non_mandatory_tours.sort_index().index
+        )
 
         # make sure they created tours with the expected tour_ids
         columns = ["person_id", "household_id", "tour_type", "tour_category"]

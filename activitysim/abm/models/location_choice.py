@@ -699,6 +699,9 @@ def run_location_simulate(
         trace_choice_name=model_settings.DEST_CHOICE_COLUMN_NAME,
         estimator=estimator,
         skip_choice=skip_choice,
+        sharrow_settings=model_settings.sharrow_settings.subcomponent_settings(
+            "simulate"
+        ),
     )
 
     if not want_logsums:

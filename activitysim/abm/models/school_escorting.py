@@ -493,10 +493,6 @@ def school_escorting(
         model_spec_raw = state.filesystem.read_model_spec(
             file_name=getattr(model_settings, stage.upper() + "_SPEC")
         )
-
-        model_spec_raw = state.filesystem.read_model_spec(
-            file_name=getattr(model_settings, stage.upper() + "_SPEC")
-        )
         coefficients_df = state.filesystem.read_model_coefficients(
             file_name=getattr(model_settings, stage.upper() + "_COEFFICIENTS")
         )

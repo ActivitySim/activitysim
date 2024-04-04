@@ -310,6 +310,7 @@ def _interaction_sample(
             estimator=None,
             log_alt_losers=log_alt_losers,
             zone_layer=zone_layer,
+            sharrow_settings=SharrowSettings(skip=True),
         )
         chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
 

@@ -8,6 +8,7 @@ import pandas.testing as pdt
 
 from activitysim.abm.models.util.school_escort_tours_trips import (
     create_bundle_attributes,
+    create_child_escorting_stops,
 )
 
 
@@ -66,5 +67,147 @@ def test_create_bundle_attributes():
     pdt.assert_frame_equal(outbound_result, outbound_output, check_dtype=False)
 
 
+def test_create_chauf_escorting_stops():
+
+    return True
+
+
+def create_child_escorting_stops_optimized(bundles, escortee_num):
+    bundles["num_escortees"] = bundles["escortees"].str.split("_").str.len()
+
+    # only want the escortee bundles where the escortee_num is less than the number of escortees
+    if (escortee_num > (bundles["num_escortees"] - 1)).all():
+        return bundles
+    bundles = bundles[escortee_num <= (bundles["num_escortees"] - 1)]
+    original_index = bundles.index
+    bundles.reset_index(drop=True, inplace=True)
+
+    # intializing variables
+    bundles["dropoff"] = bundles["school_escort_direction"] == "outbound"
+    bundles["person_id"] = bundles["escortees"].str.split("_").str[escortee_num]
+    bundles["tour_id"] = bundles["school_tour_ids"].str.split("_").str[escortee_num]
+    participants = []
+    purposes = []
+    destinations = []
+    school_escort_trip_num = []
+
+    # dropping off children
+    for i in range(escortee_num + 1):
+        dropoff_mask = (bundles["dropoff"] == True) & (
+            bundles["num_escortees"] >= (i + 1)
+        )
+        participants.append(
+            bundles.loc[dropoff_mask, "escortees"].str.split("_").str[i:].str.join("_")
+        )
+        destinations.append(
+            bundles.loc[dropoff_mask, "school_destinations"].str.split("_").str[i]
+        )
+        purposes.append(
+            pd.Series(
+                index=bundles.loc[dropoff_mask].index,
+                data=np.where(
+                    bundles.loc[dropoff_mask, "person_id"]
+                    == bundles.loc[dropoff_mask, "escortees"].str.split("_").str[i],
+                    "school",
+                    "escort",
+                ),
+            )
+        )
+
+        # picking up children
+        pickup_mask = (bundles["dropoff"] == False) & (
+            bundles["num_escortees"] >= (i + 1)
+        )
+        participants.append(
+            bundles.loc[pickup_mask, "escortees"]
+            .str.split("_")
+            .str[: escortee_num + i + 1]
+            .str.join("_")
+        )
+        is_last_stop = i == (
+            bundles.loc[pickup_mask, "escortees"].str.split("_").str.len() - 1
+        )
+        destinations.append(
+            pd.Series(
+                index=bundles.loc[pickup_mask].index,
+                data=np.where(
+                    is_last_stop,
+                    bundles.loc[pickup_mask, "home_zone_id"],
+                    bundles.loc[pickup_mask, "school_destinations"]
+                    .str.split("_")
+                    .str[escortee_num + i + 1],
+                ),
+            )
+        )
+        purposes.append(
+            pd.Series(
+                index=bundles.loc[pickup_mask].index,
+                data=np.where(is_last_stop, "home", "escort"),
+            )
+        )
+
+        school_escort_trip_num.append(
+            pd.Series(index=bundles.loc[pickup_mask | dropoff_mask].index, data=(i + 1))
+        )
+
+    bundles["escort_participants"] = (
+        pd.concat(participants, axis=1, ignore_index=False)
+        .reindex(bundles.index)
+        .agg(lambda row: row.dropna().tolist(), axis=1)
+    )
+    bundles["school_escort_trip_num"] = (
+        pd.concat(school_escort_trip_num, axis=1, ignore_index=False)
+        .reindex(bundles.index)
+        .agg(lambda row: row.dropna().tolist(), axis=1)
+    )
+    bundles["purpose"] = (
+        pd.concat(purposes, axis=1, ignore_index=False)
+        .reindex(bundles.index)
+        .agg(lambda row: row.dropna().tolist(), axis=1)
+    )
+    bundles["destination"] = (
+        pd.concat(destinations, axis=1, ignore_index=False)
+        .reindex(bundles.index)
+        .agg(lambda row: row.dropna().tolist(), axis=1)
+    )
+
+    bundles.drop(columns=["dropoff"], inplace=True)
+    bundles["person_id"] = bundles["person_id"].fillna(-1).astype(int)
+
+    bundles.index = original_index
+    return bundles
+
+
+def test_create_child_escorting_stops():
+    data_dir = os.path.join(os.path.dirname(__file__), "data")
+    bundles = pd.read_pickle(
+        os.path.join(data_dir, "create_escortee_trips_bundles.pkl")
+    )
+
+    escortee_trips = []
+    for escortee_num in range(0, int(bundles.num_escortees.max()) + 1):
+        escortee_bundles = bundles.apply(
+            lambda row: create_child_escorting_stops(row, escortee_num), axis=1
+        )
+        # escortee_bundles = create_child_escorting_stops_optimized(bundles.copy(), escortee_num)
+        escortee_trips.append(escortee_bundles)
+
+    escortee_trips = pd.concat(escortee_trips)
+    escortee_trips = escortee_trips[escortee_trips.person_id > 0]
+
+    escortee_trips_expected = pd.read_pickle(
+        os.path.join(data_dir, "escortee_trips.pkl")
+    )
+    escortee_trips_expected = escortee_trips_expected[
+        escortee_trips_expected.person_id > 0
+    ]
+    escortee_trips_expected = escortee_trips_expected.astype(
+        escortee_trips.dtypes.to_dict()
+    )
+
+    pdt.assert_frame_equal(escortee_trips, escortee_trips_expected)
+
+
 if __name__ == "__main__":
-    test_create_bundle_attributes()
+    # test_create_bundle_attributes()
+    test_create_child_escorting_stops()

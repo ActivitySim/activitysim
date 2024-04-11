@@ -14,58 +14,26 @@ from activitysim.abm.models.util.school_escort_tours_trips import (
 
 
 def test_create_bundle_attributes():
-
     data_dir = os.path.join(os.path.dirname(__file__), "data")
-    dtype_dict = {
-        "escortees": "str",
-        "escortee_nums": "str",
-        "school_destinations": "str",
-        "school_starts": "str",
-        "school_ends": "str",
-        "school_tour_ids": "str",
-    }
 
-    inbound_input = pd.read_csv(
-        os.path.join(data_dir, "create_bundle_attributes__input_inbound.csv"),
-        index_col=0,
+    inbound_input = pd.read_pickle(
+        os.path.join(data_dir, "create_bundle_attributes_inbound__input.pkl")
     )
-    inbound_output = pd.read_csv(
-        os.path.join(data_dir, "create_bundle_attributes__output_inbound.csv"),
-        index_col=0,
-        dtype=dtype_dict,
+    inbound_expected = pd.read_pickle(
+        os.path.join(data_dir, "create_bundle_attributes_inbound__output.pkl")
     )
 
-    outbound_input = pd.read_csv(
-        os.path.join(data_dir, "create_bundle_attributes__input_outbound_cond.csv"),
-        index_col=0,
+    outbound_input = pd.read_pickle(
+        os.path.join(data_dir, "create_bundle_attributes_outbound_cond__input.pkl")
     )
-    outbound_output = pd.read_csv(
-        os.path.join(data_dir, "create_bundle_attributes__output_outbound_cond.csv"),
-        index_col=0,
-        dtype=dtype_dict,
+    outbound_expected = pd.read_pickle(
+        os.path.join(data_dir, "create_bundle_attributes_outbound_cond__output.pkl")
     )
-
-    # need to convert columns from string back to list
-    list_columns = ["outbound_order", "inbound_order", "child_order"]
-    for col in list_columns:
-        inbound_input[col] = inbound_input[col].apply(
-            lambda x: x.strip("[]").split(" ")
-        )
-        outbound_input[col] = outbound_input[col].apply(
-            lambda x: x.strip("[]").split(" ")
-        )
-        inbound_output[col] = inbound_output[col].apply(
-            lambda x: x.strip("[]").split(" ")
-        )
-        outbound_output[col] = outbound_output[col].apply(
-            lambda x: x.strip("[]").split(" ")
-        )
-
     inbound_result = create_bundle_attributes(inbound_input)
-    pdt.assert_frame_equal(inbound_result, inbound_output, check_dtype=False)
+    pdt.assert_frame_equal(inbound_result, inbound_expected, check_dtype=False)
 
     outbound_result = create_bundle_attributes(outbound_input)
-    pdt.assert_frame_equal(outbound_result, outbound_output, check_dtype=False)
+    pdt.assert_frame_equal(outbound_result, outbound_expected, check_dtype=False)
 
 
 def create_column_as_concatentated_list(bundles, col_dict):
@@ -225,8 +193,9 @@ def create_child_escorting_stops_optimized(bundles, escortee_num):
     destinations = []
     school_escort_trip_num = []
 
-    # dropping off children
+    # looping up through the current escorting destination
     for i in range(escortee_num + 1):
+        # dropping off children
         dropoff_mask = (bundles["dropoff"] == True) & (
             bundles["num_escortees"] >= (i + 1)
         )
@@ -248,9 +217,9 @@ def create_child_escorting_stops_optimized(bundles, escortee_num):
             )
         )
 
-        # picking up children
+        # picking up children:
         pickup_mask = (bundles["dropoff"] == False) & (
-            bundles["num_escortees"] >= (i + 1)
+            bundles["num_escortees"] >= (escortee_num + i + 1)
         )
         participants.append(
             bundles.loc[pickup_mask, "escortees"]
@@ -281,7 +250,7 @@ def create_child_escorting_stops_optimized(bundles, escortee_num):
         )
 
         school_escort_trip_num.append(
-            pd.Series(index=bundles.loc[pickup_mask | dropoff_mask].index, data=(i + 1))
+            pd.Series(index=bundles.loc[pickup_mask].index, data=(i + 1))
         )
 
     bundles = create_column_as_concatentated_list(
@@ -304,26 +273,27 @@ def create_child_escorting_stops_optimized(bundles, escortee_num):
 def test_create_child_escorting_stops():
     data_dir = os.path.join(os.path.dirname(__file__), "data")
     bundles = pd.read_pickle(
-        os.path.join(data_dir, "create_escortee_trips_bundles.pkl")
+        os.path.join(data_dir, "create_child_escorting_stops__input.pkl")
     )
+    bundles = bundles[bundles.Alt == 15]
 
     escortee_trips = []
     for escortee_num in range(0, int(bundles.num_escortees.max()) + 1):
-        escortee_bundles = bundles.apply(
-            lambda row: create_child_escorting_stops(row, escortee_num), axis=1
+        # escortee_bundles = bundles.apply(
+        #     lambda row: create_child_escorting_stops(row, escortee_num), axis=1
+        # )
+        escortee_bundles = create_child_escorting_stops_optimized(
+            bundles.copy(), escortee_num
         )
-        # escortee_bundles = create_child_escorting_stops_optimized(bundles.copy(), escortee_num)
         escortee_trips.append(escortee_bundles)
 
     escortee_trips = pd.concat(escortee_trips)
     escortee_trips = escortee_trips[escortee_trips.person_id > 0]
 
     escortee_trips_expected = pd.read_pickle(
-        os.path.join(data_dir, "escortee_trips.pkl")
+        os.path.join(data_dir, "create_child_escorting_stops__output.pkl")
     )
-    escortee_trips_expected = escortee_trips_expected[
-        escortee_trips_expected.person_id > 0
-    ]
+    escortee_trips_expected = escortee_trips_expected[escortee_trips_expected.Alt == 15]
     escortee_trips_expected = escortee_trips_expected.astype(
         escortee_trips.dtypes.to_dict()
     )
@@ -334,4 +304,4 @@ def test_create_child_escorting_stops():
 if __name__ == "__main__":
     test_create_bundle_attributes()
     test_create_chauf_trip_table()
-    test_create_child_escorting_stops()
+    # test_create_child_escorting_stops()

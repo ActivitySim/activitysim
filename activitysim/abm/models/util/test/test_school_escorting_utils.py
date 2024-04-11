@@ -216,10 +216,19 @@ def create_child_escorting_stops_optimized(bundles, escortee_num):
                 ),
             )
         )
+        school_escort_trip_num.append(
+            pd.Series(index=bundles.loc[dropoff_mask].index, data=(i + 1))
+        )
 
-        # picking up children:
+    # picking up children after the current child, i.e. escortees[escortee_num:]
+    bundles['pickup_count'] = np.where(
+        bundles['num_escortees'] >= escortee_num,
+        bundles['escortees'].str.split('_').str[escortee_num:],
+        0
+    )
+    for i in range(bundles['pickup_count'].str.len().max()):
         pickup_mask = (bundles["dropoff"] == False) & (
-            bundles["num_escortees"] >= (escortee_num + i + 1)
+            bundles["pickup_count"].str[i].isna() == False
         )
         participants.append(
             bundles.loc[pickup_mask, "escortees"]
@@ -228,7 +237,7 @@ def create_child_escorting_stops_optimized(bundles, escortee_num):
             .str.join("_")
         )
         is_last_stop = i == (
-            bundles.loc[pickup_mask, "escortees"].str.split("_").str.len() - 1
+            bundles.loc[pickup_mask, "pickup_count"].str.len() - 1
         )
         destinations.append(
             pd.Series(
@@ -263,7 +272,7 @@ def create_child_escorting_stops_optimized(bundles, escortee_num):
         },
     )
 
-    bundles.drop(columns=["dropoff"], inplace=True)
+    bundles.drop(columns=["dropoff", "pickup_count"], inplace=True)
     bundles["person_id"] = bundles["person_id"].fillna(-1).astype(int)
 
     bundles.index = original_index
@@ -275,13 +284,9 @@ def test_create_child_escorting_stops():
     bundles = pd.read_pickle(
         os.path.join(data_dir, "create_child_escorting_stops__input.pkl")
     )
-    bundles = bundles[bundles.Alt == 15]
 
     escortee_trips = []
     for escortee_num in range(0, int(bundles.num_escortees.max()) + 1):
-        # escortee_bundles = bundles.apply(
-        #     lambda row: create_child_escorting_stops(row, escortee_num), axis=1
-        # )
         escortee_bundles = create_child_escorting_stops_optimized(
             bundles.copy(), escortee_num
         )
@@ -293,7 +298,6 @@ def test_create_child_escorting_stops():
     escortee_trips_expected = pd.read_pickle(
         os.path.join(data_dir, "create_child_escorting_stops__output.pkl")
     )
-    escortee_trips_expected = escortee_trips_expected[escortee_trips_expected.Alt == 15]
     escortee_trips_expected = escortee_trips_expected.astype(
         escortee_trips.dtypes.to_dict()
     )
@@ -304,4 +308,4 @@ def test_create_child_escorting_stops():
 if __name__ == "__main__":
     test_create_bundle_attributes()
     test_create_chauf_trip_table()
-    # test_create_child_escorting_stops()
+    test_create_child_escorting_stops()

@@ -321,7 +321,7 @@ def create_chauf_trip_table(bundles):
     )
 
     bundles.drop(columns=["dropoff"], inplace=True)
-    bundles["person_id"] = bundles["person_id"].fillna(-1).astype(int)
+    bundles["person_id"] = bundles["person_id"].fillna(-1).astype("int64")
 
     bundles.index = original_index
     return bundles
@@ -506,7 +506,7 @@ def create_child_escorting_stops(bundles, escortee_num):
     )
 
     bundles.drop(columns=["dropoff", "pickup_count"], inplace=True)
-    bundles["person_id"] = bundles["person_id"].fillna(-1).astype(int)
+    bundles["person_id"] = bundles["person_id"].fillna(-1).astype("int64")
 
     bundles.index = original_index
     return bundles
@@ -646,9 +646,11 @@ def process_tours_after_escorting_model(state: workflow.State, escort_bundles, t
     tours = add_school_escorting_type_to_tours_table(escort_bundles, tours)
 
     # setting number of escortees on tour
-    num_escortees = escort_bundles.drop_duplicates("chauf_tour_id").set_index(
-        "chauf_tour_id"
-    )["num_escortees"]
+    num_escortees = (
+        escort_bundles.drop_duplicates("chauf_tour_id")
+        .set_index("chauf_tour_id")["num_escortees"]
+        .astype(int)
+    )
     tours.loc[num_escortees.index, "num_escortees"] = num_escortees
 
     # set same start / end time for tours if they are bundled together

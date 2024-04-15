@@ -224,6 +224,7 @@ def _compute_logsums(
             locals_d=locals_dict,
             chunk_size=0,
             trace_label=trace_label,
+            sharrow_settings=model_settings.sharrow_settings,
         )
 
     return logsums

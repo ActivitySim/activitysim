@@ -207,13 +207,12 @@ def create_bundle_attributes(bundles):
     return bundles.set_index(original_idx)
 
 
-def create_column_as_concatentated_list(bundles, col_dict):
+def create_column_as_concatenated_list(bundles, col_dict):
     for col, data in col_dict.items():
-        bundles[col] = (
-            pd.concat(data, axis=1, ignore_index=False)
-            .reindex(bundles.index)
-            .agg(lambda row: row.dropna().tolist(), axis=1)
-        )
+        df = pd.concat(
+            [df.dropna() for df in data], axis=1, ignore_index=False
+        ).reindex(bundles.index)
+        bundles[col] = [row.dropna().values.tolist() for _, row in df.iterrows()]
     return bundles
 
 
@@ -309,7 +308,7 @@ def create_chauf_trip_table(bundles):
     # kids have already been dropped off
     participants.append(pd.Series(index=bundles.loc[to_work_mask].index, data=""))
 
-    bundles = create_column_as_concatentated_list(
+    bundles = create_column_as_concatenated_list(
         bundles,
         {
             "destination": destinations,
@@ -495,7 +494,7 @@ def create_child_escorting_stops(bundles, escortee_num):
             pd.Series(index=bundles.loc[pickup_mask].index, data=(i + 1))
         )
 
-    bundles = create_column_as_concatentated_list(
+    bundles = create_column_as_concatenated_list(
         bundles,
         {
             "escort_participants": participants,

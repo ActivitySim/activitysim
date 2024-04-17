@@ -1935,6 +1935,20 @@ def _simple_simulate_logsums(
     if skims is not None:
         set_skim_wrapper_targets(choosers, skims)
 
+    # check if tracing is enabled and if we have trace targets
+    have_trace_targets = state.tracing.has_trace_targets(choosers)
+
+    # if tracing is not enabled, drop unused columns
+    if not have_trace_targets:
+        # drop unused variables in chooser table
+        choosers = util.drop_unused_chooser_columns(
+            choosers,
+            spec,
+            locals_d,
+            custom_chooser=None,
+            sharrow_enabled=state.settings.sharrow,
+        )
+
     if nest_spec is None:
         logsums = eval_mnl_logsums(
             state,

@@ -40,6 +40,9 @@ def create_bundle_attributes(bundles):
     bundles["school_ends"] = ""
     bundles["school_tour_ids"] = ""
 
+    if len(bundles) == 0:
+        return bundles
+
     bundles[["first_child", "second_child", "third_child"]] = pd.DataFrame(
         bundles["child_order"].to_list(), index=bundles.index
     ).astype(int)

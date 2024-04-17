@@ -118,7 +118,7 @@ def free_parking(
         trace_label=trace_label,
         trace_choice_name="free_parking_at_work",
         estimator=estimator,
-        sharrow_settings=model_settings.sharrow_settings,
+        compute_settings=model_settings.compute_settings,
     )
 
     free_parking_alt = model_settings.FREE_PARKING_ALT

@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from . import chunk, config, logit, simulate, tracing, workflow
-from .configuration.base import SharrowSettings
+from .configuration.base import ComputeSettings
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ def eval_interaction_utilities(
     log_alt_losers=False,
     extra_data=None,
     zone_layer=None,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Compute the utilities for a single-alternative spec evaluated in the context of df
@@ -84,9 +84,9 @@ def eval_interaction_utilities(
     logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
     sharrow_enabled = state.settings.sharrow
-    if sharrow_settings is None:
-        sharrow_settings = SharrowSettings()
-    if sharrow_settings.skip:
+    if compute_settings is None:
+        compute_settings = ComputeSettings()
+    if compute_settings.sharrow_skip:
         sharrow_enabled = False
 
     # if locals_d is not None and locals_d.get("_sharrow_skip", False):
@@ -190,7 +190,7 @@ def eval_interaction_utilities(
                 trace_label,
                 interacts=extra_data,
                 zone_layer=zone_layer,
-                sharrow_settings=sharrow_settings,
+                compute_settings=compute_settings,
             )
             if sh_util is not None:
                 chunk_sizer.log_df(trace_label, "sh_util", sh_util)
@@ -268,7 +268,7 @@ def eval_interaction_utilities(
                 exprs = spec.index
                 labels = spec.index
 
-            with sharrow_settings.pandas_option_context():
+            with compute_settings.pandas_option_context():
                 for expr, label, coefficient in zip(exprs, labels, spec.iloc[:, 0]):
                     try:
                         # - allow temps of form _od_DIST@od_skim['DIST']
@@ -620,7 +620,7 @@ def _interaction_simulate(
     log_alt_losers=False,
     estimator=None,
     chunk_sizer=None,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -708,7 +708,9 @@ def _interaction_simulate(
     alt_index_id = estimator.get_alt_id() if estimator else None
     chooser_index_id = ALT_CHOOSER_ID if log_alt_losers else None
 
-    if sharrow_settings is not None and sharrow_settings.skip:
+    if compute_settings is None:
+        compute_settings = ComputeSettings()
+    if compute_settings.sharrow_skip:
         sharrow_enabled = False
     else:
         sharrow_enabled = state.settings.sharrow
@@ -739,7 +741,7 @@ def _interaction_simulate(
             estimator=estimator,
             log_alt_losers=log_alt_losers,
             extra_data=alternatives,
-            sharrow_settings=sharrow_settings,
+            compute_settings=compute_settings,
         )
 
         # set this index here as this is how later code extracts the chosen alt id's
@@ -804,7 +806,7 @@ def _interaction_simulate(
             trace_rows,
             estimator=estimator,
             log_alt_losers=log_alt_losers,
-            sharrow_settings=sharrow_settings,
+            compute_settings=compute_settings,
         )
         chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
         # mem.trace_memory_info(f"{trace_label}.init interaction_utilities", force_garbage_collect=True)
@@ -912,7 +914,7 @@ def interaction_simulate(
     trace_choice_name=None,
     estimator=None,
     explicit_chunk_size=0,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run a simulation in the situation in which alternatives must
@@ -990,7 +992,7 @@ def interaction_simulate(
             log_alt_losers=log_alt_losers,
             estimator=estimator,
             chunk_sizer=chunk_sizer,
-            sharrow_settings=sharrow_settings,
+            compute_settings=compute_settings,
         )
 
         result_list.append(choices)

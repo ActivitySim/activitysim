@@ -95,7 +95,7 @@ def atwork_subtour_scheduling(
         estimator=estimator,
         chunk_size=state.settings.chunk_size,
         trace_label=trace_label,
-        sharrow_settings=model_settings.sharrow_settings,
+        compute_settings=model_settings.compute_settings,
     )
 
     if estimator:

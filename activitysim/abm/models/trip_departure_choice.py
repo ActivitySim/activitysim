@@ -20,9 +20,9 @@ from activitysim.core import (
     workflow,
 )
 from activitysim.core.configuration.base import (
+    ComputeSettings,
     PreprocessorSettings,
     PydanticSharrow,
-    SharrowSettings,
 )
 from activitysim.core.skim_dataset import SkimDataset
 from activitysim.core.skim_dictionary import SkimDict
@@ -191,7 +191,7 @@ def choose_tour_leg_pattern(
     trace_label="trace_label",
     *,
     chunk_sizer: chunk.ChunkSizer,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
 ):
     alternatives = generate_alternatives(trip_segment, STOP_TIME_DURATION).sort_index()
     have_trace_targets = state.tracing.has_trace_targets(trip_segment)
@@ -245,7 +245,7 @@ def choose_tour_leg_pattern(
         trace_label,
         trace_rows,
         estimator=None,
-        sharrow_settings=sharrow_settings,
+        compute_settings=compute_settings,
     )
 
     interaction_utilities = pd.concat(
@@ -402,7 +402,7 @@ def apply_stage_two_model(
     trips,
     chunk_size,
     trace_label: str,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
 ):
     if not trips.index.is_monotonic:
         trips = trips.sort_index()
@@ -473,7 +473,7 @@ def apply_stage_two_model(
                 spec,
                 trace_label=segment_trace_label,
                 chunk_sizer=chunk_sizer,
-                sharrow_settings=sharrow_settings,
+                compute_settings=compute_settings,
             )
 
             choices = pd.merge(
@@ -580,7 +580,7 @@ def trip_departure_choice(
         trips_merged_df,
         state.settings.chunk_size,
         trace_label,
-        sharrow_settings=model_settings.sharrow_settings,
+        compute_settings=model_settings.compute_settings,
     )
 
     trips_df = trips

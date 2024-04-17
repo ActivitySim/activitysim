@@ -216,8 +216,8 @@ For models with utility expressions that include a lot of string comparisons,
 been updated) sharrow can be disabled by setting
 
 ```yaml
-sharrow_settings:
-  skip: true
+compute_settings:
+  sharrow_skip: true
 ```
 
 in the component's configuration yaml file.

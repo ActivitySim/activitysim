@@ -130,12 +130,12 @@ class PreprocessorSettings(PydanticBase):
     """
 
 
-class SharrowSettings(PydanticBase):
+class ComputeSettings(PydanticBase):
     """
     Sharrow settings for a component.
     """
 
-    skip: bool | dict[str, bool] = False
+    sharrow_skip: bool | dict[str, bool] = False
     """Skip sharrow when evaluating this component.
 
     This overrides the global sharrow setting, and is useful if you want to skip
@@ -143,19 +143,19 @@ class SharrowSettings(PydanticBase):
     not compatible with sharrow or if the sharrow performance is known to be
     poor on this component.
 
-    When a component has multiple subcomponents, the `skip` setting can be
+    When a component has multiple subcomponents, the `sharrow_skip` setting can be
     a dictionary that maps the names of the subcomponents to boolean values.
     For example, to skip sharrow for an OUTBOUND and OUTBOUND_COND subcomponent
     but not the INBOUND subcomponent, use the following setting:
 
     ```yaml
-    skip:
+    sharrow_skip:
         OUTBOUND: true
         INBOUND: false
         OUTBOUND_COND: true
     ```
 
-    Alternatively, even for components with multiple subcomponents, the `skip`
+    Alternatively, even for components with multiple subcomponents, the `sharrow_skip`
     value can be a single boolean true or false, which will be used for all
     subcomponents.
 
@@ -203,10 +203,10 @@ class SharrowSettings(PydanticBase):
 
     def should_skip(self, subcomponent: str) -> bool:
         """Check if sharrow should be skipped for a particular subcomponent."""
-        if isinstance(self.skip, dict):
-            return self.skip.get(subcomponent, False)
+        if isinstance(self.sharrow_skip, dict):
+            return self.sharrow_skip.get(subcomponent, False)
         else:
-            return bool(self.skip)
+            return bool(self.sharrow_skip)
 
     @contextmanager
     def pandas_option_context(self):
@@ -224,10 +224,10 @@ class SharrowSettings(PydanticBase):
         else:
             yield
 
-    def subcomponent_settings(self, subcomponent: str) -> SharrowSettings:
+    def subcomponent_settings(self, subcomponent: str) -> ComputeSettings:
         """Get the sharrow settings for a particular subcomponent."""
-        return SharrowSettings(
-            skip=self.should_skip(subcomponent),
+        return ComputeSettings(
+            sharrow_skip=self.should_skip(subcomponent),
             fastmath=self.fastmath,
             use_bottleneck=self.use_bottleneck,
             use_numexpr=self.use_numexpr,
@@ -238,5 +238,5 @@ class SharrowSettings(PydanticBase):
 class PydanticSharrow(PydanticReadable):
     """Base class for component settings that include optional sharrow controls."""
 
-    sharrow_settings: SharrowSettings = SharrowSettings()
+    compute_settings: ComputeSettings = ComputeSettings()
     """Sharrow settings for this component."""

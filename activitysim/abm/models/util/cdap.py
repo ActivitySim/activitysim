@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core import chunk, logit, simulate, tracing, workflow
-from activitysim.core.configuration.base import SharrowSettings
+from activitysim.core.configuration.base import ComputeSettings
 
 logger = logging.getLogger(__name__)
 
@@ -185,7 +185,7 @@ def individual_utilities(
     trace_label=None,
     *,
     chunk_sizer,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Calculate CDAP utilities for all individuals.
@@ -213,7 +213,7 @@ def individual_utilities(
         locals_d,
         trace_label=trace_label,
         chunk_sizer=chunk_sizer,
-        sharrow_settings=sharrow_settings,
+        compute_settings=compute_settings,
     )
 
     # add columns from persons to facilitate building household interactions
@@ -912,7 +912,7 @@ def household_activity_choices(
     add_joint_tour_utility=False,
     *,
     chunk_sizer,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Calculate household utilities for each activity pattern alternative for households of hhsize
@@ -966,7 +966,7 @@ def household_activity_choices(
             choosers,
             trace_label=trace_label,
             chunk_sizer=chunk_sizer,
-            sharrow_settings=sharrow_settings,
+            compute_settings=compute_settings,
         )
 
     if len(utils.index) == 0:
@@ -990,7 +990,7 @@ def household_activity_choices(
             choosers,
             trace_label=trace_label,
             chunk_sizer=chunk_sizer,
-            sharrow_settings=sharrow_settings,
+            compute_settings=compute_settings,
         )
 
         # add joint util to util
@@ -1193,7 +1193,7 @@ def _run_cdap(
     add_joint_tour_utility,
     *,
     chunk_sizer,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
 ) -> pd.DataFrame | tuple:
     """
     Implements core run_cdap functionality on persons df (or chunked subset thereof)
@@ -1224,7 +1224,7 @@ def _run_cdap(
         trace_hh_id,
         trace_label,
         chunk_sizer=chunk_sizer,
-        sharrow_settings=sharrow_settings,
+        compute_settings=compute_settings,
     )
     chunk_sizer.log_df(trace_label, "indiv_utils", indiv_utils)
 
@@ -1241,7 +1241,7 @@ def _run_cdap(
             trace_label=trace_label,
             add_joint_tour_utility=add_joint_tour_utility,
             chunk_sizer=chunk_sizer,
-            sharrow_settings=sharrow_settings,
+            compute_settings=compute_settings,
         )
 
         hh_choices_list.append(choices)
@@ -1328,7 +1328,7 @@ def run_cdap(
     trace_hh_id=None,
     trace_label=None,
     add_joint_tour_utility=False,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Choose individual activity patterns for persons.
@@ -1392,7 +1392,7 @@ def run_cdap(
                 chunk_trace_label,
                 add_joint_tour_utility,
                 chunk_sizer=chunk_sizer,
-                sharrow_settings=sharrow_settings,
+                compute_settings=compute_settings,
             )
         else:
             cdap_results = _run_cdap(
@@ -1407,7 +1407,7 @@ def run_cdap(
                 chunk_trace_label,
                 add_joint_tour_utility,
                 chunk_sizer=chunk_sizer,
-                sharrow_settings=sharrow_settings,
+                compute_settings=compute_settings,
             )
 
         result_list.append(cdap_results)

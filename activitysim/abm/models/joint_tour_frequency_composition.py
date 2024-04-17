@@ -140,7 +140,7 @@ def joint_tour_frequency_composition(
         trace_choice_name=trace_label,
         estimator=estimator,
         explicit_chunk_size=0,
-        sharrow_settings=model_settings.sharrow_settings,
+        compute_settings=model_settings.compute_settings,
     )
 
     if estimator:

@@ -84,7 +84,9 @@ def eval_interaction_utilities(
     logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
     sharrow_enabled = state.settings.sharrow
-    if sharrow_settings is not None and sharrow_settings.skip:
+    if sharrow_settings is None:
+        sharrow_settings = SharrowSettings()
+    if sharrow_settings.skip:
         sharrow_enabled = False
 
     # if locals_d is not None and locals_d.get("_sharrow_skip", False):
@@ -266,107 +268,112 @@ def eval_interaction_utilities(
                 exprs = spec.index
                 labels = spec.index
 
-            for expr, label, coefficient in zip(exprs, labels, spec.iloc[:, 0]):
-                try:
-                    # - allow temps of form _od_DIST@od_skim['DIST']
-                    if expr.startswith("_"):
-                        target = expr[: expr.index("@")]
-                        rhs = expr[expr.index("@") + 1 :]
-                        v = to_series(eval(rhs, globals(), locals_d))
+            with sharrow_settings.pandas_option_context():
+                for expr, label, coefficient in zip(exprs, labels, spec.iloc[:, 0]):
+                    try:
+                        # - allow temps of form _od_DIST@od_skim['DIST']
+                        if expr.startswith("_"):
+                            target = expr[: expr.index("@")]
+                            rhs = expr[expr.index("@") + 1 :]
+                            v = to_series(eval(rhs, globals(), locals_d))
 
-                        # update locals to allows us to ref previously assigned targets
-                        locals_d[target] = v
-                        chunk_sizer.log_df(
-                            trace_label, target, v
-                        )  # track temps stored in locals
+                            # update locals to allows us to ref previously assigned targets
+                            locals_d[target] = v
+                            chunk_sizer.log_df(
+                                trace_label, target, v
+                            )  # track temps stored in locals
 
-                        if trace_eval_results is not None:
-                            trace_eval_results[expr] = v[trace_rows]
+                            if trace_eval_results is not None:
+                                trace_eval_results[expr] = v[trace_rows]
 
-                        # don't add temps to utility sums
-                        # they have a non-zero dummy coefficient to avoid being removed from spec as NOPs
-                        continue
+                            # don't add temps to utility sums
+                            # they have a non-zero dummy coefficient to avoid being removed from spec as NOPs
+                            continue
 
-                    if expr.startswith("@"):
-                        v = to_series(eval(expr[1:], globals(), locals_d))
-                    else:
-                        v = df.eval(expr, resolvers=[locals_d])
+                        if expr.startswith("@"):
+                            v = to_series(eval(expr[1:], globals(), locals_d))
+                        else:
+                            v = df.eval(expr, resolvers=[locals_d])
 
-                    if check_for_variability and v.std() == 0:
-                        logger.info(
-                            "%s: no variability (%s) in: %s"
-                            % (trace_label, v.iloc[0], expr)
-                        )
-                        no_variability += 1
+                        if check_for_variability and v.std() == 0:
+                            logger.info(
+                                "%s: no variability (%s) in: %s"
+                                % (trace_label, v.iloc[0], expr)
+                            )
+                            no_variability += 1
 
-                    # FIXME - how likely is this to happen? Not sure it is really a problem?
-                    if (
-                        check_for_variability
-                        and np.count_nonzero(v.isnull().values) > 0
-                    ):
-                        logger.info("%s: missing values in: %s" % (trace_label, expr))
-                        has_missing_vals += 1
+                        # FIXME - how likely is this to happen? Not sure it is really a problem?
+                        if (
+                            check_for_variability
+                            and np.count_nonzero(v.isnull().values) > 0
+                        ):
+                            logger.info(
+                                "%s: missing values in: %s" % (trace_label, expr)
+                            )
+                            has_missing_vals += 1
 
-                    if estimator:
-                        # in case we modified expression_values_df index
-                        expression_values_df.insert(
-                            loc=len(expression_values_df.columns),
-                            column=label,
-                            value=v.values if isinstance(v, pd.Series) else v,
-                        )
-
-                    utility = (v * coefficient).astype("float")
-
-                    if log_alt_losers:
-                        assert ALT_CHOOSER_ID in df
-                        max_utils_by_chooser = utility.groupby(df[ALT_CHOOSER_ID]).max()
-
-                        if (max_utils_by_chooser < simulate.ALT_LOSER_UTIL).any():
-                            losers = max_utils_by_chooser[
-                                max_utils_by_chooser < simulate.ALT_LOSER_UTIL
-                            ]
-                            logger.warning(
-                                f"{trace_label} - {len(losers)} choosers of {len(max_utils_by_chooser)} "
-                                f"with prohibitive utilities for all alternatives for expression: {expr}"
+                        if estimator:
+                            # in case we modified expression_values_df index
+                            expression_values_df.insert(
+                                loc=len(expression_values_df.columns),
+                                column=label,
+                                value=v.values if isinstance(v, pd.Series) else v,
                             )
 
-                            # loser_df = df[df[ALT_CHOOSER_ID].isin(losers.index)]
-                            # print(f"\nloser_df\n{loser_df}\n")
-                            # print(f"\nloser_max_utils_by_chooser\n{losers}\n")
-                            # bug
+                        utility = (v * coefficient).astype("float")
 
-                        del max_utils_by_chooser
+                        if log_alt_losers:
+                            assert ALT_CHOOSER_ID in df
+                            max_utils_by_chooser = utility.groupby(
+                                df[ALT_CHOOSER_ID]
+                            ).max()
 
-                    utilities.utility.values[:] += utility
+                            if (max_utils_by_chooser < simulate.ALT_LOSER_UTIL).any():
+                                losers = max_utils_by_chooser[
+                                    max_utils_by_chooser < simulate.ALT_LOSER_UTIL
+                                ]
+                                logger.warning(
+                                    f"{trace_label} - {len(losers)} choosers of {len(max_utils_by_chooser)} "
+                                    f"with prohibitive utilities for all alternatives for expression: {expr}"
+                                )
 
-                    if trace_eval_results is not None:
-                        # expressions should have been uniquified when spec was read
-                        # (though we could do it here if need be...)
-                        # expr = assign.uniquify_key(trace_eval_results, expr, template="{} # ({})")
-                        assert expr not in trace_eval_results
+                                # loser_df = df[df[ALT_CHOOSER_ID].isin(losers.index)]
+                                # print(f"\nloser_df\n{loser_df}\n")
+                                # print(f"\nloser_max_utils_by_chooser\n{losers}\n")
+                                # bug
 
-                        trace_eval_results[expr] = v[trace_rows]
-                        k = "partial utility (coefficient = %s) for %s" % (
-                            coefficient,
-                            expr,
+                            del max_utils_by_chooser
+
+                        utilities.utility.values[:] += utility
+
+                        if trace_eval_results is not None:
+                            # expressions should have been uniquified when spec was read
+                            # (though we could do it here if need be...)
+                            # expr = assign.uniquify_key(trace_eval_results, expr, template="{} # ({})")
+                            assert expr not in trace_eval_results
+
+                            trace_eval_results[expr] = v[trace_rows]
+                            k = "partial utility (coefficient = %s) for %s" % (
+                                coefficient,
+                                expr,
+                            )
+                            trace_eval_results[k] = v[trace_rows] * coefficient
+
+                        del v
+                        # chunk_sizer.log_df(trace_label, 'v', None)
+
+                    except Exception as err:
+                        logger.exception(
+                            f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}"
                         )
-                        trace_eval_results[k] = v[trace_rows] * coefficient
-
-                    del v
-                    # chunk_sizer.log_df(trace_label, 'v', None)
-
-                except Exception as err:
-                    logger.exception(
-                        f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}"
-                    )
-                    if isinstance(
-                        err, AssertionError
-                    ) and "od pairs not in skim" in str(err):
-                        logger.warning(
-                            f"recode_pipeline_columns is set to {state.settings.recode_pipeline_columns}, "
-                            f"you may want to check this"
-                        )
-                    raise err
+                        if isinstance(
+                            err, AssertionError
+                        ) and "od pairs not in skim" in str(err):
+                            logger.warning(
+                                f"recode_pipeline_columns is set to {state.settings.recode_pipeline_columns}, "
+                                f"you may want to check this"
+                            )
+                        raise err
 
             if estimator:
                 estimator.log(
@@ -572,6 +579,10 @@ def eval_interaction_utilities(
 
                     re_sh_flow_load = sh_flow.load(sh_tree, dtype=np.float32)
                     re_sh_flow_load_ = re_sh_flow_load[re_trace]
+
+                    use_bottleneck = pd.get_option("compute.use_bottleneck")
+                    use_numexpr = pd.get_option("compute.use_numexpr")
+                    use_numba = pd.get_option("compute.use_numba")
 
                     look_for_problems_here = np.where(
                         ~np.isclose(

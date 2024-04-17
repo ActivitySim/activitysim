@@ -595,7 +595,9 @@ def eval_utilities(
     if spec_sh is None:
         spec_sh = spec
 
-    if sharrow_settings is not None and sharrow_settings.skip:
+    if sharrow_settings is None:
+        sharrow_settings = SharrowSettings()
+    if sharrow_settings.skip:
         sharrow_enabled = False
 
     if sharrow_enabled:
@@ -645,42 +647,43 @@ def eval_utilities(
         chunk_sizer.log_df(trace_label, "expression_values", expression_values)
 
         i = 0
-        for expr, coefficients in zip(exprs, spec.values):
-            try:
-                with warnings.catch_warnings(record=True) as w:
-                    # Cause all warnings to always be triggered.
-                    warnings.simplefilter("always")
-                    if expr.startswith("@"):
-                        expression_value = eval(expr[1:], globals_dict, locals_dict)
-                    else:
-                        expression_value = choosers.eval(expr)
+        with sharrow_settings.pandas_option_context():
+            for expr, coefficients in zip(exprs, spec.values):
+                try:
+                    with warnings.catch_warnings(record=True) as w:
+                        # Cause all warnings to always be triggered.
+                        warnings.simplefilter("always")
+                        if expr.startswith("@"):
+                            expression_value = eval(expr[1:], globals_dict, locals_dict)
+                        else:
+                            expression_value = choosers.eval(expr)
 
-                    if len(w) > 0:
-                        for wrn in w:
-                            logger.warning(
-                                f"{trace_label} - {type(wrn).__name__} ({wrn.message}) evaluating: {str(expr)}"
-                            )
+                        if len(w) > 0:
+                            for wrn in w:
+                                logger.warning(
+                                    f"{trace_label} - {type(wrn).__name__} ({wrn.message}) evaluating: {str(expr)}"
+                                )
 
-            except Exception as err:
-                logger.exception(
-                    f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}"
-                )
-                raise err
-
-            if log_alt_losers:
-                # utils for each alt for this expression
-                # FIXME if we always did tis, we cold uem these and skip np.dot below
-                utils = np.outer(expression_value, coefficients)
-                losers = np.amax(utils, axis=1) < ALT_LOSER_UTIL
-
-                if losers.any():
-                    logger.warning(
-                        f"{trace_label} - {sum(losers)} choosers of {len(losers)} "
-                        f"with prohibitive utilities for all alternatives for expression: {expr}"
+                except Exception as err:
+                    logger.exception(
+                        f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}"
                     )
+                    raise err
 
-            expression_values[i] = expression_value
-            i += 1
+                if log_alt_losers:
+                    # utils for each alt for this expression
+                    # FIXME if we always did tis, we cold uem these and skip np.dot below
+                    utils = np.outer(expression_value, coefficients)
+                    losers = np.amax(utils, axis=1) < ALT_LOSER_UTIL
+
+                    if losers.any():
+                        logger.warning(
+                            f"{trace_label} - {sum(losers)} choosers of {len(losers)} "
+                            f"with prohibitive utilities for all alternatives for expression: {expr}"
+                        )
+
+                expression_values[i] = expression_value
+                i += 1
 
         chunk_sizer.log_df(trace_label, "expression_values", expression_values)
 

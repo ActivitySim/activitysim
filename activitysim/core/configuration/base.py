@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Literal, TypeVar, Union  # noqa: F401
 
+import pandas as pd
 from pydantic import BaseModel as PydanticBase
 
 from activitysim.core import configuration
@@ -170,6 +172,35 @@ class SharrowSettings(PydanticBase):
     this setting off.
     """
 
+    use_bottleneck: bool | None = None
+    """Use the bottleneck library with pandas.eval.
+
+    Set to True or False to force the use of bottleneck or not. If set to None,
+    the current pandas option setting of `compute.use_bottleneck` will be used.
+
+    See https://pandas.pydata.org/docs/reference/api/pandas.set_option.html
+    for more information."""
+
+    use_numexpr: bool | None = None
+    """Use the numexpr library with pandas.eval.
+
+    Set to True or False to force the use of numexpr or not. If set to None,
+    the current pandas option setting of `compute.use_numexpr` will be used.
+
+    See https://pandas.pydata.org/docs/reference/api/pandas.set_option.html
+    for more information.
+    """
+
+    use_numba: bool | None = None
+    """Use the numba library with pandas.eval.
+
+    Set to True or False to force the use of numba or not. If set to None,
+    the current pandas option setting of `compute.use_numba` will be used.
+
+    See https://pandas.pydata.org/docs/reference/api/pandas.set_option.html
+    for more information.
+    """
+
     def should_skip(self, subcomponent: str) -> bool:
         """Check if sharrow should be skipped for a particular subcomponent."""
         if isinstance(self.skip, dict):
@@ -177,11 +208,30 @@ class SharrowSettings(PydanticBase):
         else:
             return bool(self.skip)
 
+    @contextmanager
+    def pandas_option_context(self):
+        """Context manager to set pandas options for compute settings."""
+        args = ()
+        if self.use_bottleneck is not None:
+            args += ("compute.use_bottleneck", self.use_bottleneck)
+        if self.use_numexpr is not None:
+            args += ("compute.use_numexpr", self.use_numexpr)
+        if self.use_numba is not None:
+            args += ("compute.use_numba", self.use_numba)
+        if args:
+            with pd.option_context(*args):
+                yield
+        else:
+            yield
+
     def subcomponent_settings(self, subcomponent: str) -> SharrowSettings:
         """Get the sharrow settings for a particular subcomponent."""
         return SharrowSettings(
             skip=self.should_skip(subcomponent),
             fastmath=self.fastmath,
+            use_bottleneck=self.use_bottleneck,
+            use_numexpr=self.use_numexpr,
+            use_numba=self.use_numba,
         )
 
 

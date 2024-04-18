@@ -13,6 +13,7 @@ from activitysim.core import (
     logit,
     simulate,
     tracing,
+    util,
     workflow,
 )
 from activitysim.core.configuration.base import ComputeSettings
@@ -240,6 +241,21 @@ def _interaction_sample(
 
     interaction_utilities = None
     interaction_utilities_sh = None
+
+    # drop variables before the interaction dataframe is created
+
+    # check if tracing is enabled and if we have trace targets
+    # if not estimation mode, drop unused columns
+    if not have_trace_targets:
+
+        choosers = util.drop_unused_chooser_columns(
+            choosers,
+            spec,
+            locals_d,
+            custom_chooser=None,
+            sharrow_enabled=sharrow_enabled,
+        )
+
     if sharrow_enabled:
         (
             interaction_utilities,

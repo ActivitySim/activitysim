@@ -8,7 +8,7 @@ import pydantic
 from pydantic import BaseModel as PydanticBase
 from pydantic import model_validator, validator
 
-from activitysim.core.configuration.base import PreprocessorSettings, PydanticSharrow
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticCompute
 
 
 class LogitNestSpec(PydanticBase):
@@ -45,7 +45,7 @@ class LogitNestSpec(PydanticBase):
         return coefficient_value
 
 
-class BaseLogitComponentSettings(PydanticSharrow):
+class BaseLogitComponentSettings(PydanticCompute):
     """
     Base configuration class for components that are logit models.
 

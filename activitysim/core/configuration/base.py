@@ -208,6 +208,9 @@ class ComputeSettings(PydanticBase):
     Default to True. If set to False, all columns in the data table will be kept.
     """
 
+    protect_columns: list[str] = []
+    """Protect these columns from being dropped from the chooser table."""
+
     def should_skip(self, subcomponent: str) -> bool:
         """Check if sharrow should be skipped for a particular subcomponent."""
         if isinstance(self.sharrow_skip, dict):

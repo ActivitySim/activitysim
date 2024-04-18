@@ -1550,6 +1550,7 @@ def _simple_simulate(
             locals_d,
             custom_chooser,
             sharrow_enabled=sharrow_enabled,
+            additional_columns=compute_settings.protect_columns,
         )
 
     if nest_spec is None:

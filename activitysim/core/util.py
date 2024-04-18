@@ -641,7 +641,12 @@ def zarr_file_modification_time(zarr_dir: Path):
 
 
 def drop_unused_columns(
-    choosers, spec, locals_d, custom_chooser, sharrow_enabled=False
+    choosers,
+    spec,
+    locals_d,
+    custom_chooser,
+    sharrow_enabled=False,
+    additional_columns=None,
 ):
     """
     Drop unused columns from the chooser table, based on the spec and custom_chooser function.
@@ -655,6 +660,8 @@ def drop_unused_columns(
     unique_variables_in_spec = set(
         spec.reset_index()["Expression"].apply(lambda x: re.findall(pattern, x)).sum()
     )
+
+    unique_variables_in_spec |= set(additional_columns or [])
 
     if locals_d:
         unique_variables_in_spec.add(locals_d.get("orig_col_name", None))

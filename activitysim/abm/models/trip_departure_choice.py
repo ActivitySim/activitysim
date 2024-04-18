@@ -22,7 +22,7 @@ from activitysim.core import (
 from activitysim.core.configuration.base import (
     ComputeSettings,
     PreprocessorSettings,
-    PydanticSharrow,
+    PydanticCompute,
 )
 from activitysim.core.skim_dataset import SkimDataset
 from activitysim.core.skim_dictionary import SkimDict
@@ -501,7 +501,7 @@ def apply_stage_two_model(
     return trips["depart"].astype(int)
 
 
-class TripDepartureChoiceSettings(PydanticSharrow, extra="forbid"):
+class TripDepartureChoiceSettings(PydanticCompute, extra="forbid"):
     """
     Settings for the `trip_departure_choice` component.
     """

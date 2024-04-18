@@ -235,7 +235,7 @@ class ComputeSettings(PydanticBase):
         )
 
 
-class PydanticSharrow(PydanticReadable):
+class PydanticCompute(PydanticReadable):
     """Base class for component settings that include optional sharrow controls."""
 
     compute_settings: ComputeSettings = ComputeSettings()

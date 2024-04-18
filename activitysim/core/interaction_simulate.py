@@ -91,12 +91,6 @@ def eval_interaction_utilities(
     if compute_settings.sharrow_skip:
         sharrow_enabled = False
 
-    # if locals_d is not None and locals_d.get("_sharrow_skip", False):
-    #     sharrow_enabled = False
-
-    # if trace_label.startswith("trip_destination"):
-    #     sharrow_enabled = False
-
     logger.info(f"{trace_label} sharrow_enabled is {sharrow_enabled}")
 
     trace_eval_results = None

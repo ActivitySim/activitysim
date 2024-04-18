@@ -418,7 +418,7 @@ def joint_tour_participation(
         trace_choice_name="participation",
         custom_chooser=participants_chooser,
         estimator=estimator,
-        sharrow_settings=model_settings.sharrow_settings,
+        compute_settings=model_settings.compute_settings,
     )
 
     # choice is boolean (participate or not)

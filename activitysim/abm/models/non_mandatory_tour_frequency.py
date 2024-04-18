@@ -321,7 +321,7 @@ def non_mandatory_tour_frequency(
             trace_choice_name="non_mandatory_tour_frequency",
             estimator=estimator,
             explicit_chunk_size=model_settings.explicit_chunk,
-            sharrow_settings=model_settings.sharrow_settings,
+            compute_settings=model_settings.compute_settings,
         )
 
         if estimator:

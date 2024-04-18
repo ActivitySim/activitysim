@@ -500,9 +500,9 @@ def school_escorting(
             state, model_spec_raw, coefficients_df, estimator
         )
 
-        # allow for skipping sharrow entirely in this model with `sharrow_settings.skip: true`
+        # allow for skipping sharrow entirely in this model with `compute_settings.sharrow_skip: true`
         # or skipping stages selectively with a mapping of the stages to skip
-        stage_sharrow_settings = model_settings.sharrow_settings.subcomponent_settings(
+        stage_compute_settings = model_settings.compute_settings.subcomponent_settings(
             stage.upper()
         )
         # if stage_sharrow_skip:
@@ -572,7 +572,7 @@ def school_escorting(
             trace_choice_name="school_escorting_" + stage,
             estimator=estimator,
             explicit_chunk_size=model_settings.explicit_chunk,
-            sharrow_settings=stage_sharrow_settings,
+            compute_settings=stage_compute_settings,
         )
 
         if estimator:

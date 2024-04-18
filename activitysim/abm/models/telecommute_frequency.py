@@ -99,7 +99,7 @@ def telecommute_frequency(
         trace_label=trace_label,
         trace_choice_name="telecommute_frequency",
         estimator=estimator,
-        sharrow_settings=model_settings.sharrow_settings,
+        compute_settings=model_settings.compute_settings,
     )
 
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)

@@ -20,7 +20,7 @@ from activitysim.core import (
     tracing,
     workflow,
 )
-from activitysim.core.configuration.base import SharrowSettings
+from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.pathbuilder_cache import memo
 from activitysim.core.util import reindex
 
@@ -89,7 +89,7 @@ def compute_utilities(
             trace_label=trace_label,
             trace_column_names=trace_column_names,
             chunk_sizer=chunk_sizer,
-            sharrow_settings=SharrowSettings(skip=True),
+            compute_settings=ComputeSettings(sharrow_skip=True),
         )
 
     return utilities

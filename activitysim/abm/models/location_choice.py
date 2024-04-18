@@ -192,6 +192,9 @@ def _location_sample(
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer=zone_layer,
+        compute_settings=model_settings.compute_settings.subcomponent_settings(
+            "sample"
+        ),
     )
 
     return choices
@@ -696,6 +699,9 @@ def run_location_simulate(
         trace_choice_name=model_settings.DEST_CHOICE_COLUMN_NAME,
         estimator=estimator,
         skip_choice=skip_choice,
+        compute_settings=model_settings.compute_settings.subcomponent_settings(
+            "simulate"
+        ),
     )
 
     if not want_logsums:

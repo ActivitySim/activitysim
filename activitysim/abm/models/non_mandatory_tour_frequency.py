@@ -12,8 +12,8 @@ import pandas as pd
 
 from activitysim.abm.models.util import annotate
 from activitysim.abm.models.util.overlap import (
-    person_max_window,
     person_available_periods,
+    person_max_window,
 )
 from activitysim.abm.models.util.school_escort_tours_trips import (
     recompute_tour_count_statistics,
@@ -161,7 +161,7 @@ class NonMandatoryTourSpecSegment(PydanticReadable):
     COEFFICIENTS: Path
 
 
-class NonMandatoryTourFrequencySettings(LogitComponentSettings):
+class NonMandatoryTourFrequencySettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `non_mandatory_tour_frequency` component.
     """
@@ -321,6 +321,7 @@ def non_mandatory_tour_frequency(
             trace_choice_name="non_mandatory_tour_frequency",
             estimator=estimator,
             explicit_chunk_size=model_settings.explicit_chunk,
+            compute_settings=model_settings.compute_settings,
         )
 
         if estimator:

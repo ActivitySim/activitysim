@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Any, Literal
 
+import pydantic
 from pydantic import BaseModel as PydanticBase
-from pydantic import validator
+from pydantic import model_validator, validator
 
-from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticCompute
 
 
 class LogitNestSpec(PydanticBase):
@@ -43,7 +45,7 @@ class LogitNestSpec(PydanticBase):
         return coefficient_value
 
 
-class BaseLogitComponentSettings(PydanticReadable):
+class BaseLogitComponentSettings(PydanticCompute):
     """
     Base configuration class for components that are logit models.
 
@@ -75,8 +77,35 @@ class BaseLogitComponentSettings(PydanticReadable):
     CONSTANTS: dict[str, Any] = {}
     """Named constants usable in the utility expressions."""
 
-    sharrow_skip: bool = False
-    """Skip sharrow when evaluating this component."""
+    # sharrow_skip is deprecated in factor of compute_settings.sharrow_skip
+    @model_validator(mode="before")
+    @classmethod
+    def update_sharrow_skip(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "sharrow_skip" in data:
+                if "compute_settings" not in data:
+                    # move to new format
+                    data["compute_settings"] = {"sharrow_skip": data["sharrow_skip"]}
+                    del data["sharrow_skip"]
+                    warnings.warn(
+                        "sharrow_skip is deprecated in favor of compute_settings.sharrow_skip",
+                        DeprecationWarning,
+                    )
+                elif (
+                    isinstance(data["compute_settings"], dict)
+                    and "sharrow_skip" not in data["compute_settings"]
+                ):
+                    data["compute_settings"]["sharrow_skip"] = data["sharrow_skip"]
+                    del data["sharrow_skip"]
+                    warnings.warn(
+                        "sharrow_skip is deprecated in favor of compute_settings.skip",
+                        DeprecationWarning,
+                    )
+                elif "sharrow_skip" in data["compute_settings"]:
+                    raise ValueError(
+                        "sharrow_skip and compute_settings.sharrow_skip cannot both be defined"
+                    )
+        return data
 
 
 class LogitComponentSettings(BaseLogitComponentSettings):
@@ -134,7 +163,7 @@ class LogitComponentSettings(BaseLogitComponentSettings):
         return nests
 
 
-class TemplatedLogitComponentSettings(LogitComponentSettings):
+class TemplatedLogitComponentSettings(LogitComponentSettings, extra="forbid"):
     """
     Base configuration for segmented logit models with a coefficient template.
     """
@@ -203,7 +232,7 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     The number of alternatives to sample for estimation mode.
     If zero, then all alternatives are used.
     Truth alternative will be included in the sample.
-    Larch does not yet support sampling alternatives for estimation, 
+    Larch does not yet support sampling alternatives for estimation,
     but this setting is still helpful for estimation mode runtime.
     """
 

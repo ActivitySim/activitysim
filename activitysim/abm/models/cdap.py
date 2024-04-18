@@ -17,7 +17,11 @@ from activitysim.core import (
     tracing,
     workflow,
 )
-from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.base import (
+    ComputeSettings,
+    PreprocessorSettings,
+    PydanticReadable,
+)
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
@@ -34,6 +38,7 @@ class CdapSettings(PydanticReadable, extra="forbid"):
     annotate_households: PreprocessorSettings | None = None
     COEFFICIENTS: Path
     CONSTANTS: dict[str, Any] = {}
+    compute_settings: ComputeSettings | None = None
 
 
 @workflow.step
@@ -202,6 +207,7 @@ def cdap_simulate(
             trace_hh_id=trace_hh_id,
             trace_label=trace_label,
             add_joint_tour_utility=add_joint_tour_utility,
+            compute_settings=model_settings.compute_settings,
         )
     else:
         choices = cdap.run_cdap(
@@ -215,6 +221,7 @@ def cdap_simulate(
             chunk_size=state.settings.chunk_size,
             trace_hh_id=trace_hh_id,
             trace_label=trace_label,
+            compute_settings=model_settings.compute_settings,
         )
 
     if estimator:

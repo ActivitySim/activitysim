@@ -216,6 +216,9 @@ def _od_sample(
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer="taz",
+        compute_settings=model_settings.compute_settings.subcomponent_settings(
+            "sample"
+        ),
     )
 
     return choices

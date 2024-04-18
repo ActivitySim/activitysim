@@ -9,20 +9,21 @@ from pydantic import validator
 
 from activitysim.core import (
     config,
-    expressions,
     estimation,
+    expressions,
     simulate,
     tracing,
     workflow,
 )
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.configuration.logit import LogitComponentSettings
+
 from .util import annotate
 
 logger = logging.getLogger(__name__)
 
 
-class AutoOwnershipSettings(LogitComponentSettings):
+class AutoOwnershipSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `auto_ownership` component.
     """
@@ -99,6 +100,7 @@ def auto_ownership_simulate(
         trace_choice_name="auto_ownership",
         log_alt_losers=log_alt_losers,
         estimator=estimator,
+        compute_settings=model_settings.compute_settings,
     )
 
     if estimator:

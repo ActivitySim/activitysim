@@ -70,7 +70,7 @@ def run_tour_scheduling(
         # load segmented specs
         spec_segment_settings = model_settings.SPEC_SEGMENTS
         specs = {}
-        sharrow_settings = {}
+        compute_settings = {}
         for spec_segment_name, spec_settings in spec_segment_settings.items():
             bundle_name = f"{model_name}_{spec_segment_name}"
 
@@ -85,9 +85,9 @@ def run_tour_scheduling(
             specs[spec_segment_name] = simulate.eval_coefficients(
                 state, model_spec, coefficients_df, estimator
             )
-            sharrow_settings[
+            compute_settings[
                 spec_segment_name
-            ] = spec_settings.sharrow_settings.subcomponent_settings(spec_segment_name)
+            ] = spec_settings.compute_settings.subcomponent_settings(spec_segment_name)
 
             if estimator:
                 estimators[spec_segment_name] = estimator  # add to local list
@@ -102,7 +102,7 @@ def run_tour_scheduling(
             tour_segments[tour_segment_name] = {}
             tour_segments[tour_segment_name]["spec_segment_name"] = spec_segment_name
             tour_segments[tour_segment_name]["spec"] = specs[spec_segment_name]
-            tour_segments[tour_segment_name]["sharrow_settings"] = sharrow_settings[
+            tour_segments[tour_segment_name]["compute_settings"] = compute_settings[
                 spec_segment_name
             ]
             tour_segments[tour_segment_name]["estimator"] = estimators.get(
@@ -140,7 +140,7 @@ def run_tour_scheduling(
         tour_segments = {
             "spec": model_spec,
             "estimator": estimator,
-            "sharrow_settings": model_settings.sharrow_settings,
+            "compute_settings": model_settings.compute_settings,
         }
 
     if estimators:

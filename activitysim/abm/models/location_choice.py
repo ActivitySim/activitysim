@@ -192,7 +192,7 @@ def _location_sample(
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer=zone_layer,
-        sharrow_settings=model_settings.sharrow_settings.subcomponent_settings(
+        compute_settings=model_settings.compute_settings.subcomponent_settings(
             "sample"
         ),
     )
@@ -699,7 +699,7 @@ def run_location_simulate(
         trace_choice_name=model_settings.DEST_CHOICE_COLUMN_NAME,
         estimator=estimator,
         skip_choice=skip_choice,
-        sharrow_settings=model_settings.sharrow_settings.subcomponent_settings(
+        compute_settings=model_settings.compute_settings.subcomponent_settings(
             "simulate"
         ),
     )

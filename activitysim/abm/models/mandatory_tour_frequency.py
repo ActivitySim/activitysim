@@ -134,7 +134,7 @@ def mandatory_tour_frequency(
         trace_label=trace_label,
         trace_choice_name="mandatory_tour_frequency",
         estimator=estimator,
-        sharrow_settings=model_settings.sharrow_settings,
+        compute_settings=model_settings.compute_settings,
     )
 
     # convert indexes to alternative names

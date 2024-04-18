@@ -72,10 +72,8 @@ def transit_pass_subsidy(
         )
 
     filter_col = model_settings.CHOOSER_FILTER_COLUMN_NAME
-    if filter_col is None:
-        choosers = persons_merged
-    else:
-        choosers = persons_merged[persons_merged[filter_col]]
+    if filter_col is not None:
+        choosers = choosers[choosers[filter_col]]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
     model_spec = state.filesystem.read_model_spec(model_settings.SPEC)

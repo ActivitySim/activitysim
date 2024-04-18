@@ -14,7 +14,7 @@ from activitysim.abm.models.tour_mode_choice import TourModeComponentSettings
 from activitysim.core import chunk, config, expressions, los, simulate
 from activitysim.core import timetable as tt
 from activitysim.core import tracing, workflow
-from activitysim.core.configuration.base import PreprocessorSettings, SharrowSettings
+from activitysim.core.configuration.base import ComputeSettings, PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
@@ -224,7 +224,7 @@ def _compute_logsums(
             locals_d=locals_dict,
             chunk_size=0,
             trace_label=trace_label,
-            sharrow_settings=model_settings.sharrow_settings,
+            compute_settings=model_settings.compute_settings,
         )
 
     return logsums
@@ -707,7 +707,7 @@ def _schedule_tours(
     estimator,
     tour_trace_label,
     *,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
     chunk_sizer: chunk.ChunkSizer,
 ):
     """
@@ -857,7 +857,7 @@ def _schedule_tours(
         chunk_size=0,
         trace_label=tour_trace_label,
         estimator=estimator,
-        sharrow_settings=sharrow_settings,
+        compute_settings=compute_settings,
     )
     chunk_sizer.log_df(tour_trace_label, "choices", choices)
 
@@ -888,7 +888,7 @@ def schedule_tours(
     chunk_size,
     tour_trace_label,
     tour_chunk_tag,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     chunking wrapper for _schedule_tours
@@ -946,7 +946,7 @@ def schedule_tours(
             tour_owner_id_col,
             estimator,
             tour_trace_label=chunk_trace_label,
-            sharrow_settings=sharrow_settings,
+            compute_settings=compute_settings,
             chunk_sizer=chunk_sizer,
         )
 
@@ -1099,7 +1099,7 @@ def vectorize_tour_scheduling(
                     chunk_size=chunk_size,
                     tour_trace_label=segment_trace_label,
                     tour_chunk_tag=segment_chunk_tag,
-                    sharrow_settings=tour_segment_info.get("sharrow_settings"),
+                    compute_settings=tour_segment_info.get("compute_settings"),
                 )
 
                 choice_list.append(choices)
@@ -1129,7 +1129,7 @@ def vectorize_tour_scheduling(
                 chunk_size=chunk_size,
                 tour_trace_label=tour_trace_label,
                 tour_chunk_tag=tour_chunk_tag,
-                sharrow_settings=tour_segments.get("sharrow_settings"),
+                compute_settings=tour_segments.get("compute_settings"),
             )
 
             choice_list.append(choices)
@@ -1149,7 +1149,7 @@ def vectorize_subtour_scheduling(
     estimator,
     chunk_size=0,
     trace_label=None,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Like vectorize_tour_scheduling but specifically for atwork subtours
@@ -1248,7 +1248,7 @@ def vectorize_subtour_scheduling(
             state.settings.chunk_size,
             tour_trace_label,
             tour_chunk_tag,
-            sharrow_settings=sharrow_settings,
+            compute_settings=compute_settings,
         )
 
         choice_list.append(choices)
@@ -1303,7 +1303,7 @@ def vectorize_joint_tour_scheduling(
     estimator,
     chunk_size=0,
     trace_label=None,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Like vectorize_tour_scheduling but specifically for joint tours
@@ -1396,7 +1396,7 @@ def vectorize_joint_tour_scheduling(
             chunk_size,
             tour_trace_label,
             tour_chunk_tag,
-            sharrow_settings=sharrow_settings,
+            compute_settings=compute_settings,
         )
 
         # - update timetables of all joint tour participants

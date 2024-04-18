@@ -7,8 +7,8 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, interaction_simulate, logit, tracing, workflow
-from activitysim.core.configuration.base import SharrowSettings
+from activitysim.core import chunk, interaction_simulate, logit, tracing, util, workflow
+from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.simulate import set_skim_wrapper_targets
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ def _interaction_sample_simulate(
     skip_choice=False,
     *,
     chunk_sizer: chunk.ChunkSizer,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -136,6 +136,22 @@ def _interaction_sample_simulate(
     logger.info(
         f"{trace_label} start merging choosers and alternatives to create interaction_df"
     )
+
+    # drop variables before the interaction dataframe is created
+    sharrow_enabled = state.settings.sharrow
+
+    # check if tracing is enabled and if we have trace targets
+    # if not estimation mode, drop unused columns
+    if not have_trace_targets:
+
+        choosers = util.drop_unused_chooser_columns(
+            choosers,
+            spec,
+            locals_d,
+            custom_chooser=None,
+            sharrow_enabled=sharrow_enabled,
+        )
+
     interaction_df = alternatives.join(choosers, how="left", rsuffix="_chooser")
     logger.info(
         f"{trace_label} end merging choosers and alternatives to create interaction_df"
@@ -183,7 +199,7 @@ def _interaction_sample_simulate(
         trace_rows,
         estimator=estimator,
         log_alt_losers=log_alt_losers,
-        sharrow_settings=sharrow_settings,
+        compute_settings=compute_settings,
     )
     chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
 
@@ -379,7 +395,7 @@ def interaction_sample_simulate(
     estimator=None,
     skip_choice=False,
     *,
-    sharrow_settings: SharrowSettings | None = None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run a simulation in the situation in which alternatives must
@@ -469,7 +485,7 @@ def interaction_sample_simulate(
             estimator,
             skip_choice,
             chunk_sizer=chunk_sizer,
-            sharrow_settings=sharrow_settings,
+            compute_settings=compute_settings,
         )
 
         result_list.append(choices)

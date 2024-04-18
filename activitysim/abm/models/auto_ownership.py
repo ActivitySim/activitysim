@@ -36,6 +36,7 @@ def auto_ownership_simulate(
     state: workflow.State,
     households: pd.DataFrame,
     households_merged: pd.DataFrame,
+    # FIXME: persons_merged not used but included, see #853
     persons_merged: pd.DataFrame,
     model_settings: AutoOwnershipSettings | None = None,
     model_settings_file_name: str = "auto_ownership.yaml",

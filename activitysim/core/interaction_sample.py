@@ -242,11 +242,14 @@ def _interaction_sample(
     interaction_utilities = None
     interaction_utilities_sh = None
 
+    if compute_settings is None:
+        compute_settings = ComputeSettings()
+
     # drop variables before the interaction dataframe is created
 
     # check if tracing is enabled and if we have trace targets
     # if not estimation mode, drop unused columns
-    if not have_trace_targets:
+    if (not have_trace_targets) and (compute_settings.drop_unused_columns):
 
         choosers = util.drop_unused_chooser_columns(
             choosers,

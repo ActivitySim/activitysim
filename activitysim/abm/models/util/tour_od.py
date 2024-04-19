@@ -1057,6 +1057,7 @@ def run_od_simulate(
         trace_label=trace_label,
         trace_choice_name="origin_destination",
         estimator=estimator,
+        compute_settings=model_settings.compute_settings,
     )
 
     if not want_logsums:

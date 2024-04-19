@@ -201,6 +201,13 @@ class ComputeSettings(PydanticBase):
     for more information.
     """
 
+    drop_unused_columns: bool = True
+    """Drop unused columns in the choosers df.
+
+    Set to True or False to drop unused columns in data table for specific component.
+    Default to True. If set to False, all columns in the data table will be kept.
+    """
+
     def should_skip(self, subcomponent: str) -> bool:
         """Check if sharrow should be skipped for a particular subcomponent."""
         if isinstance(self.sharrow_skip, dict):
@@ -232,6 +239,7 @@ class ComputeSettings(PydanticBase):
             use_bottleneck=self.use_bottleneck,
             use_numexpr=self.use_numexpr,
             use_numba=self.use_numba,
+            drop_unused_columns=self.drop_unused_columns,
         )
 
 

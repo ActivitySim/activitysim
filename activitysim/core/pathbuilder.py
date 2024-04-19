@@ -20,6 +20,7 @@ from activitysim.core import (
     tracing,
     workflow,
 )
+from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.pathbuilder_cache import memo
 from activitysim.core.util import reindex
 
@@ -56,7 +57,7 @@ def compute_utilities(
             f"{trace_label} Running compute_utilities with {choosers.shape[0]} choosers"
         )
 
-        locals_dict = {"np": np, "los": network_los, "disable_sharrow": True}
+        locals_dict = {"np": np, "los": network_los}
         locals_dict.update(model_constants)
 
         # we don't grok coefficients, but allow them to use constants in spec alt columns
@@ -88,6 +89,7 @@ def compute_utilities(
             trace_label=trace_label,
             trace_column_names=trace_column_names,
             chunk_sizer=chunk_sizer,
+            compute_settings=ComputeSettings(sharrow_skip=True),
         )
 
     return utilities

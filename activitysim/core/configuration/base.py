@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Literal, TypeVar, Union  # noqa: F401
 
+import pandas as pd
 from pydantic import BaseModel as PydanticBase
 
 from activitysim.core import configuration
@@ -126,3 +128,115 @@ class PreprocessorSettings(PydanticBase):
     number of merged tables as the memory requirements for the preprocessor
     will increase with each table.
     """
+
+
+class ComputeSettings(PydanticBase):
+    """
+    Sharrow settings for a component.
+    """
+
+    sharrow_skip: bool | dict[str, bool] = False
+    """Skip sharrow when evaluating this component.
+
+    This overrides the global sharrow setting, and is useful if you want to skip
+    sharrow for particular components, either because their specifications are
+    not compatible with sharrow or if the sharrow performance is known to be
+    poor on this component.
+
+    When a component has multiple subcomponents, the `sharrow_skip` setting can be
+    a dictionary that maps the names of the subcomponents to boolean values.
+    For example, to skip sharrow for an OUTBOUND and OUTBOUND_COND subcomponent
+    but not the INBOUND subcomponent, use the following setting:
+
+    ```yaml
+    sharrow_skip:
+        OUTBOUND: true
+        INBOUND: false
+        OUTBOUND_COND: true
+    ```
+
+    Alternatively, even for components with multiple subcomponents, the `sharrow_skip`
+    value can be a single boolean true or false, which will be used for all
+    subcomponents.
+
+    """
+
+    fastmath: bool = True
+    """Use fastmath when evaluating this component with sharrow.
+
+    The fastmath option can be used to speed up the evaluation of expressions in
+    this component's spec files, but it does so by making some simplifying
+    assumptions about the math, e.g. that neither inputs nor outputs of any
+    computations are NaN or Inf.  This can lead to errors when the assumptions
+    are violated.  If running in sharrow test mode generates errors, try turning
+    this setting off.
+    """
+
+    use_bottleneck: bool | None = None
+    """Use the bottleneck library with pandas.eval.
+
+    Set to True or False to force the use of bottleneck or not. If set to None,
+    the current pandas option setting of `compute.use_bottleneck` will be used.
+
+    See https://pandas.pydata.org/docs/reference/api/pandas.set_option.html
+    for more information."""
+
+    use_numexpr: bool | None = None
+    """Use the numexpr library with pandas.eval.
+
+    Set to True or False to force the use of numexpr or not. If set to None,
+    the current pandas option setting of `compute.use_numexpr` will be used.
+
+    See https://pandas.pydata.org/docs/reference/api/pandas.set_option.html
+    for more information.
+    """
+
+    use_numba: bool | None = None
+    """Use the numba library with pandas.eval.
+
+    Set to True or False to force the use of numba or not. If set to None,
+    the current pandas option setting of `compute.use_numba` will be used.
+
+    See https://pandas.pydata.org/docs/reference/api/pandas.set_option.html
+    for more information.
+    """
+
+    def should_skip(self, subcomponent: str) -> bool:
+        """Check if sharrow should be skipped for a particular subcomponent."""
+        if isinstance(self.sharrow_skip, dict):
+            return self.sharrow_skip.get(subcomponent, False)
+        else:
+            return bool(self.sharrow_skip)
+
+    @contextmanager
+    def pandas_option_context(self):
+        """Context manager to set pandas options for compute settings."""
+        args = ()
+        if self.use_bottleneck is not None:
+            args += ("compute.use_bottleneck", self.use_bottleneck)
+        if self.use_numexpr is not None:
+            args += ("compute.use_numexpr", self.use_numexpr)
+        if self.use_numba is not None:
+            args += ("compute.use_numba", self.use_numba)
+        if args:
+            with pd.option_context(*args):
+                yield
+        else:
+            yield
+
+    def subcomponent_settings(self, subcomponent: str) -> ComputeSettings:
+        """Get the sharrow settings for a particular subcomponent."""
+        return ComputeSettings(
+            sharrow_skip=self.should_skip(subcomponent),
+            fastmath=self.fastmath,
+            use_bottleneck=self.use_bottleneck,
+            use_numexpr=self.use_numexpr,
+            use_numba=self.use_numba,
+        )
+
+
+class PydanticCompute(PydanticReadable):
+    """Base class for component settings that include optional sharrow controls."""
+
+    compute_settings: ComputeSettings = ComputeSettings()
+    """Sharrow settings for this component."""

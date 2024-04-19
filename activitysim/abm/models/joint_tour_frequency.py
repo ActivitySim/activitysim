@@ -112,6 +112,7 @@ def joint_tour_frequency(
         trace_label=trace_label,
         trace_choice_name="joint_tour_frequency",
         estimator=estimator,
+        compute_settings=model_settings.compute_settings,
     )
 
     # convert indexes to alternative names

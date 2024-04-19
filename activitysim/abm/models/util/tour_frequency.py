@@ -637,7 +637,7 @@ class JointTourFreqCompAlts(PydanticReadable):
     COMPOSITION: JointTourFreqCompContent
 
 
-class JointTourFreqCompSettings(LogitComponentSettings):
+class JointTourFreqCompSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for joint tour frequency and composition.
     """

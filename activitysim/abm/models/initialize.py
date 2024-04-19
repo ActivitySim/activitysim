@@ -178,6 +178,10 @@ def initialize_households(
         suffixes = disaggregate_accessibility.disaggregate_suffixes(state)
         shadow_pricing.add_size_tables(state, suffixes)
 
+        # create disaggregate_accessibility table if not model was run
+        if state.is_table("proto_disaggregate_accessibility"):
+            disaggregate_accessibility.disaggregate_accessibility(state)
+
         # - preload person_windows
         person_windows = state.get_dataframe("person_windows")
         chunk_sizer.log_df(trace_label, "person_windows", person_windows)

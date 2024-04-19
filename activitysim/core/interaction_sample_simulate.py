@@ -7,7 +7,9 @@ import logging
 import numpy as np
 import pandas as pd
 
+
 from activitysim.core import chunk, interaction_simulate, logit, tracing, workflow, util
+from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.simulate import set_skim_wrapper_targets
 
 logger = logging.getLogger(__name__)
@@ -31,6 +33,7 @@ def _interaction_sample_simulate(
     skip_choice=False,
     *,
     chunk_sizer: chunk.ChunkSizer,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -197,6 +200,7 @@ def _interaction_sample_simulate(
         trace_rows,
         estimator=estimator,
         log_alt_losers=log_alt_losers,
+        compute_settings=compute_settings,
     )
     chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
 
@@ -391,6 +395,8 @@ def interaction_sample_simulate(
     trace_choice_name=None,
     estimator=None,
     skip_choice=False,
+    *,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run a simulation in the situation in which alternatives must
@@ -480,6 +486,7 @@ def interaction_sample_simulate(
             estimator,
             skip_choice,
             chunk_sizer=chunk_sizer,
+            compute_settings=compute_settings,
         )
 
         result_list.append(choices)

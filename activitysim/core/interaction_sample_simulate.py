@@ -152,7 +152,7 @@ def _interaction_sample_simulate(
         and (compute_settings.drop_unused_columns)
     ):
 
-        choosers = util.drop_unused_chooser_columns(
+        choosers = util.drop_unused_columns(
             choosers,
             spec,
             locals_d,

@@ -640,7 +640,7 @@ def zarr_file_modification_time(zarr_dir: Path):
     return t
 
 
-def drop_unused_chooser_columns(
+def drop_unused_columns(
     choosers, spec, locals_d, custom_chooser, sharrow_enabled=False
 ):
     """

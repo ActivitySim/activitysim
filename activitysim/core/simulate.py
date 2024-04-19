@@ -1544,7 +1544,7 @@ def _simple_simulate(
         and (compute_settings.drop_unused_columns)
     ):
         # drop unused variables in chooser table
-        choosers = util.drop_unused_chooser_columns(
+        choosers = util.drop_unused_columns(
             choosers,
             spec,
             locals_d,
@@ -1982,7 +1982,7 @@ def _simple_simulate_logsums(
     # if tracing is not enabled, drop unused columns
     if (not have_trace_targets) and (compute_settings.drop_unused_columns):
         # drop unused variables in chooser table
-        choosers = util.drop_unused_chooser_columns(
+        choosers = util.drop_unused_columns(
             choosers,
             spec,
             locals_d,

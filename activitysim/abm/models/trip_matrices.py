@@ -13,6 +13,7 @@ import pandas as pd
 from activitysim.core import config, expressions, los, workflow
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.configuration.logit import LogitComponentSettings
+from activitysim.abm.models.parking_location_choice import ParkingLocationSettings
 
 logger = logging.getLogger(__name__)
 
@@ -93,16 +94,35 @@ def write_trip_matrices(
         state.add_table("trips", trips_df)
 
     if "parking_location" in state.settings.models:
-        parking_settings = state.filesystem.read_model_settings(
-            "parking_location_choice.yaml"
+        parking_settings = ParkingLocationSettings.read_settings_file(
+            state.filesystem,
+            "parking_location_choice.yaml",
         )
-        parking_taz_col_name = parking_settings["ALT_DEST_COL_NAME"]
+        parking_taz_col_name = parking_settings.ALT_DEST_COL_NAME
+        if ~(trips_df["trip_mode"].isin(parking_settings.AUTO_MODES)).any():
+            logger.warning(
+                f"Parking location choice model is enabled, but none of {parking_settings.AUTO_MODES} auto modes found in trips table."
+                "See AUTO_MODES setting in parking_location_choice.yaml."
+            )
+
         if parking_taz_col_name in trips_df:
-            # TODO make parking zone negative, not zero, if not used
+            trips_df["true_origin"] = trips_df["origin"]
+            trips_df["true_destination"] = trips_df["destination"]
+
+            # Get origin parking zone if vehicle not parked at origin
+            trips_df["origin_parking_zone"] = np.where(
+                (trips_df["tour_id"] == trips_df["tour_id"].shift(1))
+                & trips_df["trip_mode"].isin(parking_settings.AUTO_MODES),
+                trips_df[parking_taz_col_name].shift(1),
+                -1,
+            )
+
             trips_df.loc[trips_df[parking_taz_col_name] > 0, "destination"] = trips_df[
                 parking_taz_col_name
             ]
-        # Also need address the return trip
+            trips_df.loc[trips_df["origin_parking_zone"] > 0, "origin"] = trips_df[
+                "origin_parking_zone"
+            ]
 
     # write matrices by zone system type
     if network_los.zone_system == los.ONE_ZONE:  # taz trips written to taz matrices
@@ -268,6 +288,24 @@ def write_trip_matrices(
             model_settings,
             True,
         )
+
+    if "parking_location" in state.settings.models:
+        # Set trip origin and destination to be the actual location the person is and not where their vehicle is parked
+        trips_df["origin"] = trips_df["true_origin"]
+        trips_df["destination"] = trips_df["true_destination"]
+        del trips_df["true_origin"], trips_df["true_destination"]
+        if (
+            network_los.zone_system == los.TWO_ZONE
+            or network_los.zone_system == los.THREE_ZONE
+        ):
+            trips_df["otaz"] = (
+                state.get_table("land_use").reindex(trips_df["origin"]).TAZ.tolist()
+            )
+            trips_df["dtaz"] = (
+                state.get_table("land_use")
+                .reindex(trips_df["destination"])
+                .TAZ.tolist()
+            )
 
 
 def annotate_trips(

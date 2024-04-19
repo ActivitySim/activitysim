@@ -25,7 +25,7 @@ from activitysim.core import (
     util,
     workflow,
 )
-from activitysim.core.configuration.base import PydanticBase
+from activitysim.core.configuration.base import ComputeSettings, PydanticBase
 from activitysim.core.configuration.logit import (
     BaseLogitComponentSettings,
     LogitNestSpec,
@@ -57,7 +57,7 @@ def random_rows(state: workflow.State, df, n):
         return df
 
 
-def uniquify_spec_index(spec):
+def uniquify_spec_index(spec: pd.DataFrame):
     # uniquify spec index inplace
     # ensure uniqueness of spec index by appending comment with dupe count
     # this allows us to use pandas dot to compute_utilities
@@ -532,6 +532,7 @@ def eval_utilities(
     spec_sh=None,
     *,
     chunk_sizer,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Evaluate a utility function as defined in a spec file.
@@ -571,6 +572,8 @@ def eval_utilities(
         This is meant to give the same result, but allows for some optimizations
         or preprocessing outside the sharrow framework (e.g. to run the Python
         based transit virtual path builder and cache relevant values).
+    compute_settings : ComputeSettings, optional
+        Settings for sharrow. If not given, the default settings are used.
 
     Returns
     -------
@@ -592,7 +595,9 @@ def eval_utilities(
     if spec_sh is None:
         spec_sh = spec
 
-    if locals_d is not None and "disable_sharrow" in locals_d:
+    if compute_settings is None:
+        compute_settings = ComputeSettings()
+    if compute_settings.sharrow_skip:
         sharrow_enabled = False
 
     if sharrow_enabled:
@@ -610,6 +615,7 @@ def eval_utilities(
             trace_label,
             sharrow_enabled == "require",
             zone_layer=zone_layer,
+            compute_settings=compute_settings,
         )
         utilities = sh_util
         timelogger.mark("sharrow flow", True, logger, trace_label)
@@ -641,42 +647,43 @@ def eval_utilities(
         chunk_sizer.log_df(trace_label, "expression_values", expression_values)
 
         i = 0
-        for expr, coefficients in zip(exprs, spec.values):
-            try:
-                with warnings.catch_warnings(record=True) as w:
-                    # Cause all warnings to always be triggered.
-                    warnings.simplefilter("always")
-                    if expr.startswith("@"):
-                        expression_value = eval(expr[1:], globals_dict, locals_dict)
-                    else:
-                        expression_value = choosers.eval(expr)
+        with compute_settings.pandas_option_context():
+            for expr, coefficients in zip(exprs, spec.values):
+                try:
+                    with warnings.catch_warnings(record=True) as w:
+                        # Cause all warnings to always be triggered.
+                        warnings.simplefilter("always")
+                        if expr.startswith("@"):
+                            expression_value = eval(expr[1:], globals_dict, locals_dict)
+                        else:
+                            expression_value = choosers.eval(expr)
 
-                    if len(w) > 0:
-                        for wrn in w:
-                            logger.warning(
-                                f"{trace_label} - {type(wrn).__name__} ({wrn.message}) evaluating: {str(expr)}"
-                            )
+                        if len(w) > 0:
+                            for wrn in w:
+                                logger.warning(
+                                    f"{trace_label} - {type(wrn).__name__} ({wrn.message}) evaluating: {str(expr)}"
+                                )
 
-            except Exception as err:
-                logger.exception(
-                    f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}"
-                )
-                raise err
-
-            if log_alt_losers:
-                # utils for each alt for this expression
-                # FIXME if we always did tis, we cold uem these and skip np.dot below
-                utils = np.outer(expression_value, coefficients)
-                losers = np.amax(utils, axis=1) < ALT_LOSER_UTIL
-
-                if losers.any():
-                    logger.warning(
-                        f"{trace_label} - {sum(losers)} choosers of {len(losers)} "
-                        f"with prohibitive utilities for all alternatives for expression: {expr}"
+                except Exception as err:
+                    logger.exception(
+                        f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}"
                     )
+                    raise err
 
-            expression_values[i] = expression_value
-            i += 1
+                if log_alt_losers:
+                    # utils for each alt for this expression
+                    # FIXME if we always did tis, we cold uem these and skip np.dot below
+                    utils = np.outer(expression_value, coefficients)
+                    losers = np.amax(utils, axis=1) < ALT_LOSER_UTIL
+
+                    if losers.any():
+                        logger.warning(
+                            f"{trace_label} - {sum(losers)} choosers of {len(losers)} "
+                            f"with prohibitive utilities for all alternatives for expression: {expr}"
+                        )
+
+                expression_values[i] = expression_value
+                i += 1
 
         chunk_sizer.log_df(trace_label, "expression_values", expression_values)
 
@@ -1157,6 +1164,7 @@ def eval_mnl(
     trace_column_names=None,
     *,
     chunk_sizer,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run a simulation for when the model spec does not involve alternative
@@ -1220,6 +1228,7 @@ def eval_mnl(
         estimator=estimator,
         trace_column_names=trace_column_names,
         chunk_sizer=chunk_sizer,
+        compute_settings=compute_settings,
     )
     chunk_sizer.log_df(trace_label, "utilities", utilities)
 
@@ -1278,6 +1287,7 @@ def eval_nl(
     trace_column_names=None,
     *,
     chunk_sizer: chunk.ChunkSizer,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run a nested-logit simulation for when the model spec does not involve alternative
@@ -1308,6 +1318,8 @@ def eval_nl(
         This is the column label to be used in trace file csv dump of choices
     trace_column_names: str or list of str
         chooser columns to include when tracing expression_values
+    fastmath : bool, default True
+        Use fastmath for sharrow compiled code.
 
     Returns
     -------
@@ -1339,6 +1351,7 @@ def eval_nl(
         trace_column_names=trace_column_names,
         spec_sh=spec_sh,
         chunk_sizer=chunk_sizer,
+        compute_settings=compute_settings,
     )
     chunk_sizer.log_df(trace_label, "raw_utilities", raw_utilities)
 
@@ -1465,6 +1478,7 @@ def _simple_simulate(
     trace_column_names=None,
     *,
     chunk_sizer,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
@@ -1528,6 +1542,7 @@ def _simple_simulate(
             trace_choice_name=trace_choice_name,
             trace_column_names=trace_column_names,
             chunk_sizer=chunk_sizer,
+            compute_settings=compute_settings,
         )
     else:
         choices = eval_nl(
@@ -1544,6 +1559,7 @@ def _simple_simulate(
             trace_choice_name=trace_choice_name,
             trace_column_names=trace_column_names,
             chunk_sizer=chunk_sizer,
+            compute_settings=compute_settings,
         )
 
     return choices
@@ -1582,6 +1598,7 @@ def simple_simulate(
     trace_label=None,
     trace_choice_name=None,
     trace_column_names=None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
@@ -1616,6 +1633,7 @@ def simple_simulate(
             trace_choice_name=trace_choice_name,
             trace_column_names=trace_column_names,
             chunk_sizer=chunk_sizer,
+            compute_settings=compute_settings,
         )
 
         result_list.append(choices)
@@ -1643,6 +1661,7 @@ def simple_simulate_by_chunk_id(
     estimator=None,
     trace_label=None,
     trace_choice_name=None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     chunk_by_chunk_id wrapper for simple_simulate
@@ -1669,6 +1688,7 @@ def simple_simulate_by_chunk_id(
             trace_label=chunk_trace_label,
             trace_choice_name=trace_choice_name,
             chunk_sizer=chunk_sizer,
+            compute_settings=compute_settings,
         )
 
         result_list.append(choices)
@@ -1682,7 +1702,14 @@ def simple_simulate_by_chunk_id(
 
 
 def eval_mnl_logsums(
-    state: workflow.State, choosers, spec, locals_d, trace_label=None, *, chunk_sizer
+    state: workflow.State,
+    choosers,
+    spec,
+    locals_d,
+    trace_label=None,
+    *,
+    chunk_sizer,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     like eval_nl except return logsums instead of making choices
@@ -1712,6 +1739,7 @@ def eval_mnl_logsums(
         trace_label,
         have_trace_targets,
         chunk_sizer=chunk_sizer,
+        compute_settings=compute_settings,
     )
     chunk_sizer.log_df(trace_label, "utilities", utilities)
 
@@ -1825,6 +1853,7 @@ def eval_nl_logsums(
     trace_label=None,
     *,
     chunk_sizer: chunk.ChunkSizer,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     like eval_nl except return logsums instead of making choices
@@ -1855,6 +1884,7 @@ def eval_nl_logsums(
         have_trace_targets=have_trace_targets,
         spec_sh=spec_sh,
         chunk_sizer=chunk_sizer,
+        compute_settings=compute_settings,
     )
     chunk_sizer.log_df(trace_label, "raw_utilities", raw_utilities)
 
@@ -1905,6 +1935,7 @@ def _simple_simulate_logsums(
     trace_label=None,
     *,
     chunk_sizer,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     like simple_simulate except return logsums instead of making choices
@@ -1926,6 +1957,7 @@ def _simple_simulate_logsums(
             locals_d,
             trace_label=trace_label,
             chunk_sizer=chunk_sizer,
+            compute_settings=compute_settings,
         )
     else:
         logsums = eval_nl_logsums(
@@ -1936,6 +1968,7 @@ def _simple_simulate_logsums(
             locals_d,
             trace_label=trace_label,
             chunk_sizer=chunk_sizer,
+            compute_settings=compute_settings,
         )
 
     return logsums
@@ -1952,6 +1985,7 @@ def simple_simulate_logsums(
     chunk_size=0,
     trace_label=None,
     chunk_tag=None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     like simple_simulate except return logsums instead of making choices
@@ -1984,6 +2018,7 @@ def simple_simulate_logsums(
             locals_d,
             chunk_trace_label,
             chunk_sizer=chunk_sizer,
+            compute_settings=compute_settings,
         )
 
         result_list.append(logsums)

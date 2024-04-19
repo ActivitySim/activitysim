@@ -36,6 +36,7 @@ def annotate_households(
         locals_dict = {}
     households = state.get_dataframe("households")
     expressions.assign_columns(
+        state,
         df=households,
         model_settings=model_settings.get("annotate_households"),
         locals_dict=locals_dict,
@@ -64,6 +65,7 @@ def annotate_persons(
         locals_dict = {}
     persons = state.get_dataframe("persons")
     expressions.assign_columns(
+        state,
         df=persons,
         model_settings=model_settings.get("annotate_persons"),
         locals_dict=locals_dict,

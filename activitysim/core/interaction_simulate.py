@@ -710,7 +710,7 @@ def _interaction_simulate(
     else:
         sharrow_enabled = state.settings.sharrow
     interaction_utilities = None
-    
+
     # drop variables before the interaction dataframe is created
 
     # check if tracing is enabled and if we have trace targets

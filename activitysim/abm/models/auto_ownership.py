@@ -37,6 +37,8 @@ def auto_ownership_simulate(
     state: workflow.State,
     households: pd.DataFrame,
     households_merged: pd.DataFrame,
+    # FIXME: persons_merged not used but included, see #853
+    persons_merged: pd.DataFrame,
     model_settings: AutoOwnershipSettings | None = None,
     model_settings_file_name: str = "auto_ownership.yaml",
     trace_label: str = "auto_ownership_simulate",
@@ -76,6 +78,7 @@ def auto_ownership_simulate(
             locals_d.update(constants)
 
         expressions.assign_columns(
+            state,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
@@ -119,7 +122,7 @@ def auto_ownership_simulate(
     )
 
     if model_settings.annotate_households:
-        annotate.annotate_households(model_settings, trace_label)
+        annotate.annotate_households(state, model_settings, trace_label)
 
     if trace_hh_id:
         state.tracing.trace_df(households, label="auto_ownership", warn_if_empty=True)

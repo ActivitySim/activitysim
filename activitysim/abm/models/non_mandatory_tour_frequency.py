@@ -334,6 +334,9 @@ def non_mandatory_tour_frequency(
 
         choices_list.append(choices)
 
+    # FIXME only want to keep actual purposes, adding cols in alts will mess this up
+    # this is complicated by canonical_ids calculated based on alts if not specified explicitly
+    # thus, adding column to input alts will change IDs and break estimation mode....
     del alternatives["tot_tours"]  # del tot_tours column we added above
 
     # The choice value 'non_mandatory_tour_frequency' assigned by interaction_simulate

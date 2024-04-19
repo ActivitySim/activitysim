@@ -34,6 +34,8 @@ class CdapSettings(PydanticReadable, extra="forbid"):
     FIXED_RELATIVE_PROPORTIONS_SPEC: str = "cdap_fixed_relative_proportions.csv"
     ADD_JOINT_TOUR_UTILITY: bool = False
     JOINT_TOUR_COEFFICIENTS: str = "cdap_joint_tour_coefficients.csv"
+    JOINT_TOUR_USEFUL_COLUMNS: list[str] | None = None
+    """Columns to include from the persons table that will be need to calculate household joint tour utility."""
     annotate_persons: PreprocessorSettings | None = None
     annotate_households: PreprocessorSettings | None = None
     COEFFICIENTS: Path

@@ -7,7 +7,8 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, interaction_simulate, logit, tracing, workflow
+
+from activitysim.core import chunk, interaction_simulate, logit, tracing, workflow, util
 from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.simulate import set_skim_wrapper_targets
 
@@ -136,6 +137,29 @@ def _interaction_sample_simulate(
     logger.info(
         f"{trace_label} start merging choosers and alternatives to create interaction_df"
     )
+
+    # drop variables before the interaction dataframe is created
+    sharrow_enabled = state.settings.sharrow
+
+    if compute_settings is None:
+        compute_settings = ComputeSettings()
+
+    # check if tracing is enabled and if we have trace targets
+    # if not estimation mode, drop unused columns
+    if (
+        (not have_trace_targets)
+        and (estimator is None)
+        and (compute_settings.drop_unused_columns)
+    ):
+
+        choosers = util.drop_unused_columns(
+            choosers,
+            spec,
+            locals_d,
+            custom_chooser=None,
+            sharrow_enabled=sharrow_enabled,
+        )
+
     interaction_df = alternatives.join(choosers, how="left", rsuffix="_chooser")
     logger.info(
         f"{trace_label} end merging choosers and alternatives to create interaction_df"

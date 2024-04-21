@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 
 from . import chunk, config, logit, simulate, tracing, workflow
+from activitysim.core import util
 from .configuration.base import ComputeSettings
 
 logger = logging.getLogger(__name__)
@@ -709,6 +710,27 @@ def _interaction_simulate(
     else:
         sharrow_enabled = state.settings.sharrow
     interaction_utilities = None
+
+    if compute_settings is None:
+        compute_settings = ComputeSettings()
+
+    # drop variables before the interaction dataframe is created
+
+    # check if tracing is enabled and if we have trace targets
+    # if not estimation mode, drop unused columns
+    if (
+        (not have_trace_targets)
+        and (estimator is None)
+        and (compute_settings.drop_unused_columns)
+    ):
+
+        choosers = util.drop_unused_columns(
+            choosers,
+            spec,
+            locals_d,
+            custom_chooser=None,
+            sharrow_enabled=sharrow_enabled,
+        )
 
     if (
         sharrow_enabled

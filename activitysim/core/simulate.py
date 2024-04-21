@@ -1528,6 +1528,31 @@ def _simple_simulate(
     if skims is not None:
         set_skim_wrapper_targets(choosers, skims)
 
+    # check if tracing is enabled and if we have trace targets
+    have_trace_targets = state.tracing.has_trace_targets(choosers)
+
+    sharrow_enabled = state.settings.sharrow
+
+    if compute_settings is None:
+        compute_settings = ComputeSettings()
+
+    # if tracing is not enabled, drop unused columns
+    # if not estimation mode, drop unused columns
+    if (
+        (not have_trace_targets)
+        and (estimator is None)
+        and (compute_settings.drop_unused_columns)
+    ):
+        # drop unused variables in chooser table
+        choosers = util.drop_unused_columns(
+            choosers,
+            spec,
+            locals_d,
+            custom_chooser,
+            sharrow_enabled=sharrow_enabled,
+            additional_columns=compute_settings.protect_columns,
+        )
+
     if nest_spec is None:
         choices = eval_mnl(
             state,
@@ -1948,6 +1973,23 @@ def _simple_simulate_logsums(
 
     if skims is not None:
         set_skim_wrapper_targets(choosers, skims)
+
+    # check if tracing is enabled and if we have trace targets
+    have_trace_targets = state.tracing.has_trace_targets(choosers)
+
+    if compute_settings is None:
+        compute_settings = ComputeSettings()
+
+    # if tracing is not enabled, drop unused columns
+    if (not have_trace_targets) and (compute_settings.drop_unused_columns):
+        # drop unused variables in chooser table
+        choosers = util.drop_unused_columns(
+            choosers,
+            spec,
+            locals_d,
+            custom_chooser=None,
+            sharrow_enabled=state.settings.sharrow,
+        )
 
     if nest_spec is None:
         logsums = eval_mnl_logsums(

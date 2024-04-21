@@ -780,6 +780,7 @@ def run_destination_simulate(
         trace_choice_name="destination",
         estimator=estimator,
         skip_choice=skip_choice,
+        compute_settings=model_settings.compute_settings,
     )
 
     if not want_logsums:

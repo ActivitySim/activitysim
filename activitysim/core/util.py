@@ -638,3 +638,85 @@ def zarr_file_modification_time(zarr_dir: Path):
     if t == 0:
         raise FileNotFoundError(zarr_dir)
     return t
+
+
+def drop_unused_columns(
+    choosers,
+    spec,
+    locals_d,
+    custom_chooser,
+    sharrow_enabled=False,
+    additional_columns=None,
+):
+    """
+    Drop unused columns from the chooser table, based on the spec and custom_chooser function.
+    """
+    # keep only variables needed for spec
+    import re
+
+    # define a regular expression to find variables in spec
+    pattern = r"[a-zA-Z_][a-zA-Z0-9_]*"
+
+    unique_variables_in_spec = set(
+        spec.reset_index()["Expression"].apply(lambda x: re.findall(pattern, x)).sum()
+    )
+
+    unique_variables_in_spec |= set(additional_columns or [])
+
+    if locals_d:
+        unique_variables_in_spec.add(locals_d.get("orig_col_name", None))
+        unique_variables_in_spec.add(locals_d.get("dest_col_name", None))
+        if locals_d.get("timeframe") == "trip":
+            orig_col_name = locals_d.get("ORIGIN", None)
+            dest_col_name = locals_d.get("DESTINATION", None)
+            stop_col_name = None
+            parking_col_name = locals_d.get("PARKING", None)
+            primary_origin_col_name = None
+            if orig_col_name is None and "od_skims" in locals_d:
+                orig_col_name = locals_d["od_skims"].orig_key
+            if dest_col_name is None and "od_skims" in locals_d:
+                dest_col_name = locals_d["od_skims"].dest_key
+            if stop_col_name is None and "dp_skims" in locals_d:
+                stop_col_name = locals_d["dp_skims"].dest_key
+            if primary_origin_col_name is None and "dnt_skims" in locals_d:
+                primary_origin_col_name = locals_d["dnt_skims"].dest_key
+            unique_variables_in_spec.add(orig_col_name)
+            unique_variables_in_spec.add(dest_col_name)
+            unique_variables_in_spec.add(parking_col_name)
+            unique_variables_in_spec.add(primary_origin_col_name)
+            unique_variables_in_spec.add(stop_col_name)
+            unique_variables_in_spec.add("trip_period")
+        # when using trip_scheduling_choice for trup scheduling
+        unique_variables_in_spec.add("last_outbound_stop")
+        unique_variables_in_spec.add("last_inbound_stop")
+
+    # when sharrow mode, need to keep the following columns in the choosers table
+    if sharrow_enabled:
+        unique_variables_in_spec.add("out_period")
+        unique_variables_in_spec.add("in_period")
+        unique_variables_in_spec.add("purpose_index_num")
+
+    if custom_chooser:
+        import inspect
+
+        custom_chooser_lines = inspect.getsource(custom_chooser)
+        unique_variables_in_spec.update(re.findall(pattern, custom_chooser_lines))
+
+    logger.info("Dropping unused variables in chooser table")
+
+    logger.info(
+        "before dropping, the choosers table has {} columns: {}".format(
+            len(choosers.columns), choosers.columns
+        )
+    )
+
+    # keep only variables needed for spec
+    choosers = choosers[[c for c in choosers.columns if c in unique_variables_in_spec]]
+
+    logger.info(
+        "after dropping, the choosers table has {} columns: {}".format(
+            len(choosers.columns), choosers.columns
+        )
+    )
+
+    return choosers

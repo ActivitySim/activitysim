@@ -13,6 +13,8 @@ import numpy as np
 import pandas as pd
 
 from . import chunk, config, logit, simulate, tracing, workflow
+from activitysim.core import util
+from .configuration.base import ComputeSettings
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +34,7 @@ def eval_interaction_utilities(
     log_alt_losers=False,
     extra_data=None,
     zone_layer=None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Compute the utilities for a single-alternative spec evaluated in the context of df
@@ -82,12 +85,10 @@ def eval_interaction_utilities(
     logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
     sharrow_enabled = state.settings.sharrow
-
-    if locals_d is not None and locals_d.get("_sharrow_skip", False):
+    if compute_settings is None:
+        compute_settings = ComputeSettings()
+    if compute_settings.sharrow_skip:
         sharrow_enabled = False
-
-    # if trace_label.startswith("trip_destination"):
-    #     sharrow_enabled = False
 
     logger.info(f"{trace_label} sharrow_enabled is {sharrow_enabled}")
 
@@ -184,6 +185,7 @@ def eval_interaction_utilities(
                 trace_label,
                 interacts=extra_data,
                 zone_layer=zone_layer,
+                compute_settings=compute_settings,
             )
             if sh_util is not None:
                 chunk_sizer.log_df(trace_label, "sh_util", sh_util)
@@ -261,107 +263,112 @@ def eval_interaction_utilities(
                 exprs = spec.index
                 labels = spec.index
 
-            for expr, label, coefficient in zip(exprs, labels, spec.iloc[:, 0]):
-                try:
-                    # - allow temps of form _od_DIST@od_skim['DIST']
-                    if expr.startswith("_"):
-                        target = expr[: expr.index("@")]
-                        rhs = expr[expr.index("@") + 1 :]
-                        v = to_series(eval(rhs, globals(), locals_d))
+            with compute_settings.pandas_option_context():
+                for expr, label, coefficient in zip(exprs, labels, spec.iloc[:, 0]):
+                    try:
+                        # - allow temps of form _od_DIST@od_skim['DIST']
+                        if expr.startswith("_"):
+                            target = expr[: expr.index("@")]
+                            rhs = expr[expr.index("@") + 1 :]
+                            v = to_series(eval(rhs, globals(), locals_d))
 
-                        # update locals to allows us to ref previously assigned targets
-                        locals_d[target] = v
-                        chunk_sizer.log_df(
-                            trace_label, target, v
-                        )  # track temps stored in locals
+                            # update locals to allows us to ref previously assigned targets
+                            locals_d[target] = v
+                            chunk_sizer.log_df(
+                                trace_label, target, v
+                            )  # track temps stored in locals
 
-                        if trace_eval_results is not None:
-                            trace_eval_results[expr] = v[trace_rows]
+                            if trace_eval_results is not None:
+                                trace_eval_results[expr] = v[trace_rows]
 
-                        # don't add temps to utility sums
-                        # they have a non-zero dummy coefficient to avoid being removed from spec as NOPs
-                        continue
+                            # don't add temps to utility sums
+                            # they have a non-zero dummy coefficient to avoid being removed from spec as NOPs
+                            continue
 
-                    if expr.startswith("@"):
-                        v = to_series(eval(expr[1:], globals(), locals_d))
-                    else:
-                        v = df.eval(expr, resolvers=[locals_d])
+                        if expr.startswith("@"):
+                            v = to_series(eval(expr[1:], globals(), locals_d))
+                        else:
+                            v = df.eval(expr, resolvers=[locals_d])
 
-                    if check_for_variability and v.std() == 0:
-                        logger.info(
-                            "%s: no variability (%s) in: %s"
-                            % (trace_label, v.iloc[0], expr)
-                        )
-                        no_variability += 1
+                        if check_for_variability and v.std() == 0:
+                            logger.info(
+                                "%s: no variability (%s) in: %s"
+                                % (trace_label, v.iloc[0], expr)
+                            )
+                            no_variability += 1
 
-                    # FIXME - how likely is this to happen? Not sure it is really a problem?
-                    if (
-                        check_for_variability
-                        and np.count_nonzero(v.isnull().values) > 0
-                    ):
-                        logger.info("%s: missing values in: %s" % (trace_label, expr))
-                        has_missing_vals += 1
+                        # FIXME - how likely is this to happen? Not sure it is really a problem?
+                        if (
+                            check_for_variability
+                            and np.count_nonzero(v.isnull().values) > 0
+                        ):
+                            logger.info(
+                                "%s: missing values in: %s" % (trace_label, expr)
+                            )
+                            has_missing_vals += 1
 
-                    if estimator:
-                        # in case we modified expression_values_df index
-                        expression_values_df.insert(
-                            loc=len(expression_values_df.columns),
-                            column=label,
-                            value=v.values if isinstance(v, pd.Series) else v,
-                        )
-
-                    utility = (v * coefficient).astype("float")
-
-                    if log_alt_losers:
-                        assert ALT_CHOOSER_ID in df
-                        max_utils_by_chooser = utility.groupby(df[ALT_CHOOSER_ID]).max()
-
-                        if (max_utils_by_chooser < simulate.ALT_LOSER_UTIL).any():
-                            losers = max_utils_by_chooser[
-                                max_utils_by_chooser < simulate.ALT_LOSER_UTIL
-                            ]
-                            logger.warning(
-                                f"{trace_label} - {len(losers)} choosers of {len(max_utils_by_chooser)} "
-                                f"with prohibitive utilities for all alternatives for expression: {expr}"
+                        if estimator:
+                            # in case we modified expression_values_df index
+                            expression_values_df.insert(
+                                loc=len(expression_values_df.columns),
+                                column=label,
+                                value=v.values if isinstance(v, pd.Series) else v,
                             )
 
-                            # loser_df = df[df[ALT_CHOOSER_ID].isin(losers.index)]
-                            # print(f"\nloser_df\n{loser_df}\n")
-                            # print(f"\nloser_max_utils_by_chooser\n{losers}\n")
-                            # bug
+                        utility = (v * coefficient).astype("float")
 
-                        del max_utils_by_chooser
+                        if log_alt_losers:
+                            assert ALT_CHOOSER_ID in df
+                            max_utils_by_chooser = utility.groupby(
+                                df[ALT_CHOOSER_ID]
+                            ).max()
 
-                    utilities.utility.values[:] += utility
+                            if (max_utils_by_chooser < simulate.ALT_LOSER_UTIL).any():
+                                losers = max_utils_by_chooser[
+                                    max_utils_by_chooser < simulate.ALT_LOSER_UTIL
+                                ]
+                                logger.warning(
+                                    f"{trace_label} - {len(losers)} choosers of {len(max_utils_by_chooser)} "
+                                    f"with prohibitive utilities for all alternatives for expression: {expr}"
+                                )
 
-                    if trace_eval_results is not None:
-                        # expressions should have been uniquified when spec was read
-                        # (though we could do it here if need be...)
-                        # expr = assign.uniquify_key(trace_eval_results, expr, template="{} # ({})")
-                        assert expr not in trace_eval_results
+                                # loser_df = df[df[ALT_CHOOSER_ID].isin(losers.index)]
+                                # print(f"\nloser_df\n{loser_df}\n")
+                                # print(f"\nloser_max_utils_by_chooser\n{losers}\n")
+                                # bug
 
-                        trace_eval_results[expr] = v[trace_rows]
-                        k = "partial utility (coefficient = %s) for %s" % (
-                            coefficient,
-                            expr,
+                            del max_utils_by_chooser
+
+                        utilities.utility.values[:] += utility
+
+                        if trace_eval_results is not None:
+                            # expressions should have been uniquified when spec was read
+                            # (though we could do it here if need be...)
+                            # expr = assign.uniquify_key(trace_eval_results, expr, template="{} # ({})")
+                            assert expr not in trace_eval_results
+
+                            trace_eval_results[expr] = v[trace_rows]
+                            k = "partial utility (coefficient = %s) for %s" % (
+                                coefficient,
+                                expr,
+                            )
+                            trace_eval_results[k] = v[trace_rows] * coefficient
+
+                        del v
+                        # chunk_sizer.log_df(trace_label, 'v', None)
+
+                    except Exception as err:
+                        logger.exception(
+                            f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}"
                         )
-                        trace_eval_results[k] = v[trace_rows] * coefficient
-
-                    del v
-                    # chunk_sizer.log_df(trace_label, 'v', None)
-
-                except Exception as err:
-                    logger.exception(
-                        f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}"
-                    )
-                    if isinstance(
-                        err, AssertionError
-                    ) and "od pairs not in skim" in str(err):
-                        logger.warning(
-                            f"recode_pipeline_columns is set to {state.settings.recode_pipeline_columns}, "
-                            f"you may want to check this"
-                        )
-                    raise err
+                        if isinstance(
+                            err, AssertionError
+                        ) and "od pairs not in skim" in str(err):
+                            logger.warning(
+                                f"recode_pipeline_columns is set to {state.settings.recode_pipeline_columns}, "
+                                f"you may want to check this"
+                            )
+                        raise err
 
             if estimator:
                 estimator.log(
@@ -568,6 +575,10 @@ def eval_interaction_utilities(
                     re_sh_flow_load = sh_flow.load(sh_tree, dtype=np.float32)
                     re_sh_flow_load_ = re_sh_flow_load[re_trace]
 
+                    use_bottleneck = pd.get_option("compute.use_bottleneck")
+                    use_numexpr = pd.get_option("compute.use_numexpr")
+                    use_numba = pd.get_option("compute.use_numba")
+
                     look_for_problems_here = np.where(
                         ~np.isclose(
                             re_sh_flow_load_[
@@ -604,6 +615,7 @@ def _interaction_simulate(
     log_alt_losers=False,
     estimator=None,
     chunk_sizer=None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -691,11 +703,34 @@ def _interaction_simulate(
     alt_index_id = estimator.get_alt_id() if estimator else None
     chooser_index_id = ALT_CHOOSER_ID if log_alt_losers else None
 
-    sharrow_enabled = state.settings.sharrow
+    if compute_settings is None:
+        compute_settings = ComputeSettings()
+    if compute_settings.sharrow_skip:
+        sharrow_enabled = False
+    else:
+        sharrow_enabled = state.settings.sharrow
     interaction_utilities = None
 
-    if locals_d is not None and locals_d.get("_sharrow_skip", False):
-        sharrow_enabled = False
+    if compute_settings is None:
+        compute_settings = ComputeSettings()
+
+    # drop variables before the interaction dataframe is created
+
+    # check if tracing is enabled and if we have trace targets
+    # if not estimation mode, drop unused columns
+    if (
+        (not have_trace_targets)
+        and (estimator is None)
+        and (compute_settings.drop_unused_columns)
+    ):
+
+        choosers = util.drop_unused_columns(
+            choosers,
+            spec,
+            locals_d,
+            custom_chooser=None,
+            sharrow_enabled=sharrow_enabled,
+        )
 
     if (
         sharrow_enabled
@@ -719,6 +754,7 @@ def _interaction_simulate(
             estimator=estimator,
             log_alt_losers=log_alt_losers,
             extra_data=alternatives,
+            compute_settings=compute_settings,
         )
 
         # set this index here as this is how later code extracts the chosen alt id's
@@ -783,6 +819,7 @@ def _interaction_simulate(
             trace_rows,
             estimator=estimator,
             log_alt_losers=log_alt_losers,
+            compute_settings=compute_settings,
         )
         chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
         # mem.trace_memory_info(f"{trace_label}.init interaction_utilities", force_garbage_collect=True)
@@ -890,6 +927,7 @@ def interaction_simulate(
     trace_choice_name=None,
     estimator=None,
     explicit_chunk_size=0,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run a simulation in the situation in which alternatives must
@@ -967,6 +1005,7 @@ def interaction_simulate(
             log_alt_losers=log_alt_losers,
             estimator=estimator,
             chunk_sizer=chunk_sizer,
+            compute_settings=compute_settings,
         )
 
         result_list.append(choices)

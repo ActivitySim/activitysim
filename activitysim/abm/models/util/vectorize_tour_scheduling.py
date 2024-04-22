@@ -14,7 +14,7 @@ from activitysim.abm.models.tour_mode_choice import TourModeComponentSettings
 from activitysim.core import chunk, config, expressions, los, simulate
 from activitysim.core import timetable as tt
 from activitysim.core import tracing, workflow
-from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.base import ComputeSettings, PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
@@ -224,6 +224,7 @@ def _compute_logsums(
             locals_d=locals_dict,
             chunk_size=0,
             trace_label=trace_label,
+            compute_settings=model_settings.compute_settings,
         )
 
     return logsums
@@ -705,8 +706,8 @@ def _schedule_tours(
     tour_owner_id_col,
     estimator,
     tour_trace_label,
-    sharrow_skip=False,
     *,
+    compute_settings: ComputeSettings | None = None,
     chunk_sizer: chunk.ChunkSizer,
 ):
     """
@@ -821,11 +822,6 @@ def _schedule_tours(
     if constants is not None:
         locals_d.update(constants)
 
-    if sharrow_skip:
-        locals_d["_sharrow_skip"] = True
-    else:
-        locals_d["_sharrow_skip"] = False
-
     if not RUN_ALTS_PREPROCESSOR_BEFORE_MERGE:
         # Note: Clint was running alts_preprocessor here on tdd_interaction_dataset instead of on raw (unmerged) alts
         # and he was using logsum_tour_purpose as selector, although logically it should be the spec_segment
@@ -861,6 +857,7 @@ def _schedule_tours(
         chunk_size=0,
         trace_label=tour_trace_label,
         estimator=estimator,
+        compute_settings=compute_settings,
     )
     chunk_sizer.log_df(tour_trace_label, "choices", choices)
 
@@ -891,7 +888,7 @@ def schedule_tours(
     chunk_size,
     tour_trace_label,
     tour_chunk_tag,
-    sharrow_skip=False,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     chunking wrapper for _schedule_tours
@@ -949,7 +946,7 @@ def schedule_tours(
             tour_owner_id_col,
             estimator,
             tour_trace_label=chunk_trace_label,
-            sharrow_skip=sharrow_skip,
+            compute_settings=compute_settings,
             chunk_sizer=chunk_sizer,
         )
 
@@ -1102,7 +1099,7 @@ def vectorize_tour_scheduling(
                     chunk_size=chunk_size,
                     tour_trace_label=segment_trace_label,
                     tour_chunk_tag=segment_chunk_tag,
-                    sharrow_skip=tour_segment_info.get("sharrow_skip"),
+                    compute_settings=tour_segment_info.get("compute_settings"),
                 )
 
                 choice_list.append(choices)
@@ -1132,7 +1129,7 @@ def vectorize_tour_scheduling(
                 chunk_size=chunk_size,
                 tour_trace_label=tour_trace_label,
                 tour_chunk_tag=tour_chunk_tag,
-                sharrow_skip=tour_segments.get("sharrow_skip"),
+                compute_settings=tour_segments.get("compute_settings"),
             )
 
             choice_list.append(choices)
@@ -1152,7 +1149,7 @@ def vectorize_subtour_scheduling(
     estimator,
     chunk_size=0,
     trace_label=None,
-    sharrow_skip=False,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Like vectorize_tour_scheduling but specifically for atwork subtours
@@ -1251,7 +1248,7 @@ def vectorize_subtour_scheduling(
             state.settings.chunk_size,
             tour_trace_label,
             tour_chunk_tag,
-            sharrow_skip=sharrow_skip,
+            compute_settings=compute_settings,
         )
 
         choice_list.append(choices)
@@ -1306,7 +1303,7 @@ def vectorize_joint_tour_scheduling(
     estimator,
     chunk_size=0,
     trace_label=None,
-    sharrow_skip=False,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Like vectorize_tour_scheduling but specifically for joint tours
@@ -1399,7 +1396,7 @@ def vectorize_joint_tour_scheduling(
             chunk_size,
             tour_trace_label,
             tour_chunk_tag,
-            sharrow_skip=sharrow_skip,
+            compute_settings=compute_settings,
         )
 
         # - update timetables of all joint tour participants

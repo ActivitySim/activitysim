@@ -20,7 +20,7 @@ from activitysim.core.configuration.logit import LogitComponentSettings
 logger = logging.getLogger("activitysim")
 
 
-class TelecommuteFrequencySettings(LogitComponentSettings):
+class TelecommuteFrequencySettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `telecommute_frequency` component.
     """
@@ -99,6 +99,7 @@ def telecommute_frequency(
         trace_label=trace_label,
         trace_choice_name="telecommute_frequency",
         estimator=estimator,
+        compute_settings=model_settings.compute_settings,
     )
 
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)

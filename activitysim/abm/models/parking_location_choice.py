@@ -21,7 +21,7 @@ from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.tracing import print_elapsed_time
-from activitysim.core.util import assign_in_place, drop_unused_chooser_columns
+from activitysim.core.util import assign_in_place, drop_unused_columns
 
 logger = logging.getLogger(__name__)
 
@@ -185,8 +185,8 @@ def choose_parking_location(
     locals_dict["PARKING"] = skims["op_skims"].dest_key
 
     spec = get_spec_for_segment(state, model_settings, segment_name)
-    trips = drop_unused_chooser_columns(trips, spec, locals_dict, custom_chooser=None)
-    alternatives = drop_unused_chooser_columns(
+    trips = drop_unused_columns(trips, spec, locals_dict, custom_chooser=None)
+    alternatives = drop_unused_columns(
         alternatives, spec, locals_dict, custom_chooser=None
     )
 
@@ -339,6 +339,10 @@ class ParkingLocationSettings(LogitComponentSettings, extra="forbid"):
     ALTERNATIVE_FILTER_COLUMN_NAME: str
 
     SEGMENTS: list[str] | None = None
+
+    AUTO_MODES: list[str]
+    """List of auto modes that use parking. AUTO_MODES are used in write_trip_matrices to make sure
+    parking locations are accurately represented in the output trip matrices."""
 
 
 @workflow.step

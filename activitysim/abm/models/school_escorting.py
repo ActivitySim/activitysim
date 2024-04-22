@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -367,7 +367,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     return bundles
 
 
-class SchoolEscortSettings(BaseLogitComponentSettings):
+class SchoolEscortSettings(BaseLogitComponentSettings, extra="forbid"):
     """
     Settings for the `telecommute_frequency` component.
     """
@@ -391,21 +391,6 @@ class SchoolEscortSettings(BaseLogitComponentSettings):
     GENDER_WEIGHT: float = 10.0
     AGE_WEIGHT: float = 1.0
 
-    sharrow_skip: bool | dict[str, bool] = False
-    """Setting to skip sharrow.
-
-    Sharrow can be skipped (or not) for all school escorting stages by giving
-    simply true or false.  Alternatively, it can be skipped only for particular
-    stages by giving a mapping of stage name to skipping.  For example:
-
-    ```yaml
-    sharrow_skip:
-        OUTBOUND: true
-        INBOUND: false
-        OUTBOUND_COND: true
-    ```
-    """
-
     SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
 
     SPEC: None = None
@@ -427,6 +412,13 @@ class SchoolEscortSettings(BaseLogitComponentSettings):
 
     explicit_chunk: int = 0
     """If > 0, use this chunk size instead of adaptive chunking."""
+
+    LOGIT_TYPE: Literal["MNL"] = "MNL"
+    """Logit model mathematical form.
+
+    * "MNL"
+        Multinomial logit model.
+    """
 
 
 @workflow.step
@@ -508,19 +500,15 @@ def school_escorting(
             state, model_spec_raw, coefficients_df, estimator
         )
 
-        # allow for skipping sharrow entirely in this model with `sharrow_skip: true`
+        # allow for skipping sharrow entirely in this model with `compute_settings.sharrow_skip: true`
         # or skipping stages selectively with a mapping of the stages to skip
-        sharrow_skip = model_settings.sharrow_skip
-        stage_sharrow_skip = False  # default is false unless set below
-        if sharrow_skip:
-            if isinstance(sharrow_skip, dict):
-                stage_sharrow_skip = sharrow_skip.get(stage.upper(), False)
-            else:
-                stage_sharrow_skip = True
-        if stage_sharrow_skip:
-            locals_dict["_sharrow_skip"] = True
-        else:
-            locals_dict.pop("_sharrow_skip", None)
+        stage_compute_settings = model_settings.compute_settings.subcomponent_settings(
+            stage.upper()
+        )
+        # if stage_sharrow_skip:
+        #     locals_dict["_sharrow_skip"] = True
+        # else:
+        #     locals_dict.pop("_sharrow_skip", None)
 
         # reduce memory by limiting columns if selected columns are supplied
         chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
@@ -584,6 +572,7 @@ def school_escorting(
             trace_choice_name="school_escorting_" + stage,
             estimator=estimator,
             explicit_chunk_size=model_settings.explicit_chunk,
+            compute_settings=stage_compute_settings,
         )
 
         if estimator:

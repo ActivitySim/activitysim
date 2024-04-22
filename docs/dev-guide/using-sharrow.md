@@ -213,8 +213,14 @@ as needed.
 
 For models with utility expressions that include a lot of string comparisons,
 (e.g. because they are built for the legacy `pandas.eval` interpreter and have not
-been updated) sharrow can be disabled by setting `sharrow_skip: true` in the
-component's configuration yaml file.
+been updated) sharrow can be disabled by setting
+
+```yaml
+compute_settings:
+  sharrow_skip: true
+```
+
+in the component's configuration yaml file.
 
 ### Multiprocessing Performance
 

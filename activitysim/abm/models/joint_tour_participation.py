@@ -18,7 +18,7 @@ from activitysim.core import (
     tracing,
     workflow,
 )
-from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.base import ComputeSettings, PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.util import assign_in_place, reindex
 
@@ -408,6 +408,15 @@ def joint_tour_participation(
     )
     candidates["chunk_id"] = reindex(household_chunk_ids, candidates.household_id)
 
+    # these hardcoded columns need to be protected from being dropped
+    assert model_settings is not None
+    if model_settings.compute_settings is None:
+        model_settings.compute_settings = ComputeSettings()
+    assert model_settings.compute_settings is not None
+    for i in ["person_is_preschool", "composition", "adult"]:
+        if i not in model_settings.compute_settings.protect_columns:
+            model_settings.compute_settings.protect_columns.append(i)
+
     choices = simulate.simple_simulate_by_chunk_id(
         state,
         choosers=candidates,
@@ -418,6 +427,7 @@ def joint_tour_participation(
         trace_choice_name="participation",
         custom_chooser=participants_chooser,
         estimator=estimator,
+        compute_settings=model_settings.compute_settings,
     )
 
     # choice is boolean (participate or not)

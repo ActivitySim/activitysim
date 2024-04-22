@@ -14,7 +14,9 @@ from activitysim.core import (
     simulate,
     tracing,
     workflow,
+    util,
 )
+from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.skim_dataset import DatasetWrapper
 from activitysim.core.skim_dictionary import SkimWrapper
 
@@ -132,6 +134,7 @@ def _interaction_sample(
     trace_label=None,
     zone_layer=None,
     chunk_sizer=None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -178,6 +181,9 @@ def _interaction_sample(
         'maz' zone layer in a one-zone model, but you can use the 'taz' layer in
         a two- or three-zone model (e.g. for destination pre-sampling).
 
+    compute_settings : ComputeSettings, optional
+        Settings to use if compiling with sharrow
+
     Returns
     -------
     choices_df : pandas.DataFrame
@@ -223,6 +229,10 @@ def _interaction_sample(
     chooser_index_id = interaction_simulate.ALT_CHOOSER_ID if log_alt_losers else None
 
     sharrow_enabled = state.settings.sharrow
+    if compute_settings is None:
+        compute_settings = ComputeSettings()
+    if compute_settings.sharrow_skip:
+        sharrow_enabled = False
 
     # - cross join choosers and alternatives (cartesian product)
     # for every chooser, there will be a row for each alternative
@@ -231,6 +241,24 @@ def _interaction_sample(
 
     interaction_utilities = None
     interaction_utilities_sh = None
+
+    if compute_settings is None:
+        compute_settings = ComputeSettings()
+
+    # drop variables before the interaction dataframe is created
+
+    # check if tracing is enabled and if we have trace targets
+    # if not estimation mode, drop unused columns
+    if (not have_trace_targets) and (compute_settings.drop_unused_columns):
+
+        choosers = util.drop_unused_columns(
+            choosers,
+            spec,
+            locals_d,
+            custom_chooser=None,
+            sharrow_enabled=sharrow_enabled,
+        )
+
     if sharrow_enabled:
         (
             interaction_utilities,
@@ -246,6 +274,7 @@ def _interaction_sample(
             log_alt_losers=log_alt_losers,
             extra_data=alternatives,
             zone_layer=zone_layer,
+            compute_settings=compute_settings,
         )
         chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
         if sharrow_enabled == "test" or True:
@@ -302,6 +331,7 @@ def _interaction_sample(
             estimator=None,
             log_alt_losers=log_alt_losers,
             zone_layer=zone_layer,
+            compute_settings=ComputeSettings(sharrow_skip=True),
         )
         chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
 
@@ -521,6 +551,7 @@ def interaction_sample(
     chunk_tag: str | None = None,
     trace_label: str | None = None,
     zone_layer: str | None = None,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run a simulation in the situation in which alternatives must
@@ -616,6 +647,7 @@ def interaction_sample(
             trace_label=chunk_trace_label,
             zone_layer=zone_layer,
             chunk_sizer=chunk_sizer,
+            compute_settings=compute_settings,
         )
 
         if choices.shape[0] > 0:

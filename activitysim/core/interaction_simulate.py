@@ -12,9 +12,8 @@ from typing import Mapping
 import numpy as np
 import pandas as pd
 
-from . import chunk, config, logit, simulate, tracing, workflow
-from activitysim.core import util
-from .configuration.base import ComputeSettings
+from activitysim.core import chunk, logit, simulate, tracing, util, workflow
+from activitysim.core.configuration.base import ComputeSettings
 
 logger = logging.getLogger(__name__)
 
@@ -554,7 +553,7 @@ def eval_interaction_utilities(
                         if expr.startswith("@"):
                             v = to_series(eval(expr[1:], globals(), locals_d))
                         else:
-                            v = df.eval(expr)
+                            v = df.eval(expr, resolvers=[locals_d])
                         if check_for_variability and v.std() == 0:
                             logger.info(
                                 "%s: no variability (%s) in: %s"

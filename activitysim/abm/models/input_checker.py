@@ -61,11 +61,13 @@ def create_table_store(state, input_checker_settings):
                             break
 
             else:
-                table = pd.read_csv(
-                    state.filesystem.get_data_file_path(
-                        table_name, alternative_suffixes=[".csv"]
-                    )
+                table_file = state.filesystem.get_data_file_path(
+                    table_name, alternative_suffixes=[".csv", ".csv.gz", ".parquet"]
                 )
+                if table_file.suffix == ".parquet":
+                    table = pd.read_parquet(table_file)
+                else:
+                    table = pd.read_csv(table_file)
         if table is None:
             raise FileNotFoundError(
                 f"Input table {table_name} could not be found" + f"\nPath: {path}"
@@ -405,11 +407,9 @@ def input_checker(state: workflow.State):
     create_table_store(state, input_checker_settings)
 
     # import the input checker code after the TABLE_STORE is initialized so functions have access to the variable
-    prior_dir = os.getcwd()
-    if state.filesystem.working_dir:
-        os.chdir(state.filesystem.working_dir)
+    sys.path.insert(0, os.path.dirname(input_checker_file_full))
     input_checker = __import__(os.path.splitext(input_checker_file)[0])
-    os.chdir(prior_dir)
+    sys.path.pop(0)
 
     # intializing data objects for errors, warnings, and pydantic data
     v_errors = {}

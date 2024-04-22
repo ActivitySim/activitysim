@@ -9,6 +9,7 @@ import pandas as pd
 
 from activitysim.abm.models.util.overlap import hh_time_window_overlap
 from activitysim.abm.models.util.tour_frequency import (
+    JointTourFreqCompSettings,
     process_joint_tours_frequency_composition,
 )
 from activitysim.core import (
@@ -19,11 +20,7 @@ from activitysim.core import (
     tracing,
     workflow,
 )
-from activitysim.core.configuration.base import PreprocessorSettings
-from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_simulate import interaction_simulate
-
-from .util.tour_frequency import JointTourFreqCompSettings
 
 logger = logging.getLogger(__name__)
 

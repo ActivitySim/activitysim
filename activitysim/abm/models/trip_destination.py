@@ -181,7 +181,8 @@ def _destination_sample(
         )
         sample_size = 0
 
-    locals_dict = model_settings.CONSTANTS.copy()
+    locals_dict = state.get_global_constants().copy()
+    locals_dict.update(model_settings.CONSTANTS)
 
     # size_terms of destination zones are purpose-specific, and trips have various purposes
     # so the relevant size_term for each interaction_sample row

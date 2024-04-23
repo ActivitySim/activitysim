@@ -20,8 +20,6 @@ from activitysim.core import (
     tracing,
     workflow,
 )
-from activitysim.core.configuration.base import PreprocessorSettings
-from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_simulate import interaction_simulate
 
 logger = logging.getLogger(__name__)

@@ -21,7 +21,7 @@ from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.tracing import print_elapsed_time
-from activitysim.core.util import assign_in_place
+from activitysim.core.util import assign_in_place, drop_unused_columns
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +106,7 @@ def parking_destination_simulate(
     destination_sample,
     model_settings: ParkingLocationSettings,
     skims,
+    locals_dict,
     chunk_size,
     trace_hh_id,
     trace_label,
@@ -131,11 +132,6 @@ def parking_destination_simulate(
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
     logger.info("Running parking_destination_simulate with %d trips", len(trips))
-
-    locals_dict = config.get_model_constants(model_settings).copy()
-    locals_dict.update(skims)
-    locals_dict["timeframe"] = "trip"
-    locals_dict["PARKING"] = skims["op_skims"].dest_key
 
     parking_locations = interaction_sample_simulate(
         state,
@@ -181,6 +177,20 @@ def choose_parking_location(
     t0 = print_elapsed_time()
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
+
+    # remove trips and alts columns that are not used in spec
+    locals_dict = state.get_global_constants()
+    locals_dict.update(config.get_model_constants(model_settings))
+    locals_dict.update(skims)
+    locals_dict["timeframe"] = "trip"
+    locals_dict["PARKING"] = skims["op_skims"].dest_key
+
+    spec = get_spec_for_segment(state, model_settings, segment_name)
+    trips = drop_unused_columns(trips, spec, locals_dict, custom_chooser=None)
+    alternatives = drop_unused_columns(
+        alternatives, spec, locals_dict, custom_chooser=None
+    )
+
     destination_sample = logit.interaction_dataset(
         state, trips, alternatives, alt_index_id=alt_dest_col_name
     )
@@ -194,6 +204,7 @@ def choose_parking_location(
         destination_sample=destination_sample,
         model_settings=model_settings,
         skims=skims,
+        locals_dict=locals_dict,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label,

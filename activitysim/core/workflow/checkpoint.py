@@ -963,8 +963,8 @@ class Checkpoints(StateAccessor):
         location: Path,
         checkpoint_name: str,
         strict_categoricals: bool = False,
-        rtol=1.0e-5,
-        atol=1.0e-8,
+        rtol: float = 1.0e-5,
+        atol: float = 1.0e-8,
     ):
         """
         Check that the tables in this State match those in an archived pipeline.
@@ -978,6 +978,10 @@ class Checkpoints(StateAccessor):
             in both the current state and the checkpoint.  Otherwise, the dtypes
             of categorical columns are ignored, and only the values themselves are
             checked to confirm they match.
+        rtol : float, default 1e-5
+            Relative tolerance. Passed through to `assert_frame_equal`.
+        atol : float, default 1e-8
+            Absolute tolerance. Passed through to `assert_frame_equal`.
 
         Raises
         ------

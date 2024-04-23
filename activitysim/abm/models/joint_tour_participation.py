@@ -88,7 +88,7 @@ def get_tour_satisfaction(candidates, participate):
         # annotate_households_cdap.csv says there has to be at least one non-preschooler in household
         # so presumably there also has to be at least one non-preschooler in joint tour
         # participates_in_jtf_model,(num_travel_active > 1) & (num_travel_active_non_preschoolers > 0)
-        cols = ["tour_id", "composition", "adult", "person_is_preschool"]
+        cols = ["tour_id", "composition", "adult"]
 
         x = (
             candidates[cols]
@@ -96,7 +96,7 @@ def get_tour_satisfaction(candidates, participate):
             .agg(
                 participants=("adult", "size"),
                 adults=("adult", "sum"),
-                preschoolers=("person_is_preschool", "sum"),
+                # preschoolers=("person_is_preschool", "sum"),
             )
             .reset_index("composition")
         )

@@ -40,14 +40,11 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script src="../../_static/jquery.js?v=5d32c60e"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../../_static/documentation_options.js?v=73c850fd"></script>
+    <script src="../../_static/documentation_options.js?v=f75f0006"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../_static/scripts/sphinx-book-theme.js"></script>
     <script src="../../_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/components/school_escorting';</script>
     <script>
@@ -62,7 +59,7 @@
     <link rel="prev" title="Mandatory Tour Frequency" href="mandatory_tour_frequency.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Apr 18, 2024"/>
+    <meta name="docbuild:last-update" content="Apr 23, 2024"/>
   </head>
   
   
@@ -103,8 +100,8 @@
          class="form-control"
          name="q"
          id="search-input"
-         placeholder="Search..."
-         aria-label="Search..."
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
          autocomplete="off"
          autocorrect="off"
          autocapitalize="off"
@@ -659,8 +656,13 @@ implementation due to a lack of data surrounding the number of escort tours in t
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseLogitComponentSettings</span></code></p>
 <p>Settings for the <cite>telecommute_frequency</cite> component.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Fields<span class="colon">:</span></dt>
+<dt class="field-odd">Config<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>extra</strong>: <em>str = forbid</em></p></li>
+</ul>
+</dd>
+<dt class="field-even">Fields<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.AGE_COLUMN" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.AGE_COLUMN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AGE_COLUMN</span> <span class="pre">(str)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.AGE_WEIGHT" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.AGE_WEIGHT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AGE_WEIGHT</span> <span class="pre">(float)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.ALTS" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.ALTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ALTS</span> <span class="pre">(Any)</span></code></a></p></li>
@@ -672,6 +674,7 @@ implementation due to a lack of data surrounding the number of escort tours in t
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.GENDER_WEIGHT" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.GENDER_WEIGHT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GENDER_WEIGHT</span> <span class="pre">(float)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.INBOUND_COEFFICIENTS" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.INBOUND_COEFFICIENTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">INBOUND_COEFFICIENTS</span> <span class="pre">(str)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.INBOUND_SPEC" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.INBOUND_SPEC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">INBOUND_SPEC</span> <span class="pre">(str)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.LOGIT_TYPE" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.LOGIT_TYPE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGIT_TYPE</span> <span class="pre">(Literal['MNL'])</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.NUM_CHAPERONES" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.NUM_CHAPERONES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NUM_CHAPERONES</span> <span class="pre">(int)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.NUM_ESCORTEES" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.NUM_ESCORTEES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NUM_ESCORTEES</span> <span class="pre">(int)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_COEFFICIENTS" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_COEFFICIENTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OUTBOUND_COEFFICIENTS</span> <span class="pre">(str)</span></code></a></p></li>
@@ -682,36 +685,69 @@ implementation due to a lack of data surrounding the number of escort tours in t
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.PERSON_WEIGHT" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.PERSON_WEIGHT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PERSON_WEIGHT</span> <span class="pre">(float)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIMULATE_CHOOSER_COLUMNS</span> <span class="pre">(list[str]</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.SPEC" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.SPEC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPEC</span> <span class="pre">(None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.compute_settings" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.compute_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_settings</span> <span class="pre">()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.explicit_chunk" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.explicit_chunk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explicit_chunk</span> <span class="pre">(int)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.no_escorting_alterative" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.no_escorting_alterative"><code class="xref py py-obj docutils literal notranslate"><span class="pre">no_escorting_alterative</span> <span class="pre">(int)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocessor</span> <span class="pre">(PreprocessorSettings</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_inbound" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_inbound"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocessor_inbound</span> <span class="pre">(PreprocessorSettings</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_outbound" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_outbound"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocessor_outbound</span> <span class="pre">(PreprocessorSettings</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_outbound_cond" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_outbound_cond"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocessor_outbound_cond</span> <span class="pre">(PreprocessorSettings</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.sharrow_skip" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.sharrow_skip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sharrow_skip</span> <span class="pre">(bool</span> <span class="pre">|</span> <span class="pre">dict[str,</span> <span class="pre">bool])</span></code></a></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">()</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-odd">Validators<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code> » <code class="xref py py-obj docutils literal notranslate"><span class="pre">all</span> <span class="pre">fields</span></code></p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.AGE_COLUMN">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">AGE_COLUMN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'age'</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.AGE_COLUMN" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.AGE_WEIGHT">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">AGE_WEIGHT</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.AGE_WEIGHT" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.ALTS">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ALTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.ALTS" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.CHAPERONE_AGE_CUTOFF">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CHAPERONE_AGE_CUTOFF</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">18</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.CHAPERONE_AGE_CUTOFF" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.COEFFICIENTS">
@@ -722,139 +758,321 @@ If it is not provided, then it is assumed that all model coefficients are
 given explicitly in the <cite>SPEC</cite> as numerical values instead of named parameters.
 This is perfectly acceptable for use with ActivitySim for typical simulation
 applications, but may be problematic if used with “estimation mode”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.CONSTANTS">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CONSTANTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.CONSTANTS" title="Link to this definition">#</a></dt>
 <dd><p>Named constants usable in the utility expressions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.ESCORTEE_AGE_CUTOFF">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ESCORTEE_AGE_CUTOFF</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.ESCORTEE_AGE_CUTOFF" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.GENDER_COLUMN">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">GENDER_COLUMN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'sex'</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.GENDER_COLUMN" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.GENDER_WEIGHT">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">GENDER_WEIGHT</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10.0</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.GENDER_WEIGHT" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.INBOUND_COEFFICIENTS">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">INBOUND_COEFFICIENTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'school_escorting_coefficients_inbound.csv'</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.INBOUND_COEFFICIENTS" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.INBOUND_SPEC">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">INBOUND_SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'school_escorting_inbound.csv'</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.INBOUND_SPEC" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.LOGIT_TYPE">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LOGIT_TYPE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'MNL'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'MNL'</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.LOGIT_TYPE" title="Link to this definition">#</a></dt>
+<dd><p>Logit model mathematical form.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>“MNL”</dt><dd><p>Multinomial logit model.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.NUM_CHAPERONES">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NUM_CHAPERONES</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.NUM_CHAPERONES" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.NUM_ESCORTEES">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NUM_ESCORTEES</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.NUM_ESCORTEES" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_COEFFICIENTS">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">OUTBOUND_COEFFICIENTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'school_escorting_coefficients_outbound.csv'</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_COEFFICIENTS" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_COND_COEFFICIENTS">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">OUTBOUND_COND_COEFFICIENTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'school_escorting_coefficients_outbound_cond.csv'</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_COND_COEFFICIENTS" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_COND_SPEC">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">OUTBOUND_COND_SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'school_escorting_outbound_cond.csv'</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_COND_SPEC" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_SPEC">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">OUTBOUND_SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'school_escorting_outbound.csv'</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_SPEC" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.PERSONTYPE_COLUMN">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PERSONTYPE_COLUMN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ptype'</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.PERSONTYPE_COLUMN" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.PERSON_WEIGHT">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PERSON_WEIGHT</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100.0</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.PERSON_WEIGHT" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SIMULATE_CHOOSER_COLUMNS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.SPEC">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.SPEC" title="Link to this definition">#</a></dt>
 <dd><p>The school escort model does not use this setting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.compute_settings">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_settings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ComputeSettings</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">ComputeSettings(sharrow_skip=False,</span> <span class="pre">fastmath=True,</span> <span class="pre">use_bottleneck=None,</span> <span class="pre">use_numexpr=None,</span> <span class="pre">use_numba=None,</span> <span class="pre">drop_unused_columns=True,</span> <span class="pre">protect_columns=[])</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.compute_settings" title="Link to this definition">#</a></dt>
+<dd><p>Sharrow settings for this component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.explicit_chunk">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">explicit_chunk</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.explicit_chunk" title="Link to this definition">#</a></dt>
 <dd><p>If &gt; 0, use this chunk size instead of adaptive chunking.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.no_escorting_alterative">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">no_escorting_alterative</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.no_escorting_alterative" title="Link to this definition">#</a></dt>
 <dd><p>The alternative number for no escorting. Used to set the choice for households with no escortees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">preprocessor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor" title="Link to this definition">#</a></dt>
 <dd><p>Setting for the preprocessor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_inbound">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">preprocessor_inbound</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_inbound" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_outbound">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">preprocessor_outbound</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_outbound" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_outbound_cond">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">preprocessor_outbound_cond</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_outbound_cond" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.sharrow_skip">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sharrow_skip</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.sharrow_skip" title="Link to this definition">#</a></dt>
-<dd><p>Setting to skip sharrow.</p>
-<p>Sharrow can be skipped (or not) for all school escorting stages by giving
-simply true or false.  Alternatively, it can be skipped only for particular
-stages by giving a mapping of stage name to skipping.  For example:</p>
-<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>yaml
-sharrow_skip:</p>
-<blockquote>
-<div><p>OUTBOUND: true
-INBOUND: false
-OUTBOUND_COND: true</p>
-</div></blockquote>
-<p><a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
+
+<dl class="py method pydantic_validator">
+<dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.update_sharrow_skip">
+<em class="property"><span class="pre">validator</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">update_sharrow_skip</span></span><em class="autodoc_pydantic_validator_arrow property">&#160; <span class="pre">»</span>&#160; </em><em class="xref py py-obj"><span class="pre">all</span> <span class="pre">fields</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.update_sharrow_skip" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -950,6 +1168,7 @@ are used to create school escort tours and trips.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.GENDER_WEIGHT"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.GENDER_WEIGHT</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.INBOUND_COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.INBOUND_COEFFICIENTS</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.INBOUND_SPEC"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.INBOUND_SPEC</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.LOGIT_TYPE"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.LOGIT_TYPE</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.NUM_CHAPERONES"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.NUM_CHAPERONES</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.NUM_ESCORTEES"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.NUM_ESCORTEES</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.OUTBOUND_COEFFICIENTS</span></code></a></li>
@@ -960,13 +1179,14 @@ are used to create school escort tours and trips.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.PERSON_WEIGHT"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.PERSON_WEIGHT</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.SPEC"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.SPEC</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.compute_settings"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.compute_settings</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.explicit_chunk"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.explicit_chunk</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.no_escorting_alterative"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.no_escorting_alterative</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.preprocessor</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_inbound"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.preprocessor_inbound</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_outbound"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.preprocessor_outbound</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_outbound_cond"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.preprocessor_outbound_cond</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.sharrow_skip"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.sharrow_skip</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.update_sharrow_skip"><code class="docutils literal notranslate"><span class="pre">SchoolEscortSettings.update_sharrow_skip</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
@@ -982,7 +1202,7 @@ are used to create school escort tours and trips.</p>
   <div class="sidebar-secondary-item">
 
   <div class="tocsection sourcelink">
-    <a href="../../_sources/dev-guide/components/school_escorting.md">
+    <a href="../../_sources/dev-guide/components/school_escorting.md.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>
@@ -1011,13 +1231,13 @@ are used to create school escort tours and trips.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.0b2.dev62+gc5bab958, documentation last updated Apr 18, 2024.<br/>
+ActivitySim 1.3.0b2.dev69+g4085bfc7, documentation last updated Apr 23, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.5.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
     <br/>
   </p>
 </div>

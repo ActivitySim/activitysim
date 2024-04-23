@@ -40,14 +40,11 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script src="../_static/jquery.js?v=5d32c60e"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=73c850fd"></script>
+    <script src="../_static/documentation_options.js?v=f75f0006"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js"></script>
     <script src="../_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/using-sharrow';</script>
     <script>
@@ -62,7 +59,7 @@
     <link rel="prev" title="cached_object" href="_generated/activitysim.core.workflow.cached_object.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Apr 18, 2024"/>
+    <meta name="docbuild:last-update" content="Apr 23, 2024"/>
   </head>
   
   
@@ -103,8 +100,8 @@
          class="form-control"
          name="q"
          id="search-input"
-         placeholder="Search..."
-         aria-label="Search..."
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
          autocomplete="off"
          autocorrect="off"
          autocapitalize="off"
@@ -646,8 +643,12 @@ do appear, they are executed only once and stored in a temporary value for re-us
 as needed.</p>
 <p>For models with utility expressions that include a lot of string comparisons,
 (e.g. because they are built for the legacy <code class="docutils literal notranslate"><span class="pre">pandas.eval</span></code> interpreter and have not
-been updated) sharrow can be disabled by setting <code class="docutils literal notranslate"><span class="pre">sharrow_skip:</span> <span class="pre">true</span></code> in the
-component’s configuration yaml file.</p>
+been updated) sharrow can be disabled by setting</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">compute_settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">sharrow_skip</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+<p>in the component’s configuration yaml file.</p>
 </section>
 <section id="multiprocessing-performance">
 <h3>Multiprocessing Performance<a class="headerlink" href="#multiprocessing-performance" title="Link to this heading">#</a></h3>
@@ -930,7 +931,7 @@ few specific names by joining them with the pipe operator (|).</p>
   <div class="sidebar-secondary-item">
 
   <div class="tocsection sourcelink">
-    <a href="../_sources/dev-guide/using-sharrow.md">
+    <a href="../_sources/dev-guide/using-sharrow.md.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>
@@ -959,13 +960,13 @@ few specific names by joining them with the pipe operator (|).</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.0b2.dev62+gc5bab958, documentation last updated Apr 18, 2024.<br/>
+ActivitySim 1.3.0b2.dev69+g4085bfc7, documentation last updated Apr 23, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.5.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
     <br/>
   </p>
 </div>

@@ -40,14 +40,11 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script src="../../_static/jquery.js?v=5d32c60e"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../../_static/documentation_options.js?v=73c850fd"></script>
+    <script src="../../_static/documentation_options.js?v=f75f0006"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../_static/scripts/sphinx-book-theme.js"></script>
     <script src="../../_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/components/trip_purpose';</script>
     <script>
@@ -62,7 +59,7 @@
     <link rel="prev" title="Stop Frequency" href="stop_frequency.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Apr 18, 2024"/>
+    <meta name="docbuild:last-update" content="Apr 23, 2024"/>
   </head>
   
   
@@ -103,8 +100,8 @@
          class="form-control"
          name="q"
          id="search-input"
-         placeholder="Search..."
-         aria-label="Search..."
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
          autocomplete="off"
          autocorrect="off"
          autocapitalize="off"
@@ -459,7 +456,7 @@ document.write(`
 observed frequency distribution.  The distribution is segmented by tour purpose, tour
 direction and person type. Work tours are also segmented by departure or arrival time period.</p>
 <p>The main interface to the trip purpose model is the
-<a class="reference internal" href="#activitysim.abm.models.trip_purpose.trip_purpose"><span class="xref myst">trip_purpose</span></a>
+<a class="reference internal" href="#activitysim.abm.models.trip_purpose.trip_purpose" title="activitysim.abm.models.trip_purpose.trip_purpose"><span class="xref myst py py-func">trip_purpose</span></a>
 function.  This function is registered as an Inject step in the example Pipeline.</p>
 <section id="structure">
 <h2>Structure<a class="headerlink" href="#structure" title="Link to this heading">#</a></h2>
@@ -484,6 +481,46 @@ function.  This function is registered as an Inject step in the example Pipeline
 </section>
 <section id="implementation">
 <h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_purpose.trip_purpose">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_purpose.</span></span><span class="sig-name descname"><span class="pre">trip_purpose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.2)"><span class="pre">DataFrame</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#activitysim.abm.models.trip_purpose.trip_purpose" title="Link to this definition">#</a></dt>
+<dd><p>trip purpose model step - calls run_trip_purpose to run the actual model</p>
+<p>adds purpose column to trips</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_purpose.choose_intermediate_trip_purpose">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_purpose.</span></span><span class="sig-name descname"><span class="pre">choose_intermediate_trip_purpose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probs_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probs_join_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_depart_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_hh_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_sizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ChunkSizer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_purpose.choose_intermediate_trip_purpose" title="Link to this definition">#</a></dt>
+<dd><p>chose purpose for intermediate trips based on probs_spec
+which assigns relative weights (summing to 1) to the possible purpose choices</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>purpose: pandas.Series of purpose (str) indexed by trip_id</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_purpose.run_trip_purpose">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_purpose.</span></span><span class="sig-name descname"><span class="pre">run_trip_purpose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.2)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TripPurposeSettings</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings_file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'trip_purpose.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'trip_purpose'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_purpose.run_trip_purpose" title="Link to this definition">#</a></dt>
+<dd><p>trip purpose - main functionality separated from model step so it can be called iteratively</p>
+<p>For each intermediate stop on a tour (i.e. trip other than the last trip outbound or inbound)
+each trip is assigned a purpose based on an observed frequency distribution</p>
+<p>The distribution should always be segmented by tour purpose and tour direction. By default it is also
+segmented by person type. The join columns can be overwritten using the “probs_join_cols” parameter in
+the model settings. The model will attempt to segment by trip depart time as well if necessary
+and depart time ranges are specified in the probability lookup table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>purpose: pandas.Series of purpose (str) indexed by trip_id</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -539,14 +576,19 @@ function.  This function is registered as an Inject step in the example Pipeline
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation">Implementation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation">Implementation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_purpose.trip_purpose"><code class="docutils literal notranslate"><span class="pre">trip_purpose()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_purpose.choose_intermediate_trip_purpose"><code class="docutils literal notranslate"><span class="pre">choose_intermediate_trip_purpose()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_purpose.run_trip_purpose"><code class="docutils literal notranslate"><span class="pre">run_trip_purpose()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 
   <div class="sidebar-secondary-item">
 
   <div class="tocsection sourcelink">
-    <a href="../../_sources/dev-guide/components/trip_purpose.md">
+    <a href="../../_sources/dev-guide/components/trip_purpose.md.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>
@@ -575,13 +617,13 @@ function.  This function is registered as an Inject step in the example Pipeline
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.0b2.dev62+gc5bab958, documentation last updated Apr 18, 2024.<br/>
+ActivitySim 1.3.0b2.dev69+g4085bfc7, documentation last updated Apr 23, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.5.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
     <br/>
   </p>
 </div>

@@ -40,14 +40,11 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script src="../../_static/jquery.js?v=5d32c60e"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../../_static/documentation_options.js?v=73c850fd"></script>
+    <script src="../../_static/documentation_options.js?v=f75f0006"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../_static/scripts/sphinx-book-theme.js"></script>
     <script src="../../_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/components/trip_scheduling_probabilistic';</script>
     <script>
@@ -60,7 +57,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Apr 18, 2024"/>
+    <meta name="docbuild:last-update" content="Apr 23, 2024"/>
   </head>
   
   
@@ -101,8 +98,8 @@
          class="form-control"
          name="q"
          id="search-input"
-         placeholder="Search..."
-         aria-label="Search..."
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
          autocomplete="off"
          autocorrect="off"
          autocapitalize="off"
@@ -407,7 +404,7 @@ make this the default for this component, and/or remove logic version 1 entirely
 </pre></div>
 </div>
 <p>The main interface to the trip scheduling model is the
-<a class="reference internal" href="#activitysim.abm.models.trip_scheduling.trip_scheduling"><span class="xref myst">trip_scheduling</span></a> function.
+<a class="reference internal" href="#activitysim.abm.models.trip_scheduling.trip_scheduling" title="activitysim.abm.models.trip_scheduling.trip_scheduling"><span class="xref myst py py-func">trip_scheduling</span></a> function.
 This function is registered as an Inject step in the example Pipeline.</p>
 <section id="structure">
 <h2>Structure<a class="headerlink" href="#structure" title="Link to this heading">#</a></h2>
@@ -419,6 +416,85 @@ This function is registered as an Inject step in the example Pipeline.</p>
 </section>
 <section id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
+<dl class="py class pydantic_model">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.TripSchedulingSettings">
+<em class="property"><span class="pre">settings</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_scheduling.</span></span><span class="sig-name descname"><span class="pre">TripSchedulingSettings</span></span><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../_generated/activitysim.core.configuration.base.PydanticReadable.html#activitysim.core.configuration.base.PydanticReadable" title="activitysim.core.configuration.base.PydanticReadable"><code class="xref py py-class docutils literal notranslate"><span class="pre">PydanticReadable</span></code></a></p>
+<p>Settings for the <cite>trip_scheduling</cite> component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Fields<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.COEFFICIENTS" title="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.COEFFICIENTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">COEFFICIENTS</span> <span class="pre">(str)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.CONSTANTS" title="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.CONSTANTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CONSTANTS</span> <span class="pre">(dict[str,</span> <span class="pre">Any])</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.DEPART_ALT_BASE" title="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.DEPART_ALT_BASE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEPART_ALT_BASE</span> <span class="pre">(int)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.FAILFIX" title="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.FAILFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FAILFIX</span> <span class="pre">(str)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.MAX_ITERATIONS" title="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.MAX_ITERATIONS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_ITERATIONS</span> <span class="pre">(int)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.PROBS_SPEC" title="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.PROBS_SPEC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROBS_SPEC</span> <span class="pre">(str)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.logic_version" title="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.logic_version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logic_version</span> <span class="pre">(int</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.preprocessor" title="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.preprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocessor</span> <span class="pre">(PreprocessorSettings</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.probs_join_cols" title="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.probs_join_cols"><code class="xref py py-obj docutils literal notranslate"><span class="pre">probs_join_cols</span> <span class="pre">(list[str]</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.scheduling_mode" title="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.scheduling_mode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scheduling_mode</span> <span class="pre">(Literal['departure',</span> <span class="pre">'stop_duration',</span> <span class="pre">'relative'])</span></code></a></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">()</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.COEFFICIENTS">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">COEFFICIENTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'trip_scheduling_coefficients.csv'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.COEFFICIENTS" title="Link to this definition">#</a></dt>
+<dd><p>Filename for the trip scheduling coefficients file</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.CONSTANTS">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CONSTANTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.CONSTANTS" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.DEPART_ALT_BASE">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DEPART_ALT_BASE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.DEPART_ALT_BASE" title="Link to this definition">#</a></dt>
+<dd><p>Integer to add to probs column index to get time period it represents.
+e.g. depart_alt_base = 5 means first column (column 0) represents 5 am</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.FAILFIX">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FAILFIX</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'choose_most_initial'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.FAILFIX" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.MAX_ITERATIONS">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MAX_ITERATIONS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.MAX_ITERATIONS" title="Link to this definition">#</a></dt>
+<dd><p>Maximum iterations.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.PROBS_SPEC">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PROBS_SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'trip_scheduling_probs.csv'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.PROBS_SPEC" title="Link to this definition">#</a></dt>
+<dd><p>Filename for the trip scheduling probabilities (.csv) file.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.logic_version">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">logic_version</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.logic_version" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.preprocessor">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">preprocessor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.preprocessor" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.probs_join_cols">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">probs_join_cols</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.probs_join_cols" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.TripSchedulingSettings.scheduling_mode">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scheduling_mode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'departure'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'stop_duration'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'relative'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'departure'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.scheduling_mode" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <section id="examples">
 <h3>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h3>
 <ul class="simple">
@@ -429,6 +505,109 @@ This function is registered as an Inject step in the example Pipeline.</p>
 </section>
 <section id="implementation">
 <h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.trip_scheduling">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_scheduling.</span></span><span class="sig-name descname"><span class="pre">trip_scheduling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.2)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">tours</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.2)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings" title="activitysim.abm.models.trip_scheduling.TripSchedulingSettings"><span class="pre">TripSchedulingSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings_file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'trip_scheduling.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'trip_scheduling'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.trip_scheduling" title="Link to this definition">#</a></dt>
+<dd><p>Trip scheduling assigns depart times for trips within the start, end limits of the tour.</p>
+<p>The algorithm is simplistic:</p>
+<p>The first outbound trip starts at the tour start time, and subsequent outbound trips are
+processed in trip_num order, to ensure that subsequent trips do not depart before the
+trip that preceeds them.</p>
+<p>Inbound trips are handled similarly, except in reverse order, starting with the last trip,
+and working backwards to ensure that inbound trips do not depart after the trip that
+succeeds them.</p>
+<p>The probability spec assigns probabilities for depart times, but those possible departs must
+be clipped to disallow depart times outside the tour limits, the departs of prior trips, and
+in the case of work tours, the start/end times of any atwork subtours.</p>
+<p>Scheduling can fail if the probability table assigns zero probabilities to all the available
+depart times in a trip’s depart window. (This could be avoided by giving every window a small
+probability, rather than zero, but the existing mtctm1 prob spec does not do this. I believe
+this is due to the its having been generated from a small household travel survey sample
+that lacked any departs for some time periods.)</p>
+<p>Rescheduling the trips that fail (along with their inbound or outbound leg-mates) can sometimes
+fix this problem, if it was caused by an earlier trip’s depart choice blocking a subsequent
+trip’s ability to schedule a depart within the resulting window. But it can also happen if
+a tour is very short (e.g. one time period) and the prob spec having a zero probability for
+that tour hour.</p>
+<p>Therefore we need to handle trips that could not be scheduled. There are two ways (at least)
+to solve this problem:</p>
+<p>1) choose_most_initial
+simply assign a depart time to the trip, even if it has a zero probability. It makes
+most sense, in this case, to assign the ‘most initial’ depart time, so that subsequent trips
+are minimally impacted. This can be done in the final iteration, thus affecting only the
+trips that could no be scheduled by the standard approach</p>
+<p>2) drop_and_cleanup
+drop trips that could no be scheduled, and adjust their leg mates, as is done for failed
+trips in trip_destination.</p>
+<p>Which option is applied is determined by the FAILFIX model setting</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.set_stop_num">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_scheduling.</span></span><span class="sig-name descname"><span class="pre">set_stop_num</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trips</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.set_stop_num" title="Link to this definition">#</a></dt>
+<dd><p>Convert trip_num to stop_num in order to work with duration-based
+probs that are keyed on stop num. For outbound trips, trip n chooses
+the duration of stop n-1 (the trip origin). For inbound trips, trip n
+chooses the duration of stop n (the trip destination). This means
+outbound trips technically choose a departure time while inbound trips
+choose an arrival.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.update_tour_earliest">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_scheduling.</span></span><span class="sig-name descname"><span class="pre">update_tour_earliest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trips</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outbound_choices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logic_version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.update_tour_earliest" title="Link to this definition">#</a></dt>
+<dd><p>Updates “earliest” column for inbound trips based on
+the maximum outbound trip departure time of the tour.
+This is done to ensure inbound trips do not depart
+before the last outbound trip of a tour.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trips: pd.DataFrame</strong></dt><dd></dd>
+<dt><strong>outbound_choices: pd.Series</strong></dt><dd><p>time periods depart choices, one per trip (except for trips with
+zero probs)</p>
+</dd>
+<dt><strong>logic_version</strong><span class="classifier">int</span></dt><dd><p>Logic version 1 is the original ActivitySim implementation, which
+sets the “earliest” value to the max outbound departure for all
+inbound trips, regardless of what that max outbound departure value
+is (even if it is NA).  Logic version 2 introduces a change whereby
+that assignment is only made if the max outbound departure value is
+not NA.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>modifies trips in place</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling.schedule_trips_in_leg">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_scheduling.</span></span><span class="sig-name descname"><span class="pre">schedule_trips_in_leg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">outbound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probs_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings" title="activitysim.abm.models.trip_scheduling.TripSchedulingSettings"><span class="pre">TripSchedulingSettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_last_iteration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_sizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ChunkSizer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.schedule_trips_in_leg" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>state</strong></dt><dd></dd>
+<dt><strong>outbound</strong></dt><dd></dd>
+<dt><strong>trips</strong></dt><dd></dd>
+<dt><strong>probs_spec</strong></dt><dd></dd>
+<dt><strong>depart_alt_base</strong></dt><dd></dd>
+<dt><strong>is_last_iteration</strong></dt><dd></dd>
+<dt><strong>trace_label</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>choices: pd.Series</dt><dd><p>depart choice for trips, indexed by trip_id</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -462,17 +641,36 @@ This function is registered as an Inject step in the example Pipeline.</p>
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#structure">Structure</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings"><code class="docutils literal notranslate"><span class="pre">TripSchedulingSettings</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">TripSchedulingSettings.COEFFICIENTS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">TripSchedulingSettings.CONSTANTS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.DEPART_ALT_BASE"><code class="docutils literal notranslate"><span class="pre">TripSchedulingSettings.DEPART_ALT_BASE</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.FAILFIX"><code class="docutils literal notranslate"><span class="pre">TripSchedulingSettings.FAILFIX</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.MAX_ITERATIONS"><code class="docutils literal notranslate"><span class="pre">TripSchedulingSettings.MAX_ITERATIONS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.PROBS_SPEC"><code class="docutils literal notranslate"><span class="pre">TripSchedulingSettings.PROBS_SPEC</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.logic_version"><code class="docutils literal notranslate"><span class="pre">TripSchedulingSettings.logic_version</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">TripSchedulingSettings.preprocessor</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.probs_join_cols"><code class="docutils literal notranslate"><span class="pre">TripSchedulingSettings.probs_join_cols</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.scheduling_mode"><code class="docutils literal notranslate"><span class="pre">TripSchedulingSettings.scheduling_mode</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation">Implementation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation">Implementation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.trip_scheduling"><code class="docutils literal notranslate"><span class="pre">trip_scheduling()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.set_stop_num"><code class="docutils literal notranslate"><span class="pre">set_stop_num()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.update_tour_earliest"><code class="docutils literal notranslate"><span class="pre">update_tour_earliest()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling.schedule_trips_in_leg"><code class="docutils literal notranslate"><span class="pre">schedule_trips_in_leg()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 
   <div class="sidebar-secondary-item">
 
   <div class="tocsection sourcelink">
-    <a href="../../_sources/dev-guide/components/trip_scheduling_probabilistic.md">
+    <a href="../../_sources/dev-guide/components/trip_scheduling_probabilistic.md.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>
@@ -501,13 +699,13 @@ This function is registered as an Inject step in the example Pipeline.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.0b2.dev62+gc5bab958, documentation last updated Apr 18, 2024.<br/>
+ActivitySim 1.3.0b2.dev69+g4085bfc7, documentation last updated Apr 23, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.5.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
     <br/>
   </p>
 </div>

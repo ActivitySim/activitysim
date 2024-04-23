@@ -628,13 +628,13 @@ def process_tours_frequency_composition(
 
 
 class JointTourFreqCompContent(PydanticReadable):
-    VALUE_MAP: dict[int, str]
-    COLUMNS: list[str]
+    VALUE_MAP: dict[int, str] = {}
+    COLUMNS: list[str] = []
 
 
 class JointTourFreqCompAlts(PydanticReadable):
-    PURPOSE: JointTourFreqCompContent
-    COMPOSITION: JointTourFreqCompContent
+    PURPOSE: JointTourFreqCompContent = JointTourFreqCompContent()
+    COMPOSITION: JointTourFreqCompContent = JointTourFreqCompContent()
 
 
 class JointTourFreqCompSettings(LogitComponentSettings, extra="forbid"):
@@ -642,7 +642,7 @@ class JointTourFreqCompSettings(LogitComponentSettings, extra="forbid"):
     Settings for joint tour frequency and composition.
     """
 
-    ALTS_TABLE_STRUCTURE: JointTourFreqCompAlts
+    ALTS_TABLE_STRUCTURE: JointTourFreqCompAlts = JointTourFreqCompAlts()
     preprocessor: PreprocessorSettings | None = None
     ALTS_PREPROCESSOR: PreprocessorSettings | None = None
 

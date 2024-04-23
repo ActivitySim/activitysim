@@ -179,7 +179,8 @@ def choose_parking_location(
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
     # remove trips and alts columns that are not used in spec
-    locals_dict = config.get_model_constants(model_settings).copy()
+    locals_dict = state.get_global_constants()
+    locals_dict.update(config.get_model_constants(model_settings))
     locals_dict.update(skims)
     locals_dict["timeframe"] = "trip"
     locals_dict["PARKING"] = skims["op_skims"].dest_key

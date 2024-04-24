@@ -155,54 +155,6 @@ def add_prev_choices_to_choosers(
     return choosers
 
 
-def create_bundle_attributes(row):
-    """
-    Parse a bundle to determine escortee numbers and tour info.
-    """
-    escortee_str = ""
-    escortee_num_str = ""
-    school_dests_str = ""
-    school_starts_str = ""
-    school_ends_str = ""
-    school_tour_ids_str = ""
-    num_escortees = 0
-
-    for child_num in row["child_order"]:
-        child_num = str(child_num)
-        child_id = int(row["bundle_child" + child_num])
-
-        if child_id > 0:
-            num_escortees += 1
-            school_dest = str(int(row["school_destination_child" + child_num]))
-            school_start = str(int(row["school_start_child" + child_num]))
-            school_end = str(int(row["school_end_child" + child_num]))
-            school_tour_id = str(int(row["school_tour_id_child" + child_num]))
-
-            if escortee_str == "":
-                escortee_str = str(child_id)
-                escortee_num_str = str(child_num)
-                school_dests_str = school_dest
-                school_starts_str = school_start
-                school_ends_str = school_end
-                school_tour_ids_str = school_tour_id
-            else:
-                escortee_str = escortee_str + "_" + str(child_id)
-                escortee_num_str = escortee_num_str + "_" + str(child_num)
-                school_dests_str = school_dests_str + "_" + school_dest
-                school_starts_str = school_starts_str + "_" + school_start
-                school_ends_str = school_ends_str + "_" + school_end
-                school_tour_ids_str = school_tour_ids_str + "_" + school_tour_id
-
-    row["escortees"] = escortee_str
-    row["escortee_nums"] = escortee_num_str
-    row["num_escortees"] = num_escortees
-    row["school_destinations"] = school_dests_str
-    row["school_starts"] = school_starts_str
-    row["school_ends"] = school_ends_str
-    row["school_tour_ids"] = school_tour_ids_str
-    return row
-
-
 def create_school_escorting_bundles_table(choosers, tours, stage):
     """
     Creates a table that has one row for every school escorting bundle.
@@ -336,18 +288,13 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
         bundles["inbound_order"],
     )
 
-    bundles = bundles.apply(lambda row: create_bundle_attributes(row), axis=1)
+    # putting the bundle attributes in order of child pickup/dropoff
+    bundles = school_escort_tours_trips.create_bundle_attributes(bundles)
 
     # getting chauffer mandatory times
     mandatory_escort_tours = tours[
         (tours.tour_category == "mandatory") & (tours.tour_num == 1)
     ]
-    # bundles["first_mand_tour_start_time"] = reindex(
-    #     mandatory_escort_tours.set_index("person_id").start, bundles["chauf_id"]
-    # )
-    # bundles["first_mand_tour_end_time"] = reindex(
-    #     mandatory_escort_tours.set_index("person_id").end, bundles["chauf_id"]
-    # )
     bundles["first_mand_tour_id"] = reindex(
         mandatory_escort_tours.reset_index().set_index("person_id").tour_id,
         bundles["chauf_id"],

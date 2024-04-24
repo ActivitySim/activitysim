@@ -10,7 +10,7 @@ on:
       - '*'
 
 env:
-  CACHE_NUMBER: 1  # increase to reset cache manually
+  CACHE_NUMBER: 2  # increase to reset cache manually
 
 jobs:
   foundation:
@@ -96,12 +96,10 @@ jobs:
         include:
           - os: macos-latest
             label: macOS
-            prefix: /Users/runner/miniconda3/envs/asim-test
             python-version: "3.10"
 
           - os: windows-latest
             label: win-64
-            prefix: C:\Miniconda3\envs\asim-test
             python-version: "3.10"
 
     defaults:
@@ -127,7 +125,7 @@ jobs:
 
       - uses: actions/cache@v4
         with:
-          path: ${{ matrix.prefix }}
+          path: ${{ env.CONDA }}/envs
           key: ${{ matrix.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
@@ -186,7 +184,6 @@ jobs:
   builtin_regional_models:
     needs: foundation
     env:
-      mamba-env-prefix: /usr/share/miniconda3/envs/asim-test
       python-version: "3.10"
       label: linux-64
     strategy:
@@ -224,7 +221,7 @@ jobs:
 
       - uses: actions/cache@v4
         with:
-          path: ${{ env.mamba-env-prefix }}
+          path: ${{ env.CONDA }}/envs
           key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
@@ -288,7 +285,6 @@ jobs:
   external_regional_models:
     needs: foundation
     env:
-      mamba-env-prefix: /usr/share/miniconda3/envs/asim-test
       python-version: "3.10"
       label: linux-64
     strategy:
@@ -327,7 +323,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
-            ${{ env.mamba-env-prefix }}
+            ${{ env.CONDA }}/envs
             ~/.cache/ActivitySim
           key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
@@ -364,7 +360,6 @@ jobs:
   random_seed_generation:
     needs: foundation
     env:
-      mamba-env-prefix: /usr/share/miniconda3/envs/asim-test
       python-version: "3.10"
       label: linux-64
     defaults:
@@ -390,7 +385,7 @@ jobs:
 
       - uses: actions/cache@v4
         with:
-          path: ${{ env.mamba-env-prefix }}
+          path: ${{ env.CONDA }}/envs
           key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
@@ -431,7 +426,6 @@ jobs:
   estimation_mode:
     needs: foundation
     env:
-      mamba-env-prefix: /usr/share/miniconda3/envs/asim-test
       python-version: "3.10"
       label: linux-64
     defaults:
@@ -456,7 +450,7 @@ jobs:
 
       - uses: actions/cache@v4
         with:
-          path: ${{ env.mamba-env-prefix }}
+          path: ${{ env.CONDA }}/envs
           key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 

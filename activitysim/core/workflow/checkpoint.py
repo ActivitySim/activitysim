@@ -959,7 +959,12 @@ class Checkpoints(StateAccessor):
         logger.debug(f"checkpoint.restore_from of {checkpoint_name} complete")
 
     def check_against(
-        self, location: Path, checkpoint_name: str, strict_categoricals: bool = False
+        self,
+        location: Path,
+        checkpoint_name: str,
+        strict_categoricals: bool = False,
+        rtol: float = 1.0e-5,
+        atol: float = 1.0e-8,
     ):
         """
         Check that the tables in this State match those in an archived pipeline.
@@ -973,6 +978,10 @@ class Checkpoints(StateAccessor):
             in both the current state and the checkpoint.  Otherwise, the dtypes
             of categorical columns are ignored, and only the values themselves are
             checked to confirm they match.
+        rtol : float, default 1e-5
+            Relative tolerance. Passed through to `assert_frame_equal`.
+        atol : float, default 1e-8
+            Absolute tolerance. Passed through to `assert_frame_equal`.
 
         Raises
         ------
@@ -1037,7 +1046,11 @@ class Checkpoints(StateAccessor):
             else:
                 try:
                     pd.testing.assert_frame_equal(
-                        local_table[ref_table.columns], ref_table, check_dtype=False
+                        local_table[ref_table.columns],
+                        ref_table,
+                        check_dtype=False,
+                        rtol=rtol,
+                        atol=atol,
                     )
                 except Exception as err:
                     if not strict_categoricals:
@@ -1047,6 +1060,8 @@ class Checkpoints(StateAccessor):
                                 ref_table,
                                 check_dtype=False,
                                 check_categorical=False,
+                                rtol=rtol,
+                                atol=atol,
                             )
                         except Exception as err2:
                             raise AssertionError(

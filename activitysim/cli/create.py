@@ -265,7 +265,7 @@ def download_asset(
     url: str,
     target_path: str,
     sha256: str = None,
-    link: bool = True,
+    link: bool | str | Path = True,
     base_path: str | None = None,
     unpack: str | None = None,
 ):

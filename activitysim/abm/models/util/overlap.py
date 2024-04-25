@@ -268,7 +268,7 @@ def calculate_consecutive(array):
     intvs = stops[:, 1] - starts[:, 1]
 
     # Store intervals as a 2D array for further vectorized ops to make.
-    c = np.bincount(starts[:, 0])
+    c = np.bincount(starts[:, 0], minlength=array.shape[0])
     mask = np.arange(c.max()) < c[:, None]
     intvs2D = mask.astype(float)
     intvs2D[mask] = intvs

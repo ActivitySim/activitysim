@@ -257,7 +257,7 @@ def download_external_example(
         cache_dir = cache_dir.joinpath(name)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
-    working_dir = Path(working_dir)
+    working_dir = Path(working_dir).absolute()
     working_dir.mkdir(parents=True, exist_ok=True)
     common_prefix = "."
 
@@ -309,6 +309,8 @@ def download_external_example(
             raise ValueError(
                 f"unknown archive file type {''.join(target_path.suffixes)}"
             )
+    else:
+        working_subdir = working_dir.joinpath(name)
 
     # download assets if any:
     if assets:

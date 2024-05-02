@@ -205,7 +205,6 @@ def _destination_sample(
             "size_terms_array": size_term_matrix.df.to_numpy(),
             "timeframe": "trip",
             "land_use": state.get_dataframe("land_use"),
-            "land_use_taz": state.get_dataframe("land_use_taz"),
         }
     )
     locals_dict.update(skims)

@@ -174,7 +174,7 @@ def eval_interaction_utilities(
             for i1, i2 in zip(exprs, labels):
                 logger.debug(f"        - expr: {i1}: {i2}")
 
-            timelogger.mark("sharrow preamble", True, logger, trace_label)
+            timelogger.mark("sharrow interact preamble", True, logger, trace_label)
 
             sh_util, sh_flow, sh_tree = apply_flow(
                 state,
@@ -197,10 +197,10 @@ def eval_interaction_utilities(
                     # if not testing sharrow, we are done with this object now.
                     del sh_util
 
-            timelogger.mark("sharrow flow", True, logger, trace_label)
+            timelogger.mark("sharrow interact flow", True, logger, trace_label)
         else:
             sh_util, sh_flow, sh_tree = None, None, None
-            timelogger.mark("sharrow flow", False)
+            timelogger.mark("sharrow interact flow", False)
 
         if (
             utilities is None

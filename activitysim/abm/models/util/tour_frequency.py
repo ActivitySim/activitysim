@@ -791,5 +791,6 @@ def create_joint_tours(
     tours["tour_type_num"] = tours["tour_type_num"].astype("int8")
     tours["tour_type_count"] = tours["tour_type_count"].astype("int8")
     tours["number_of_participants"] = tours["number_of_participants"].astype("int8")
+    tours["tour_type"] = tours["tour_type"].astype("category")
 
     return tours

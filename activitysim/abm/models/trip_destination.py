@@ -64,6 +64,16 @@ class TripDestinationSettings(LocationComponentSettings, extra="forbid"):
     fail_some_trips_for_testing: bool = False
     """This setting is used by testing code to force failed trip_destination."""
 
+    ALTS_ATTRIBUTES_SAMPLING: list[str] = []
+    """List of attributes to include in the alternatives table when sampling.
+
+    These columns should exist in the land_use (for regular sampling) or land_use_taz
+    (for presampling) table.  They will be added to the alternatives table, and available
+    for use in expressions in the model sampling spec.
+
+    .. versionadded:: 1.3
+    """
+
     @root_validator(pre=True)
     def deprecated_destination_prefix(cls, values):
         replacements = {
@@ -195,6 +205,7 @@ def _destination_sample(
             "size_terms_array": size_term_matrix.df.to_numpy(),
             "timeframe": "trip",
             "land_use": state.get_dataframe("land_use"),
+            "land_use_taz": state.get_dataframe("land_use_taz"),
         }
     )
     locals_dict.update(skims)
@@ -241,6 +252,17 @@ def destination_sample(
 
     skims = skim_hotel.sample_skims(presample=False)
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
+
+    alternative_attributes = model_settings.ALTS_ATTRIBUTES_SAMPLING
+    if alternative_attributes:
+        land_use = state.get_dataframe("land_use")
+        alternatives = pd.merge(
+            alternatives,
+            land_use[alternative_attributes],
+            left_index=True,
+            right_index=True,
+            how="left",
+        )
 
     choices = _destination_sample(
         state,
@@ -560,6 +582,17 @@ def destination_presample(
     alternatives = alternatives.groupby(
         network_los.map_maz_to_taz(alternatives.index)
     ).sum()
+
+    alternative_attributes = model_settings.ALTS_ATTRIBUTES_SAMPLING
+    if alternative_attributes:
+        land_use_taz = state.get_dataframe("land_use_taz")
+        alternatives = pd.merge(
+            alternatives,
+            land_use_taz[alternative_attributes],
+            left_index=True,
+            right_index=True,
+            how="left",
+        )
 
     # # i did this but after changing alt_dest_col_name to 'trip_dest' it
     # # shouldn't be needed anymore

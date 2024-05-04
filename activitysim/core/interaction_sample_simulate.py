@@ -166,7 +166,7 @@ def _interaction_sample_simulate(
             locals_d,
             custom_chooser=None,
             sharrow_enabled=sharrow_enabled,
-            additional_columns=["tdd"],
+            additional_columns=["tdd", "origin_destination"],
         )
 
     interaction_df = alternatives.join(choosers, how="left", rsuffix="_chooser")

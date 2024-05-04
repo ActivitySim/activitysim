@@ -265,7 +265,7 @@ def _interaction_sample(
             locals_d,
             custom_chooser=None,
             sharrow_enabled=sharrow_enabled,
-            additional_columns=['tdd']
+            additional_columns=["tdd"],
         )
 
     if sharrow_enabled:

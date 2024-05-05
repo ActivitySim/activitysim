@@ -192,6 +192,9 @@ def joint_tour_frequency_composition(
     households_merged["joint_tour_frequency_composition"] = (
         choices.reindex(households_merged.index).fillna(no_tours_alt).astype(str)
     )
+    households_merged["joint_tour_frequency_composition"] = households_merged[
+        "joint_tour_frequency_composition"
+    ].astype("category")
 
     households_merged["num_hh_joint_tours"] = (
         joint_tours.groupby("household_id")

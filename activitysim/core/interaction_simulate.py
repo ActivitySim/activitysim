@@ -600,6 +600,14 @@ def eval_interaction_utilities(
                             )
                             print("problem expressions:\n", "\n".join(problem_cols))
 
+                            MISMATCH_sharrow = re_sh_flow_load_[
+                                :,
+                                ~spec.index.get_level_values(0).str.startswith("_"),
+                            ][:, problem_col_indexes]
+                            MISMATCH_legacy = retrace_eval_data_.iloc[
+                                :, problem_col_indexes
+                            ]
+
                         raise  # enter debugger now to see what's up
             timelogger.mark("sharrow interact test", True, logger, trace_label)
 

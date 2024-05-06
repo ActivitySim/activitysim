@@ -60,6 +60,7 @@ class TripDestinationSettings(LocationComponentSettings, extra="forbid"):
     PRIMARY_DEST: str = "tour_leg_dest"  # must be created in preprocessor
     REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS: list[str] | None = None
     preprocessor: PreprocessorSettings | None = None
+    alts_preprocessor: PreprocessorSettings | None = None
     CLEANUP: bool
     fail_some_trips_for_testing: bool = False
     """This setting is used by testing code to force failed trip_destination."""
@@ -1245,6 +1246,7 @@ def run_trip_destination(
             state.filesystem, model_settings_file_name
         )
     preprocessor_settings = model_settings.preprocessor
+    alts_preprocessor_settings = model_settings.alts_preprocessor
     logsum_settings = state.filesystem.read_model_settings(
         model_settings.LOGSUM_SETTINGS
     )
@@ -1334,8 +1336,6 @@ def run_trip_destination(
     # returns a series of size_terms for each chooser's dest_zone_id and purpose with chooser index
     size_term_matrix = DataFrameMatrix(alternatives)
 
-    # don't need size terms in alternatives, just zone_id index
-    alternatives = alternatives.drop(alternatives.columns, axis=1)
     alternatives.index.name = model_settings.ALT_DEST_COL_NAME
 
     sample_list = []
@@ -1367,6 +1367,15 @@ def run_trip_destination(
                     model_settings=preprocessor_settings,
                     locals_dict=locals_dict,
                     trace_label=nth_trace_label,
+                )
+
+            if alts_preprocessor_settings:
+                expressions.assign_columns(
+                    state,
+                    df=alternatives,
+                    model_settings=alts_preprocessor_settings,
+                    locals_dict=locals_dict,
+                    trace_label=tracing.extend_trace_label(nth_trace_label, "alts"),
                 )
 
             if isinstance(

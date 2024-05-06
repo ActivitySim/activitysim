@@ -160,6 +160,15 @@ def _interaction_sample_simulate(
             sharrow_enabled=sharrow_enabled,
         )
 
+        alternatives = util.drop_unused_columns(
+            alternatives,
+            spec,
+            locals_d,
+            custom_chooser=None,
+            sharrow_enabled=sharrow_enabled,
+            additional_columns=["tdd", "origin_destination"],
+        )
+
     interaction_df = alternatives.join(choosers, how="left", rsuffix="_chooser")
     logger.info(
         f"{trace_label} end merging choosers and alternatives to create interaction_df"

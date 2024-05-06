@@ -259,6 +259,15 @@ def _interaction_sample(
             sharrow_enabled=sharrow_enabled,
         )
 
+        alternatives = util.drop_unused_columns(
+            alternatives,
+            spec,
+            locals_d,
+            custom_chooser=None,
+            sharrow_enabled=sharrow_enabled,
+            additional_columns=["tdd", "origin_destination"],
+        )
+
     if sharrow_enabled:
         (
             interaction_utilities,

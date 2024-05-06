@@ -27,7 +27,7 @@ dependencies:
 - matplotlib
 - myst-nb
 - myst-parser
-- numba >= 0.56.4
+- numba >= 0.57
 - numpy >= 1.16.1
 - numpydoc
 - openmatrix >= 0.3.4.1

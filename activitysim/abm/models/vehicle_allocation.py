@@ -259,9 +259,7 @@ def vehicle_allocation(
             choices.loc[choices["alt_choice"] == alt, "choice"] = choosers.loc[
                 choices["alt_choice"] == alt, alt
             ]
-        # add non-household vehicle option to categories
-        if alts_from_spec[-1] not in choices["choice"].cat.categories:
-            choices["choice"] = choices["choice"].cat.add_categories(alts_from_spec[-1])
+
         # set choice for non-household vehicle option
         choices.loc[
             choices["alt_choice"] == alts_from_spec[-1], "choice"

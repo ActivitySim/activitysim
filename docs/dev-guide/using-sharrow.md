@@ -174,6 +174,16 @@ memory, as the variable is computed and stored for every row in the entire dataf
 before it can be used in other expressions.  In sharrow, temporary variables are
 allocated, used, and freed for each row separately, so no extra memory is required.
 
+### Pandas-only Expressions
+
+In legacy mode, expressions can be evaluated using expressions that tap into the
+full pandas library, including the ability to call pandas functions and methods
+directly.  This is not possible in sharrow, as the expressions are compiled into
+numba code, which does not have access to the pandas library.  If a pandas function
+is needed, it must be called in a pre-processor.  However, many pandas functions
+can be replaced with numpy functions, which are available in numba.  For example,
+`df.income.fillna(0)` can be replaced with `np.nan_to_num(df.income)`.
+
 ### Switchable Expressions
 
 As a general rule, it is best to write each utility expression in a manner that
@@ -221,6 +231,17 @@ compute_settings:
 ```
 
 in the component's configuration yaml file.
+
+In addition, by default sharrow also tries to optimize performance by setting the
+`fastmath` flag to True in the numba compiler.  This makes the compiler generate
+faster code, by assuming that all variables have finite values (not NaN or Inf).
+If the model has expressions that use variables that can contains NaN or Inf
+values, the `fastmath` flag can be disabled by setting
+
+```yaml
+compute_settings:
+  fastmath: false
+```
 
 ### Multiprocessing Performance
 

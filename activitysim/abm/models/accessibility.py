@@ -277,11 +277,12 @@ def compute_accessibility(
     ) in chunk.adaptive_chunked_choosers(
         state, accessibility_df, trace_label, explicit_chunk_size=explicit_chunk_size
     ):
+        orig_land_use_df_chunk = orig_land_use_df.loc[chooser_chunk.index]
         accessibilities = compute_accessibilities_for_zones(
             state,
             chooser_chunk,
             land_use_df,
-            orig_land_use_df,
+            orig_land_use_df_chunk,
             assignment_spec,
             constants,
             network_los,

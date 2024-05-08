@@ -560,6 +560,7 @@ def interaction_sample(
     chunk_tag: str | None = None,
     trace_label: str | None = None,
     zone_layer: str | None = None,
+    explicit_chunk_size: float = 0,
     compute_settings: ComputeSettings | None = None,
 ):
     """
@@ -606,6 +607,9 @@ def interaction_sample(
         Specify which zone layer of the skims is to be used.  You cannot use the
         'maz' zone layer in a one-zone model, but you can use the 'taz' layer in
         a two- or three-zone model (e.g. for destination pre-sampling).
+    explicit_chunk_size : float, optional
+        If > 0, specifies the chunk size to use when chunking the interaction
+        simulation. If < 1, specifies the fraction of the total number of choosers.
 
     Returns
     -------
@@ -641,7 +645,9 @@ def interaction_sample(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(state, choosers, trace_label, chunk_tag):
+    ) in chunk.adaptive_chunked_choosers(
+        state, choosers, trace_label, chunk_tag, explicit_chunk_size=explicit_chunk_size
+    ):
         choices = _interaction_sample(
             state,
             chooser_chunk,

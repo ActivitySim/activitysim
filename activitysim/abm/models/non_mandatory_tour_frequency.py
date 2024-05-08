@@ -181,8 +181,11 @@ class NonMandatoryTourFrequencySettings(LogitComponentSettings, extra="forbid"):
     annotate_tours: PreprocessorSettings | None = None
     """Preprocessor settings to annotate tours"""
 
-    explicit_chunk: int = 0
-    """Number of rows to process in each chunk when explicit chunking is enabled"""
+    explicit_chunk: float = 0
+    """
+    If > 0, use this chunk size instead of adaptive chunking.
+    If less than 1, use this fraction of the total number of rows.
+    """
 
 
 @workflow.step

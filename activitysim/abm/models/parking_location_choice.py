@@ -147,6 +147,7 @@ def parking_destination_simulate(
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name="parking_loc",
+        explicit_chunk_size=model_settings.explicit_chunk,
     )
 
     # drop any failed zero_prob destinations
@@ -344,6 +345,12 @@ class ParkingLocationSettings(LogitComponentSettings, extra="forbid"):
     AUTO_MODES: list[str]
     """List of auto modes that use parking. AUTO_MODES are used in write_trip_matrices to make sure
     parking locations are accurately represented in the output trip matrices."""
+
+    explicit_chunk: float = 0
+    """
+    If > 0, use this chunk size instead of adaptive chunking.
+    If less than 1, use this fraction of the total number of rows.
+    """
 
 
 @workflow.step

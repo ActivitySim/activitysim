@@ -59,6 +59,12 @@ class TourSchedulingSettings(LogitComponentSettings, extra="forbid"):
     this unsegmented SPEC should be omitted.
     """
 
+    explicit_chunk: float = 0
+    """
+    If > 0, use this chunk size instead of adaptive chunking.
+    If less than 1, use this fraction of the total number of rows.
+    """
+
 
 def skims_for_logsums(
     state: workflow.State,
@@ -929,7 +935,11 @@ def schedule_tours(
         chunk_trace_label,
         chunk_sizer,
     ) in chunk.adaptive_chunked_choosers(
-        state, tours, tour_trace_label, tour_chunk_tag
+        state,
+        tours,
+        tour_trace_label,
+        tour_chunk_tag,
+        explicit_chunk_size=model_settings.explicit_chunk,
     ):
         choices = _schedule_tours(
             state,

@@ -217,6 +217,7 @@ def _destination_sample(
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer=zone_layer,
+        explicit_chunk_size=model_settings.explicit_chunk,
         compute_settings=model_settings.compute_settings.subcomponent_settings(
             "sample"
         ),
@@ -690,6 +691,7 @@ def compute_ood_logsums(
     chunk_size,
     trace_label,
     chunk_tag,
+    explicit_chunk_size=0,
 ):
     """
     Compute one (of two) out-of-direction logsums for destination alternatives
@@ -723,6 +725,7 @@ def compute_ood_logsums(
         chunk_size=chunk_size,
         trace_label=trace_label,
         chunk_tag=chunk_tag,
+        explicit_chunk_size=explicit_chunk_size,
     )
 
     assert logsums.index.equals(choosers.index)
@@ -835,6 +838,7 @@ def compute_logsums(
         state.settings.chunk_size,
         trace_label=tracing.extend_trace_label(trace_label, "od"),
         chunk_tag=chunk_tag,
+        explicit_chunk_size=model_settings.explicit_chunk,
     )
 
     # - dp_logsums
@@ -864,6 +868,7 @@ def compute_logsums(
         state.settings.chunk_size,
         trace_label=tracing.extend_trace_label(trace_label, "dp"),
         chunk_tag=chunk_tag,
+        explicit_chunk_size=model_settings.explicit_chunk,
     )
 
     return destination_sample
@@ -954,6 +959,7 @@ def trip_destination_simulate(
         trace_label=trace_label,
         trace_choice_name="trip_dest",
         estimator=estimator,
+        explicit_chunk_size=model_settings.explicit_chunk,
     )
 
     if not want_logsums:

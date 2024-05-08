@@ -261,6 +261,7 @@ def compute_location_choice_logsums(
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
+        explicit_chunk_size=model_settings.explicit_chunk,
         compute_settings=logsum_settings.compute_settings,
     )
 

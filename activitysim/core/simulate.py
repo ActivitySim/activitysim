@@ -2027,6 +2027,7 @@ def simple_simulate_logsums(
     chunk_size=0,
     trace_label=None,
     chunk_tag=None,
+    explicit_chunk_size=0,
     compute_settings: ComputeSettings | None = None,
 ):
     """
@@ -2049,7 +2050,12 @@ def simple_simulate_logsums(
         chunk_trace_label,
         chunk_sizer,
     ) in chunk.adaptive_chunked_choosers(
-        state, choosers, trace_label, chunk_tag, chunk_size=chunk_size
+        state,
+        choosers,
+        trace_label,
+        chunk_tag,
+        chunk_size=chunk_size,
+        explicit_chunk_size=explicit_chunk_size,
     ):
         logsums = _simple_simulate_logsums(
             state,

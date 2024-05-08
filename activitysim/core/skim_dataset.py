@@ -777,6 +777,7 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
                 ),
                 time_periods=time_periods,
                 max_float_precision=max_float_precision,
+                ignore=state.settings.omx_ignore_patterns,
             )
 
             if zarr_file:

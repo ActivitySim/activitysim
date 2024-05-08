@@ -585,6 +585,18 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
         compatible with using :py:attr:`Settings.sharrow`.
     """
 
+    omx_ignore_patterns: list[str] = []
+    """
+    List of regex patterns to ignore when reading OMX files.
+
+    This is useful if you have tables in your OMX file that you don't want to
+    read in.  For example, if you have both time-of-day values and time-independent
+    values (e.g., "BIKE_TIME" and "BIKE_TIME__AM"), you can ignore the time-of-day
+    values by setting this to ["BIKE_TIME__.+"].
+
+    .. versionadded:: 1.3
+    """
+
     keep_mem_logs: bool = False
 
     pipeline_complib: str = "NOTSET"

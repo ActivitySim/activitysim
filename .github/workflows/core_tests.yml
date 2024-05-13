@@ -55,7 +55,7 @@ jobs:
           	"pytest-cov" \
           	"pytest-regressions=2.5.0" \
           	"scikit-learn=1.2.2" \
-          	"sharrow>=2.6.0" \
+          	"sharrow>=2.9.0" \
           	"simwrapper=1.8.5" \
           	"xarray=2023.2.0" \
           	"zarr=2.14.2" \
@@ -155,7 +155,7 @@ jobs:
           	"pytest-cov" \
           	"pytest-regressions=2.5.0" \
           	"scikit-learn=1.2.2" \
-          	"sharrow>=2.6.0" \
+          	"sharrow>=2.9.0" \
           	"simwrapper=1.8.5" \
           	"xarray=2023.2.0" \
           	"zarr=2.14.2" \
@@ -252,7 +252,7 @@ jobs:
           	"pytest-cov" \
           	"pytest-regressions=2.5.0" \
           	"scikit-learn=1.2.2" \
-          	"sharrow>=2.6.0" \
+          	"sharrow>=2.9.0" \
           	"simwrapper=1.8.5" \
           	"xarray=2023.2.0" \
           	"zarr=2.14.2" \
@@ -349,7 +349,7 @@ jobs:
           	"pytest-cov" \
           	"pytest-regressions=2.5.0" \
           	"scikit-learn=1.2.2" \
-          	"sharrow>=2.6.0" \
+          	"sharrow>=2.9.0" \
           	"simwrapper=1.8.5" \
           	"xarray=2023.2.0" \
           	"zarr=2.14.2" \
@@ -416,7 +416,7 @@ jobs:
           	"pytest-cov" \
           	"pytest-regressions=2.5.0" \
           	"scikit-learn=1.2.2" \
-          	"sharrow>=2.6.0" \
+          	"sharrow>=2.9.0" \
           	"simwrapper=1.8.5" \
           	"xarray=2023.2.0" \
           	"zarr=2.14.2" \
@@ -482,7 +482,7 @@ jobs:
           	"pytest-cov" \
           	"pytest-regressions=2.5.0" \
           	"scikit-learn=1.2.2" \
-          	"sharrow>=2.6.0" \
+          	"sharrow>=2.9.0" \
           	"simwrapper=1.8.5" \
           	"xarray=2023.2.0" \
           	"zarr=2.14.2" \

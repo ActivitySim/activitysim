@@ -61,7 +61,7 @@ dependencies:
 - ruff
 - setuptools_scm
 - scikit-learn = 1.2.*
-- sharrow >= 2.6.0
+- sharrow >= 2.9.0
 - simwrapper > 1.7
 - snakeviz  # for profiling
 - sparse

@@ -768,17 +768,24 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
         if d is None:
             if zarr_file and not do_not_save_zarr:
                 logger.info("did not find zarr skims, loading omx")
-            d = sh.dataset.from_omx_3d(
-                [openmatrix.open_file(f, mode="r") for f in omx_file_paths],
-                index_names=(
-                    ("otap", "dtap", "time_period")
-                    if skim_tag == "tap"
-                    else ("otaz", "dtaz", "time_period")
-                ),
-                time_periods=time_periods,
-                max_float_precision=max_float_precision,
-                ignore=state.settings.omx_ignore_patterns,
-            )
+            omx_file_handles = [
+                openmatrix.open_file(f, mode="r") for f in omx_file_paths
+            ]
+            try:
+                d = sh.dataset.from_omx_3d(
+                    omx_file_handles,
+                    index_names=(
+                        ("otap", "dtap", "time_period")
+                        if skim_tag == "tap"
+                        else ("otaz", "dtaz", "time_period")
+                    ),
+                    time_periods=time_periods,
+                    max_float_precision=max_float_precision,
+                    ignore=state.settings.omx_ignore_patterns,
+                )
+            finally:
+                for f in omx_file_handles:
+                    f.close()
 
             if zarr_file:
                 try:
@@ -870,7 +877,16 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
         return d
     else:
         logger.info("writing skims to shared memory")
-        return d.shm.to_shared_memory(backing, mode="r")
+        # setting `load` to false then calling `reload_from_omx_3d` avoids
+        # using dask to load the data into memory, which is not performant
+        # on Windows for large datasets.
+        d_shared_mem = d.shm.to_shared_memory(backing, mode="r", load=False)
+        sh.dataset.reload_from_omx_3d(
+            d_shared_mem,
+            omx_file_paths,
+            ignore=state.settings.omx_ignore_patterns,
+        )
+        return d_shared_mem
 
 
 @workflow.cached_object

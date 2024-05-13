@@ -425,7 +425,7 @@ def eval_interaction_utilities(
                 dtype=np.float32,
             )
             logger.info("finish sh_flow load dataarray")
-            sh_utility_fat = sh_utility_fat[trace_rows, :]
+            # sh_utility_fat = sh_utility_fat[trace_rows, :] # trace selection above, do not repeat
             sh_utility_fat = sh_utility_fat.to_dataframe("vals")
             try:
                 sh_utility_fat = sh_utility_fat.unstack("expressions")

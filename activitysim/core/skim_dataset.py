@@ -714,6 +714,7 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
     omx_file_paths = state.filesystem.expand_input_file_list(
         network_los_preload.omx_file_names(skim_tag),
     )
+    omx_file_handles = []
     zarr_file = network_los_preload.zarr_file_name(skim_tag)
 
     if state.settings.disable_zarr:
@@ -771,21 +772,17 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
             omx_file_handles = [
                 openmatrix.open_file(f, mode="r") for f in omx_file_paths
             ]
-            try:
-                d = sh.dataset.from_omx_3d(
-                    omx_file_handles,
-                    index_names=(
-                        ("otap", "dtap", "time_period")
-                        if skim_tag == "tap"
-                        else ("otaz", "dtaz", "time_period")
-                    ),
-                    time_periods=time_periods,
-                    max_float_precision=max_float_precision,
-                    ignore=state.settings.omx_ignore_patterns,
-                )
-            finally:
-                for f in omx_file_handles:
-                    f.close()
+            d = sh.dataset.from_omx_3d(
+                omx_file_handles,
+                index_names=(
+                    ("otap", "dtap", "time_period")
+                    if skim_tag == "tap"
+                    else ("otaz", "dtaz", "time_period")
+                ),
+                time_periods=time_periods,
+                max_float_precision=max_float_precision,
+                ignore=state.settings.omx_ignore_patterns,
+            )
 
             if zarr_file:
                 try:
@@ -874,6 +871,8 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
             np.testing.assert_array_equal(land_use.index, d.dtaz)
 
     if d.shm.is_shared_memory:
+        for f in omx_file_handles:
+            f.close()
         return d
     else:
         logger.info("writing skims to shared memory")
@@ -883,9 +882,11 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
         d_shared_mem = d.shm.to_shared_memory(backing, mode="r", load=False)
         sh.dataset.reload_from_omx_3d(
             d_shared_mem,
-            omx_file_paths,
+            [str(i) for i in omx_file_paths],
             ignore=state.settings.omx_ignore_patterns,
         )
+        for f in omx_file_handles:
+            f.close()
         return d_shared_mem
 
 

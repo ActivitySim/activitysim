@@ -55,3 +55,7 @@ SEGMENTS:
 
 LOGSUM_SETTINGS: tour_mode_choice
 LOGSUM_PREPROCESSOR: preprocessor
+
+compute_settings:
+  protect_columns:
+  - origin_destination

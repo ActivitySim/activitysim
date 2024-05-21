@@ -257,6 +257,7 @@ def _interaction_sample(
             locals_d,
             custom_chooser=None,
             sharrow_enabled=sharrow_enabled,
+            additional_columns=compute_settings.protect_columns,
         )
 
         alternatives = util.drop_unused_columns(
@@ -265,7 +266,7 @@ def _interaction_sample(
             locals_d,
             custom_chooser=None,
             sharrow_enabled=sharrow_enabled,
-            additional_columns=["tdd", "origin_destination"],
+            additional_columns=["tdd"] + compute_settings.protect_columns,
         )
 
     if sharrow_enabled:

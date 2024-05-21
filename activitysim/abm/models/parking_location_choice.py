@@ -187,9 +187,19 @@ def choose_parking_location(
     locals_dict["PARKING"] = skims["op_skims"].dest_key
 
     spec = get_spec_for_segment(state, model_settings, segment_name)
-    trips = drop_unused_columns(trips, spec, locals_dict, custom_chooser=None)
+    trips = drop_unused_columns(
+        trips,
+        spec,
+        locals_dict,
+        custom_chooser=None,
+        additional_columns=model_settings.compute_settings.protect_columns,
+    )
     alternatives = drop_unused_columns(
-        alternatives, spec, locals_dict, custom_chooser=None
+        alternatives,
+        spec,
+        locals_dict,
+        custom_chooser=None,
+        additional_columns=model_settings.compute_settings.protect_columns,
     )
 
     destination_sample = logit.interaction_dataset(

@@ -189,8 +189,10 @@ def joint_tour_frequency_composition(
 
     # we expect there to be an alt with no tours - which we can use to backfill non-travelers
     no_tours_alt = 0
-    households_merged["joint_tour_frequency_composition"] = (
-        choices.reindex(households_merged.index).fillna(no_tours_alt).astype(str)
+    # keep memory usage down by downcasting
+    households_merged["joint_tour_frequency_composition"] = pd.to_numeric(
+        choices.reindex(households_merged.index).fillna(no_tours_alt),
+        downcast="integer",
     )
 
     households_merged["num_hh_joint_tours"] = (

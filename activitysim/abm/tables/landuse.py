@@ -66,7 +66,11 @@ def land_use_taz(state: workflow.State):
             "no land_use_taz defined in input_table_list, constructing "
             "from discovered TAZ values in land_use"
         )
-        unique_tazs = np.unique(land_use["TAZ"])
+        # use original TAZ values if available, otherwise use current TAZ values
+        if state.settings.recode_pipeline_columns and "_original_TAZ" in land_use:
+            unique_tazs = np.unique(land_use["_original_TAZ"])
+        else:
+            unique_tazs = np.unique(land_use["TAZ"])
         if state.settings.recode_pipeline_columns:
             df = pd.Series(
                 unique_tazs,

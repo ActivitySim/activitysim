@@ -1234,9 +1234,12 @@ def adaptive_chunked_choosers(
 
     num_choosers = len(choosers.index)
 
+    explicit_and_odd_num_choosers = False
     if state.settings.chunk_training_mode == MODE_EXPLICIT:
         if explicit_chunk_size < 1:
             chunk_size = math.ceil(num_choosers * explicit_chunk_size)
+            if num_choosers % 2 != 0:
+                explicit_and_odd_num_choosers = True
         else:
             chunk_size = int(explicit_chunk_size)
     elif chunk_size is None:
@@ -1263,6 +1266,14 @@ def adaptive_chunked_choosers(
     i = offset = 0
     while offset < num_choosers:
         i += 1
+
+        if (
+            explicit_and_odd_num_choosers
+            & (i == estimated_number_of_chunks)
+            & (rows_per_chunk > 1)
+        ):
+            # last chunk may be smaller than chunk_size due to rounding error
+            rows_per_chunk = rows_per_chunk - 1
 
         chunk_trace_label = trace_label_for_chunk(state, trace_label, chunk_size, i)
 
@@ -1372,11 +1383,14 @@ def adaptive_chunked_choosers_and_alts(
         f"with {num_choosers} choosers and {num_alternatives} alternatives"
     )
 
+    explicit_and_odd_num_choosers = False
     if state.settings.chunk_training_mode == MODE_EXPLICIT:
         if explicit_chunk_size < 1:
             chunk_size = math.ceil(num_choosers * explicit_chunk_size)
+            if num_choosers % 2 != 0:
+                explicit_and_odd_num_choosers = True
         else:
-            chunk_size = explicit_chunk_size
+            chunk_size = int(explicit_chunk_size)
     elif chunk_size is None:
         chunk_size = state.settings.chunk_size
     chunk_sizer = ChunkSizer(
@@ -1403,6 +1417,14 @@ def adaptive_chunked_choosers_and_alts(
     i = offset = alt_offset = 0
     while offset < num_choosers:
         i += 1
+
+        if (
+            explicit_and_odd_num_choosers
+            & (i == estimated_number_of_chunks)
+            & (rows_per_chunk > 1)
+        ):
+            # last chunk may be smaller than chunk_size due to rounding error
+            rows_per_chunk = rows_per_chunk - 1
 
         assert (
             offset + rows_per_chunk <= num_choosers

@@ -698,6 +698,7 @@ def run_location_simulate(
         trace_choice_name=model_settings.DEST_CHOICE_COLUMN_NAME,
         estimator=estimator,
         skip_choice=skip_choice,
+        explicit_chunk_size=model_settings.explicit_chunk,
         compute_settings=model_settings.compute_settings.subcomponent_settings(
             "simulate"
         ),

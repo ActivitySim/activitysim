@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script src="../../_static/documentation_options.js?v=c35b8644"></script>
+    <script src="../../_static/documentation_options.js?v=321b921a"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <link rel="prev" title="Trip Purpose and Destination" href="trip_purpose_and_destination.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="May 14, 2024"/>
+    <meta name="docbuild:last-update" content="May 21, 2024"/>
   </head>
   
   
@@ -484,6 +484,7 @@ main components of a tour.</p>
 <dd class="field-even"><ul class="simple">
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.PREPROCESSOR" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.PREPROCESSOR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PREPROCESSOR</span> <span class="pre">(PreprocessorSettings</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPECIFICATION" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPECIFICATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPECIFICATION</span> <span class="pre">(str)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_settings</span> <span class="pre">(ComputeSettings)</span></code></a></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">()</span></code></p></li>
 </ul>
 </dd>
@@ -498,6 +499,12 @@ main components of a tour.</p>
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPECIFICATION">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SPECIFICATION</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPECIFICATION" title="Link to this definition">#</a></dt>
 <dd><p>file name of specification file</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_settings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ComputeSettings</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">ComputeSettings(sharrow_skip=False,</span> <span class="pre">fastmath=True,</span> <span class="pre">use_bottleneck=None,</span> <span class="pre">use_numexpr=None,</span> <span class="pre">use_numba=None,</span> <span class="pre">drop_unused_columns=True,</span> <span class="pre">protect_columns=[])</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings" title="Link to this definition">#</a></dt>
+<dd><p>Compute settings for this component.</p>
 </dd></dl>
 
 </dd></dl>
@@ -674,6 +681,7 @@ np.array: array with the number of patterns for each tour</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.PREPROCESSOR"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.PREPROCESSOR</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPECIFICATION"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.SPECIFICATION</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.compute_settings</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
@@ -724,7 +732,7 @@ np.array: array with the number of patterns for each tour</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.0b3.dev7+g564c4762, documentation last updated May 14, 2024.<br/>
+ActivitySim 1.3.0b3.dev8+gf31bfe56, documentation last updated May 21, 2024.<br/>
 </p></div>
       
         <div class="footer-item">

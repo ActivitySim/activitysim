@@ -13,7 +13,11 @@ from activitysim.abm.models.util.trip import (
     get_time_windows,
 )
 from activitysim.core import chunk, expressions, simulate, tracing, workflow
-from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.base import (
+    ComputeSettings,
+    PreprocessorSettings,
+    PydanticReadable,
+)
 from activitysim.core.interaction_sample_simulate import _interaction_sample_simulate
 from activitysim.core.skim_dataset import SkimDataset
 from activitysim.core.skim_dictionary import SkimDict
@@ -223,6 +227,7 @@ def run_trip_scheduling_choice(
     skims,
     locals_dict: Mapping,
     trace_label: str,
+    model_settings: TripSchedulingChoiceSettings,
 ):
     NUM_TOUR_LEGS = 3
     trace_label = tracing.extend_trace_label(trace_label, "interaction_sample_simulate")
@@ -296,6 +301,7 @@ def run_trip_scheduling_choice(
                 trace_choice_name="trip_schedule_stage_1",
                 estimator=None,
                 chunk_sizer=chunk_sizer,
+                compute_settings=model_settings.compute_settings,
             )
 
             assert len(choices.index) == len(choosers.index)
@@ -337,6 +343,9 @@ class TripSchedulingChoiceSettings(PydanticReadable, extra="forbid"):
 
     SPECIFICATION: str
     """file name of specification file"""
+
+    compute_settings: ComputeSettings = ComputeSettings()
+    """Compute settings for this component."""
 
 
 @workflow.step
@@ -419,7 +428,13 @@ def trip_scheduling_choice(
         )
 
     tours_df = run_trip_scheduling_choice(
-        state, spec, tours_df, skims, locals_dict, trace_label
+        state,
+        spec,
+        tours_df,
+        skims,
+        locals_dict,
+        trace_label,
+        model_settings,
     )
 
     state.add_table("tours", tours_df)

@@ -259,6 +259,8 @@ def vehicle_allocation(
             choices.loc[choices["alt_choice"] == alt, "choice"] = choosers.loc[
                 choices["alt_choice"] == alt, alt
             ]
+
+        # set choice for non-household vehicle option
         choices.loc[
             choices["alt_choice"] == alts_from_spec[-1], "choice"
         ] = alts_from_spec[-1]

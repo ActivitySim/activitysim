@@ -158,6 +158,16 @@ def _interaction_sample_simulate(
             locals_d,
             custom_chooser=None,
             sharrow_enabled=sharrow_enabled,
+            additional_columns=compute_settings.protect_columns,
+        )
+
+        alternatives = util.drop_unused_columns(
+            alternatives,
+            spec,
+            locals_d,
+            custom_chooser=None,
+            sharrow_enabled=sharrow_enabled,
+            additional_columns=["tdd"] + compute_settings.protect_columns,
         )
 
     interaction_df = alternatives.join(choosers, how="left", rsuffix="_chooser")

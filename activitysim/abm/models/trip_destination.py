@@ -60,6 +60,8 @@ class TripDestinationSettings(LocationComponentSettings, extra="forbid"):
     PRIMARY_DEST: str = "tour_leg_dest"  # must be created in preprocessor
     REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS: list[str] | None = None
     preprocessor: PreprocessorSettings | None = None
+    alts_preprocessor_sample: PreprocessorSettings | None = None
+    alts_preprocessor_simulate: PreprocessorSettings | None = None
     CLEANUP: bool
     fail_some_trips_for_testing: bool = False
     """This setting is used by testing code to force failed trip_destination."""
@@ -200,6 +202,15 @@ def _destination_sample(
     locals_dict.update(skims)
 
     log_alt_losers = state.settings.log_alt_losers
+
+    if model_settings.alts_preprocessor_sample:
+        expressions.assign_columns(
+            state,
+            df=alternatives,
+            model_settings=model_settings.alts_preprocessor_sample,
+            locals_dict=locals_dict,
+            trace_label=tracing.extend_trace_label(trace_label, "alts"),
+        )
 
     choices = interaction_sample(
         state,
@@ -935,6 +946,15 @@ def trip_destination_simulate(
     )
     locals_dict.update(skims)
 
+    if model_settings.alts_preprocessor_simulate:
+        expressions.assign_columns(
+            state,
+            df=destination_sample,
+            model_settings=model_settings.alts_preprocessor_simulate,
+            locals_dict=locals_dict,
+            trace_label=tracing.extend_trace_label(trace_label, "alts"),
+        )
+
     log_alt_losers = state.settings.log_alt_losers
     destinations = interaction_sample_simulate(
         state,
@@ -1334,8 +1354,6 @@ def run_trip_destination(
     # returns a series of size_terms for each chooser's dest_zone_id and purpose with chooser index
     size_term_matrix = DataFrameMatrix(alternatives)
 
-    # don't need size terms in alternatives, just zone_id index
-    alternatives = alternatives.drop(alternatives.columns, axis=1)
     alternatives.index.name = model_settings.ALT_DEST_COL_NAME
 
     sample_list = []

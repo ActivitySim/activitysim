@@ -32,8 +32,11 @@ class AccessibilitySettings(PydanticReadable):
     SPEC: str = "accessibility.csv"
     """Filename for the accessibility specification (csv) file."""
 
-    explicit_chunk: int = 0
-    """If > 0, use this chunk size instead of adaptive chunking."""
+    explicit_chunk: float = 0
+    """
+    If > 0, use this chunk size instead of adaptive chunking.
+    If less than 1, use this fraction of the total number of rows.
+    """
 
 
 @nb.njit

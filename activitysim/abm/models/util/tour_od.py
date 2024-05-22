@@ -216,6 +216,7 @@ def _od_sample(
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer="taz",
+        explicit_chunk_size=model_settings.explicit_chunk,
         compute_settings=model_settings.compute_settings.subcomponent_settings(
             "sample"
         ),
@@ -1057,6 +1058,7 @@ def run_od_simulate(
         trace_label=trace_label,
         trace_choice_name="origin_destination",
         estimator=estimator,
+        explicit_chunk_size=model_settings.explicit_chunk,
         compute_settings=model_settings.compute_settings,
     )
 

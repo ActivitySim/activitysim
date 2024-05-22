@@ -1213,7 +1213,7 @@ def adaptive_chunked_choosers(
     chunk_tag: str = None,
     *,
     chunk_size: int | None = None,
-    explicit_chunk_size: int = 0,
+    explicit_chunk_size: float = 0,
 ):
     # generator to iterate over choosers
 
@@ -1232,12 +1232,16 @@ def adaptive_chunked_choosers(
 
     chunk_tag = chunk_tag or trace_label
 
+    num_choosers = len(choosers.index)
+
     if state.settings.chunk_training_mode == MODE_EXPLICIT:
-        chunk_size = explicit_chunk_size
+        if explicit_chunk_size < 1:
+            chunk_size = math.ceil(num_choosers * explicit_chunk_size)
+        else:
+            chunk_size = int(explicit_chunk_size)
     elif chunk_size is None:
         chunk_size = state.settings.chunk_size
 
-    num_choosers = len(choosers.index)
     assert num_choosers > 0
     assert chunk_size >= 0
 
@@ -1369,9 +1373,13 @@ def adaptive_chunked_choosers_and_alts(
     )
 
     if state.settings.chunk_training_mode == MODE_EXPLICIT:
-        chunk_size = explicit_chunk_size
+        if explicit_chunk_size < 1:
+            chunk_size = math.ceil(num_choosers * explicit_chunk_size)
+        else:
+            chunk_size = int(explicit_chunk_size)
     elif chunk_size is None:
         chunk_size = state.settings.chunk_size
+
     chunk_sizer = ChunkSizer(
         state,
         chunk_tag,
@@ -1397,16 +1405,16 @@ def adaptive_chunked_choosers_and_alts(
     while offset < num_choosers:
         i += 1
 
-        assert (
-            offset + rows_per_chunk <= num_choosers
-        ), f"i {i} offset {offset} rows_per_chunk {rows_per_chunk} num_choosers {num_choosers}"
-
         chunk_trace_label = trace_label_for_chunk(state, trace_label, chunk_size, i)
 
         with chunk_sizer.ledger():
             chooser_chunk = choosers[offset : offset + rows_per_chunk]
 
-            alt_end = alt_chunk_ends[offset + rows_per_chunk]
+            # protecting from overflow in the case of last chunk
+            if (offset + rows_per_chunk) >= len(alt_chunk_ends):
+                alt_end = alt_chunk_ends[len(alt_chunk_ends) - 1]
+            else:
+                alt_end = alt_chunk_ends[offset + rows_per_chunk]
             alternative_chunk = alternatives[alt_offset:alt_end]
 
             if check_assertions:

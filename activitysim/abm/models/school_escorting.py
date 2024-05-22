@@ -357,8 +357,11 @@ class SchoolEscortSettings(BaseLogitComponentSettings, extra="forbid"):
     no_escorting_alterative: int = 1
     """The alternative number for no escorting. Used to set the choice for households with no escortees."""
 
-    explicit_chunk: int = 0
-    """If > 0, use this chunk size instead of adaptive chunking."""
+    explicit_chunk: float = 0
+    """
+    If > 0, use this chunk size instead of adaptive chunking.
+    If less than 1, use this fraction of the total number of rows.
+    """
 
     LOGIT_TYPE: Literal["MNL"] = "MNL"
     """Logit model mathematical form.

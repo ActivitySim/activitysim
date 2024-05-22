@@ -1989,6 +1989,7 @@ def _simple_simulate_logsums(
             locals_d,
             custom_chooser=None,
             sharrow_enabled=state.settings.sharrow,
+            additional_columns=compute_settings.protect_columns,
         )
 
     if nest_spec is None:

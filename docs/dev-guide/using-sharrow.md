@@ -203,12 +203,22 @@ in several examples:
     `@np.log1p(size_terms.get(df.alt_dest, df.purpose)) # sharrow: np.log1p(size_terms['sizearray'])`
 
 Here, `size_terms` is a DataFrameMatrix class instance, a special class written into
-ActivitySim to facilitate reading from a DataFrame as it it were a 2-d array.  As it
+ActivitySim to facilitate reading from a DataFrame as if it were a 2-d array.  As it
 is a special purpose class written in Python, the numba compiler cannot handle it directly.
 Fortunately, sharrow provides an alternative: passing the size terms as a xarray `DataArray`.
 This has a slightly different interface, so the sharrow and legacy evaluation modes require
 different expressions. The switching expression is used to handle the DataFrameMatrix
 on the left (before "# sharrow:") and the DataArray on the right.
+
+### Optional Variables
+
+In some cases, a variable may be used where it is available, but is not strictly
+necessary for the model to run.  For example, a model may have a reference to
+mode choice logsums, but the model can still run without them, if it is being used
+prior to when logsums are calculated.  In this case, the variable can be accessed
+using the `get` method, which allows for a default value if the variable is not found.
+
+    `@df.get('mode_choice_logsum', 0)`
 
 ### Performance Considerations
 

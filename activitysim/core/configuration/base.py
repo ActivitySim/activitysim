@@ -243,6 +243,7 @@ class ComputeSettings(PydanticBase):
             use_numexpr=self.use_numexpr,
             use_numba=self.use_numba,
             drop_unused_columns=self.drop_unused_columns,
+            protect_columns=self.protect_columns,
         )
 
 

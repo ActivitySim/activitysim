@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script src="../../_static/documentation_options.js?v=6c70cbb7"></script>
+    <script src="../../_static/documentation_options.js?v=8def5167"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <link rel="prev" title="At-work Subtours Frequency" href="atwork_subtour_frequency.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="May 21, 2024"/>
+    <meta name="docbuild:last-update" content="May 22, 2024"/>
   </head>
   
   
@@ -520,6 +520,7 @@ function.  This function is registered as an Inject step in the example Pipeline
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_persons</span> <span class="pre">(PreprocessorSettings</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_tours</span> <span class="pre">(PreprocessorSettings</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_settings</span> <span class="pre">()</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">explicit_chunk</span> <span class="pre">()</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">()</span></code></p></li>
 </ul>
 </dd>
@@ -960,6 +961,20 @@ linear-in-parameters utility expression.</p>
 </dl>
 </dd></dl>
 
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.explicit_chunk">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">explicit_chunk</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.explicit_chunk" title="Link to this definition">#</a></dt>
+<dd><p>If &gt; 0, use this chunk size instead of adaptive chunking.
+If less than 1, use this fraction of the total number of rows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method pydantic_validator">
 <dt class="sig sig-object py" id="activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.update_sharrow_skip">
 <em class="property"><span class="pre">validator</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">update_sharrow_skip</span></span><em class="autodoc_pydantic_validator_arrow property">&#160; <span class="pre">»</span>&#160; </em><em class="xref py py-obj"><span class="pre">all</span> <span class="pre">fields</span></em><a class="headerlink" href="#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.update_sharrow_skip" title="Link to this definition">#</a></dt>
@@ -1068,6 +1083,7 @@ linear-in-parameters utility expression.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.annotate_persons"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.annotate_persons</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.annotate_tours"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.annotate_tours</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.compute_settings"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.compute_settings</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.explicit_chunk"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.explicit_chunk</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.update_sharrow_skip"><code class="docutils literal notranslate"><span class="pre">TourLocationComponentSettings.update_sharrow_skip</span></code></a></li>
 </ul>
 </li>
@@ -1113,7 +1129,7 @@ linear-in-parameters utility expression.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.0b3.dev9+gd8c5829e, documentation last updated May 21, 2024.<br/>
+ActivitySim 1.3.0b3.dev10+g29d12bcc, documentation last updated May 22, 2024.<br/>
 </p></div>
       
         <div class="footer-item">

@@ -177,6 +177,12 @@ class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
     """
     List of preprocessor settings to apply to the proto-population tables after generation.
     """
+    explicit_chunk: float | None = None
+    """
+    If > 0, use this chunk size instead of adaptive chunking.
+    If less than 1, use this fraction of the total number of rows.
+    If not supplied or None, will default to the chunk size in the location choice model settings.
+    """
 
 
 def read_disaggregate_accessibility_yaml(
@@ -757,6 +763,11 @@ def get_disaggregate_logsums(
         # This avoids having to make duplicate copies of config files for disagg accessibilities
         model_settings = util.suffix_tables_in_settings(model_settings)
         model_settings.CHOOSER_ID_COLUMN = "proto_person_id"
+
+        # Can set explicit chunking for disaggregate accessibility
+        # Otherwise the explict_chunk will be set to whatever is in the location model settings
+        if disagg_model_settings.explicit_chunk is not None:
+            model_settings.explicit_chunk = disagg_model_settings.explicit_chunk
 
         # Include the suffix tags to pass onto downstream logsum models (e.g., tour mode choice)
         if model_settings.LOGSUM_SETTINGS:

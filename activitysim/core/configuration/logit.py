@@ -190,6 +190,12 @@ class LocationComponentSettings(BaseLogitComponentSettings):
     LOGSUM_SETTINGS: Path
     """Settings for the logsum computation."""
 
+    explicit_chunk: float = 0
+    """
+    If > 0, use this chunk size instead of adaptive chunking.
+    If less than 1, use this fraction of the total number of rows.
+    """
+
 
 class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     # Logsum-related settings

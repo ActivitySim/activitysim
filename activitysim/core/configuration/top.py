@@ -626,6 +626,7 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
         "trace_hh_id",
         "memory_profile",
         "instrument",
+        "sharrow",
     )
     """
     Setting to log on startup.

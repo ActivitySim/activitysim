@@ -28,7 +28,7 @@ dependencies:
 - myst-nb
 - myst-parser
 - numba >= 0.56.4
-- numpy >= 1.16.1
+- numpy >= 1.16.1, <2
 - numpydoc
 - openmatrix >= 0.3.4.1
 - orca >= 1.6

@@ -14,41 +14,41 @@
   
   <script data-cfasync="false">
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
-    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
 
   
-  <link href="../_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
-  <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
 
-    <script src="../_static/documentation_options.js?v=8def5167"></script>
+    <script src="../_static/documentation_options.js?v=6ea2c554"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/design-tabs.js?v=36754332"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'users-guide/notebook';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
@@ -57,7 +57,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="May 22, 2024"/>
+    <meta name="docbuild:last-update" content="Jun 20, 2024"/>
   </head>
   
   
@@ -65,27 +65,23 @@
 
   
   
-  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
-    <i class="fa-solid fa-arrow-up"></i>
-    Back to top
-  </button>
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
   <input type="checkbox"
           class="sidebar-toggle"
-          name="__primary"
-          id="__primary"/>
-  <label class="overlay overlay-primary" for="__primary"></label>
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
   
   <input type="checkbox"
           class="sidebar-toggle"
-          name="__secondary"
-          id="__secondary"/>
-  <label class="overlay overlay-secondary" for="__secondary"></label>
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
   
   <div class="search-button__wrapper">
     <div class="search-button__overlay"></div>
@@ -107,12 +103,17 @@
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
   </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar">
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <label class="sidebar-toggle primary-toggle" for="__primary">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
-  </label>
+  </button>
   
   
   <div class="col-lg-3 navbar-header-items__start">
@@ -142,19 +143,19 @@
 <nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="index.html">
-                        Users Guide
-                      </a>
-                    </li>
-                
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="index.html">
+    Users Guide
+  </a>
+</li>
 
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../dev-guide/index.html">
-                        Developers
-                      </a>
-                    </li>
-                
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
   </ul>
 </nav></div>
       
@@ -222,9 +223,9 @@ document.write(`
   
 
   
-    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
+    <button class="sidebar-toggle secondary-toggle" aria-label="On this page">
       <span class="fa-solid fa-outdent"></span>
-    </label>
+    </button>
   
 </div>
 
@@ -247,25 +248,28 @@ document.write(`
     
       <div class="sidebar-header-items__center">
         
-          <div class="navbar-item">
+          
+          
+            <div class="navbar-item">
 <nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="index.html">
-                        Users Guide
-                      </a>
-                    </li>
-                
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="index.html">
+    Users Guide
+  </a>
+</li>
 
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../dev-guide/index.html">
-                        Developers
-                      </a>
-                    </li>
-                
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
   </ul>
 </nav></div>
+          
         
       </div>
     
@@ -310,13 +314,13 @@ document.write(`
 
       </div>
       
-      <main id="main-content" class="bd-main">
+      <main id="main-content" class="bd-main" role="main">
         
         
           <div class="bd-content">
             <div class="bd-article-container">
               
-              <div class="bd-header-article">
+              <div class="bd-header-article d-print-none">
 <div class="header-article-items header-article__inner">
   
     <div class="header-article-items__start">
@@ -325,7 +329,7 @@ document.write(`
 
 
 
-<nav aria-label="Breadcrumb">
+<nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
     <li class="breadcrumb-item breadcrumb-home">
@@ -449,18 +453,18 @@ will be coerced to an integer (by dropping the fractional part).</p>
 <span class="ne">----&gt; </span><span class="mi">1</span> <span class="n">state</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">households_sample_size</span> <span class="o">=</span> <span class="mf">3500.8</span>
 <span class="g g-Whitespace">      </span><span class="mi">2</span> <span class="n">state</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">households_sample_size</span>
 
-<span class="nn">File /usr/share/miniconda3/envs/docbuild/lib/python3.10/site-packages/pydantic/main.py:792,</span> in <span class="ni">BaseModel.__setattr__</span><span class="nt">(self, name, value)</span>
-<span class="g g-Whitespace">    </span><span class="mi">790</span>     <span class="n">attr</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">791</span> <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;validate_assignment&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-<span class="ne">--&gt; </span><span class="mi">792</span>     <span class="bp">self</span><span class="o">.</span><span class="n">__pydantic_validator__</span><span class="o">.</span><span class="n">validate_assignment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">793</span> <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;extra&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;allow&#39;</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_fields</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">794</span>     <span class="c1"># TODO - matching error</span>
-<span class="g g-Whitespace">    </span><span class="mi">795</span>     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&quot; object has no field &quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+<span class="nn">File /usr/share/miniconda3/envs/docbuild/lib/python3.10/site-packages/pydantic/main.py:836,</span> in <span class="ni">BaseModel.__setattr__</span><span class="nt">(self, name, value)</span>
+<span class="g g-Whitespace">    </span><span class="mi">834</span>     <span class="n">attr</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">835</span> <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;validate_assignment&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+<span class="ne">--&gt; </span><span class="mi">836</span>     <span class="bp">self</span><span class="o">.</span><span class="n">__pydantic_validator__</span><span class="o">.</span><span class="n">validate_assignment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">837</span> <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;extra&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;allow&#39;</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_fields</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">838</span>     <span class="c1"># TODO - matching error</span>
+<span class="g g-Whitespace">    </span><span class="mi">839</span>     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&quot; object has no field &quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
 
 <span class="ne">ValidationError</span>: 1 validation error for Settings
 <span class="n">households_sample_size</span>
   <span class="n">Input</span> <span class="n">should</span> <span class="n">be</span> <span class="n">a</span> <span class="n">valid</span> <span class="n">integer</span><span class="p">,</span> <span class="n">got</span> <span class="n">a</span> <span class="n">number</span> <span class="k">with</span> <span class="n">a</span> <span class="n">fractional</span> <span class="n">part</span> <span class="p">[</span><span class="nb">type</span><span class="o">=</span><span class="n">int_from_float</span><span class="p">,</span> <span class="n">input_value</span><span class="o">=</span><span class="mf">3500.8</span><span class="p">,</span> <span class="n">input_type</span><span class="o">=</span><span class="nb">float</span><span class="p">]</span>
-    <span class="n">For</span> <span class="n">further</span> <span class="n">information</span> <span class="n">visit</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">errors</span><span class="o">.</span><span class="n">pydantic</span><span class="o">.</span><span class="n">dev</span><span class="o">/</span><span class="mf">2.6</span><span class="o">/</span><span class="n">v</span><span class="o">/</span><span class="n">int_from_float</span>
+    <span class="n">For</span> <span class="n">further</span> <span class="n">information</span> <span class="n">visit</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">errors</span><span class="o">.</span><span class="n">pydantic</span><span class="o">.</span><span class="n">dev</span><span class="o">/</span><span class="mf">2.7</span><span class="o">/</span><span class="n">v</span><span class="o">/</span><span class="n">int_from_float</span>
 </pre></div>
 </div>
 </div>
@@ -594,7 +598,7 @@ that can generate histograms or nominal distributions of data features.</p>
               
               
               
-                <footer class="prev-next-footer">
+                <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
 </div>
@@ -643,8 +647,8 @@ that can generate histograms or nominal distributions of data features.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
+  <script src="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -653,7 +657,7 @@ that can generate histograms or nominal distributions of data features.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.0b3.dev10+g29d12bcc, documentation last updated May 22, 2024.<br/>
+ActivitySim 1.3.0b3.dev11+gbd48d3db, documentation last updated Jun 20, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
@@ -672,7 +676,7 @@ ActivitySim 1.3.0b3.dev10+g29d12bcc, documentation last updated May 22, 2024.<br
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.2.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
 </p></div>
       
     </div>

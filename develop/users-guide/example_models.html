@@ -14,41 +14,41 @@
   
   <script data-cfasync="false">
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
-    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
 
   
-  <link href="../_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
-  <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
 
-    <script src="../_static/documentation_options.js?v=8def5167"></script>
+    <script src="../_static/documentation_options.js?v=6ea2c554"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/design-tabs.js?v=36754332"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'users-guide/example_models';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
@@ -59,7 +59,7 @@
     <link rel="prev" title="Visualization" href="visualization.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="May 22, 2024"/>
+    <meta name="docbuild:last-update" content="Jun 20, 2024"/>
   </head>
   
   
@@ -67,27 +67,23 @@
 
   
   
-  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
-    <i class="fa-solid fa-arrow-up"></i>
-    Back to top
-  </button>
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
   <input type="checkbox"
           class="sidebar-toggle"
-          name="__primary"
-          id="__primary"/>
-  <label class="overlay overlay-primary" for="__primary"></label>
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
   
   <input type="checkbox"
           class="sidebar-toggle"
-          name="__secondary"
-          id="__secondary"/>
-  <label class="overlay overlay-secondary" for="__secondary"></label>
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
   
   <div class="search-button__wrapper">
     <div class="search-button__overlay"></div>
@@ -109,12 +105,17 @@
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
   </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar">
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <label class="sidebar-toggle primary-toggle" for="__primary">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
-  </label>
+  </button>
   
   
   <div class="col-lg-3 navbar-header-items__start">
@@ -144,19 +145,19 @@
 <nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="index.html">
-                        Users Guide
-                      </a>
-                    </li>
-                
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Users Guide
+  </a>
+</li>
 
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../dev-guide/index.html">
-                        Developers
-                      </a>
-                    </li>
-                
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
   </ul>
 </nav></div>
       
@@ -224,9 +225,9 @@ document.write(`
   
 
   
-    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
+    <button class="sidebar-toggle secondary-toggle" aria-label="On this page">
       <span class="fa-solid fa-outdent"></span>
-    </label>
+    </button>
   
 </div>
 
@@ -247,25 +248,28 @@ document.write(`
     
       <div class="sidebar-header-items__center">
         
-          <div class="navbar-item">
+          
+          
+            <div class="navbar-item">
 <nav class="navbar-nav">
   <ul class="bd-navbar-elements navbar-nav">
     
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="index.html">
-                        Users Guide
-                      </a>
-                    </li>
-                
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Users Guide
+  </a>
+</li>
 
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../dev-guide/index.html">
-                        Developers
-                      </a>
-                    </li>
-                
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
   </ul>
 </nav></div>
+          
         
       </div>
     
@@ -330,13 +334,13 @@ document.write(`
 
       </div>
       
-      <main id="main-content" class="bd-main">
+      <main id="main-content" class="bd-main" role="main">
         
         
           <div class="bd-content">
             <div class="bd-article-container">
               
-              <div class="bd-header-article">
+              <div class="bd-header-article d-print-none">
 <div class="header-article-items header-article__inner">
   
     <div class="header-article-items__start">
@@ -345,7 +349,7 @@ document.write(`
 
 
 
-<nav aria-label="Breadcrumb">
+<nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
     <li class="breadcrumb-item breadcrumb-home">
@@ -431,7 +435,7 @@ Segmentation is a useful tool both to structure models and also as a way to char
 roles within a household.</p>
 <p>The person types shown below are used for the example model. The person types are mutually exclusive
 with respect to age, work status, and school status.</p>
-<table class="table">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Person Type Code</p></th>
 <th class="head"><p>Person Type</p></th>
@@ -491,6 +495,7 @@ with respect to age, work status, and school status.</p>
 </tr>
 </tbody>
 </table>
+</div>
 <p>Household type segments are useful for pre-defining certain data items (such as destination
 choice size terms) so that these data items can be pre-calculated for each segment. Precalculation
 of these data items reduces model complexity and runtime. The segmentation is based on household income,
@@ -512,7 +517,7 @@ natural hierarchy of the activity, where work and school activities are typicall
 in terms of generation, scheduling and location, and discretionary activities are typically the most
 flexible on each of these dimensions. Each out-of-home location that a person travels to in the
 simulation is assigned one of these activity types.</p>
-<table class="table">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Purpose</p></th>
 <th class="head"><p>Description</p></th>
@@ -573,6 +578,7 @@ simulation is assigned one of these activity types.</p>
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 <section id="treatment-of-time">
 <h4>Treatment of time<a class="headerlink" href="#treatment-of-time" title="Link to this heading">#</a></h4>
@@ -588,7 +594,7 @@ each activity generated by the model system is identified with a start time and 
 increments, LOS matrices are only created for five aggregate time periods. The trips occurring in each time period
 reference the appropriate transport network depending on their trip mode and the mid-point trip
 time. The definition of time periods for LOS matrices is given below.</p>
-<table class="table">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Time Period</p></th>
 <th class="head"><p>Start Hour</p></th>
@@ -612,6 +618,7 @@ time. The definition of time periods for LOS matrices is given below.</p>
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 <section id="trip-modes">
 <h4>Trip modes<a class="headerlink" href="#trip-modes" title="Link to this heading">#</a></h4>
@@ -737,7 +744,7 @@ although many of the files described there are not used in ActivitySim.</p>
 <section id="data-schema">
 <h5>Data Schema<a class="headerlink" href="#data-schema" title="Link to this heading">#</a></h5>
 <p>The following table lists the pipeline data tables, field names, the data types and other details associated with each table in the model:</p>
-<table class="table">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Table</p></th>
 <th class="head"><p>Field</p></th>
@@ -2682,6 +2689,7 @@ although many of the files described there are not used in ActivitySim.</p>
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 <section id="households">
 <h5>Households<a class="headerlink" href="#households" title="Link to this heading">#</a></h5>
@@ -2699,7 +2707,7 @@ although many of the files described there are not used in ActivitySim.</p>
 <section id="household-types">
 <h6>Household types<a class="headerlink" href="#household-types" title="Link to this heading">#</a></h6>
 <p>These are household types defined by the Census Bureau and used in <a class="reference external" href="https://censusreporter.org/tables/B11001/">ACS table B11001</a>.</p>
-<table class="table">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Code</p></th>
 <th class="head"><p>Description</p></th>
@@ -2732,6 +2740,7 @@ although many of the files described there are not used in ActivitySim.</p>
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 </section>
 <section id="persons">
@@ -2750,7 +2759,7 @@ no two individuals have the same person ID, even if they are in different househ
 </ul>
 <section id="employment-status">
 <h6>Employment status<a class="headerlink" href="#employment-status" title="Link to this heading">#</a></h6>
-<table class="table">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Code</p></th>
 <th class="head"><p>Description</p></th>
@@ -2771,10 +2780,11 @@ no two individuals have the same person ID, even if they are in different househ
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 <section id="student-status">
 <h6>Student status<a class="headerlink" href="#student-status" title="Link to this heading">#</a></h6>
-<table class="table">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Code</p></th>
 <th class="head"><p>Description</p></th>
@@ -2792,6 +2802,7 @@ no two individuals have the same person ID, even if they are in different househ
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 </section>
 <section id="land-use">
@@ -2825,7 +2836,7 @@ no two individuals have the same person ID, even if they are in different househ
 </ul>
 <section id="counties">
 <h6>Counties<a class="headerlink" href="#counties" title="Link to this heading">#</a></h6>
-<table class="table">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Code</p></th>
 <th class="head"><p>Name</p></th>
@@ -2861,10 +2872,11 @@ no two individuals have the same person ID, even if they are in different househ
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 <section id="area-types">
 <h6>Area types<a class="headerlink" href="#area-types" title="Link to this heading">#</a></h6>
-<table class="table">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Code</p></th>
 <th class="head"><p>Description</p></th>
@@ -2891,6 +2903,7 @@ no two individuals have the same person ID, even if they are in different househ
 </tr>
 </tbody>
 </table>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>ActivitySim can optionally build an HDF5 file of the input CSV tables for use in subsequent runs since
@@ -2966,7 +2979,7 @@ The skims are float64 matrix.</p>
 </ul>
 </li>
 </ul>
-<table class="table">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Field</p></th>
 <th class="head"><p>Type</p></th>
@@ -5453,6 +5466,7 @@ The skims are float64 matrix.</p>
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 <section id="configuration">
 <h4>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h4>
@@ -5466,7 +5480,7 @@ alternatives file since the alternatives are not easily described as columns in 
 of this is the <code class="docutils literal notranslate"><span class="pre">non_mandatory_tour_frequency_alternatives.csv</span></code> file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The  set of files for the prototype_mtc are below.  The
 <a class="reference internal" href="../examples.html#prototype-arc"><span class="std std-ref">prototype_arc</span></a>, <a class="reference internal" href="#prototype-semcog"><span class="std std-ref">prototype_semcog</span></a>, and <a class="reference internal" href="../examples.html#prototype-mtc-extended"><span class="std std-ref">prototype_mtc_extended</span></a> examples added additional submodels.</p>
-<table class="table">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Model</p></th>
 <th class="head"><p>Specification Files</p></th>
@@ -5773,6 +5787,7 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 </section>
 <section id="running-the-model">
@@ -5882,7 +5897,7 @@ the table below for a small sample of households.  The table shows that for each
 and/or columns changes as a result of the relevant model step.  A <code class="docutils literal notranslate"><span class="pre">checkpoints</span></code> table is also stored in the
 pipeline, which contains the crosswalk between model steps and table states in order to reload tables for
 restarting the pipeline at any step.</p>
-<table class="table">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Table</p></th>
 <th class="head"><p>Creator</p></th>
@@ -6048,6 +6063,7 @@ restarting the pipeline at any step.</p>
 </tr>
 </tbody>
 </table>
+</div>
 <section id="logging">
 <span id="logs"></span><span id="index-5"></span><h4>Logging<a class="headerlink" href="#logging" title="Link to this heading">#</a></h4>
 <p>Included in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder is the <code class="docutils literal notranslate"><span class="pre">logging.yaml</span></code>, which configures Python logging
@@ -6099,7 +6115,7 @@ the following optional settings in the model settings file.  The data is saved t
 destination choice sample table, which includes the mode choice logsum for each sampled
 alternative destination, adds significant size to the pipeline.  Therefore, this feature should
 only be activated when writing logsums for a small set of households for model estimation.</p>
-<table class="table">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Field</p></th>
 <th class="head"><p>Description</p></th>
@@ -6123,6 +6139,7 @@ only be activated when writing logsums for a small set of households for model e
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 </section>
 </section>
@@ -6177,7 +6194,7 @@ in order to load the extensions folder.</p>
               
               
               
-                <footer class="prev-next-footer">
+                <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
     <a class="left-prev"
@@ -6307,8 +6324,8 @@ in order to load the extensions folder.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
+  <script src="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -6317,7 +6334,7 @@ in order to load the extensions folder.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.0b3.dev10+g29d12bcc, documentation last updated May 22, 2024.<br/>
+ActivitySim 1.3.0b3.dev11+gbd48d3db, documentation last updated Jun 20, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
@@ -6336,7 +6353,7 @@ ActivitySim 1.3.0b3.dev10+g29d12bcc, documentation last updated May 22, 2024.<br
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.2.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
 </p></div>
       
     </div>

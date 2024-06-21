@@ -33,7 +33,7 @@ dependencies:
 - nbconvert
 - nbformat
 - nbmake
-- numba = 0.56.*
+- numba = 0.57.*
 - numexpr
 - numpy = 1.23.*
 - numpydoc
@@ -61,7 +61,7 @@ dependencies:
 - ruff
 - setuptools_scm
 - scikit-learn = 1.2.*
-- sharrow >= 2.6.0
+- sharrow >= 2.9.1
 - simwrapper > 1.7
 - snakeviz  # for profiling
 - sparse

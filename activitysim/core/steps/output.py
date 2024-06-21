@@ -370,6 +370,18 @@ def write_tables(state: workflow.State) -> None:
                     decode_instruction = decode_instruction.strip()
                 else:
                     decode_filter = None
+
+                if decode_instruction == "time_period":
+                    map_col = list(state.network_settings.skim_time_periods.labels)
+                    map_func = map_col.__getitem__
+                    revised_col = (
+                        pd.Series(dt.column(colname)).astype(int).map(map_func)
+                    )
+                    dt = dt.drop([colname]).append_column(
+                        colname, pa.array(revised_col)
+                    )
+                    continue
+
                 if "." not in decode_instruction:
                     lookup_col = decode_instruction
                     source_table = table_name

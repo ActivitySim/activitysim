@@ -425,9 +425,12 @@ class FileSystem(PydanticBase, validate_assignment=True):
         --------
         FileSystem.sharrow_cache_dir
         """
+        import sharrow as sh
+
+        sharrow_minor_version = ".".join(sh.__version__.split(".")[:2])
         self.sharrow_cache_dir = Path(
             platformdirs.user_cache_dir(appname="ActivitySim")
-        ).joinpath(f"numba-{numba.__version__}")
+        ).joinpath(f"sharrow-{sharrow_minor_version}-numba-{numba.__version__}")
         self.sharrow_cache_dir.mkdir(parents=True, exist_ok=True)
 
     def _cascading_input_file_path(

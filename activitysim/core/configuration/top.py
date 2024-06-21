@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import validator
+from pydantic import model_validator, validator
 
 from activitysim.core.configuration.base import PydanticBase, Union
 
@@ -476,6 +476,26 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     True will disable the use of zarr.
     """
 
+    store_skims_in_shm: bool = True
+    """
+    Store skim dataset in shared memory.
+
+    .. versionadded:: 1.3
+
+    By default, if sharrow is enabled (any setting other than false), ActivitySim
+    stores the skim dataset in shared memory. This can be changed by setting this
+    option to False, in which case skims are stores in "typical" process-local
+    memory. Note that storing skims in shared memory is pretty much required for
+    multiprocessing, unless you have a very small model or an absurdly large amount
+    of RAM.
+    """
+
+    @model_validator(mode="after")
+    def _check_store_skims_in_shm(self):
+        if not self.store_skims_in_shm and self.multiprocess:
+            raise ValueError("store_skims_in_shm requires multiprocess to be False")
+        return self
+
     instrument: bool = False
     """
     Use `pyinstrument` to profile component performance.
@@ -585,6 +605,18 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
         compatible with using :py:attr:`Settings.sharrow`.
     """
 
+    omx_ignore_patterns: list[str] = []
+    """
+    List of regex patterns to ignore when reading OMX files.
+
+    This is useful if you have tables in your OMX file that you don't want to
+    read in.  For example, if you have both time-of-day values and time-independent
+    values (e.g., "BIKE_TIME" and "BIKE_TIME__AM"), you can ignore the time-of-day
+    values by setting this to ["BIKE_TIME__.+"].
+
+    .. versionadded:: 1.3
+    """
+
     keep_mem_logs: bool = False
 
     pipeline_complib: str = "NOTSET"
@@ -614,6 +646,7 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
         "trace_hh_id",
         "memory_profile",
         "instrument",
+        "sharrow",
     )
     """
     Setting to log on startup.

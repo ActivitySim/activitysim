@@ -37,7 +37,7 @@ dependencies:
 - nbconvert
 - nbformat
 - nbmake
-- numba = 0.56.*
+- numba = 0.57.*
 - numexpr
 - numpy = 1.23.*
 - numpydoc

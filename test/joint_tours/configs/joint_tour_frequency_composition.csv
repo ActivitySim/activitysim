@@ -47,16 +47,16 @@ Label,Description,Expression,Coefficient
 ,Shopping HOV accessibility for 2 Tours,((autos<num_workers)*shop_hov_insufficient_accessibility+(autos==num_workers)*shop_hov_sufficient_accessibility+(autos>num_workers)*shop_hov_oversufficient_accessibility)*(num_joint_tours==2)*shopping,coef_shopping_hov_accessibility_for_2_tours
 ,Maintenance HOV Accessibility,((autos<num_workers)*maint_hov_insufficient_accessibility+(autos==num_workers)*maint_hov_sufficient_accessibility+(autos>num_workers)*maint_hov_oversufficient_accessibility)*othmaint,coef_maintenance_hov_accessibility
 ,Discretionary HOV Accessibility,((autos<num_workers)*discr_hov_insufficient_accessibility+(autos==num_workers)*discr_hov_sufficient_accessibility+(autos>num_workers)*discr_hov_oversufficient_accessibility)*othdiscr,coef_discretionary_hov_accessibility
-,Constant for Children Party/ Shopping Tour,@(df.purpose1==5)*(df.party1==2)+(df.purpose2==5)*(df.party2==2),coef_constant_for_children_party_shopping_tour
-,Constant for Children Party/ Maintenance Tour,@(df.purpose1==6)*(df.party1==2)+(df.purpose2==6)*(df.party2==2),coef_constant_for_children_party_maintenance_tour
-,Constant for Children Party/ Eating Out Tour,@(df.purpose1==7)*(df.party1==2)+(df.purpose2==7)*(df.party2==2),coef_constant_for_children_party_eating_out_tour
-,Constant for Children Party/ Visiting Tour,@(df.purpose1==8)*(df.party1==2)+(df.purpose2==8)*(df.party2==2),coef_constant_for_children_party_visiting_tour
-,Constant for Children Party/ Discretionary Tour,@(df.purpose1==9)*(df.party1==2)+(df.purpose2==9)*(df.party2==2),coef_constant_for_children_party_discretionary_tour
-,Constant for Mixed Party/ Shopping Tour,@(df.purpose1==5)*(df.party1==2)+(df.purpose2==5)*(df.party2==2),coef_constant_for_mixed_party_shopping_tour
-,Constant for Mixed Party/ Maintenance Tour,@(df.purpose1==6)*(df.party1==3)+(df.purpose2==6)*(df.party2==3),coef_constant_for_mixed_party_maintenance_tour
-,Constant for Mixed Party/ Eating Out Tour,@(df.purpose1==7)*(df.party1==3)+(df.purpose2==7)*(df.party2==3),coef_constant_for_mixed_party_eating_out_tour
-,Constant for Mixed Party/ Visiting Tour,@(df.purpose1==8)*(df.party1==3)+(df.purpose2==8)*(df.party2==3),coef_constant_for_mixed_party_visiting_tour
-,Constant for Mixed Party/ Discretionary Tour,@(df.purpose1==9)*(df.party1==3)+(df.purpose2==9)*(df.party2==3),coef_constant_for_mixed_party_discretionary_tour
+,Constant for Children Party/ Shopping Tour,@((df.purpose1==5)*(df.party1==2)).astype(int)+@((df.purpose2==5)*(df.party2==2)).astype(int),coef_constant_for_children_party_shopping_tour
+,Constant for Children Party/ Maintenance Tour,@((df.purpose1==6)*(df.party1==2)).astype(int)+@((df.purpose2==6)*(df.party2==2)).astype(int),coef_constant_for_children_party_maintenance_tour
+,Constant for Children Party/ Eating Out Tour,@((df.purpose1==7)*(df.party1==2)).astype(int)+@((df.purpose2==7)*(df.party2==2)).astype(int),coef_constant_for_children_party_eating_out_tour
+,Constant for Children Party/ Visiting Tour,@((df.purpose1==8)*(df.party1==2)).astype(int)+@((df.purpose2==8)*(df.party2==2)).astype(int),coef_constant_for_children_party_visiting_tour
+,Constant for Children Party/ Discretionary Tour,@((df.purpose1==9)*(df.party1==2)).astype(int)+@((df.purpose2==9)*(df.party2==2)).astype(int),coef_constant_for_children_party_discretionary_tour
+,Constant for Mixed Party/ Shopping Tour,@((df.purpose1==5)*(df.party1==3)).astype(int)+@((df.purpose2==5)*(df.party2==3)).astype(int),coef_constant_for_mixed_party_shopping_tour
+,Constant for Mixed Party/ Maintenance Tour,@((df.purpose1==6)*(df.party1==3)).astype(int)+@((df.purpose2==6)*(df.party2==3)).astype(int),coef_constant_for_mixed_party_maintenance_tour
+,Constant for Mixed Party/ Eating Out Tour,@((df.purpose1==7)*(df.party1==3)).astype(int)+@((df.purpose2==7)*(df.party2==3)).astype(int),coef_constant_for_mixed_party_eating_out_tour
+,Constant for Mixed Party/ Visiting Tour,@((df.purpose1==8)*(df.party1==3)).astype(int)+@((df.purpose2==8)*(df.party2==3)).astype(int),coef_constant_for_mixed_party_visiting_tour
+,Constant for Mixed Party/ Discretionary Tour,@((df.purpose1==9)*(df.party1==3)).astype(int)+@((df.purpose2==9)*(df.party2==3)).astype(int),coef_constant_for_mixed_party_discretionary_tour
 ,Number of Active Full time workers /Adult Party,num_travel_active_full_time_workers * (party1==1) + num_travel_active_full_time_workers * (party2==1),coef_number_of_active_full_time_workers_adult_party
 ,Number of Active Part time workers /Adult Party,num_travel_active_part_time_workers * (party1==1) + num_travel_active_part_time_workers * (party2==1),coef_number_of_active_part_time_workers_adult_party
 ,Number of Active University Students /Adult Party,num_travel_active_university_students * (party1==1) + num_travel_active_university_students * (party2==1),coef_number_of_active_university_students_adult_party
@@ -78,16 +78,16 @@ Label,Description,Expression,Coefficient
 ,Not more than 1 travel active adult in HH,@(df.num_travel_active_adults < 2)*(((df.party1==1)+(df.party2==1))>0),coef_unavailable
 ,Not more than 1 travel active child in HH,@(df.num_travel_active_children < 2)*(((df.party1==2)+(df.party2==2))>0),coef_unavailable
 ,No travel-active pair adult-child in HH ,@((df.num_travel_active_adults*df.num_travel_active_children) ==0)*(((df.party1==3)+(df.party2==3))>0),coef_unavailable
-,Adjustment for Children Party/ Shopping Tour,@(df.purpose1==5)*(df.party1==2)+(df.purpose2==5)*(df.party2==2),coef_adjustment_for_children_party_shopping_tour
-,Adjustment for Children Party/ Maintenance Tour,@(df.purpose1==6)*(df.party1==2)+(df.purpose2==6)*(df.party2==2),coef_adjustment_for_children_party_maintenance_tour
-,Adjustment for Children Party/ Eating Out Tour,@(df.purpose1==7)*(df.party1==2)+(df.purpose2==7)*(df.party2==2),coef_adjustment_for_children_party_eating_out_tour
-,Adjustment for Children Party/ Visiting Tour,@(df.purpose1==8)*(df.party1==2)+(df.purpose2==8)*(df.party2==2),coef_adjustment_for_children_party_visiting_tour
-,Adjustment for Children Party/ Discretionary Tour,@(df.purpose1==9)*(df.party1==2)+(df.purpose2==9)*(df.party2==2),coef_adjustment_for_children_party_discretionary_tour
-,Adjustment for Mixed Party/ Shopping Tour,@(df.purpose1==5)*(df.party1==2)+(df.purpose2==5)*(df.party2==2),coef_adjustment_for_mixed_party_shopping_tour
-,Adjustment for Mixed Party/ Maintenance Tour,@(df.purpose1==6)*(df.party1==3)+(df.purpose2==6)*(df.party2==3),coef_adjustment_for_mixed_party_maintenance_tour
-,Adjustment for Mixed Party/ Eating Out Tour,@(df.purpose1==7)*(df.party1==3)+(df.purpose2==7)*(df.party2==3),coef_adjustment_for_mixed_party_eating_out_tour
-,Adjustment for Mixed Party/ Visiting Tour,@(df.purpose1==8)*(df.party1==3)+(df.purpose2==8)*(df.party2==3),coef_adjustment_for_mixed_party_visiting_tour
-,Adjustment for Mixed Party/ Discretionary Tour,@(df.purpose1==9)*(df.party1==3)+(df.purpose2==9)*(df.party2==3),coef_adjustment_for_mixed_party_discretionary_tour
+,Adjustment for Children Party/ Shopping Tour,@((df.purpose1==5)*(df.party1==2)).astype(int)+@((df.purpose2==5)*(df.party2==2)).astype(int),coef_adjustment_for_children_party_shopping_tour
+,Adjustment for Children Party/ Maintenance Tour,@((df.purpose1==6)*(df.party1==2)).astype(int)+@((df.purpose2==6)*(df.party2==2)).astype(int),coef_adjustment_for_children_party_maintenance_tour
+,Adjustment for Children Party/ Eating Out Tour,@((df.purpose1==7)*(df.party1==2)).astype(int)+@((df.purpose2==7)*(df.party2==2)).astype(int),coef_adjustment_for_children_party_eating_out_tour
+,Adjustment for Children Party/ Visiting Tour,@((df.purpose1==8)*(df.party1==2)).astype(int)+@((df.purpose2==8)*(df.party2==2)).astype(int),coef_adjustment_for_children_party_visiting_tour
+,Adjustment for Children Party/ Discretionary Tour,@((df.purpose1==9)*(df.party1==2)).astype(int)+@((df.purpose2==9)*(df.party2==2)).astype(int),coef_adjustment_for_children_party_discretionary_tour
+,Adjustment for Mixed Party/ Shopping Tour,@((df.purpose1==5)*(df.party1==3)).astype(int)+@((df.purpose2==5)*(df.party2==3)).astype(int),coef_adjustment_for_mixed_party_shopping_tour
+,Adjustment for Mixed Party/ Maintenance Tour,@((df.purpose1==6)*(df.party1==3)).astype(int)+@((df.purpose2==6)*(df.party2==3)).astype(int),coef_adjustment_for_mixed_party_maintenance_tour
+,Adjustment for Mixed Party/ Eating Out Tour,@((df.purpose1==7)*(df.party1==3)).astype(int)+@((df.purpose2==7)*(df.party2==3)).astype(int),coef_adjustment_for_mixed_party_eating_out_tour
+,Adjustment for Mixed Party/ Visiting Tour,@((df.purpose1==8)*(df.party1==3)).astype(int)+@((df.purpose2==8)*(df.party2==3)).astype(int),coef_adjustment_for_mixed_party_visiting_tour
+,Adjustment for Mixed Party/ Discretionary Tour,@((df.purpose1==9)*(df.party1==3)).astype(int)+@((df.purpose2==9)*(df.party2==3)).astype(int),coef_adjustment_for_mixed_party_discretionary_tour
 ,Adjustment for shopping tour,shopping,coef_adjustment_for_shopping_tour
 ,Adjustment for Maintenance tour,othmaint,coef_adjustment_for_maintenance_tour
 ,Adjustment for eating out tour,eatout,coef_adjustment_for_eating_out_tour

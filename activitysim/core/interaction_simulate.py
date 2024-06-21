@@ -174,7 +174,7 @@ def eval_interaction_utilities(
             for i1, i2 in zip(exprs, labels):
                 logger.debug(f"        - expr: {i1}: {i2}")
 
-            timelogger.mark("sharrow preamble", True, logger, trace_label)
+            timelogger.mark("sharrow interact preamble", True, logger, trace_label)
 
             sh_util, sh_flow, sh_tree = apply_flow(
                 state,
@@ -197,10 +197,10 @@ def eval_interaction_utilities(
                     # if not testing sharrow, we are done with this object now.
                     del sh_util
 
-            timelogger.mark("sharrow flow", True, logger, trace_label)
+            timelogger.mark("sharrow interact flow", True, logger, trace_label)
         else:
             sh_util, sh_flow, sh_tree = None, None, None
-            timelogger.mark("sharrow flow", False)
+            timelogger.mark("sharrow interact flow", False)
 
         if (
             utilities is None
@@ -425,7 +425,7 @@ def eval_interaction_utilities(
                 dtype=np.float32,
             )
             logger.info("finish sh_flow load dataarray")
-            sh_utility_fat = sh_utility_fat[trace_rows, :]
+            # sh_utility_fat = sh_utility_fat[trace_rows, :] # trace selection above, do not repeat
             sh_utility_fat = sh_utility_fat.to_dataframe("vals")
             try:
                 sh_utility_fat = sh_utility_fat.unstack("expressions")
@@ -541,53 +541,74 @@ def eval_interaction_utilities(
                     retrace_eval_parts = {}
                     re_trace_df = df.iloc[re_trace]
 
-                    for expr, label, coefficient in zip(exprs, labels, spec.iloc[:, 0]):
-                        if expr.startswith("_"):
-                            target = expr[: expr.index("@")]
-                            rhs = expr[expr.index("@") + 1 :]
-                            v = to_series(eval(rhs, globals(), locals_d))
-                            locals_d[target] = v
-                            if trace_eval_results is not None:
-                                trace_eval_results[expr] = v.iloc[re_trace]
-                            continue
-                        if expr.startswith("@"):
-                            v = to_series(eval(expr[1:], globals(), locals_d))
-                        else:
-                            v = df.eval(expr, resolvers=[locals_d])
-                        if check_for_variability and v.std() == 0:
-                            logger.info(
-                                "%s: no variability (%s) in: %s"
-                                % (trace_label, v.iloc[0], expr)
+                    with compute_settings.pandas_option_context():
+                        for expr, label, coefficient in zip(
+                            exprs, labels, spec.iloc[:, 0]
+                        ):
+                            if expr.startswith("_"):
+                                target = expr[: expr.index("@")]
+                                rhs = expr[expr.index("@") + 1 :]
+                                v = to_series(eval(rhs, globals(), locals_d))
+                                locals_d[target] = v
+                                if trace_eval_results is not None:
+                                    trace_eval_results[expr] = v.iloc[re_trace]
+                                continue
+                            if expr.startswith("@"):
+                                v = to_series(eval(expr[1:], globals(), locals_d))
+                            else:
+                                v = df.eval(expr, resolvers=[locals_d])
+                            if check_for_variability and v.std() == 0:
+                                logger.info(
+                                    "%s: no variability (%s) in: %s"
+                                    % (trace_label, v.iloc[0], expr)
+                                )
+                                no_variability += 1
+                            retrace_eval_data[expr] = v.iloc[re_trace]
+                            k = "partial utility (coefficient = %s) for %s" % (
+                                coefficient,
+                                expr,
                             )
-                            no_variability += 1
-                        retrace_eval_data[expr] = v.iloc[re_trace]
-                        k = "partial utility (coefficient = %s) for %s" % (
-                            coefficient,
-                            expr,
+                            retrace_eval_parts[k] = (
+                                v.iloc[re_trace] * coefficient
+                            ).astype("float")
+                        retrace_eval_data_ = pd.concat(retrace_eval_data, axis=1)
+                        retrace_eval_parts_ = pd.concat(retrace_eval_parts, axis=1)
+
+                        re_sh_flow_load = sh_flow.load(sh_tree, dtype=np.float32)
+                        re_sh_flow_load_ = re_sh_flow_load[re_trace]
+
+                        use_bottleneck = pd.get_option("compute.use_bottleneck")
+                        use_numexpr = pd.get_option("compute.use_numexpr")
+                        use_numba = pd.get_option("compute.use_numba")
+
+                        look_for_problems_here = np.where(
+                            ~np.isclose(
+                                re_sh_flow_load_[
+                                    :,
+                                    ~spec.index.get_level_values(0).str.startswith("_"),
+                                ],
+                                retrace_eval_data_.values.astype(np.float32),
+                            )
                         )
-                        retrace_eval_parts[k] = (v.iloc[re_trace] * coefficient).astype(
-                            "float"
-                        )
-                    retrace_eval_data_ = pd.concat(retrace_eval_data, axis=1)
-                    retrace_eval_parts_ = pd.concat(retrace_eval_parts, axis=1)
 
-                    re_sh_flow_load = sh_flow.load(sh_tree, dtype=np.float32)
-                    re_sh_flow_load_ = re_sh_flow_load[re_trace]
+                        if len(look_for_problems_here) == 2:
+                            # the first index is the row index, which is probably may different rows
+                            # the second is column index, hopefully only a few unique values
+                            problem_col_indexes = np.unique(look_for_problems_here[1])
+                            problem_cols = list(
+                                retrace_eval_data_.columns[problem_col_indexes]
+                            )
+                            print("problem expressions:\n", "\n".join(problem_cols))
 
-                    use_bottleneck = pd.get_option("compute.use_bottleneck")
-                    use_numexpr = pd.get_option("compute.use_numexpr")
-                    use_numba = pd.get_option("compute.use_numba")
+                            MISMATCH_sharrow = re_sh_flow_load_[
+                                :,
+                                ~spec.index.get_level_values(0).str.startswith("_"),
+                            ][:, problem_col_indexes]
+                            MISMATCH_legacy = retrace_eval_data_.iloc[
+                                :, problem_col_indexes
+                            ]
 
-                    look_for_problems_here = np.where(
-                        ~np.isclose(
-                            re_sh_flow_load_[
-                                :, ~spec.index.get_level_values(0).str.startswith("_")
-                            ],
-                            retrace_eval_data_.values.astype(np.float32),
-                        )
-                    )
-
-                    raise  # enter debugger now to see what's up
+                        raise  # enter debugger now to see what's up
             timelogger.mark("sharrow interact test", True, logger, trace_label)
 
     logger.info(f"utilities.dtypes {trace_label}\n{utilities.dtypes}")

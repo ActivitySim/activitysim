@@ -196,3 +196,6 @@ LOGSUM_CHOOSER_COLUMNS:
 
 
 MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum
+
+compute_settings:
+  fastmath: false  # use of isnan in utility functions requires fastmath=False

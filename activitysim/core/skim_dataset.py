@@ -840,6 +840,7 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
     else:
         land_use_zone_id = None
 
+    dask_required = False
     if network_los_preload.zone_system == ONE_ZONE:
         # check TAZ alignment for ONE_ZONE system.
         # other systems use MAZ for most lookups, which dynamically
@@ -850,6 +851,7 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
             except AssertionError as err:
                 logger.info(f"otaz realignment required\n{err}")
                 d = d.reindex(otaz=land_use_zone_id)
+                dask_required = True
             else:
                 logger.info("otaz alignment ok")
             d["otaz"] = land_use.index.to_numpy()
@@ -863,6 +865,7 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
             except AssertionError as err:
                 logger.info(f"dtaz realignment required\n{err}")
                 d = d.reindex(dtaz=land_use_zone_id)
+                dask_required = True
             else:
                 logger.info("dtaz alignment ok")
             d["dtaz"] = land_use.index.to_numpy()
@@ -876,15 +879,21 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
         return d
     else:
         logger.info("writing skims to shared memory")
-        # setting `load` to false then calling `reload_from_omx_3d` avoids
-        # using dask to load the data into memory, which is not performant
-        # on Windows for large datasets.
-        d_shared_mem = d.shm.to_shared_memory(backing, mode="r", load=False)
-        sh.dataset.reload_from_omx_3d(
-            d_shared_mem,
-            [str(i) for i in omx_file_paths],
-            ignore=state.settings.omx_ignore_patterns,
-        )
+        if dask_required:
+            # setting `load` to True uses dask to load the data into memory
+            d_shared_mem = d.shm.to_shared_memory(backing, mode="r", load=True)
+        else:
+            # setting `load` to false then calling `reload_from_omx_3d` avoids
+            # using dask to load the data into memory, which is not performant
+            # on Windows for large datasets, but this only works if the data
+            # requires no realignment (i.e. the land use table and skims match
+            # exactly in order and length).
+            d_shared_mem = d.shm.to_shared_memory(backing, mode="r", load=False)
+            sh.dataset.reload_from_omx_3d(
+                d_shared_mem,
+                [str(i) for i in omx_file_paths],
+                ignore=state.settings.omx_ignore_patterns,
+            )
         for f in omx_file_handles:
             f.close()
         return d_shared_mem

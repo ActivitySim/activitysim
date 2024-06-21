@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import validator
+from pydantic import model_validator, validator
 
 from activitysim.core.configuration.base import PydanticBase, Union
 
@@ -475,6 +475,26 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     data is written out to a zarr file at that location.  Setting this option to
     True will disable the use of zarr.
     """
+
+    store_skims_in_shm: bool = True
+    """
+    Store skim dataset in shared memory.
+
+    .. versionadded:: 1.3
+
+    By default, if sharrow is enabled (any setting other than false), ActivitySim
+    stores the skim dataset in shared memory. This can be changed by setting this
+    option to False, in which case skims are stores in "typical" process-local
+    memory. Note that storing skims in shared memory is pretty much required for
+    multiprocessing, unless you have a very small model or an absurdly large amount
+    of RAM.
+    """
+
+    @model_validator(mode="after")
+    def _check_store_skims_in_shm(self):
+        if not self.store_skims_in_shm and self.multiprocess:
+            raise ValueError("store_skims_in_shm requires multiprocess to be False")
+        return self
 
     instrument: bool = False
     """

@@ -747,7 +747,10 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
     else:
         remapper = None
 
-    d = _use_existing_backing_if_valid(backing, omx_file_paths, skim_tag)
+    if state.settings.store_skims_in_shm:
+        d = _use_existing_backing_if_valid(backing, omx_file_paths, skim_tag)
+    else:
+        d = None  # skims are not stored in shared memory, so we need to load them
     do_not_save_zarr = False
 
     if d is None:
@@ -876,6 +879,11 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
     if d.shm.is_shared_memory:
         for f in omx_file_handles:
             f.close()
+        return d
+    elif not state.settings.store_skims_in_shm:
+        logger.info(
+            "store_skims_in_shm is False, keeping skims in process-local memory"
+        )
         return d
     else:
         logger.info("writing skims to shared memory")

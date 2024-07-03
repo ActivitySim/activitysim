@@ -10,7 +10,7 @@ on:
       - '*'
 
 env:
-  CACHE_NUMBER: 0  # increase to reset cache manually
+  CACHE_NUMBER: 2  # increase to reset cache manually
 
 jobs:
   foundation:
@@ -24,10 +24,10 @@ jobs:
     name: linux-64-py${{ matrix.python-version }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
             miniforge-variant: Mambaforge
             miniforge-version: latest
@@ -38,7 +38,7 @@ jobs:
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: /usr/share/miniconda3/envs/asim-test
           key: linux-64-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
@@ -47,19 +47,6 @@ jobs:
       - name: Update environment
         run: |
           mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
-          mamba install --yes \
-          	"psutil=5.9.5" \
-          	"pydantic=2.6.1" \
-          	"pypyr=5.8.0" \
-          	"pytables=3.6.1" \
-          	"pytest-cov" \
-          	"pytest-regressions=2.5.0" \
-          	"scikit-learn=1.2.2" \
-          	"sharrow>=2.6.0" \
-          	"simwrapper=1.8.5" \
-          	"xarray=2023.2.0" \
-          	"zarr=2.14.2" \
-          	"zstandard=0.21.0"
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install activitysim
@@ -109,12 +96,10 @@ jobs:
         include:
           - os: macos-latest
             label: macOS
-            prefix: /Users/runner/miniconda3/envs/asim-test
             python-version: "3.10"
 
           - os: windows-latest
             label: win-64
-            prefix: C:\Miniconda3\envs\asim-test
             python-version: "3.10"
 
     defaults:
@@ -124,10 +109,10 @@ jobs:
     name: ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
             miniforge-variant: Mambaforge
             miniforge-version: latest
@@ -138,28 +123,15 @@ jobs:
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
-          path: ${{ matrix.prefix }}
+          path: ${{ env.CONDA }}/envs
           key: ${{ matrix.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
       - name: Update environment
         run: |
           mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
-          mamba install --yes \
-          	"psutil=5.9.5" \
-          	"pydantic=2.6.1" \
-          	"pypyr=5.8.0" \
-          	"pytables=3.6.1" \
-          	"pytest-cov" \
-          	"pytest-regressions=2.5.0" \
-          	"scikit-learn=1.2.2" \
-          	"sharrow>=2.6.0" \
-          	"simwrapper=1.8.5" \
-          	"xarray=2023.2.0" \
-          	"zarr=2.14.2" \
-          	"zstandard=0.21.0"
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install activitysim
@@ -199,7 +171,6 @@ jobs:
   builtin_regional_models:
     needs: foundation
     env:
-      mamba-env-prefix: /usr/share/miniconda3/envs/asim-test
       python-version: "3.10"
       label: linux-64
     strategy:
@@ -221,10 +192,10 @@ jobs:
     name: ${{ matrix.region }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-variant: Mambaforge
           miniforge-version: latest
@@ -235,28 +206,15 @@ jobs:
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
-          path: ${{ env.mamba-env-prefix }}
+          path: ${{ env.CONDA }}/envs
           key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
       - name: Update environment
         run: |
           mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
-          mamba install --yes \
-          	"psutil=5.9.5" \
-          	"pydantic=2.6.1" \
-          	"pypyr=5.8.0" \
-          	"pytables=3.6.1" \
-          	"pytest-cov" \
-          	"pytest-regressions=2.5.0" \
-          	"scikit-learn=1.2.2" \
-          	"sharrow>=2.6.0" \
-          	"simwrapper=1.8.5" \
-          	"xarray=2023.2.0" \
-          	"zarr=2.14.2" \
-          	"zstandard=0.21.0"
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install activitysim
@@ -301,14 +259,19 @@ jobs:
   external_regional_models:
     needs: foundation
     env:
-      mamba-env-prefix: /usr/share/miniconda3/envs/asim-test
       python-version: "3.10"
       label: linux-64
     strategy:
       matrix:
-        region:
-          - prototype_mtc
-          - prototype_psrc_in_development
+        include:
+          - region: Standard 1-Zone Example (MTC)
+            region-org: ActivitySim
+            region-repo: activitysim-prototype-mtc
+            region-branch: extended
+          - region: Standard 2-Zone Example (SANDAG)
+            region-org: ActivitySim
+            region-repo: sandag-abm3-example
+            region-branch: main
       fail-fast: false
     defaults:
       run:
@@ -316,10 +279,11 @@ jobs:
     name: ${{ matrix.region }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout ActivitySim
+        uses: actions/checkout@v4
 
       - name: Setup Mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-variant: Mambaforge
           miniforge-version: latest
@@ -330,10 +294,10 @@ jobs:
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
-            ${{ env.mamba-env-prefix }}
+            ${{ env.CONDA }}/envs
             ~/.cache/ActivitySim
           key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
@@ -341,19 +305,6 @@ jobs:
       - name: Update environment
         run: |
           mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
-          mamba install --yes \
-          	"psutil=5.9.5" \
-          	"pydantic=2.6.1" \
-          	"pypyr=5.8.0" \
-          	"pytables=3.6.1" \
-          	"pytest-cov" \
-          	"pytest-regressions=2.5.0" \
-          	"scikit-learn=1.2.2" \
-          	"sharrow>=2.6.0" \
-          	"simwrapper=1.8.5" \
-          	"xarray=2023.2.0" \
-          	"zarr=2.14.2" \
-          	"zstandard=0.21.0"
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install activitysim
@@ -361,21 +312,28 @@ jobs:
         # are in the conda environment defined above.  Also, this avoids pip getting
         # confused and reinstalling tables (pytables).
         run: |
-          python -m pip install -e . --no-deps
+          python -m pip install . --no-deps
 
       - name: Conda checkup
         run: |
           mamba info -a
           mamba list
 
+      - name: Checkout Example
+        uses: actions/checkout@v4
+        with:
+          repository: '${{ matrix.region-org }}/${{ matrix.region-repo }}'
+          ref: '${{ matrix.region-branch }}'
+          path: '${{ matrix.region-repo }}'
+
       - name: Test ${{ matrix.region }}
         run: |
-          python -m activitysim test ${{ matrix.region }}
+          cd ${{ matrix.region-repo }}/test
+          python -m pytest .
 
   random_seed_generation:
     needs: foundation
     env:
-      mamba-env-prefix: /usr/share/miniconda3/envs/asim-test
       python-version: "3.10"
       label: linux-64
     defaults:
@@ -385,10 +343,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-variant: Mambaforge
           miniforge-version: latest
@@ -399,28 +357,15 @@ jobs:
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
-          path: ${{ env.mamba-env-prefix }}
+          path: ${{ env.CONDA }}/envs
           key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
       - name: Update environment
         run: |
           mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
-          mamba install --yes \
-          	"psutil=5.9.5" \
-          	"pydantic=2.6.1" \
-          	"pypyr=5.8.0" \
-          	"pytables=3.6.1" \
-          	"pytest-cov" \
-          	"pytest-regressions=2.5.0" \
-          	"scikit-learn=1.2.2" \
-          	"sharrow>=2.6.0" \
-          	"simwrapper=1.8.5" \
-          	"xarray=2023.2.0" \
-          	"zarr=2.14.2" \
-          	"zstandard=0.21.0"
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install activitysim
@@ -442,7 +387,6 @@ jobs:
   estimation_mode:
     needs: foundation
     env:
-      mamba-env-prefix: /usr/share/miniconda3/envs/asim-test
       python-version: "3.10"
       label: linux-64
     defaults:
@@ -451,10 +395,10 @@ jobs:
     name: estimation_mode_test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-variant: Mambaforge
           miniforge-version: latest
@@ -465,28 +409,15 @@ jobs:
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
-          path: ${{ env.mamba-env-prefix }}
+          path: ${{ env.CONDA }}/envs
           key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
       - name: Update environment
         run: |
           mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
-          mamba install --yes \
-          	"psutil=5.9.5" \
-          	"pydantic=2.6.1" \
-          	"pypyr=5.8.0" \
-          	"pytables=3.6.1" \
-          	"pytest-cov" \
-          	"pytest-regressions=2.5.0" \
-          	"scikit-learn=1.2.2" \
-          	"sharrow>=2.6.0" \
-          	"simwrapper=1.8.5" \
-          	"xarray=2023.2.0" \
-          	"zarr=2.14.2" \
-          	"zstandard=0.21.0"
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install Larch
@@ -517,7 +448,7 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # get all tags, lets setuptools_scm do its thing
       - name: Set up Python 3.10
@@ -525,7 +456,7 @@ jobs:
         with:
           python-version: "3.10"
       - name: Install dependencies
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-variant: Mambaforge
           miniforge-version: latest

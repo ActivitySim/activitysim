@@ -21,6 +21,13 @@ logger = logging.getLogger(__name__)
 def land_use(state: workflow.State):
     df = read_input_table(state, "land_use")
 
+    # try to make life easy for everybody by keeping everything in canonical order
+    # but as long as coalesce_pipeline doesn't sort tables it coalesces, it might not stay in order
+    # so even though we do this, anyone downstream who depends on it, should look out for themselves...
+    if not df.index.is_monotonic_increasing:
+        logger.info(f"sorting land_use index")
+        df = df.sort_index()
+
     sharrow_enabled = state.settings.sharrow
     if sharrow_enabled:
         err_msg = (
@@ -33,12 +40,6 @@ def land_use(state: workflow.State):
         assert df.index[0] == 0, err_msg
         assert df.index[-1] == len(df.index) - 1, err_msg
         assert df.index.dtype.kind == "i", err_msg
-
-    # try to make life easy for everybody by keeping everything in canonical order
-    # but as long as coalesce_pipeline doesn't sort tables it coalesces, it might not stay in order
-    # so even though we do this, anyone downstream who depends on it, should look out for themselves...
-    if not df.index.is_monotonic_increasing:
-        df = df.sort_index()
 
     logger.info("loaded land_use %s" % (df.shape,))
     buffer = io.StringIO()
@@ -65,7 +66,11 @@ def land_use_taz(state: workflow.State):
             "no land_use_taz defined in input_table_list, constructing "
             "from discovered TAZ values in land_use"
         )
-        unique_tazs = np.unique(land_use["TAZ"])
+        # use original TAZ values if available, otherwise use current TAZ values
+        if state.settings.recode_pipeline_columns and "_original_TAZ" in land_use:
+            unique_tazs = np.unique(land_use["_original_TAZ"])
+        else:
+            unique_tazs = np.unique(land_use["TAZ"])
         if state.settings.recode_pipeline_columns:
             df = pd.Series(
                 unique_tazs,

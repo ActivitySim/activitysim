@@ -23,10 +23,25 @@ class AccessibilitySettings(PydanticReadable):
     CONSTANTS: dict[str, Any] = {}
 
     land_use_columns: list[str] = []
-    """Only include the these columns in the computational tables
+    """Only include the these columns in the computational tables.
+
+    This setting joins land use columns to the accessibility destinations.
 
     Memory usage is reduced by only listing the minimum columns needed by
     the SPEC, and nothing extra.
+    """
+
+    land_use_columns_orig: list[str] = []
+    """Join these land use columns to the origin zones.
+
+    This setting joins land use columns to the accessibility origins.
+    To disambiguate from the destination land use columns, the names of the
+    columns added will be prepended with 'landuse_orig_'.
+
+    Memory usage is reduced by only listing the minimum columns needed by
+    the SPEC, and nothing extra.
+
+    .. versionadded:: 1.3
     """
 
     SPEC: str = "accessibility.csv"
@@ -58,6 +73,7 @@ def compute_accessibilities_for_zones(
     state: workflow.State,
     accessibility_df: pd.DataFrame,
     land_use_df: pd.DataFrame,
+    orig_land_use_df: pd.DataFrame | None,
     assignment_spec: dict,
     constants: dict,
     network_los: los.Network_LOS,
@@ -72,6 +88,7 @@ def compute_accessibilities_for_zones(
     state : workflow.State
     accessibility_df : pd.DataFrame
     land_use_df : pd.DataFrame
+    orig_land_use_df : pd.DataFrame | None
     assignment_spec : dict
     constants : dict
     network_los : los.Network_LOS
@@ -104,6 +121,12 @@ def compute_accessibilities_for_zones(
     logger.debug(f"{trace_label}: tiling land_use_columns into od_data")
     for c in land_use_df.columns:
         od_data[c] = np.tile(land_use_df[c].to_numpy(), orig_zone_count)
+    if orig_land_use_df is not None:
+        logger.debug(f"{trace_label}: repeating orig_land_use_columns into od_data")
+        for c in orig_land_use_df:
+            od_data[f"landuse_orig_{c}"] = np.repeat(
+                orig_land_use_df[c], dest_zone_count
+            )
     logger.debug(f"{trace_label}: converting od_data to DataFrame")
     od_df = pd.DataFrame(od_data)
     logger.debug(f"{trace_label}: dropping od_data")
@@ -236,6 +259,11 @@ def compute_accessibility(
     land_use_df = land_use
     land_use_df = land_use_df[land_use_columns]
 
+    if model_settings.land_use_columns_orig:
+        orig_land_use_df = land_use[model_settings.land_use_columns_orig]
+    else:
+        orig_land_use_df = None
+
     logger.info(
         f"Running {trace_label} with {len(accessibility_df.index)} orig zones "
         f"{len(land_use_df)} dest zones"
@@ -252,10 +280,15 @@ def compute_accessibility(
     ) in chunk.adaptive_chunked_choosers(
         state, accessibility_df, trace_label, explicit_chunk_size=explicit_chunk_size
     ):
+        if orig_land_use_df is not None:
+            orig_land_use_df_chunk = orig_land_use_df.loc[chooser_chunk.index]
+        else:
+            orig_land_use_df_chunk = None
         accessibilities = compute_accessibilities_for_zones(
             state,
             chooser_chunk,
             land_use_df,
+            orig_land_use_df_chunk,
             assignment_spec,
             constants,
             network_los,

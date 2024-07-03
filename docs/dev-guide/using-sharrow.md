@@ -174,6 +174,16 @@ memory, as the variable is computed and stored for every row in the entire dataf
 before it can be used in other expressions.  In sharrow, temporary variables are
 allocated, used, and freed for each row separately, so no extra memory is required.
 
+### Pandas-only Expressions
+
+In legacy mode, expressions can be evaluated using expressions that tap into the
+full pandas library, including the ability to call pandas functions and methods
+directly.  This is not possible in sharrow, as the expressions are compiled into
+numba code, which does not have access to the pandas library.  If a pandas function
+is needed, it must be called in a pre-processor.  However, many pandas functions
+can be replaced with numpy functions, which are available in numba.  For example,
+`df.income.fillna(0)` can be replaced with `np.nan_to_num(df.income)`.
+
 ### Switchable Expressions
 
 As a general rule, it is best to write each utility expression in a manner that
@@ -193,12 +203,22 @@ in several examples:
     `@np.log1p(size_terms.get(df.alt_dest, df.purpose)) # sharrow: np.log1p(size_terms['sizearray'])`
 
 Here, `size_terms` is a DataFrameMatrix class instance, a special class written into
-ActivitySim to facilitate reading from a DataFrame as it it were a 2-d array.  As it
+ActivitySim to facilitate reading from a DataFrame as if it were a 2-d array.  As it
 is a special purpose class written in Python, the numba compiler cannot handle it directly.
 Fortunately, sharrow provides an alternative: passing the size terms as a xarray `DataArray`.
 This has a slightly different interface, so the sharrow and legacy evaluation modes require
 different expressions. The switching expression is used to handle the DataFrameMatrix
 on the left (before "# sharrow:") and the DataArray on the right.
+
+### Optional Variables
+
+In some cases, a variable may be used where it is available, but is not strictly
+necessary for the model to run.  For example, a model may have a reference to
+mode choice logsums, but the model can still run without them, if it is being used
+prior to when logsums are calculated.  In this case, the variable can be accessed
+using the `get` method, which allows for a default value if the variable is not found.
+
+    `@df.get('mode_choice_logsum', 0)`
 
 ### Performance Considerations
 
@@ -221,6 +241,17 @@ compute_settings:
 ```
 
 in the component's configuration yaml file.
+
+In addition, by default sharrow also tries to optimize performance by setting the
+`fastmath` flag to True in the numba compiler.  This makes the compiler generate
+faster code, by assuming that all variables have finite values (not NaN or Inf).
+If the model has expressions that use variables that can contains NaN or Inf
+values, the `fastmath` flag can be disabled by setting
+
+```yaml
+compute_settings:
+  fastmath: false
+```
 
 ### Multiprocessing Performance
 

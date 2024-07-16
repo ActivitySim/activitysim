@@ -17,6 +17,25 @@ multiprocessing mode after all the compilation for all model components is
 complete.
 ```
 
+The first time you run a model with sharrow enabled, the compiler will run
+and create a cache of compiled functions.  This can take a long time, especially
+for models with many components or complex utility specifications.  However,
+once the cache is created, subsequent runs of the model will be much faster.
+By default, the cached functions are stored in a subdirectory of the
+`platformdirs.user_cache_dir` directory, which is located in a platform-specific
+location:
+
+- Windows: `%USERPROFILE%\AppData\Local\ActivitySim\ActivitySim\Cache\...`
+- MacOS: `~/Library/Caches/ActivitySim/...`
+- Linux: `~/.cache/ActivitySim/...` or `~/$XDG_CACHE_HOME/ActivitySim/...`
+
+The cache directory can be changed from this default location by setting the
+[`sharrow_cache_dir`](activitysim.core.configuration.FileSystem.sharrow_cache_dir)
+setting in the `settings.yaml` file.  Note if you change this setting and provide
+a relative path, it will be interpreted as relative to the model working directory,
+and cached functions may not carry over to other model runs unless copied there
+by the user.
+
 ## Model Design Requirements
 
 Activating the `sharrow` optimizations also requires using the new

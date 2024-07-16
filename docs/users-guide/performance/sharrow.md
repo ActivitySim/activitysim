@@ -36,4 +36,6 @@ ActivitySim, including tracing and estimation mode.
 
 Instructions on how to work with `sharrow` in ActivitySim are described in
 detail in the [Using Sharrow](../../dev-guide/using-sharrow.md)
-section of the Developer's Guide.
+section of the Developer's Guide. Advanced users are encouraged to read this
+section to understand the full capabilities of `sharrow`, how to use it, and how
+to troubleshoot issues that may arise when using it.

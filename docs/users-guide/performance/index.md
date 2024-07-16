@@ -13,25 +13,51 @@ there are several techniques that users can employ to improve runtime performanc
 and to tune that performance to the specific hardware on which the model is being run.
 These techniques are the focus of this section.
 
-```{tip}
-If you are unsure about the best settings for runtime performance of your model,
-try running with
-
-    multiprocessing: true
-    num_processes: 10
-    chunk_training_mode: explicit
-    sharrow: true
-
-If your machine has fewer than 11 cores, try decreasing `num_processes` to be
-one less than the number of cores available.
-```
-
+## Performance Tuning Topics
 ```{eval-rst}
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   multiprocessing
-   multithreading
-   chunking
-   sharrow
+   Multiprocessing <multiprocessing>
+   Multithreading <multithreading>
+   Chunking to Reduce Peak Memory Usage <chunking>
+   Compiling with Sharrow <sharrow>
 ```
+
+## Checklist for Performance Tuning
+
+Here is a checklist of common steps to take when tuning the performance of an
+ActivitySim model:
+
+1. Precompile (if using sharrow)
+
+    Run the entire model with a modest number of households, to let sharrow
+    pre-compile relevant utility specifications.  The pre-compile run needs be
+    single-process, to avoid compiler race conditions between various subprocesses.
+    The exact number of households to use is not particularly important, but it
+    should be large enough to trigger all relevant model components (i.e., we need
+    to be sure that there are worker, students, students getting escorted, all various
+    household sizes, etc.)  A few thousand households is usually sufficient.
+
+2. Memory Profiling
+
+    Run the model single-process with a small sample size (10% or so) and profile
+    the memory usage. This will give you an idea of how much memory the model will
+    need to run the 100% household sample.  If the model is projected to run out of
+    memory when run on a 100% sample, you may need to configure chunking (see below)
+    or reduce the sample size if feasible for the analysis.
+
+3. Configure Chunking (if needed)
+
+    If the model is projected to run out of memory when run on a 100% sample, you
+    may need to configure chunking.  See [Explicit Chunking](chunking.md#explicit-chunking)
+    for recommendations on how to configure chunking for reliable model operation.
+
+4. Experiment with Multiprocessing
+
+    Run the model with multiprocessing enabled, and experiment with the number of
+    cores to find the best performance.  The optimal number of cores will depend on
+    the model size and complexity, and the hardware on which the model is being run.
+    Typically, ActivitySim models seem to perform best with about 10 processes, which
+    is usually a good starting point for experimentation. See [Multiprocessing](multiprocessing.md)
+    for more information on how to experiment with multiprocessing.

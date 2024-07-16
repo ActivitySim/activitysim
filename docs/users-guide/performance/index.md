@@ -22,6 +22,7 @@ These techniques are the focus of this section.
    Multithreading <multithreading>
    Chunking to Reduce Peak Memory Usage <chunking>
    Compiling with Sharrow <sharrow>
+   Skim Data Format <skim-data-format>
 ```
 
 ## Checklist for Performance Tuning

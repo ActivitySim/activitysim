@@ -2756,7 +2756,7 @@ Skims are named <PATH TYPE>_<MEASURE>__<TIME PERIOD>:
 Configuration
 _____________
 
-This section has been moved to :ref:`configuration`.
+This section has been moved to :ref:`user_configuration`.
 
 .. _sub-model-spec-files:
 

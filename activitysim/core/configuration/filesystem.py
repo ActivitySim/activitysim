@@ -105,8 +105,8 @@ class FileSystem(PydanticBase, validate_assignment=True):
     """
     Name of the output directory for sharrow cache files.
 
-    If not given, a directory named "__sharrowcache__" will be created inside
-    the general cache directory.
+    If not given, the sharrow cache is stored in a run-independent persistent
+    location, according to `platformdirs.user_cache_dir`.  See `persist_sharrow_cache`.
     """
 
     settings_file_name: str = "settings.yaml"
@@ -395,7 +395,8 @@ class FileSystem(PydanticBase, validate_assignment=True):
         Path
         """
         if self.sharrow_cache_dir is None:
-            out = self.get_cache_dir("__sharrowcache__")
+            self.persist_sharrow_cache()
+            out = self.sharrow_cache_dir
         else:
             out = self.get_working_subdir(self.sharrow_cache_dir)
         if not out.exists():

@@ -250,7 +250,36 @@ such string operations won't appear in utility specifications at all, or if they
 do appear, they are executed only once and stored in a temporary value for re-use
 as needed.
 
-For models with utility expressions that include a lot of string comparisons,
+A good approach to reduce string operations in model spec files is to convert 
+string columns to integer or categorical columns in preprocessors.  This can
+be done using the `map` method, which can be used to convert strings to integers,
+for example:
+
+    `df['fuel_type'].map({'Gas': 1, 'Diesel': 2, 'Hybrid': 3}).fillna(-1).astype(int)`
+
+Alternatively, data columns can be converted to categorical columns with well-defined
+structures. Recent versions of sharrow have made significant improvements in 
+handling of unordered categorical values, allowing for the use of possibly 
+more intuitive categorical columns.  For example, the fuel type column above
+could instead be redefined as a categorical column with the following code:
+
+    `df['fuel_type'].astype(pd.CategoricalDtype(categories=['Gas', 'Diesel', 'Hybrid'], ordered=False))`
+
+It is important that the categories are defined with the same set of values 
+in the same order, as any deviation will from this will void the compiler cache
+and cause the model specification to be recompiled.  This means that using 
+`x.astype('category')` is not recommended, as the categories will be inferred
+from the data and may not be consistent across multiple calls to the model 
+specification evaluator.  
+
+```{note}
+Beginning with ActivitySim version 1.3, string-valued
+columns created in preprocessors are converted to categorical columns automatically,
+which means that ignoring encoding for string-valued outputs is equivalent to
+using the `astype('category')` method, and is not recommended.
+```
+
+Alternatively, for models with utility expressions that include a lot of string comparisons,
 (e.g. because they are built for the legacy `pandas.eval` interpreter and have not
 been updated) sharrow can be disabled by setting
 

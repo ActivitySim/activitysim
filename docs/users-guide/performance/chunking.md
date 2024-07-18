@@ -13,7 +13,11 @@ There is a small overhead associated with chunking, but if the total number of
 chunks is relatively small, the overhead is usually outweighed by the benefits
 in reduced memory usage.
 
-Chunking can be used in two ways in ActivitySim: dynamic and explicit.
+Chunking can be used in two ways in ActivitySim: dynamic and explicit.  Dynamic
+chunking is the original chunking system in ActivitySim, and it remains available
+to support users already familiar with it.  It is designed to strive for optimal
+chunk sizes, but is complicated to use. Explicit chunking is simpler to use
+and understand, and is recommended for most users.
 
 ## Dynamic Chunking
 

@@ -11,10 +11,20 @@ In general, it is desirable to fully or partially *disable* multithreading in
 ActivitySim when using multiprocessing, as the two technologies can interfere
 with each other.
 
+When ActivitySim is run from the command line, using either `activitysim run` or
+`python -m activitysim run`, by default multithreading is disabled.  This can
+be overridden by using the `--fast` command line flag, which will not disable
+multithreading, leaving whatever existing environment settings for threading
+unchanged.  When running ActivitySim from within a Python script,
+or by calling it from a Jupyter notebook, it is up to the user to enable or
+disable multithreading if desired, as these settings need to be made before
+libraries that use multithreading are loaded.
+
 Disabling multithreading can be done two ways, either by setting environment
 variables before starting a Python instance that will run ActivitySim, or by
 setting certain environment variables within Python before loading ActivitySim
-or it's dependencies (especially numba).
+or its dependencies (especially numba).  Once certain libraries (e.g., numba)
+are loaded, it is too late to set global process limits on multithreading.
 
 
 ## Disabling Multithreading via Environment Variables

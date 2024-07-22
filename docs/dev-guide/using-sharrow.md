@@ -17,6 +17,36 @@ multiprocessing mode after all the compilation for all model components is
 complete.
 ```
 
+### Top-Level Activation Options
+
+Activating sharrow is done at the top level of the model settings file, typically
+`settings.yaml`, by setting the `sharrow` configuration setting to `True`:
+
+```yaml
+sharrow: True
+``` 
+
+The default operation for sharrow is to attempt to use the sharrow compiler for 
+all model specifications, and to revert to the legacy pandas-based evaluation
+if the sharrow compiler encounters a problem.  Alternatively, the `sharrow` 
+setting can also be set to `require` or `test`.  The `require` setting
+will cause the model simply fail if sharrow encounters a problem, which is 
+useful if the user is interested in ensuring maximum performance.  
+The `test` setting will run the model in a mode where both sharrow and the
+legacy pandas-based evaluation are run on each model specification, and the 
+results are compared to ensure they are substantially identical.  This is
+useful for debugging and testing, but is not recommended for production runs
+as it is much slower than running only one evaluation path or the other.
+
+Testing is strongly recommended during model development, as it is possible
+to write expressions that are valid in one evaluation mode but not the other.
+This can happen if model data includes `NaN` values 
+(see [Performance Considerations](#performance-considerations)), or when 
+using arithmatic on logical values 
+(see [Arithmetic on Logical Values](#arithmetic-on-logical-values)).
+
+### Caching of Precompiled Functions
+
 The first time you run a model with sharrow enabled, the compiler will run
 and create a cache of compiled functions.  This can take a long time, especially
 for models with many components or complex utility specifications.  However,

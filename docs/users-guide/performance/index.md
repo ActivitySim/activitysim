@@ -33,12 +33,22 @@ ActivitySim model:
 1. Precompile (if using sharrow)
 
     Run the entire model with a modest number of households, to let sharrow
-    pre-compile relevant utility specifications.  The pre-compile run needs be
-    single-process, to avoid compiler race conditions between various subprocesses.
-    The exact number of households to use is not particularly important, but it
-    should be large enough to trigger all relevant model components (i.e., we need
+    pre-compile relevant utility specifications.  This works fine if the "sharrow" 
+    setting is set to any of `true`, `require`, or `test`, but to give confidence that 
+    the model specification calcuations are correct it is convenient to use `test` mode.
+    The pre-compile run needs be single-process, to avoid compiler race conditions between  
+    various subprocesses. The exact number of households to use is not particularly important, 
+    but it should be large enough to trigger all relevant model components (i.e., we need
     to be sure that there are worker, students, students getting escorted, all various
     household sizes, etc.)  A few thousand households is usually sufficient.
+
+    Recommended settings for the precompile run include:
+
+    ```yaml
+    sharrow: test
+    multiprocess: False
+    households_sample_size: 10000
+    ```
 
 2. Memory Profiling
 
@@ -48,11 +58,28 @@ ActivitySim model:
     memory when run on a 100% sample, you may need to configure chunking (see below)
     or reduce the sample size if feasible for the analysis.
 
+    Recommended settings for the memory profile run include:
+
+    ```yaml
+    sharrow: require
+    multiprocess: False
+    households_sample_size: 0.1
+    memory_profile: True
+    chunk_training_mode: disabled
+    ```
+
 3. Configure Chunking (if needed)
 
     If the model is projected to run out of memory when run on a 100% sample, you
     may need to configure chunking.  See [Explicit Chunking](chunking.md#explicit-chunking)
-    for recommendations on how to configure chunking for reliable model operation.
+    for recommendations on how to configure chunking for reliable model operation.  
+    
+    ```{note}
+    The use of the explicit chunking algorithms is activated by a top level
+    setting of `chunk_training_mode: explicit`, but actually using explicit chunking
+    also requires configuration settings on each component where explicit chunking is
+    used.
+    ```
 
 4. Experiment with Multiprocessing
 

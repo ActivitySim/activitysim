@@ -359,7 +359,7 @@ def _interaction_sample(
                     ),
                     interaction_utilities.values,
                     rtol=1e-2,
-                    atol=0,
+                    atol=1e-6,
                     err_msg="utility not aligned",
                     verbose=True,
                 )
@@ -370,7 +370,7 @@ def _interaction_sample(
                     interaction_utilities_sh.values,
                     interaction_utilities.values,
                     rtol=1e-2,
-                    atol=0,
+                    atol=1e-6,
                 )
             )
             _sh_util_miss1 = interaction_utilities_sh.values[

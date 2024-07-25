@@ -33,11 +33,20 @@ ActivitySim model:
 1. Precompile (if using sharrow)
 
     Run the entire model with a modest number of households, to let sharrow
-    pre-compile relevant utility specifications.  This works fine if the "sharrow" 
-    setting is set to any of `true`, `require`, or `test`, but to give confidence that 
-    the model specification calcuations are correct it is convenient to use `test` mode.
-    The pre-compile run needs be single-process, to avoid compiler race conditions between  
-    various subprocesses. The exact number of households to use is not particularly important, 
+    pre-compile relevant utility specifications.  This works fine if the "sharrow"
+    setting is set to any of `true`, `require`, or `test`, but to give confidence that
+    the model specification calculations are correct it is convenient to use `test` mode.
+
+    ```{important}
+    If errors are encountered when using `test` mode, they should be addressed before
+    the model is used for analysis, as they may indicate that either sharrow or the
+    legacy evaluator is not correctly processing the mathematical expressions in the
+    utility specifications.  See [Using Sharrow](../../dev-guide/using-sharrow.md#troubleshooting)
+    in the Developer's Guide for more information on how to troubleshoot errors.
+    ```
+
+    The pre-compile run needs be single-process, to avoid compiler race conditions between
+    various subprocesses. The exact number of households to use is not particularly important,
     but it should be large enough to trigger all relevant model components (i.e., we need
     to be sure that there are worker, students, students getting escorted, all various
     household sizes, etc.)  A few thousand households is usually sufficient.
@@ -72,8 +81,8 @@ ActivitySim model:
 
     If the model is projected to run out of memory when run on a 100% sample, you
     may need to configure chunking.  See [Explicit Chunking](chunking.md#explicit-chunking)
-    for recommendations on how to configure chunking for reliable model operation.  
-    
+    for recommendations on how to configure chunking for reliable model operation.
+
     ```{note}
     The use of the explicit chunking algorithms is activated by a top level
     setting of `chunk_training_mode: explicit`, but actually using explicit chunking

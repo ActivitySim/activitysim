@@ -60,6 +60,8 @@ robust and reliable. It requires no "training" and is activated by setting the
 
 This method for chunking does rely upon model developers to have identified the
 memory-hungry components and to have set reasonable explicit chunk sizes for them.
+See [this notebook](https://github.com/ActivitySim/activitysim/blob/main/other_resources/scripts/plot_memory_profile.ipynb)
+for an example of how to review component memory usage.
 Individual model components are configured to use chunking explicitly by
 setting the `explicit_chunk` configuration setting in the model component's
 settings, when available. (Refer to each model component's documentation for

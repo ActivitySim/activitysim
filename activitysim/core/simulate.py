@@ -793,7 +793,9 @@ def eval_utilities(
             )
         except AssertionError as err:
             print(err)
-            misses = np.where(~np.isclose(sh_util, utilities.values, rtol=1e-2, atol=1e-6))
+            misses = np.where(
+                ~np.isclose(sh_util, utilities.values, rtol=1e-2, atol=1e-6)
+            )
             _sh_util_miss1 = sh_util[tuple(m[0] for m in misses)]
             _u_miss1 = utilities.values[tuple(m[0] for m in misses)]
             _sh_util_miss1 - _u_miss1

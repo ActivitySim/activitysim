@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=9d070acb"></script>
+    <script src="../_static/documentation_options.js?v=aac09c0f"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jul 13, 2024"/>
+    <meta name="docbuild:last-update" content="Jul 26, 2024"/>
   </head>
   
   
@@ -378,8 +378,8 @@ specified multiple times. Directories listed first take precedence.</p>
                        <span class="p">[</span><span class="o">--</span><span class="n">persist</span><span class="o">-</span><span class="n">sharrow</span><span class="o">-</span><span class="n">cache</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="p">[(</span><span class="n">N</span><span class="p">)]]</span>
 </pre></div>
 </div>
-<section id="named-arguments">
-<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Link to this heading">#</a></h3>
+<section id="activitysim.cli.main-parser-named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#activitysim.cli.main-parser-named-arguments" title="Link to this heading">#</a></h3>
 <dl class="option-list">
 <dt><kbd>-w, --working_dir</kbd></dt>
 <dd><p>path to example/project directory (default: /home/runner/work/activitysim/activitysim/docs)</p>
@@ -416,18 +416,18 @@ specified multiple times. Directories listed first take precedence.</p>
 </dd>
 <dt><kbd>--fast</kbd></dt>
 <dd><p>Do not limit process to one thread. Can make single process runs faster, but will cause thrashing on MP runs.</p>
-<p>Default: False</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
 </dd>
 <dt><kbd>--persist-sharrow-cache</kbd></dt>
 <dd><p>Store the sharrow cache in a persistent user cache directory.</p>
-<p>Default: False</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
 </dd>
 <dt><kbd>-e, --ext</kbd></dt>
 <dd><p>Package of extension modules to load. Use of this option is not generally secure.</p>
 </dd>
 <dt><kbd>-m, --multiprocess</kbd></dt>
 <dd><p>run multiprocess. Adds configs_mp settings by default as the first config directory, but only if it is foundand is not already explicitly included elsewhere in the list of configs. Optionally give a number of processes greater than 1, which will override the number of processes written in settings file.</p>
-<p>Default: False</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
 </dd>
 </dl>
 </section>
@@ -444,12 +444,12 @@ be run with the ‘run’ command.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">activitysim</span> <span class="n">create</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">(</span><span class="o">-</span><span class="n">l</span> <span class="o">|</span> <span class="o">-</span><span class="n">e</span> <span class="n">PATH</span><span class="p">)</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">link</span><span class="p">]</span>
 </pre></div>
 </div>
-<section id="named-arguments">
-<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Link to this heading">#</a></h3>
+<section id="activitysim.cli.main-parser-named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#activitysim.cli.main-parser-named-arguments" title="Link to this heading">#</a></h3>
 <dl class="option-list">
 <dt><kbd>-l, --list</kbd></dt>
 <dd><p>list available example directories and exit</p>
-<p>Default: False</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
 </dd>
 <dt><kbd>-e, --example</kbd></dt>
 <dd><p>example directory to copy</p>
@@ -463,7 +463,7 @@ will be copied directly into it.</p>
 </dd>
 <dt><kbd>--link</kbd></dt>
 <dd><p>cache and reuse downloaded files via symlinking</p>
-<p>Default: False</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
 </dd>
 </dl>
 </section>
@@ -499,11 +499,11 @@ will be copied directly into it.</p>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim-run">activitysim run</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#named-arguments">Named Arguments</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.cli.main-parser-named-arguments">Named Arguments</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim-create">activitysim create</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#named-arguments">Named Arguments</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.cli.main-parser-named-arguments">Named Arguments</a></li>
 </ul>
 </li>
 </ul>
@@ -541,13 +541,13 @@ will be copied directly into it.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.0b3.dev13+g67820ad3, documentation last updated Jul 13, 2024.<br/>
+ActivitySim 1.3.0b3.dev14+gd81f5f2c, documentation last updated Jul 26, 2024.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
     <br/>
   </p>
 </div>

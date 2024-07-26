@@ -33,9 +33,10 @@ Contents
 
 .. toctree::
    :maxdepth: 2
-   
+
    modelsetup
    ways_to_run
+   performance/index
    run_primary_example
    model_anatomy
    ../howitworks
@@ -45,5 +46,3 @@ Contents
    .. toctree::
    :maxdepth: 1
    other_examples
-
-

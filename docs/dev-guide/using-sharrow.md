@@ -17,6 +17,55 @@ multiprocessing mode after all the compilation for all model components is
 complete.
 ```
 
+### Top-Level Activation Options
+
+Activating sharrow is done at the top level of the model settings file, typically
+`settings.yaml`, by setting the `sharrow` configuration setting to `True`:
+
+```yaml
+sharrow: True
+```
+
+The default operation for sharrow is to attempt to use the sharrow compiler for
+all model specifications, and to revert to the legacy pandas-based evaluation
+if the sharrow compiler encounters a problem.  Alternatively, the `sharrow`
+setting can also be set to `require` or `test`.  The `require` setting
+will cause the model simply fail if sharrow encounters a problem, which is
+useful if the user is interested in ensuring maximum performance.
+The `test` setting will run the model in a mode where both sharrow and the
+legacy pandas-based evaluation are run on each model specification, and the
+results are compared to ensure they are substantially identical.  This is
+useful for debugging and testing, but is not recommended for production runs
+as it is much slower than running only one evaluation path or the other.
+
+Testing is strongly recommended during model development, as it is possible
+to write expressions that are valid in one evaluation mode but not the other.
+This can happen if model data includes `NaN` values
+(see [Performance Considerations](#performance-considerations)), or when
+using arithmatic on logical values
+(see [Arithmetic on Logical Values](#arithmetic-on-logical-values)).
+
+### Caching of Precompiled Functions
+
+The first time you run a model with sharrow enabled, the compiler will run
+and create a cache of compiled functions.  This can take a long time, especially
+for models with many components or complex utility specifications.  However,
+once the cache is created, subsequent runs of the model will be much faster.
+By default, the cached functions are stored in a subdirectory of the
+`platformdirs.user_cache_dir` directory, which is located in a platform-specific
+location:
+
+- Windows: `%USERPROFILE%\AppData\Local\ActivitySim\ActivitySim\Cache\...`
+- MacOS: `~/Library/Caches/ActivitySim/...`
+- Linux: `~/.cache/ActivitySim/...` or `~/$XDG_CACHE_HOME/ActivitySim/...`
+
+The cache directory can be changed from this default location by setting the
+[`sharrow_cache_dir`](activitysim.core.configuration.FileSystem.sharrow_cache_dir)
+setting in the `settings.yaml` file.  Note if you change this setting and provide
+a relative path, it will be interpreted as relative to the model working directory,
+and cached functions may not carry over to other model runs unless copied there
+by the user.
+
 ## Model Design Requirements
 
 Activating the `sharrow` optimizations also requires using the new
@@ -231,6 +280,35 @@ such string operations won't appear in utility specifications at all, or if they
 do appear, they are executed only once and stored in a temporary value for re-use
 as needed.
 
+A good approach to reduce string operations in model spec files is to convert
+string columns to integer or categorical columns in preprocessors.  This can
+be done using the `map` method, which can be used to convert strings to integers,
+for example:
+
+    `df['fuel_type'].map({'Gas': 1, 'Diesel': 2, 'Hybrid': 3}).fillna(-1).astype(int)`
+
+Alternatively, data columns can be converted to categorical columns with well-defined
+structures. Recent versions of sharrow have made significant improvements in
+handling of unordered categorical values, allowing for the use of possibly
+more intuitive categorical columns.  For example, the fuel type column above
+could instead be redefined as a categorical column with the following code:
+
+    `df['fuel_type'].astype(pd.CategoricalDtype(categories=['Gas', 'Diesel', 'Hybrid'], ordered=False))`
+
+It is important that the categories are defined with the same set of values
+in the same order, as any deviation will from this will void the compiler cache
+and cause the model specification to be recompiled.  This means that using
+`x.astype('category')` is not recommended, as the categories will be inferred
+from the data and may not be consistent across multiple calls to the model
+specification evaluator.
+
+```{note}
+Beginning with ActivitySim version 1.3, string-valued
+columns created in preprocessors are converted to categorical columns automatically,
+which means that ignoring encoding for string-valued outputs is equivalent to
+using the `astype('category')` method, and is not recommended.
+```
+
 For models with utility expressions that include a lot of string comparisons,
 (e.g. because they are built for the legacy `pandas.eval` interpreter and have not
 been updated) sharrow can be disabled by setting
@@ -410,7 +488,7 @@ taz_skims:
 ```
 
 If groups of similarly named variables should have the same encoding applied,
-they can be identifed by regular expressions ("regex") instead of explicitly
+they can be identified by regular expressions ("regex") instead of explicitly
 giving each name.  For example:
 
 ```yaml
@@ -485,3 +563,76 @@ taz_skims:
 
 For more details on all the settings available for digital encoding, see
 [DigitalEncoding](activitysim.core.configuration.network.DigitalEncoding).
+
+## Troubleshooting
+
+If you encounter errors when running the model with sharrow enabled, it is
+important to address them before using the model for analysis.  This is
+especially important when errors are found running in "test" mode (activated
+by `sharrow: test` in the top level settings.yaml).  Errors may
+indicate that either sharrow or the legacy evaluator is not correctly processing
+the mathematical expressions in the utility specifications.
+
+### "utility not aligned" Error
+
+One common error that can occur when running the model with sharrow in "test"
+mode is the "utility not aligned" error.  This error occurs when a sharrow
+compiled utility calculation does not sufficiently match the legacy utility
+calculation.  We say "sufficiently" here because the two calculations may have
+slight differences due to numerical precision optimizations applied by sharrow.
+These optimizations can result in minor differences in the final utility values,
+which are typically inconsequential for model results.  However, if the differences
+are too large, the "utility not aligned" error will be raised.  This error does
+not indicate whether the incorrect result is from the sharrow or legacy calculation
+(or both), and it is up to the user to determine how to align the calculations
+so they are reflective of the model developer's intent.
+
+To troubleshoot the "utility not aligned" error, the user can use a Python debugger
+to compare the utility values calculated by sharrow and the legacy evaluator.
+ActivitySim also includes error handler code that will attempt to find the
+problematic utility expression and print it to the console or log file, under the
+heading "possible problematic expressions".  This can be helpful in quickly narrowing
+down which lines of a specification file are causing the error.
+
+Common causes of the "utility not aligned" error include:
+
+- model data includes `NaN` values but the component settings do not
+  disable `fastmath` (see [Performance Considerations](#performance-considerations))
+- incorrect use of arithmatic on logical values (see
+  [Arithmetic on Logical Values](#arithmetic-on-logical-values))
+
+### Insufficient system resources
+
+For large models run on large servers, it is possible to overwhelm the system
+with too many processes and threads, which can result in the following error:
+
+```
+OSError: Insufficient system resources exist to complete the requested service
+```
+
+This error can be resolved by reducing the number of processes and/or threads per
+process.  See [Multiprocessing](../users-guide/performance/multiprocessing.md) and
+[Multithreading](../users-guide/performance/multithreading.md) in the User's Guide
+for more information on how to adjust these settings.
+
+### Permission Error
+
+If running a model using multiprocessing with sharrow enabled, it is necessary
+to have pre-compiled all the utility specifications to prevent the multiple
+processes from competing to write to the same cache location on disk.  Failure
+to do this can result in a permission error, as some processes may be unable to
+write to the cache location.
+
+```
+PermissionError: The process cannot access the file because it is being used by another process
+```
+
+To resolve this error, run the model with sharrow enabled in single-process mode
+to pre-compile all the utility specifications.  If that does not resolve the error,
+it is possible that some compiling is being triggered in multiprocess steps that
+is not being handled in the single process mode.  This is likely due to the presence
+of string or categorical columns created in a preprocessor that are not being
+stored in a stable data format.  To resolve this error, ensure that all expressions
+in pre-processors are written in a manner that results in stable data types (e.g.
+integers, floats, or categorical columns with a fixed set of categories).  See
+see [Performance Considerations](#performance-considerations)) for examples.

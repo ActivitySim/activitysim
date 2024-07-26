@@ -49,16 +49,7 @@ conda activate ./ASIM-ENV
 git clone https://github.com/ActivitySim/sharrow.git
 python -m pip install -e ./sharrow
 git clone https://github.com/ActivitySim/activitysim.git
-cd activitysim
-git switch develop
-cd ..
 python -m pip install -e ./activitysim
-```
-
-```{note}
-If the environment create step above fails due to a 404 missing error,
-the main repository may not be up to date with these docs, try this instead:
-https://raw.githubusercontent.com/camsys/activitysim/sharrow-black/conda-environments/activitysim-dev-base.yml
 ```
 
 Note the above commands will create an environment with all the

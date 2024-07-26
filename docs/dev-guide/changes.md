@@ -1,4 +1,4 @@
-# Significant and Breaking Changes
+# Change Log
 
 This document describes significant changes to ActivitySim.  This includes
 major new features that may require modifications to existing model configurations
@@ -209,3 +209,23 @@ the model is run, and can be used to ensure that the input data is correctly
 formatted and complete.
 
 See [PR #753](https://github.com/ActivitySim/activitysim/pull/753) for code updates.
+
+### Removal of orca dependency
+
+This new version of ActivitySim does not use `orca` as a dependency, and thus does
+not rely on orca’s global state to manage data. Instead, a new [`State`](activitysim.core.workflow.State)
+class is introduced, which encapsulates the current state of a simulation including
+all data tables. This is a significant change “under the hood”, which may be
+particularly consequential for model that use “extensions” to the ActivitySim framework.
+See [PR #654](https://github.com/ActivitySim/activitysim/pull/654) for code updates.
+
+## v1.2
+
+The [v1.2](https://github.com/ActivitySim/activitysim/releases/tag/v1.2.0) release
+includes all updates and enhancements complete in the ActivitySim Consortium's Phase 7
+development cycle, including:
+
+- Sharrow performance enhancement
+- Explicit school escorting
+- Disaggregate accessibility
+- Simulation-based shadow pricing

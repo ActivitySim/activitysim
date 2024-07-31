@@ -7,6 +7,33 @@ configurations or code to fail to run correctly.
 
 ## v1.3
 
+### New Canonical Examples
+
+Beginning with version 1.3, ActivitySim provides two supported "canonical" example
+implementations:
+
+- the [SANDAG Model](https://github.com/ActivitySim/sandag-abm3-example) is a two-zone
+  model based on the SANDAG ABM3 model, and
+- the [MTC Model](https://github.com/ActivitySim/activitysim-prototype-mtc) is a
+  one-zone model based on the MTC's Travel Model One.
+
+Each example implementation includes a complete set of model components, input data,
+and configuration files, and is intended to serve as a reference for users to build
+their own models. They are provided as stand-alone repositories, to highlight the
+fact that model implementations are separate from the ActivitySim core codebase,
+and to make it easier for users to fork and modify the examples for their own use
+without needing to modify the ActivitySim core codebase. The examples are maintained
+by the ActivitySim Consortium and are kept up-to-date with the latest version of
+ActivitySim.
+
+```{note}
+The two example models are not identical to the original agency models from which
+they were created. They are generally similar to those models, and have been calibrated
+and validated to reproduce reasonable results. They are intended to demonstrate the
+capabilities of ActivitySim and to provide a starting point for users to build their own
+models. However, they are not intended to be used as-is for policy analysis or forecasting.
+```
+
 ### Logging
 
 The reading of YAML configuration files has been modified to use the "safe" reader,

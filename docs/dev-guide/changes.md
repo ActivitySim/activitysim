@@ -118,7 +118,13 @@ incorrectly, the user can specify columns that should not be dropped by setting 
 [`protect_columns`](activitysim.core.configuration.base.ComputeSettings.protect_columns)
 setting under [`compute_settings`](activitysim.core.configuration.base.ComputeSettings).
 This allows the user to specify columns that should not be dropped, even if they are
-not apparently used in the model component.
+not apparently used in the model component.  For [example](https://github.com/ActivitySim/activitysim/blob/67820ad32789f59217608b5311e9a2a322d029ed/activitysim/examples/prototype_sandag_xborder/configs/tour_od_choice.yaml#L59-L61):
+
+```yaml
+compute_settings:
+  protect_columns:
+  - origin_destination
+```
 
 Code updates to drop unused columns are in
 [PR #833](https://github.com/ActivitySim/activitysim/pull/833) and to protect
@@ -130,6 +136,22 @@ Version 1.3 introduces a new feature that automatically converts string data
 to categorical data.  This reduces memory usage and speeds up processing for
 large models.  The conversion is done automatically for string columns
 in most chooser tables.
+
+To further reduce memory usage, there is also an optional downcasting of numeric
+data available. For example, this allows storing integers that never exceed 255
+as `int8` instead of `int64`.  This feature is controlled by the `downcast_int`
+and `downcast_float` settings in the top level model configuration file (typically
+`settings.yaml`).   The default value for these settings is `False`, meaning that
+downcasting is not applied.  It is recommended to leave these settings at their
+default values unless memory availability is severely constrained, as downcasting
+can cause numerical instability in some cases.  First, changing the precision of
+numeric data could cause results to change slightly and impact a previous calibrated
+model result.  Second, downcasting to lower byte data types, e.g., int8, can cause
+numeric overflow in downstream components if the numeric variable is used in
+mathematical calculations that would result in values beyond the lower bit width
+limit (e.g. squaring the value). If downcasting is desired, it is strongly recommended
+to review all model specifications for compatability, and to review model results
+to verify if the changes are acceptable.
 
 See code updates in [PR #782](https://github.com/ActivitySim/activitysim/pull/782)
 and [PR #863](https://github.com/ActivitySim/activitysim/pull/863)

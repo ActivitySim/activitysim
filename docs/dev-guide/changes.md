@@ -89,9 +89,12 @@ Then, for model components that may stress the memory limits of the machine,
 the user can specify the number of choosers in each chunk explicitly, either as an integer
 number of choosers per chunk, or as a fraction of the overall number of choosers.
 This is done by setting the `explicit_chunk` configuration setting in the model
-component's settings.  If the `explicit_chunk` value is 0 or missing, then no
-chunking is applied for that component.  The `explicit_chunk` values are ignored
-if the `chunk_training_mode` is not set to `explicit`.
+component's settings.  For this setting, integer values greater than or equal to 1
+correspond to the number of chooser rows in each explicit chunk. Fractional values
+less than 1 correspond to the fraction of the total number of choosers.
+If the `explicit_chunk` value is 0 or missing, then no chunking
+is applied for that component.  The `explicit_chunk` values in each component's
+settings are ignored if the `chunk_training_mode` is not set to `explicit`.
 Refer to each model component's configuration documentation for details.
 
 Refer to code updates that implement explicit chunking for accessibility in

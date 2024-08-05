@@ -722,19 +722,22 @@ def eval_utilities(
         offsets = np.nonzero(list(trace_targets))[0]
 
         # trace sharrow
-        if sh_flow is not None:
-            try:
-                data_sh = sh_flow.load(
-                    sh_tree.replace_datasets(
-                        df=choosers.iloc[offsets],
-                    ),
-                    dtype=np.float32,
-                )
-                expression_values_sh = pd.DataFrame(data=data_sh.T, index=spec.index)
-            except ValueError:
-                expression_values_sh = None
-        else:
-            expression_values_sh = None
+        # TODO: This block of code is sometimes extremely slow or hangs for no apparent
+        #       reason. It is temporarily disabled until the cause can be identified, so
+        #       that most tracing can be still be done with sharrow enabled.
+        # if sh_flow is not None:
+        #     try:
+        #         data_sh = sh_flow.load(
+        #             sh_tree.replace_datasets(
+        #                 df=choosers.iloc[offsets],
+        #             ),
+        #             dtype=np.float32,
+        #         )
+        #         expression_values_sh = pd.DataFrame(data=data_sh.T, index=spec.index)
+        #     except ValueError:
+        #         expression_values_sh = None
+        # else:
+        expression_values_sh = None
 
         # get array of expression_values
         # expression_values.shape = (len(spec), len(choosers))

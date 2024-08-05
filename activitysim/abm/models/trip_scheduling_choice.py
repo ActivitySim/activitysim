@@ -291,7 +291,7 @@ def run_trip_scheduling_choice(
                 alternatives=schedules,
                 spec=spec,
                 choice_column=SCHEDULE_ID,
-                allow_zero_probs=True,
+                allow_zero_probs=False,
                 zero_prob_choice_val=-999,
                 log_alt_losers=False,
                 want_logsums=False,

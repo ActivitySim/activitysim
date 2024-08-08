@@ -809,16 +809,20 @@ def eval_utilities(
                 )
                 print(f"{sh_util.shape=}")
                 print(misses)
-                _sh_flow_load = sh_flow.load(sh_tree)
-                print("possible problematic expressions:")
-                for expr_n, expr in enumerate(exprs):
-                    closeness = np.isclose(
-                        _sh_flow_load[:, expr_n], expression_values[expr_n, :]
-                    )
-                    if not closeness.all():
-                        print(
-                            f"  {closeness.sum()/closeness.size:05.1%} [{expr_n:03d}] {expr}"
-                        )
+                # load sharrow flow
+                # TODO: This block of code is sometimes extremely slow or hangs for no apparent
+                #       reason. It is temporarily disabled until the cause can be identified, so
+                #       that model does not hang with sharrow enabled.
+                # _sh_flow_load = sh_flow.load(sh_tree)
+                # print("possible problematic expressions:")
+                # for expr_n, expr in enumerate(exprs):
+                #     closeness = np.isclose(
+                #         _sh_flow_load[:, expr_n], expression_values[expr_n, :]
+                #     )
+                #     if not closeness.all():
+                #         print(
+                #             f"  {closeness.sum()/closeness.size:05.1%} [{expr_n:03d}] {expr}"
+                #         )
                 raise
         except TypeError as err:
             print(err)

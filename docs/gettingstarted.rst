@@ -14,7 +14,7 @@ This page describes how to get started with ActivitySim.
 Pre-packaged Installer
 ----------------------
 
-Begining with version 1.2, ActivitySim is now available for Windows via a
+Beginning with version 1.2, ActivitySim is now available for Windows via a
 pre-packaged installer.  This installer provides everything you need to run
 ActivitySim, including Python, all the necessary supporting packages, and
 ActivitySim itself.  You should only choose this installation process if you

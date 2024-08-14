@@ -32,6 +32,8 @@ ActivitySim.
     capabilities of ActivitySim and to provide a starting point for users to build their own
     models. However, they are not intended to be used as-is for policy analysis or forecasting.
 
+A discussion of the runtime performance of the example models is available in the
+:ref:`example performance benchmarking <example-performance>` section.
 
 This page describes the structure of the MTC example model in more detail.
 

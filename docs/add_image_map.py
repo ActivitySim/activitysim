@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 # rst doesn't support image maps, so we'll add one after the html has been built
+import os.path
 
 fileName = "_build/html/examples.html"
 line = 'src="_images/abmexample.jpg" />'
@@ -37,14 +40,15 @@ imageMap = """\n   <map name="image-map">
 
 print("add image map to " + fileName)
 
-with open(fileName, encoding="utf-8") as file:
-    lines = file.readlines()
+if os.path.exists(fileName):
+    with open(fileName, encoding="utf-8") as file:
+        lines = file.readlines()
 
-with open(fileName, "w") as file:
-    for aLine in lines:
-        if line in aLine:
-            print("updated " + fileName)
-            file.writelines("%s" % aLine.replace(line, lineWithMap))
-            file.writelines("%s" % imageMap)
-        else:
-            file.writelines("%s" % aLine)
+    with open(fileName, "w") as file:
+        for aLine in lines:
+            if line in aLine:
+                print("updated " + fileName)
+                file.writelines("%s" % aLine.replace(line, lineWithMap))
+                file.writelines("%s" % imageMap)
+            else:
+                file.writelines("%s" % aLine)

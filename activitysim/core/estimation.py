@@ -570,7 +570,9 @@ class EstimationManager(object):
                     pipeline_hh_ids = state.get_table("households").index
                     if table_name == "households":
                         df = df[df.index.isin(pipeline_hh_ids)]
-                        assert pipeline_hh_ids.equals(df.index), "household_ids not equal between survey and pipeline"
+                        assert pipeline_hh_ids.equals(
+                            df.index
+                        ), "household_ids not equal between survey and pipeline"
                     else:
                         assert "household_id" in df.columns
                         df = df[df.household_id.isin(pipeline_hh_ids)]

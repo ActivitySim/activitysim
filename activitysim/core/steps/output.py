@@ -263,13 +263,19 @@ def coalesce_estimation_data_bundles(state):
 
     lowest_dirs = find_lowest_level_directories(edb_dir)
 
-    multiprocessing_step_names = [step.name for step in state.settings.multiprocess_steps]
-    lowest_dirs = [dir for dir in lowest_dirs if any(step in dir for step in multiprocessing_step_names)]
+    multiprocessing_step_names = [
+        step.name for step in state.settings.multiprocess_steps
+    ]
+    lowest_dirs = [
+        dir
+        for dir in lowest_dirs
+        if any(step in dir for step in multiprocessing_step_names)
+    ]
 
     if len(lowest_dirs) == 0:
         logger.info("No estimation data bundles to coalesce")
         return
-    
+
     prev_edb = None
     df_concat_dict = {}
 
@@ -280,7 +286,7 @@ def coalesce_estimation_data_bundles(state):
         cur_edb = Path(dir).parent.absolute()
 
         # check if we have moved onto a new EDB
-        is_same_edb = (cur_edb == prev_edb)
+        is_same_edb = cur_edb == prev_edb
 
         for file in os.listdir(dir):
             # get the file path
@@ -293,8 +299,8 @@ def coalesce_estimation_data_bundles(state):
             is_landuse_file = file.endswith("_landuse.csv")
             is_size_terms_file = file.endswith("_size_terms.csv")
             is_duplicate_file = (
-                is_coefs_file 
-                or is_spec_file 
+                is_coefs_file
+                or is_spec_file
                 or is_settings_file
                 or is_landuse_file
                 or is_size_terms_file
@@ -304,7 +310,11 @@ def coalesce_estimation_data_bundles(state):
                 # copy the file to the parent directory
                 shutil.copy(file_path, os.path.join(cur_edb, file))
 
-            if (not is_same_edb) and (len(df_concat_dict) > 0) and (len(df_concat_dict[list(df_concat_dict.keys())[0]]) > 1):
+            if (
+                (not is_same_edb)
+                and (len(df_concat_dict) > 0)
+                and (len(df_concat_dict[list(df_concat_dict.keys())[0]]) > 1)
+            ):
                 concat_and_write_edb(df_concat_dict, cur_edb)
 
                 # reset edb dir and dictionary
@@ -543,7 +553,7 @@ def write_tables(state: workflow.State) -> None:
                 parquet.write_table(dt, file_path)
             else:
                 raise ValueError(f"unknown file_type {file_type}")
-            
+
     is_estimation = estimation_enabled(state)
     if state.settings.multiprocess and is_estimation:
         coalesce_estimation_data_bundles(state)

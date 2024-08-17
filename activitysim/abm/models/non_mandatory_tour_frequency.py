@@ -294,12 +294,16 @@ def non_mandatory_tour_frequency(
                 bundle_directory = False
             estimator.write_spec(model_settings, bundle_directory=bundle_directory)
             estimator.write_model_settings(
-                model_settings, model_settings_file_name, bundle_directory=bundle_directory
+                model_settings,
+                model_settings_file_name,
+                bundle_directory=bundle_directory,
             )
             # preserving coefficients file name makes bringing back updated coefficients more straightforward
             estimator.write_coefficients(coefficients_df, segment_settings)
             estimator.write_choosers(chooser_segment)
-            estimator.write_alternatives(alternatives, bundle_directory=bundle_directory)
+            estimator.write_alternatives(
+                alternatives, bundle_directory=bundle_directory
+            )
 
             # FIXME #interaction_simulate_estimation_requires_chooser_id_in_df_column
             #  shuold we do it here or have interaction_simulate do it?

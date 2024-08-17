@@ -197,9 +197,15 @@ def stop_frequency(
 
         if estimator:
             estimator.write_spec(segment_settings, bundle_directory=False)
-            estimator.write_model_settings(
-                model_settings, model_settings_file_name, bundle_directory=True
-            )
+            # writing to separte subdirectory for each segment if multiprocessing
+            if state.settings.multiprocess:
+                estimator.write_model_settings(
+                    model_settings, model_settings_file_name, bundle_directory=False
+                )
+            else:
+                estimator.write_model_settings(
+                    model_settings, model_settings_file_name, bundle_directory=True
+                )
             estimator.write_coefficients(coefficients_df, segment_settings)
             estimator.write_choosers(chooser_segment)
 

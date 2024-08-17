@@ -19,7 +19,13 @@ logger = logging.getLogger("estimation")
 ESTIMATION_SETTINGS_FILE_NAME = "estimation.yaml"
 
 
-def unlink_files(directory_path, file_types=("csv", "yaml")):
+def unlink_files(directory_path, file_types=("csv", "yaml", "parquet")):
+    """
+    Deletes existing files in directory_path with file_types extensions.
+    """
+    if not os.path.exists(directory_path):
+        return
+
     for file_name in os.listdir(directory_path):
         if file_name.endswith(file_types):
             file_path = os.path.join(directory_path, file_name)
@@ -29,6 +35,16 @@ def unlink_files(directory_path, file_types=("csv", "yaml")):
                     print(f"deleted {file_path}")
             except Exception as e:
                 print(e)
+
+
+def estimation_enabled(state):
+    """
+    Returns True if estimation.yaml exists in the configs directory.
+    """
+    settings = state.filesystem.read_model_settings(
+        ESTIMATION_SETTINGS_FILE_NAME, mandatory=False
+    )
+    return settings is not None
 
 
 class Estimator:
@@ -50,12 +66,12 @@ class Estimator:
             os.makedirs(output_dir)  # make directory if needed
 
         # delete estimation files
-        unlink_files(self.output_directory(), file_types=("csv", "yaml"))
+        unlink_files(self.output_directory(), file_types=("csv", "yaml", "parquet"))
         if self.bundle_name != self.model_name:
             # kind of inelegant to always delete these, but ok as they are redundantly recreated for each sub model
             unlink_files(
                 self.output_directory(bundle_directory=True),
-                file_types=("csv", "yaml"),
+                file_types=("csv", "yaml", "parquet"),
             )
 
         # FIXME - not required?
@@ -138,6 +154,9 @@ class Estimator:
 
         if self.bundle_name != self.model_name and not bundle_directory:
             dir = os.path.join(dir, self.model_name)
+
+        if self.state.settings.multiprocess:
+            dir = os.path.join(dir, self.state.get_injectable("pipeline_file_prefix"))
 
         return dir
 
@@ -545,6 +564,16 @@ class EstimationManager(object):
                         index_col in df.columns
                     ), "Index col '%s' not in survey_table '%s' in file: %s % (index_col, table_name, file_path)"
                     df.set_index(index_col, inplace=True)
+
+                # if multiprocessing then only return the households that are in the pipeline
+                if state.settings.multiprocess:
+                    pipeline_hh_ids = state.get_table("households").index
+                    if table_name == "households":
+                        df = df[df.index.isin(pipeline_hh_ids)]
+                        assert pipeline_hh_ids.equals(df.index), "household_ids not equal between survey and pipeline"
+                    else:
+                        assert "household_id" in df.columns
+                        df = df[df.household_id.isin(pipeline_hh_ids)]
 
                 # add the table df to survey_tables
                 table_info["df"] = df

@@ -35,3 +35,4 @@ Contents
    ../core
    ../benchmarking
    build-docs
+   changes

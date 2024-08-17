@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=87e54e7c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=aac09c0f"></script>
+    <script src="../_static/documentation_options.js?v=a356cef3"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,11 +55,11 @@
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Other Example Models" href="other_examples.html" />
+    <link rel="next" title="Example Model Performance Benchmarking" href="example_performance.html" />
     <link rel="prev" title="Visualization" href="visualization.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jul 26, 2024"/>
+    <meta name="docbuild:last-update" content="Aug 17, 2024"/>
   </head>
   
   
@@ -329,6 +329,7 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="model_dev.html">Model Development</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Example Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_performance.html">Example Model Performance Benchmarking</a></li>
 <li class="toctree-l1"><a class="reference internal" href="other_examples.html">Other Example Models</a></li>
 </ul>
 </div>
@@ -389,8 +390,25 @@ document.write(`
                   
   <section id="example-models">
 <span id="examples"></span><span id="example"></span><span id="index-1"></span><span id="index-0"></span><h1>Example Models<a class="headerlink" href="#example-models" title="Link to this heading">#</a></h1>
-<p>Several example models are available in <a class="reference external" href="https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples">ActivitySim’s GitHub repository</a>.</p>
-<p>This page describes, in more detail, a couple of example models included with ActivitySim from the MTC and SEMCOG regions.</p>
+<p>The ActivitySim consortium maintains two supported “canonical” example
+implementations:</p>
+<ul class="simple">
+<li><p>the <a class="reference external" href="https://github.com/ActivitySim/sandag-abm3-example">SANDAG Model</a> is a two-zone
+model based on the SANDAG ABM3 model, and</p></li>
+<li><p>the <a class="reference external" href="https://github.com/ActivitySim/activitysim-prototype-mtc">MTC Model</a> is a
+one-zone model based on the MTC’s Travel Model One.</p></li>
+</ul>
+<p>Each example implementation includes a complete set of model components, input data,
+and configuration files, and is intended to serve as a reference for users to build
+their own models. They are provided as stand-alone repositories, to highlight the
+fact that model implementations are separate from the ActivitySim core codebase,
+and to make it easier for users to fork and modify the examples for their own use
+without needing to modify the ActivitySim core codebase. The examples are maintained
+by the ActivitySim Consortium and are kept up-to-date with the latest version of
+ActivitySim.</p>
+<p>A discussion of the runtime performance of the example models is available in the
+<a class="reference internal" href="example_performance.html#example-performance"><span class="std std-ref">example performance benchmarking</span></a> section.</p>
+<p>This page describes the structure of the MTC example model in more detail.</p>
 <section id="prototype-mtc">
 <span id="id1"></span><h2>prototype_mtc<a class="headerlink" href="#prototype-mtc" title="Link to this heading">#</a></h2>
 <section id="introduction">
@@ -422,7 +440,7 @@ which may somewhat distort the representation of transit access in mode choice. 
 original model zones were further sub-divided into three categories of transit access: short walk, long walk, and not
 walkable.  However, support for transit subzones is not included in the activitysim implementation since the latest generation
 of activity-based models typically use an improved approach to spatial representation called multiple zone systems.  See
-<a class="reference internal" href="../examples.html#multiple-zone-systems"><span class="std std-ref">placeholder_multiple_zone</span></a> for more information.</p>
+<span class="xref std std-ref">multiple_zone_systems</span> for more information.</p>
 </section>
 <section id="decision-making-units">
 <h4>Decision-making units<a class="headerlink" href="#decision-making-units" title="Link to this heading">#</a></h4>
@@ -5489,7 +5507,7 @@ Python/pandas/numpy expressions, alternatives, and other settings used by each m
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the <code class="docutils literal notranslate"><span class="pre">non_mandatory_tour_frequency_alternatives.csv</span></code> file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The  set of files for the prototype_mtc are below.  The
-<a class="reference internal" href="../examples.html#prototype-arc"><span class="std std-ref">prototype_arc</span></a>, <a class="reference internal" href="#prototype-semcog"><span class="std std-ref">prototype_semcog</span></a>, and <a class="reference internal" href="../examples.html#prototype-mtc-extended"><span class="std std-ref">prototype_mtc_extended</span></a> examples added additional submodels.</p>
+<span class="xref std std-ref">prototype_arc</span>, <span class="xref std std-ref">prototype_semcog</span>, and <span class="xref std std-ref">prototype_mtc_extended</span> examples added additional submodels.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Model</p></th>
@@ -6153,48 +6171,6 @@ only be activated when writing logsums for a small set of households for model e
 </section>
 </section>
 </section>
-<section id="prototype-semcog">
-<span id="id6"></span><h2>prototype_semcog<a class="headerlink" href="#prototype-semcog" title="Link to this heading">#</a></h2>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This example is in development</p>
-</div>
-<section id="id7">
-<h3>Introduction<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
-<p>The prototype_semcog model is a two-zone ActivitySim added which added a <span class="xref std std-ref">work_from_home</span>, <span class="xref std std-ref">telecommute_frequency</span>, <span class="xref std std-ref">transit_pass_subsidy</span>
-and <span class="xref std std-ref">transit_pass_ownership</span> submodel.  These submodel specification files are below, and are in addition to the <a class="reference internal" href="#prototype-mtc"><span class="std std-ref">prototype_mtc</span></a>
-submodel <a class="reference internal" href="#sub-model-spec-files"><span class="std std-ref">Sub-Model Specification Files</span></a>.  These submodels were added to prototype_semcog as extensions, which is a way for users to add
-submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through
-the <cite>models</cite> settings.  However, the model must be run with the <cite>simulation.py</cite> script instead of the command line interface
-in order to load the extensions folder.</p>
-</section>
-<section id="id8">
-<h3>Model Design<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
-<section id="id9">
-<h4>Overview<a class="headerlink" href="#id9" title="Link to this heading">#</a></h4>
-<p>The below figure shows the ActivitySim struture of the SEMCOG model:</p>
-<img alt="../_images/semcog_model_struct.png" src="../_images/semcog_model_struct.png" />
-<p>These submodels were added to prototype_semcog as extensions, which is a way for users to add submodels within their model setup as opposed to formally adding them to the activitysim package. Extension submodels are run through the models settings. However, the model must be run with the simulation.py script instead of the command line interface in order to load the extensions folder.</p>
-</section>
-<section id="id10">
-<h4>Zone System<a class="headerlink" href="#id10" title="Link to this heading">#</a></h4>
-<p>The SEMCOG model implemented the 2-zone ActivitySim structure.</p>
-</section>
-</section>
-<section id="id11">
-<h3>Setup<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
-<section id="id12">
-<h4>Inputs<a class="headerlink" href="#id12" title="Link to this heading">#</a></h4>
-<p>ActivitySim-related inputs include: All-street network, synthetic population, and MAZ land use data: this set of inputs are read in by the ActivitySim framework to first create the MAZ-MAZ walk and bike skims, MAZ-stop transit access/egress skims, and then run the activity-based model for the region.</p>
-</section>
-</section>
-<section id="id13">
-<h3>Running the Model<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
-</section>
-<section id="id14">
-<h3>Outputs<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
-</section>
-</section>
 </section>
 
 
@@ -6217,11 +6193,11 @@ in order to load the extensions folder.</p>
       </div>
     </a>
     <a class="right-next"
-       href="other_examples.html"
+       href="example_performance.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Other Example Models</p>
+        <p class="prev-next-title">Example Model Performance Benchmarking</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -6294,21 +6270,6 @@ in order to load the extensions folder.</p>
 </li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prototype-semcog">prototype_semcog</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">Introduction</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">Model Design</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">Overview</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">Zone System</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">Setup</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">Inputs</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">Running the Model</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">Outputs</a></li>
-</ul>
-</li>
 </ul>
   </nav></div>
 
@@ -6344,7 +6305,7 @@ in order to load the extensions folder.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.0b3.dev14+gd81f5f2c, documentation last updated Jul 26, 2024.<br/>
+ActivitySim 1.3.0b3.dev17+g084dee36, documentation last updated Aug 17, 2024.<br/>
 </p></div>
       
         <div class="footer-item">

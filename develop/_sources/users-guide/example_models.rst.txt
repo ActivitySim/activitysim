@@ -7,9 +7,35 @@
 Example Models
 ==============
 
-Several example models are available in `ActivitySim's GitHub repository <https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples>`__.
+The ActivitySim consortium maintains two supported "canonical" example
+implementations:
 
-This page describes, in more detail, a couple of example models included with ActivitySim from the MTC and SEMCOG regions.
+- the `SANDAG Model <https://github.com/ActivitySim/sandag-abm3-example>`__ is a two-zone
+  model based on the SANDAG ABM3 model, and
+- the `MTC Model <https://github.com/ActivitySim/activitysim-prototype-mtc>`__ is a
+  one-zone model based on the MTC's Travel Model One.
+
+Each example implementation includes a complete set of model components, input data,
+and configuration files, and is intended to serve as a reference for users to build
+their own models. They are provided as stand-alone repositories, to highlight the
+fact that model implementations are separate from the ActivitySim core codebase,
+and to make it easier for users to fork and modify the examples for their own use
+without needing to modify the ActivitySim core codebase. The examples are maintained
+by the ActivitySim Consortium and are kept up-to-date with the latest version of
+ActivitySim.
+
+.. note:
+
+    The two example models are not identical to the original agency models from which
+    they were created. They are generally similar to those models, and have been calibrated
+    and validated to reproduce reasonable results. They are intended to demonstrate the
+    capabilities of ActivitySim and to provide a starting point for users to build their own
+    models. However, they are not intended to be used as-is for policy analysis or forecasting.
+
+A discussion of the runtime performance of the example models is available in the
+:ref:`example performance benchmarking <example-performance>` section.
+
+This page describes the structure of the MTC example model in more detail.
 
 .. _prototype_mtc :
 
@@ -3226,55 +3252,3 @@ only be activated when writing logsums for a small set of households for model e
 +-----------------------------------+---------------------------------------+
 | mode_choice_logsum                | mode choice logsum                    |
 +-----------------------------------+---------------------------------------+
-
-.. _prototype_semcog :
-
-prototype_semcog
------------------
-
-.. note::
-
-  This example is in development
-
-Introduction
-~~~~~~~~~~~~
-
-The prototype_semcog model is a two-zone ActivitySim added which added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
-and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`prototype_mtc`
-submodel :ref:`sub-model-spec-files`.  These submodels were added to prototype_semcog as extensions, which is a way for users to add
-submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through
-the `models` settings.  However, the model must be run with the `simulation.py` script instead of the command line interface
-in order to load the extensions folder.
-
-Model Design
-~~~~~~~~~~~~
-
-Overview
-________
-
-The below figure shows the ActivitySim struture of the SEMCOG model:
-
-.. image:: ../images/semcog_model_struct.png
-
-These submodels were added to prototype_semcog as extensions, which is a way for users to add submodels within their model setup as opposed to formally adding them to the activitysim package. Extension submodels are run through the models settings. However, the model must be run with the simulation.py script instead of the command line interface in order to load the extensions folder.
-
-Zone System
-___________
-
-The SEMCOG model implemented the 2-zone ActivitySim structure.
-
-Setup
-~~~~~
-
-Inputs
-______
-
-ActivitySim-related inputs include: All-street network, synthetic population, and MAZ land use data: this set of inputs are read in by the ActivitySim framework to first create the MAZ-MAZ walk and bike skims, MAZ-stop transit access/egress skims, and then run the activity-based model for the region.
-
-
-
-Running the Model
-~~~~~~~~~~~~~~~~~
-
-Outputs
-~~~~~~~

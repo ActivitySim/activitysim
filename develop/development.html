@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=87e54e7c" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=86d88d25" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=aac09c0f"></script>
+    <script src="_static/documentation_options.js?v=a356cef3"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <link rel="prev" title="Logging" href="dev-guide/logging.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jul 26, 2024"/>
+    <meta name="docbuild:last-update" content="Aug 17, 2024"/>
   </head>
   
   
@@ -396,6 +396,7 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a></li>
 <li class="toctree-l1"><a class="reference internal" href="benchmarking.html">Benchmarking</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev-guide/build-docs.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/changes.html">Change Log</a></li>
 </ul>
 </div>
 </nav></div>
@@ -754,10 +755,10 @@ to ActivitySim.</p>
 <p>Generally speaking, there are two types of ActivitySim examples: test examples and agency examples.</p>
 <ul class="simple">
 <li><p>Test examples - these are the core ActivitySim maintained and tested examples developed to date.  The current test
-examples are <a class="reference internal" href="users-guide/example_models.html#prototype-mtc"><span class="std std-ref">prototype_mtc</span></a>, <a class="reference internal" href="examples.html#example-estimation"><span class="std std-ref">example_estimation</span></a>, <a class="reference internal" href="examples.html#placeholder-multiple-zone"><span class="std std-ref">placeholder_multiple_zone</span></a>, and <a class="reference internal" href="examples.html#prototype-marin"><span class="std std-ref">prototype_marin</span></a>.
+examples are <a class="reference internal" href="users-guide/example_models.html#prototype-mtc"><span class="std std-ref">prototype_mtc</span></a>, <span class="xref std std-ref">example_estimation</span>, <span class="xref std std-ref">placeholder_multiple_zone</span>, and <span class="xref std std-ref">prototype_marin</span>.
 These examples are owned and maintained by the project.</p></li>
 <li><p>Agency examples - these are agency partner model implementations currently being setup.  The current agency examples
-are <a class="reference internal" href="examples.html#prototype-arc"><span class="std std-ref">prototype_arc</span></a>, <a class="reference internal" href="users-guide/example_models.html#prototype-semcog"><span class="std std-ref">prototype_semcog</span></a>, <a class="reference internal" href="examples.html#placeholder-psrc"><span class="std std-ref">placeholder_psrc</span></a>, <a class="reference internal" href="examples.html#placeholder-sandag"><span class="std std-ref">placeholder_sandag</span></a>, and <a class="reference internal" href="examples.html#prototype-sandag-xborder"><span class="std std-ref">prototype_sandag_xborder</span></a>.  These examples can be
+are <span class="xref std std-ref">prototype_arc</span>, <span class="xref std std-ref">prototype_semcog</span>, <span class="xref std std-ref">placeholder_psrc</span>, <span class="xref std std-ref">placeholder_sandag</span>, and <span class="xref std std-ref">prototype_sandag_xborder</span>.  These examples can be
 configured in ways different from the test examples, include new inputs and expressions, and may include new planned
 software components for contribution to ActivitySim.  These examples are owned by the agency.</p></li>
 </ul>
@@ -854,14 +855,14 @@ resources for each agency example that need to be up-to-date are:</p>
 <li><p>It is recommended that agencies keep their examples up-to-date to minimize the cost/effort of updating to new versions of ActivitySim.  However, the frequency with which to make that update is a key issue.  The recommended frequency of ensuring the agency example is up-to-date depends on the ActivitySim development roadmap/phasing and the current features being developed.  Based on past project experience, it probably makes sense to not let agency examples fall more than a few months behind schedule, or else updates can get onerous.</p></li>
 <li><p>When making an agency model update, agencies update their example through a pull request.  This pull request changes nothing outside their example folder.  The updated resources may include updated configs, inputs, revisions to the cropped data/cropping script, and expected test results.  The automatic cropped example test must run without warnings.  The results of the full scale version is shared with the development team in the PR comments.</p></li>
 </ul>
-<p>To help understand this case, the inclusion of <a class="reference internal" href="examples.html#placeholder-psrc"><span class="std std-ref">placeholder_psrc</span></a> as an agency example is discussed.  This model is PSRC’s experimentation of a two zone model and is useful for testing the two zone features, including runtime.  A snapshot of PSRC’s efforts to setup an ActivitySim model with PSRC inputs was added to the test system as a new agency example, called placeholder_psrc.  After some back and forth between the development team and PSRC, a full scale version of placeholder_psrc was successfully run.  The revisions required to create a cropped version and full scale version were saved in a change log included with the example.  When PSRC wants to update placeholder_psrc, PSRC will pull the latest develop code branch and then update placeholder_psrc so the cropped and full scale example both run without errors.  PSRC also needs to update the expected test results.  Once everything is in good working order, then PSRC issues a pull request to develop to pull their updated example.  Once pulled, the automatic test system will run the cropped version of placeholder_psrc.</p>
+<p>To help understand this case, the inclusion of <span class="xref std std-ref">placeholder_psrc</span> as an agency example is discussed.  This model is PSRC’s experimentation of a two zone model and is useful for testing the two zone features, including runtime.  A snapshot of PSRC’s efforts to setup an ActivitySim model with PSRC inputs was added to the test system as a new agency example, called placeholder_psrc.  After some back and forth between the development team and PSRC, a full scale version of placeholder_psrc was successfully run.  The revisions required to create a cropped version and full scale version were saved in a change log included with the example.  When PSRC wants to update placeholder_psrc, PSRC will pull the latest develop code branch and then update placeholder_psrc so the cropped and full scale example both run without errors.  PSRC also needs to update the expected test results.  Once everything is in good working order, then PSRC issues a pull request to develop to pull their updated example.  Once pulled, the automatic test system will run the cropped version of placeholder_psrc.</p>
 <p>When an agency example includes new submodels and/or contributions to the core that need to be reviewed and then pulled/accepted:</p>
 <ul class="simple">
 <li><p>First, the agency example must comply with the steps outlined above under “When an agency wants to update their example”.</p></li>
 <li><p>Second, the agency example must be up-to-date with the latest develop version of the code so the revisions to the code are only the exact revisions for the new submodels and/or contributions to the core.</p></li>
 <li><p>The new submodels and/or contributions to the core will then be reviewed by the repository manager and it’s likely some revisions will be required for acceptance.  Key items in the review include python code, user documentation, and testable examples for all new components.  If the contribution is just new submodels, then the agency example that exercises the new submodel is sufficient for test coverage since TravisCI will automatically test the cropped version of the new submodel.  If the contribution includes revisions to the core that impact other test examples, then the developer is responsible for ensuring all the other tests that are up-to-date are updated/passing as well.  This includes other agency examples that are up-to-date.  This is required to ensure the contribution to the core is adequately complete.</p></li>
 </ul>
-<p>To help understand this case, the addition of the parking location choice model for <a class="reference internal" href="examples.html#prototype-arc"><span class="std std-ref">prototype_arc</span></a> is discussed.  First, ARC gets their example in good working order - i.e. updates to develop, makes any required revisions to their model to get it working, creates a cropped and full scaled example, and creates the expected test results.  In addition, this use case includes additional submodel and/or core code so ARC also authors the new feature, including documentation and any other relevant requirements such as logging, tracing, support for estimation, etc.  With the new example and feature working offline, then ARC issues a pull request to add prototype_arc and the new submodel/core code and makes sure the automatic tests are passing.  Once accepted, the automatic test system will run the test example tests and the cropped agency examples.  Since the new feature - parking location choice model - is included in prototype_arc, then new feature is now tested.  Any testing of downstream impacts from the parking location choice model would also need to be implemented in the example.</p>
+<p>To help understand this case, the addition of the parking location choice model for <span class="xref std std-ref">prototype_arc</span> is discussed.  First, ARC gets their example in good working order - i.e. updates to develop, makes any required revisions to their model to get it working, creates a cropped and full scaled example, and creates the expected test results.  In addition, this use case includes additional submodel and/or core code so ARC also authors the new feature, including documentation and any other relevant requirements such as logging, tracing, support for estimation, etc.  With the new example and feature working offline, then ARC issues a pull request to add prototype_arc and the new submodel/core code and makes sure the automatic tests are passing.  Once accepted, the automatic test system will run the test example tests and the cropped agency examples.  Since the new feature - parking location choice model - is included in prototype_arc, then new feature is now tested.  Any testing of downstream impacts from the parking location choice model would also need to be implemented in the example.</p>
 </section>
 </section>
 </section>
@@ -978,7 +979,7 @@ resources for each agency example that need to be up-to-date are:</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.0b3.dev14+gd81f5f2c, documentation last updated Jul 26, 2024.<br/>
+ActivitySim 1.3.0b3.dev17+g084dee36, documentation last updated Aug 17, 2024.<br/>
 </p></div>
       
         <div class="footer-item">

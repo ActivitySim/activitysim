@@ -43,6 +43,7 @@ Contents
    model_dev
    visualization
    example_models
+   example_performance
    .. toctree::
    :maxdepth: 1
    other_examples

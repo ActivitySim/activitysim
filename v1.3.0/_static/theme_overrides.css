@@ -1,0 +1,10 @@
+a.navbar-brand {
+    font-size: 20pt;
+    font-weight: bold;
+    padding-right: 30px;
+}
+
+div.sd-card-header {
+    font-weight: 800;
+    var(--pst-font-family-base);
+}

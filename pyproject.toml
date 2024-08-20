@@ -14,8 +14,8 @@ dependencies = [
     "numba >= 0.57",
     "numpy >= 1.16.1, <2",
     "openmatrix >= 0.3.4.1",
-    "orca >= 1.6",
     "pandas >= 1.4, <2",
+    "pandera >=0.15, <0.18.1",
     "platformdirs",
     "psutil >= 4.1",
     "pyarrow >= 2.0",
@@ -27,7 +27,7 @@ dependencies = [
     "sharrow >= 2.9.1",
     "simwrapper > 1.7",
     "sparse",
-    "tables >= 3.5.1",
+    "tables >= 3.9",
     "xarray >= 0.21"
 ]
 readme = "README.md"

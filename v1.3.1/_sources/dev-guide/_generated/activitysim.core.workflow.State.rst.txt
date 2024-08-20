@@ -1,0 +1,84 @@
+﻿State
+=====
+
+.. currentmodule:: activitysim.core.workflow
+
+.. autoclass:: State
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~State.__init__
+      ~State.access
+      ~State.add_injectable
+      ~State.add_table
+      ~State.close_on_exit
+      ~State.close_open_files
+      ~State.close_pipeline
+      ~State.copy
+      ~State.default_settings
+      ~State.drop
+      ~State.drop_table
+      ~State.extend_table
+      ~State.extract
+      ~State.get
+      ~State.get_dataarray
+      ~State.get_dataframe
+      ~State.get_dataframe_index_name
+      ~State.get_dataset
+      ~State.get_global_constants
+      ~State.get_injectable
+      ~State.get_log_file_path
+      ~State.get_output_file_path
+      ~State.get_pyarrow
+      ~State.get_rn_generator
+      ~State.get_step_arg
+      ~State.get_table
+      ~State.import_extensions
+      ~State.init_state
+      ~State.initialize_filesystem
+      ~State.is_table
+      ~State.load_settings
+      ~State.make_default
+      ~State.make_temp
+      ~State.pipeline_table_key
+      ~State.registered_tables
+      ~State.rng
+      ~State.set
+      ~State.set_step_args
+      ~State.should_save_checkpoint
+      ~State.trace_memory_info
+      ~State.uncheckpointed_table_names
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~State.checkpoint
+      ~State.chunk
+      ~State.current_model_name
+      ~State.dataset
+      ~State.existing_table_names
+      ~State.existing_table_status
+      ~State.extend
+      ~State.filesystem
+      ~State.known_table_names
+      ~State.logging
+      ~State.network_settings
+      ~State.report
+      ~State.run
+      ~State.settings
+      ~State.this_step
+      ~State.tracing
+      ~State.open_files
+   
+   

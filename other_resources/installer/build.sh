@@ -4,6 +4,8 @@ set -xe
 
 env | sort
 
+eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)"
+
 echo "***** Start: Building Activitysim installer *****"
 CONSTRUCT_ROOT="${CONSTRUCT_ROOT:-${PWD}}"
 

@@ -41,6 +41,7 @@ jobs:
       run: |
         export ACTIVITYSIM_VERSION=${{ inputs.version }}
         export EXT=exe
+        source /c/Users/runneradmin/miniconda3/Scripts/activate;
         source other_resources/installer/build_win.sh;
         ls -alh build
       shell: bash

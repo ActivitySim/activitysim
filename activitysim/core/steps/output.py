@@ -318,7 +318,6 @@ def coalesce_estimation_data_bundles(state):
                 concat_and_write_edb(df_concat_dict, cur_edb)
 
                 # reset edb dir and dictionary
-                logger.info(f"Coalesced {cur_edb}")
                 prev_edb = cur_edb
                 df_concat_dict = {}
 
@@ -335,7 +334,7 @@ def coalesce_estimation_data_bundles(state):
                     df_concat_dict[file] = [df]
 
         # delete the directory now that we have gone through all the files
-        # os.rmdir(dir)
+        shutil.rmtree(dir)
 
     # need to concatenate the last set of dataframes
     concat_and_write_edb(df_concat_dict, cur_edb)

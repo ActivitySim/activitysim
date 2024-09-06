@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import shutil
+from pathlib import Path
 
 import pandas as pd
 import yaml
@@ -49,7 +50,12 @@ def estimation_enabled(state):
 
 class Estimator:
     def __init__(
-        self, state: workflow.State, bundle_name, model_name, estimation_table_recipes
+        self,
+        state: workflow.State,
+        bundle_name,
+        model_name,
+        estimation_table_recipes,
+        settings,
     ):
         logger.info("Initialize Estimator for'%s'" % (model_name,))
 
@@ -59,6 +65,7 @@ class Estimator:
         self.settings_name = model_name
         self.estimation_table_recipes = estimation_table_recipes
         self.estimating = True
+        self.settings = settings
 
         # ensure the output data directory exists
         output_dir = self.output_directory()
@@ -179,8 +186,43 @@ class Estimator:
 
         return os.path.join(output_dir, file_name)
 
+    def write_parquet(self, df, file_path, append=False):
+        """Convert DF to be parquet compliant and write to disk"""
+        # Ensure column names are strings for parquet
+        df.columns = df.columns.astype(str)
+
+        assert (not os.path.isfile(file_path)) or (
+            append == True
+        ), f"file already exists: {file_path}"
+
+        # Explicitly set the data types of the columns
+        for col in df.columns:
+            if df[col].dtype == "object":
+                df[col] = df[col].astype(str)
+            elif df[col].dtype == "int":
+                df[col] = df[col].astype("int64")
+            elif df[col].dtype == "float":
+                df[col] = df[col].astype("float64")
+            elif df[col].dtype == "float16":  # Handle halffloat type
+                df[col] = df[col].astype("float32")
+            else:
+                # Convert any other unsupported types to string
+                df[col] = df[col].astype(str)
+
+        self.debug(f"writing table: {file_path}")
+        if append and os.path.isfile(file_path):
+            df.to_parquet(file_path, engine="fastparquet", append=True)
+        else:
+            df.to_parquet(file_path)
+
     def write_table(
-        self, df, table_name, index=True, append=True, bundle_directory=False
+        self,
+        df,
+        table_name,
+        index=True,
+        append=True,
+        bundle_directory=False,
+        filetype="csv",
     ):
         """
 
@@ -192,6 +234,8 @@ class Estimator:
         index: booelan
         append: boolean
         bundle_directory: boolean
+        filetype: str
+            csv or parquet
 
         """
 
@@ -205,21 +249,23 @@ class Estimator:
             else:
                 self.tables[table_name] = df.copy()
 
-        def write_table(df, table_name, index, append, bundle_directory):
-            if table_name.endswith(".csv"):
-                # pass through filename without adding model or bundle name prefix
-                file_path = os.path.join(
-                    self.output_directory(bundle_directory), table_name
-                )
-            else:
-                file_path = self.output_file_path(table_name, "csv", bundle_directory)
+        def write_table(df, table_name, index, append, bundle_directory, filetype):
+            # remove file extension if present
+            table_name = Path(table_name).stem
+            # set new full file path with desired file type
+            file_path = self.output_file_path(table_name, filetype, bundle_directory)
+
+            # check if file exists
             file_exists = os.path.isfile(file_path)
             if file_exists and not append:
                 raise RuntimeError(
                     "write_table %s append=False and file exists: %s"
                     % (table_name, file_path)
                 )
-            df.to_csv(file_path, mode="a", index=index, header=(not file_exists))
+            if filetype == "csv":
+                df.to_csv(file_path, mode="a", index=index, header=(not file_exists))
+            else:
+                self.write_parquet(df, file_path, append)
 
         assert self.estimating
 
@@ -232,18 +278,14 @@ class Estimator:
             self.debug("write_table cache: %s" % table_name)
 
         if write:
-            write_table(df, table_name, index, append, bundle_directory)
+            write_table(df, table_name, index, append, bundle_directory, filetype)
             self.debug("write_table write: %s" % table_name)
 
     def write_omnibus_table(self):
         if len(self.omnibus_tables) == 0:
             return
 
-        settings = self.state.filesystem.read_model_settings(
-            ESTIMATION_SETTINGS_FILE_NAME, mandatory=False
-        )
-
-        edbs_to_skip = settings.get("SKIP_BUNDLE_WRITE_FOR", [])
+        edbs_to_skip = self.settings.get("SKIP_BUNDLE_WRITE_FOR", [])
         if self.bundle_name in edbs_to_skip:
             self.debug(f"Skipping write to disk for {self.bundle_name}")
             return
@@ -274,13 +316,20 @@ class Estimator:
             self.debug(f"sorting tables: {table_names}")
             df.sort_index(ascending=True, inplace=True, kind="mergesort")
 
-            file_path = self.output_file_path(omnibus_table, "csv")
-            assert not os.path.isfile(file_path)
+            filetype = self.settings.get("EDB_FILETYPE", "csv")
+            assert filetype in ["csv", "parquet"]
 
-            self.debug(f"writing table: {file_path}")
-            df.to_csv(file_path, mode="a", index=True, header=True)
+            if filetype == "csv":
+                file_path = self.output_file_path(omnibus_table, "csv")
+                assert not os.path.isfile(file_path)
 
-            self.debug("write_omnibus_choosers: %s" % file_path)
+                self.debug(f"writing table: {file_path}")
+                df.to_csv(file_path, mode="a", index=True, header=True)
+            else:
+                file_path = self.output_file_path(omnibus_table, "parquet")
+                self.write_parquet(df, file_path, append=False)
+
+            self.debug("wrote_omnibus_choosers: %s" % file_path)
 
     def write_dict(self, d, dict_name, bundle_directory):
         assert self.estimating
@@ -323,7 +372,7 @@ class Estimator:
         base_file_name = os.path.basename(file_name)
 
         assert self.estimating
-        self.write_table(coefficients_df, base_file_name, append=False)
+        self.write_table(coefficients_df, base_file_name, append=False, filetype="csv")
 
     def write_coefficients_template(self, model_settings):
         assert self.estimating
@@ -334,22 +383,37 @@ class Estimator:
             self.state.filesystem, model_settings
         )
         tag = "coefficients_template"
-        self.write_table(coefficients_df, tag, append=False)
+        self.write_table(coefficients_df, tag, append=False, filetype="csv")
 
     def write_choosers(self, choosers_df):
-        self.write_table(choosers_df, "choosers", append=True)
+        self.write_table(
+            choosers_df,
+            "choosers",
+            append=True,
+            filetype=self.settings.get("EDB_FILETYPE", "csv"),
+        )
 
     def write_choices(self, choices):
         if isinstance(choices, pd.Series):
             choices = choices.to_frame(name="model_choice")
         assert list(choices.columns) == ["model_choice"]
-        self.write_table(choices, "choices", append=True)
+        self.write_table(
+            choices,
+            "choices",
+            append=True,
+            filetype=self.settings.get("EDB_FILETYPE", "csv"),
+        )
 
     def write_override_choices(self, choices):
         if isinstance(choices, pd.Series):
             choices = choices.to_frame(name="override_choice")
         assert list(choices.columns) == ["override_choice"]
-        self.write_table(choices, "override_choices", append=True)
+        self.write_table(
+            choices,
+            "override_choices",
+            append=True,
+            filetype=self.settings.get("EDB_FILETYPE", "csv"),
+        )
 
     def write_constants(self, constants):
         self.write_dict(self, constants, "model_constants")
@@ -463,10 +527,20 @@ class Estimator:
 
     def write_interaction_expression_values(self, df):
         df = self.melt_alternatives(df)
-        self.write_table(df, "interaction_expression_values", append=True)
+        self.write_table(
+            df,
+            "interaction_expression_values",
+            append=True,
+            filetype=self.settings.get("EDB_FILETYPE", "csv"),
+        )
 
     def write_expression_values(self, df):
-        self.write_table(df, "expression_values", append=True)
+        self.write_table(
+            df,
+            "expression_values",
+            append=True,
+            filetype=self.settings.get("EDB_FILETYPE", "csv"),
+        )
 
     def write_alternatives(self, alternatives_df, bundle_directory=False):
         self.write_table(
@@ -479,13 +553,19 @@ class Estimator:
     def write_interaction_sample_alternatives(self, alternatives_df):
         alternatives_df = self.melt_alternatives(alternatives_df)
         self.write_table(
-            alternatives_df, "interaction_sample_alternatives", append=True
+            alternatives_df,
+            "interaction_sample_alternatives",
+            append=True,
+            filetype=self.settings.get("EDB_FILETYPE", "csv"),
         )
 
     def write_interaction_simulate_alternatives(self, interaction_df):
         interaction_df = self.melt_alternatives(interaction_df)
         self.write_table(
-            interaction_df, "interaction_simulate_alternatives", append=True
+            interaction_df,
+            "interaction_simulate_alternatives",
+            append=True,
+            filetype=self.settings.get("EDB_FILETYPE", "csv"),
         )
 
     def get_survey_values(self, model_values, table_name, column_names):
@@ -520,6 +600,7 @@ class EstimationManager(object):
         self.estimation_table_recipes = {}
         self.model_estimation_table_types = {}
         self.estimating = {}
+        self.settings = None
 
     def initialize_settings(self, state):
         # FIXME - can't we just initialize in init and handle no-presence of settings file as not enabled
@@ -527,23 +608,25 @@ class EstimationManager(object):
             return
 
         assert not self.settings_initialized
-        settings = state.filesystem.read_model_settings(
+        self.settings = state.filesystem.read_model_settings(
             ESTIMATION_SETTINGS_FILE_NAME, mandatory=False
         )
-        if not settings:
-            # if the model settings file is not found, we are not in estimation mode.
+        if not self.settings:
+            # if the model self.settings file is not found, we are not in estimation mode.
             self.enabled = False
         else:
-            self.enabled = settings.get("enable", "True")
-        self.bundles = settings.get("bundles", [])
+            self.enabled = self.settings.get("enable", "True")
+        self.bundles = self.settings.get("bundles", [])
 
-        self.model_estimation_table_types = settings.get(
+        self.model_estimation_table_types = self.settings.get(
             "model_estimation_table_types", {}
         )
-        self.estimation_table_recipes = settings.get("estimation_table_recipes", {})
+        self.estimation_table_recipes = self.settings.get(
+            "estimation_table_recipes", {}
+        )
 
         if self.enabled:
-            self.survey_tables = settings.get("survey_tables", {})
+            self.survey_tables = self.settings.get("survey_tables", {})
             for table_name, table_info in self.survey_tables.items():
                 assert (
                     "file_name" in table_info
@@ -643,6 +726,7 @@ class EstimationManager(object):
             estimation_table_recipes=self.estimation_table_recipes[
                 model_estimation_table_type
             ],
+            settings=self.settings,
         )
 
         return self.estimating[model_name]

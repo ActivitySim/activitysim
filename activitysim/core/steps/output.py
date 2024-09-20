@@ -242,10 +242,19 @@ def concat_and_write_edb(df_concat_dict, write_dir):
     # concatenate the dataframes and output final file
     for table_name, df_array in df_concat_dict.items():
         df = pd.concat(df_array)
+
+        # sort the dataframe by index
+        if df.index.name is not None:
+            df = df.sort_index()
+        else:
+            df = df.sort_values(by=df.columns[0])
+
         if table_name.endswith(".csv"):
             df.to_csv(os.path.join(write_dir, table_name), index=False)
         elif table_name.endswith(".parquet"):
             df.to_parquet(os.path.join(write_dir, table_name), index=True)
+        elif table_name.endswith(".pkl"):
+            df.to_pickle(os.path.join(write_dir, table_name))
         else:
             raise ValueError(f"Unknown file type {table_name}")
 
@@ -255,6 +264,7 @@ def coalesce_estimation_data_bundles(state):
     In estimation mode, estimation data bundles are written to separate subdirectories for each subprocess.
     This model will go through each subdirectory and move the files to the parent directory.
     This will only occur if the lowest level directory contains the multiprocess step names.
+    Only multiprocess step names are used because that's how EDBs are written in estimation mode.
     """
 
     logger.info("Coalescing Estimation Data Bundles")
@@ -284,18 +294,32 @@ def coalesce_estimation_data_bundles(state):
         logger.debug(f"Coalescing {dir}")
         # get the parent directory
         cur_edb = Path(dir).parent.absolute()
+        if prev_edb is None:
+            prev_edb = cur_edb
 
         # check if we have moved onto a new EDB
         is_same_edb = cur_edb == prev_edb
 
-        for file in os.listdir(dir):
+        # if we have moved onto a new EDB, concatenate the dataframes and write the final files
+        if (
+            (not is_same_edb)
+            and (len(df_concat_dict) > 0)
+            and (len(df_concat_dict[list(df_concat_dict.keys())[0]]) > 1)
+        ):
+            concat_and_write_edb(df_concat_dict, prev_edb)
+
+            # reset edb dir and dictionary
+            prev_edb = cur_edb
+            df_concat_dict = {}
+
+        for i, file in enumerate(os.listdir(dir)):
             # get the file path
             file_path = os.path.join(dir, file)
 
             # look for files that are duplicated across subprocesses
             is_coefs_file = file.endswith(".csv") and "coef" in file
             is_settings_file = file.endswith(".yaml")
-            is_spec_file = file.endswith(".csv") and "SPEC" in file
+            is_spec_file = file.endswith(".csv") and ("spec" in file.lower())
             is_landuse_file = file.endswith("_landuse.csv")
             is_size_terms_file = file.endswith("_size_terms.csv")
             is_duplicate_file = (
@@ -310,23 +334,18 @@ def coalesce_estimation_data_bundles(state):
                 # copy the file to the parent directory
                 shutil.copy(file_path, os.path.join(cur_edb, file))
 
-            if (
-                (not is_same_edb)
-                and (len(df_concat_dict) > 0)
-                and (len(df_concat_dict[list(df_concat_dict.keys())[0]]) > 1)
-            ):
-                concat_and_write_edb(df_concat_dict, cur_edb)
-
-                # reset edb dir and dictionary
-                prev_edb = cur_edb
-                df_concat_dict = {}
-
             if not is_duplicate_file:
                 # read file and store in dictionary
                 if file.endswith(".csv"):
                     df = pd.read_csv(file_path, low_memory=False)
                 elif file.endswith(".parquet"):
                     df = pd.read_parquet(file_path)
+                elif file.endswith(".pkl"):
+                    df = pd.read_pickle(file_path)
+                else:
+                    raise ValueError(
+                        f"Unknown file type found {file}, expect csv, parquet, or pkl"
+                    )
 
                 if file in df_concat_dict.keys():
                     df_concat_dict[file].append(df)
@@ -334,7 +353,7 @@ def coalesce_estimation_data_bundles(state):
                     df_concat_dict[file] = [df]
 
         # delete the directory now that we have gone through all the files
-        shutil.rmtree(dir)
+        # shutil.rmtree(dir)
 
     # need to concatenate the last set of dataframes
     concat_and_write_edb(df_concat_dict, cur_edb)

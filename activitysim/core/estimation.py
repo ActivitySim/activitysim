@@ -186,7 +186,7 @@ class Estimator:
 
         return os.path.join(output_dir, file_name)
 
-    def write_parquet(self, df, file_path, append=False):
+    def write_parquet(self, df, file_path, index, append=False):
         """Convert DF to be parquet compliant and write to disk"""
         # Ensure column names are strings for parquet
         df.columns = df.columns.astype(str)
@@ -211,9 +211,9 @@ class Estimator:
 
         self.debug(f"writing table: {file_path}")
         if append and os.path.isfile(file_path):
-            df.to_parquet(file_path, engine="fastparquet", append=True)
+            df.to_parquet(file_path, engine="fastparquet", append=True, index=index)
         else:
-            df.to_parquet(file_path)
+            df.to_parquet(file_path, index=index)
 
     def write_table(
         self,
@@ -235,7 +235,7 @@ class Estimator:
         append: boolean
         bundle_directory: boolean
         filetype: str
-            csv or parquet
+            csv or parquet or pkl
 
         """
 
@@ -264,8 +264,20 @@ class Estimator:
                 )
             if filetype == "csv":
                 df.to_csv(file_path, mode="a", index=index, header=(not file_exists))
+            elif filetype == "parquet":
+                self.write_parquet(df, file_path, index, append)
+            elif filetype == "pkl":
+                if append:
+                    # read the previous df and concat
+                    prev_df = pd.read_pickle(file_path)
+                    df = pd.concat([prev_df, df])
+                if index == False:
+                    df.reset_index(drop=True, inplace=True)
+                df.to_pickle(file_path)
             else:
-                self.write_parquet(df, file_path, append)
+                raise RuntimeError(
+                    f"Unsupported filetype: {filetype}, allowed options are csv, parquet, pkl"
+                )
 
         assert self.estimating
 
@@ -317,7 +329,6 @@ class Estimator:
             df.sort_index(ascending=True, inplace=True, kind="mergesort")
 
             filetype = self.settings.get("EDB_FILETYPE", "csv")
-            assert filetype in ["csv", "parquet"]
 
             if filetype == "csv":
                 file_path = self.output_file_path(omnibus_table, "csv")
@@ -325,9 +336,17 @@ class Estimator:
 
                 self.debug(f"writing table: {file_path}")
                 df.to_csv(file_path, mode="a", index=True, header=True)
-            else:
+
+            elif filetype == "parquet":
                 file_path = self.output_file_path(omnibus_table, "parquet")
-                self.write_parquet(df, file_path, append=False)
+                self.write_parquet(df, file_path, index=True, append=False)
+
+            elif filetype == "pkl":
+                file_path = self.output_file_path(omnibus_table, "pkl")
+                df.to_pickle(file_path)
+
+            else:
+                raise RuntimeError(f"Unsupported filetype: {filetype}")
 
             self.debug("wrote_omnibus_choosers: %s" % file_path)
 

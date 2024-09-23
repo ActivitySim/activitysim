@@ -176,7 +176,7 @@ class Estimator:
         if bundle_directory:
             file_name = f"{self.bundle_name}_{table_name}"
         else:
-            if '_coefficients' in table_name:
+            if "_coefficients" in table_name:
                 file_name = f"{table_name}"
             elif self.model_name == self.bundle_name:
                 file_name = f"{self.model_name}_{table_name}"

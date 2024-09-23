@@ -20,7 +20,7 @@ logger = logging.getLogger("estimation")
 ESTIMATION_SETTINGS_FILE_NAME = "estimation.yaml"
 
 
-def unlink_files(directory_path, file_types=("csv", "yaml", "parquet")):
+def unlink_files(directory_path, file_types=("csv", "yaml", "parquet", "pkl")):
     """
     Deletes existing files in directory_path with file_types extensions.
     """
@@ -33,9 +33,9 @@ def unlink_files(directory_path, file_types=("csv", "yaml", "parquet")):
             try:
                 if os.path.isfile(file_path):
                     os.unlink(file_path)
-                    print(f"deleted {file_path}")
+                    logger.debug(f"deleted {file_path}")
             except Exception as e:
-                print(e)
+                logger.error(e)
 
 
 def estimation_enabled(state):
@@ -212,10 +212,40 @@ class Estimator:
                 df[col] = df[col].astype(str)
 
         self.debug(f"writing table: {file_path}")
+        # want parquet file to be exactly the same as df read from csv
+        # therefore we are resetting the index into a column if we want to keep it
+        # if we don't want to keep it, we are dropping it on write with index=False
+        if index:
+            df = df.reset_index(drop=False)
+
         if append and os.path.isfile(file_path):
-            df.to_parquet(file_path, engine="fastparquet", append=True, index=index)
+            df.to_parquet(file_path, engine="fastparquet", append=True, index=False)
         else:
-            df.to_parquet(file_path, index=index)
+            df.to_parquet(file_path, index=False)
+
+    def write_pickle(self, df, file_path, index, append=False):
+        """Write DF to disk as pickle"""
+        file_path = file_path.replace(".csv", ".pkl").replace(".parquet", ".pkl")
+        assert file_path.endswith(".pkl")
+
+        # want pickle file to be exactly the same as df read from csv
+        # therefore we are resetting the index into a column if we want to keep it
+        # if we don't want to keep it, we are dropping it on write with index=False
+        if index:
+            df = df.reset_index(drop=False)
+        else:
+            df = df.reset_index(drop=True)
+
+        assert (not os.path.isfile(file_path)) or (
+            append == True
+        ), f"file already exists: {file_path}"
+
+        if append:
+            # read the previous df and concat
+            prev_df = pd.read_pickle(file_path)
+            df = pd.concat([prev_df, df])
+
+        df.to_pickle(file_path)
 
     def write_table(
         self,
@@ -267,15 +297,15 @@ class Estimator:
             if filetype == "csv":
                 df.to_csv(file_path, mode="a", index=index, header=(not file_exists))
             elif filetype == "parquet":
-                self.write_parquet(df, file_path, index, append)
+                try:
+                    self.write_parquet(df, file_path, index, append)
+                except Exception as e:
+                    logger.error(
+                        f"Error writing parquet: {file_path} because {e}, falling back to pickle"
+                    )
+                    self.write_pickle(df, file_path, index, append)
             elif filetype == "pkl":
-                if append:
-                    # read the previous df and concat
-                    prev_df = pd.read_pickle(file_path)
-                    df = pd.concat([prev_df, df])
-                if index == False:
-                    df.reset_index(drop=True, inplace=True)
-                df.to_pickle(file_path)
+                self.write_pickle(df, file_path, index, append)
             else:
                 raise RuntimeError(
                     f"Unsupported filetype: {filetype}, allowed options are csv, parquet, pkl"
@@ -345,7 +375,7 @@ class Estimator:
 
             elif filetype == "pkl":
                 file_path = self.output_file_path(omnibus_table, "pkl")
-                df.to_pickle(file_path)
+                self.write_pickle(df, file_path, index=True, append=False)
 
             else:
                 raise RuntimeError(f"Unsupported filetype: {filetype}")

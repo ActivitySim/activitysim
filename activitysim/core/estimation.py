@@ -199,14 +199,22 @@ class Estimator:
 
         # Explicitly set the data types of the columns
         for col in df.columns:
-            if df[col].dtype == "object":
-                df[col] = df[col].astype(str)
-            elif df[col].dtype == "int":
-                df[col] = df[col].astype("int64")
-            elif df[col].dtype == "float":
-                df[col] = df[col].astype("float64")
-            elif df[col].dtype == "float16":  # Handle halffloat type
+            if "int" in str(df[col].dtype):
+                pass
+            elif (
+                df[col].dtype == "float16"
+            ):  # Handle halffloat type not allowed in parquet
                 df[col] = df[col].astype("float32")
+            elif "float" in str(df[col].dtype):
+                pass
+            elif df[col].dtype == "bool":
+                pass
+            elif df[col].dtype == "object":
+                # first try converting to numeric, if that fails, convert to string
+                try:
+                    df[col] = pd.to_numeric(df[col], errors="raise")
+                except ValueError:
+                    df[col] = df[col].astype(str)
             else:
                 # Convert any other unsupported types to string
                 df[col] = df[col].astype(str)
@@ -216,6 +224,9 @@ class Estimator:
         # therefore we are resetting the index into a column if we want to keep it
         # if we don't want to keep it, we are dropping it on write with index=False
         if index:
+            if df.index.name in df.columns:
+                # replace old index with new one
+                df.drop(columns=[df.index.name], inplace=True)
             df = df.reset_index(drop=False)
 
         if append and os.path.isfile(file_path):
@@ -295,6 +306,9 @@ class Estimator:
                     % (table_name, file_path)
                 )
             if filetype == "csv":
+                # check if index is in columns and drop it if so
+                if index and (df.index.name in df.columns):
+                    df.drop(columns=df.index.name, inplace=True)
                 df.to_csv(file_path, mode="a", index=index, header=(not file_exists))
             elif filetype == "parquet":
                 try:
@@ -367,6 +381,9 @@ class Estimator:
                 assert not os.path.isfile(file_path)
 
                 self.debug(f"writing table: {file_path}")
+                # check if index is in columns and drop it if so
+                if df.index.name in df.columns:
+                    df.drop(columns=df.index.name, inplace=True)
                 df.to_csv(file_path, mode="a", index=True, header=True)
 
             elif filetype == "parquet":
@@ -562,6 +579,18 @@ class Estimator:
         # 31153,1,util_dist_0_1,1.0
         # 31153,2,util_dist_0_1,1.0
         # 31153,3,util_dist_0_1,1.0
+
+        output_format = self.settings.get("EDB_ALTS_FILE_FORMAT", "verbose")
+        assert output_format in ["verbose", "compact"]
+
+        if output_format == "compact":
+            # renumber the alt_id column to just count from 1 to n
+            # this loses the alt_id information, but drops all of the empty columns
+            # (can still get empty columns if not every chooser has same number of alts)
+            # (this can happen if the pick count > 1 and/or sampled alts are not included)
+            melt_df[alt_id_name] = melt_df.groupby([chooser_name, variable_column])[
+                alt_id_name
+            ].cumcount()
 
         melt_df = melt_df.set_index(
             [chooser_name, variable_column, alt_id_name]

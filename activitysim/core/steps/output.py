@@ -259,7 +259,7 @@ def concat_and_write_edb(df_concat_dict, write_dir):
             raise ValueError(f"Unknown file type {table_name}")
 
 
-def coalesce_estimation_data_bundles(state):
+def _coalesce_estimation_data_bundles(state):
     """
     In estimation mode, estimation data bundles are written to separate subdirectories for each subprocess.
     This model will go through each subdirectory and move the files to the parent directory.
@@ -330,7 +330,7 @@ def coalesce_estimation_data_bundles(state):
                 or is_size_terms_file
             )
 
-            if is_duplicate_file and not is_same_edb:
+            if is_duplicate_file and not os.path.exists(os.path.join(cur_edb, file)):
                 # copy the file to the parent directory
                 shutil.copy(file_path, os.path.join(cur_edb, file))
 
@@ -572,6 +572,21 @@ def write_tables(state: workflow.State) -> None:
             else:
                 raise ValueError(f"unknown file_type {file_type}")
 
+
+@workflow.step
+def coalesce_estimation_data_bundles(state: workflow.State) -> None:
+    """
+    In estimation mode, estimation data bundles are written to separate subdirectories for each subprocess.
+    This model will go through each subdirectory and concat / copy the files to the parent directory.
+    This will only occur if the lowest level directory contains the multiprocess step names.
+    Only multiprocess step names are used because that's how EDBs are written in estimation mode.
+
+    """
     is_estimation = estimation_enabled(state)
     if state.settings.multiprocess and is_estimation:
-        coalesce_estimation_data_bundles(state)
+        _coalesce_estimation_data_bundles(state)
+    else:
+        logger.info(
+            "Not in estimation mode or not using multiprocess. Nothing to coalesce."
+        )
+    return

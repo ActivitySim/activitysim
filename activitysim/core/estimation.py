@@ -571,7 +571,7 @@ class Estimator:
         # mergesort is the only stable sort, and we want the expressions to appear in original df column order
         melt_df = (
             pd.melt(df, id_vars=[chooser_name, alt_id_name])
-            .sort_values(by=chooser_name, kind="mergesort")
+            .sort_values(by=[chooser_name, alt_id_name, "variable"], kind="mergesort")
             .rename(columns={"variable": variable_column})
         )
 

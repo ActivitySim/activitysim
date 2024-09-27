@@ -73,12 +73,11 @@ class Estimator:
             os.makedirs(output_dir)  # make directory if needed
 
         # delete estimation files
-        unlink_files(self.output_directory(), file_types=("csv", "yaml", "parquet"))
+        unlink_files(self.output_directory())
         if self.bundle_name != self.model_name:
             # kind of inelegant to always delete these, but ok as they are redundantly recreated for each sub model
             unlink_files(
                 self.output_directory(bundle_directory=True),
-                file_types=("csv", "yaml", "parquet"),
             )
 
         # FIXME - not required?
@@ -243,6 +242,9 @@ class Estimator:
         # therefore we are resetting the index into a column if we want to keep it
         # if we don't want to keep it, we are dropping it on write with index=False
         if index:
+            if df.index.name in df.columns:
+                # replace old index with new one
+                df.drop(columns=[df.index.name], inplace=True)
             df = df.reset_index(drop=False)
         else:
             df = df.reset_index(drop=True)
@@ -251,7 +253,7 @@ class Estimator:
             append == True
         ), f"file already exists: {file_path}"
 
-        if append:
+        if append and os.path.isfile(file_path):
             # read the previous df and concat
             prev_df = pd.read_pickle(file_path)
             df = pd.concat([prev_df, df])

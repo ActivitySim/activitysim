@@ -304,7 +304,7 @@ def _coalesce_estimation_data_bundles(state):
         if (
             (not is_same_edb)
             and (len(df_concat_dict) > 0)
-            and (len(df_concat_dict[list(df_concat_dict.keys())[0]]) > 1)
+            # and (len(df_concat_dict[list(df_concat_dict.keys())[0]]) > 1)
         ):
             concat_and_write_edb(df_concat_dict, prev_edb)
 
@@ -313,6 +313,9 @@ def _coalesce_estimation_data_bundles(state):
             df_concat_dict = {}
 
         for i, file in enumerate(os.listdir(dir)):
+
+            if "stop_frequency" in file:
+                print("debugging")
             # get the file path
             file_path = os.path.join(dir, file)
 

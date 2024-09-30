@@ -517,10 +517,13 @@ def run_location_sample(
                 ["person_id", "alt_dest", "prob", "pick_count"]
             ].set_index("person_id")
             choices = choices.append(new_choices, ignore_index=False).sort_index()
-            # making probability the mean of all other sampled destinations by person
-            # FIXME is there a better way to do this? Does this even matter for estimation?
-            choices["prob"] = choices["prob"].fillna(
-                choices.groupby("person_id")["prob"].transform("mean")
+            # making prob 0 for missing rows so it does not influence model decision
+            choices["prob"] = choices["prob"].fillna(0)
+            # sort by person_id and alt_dest
+            choices = (
+                choices.reset_index()
+                .sort_values(by=["person_id", "alt_dest"])
+                .set_index("person_id")
             )
 
     return choices

@@ -180,7 +180,7 @@ def cdap_simulate(
         estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_table(
             cdap_interaction_coefficients,
-            "interaction_coefficients",
+            "cdap_interaction_coefficients",
             index=False,
             append=False,
         )

@@ -219,7 +219,7 @@ See more complete results and discussion
 | write tables                          | 8.1     | 7.9     | 7.8      | 7.7      | 7.3      | 7.5      |
 | Total Runtime                         | 309.5   | 211.4   | 186.2    | 182.4    | 177.3    | 180      |
 
-### Single Process, Sharrow Disabled
+### Multiprocessing, Sharrow Disabled
 
 The following performance metrics were collected for the SANDAG example model,
 running on a Windows server with 24 cores and 500GB of RAM (same as the results above),

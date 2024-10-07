@@ -847,16 +847,16 @@ def infer(state: workflow.State, configs_dir, input_dir, output_dir):
 
 # python infer.py data
 args = sys.argv[1:]
-assert len(args) == 2, "usage: python infer.py <data_dir> <configs_dir>"
+assert len(args) == 3, "usage: python infer.py <data_dir> <configs_dir> <output_dir>"
 
 data_dir = args[0]
 configs_dir = args[1]
+output_dir = args[2]
 
 with open(os.path.join(configs_dir, "constants.yaml")) as stream:
     CONSTANTS = yaml.load(stream, Loader=yaml.SafeLoader)
 
 input_dir = os.path.join(data_dir, "survey_data/")
-output_dir = input_dir
 
 if apply_controls:
     read_tables(input_dir, control_tables)

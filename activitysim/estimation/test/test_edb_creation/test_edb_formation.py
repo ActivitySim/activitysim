@@ -220,6 +220,26 @@ def regress_EDBs(regress_folder, output_folder, fileformat="csv"):
     return
 
 
+def test_infer():
+    infer_file = r"activitysim/examples/example_estimation/scripts/infer.py"
+    data_dir = r"activitysim/estimation/test/test_edb_creation"
+    configs_dir = r"activitysim/examples/prototype_mtc/configs"
+    output_dir = r"activitysim/estimation/test/test_edb_creation/outputs/infer_output"
+    run_cmd = f"python {infer_file} {data_dir} {configs_dir} {output_dir}"
+    print(f"launching {run_cmd} from {os.getcwd()}")
+    result = os.system(run_cmd)
+    assert result == 0, "Infer.py run failed"
+
+    for file in os.listdir(output_dir):
+        if not file.endswith(".csv"):
+            continue
+        print("Regressing ", file)
+        regress_df = pd.read_csv(os.path.join(data_dir, "survey_data", file))
+        output_df = pd.read_csv(os.path.join(output_dir, file))
+
+        pdt.assert_frame_equal(regress_df, output_df)
+
+
 def test_generating_sp_csv():
     # first generate original tables
     output_dir = "output_single_csv"
@@ -247,17 +267,10 @@ def test_mp_parquet():
     regress_EDBs("output_single_parquet", output_dir, "parquet")
 
 
-# def test_mp_csv():
-#     # multiprocess = True, fileformat = "csv"
-#     output_dir = "output_multiprocess_csv"
-#     launch_est_example(output_dir, True, "csv")
-#     regress_EDBs("output_single_csv", output_dir, "csv")
-
-
 if __name__ == "__main__":
 
+    test_infer()
     test_generating_sp_csv()
+    test_sp_pkl()
     test_sp_parquet()
     test_mp_parquet()
-    # test_mp_csv()
-    test_sp_pkl()

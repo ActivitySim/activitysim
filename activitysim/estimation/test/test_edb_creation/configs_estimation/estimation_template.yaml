@@ -1,5 +1,5 @@
-EDB_ALTS_FILE_FORMAT: compact
-EDB_FILETYPE: csv
+EDB_ALTS_FILE_FORMAT: compact   # options: compact, verbose
+EDB_FILETYPE: csv            # options: csv, parquet, pkl
 
 enable: True
 

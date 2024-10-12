@@ -933,5 +933,63 @@ class EstimationManager(object):
 
         return values[column_name] if column_name else values
 
+    def get_survey_destination_chocies(self, state, choosers, trace_label):
+        """
+        Returning the survey choices for the destination choice model.
+        This gets called from inside interaction_sample and is used to
+        ensure the choices include the override choices when sampling alternatives.
+
+        Parameters
+        ----------
+        state : workflow.State
+        trace_label : str
+            The model name.
+
+        Returns
+        -------
+        pd.Series : The survey choices for the destination choice model.
+        """
+        model = trace_label.split(".")[0]
+        if model == "school_location":
+            survey_choices = manager.get_survey_values(
+                choosers.index, "persons", "school_zone_id"
+            )
+        elif model == "workplace_location":
+            survey_choices = manager.get_survey_values(
+                choosers.index, "persons", "workplace_zone_id"
+            )
+        elif model in [
+            "joint_tour_destination",
+            "atwork_subtour_destination",
+            "non_mandatory_tour_destination",
+        ]:
+            survey_choices = manager.get_survey_values(
+                choosers.index, "tours", "destination"
+            )
+        elif model == "trip_destination":
+            survey_choices = manager.get_survey_values(
+                choosers.index, "trips", "destination"
+            )
+        elif model == "parking_location":
+            # need to grab parking location column name from its settings
+            from activitysim.abm.models.parking_location_choice import (
+                ParkingLocationSettings,
+            )
+
+            model_settings = ParkingLocationSettings.read_settings_file(
+                state.filesystem,
+                "parking_location_choice.yaml",
+            )
+            survey_choices = manager.get_survey_values(
+                choosers.index, "trips", model_settings.ALT_DEST_COL_NAME
+            )
+        else:
+            # since this fucntion is called from inside interaction_sample,
+            # we don't want to return anything for other models that aren't destination choice
+            # not implemented models include scheduling models and tour_od_choice
+            logger.debug(f"Not grabbing survey choices for {model}.")
+            return None
+        return survey_choices
+
 
 manager = EstimationManager()

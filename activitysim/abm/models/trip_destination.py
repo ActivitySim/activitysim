@@ -173,15 +173,17 @@ def _destination_sample(
     )
 
     sample_size = model_settings.SAMPLE_SIZE
-    if state.settings.disable_destination_sampling or (
-        estimator and estimator.want_unsampled_alternatives
-    ):
-        # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
+    if estimator:
+        sample_size = model_settings.ESTIMATION_SAMPLE_SIZE
         logger.info(
-            f"Estimation mode for {trace_label} using "
-            f"unsampled alternatives short_circuit_choices"
+            f"Estimation mode for {trace_label} using sample size of {sample_size}"
         )
+
+    if state.settings.disable_destination_sampling:
         sample_size = 0
+        logger.info(
+            f"SAMPLE_SIZE set to 0 for {trace_label} because disable_destination_sampling is set"
+        )
 
     locals_dict = state.get_global_constants().copy()
     locals_dict.update(model_settings.CONSTANTS)

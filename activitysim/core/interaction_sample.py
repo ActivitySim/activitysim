@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core import (
+    estimation,
     chunk,
     interaction_simulate,
     logit,
@@ -500,6 +501,51 @@ def _interaction_sample(
         )
 
     chunk_sizer.log_df(trace_label, "choices_df", choices_df)
+
+    if estimation.manager.enabled and sample_size > 0:
+        # we need to ensure chosen alternative is included in the sample
+        survey_choices = estimation.manager.get_survey_destination_chocies(
+            state, choosers, trace_label
+        )
+        if survey_choices is not None:
+            survey_choices.name = alt_col_name
+            survey_choices = survey_choices.dropna().astype(
+                choices_df[alt_col_name].dtype
+            )
+            comparison = pd.merge(
+                survey_choices,
+                choices_df,
+                on=[choosers.index.name, alt_col_name],
+                how="left",
+                indicator=True,
+            )
+            missing_choices = comparison[comparison["_merge"] == "left_only"]
+            # need to get prob of missing choices and add them to choices_df
+            if not missing_choices.empty:
+                probs_df = probs.reset_index().melt(
+                    id_vars=[choosers.index.name],
+                    var_name=alt_col_name,
+                    value_name="prob",
+                )
+                # probs are numbered 0..n-1 so we need to map back to alt ids
+                zone_map = pd.Series(alternatives.index).to_dict()
+                probs_df[alt_col_name] = probs_df[alt_col_name].map(zone_map)
+                # merge the probs onto the missing chocies
+                missing_choices = pd.merge(
+                    missing_choices.drop(columns=["prob", "_merge"]),
+                    probs_df,
+                    on=[choosers.index.name, alt_col_name],
+                    how="left",
+                )
+                assert (
+                    missing_choices.prob.isna().sum() == 0
+                ), f"survey choices with no probs: {missing_choices[missing_choices.prob.isna()]}"
+                del probs_df
+                # random number is not important, filling with 0
+                missing_choices["rand"] = 0
+                # merge survey choices back into choices_df and sort by chooser
+                choices_df = pd.concat([choices_df, missing_choices], ignore_index=True)
+                choices_df.sort_values(by=[choosers.index.name], inplace=True)
 
     del probs
     chunk_sizer.log_df(trace_label, "probs", None)

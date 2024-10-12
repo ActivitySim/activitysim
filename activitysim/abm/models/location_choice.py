@@ -491,41 +491,6 @@ def run_location_sample(
             trace_label=trace_label,
         )
 
-    # adding observed choice to alt set when running in estimation mode
-    if estimator:
-        # grabbing survey values
-        survey_persons = estimation.manager.get_survey_table("persons")
-        if "school_location" in trace_label:
-            survey_choices = survey_persons["school_zone_id"].reset_index()
-        elif ("workplace_location" in trace_label) and ("external" not in trace_label):
-            survey_choices = survey_persons["workplace_zone_id"].reset_index()
-        else:
-            return choices
-        survey_choices.columns = ["person_id", "alt_dest"]
-        survey_choices = survey_choices[
-            survey_choices["person_id"].isin(choices.index)
-            & (survey_choices.alt_dest > 0)
-        ]
-        # merging survey destination into table if not available
-        joined_data = survey_choices.merge(
-            choices, on=["person_id", "alt_dest"], how="left", indicator=True
-        )
-        missing_rows = joined_data[joined_data["_merge"] == "left_only"]
-        missing_rows["pick_count"] = 1
-        if len(missing_rows) > 0:
-            new_choices = missing_rows[
-                ["person_id", "alt_dest", "prob", "pick_count"]
-            ].set_index("person_id")
-            choices = choices.append(new_choices, ignore_index=False).sort_index()
-            # making prob 0 for missing rows so it does not influence model decision
-            choices["prob"] = choices["prob"].fillna(0)
-            # sort by person_id and alt_dest
-            choices = (
-                choices.reset_index()
-                .sort_values(by=["person_id", "alt_dest"])
-                .set_index("person_id")
-            )
-
     return choices
 
 

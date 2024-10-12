@@ -181,39 +181,6 @@ def destination_sample(
         trace_label=trace_label,
     )
 
-    # adding observed choice to alt set when running in estimation mode
-    if estimator:
-        # grabbing survey values
-        survey_tours = estimation.manager.get_survey_table("tours")
-        survey_choices = survey_tours[["destination", "person_id"]].reset_index()
-        survey_choices.columns = ["tour_id", alt_dest_col_name, "person_id"]
-        survey_choices = survey_choices[
-            survey_choices["tour_id"].isin(choices.index)
-            & (survey_choices[alt_dest_col_name] > 0)
-        ]
-        # merging survey destination into table if not available
-        joined_data = survey_choices.merge(
-            choices,
-            on=["tour_id", alt_dest_col_name, "person_id"],
-            how="left",
-            indicator=True,
-        )
-        missing_rows = joined_data[joined_data["_merge"] == "left_only"]
-        missing_rows["pick_count"] = 1
-        if len(missing_rows) > 0:
-            new_choices = missing_rows[
-                ["tour_id", alt_dest_col_name, "prob", "pick_count", "person_id"]
-            ].set_index("tour_id")
-            choices = choices.append(new_choices, ignore_index=False).sort_index()
-            # making prob 0 for missing rows so it does not influence model decision
-            choices["prob"] = choices["prob"].fillna(0)
-            # sort by tour_id and alt_dest
-            choices = (
-                choices.reset_index()
-                .sort_values(by=["tour_id", alt_dest_col_name])
-                .set_index("tour_id")
-            )
-
     return choices
 
 

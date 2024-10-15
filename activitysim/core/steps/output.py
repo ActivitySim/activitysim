@@ -270,6 +270,9 @@ def _coalesce_estimation_data_bundles(state):
     logger.info("Coalescing Estimation Data Bundles")
 
     edb_dir = state.filesystem.get_output_dir("estimation_data_bundle")
+    estimation_settings = state.filesystem.read_model_settings(
+        "estimation.yaml", mandatory=False
+    )
 
     lowest_dirs = find_lowest_level_directories(edb_dir)
 
@@ -314,8 +317,6 @@ def _coalesce_estimation_data_bundles(state):
 
         for i, file in enumerate(os.listdir(dir)):
 
-            if "stop_frequency" in file:
-                print("debugging")
             # get the file path
             file_path = os.path.join(dir, file)
 
@@ -356,7 +357,8 @@ def _coalesce_estimation_data_bundles(state):
                     df_concat_dict[file] = [df]
 
         # delete the directory now that we have gone through all the files
-        # shutil.rmtree(dir)
+        if estimation_settings.get("DELETE_MP_SUBDIRS", True):
+            shutil.rmtree(dir)
 
     # need to concatenate the last set of dataframes
     concat_and_write_edb(df_concat_dict, cur_edb)

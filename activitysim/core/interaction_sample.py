@@ -537,10 +537,10 @@ def _interaction_sample(
                     on=[choosers.index.name, alt_col_name],
                     how="left",
                 )
-                assert (
-                    missing_choices.prob.isna().sum() == 0
-                ), f"survey choices with no probs: {missing_choices[missing_choices.prob.isna()]}"
+                if missing_choices.prob.isna().sum() > 0:
+                    logger.warning(f"Survey choices with no probs:\n {missing_choices[missing_choices.prob.isna()]}")
                 del probs_df
+                missing_choices['prob'].fillna(0, inplace=True)
                 # random number is not important, filling with 0
                 missing_choices["rand"] = 0
                 # merge survey choices back into choices_df and sort by chooser

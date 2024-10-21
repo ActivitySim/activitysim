@@ -683,6 +683,7 @@ class EstimationManager(object):
         self.model_estimation_table_types = {}
         self.estimating = {}
         self.settings = None
+        self.enabled = False
 
     def initialize_settings(self, state):
         # FIXME - can't we just initialize in init and handle no-presence of settings file as not enabled
@@ -949,6 +950,10 @@ class EstimationManager(object):
         -------
         pd.Series : The survey choices for the destination choice model.
         """
+        if "accessibilities" in trace_label:
+            # accessibilities models to not have survey values
+            return None
+        
         model = trace_label.split(".")[0]
         if model == "school_location":
             survey_choices = manager.get_survey_values(

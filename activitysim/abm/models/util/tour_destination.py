@@ -310,7 +310,9 @@ def choose_MAZ_for_TAZ(state: workflow.State, taz_sample, MAZ_size_terms, trace_
 
     # taz_choices index values should be contiguous
     assert (
-        taz_choices[chooser_id_col] == np.repeat(chooser_df.index, taz_sample_size)
+        (taz_choices[chooser_id_col] == np.repeat(chooser_df.index, taz_sample_size))
+        # can get one extra if sampling in estimation mode
+        | (taz_choices[chooser_id_col] == np.repeat(chooser_df.index, taz_sample_size + 1))
     ).all()
 
     # we need to choose a MAZ for each DEST_TAZ choice

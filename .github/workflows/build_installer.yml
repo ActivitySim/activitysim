@@ -26,7 +26,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - uses: conda-incubator/setup-miniconda@v3
       with:
@@ -47,7 +47,7 @@ jobs:
       shell: bash
 
     - name: Upload installer to Github artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: build/Activitysim-${{ inputs.version }}-${{ matrix.OS_NAME }}-${{ matrix.ARCH }}*
         name: Activitysim-${{ inputs.version }}-${{ matrix.OS_NAME }}-${{ matrix.ARCH }}

@@ -504,48 +504,38 @@ def _interaction_sample(
 
     if estimation.manager.enabled and sample_size > 0:
         # we need to ensure chosen alternative is included in the sample
-        survey_choices = estimation.manager.get_survey_destination_chocies(
+        survey_choices = estimation.manager.get_survey_destination_choices(
             state, choosers, trace_label
         )
         if survey_choices is not None:
+            assert (
+                survey_choices.index == choosers.index
+            ).all(), "survey_choices and choosers must have the same index"
             survey_choices.name = alt_col_name
             survey_choices = survey_choices.dropna().astype(
                 choices_df[alt_col_name].dtype
             )
-            comparison = pd.merge(
+
+            # merge all survey choices onto choices_df
+            probs_df = probs.reset_index().melt(
+                id_vars=[choosers.index.name],
+                var_name=alt_col_name,
+                value_name="prob",
+            )
+            # probs are numbered 0..n-1 so we need to map back to alt ids
+            zone_map = pd.Series(alternatives.index).to_dict()
+            probs_df[alt_col_name] = probs_df[alt_col_name].map(zone_map)
+
+            survey_choices = pd.merge(
                 survey_choices,
-                choices_df,
+                probs_df,
                 on=[choosers.index.name, alt_col_name],
                 how="left",
-                indicator=True,
             )
-            missing_choices = comparison[comparison["_merge"] == "left_only"]
-            # need to get prob of missing choices and add them to choices_df
-            if not missing_choices.empty:
-                probs_df = probs.reset_index().melt(
-                    id_vars=[choosers.index.name],
-                    var_name=alt_col_name,
-                    value_name="prob",
-                )
-                # probs are numbered 0..n-1 so we need to map back to alt ids
-                zone_map = pd.Series(alternatives.index).to_dict()
-                probs_df[alt_col_name] = probs_df[alt_col_name].map(zone_map)
-                # merge the probs onto the missing chocies
-                missing_choices = pd.merge(
-                    missing_choices.drop(columns=["prob", "_merge"]),
-                    probs_df,
-                    on=[choosers.index.name, alt_col_name],
-                    how="left",
-                )
-                if missing_choices.prob.isna().sum() > 0:
-                    logger.warning(f"Survey choices with no probs:\n {missing_choices[missing_choices.prob.isna()]}")
-                del probs_df
-                missing_choices['prob'].fillna(0, inplace=True)
-                # random number is not important, filling with 0
-                missing_choices["rand"] = 0
-                # merge survey choices back into choices_df and sort by chooser
-                choices_df = pd.concat([choices_df, missing_choices], ignore_index=True)
-                choices_df.sort_values(by=[choosers.index.name], inplace=True)
+            survey_choices["rand"] = 0
+            survey_choices["prob"].fillna(0, inplace=True)
+            choices_df = pd.concat([choices_df, survey_choices], ignore_index=True)
+            choices_df.sort_values(by=[choosers.index.name], inplace=True)
 
     del probs
     chunk_sizer.log_df(trace_label, "probs", None)

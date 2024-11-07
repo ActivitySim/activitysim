@@ -934,7 +934,7 @@ class EstimationManager(object):
 
         return values[column_name] if column_name else values
 
-    def get_survey_destination_chocies(self, state, choosers, trace_label):
+    def get_survey_destination_choices(self, state, choosers, trace_label):
         """
         Returning the survey choices for the destination choice model.
         This gets called from inside interaction_sample and is used to
@@ -953,7 +953,7 @@ class EstimationManager(object):
         if "accessibilities" in trace_label:
             # accessibilities models to not have survey values
             return None
-        
+
         model = trace_label.split(".")[0]
         if model == "school_location":
             survey_choices = manager.get_survey_values(
@@ -994,6 +994,20 @@ class EstimationManager(object):
             # not implemented models include scheduling models and tour_od_choice
             logger.debug(f"Not grabbing survey choices for {model}.")
             return None
+
+        if "presample.interaction_sample" in trace_label:
+            # presampling happens for destination choice of two-zone systems.
+            # They are pre-sampling TAZs but the survey value destination is MAZs.
+            land_use = state.get_table("land_use")
+            TAZ_col = "TAZ" if "TAZ" in land_use.columns else "taz"
+            assert (
+                TAZ_col in land_use.columns
+            ), "Cannot find TAZ column in land_use table."
+            maz_to_taz_map = land_use[TAZ_col].to_dict()
+            # allow for unmapped TAZs
+            maz_to_taz_map[-1] = -1
+            survey_choices = survey_choices.map(maz_to_taz_map)
+
         return survey_choices
 
 

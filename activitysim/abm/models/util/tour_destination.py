@@ -234,7 +234,9 @@ def aggregate_size_terms(dest_size_terms, network_los):
     return MAZ_size_terms, TAZ_size_terms
 
 
-def choose_MAZ_for_TAZ(state: workflow.State, taz_sample, MAZ_size_terms, trace_label):
+def choose_MAZ_for_TAZ(
+    state: workflow.State, taz_sample, MAZ_size_terms, trace_label, model_settings
+):
     """
     Convert taz_sample table with TAZ zone sample choices to a table with a MAZ zone chosen for each TAZ
     choose MAZ probabilistically (proportionally by size_term) from set of MAZ zones in parent TAZ
@@ -311,8 +313,6 @@ def choose_MAZ_for_TAZ(state: workflow.State, taz_sample, MAZ_size_terms, trace_
     # taz_choices index values should be contiguous
     assert (
         (taz_choices[chooser_id_col] == np.repeat(chooser_df.index, taz_sample_size))
-        # can get one extra if sampling in estimation mode
-        | (taz_choices[chooser_id_col] == np.repeat(chooser_df.index, taz_sample_size + 1))
     ).all()
 
     # we need to choose a MAZ for each DEST_TAZ choice
@@ -457,6 +457,54 @@ def choose_MAZ_for_TAZ(state: workflow.State, taz_sample, MAZ_size_terms, trace_
             transpose=False,
         )
 
+    if estimation.manager.enabled and (model_settings.ESTIMATION_SAMPLE_SIZE > 0):
+        # want to ensure the override choice is in the choice set
+        survey_choices = estimation.manager.get_survey_destination_choices(
+            state, chooser_df, trace_label
+        )
+
+        if survey_choices is not None:
+            assert (
+                chooser_df.index == survey_choices.index
+            ).all(), "survey_choices index should match chooser_df index"
+            survey_choices.name = DEST_MAZ
+            survey_choices = survey_choices.dropna().astype(taz_choices[DEST_MAZ].dtype)
+            # merge maz_sizes onto survey choices
+            MAZ_size_terms["MAZ_prob"] = MAZ_size_terms.groupby("dest_TAZ")[
+                "size_term"
+            ].transform(lambda x: x / x.sum())
+            survey_choices = pd.merge(
+                survey_choices.reset_index(),
+                MAZ_size_terms.rename(columns={"zone_id": DEST_MAZ}),
+                on=[DEST_MAZ],
+                how="left",
+            )
+            # merge TAZ_prob from taz_choices onto survey choices
+            survey_choices = pd.merge(
+                survey_choices,
+                # dropping duplicates to avoid duplicate rows as the same TAZ can be chosen multiple times
+                taz_choices[[chooser_id_col, "dest_TAZ", "TAZ_prob"]].drop_duplicates(
+                    subset=[chooser_id_col, "dest_TAZ"]
+                ),
+                on=[chooser_id_col, "dest_TAZ"],
+                how="left",
+            )
+
+            survey_choices["prob"] = (
+                survey_choices["TAZ_prob"] * survey_choices["MAZ_prob"]
+            )
+
+            # Don't care about getting dest_TAZ correct as it gets dropped later
+            survey_choices.fillna(0, inplace=True)
+
+            # merge survey choices back into choices_df and sort by chooser
+            taz_choices = pd.concat(
+                [taz_choices, survey_choices[taz_choices.columns]], ignore_index=True
+            )
+            taz_choices.sort_values(
+                by=[chooser_id_col, "dest_TAZ"], inplace=True, ignore_index=True
+            )
+
     taz_choices = taz_choices.drop(columns=["TAZ_prob", "MAZ_prob"])
     taz_choices = taz_choices.groupby([chooser_id_col, DEST_MAZ]).agg(
         prob=("prob", "max"), pick_count=("prob", "count")
@@ -515,7 +563,9 @@ def destination_presample(
     )
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
-    maz_choices = choose_MAZ_for_TAZ(state, taz_sample, MAZ_size_terms, trace_label)
+    maz_choices = choose_MAZ_for_TAZ(
+        state, taz_sample, MAZ_size_terms, trace_label, model_settings
+    )
 
     assert DEST_MAZ in maz_choices
     maz_choices = maz_choices.rename(columns={DEST_MAZ: alt_dest_col_name})

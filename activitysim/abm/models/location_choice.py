@@ -402,7 +402,7 @@ def location_presample(
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
     maz_choices = tour_destination.choose_MAZ_for_TAZ(
-        state, taz_sample, MAZ_size_terms, trace_label
+        state, taz_sample, MAZ_size_terms, trace_label, model_settings
     )
 
     assert DEST_MAZ in maz_choices

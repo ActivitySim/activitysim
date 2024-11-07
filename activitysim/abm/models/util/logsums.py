@@ -167,8 +167,10 @@ def compute_location_choice_logsums(
     )
 
     nest_spec = config.get_logit_model_settings(logsum_settings)
-    if nest_spec is not None: # nest_spec is None for MNL
-        nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)
+    if nest_spec is not None:  # nest_spec is None for MNL
+        nest_spec = simulate.eval_nest_coefficients(
+            nest_spec, coefficients, trace_label
+        )
 
     locals_dict = {}
     # model_constants can appear in expressions

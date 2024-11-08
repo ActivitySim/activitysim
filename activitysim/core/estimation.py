@@ -70,8 +70,23 @@ class EstimationTableRecipeConfig(PydanticBase):
 
 class EstimationConfig(PydanticReadable):
     SKIP_BUNDLE_WRITE_FOR: list[str] = []
+    """List of bundle names to skip writing to disk.
+
+    This is useful for saving disk space and decreasing runtime 
+    if you do not care about the estimation output for all models.
+    """
     EDB_FILETYPE: Literal["csv", "parquet", "pkl"] = "csv"
     EDB_ALTS_FILE_FORMAT: Literal["verbose", "compact"] = "verbose"
+    """Format of the alternatives table in the estimation data bundle.
+    
+    verbose: every possible alternative is listed in the table
+    compact: alternatives are renumbered from 1 to sample_size
+    """
+    DELETE_MP_SUBDIRS: bool = True
+    """Flag to delete the multiprocessing subdirectories after coalescing the results.
+    
+    Typically only used for debugging purposes.
+    """
 
     enable: bool = False
     """Flag to enable estimation."""

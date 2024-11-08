@@ -16,7 +16,7 @@ import pyarrow.parquet as parquet
 
 from activitysim.core import configuration, workflow
 from activitysim.core.workflow.checkpoint import CHECKPOINT_NAME
-from activitysim.core.estimation import estimation_enabled
+from activitysim.core.estimation import estimation_enabled, EstimationConfig
 
 logger = logging.getLogger(__name__)
 
@@ -270,8 +270,8 @@ def _coalesce_estimation_data_bundles(state):
     logger.info("Coalescing Estimation Data Bundles")
 
     edb_dir = state.filesystem.get_output_dir("estimation_data_bundle")
-    estimation_settings = state.filesystem.read_model_settings(
-        "estimation.yaml", mandatory=False
+    estimation_settings = EstimationConfig.read_settings_file(
+        state.filesystem, "estimation.yaml", mandatory=True
     )
 
     lowest_dirs = find_lowest_level_directories(edb_dir)
@@ -357,7 +357,7 @@ def _coalesce_estimation_data_bundles(state):
                     df_concat_dict[file] = [df]
 
         # delete the directory now that we have gone through all the files
-        if estimation_settings.get("DELETE_MP_SUBDIRS", True):
+        if estimation_settings.DELETE_MP_SUBDIRS:
             shutil.rmtree(dir)
 
     # need to concatenate the last set of dataframes

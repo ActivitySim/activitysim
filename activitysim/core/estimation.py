@@ -665,14 +665,14 @@ class Estimator:
         output_format = self.settings.EDB_ALTS_FILE_FORMAT
         assert output_format in ["verbose", "compact"]
 
-        if output_format == "compact":
-            # renumber the alt_id column to just count from 1 to n
-            # this loses the alt_id information, but drops all of the empty columns
-            # (can still get empty columns if not every chooser has same number of alts)
-            # (this can happen if the pick count > 1 and/or sampled alts are not included)
-            melt_df[alt_id_name] = melt_df.groupby([chooser_name, variable_column])[
-                alt_id_name
-            ].cumcount()
+        # if output_format == "compact":
+        #     # renumber the alt_id column to just count from 1 to n
+        #     # this loses the alt_id information, but drops all of the empty columns
+        #     # (can still get empty columns if not every chooser has same number of alts)
+        #     # (this can happen if the pick count > 1 and/or sampled alts are not included)
+        #     melt_df[alt_id_name] = melt_df.groupby([chooser_name, variable_column])[
+        #         alt_id_name
+        #     ].cumcount()
 
         melt_df = melt_df.set_index(
             [chooser_name, variable_column, alt_id_name]
@@ -688,7 +688,8 @@ class Estimator:
         return melt_df
 
     def write_interaction_expression_values(self, df):
-        df = self.melt_alternatives(df)
+        if self.settings.EDB_ALTS_FILE_FORMAT == "verbose":
+            df = self.melt_alternatives(df)
         self.write_table(
             df,
             "interaction_expression_values",
@@ -713,7 +714,8 @@ class Estimator:
         )
 
     def write_interaction_sample_alternatives(self, alternatives_df):
-        alternatives_df = self.melt_alternatives(alternatives_df)
+        if self.settings.EDB_ALTS_FILE_FORMAT == "verbose":
+            alternatives_df = self.melt_alternatives(alternatives_df)
         self.write_table(
             alternatives_df,
             "interaction_sample_alternatives",
@@ -722,7 +724,8 @@ class Estimator:
         )
 
     def write_interaction_simulate_alternatives(self, interaction_df):
-        interaction_df = self.melt_alternatives(interaction_df)
+        if self.settings.EDB_ALTS_FILE_FORMAT == "verbose":
+            interaction_df = self.melt_alternatives(interaction_df)
         self.write_table(
             interaction_df,
             "interaction_simulate_alternatives",

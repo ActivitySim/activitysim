@@ -277,26 +277,26 @@ class Estimator:
         ), f"file already exists: {file_path}"
 
         # Explicitly set the data types of the columns
-        for col in df.columns:
-            if "int" in str(df[col].dtype):
+        for col_name, col_data in df.iteritems():
+            if "int" in str(col_data.dtype):
                 pass
             elif (
-                df[col].dtype == "float16"
+                col_data.dtype == "float16"
             ):  # Handle halffloat type not allowed in parquet
-                df[col] = df[col].astype("float32")
-            elif "float" in str(df[col].dtype):
+                df[col_name] = col_data.astype("float32")
+            elif "float" in str(col_data.dtype):
                 pass
-            elif df[col].dtype == "bool":
+            elif col_data.dtype == "bool":
                 pass
-            elif df[col].dtype == "object":
+            elif col_data.dtype == "object":
                 # first try converting to numeric, if that fails, convert to string
                 try:
-                    df[col] = pd.to_numeric(df[col], errors="raise")
+                    df[col_name] = pd.to_numeric(col_data, errors="raise")
                 except ValueError:
-                    df[col] = df[col].astype(str)
+                    df[col_name] = col_data.astype(str)
             else:
                 # Convert any other unsupported types to string
-                df[col] = df[col].astype(str)
+                df[col_name] = col_data.astype(str)
 
         self.debug(f"writing table: {file_path}")
         # want parquet file to be exactly the same as df read from csv

@@ -453,6 +453,9 @@ class Estimator:
             else:
                 df = pd.concat([self.tables[t] for t in table_names], axis=concat_axis)
 
+            # remove duplicated columns, keeping the first instance
+            df = df[df.columns.drop_duplicates()]
+
             self.debug(f"sorting tables: {table_names}")
             df.sort_index(ascending=True, inplace=True, kind="mergesort")
 

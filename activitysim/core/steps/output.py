@@ -247,7 +247,7 @@ def concat_and_write_edb(df_concat_dict, write_dir):
         if df.index.name is not None:
             df = df.sort_index()
         else:
-            df = df.sort_values(by=df.columns[0])
+            df = df.sort_values(by=df.columns[0], kind="mergesort")
 
         if table_name.endswith(".csv"):
             df.to_csv(os.path.join(write_dir, table_name), index=False)

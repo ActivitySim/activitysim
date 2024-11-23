@@ -456,6 +456,23 @@ class Estimator:
             # remove duplicated columns, keeping the first instance
             df = df.loc[:, ~df.columns.duplicated()]
 
+            # set index if not already set according to lowest level heirarchy
+            # df missing index is typically coming from interaction_simulate expression values
+            # important for sorting and thus for multiprocessing to be consistent with single
+            if df.index.name is None:
+                if "trip_id" in df.columns:
+                    df.set_index("trip_id", inplace=True)
+                elif "tour_id" in df.columns:
+                    df.set_index("tour_id", inplace=True)
+                elif "person_id" in df.columns:
+                    df.set_index("person_id", inplace=True)
+                elif "household_id" in df.columns:
+                    df.set_index("household_id", inplace=True)
+                else:
+                    RuntimeError(
+                        f"No index column found in omnibus table {omnibus_table}: {df}"
+                    )
+
             self.debug(f"sorting tables: {table_names}")
             df.sort_index(ascending=True, inplace=True, kind="mergesort")
 

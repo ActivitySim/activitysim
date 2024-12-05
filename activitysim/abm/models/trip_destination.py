@@ -1362,6 +1362,8 @@ def run_trip_destination(
 
         # expect all the same trips
         survey_trips = estimator.get_survey_table("trips").sort_index()
+        # need to check household_id incase household_sample_size != 0
+        survey_trips = survey_trips[survey_trips.household_id.isin(trips.household_id)]
         assert survey_trips.index.equals(trips.index)
 
         first = survey_trips.trip_num == 1

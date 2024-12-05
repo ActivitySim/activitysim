@@ -831,7 +831,7 @@ class EstimationManager(object):
                 if state.settings.multiprocess:
                     pipeline_hh_ids = state.get_table("households").index
                     if table_name == "households":
-                        df = df[df.index.isin(pipeline_hh_ids)]
+                        df = df.reindex(pipeline_hh_ids)
                         assert pipeline_hh_ids.equals(
                             df.index
                         ), "household_ids not equal between survey and pipeline"

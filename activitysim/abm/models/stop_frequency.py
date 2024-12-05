@@ -277,7 +277,11 @@ def stop_frequency(
 
         survey_trips = estimation.manager.get_survey_table(table_name="trips")
         different = False
-        survey_trips_not_in_trips = survey_trips[~survey_trips.index.isin(trips.index)]
+        # need the check below on household_id incase household_sample_size != 0
+        survey_trips_not_in_trips = survey_trips[
+            ~survey_trips.index.isin(trips.index)
+            & survey_trips.household_id.isin(trips.household_id)
+        ]
         if len(survey_trips_not_in_trips) > 0:
             print(f"survey_trips_not_in_trips\n{survey_trips_not_in_trips}")
             different = True

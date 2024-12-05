@@ -442,8 +442,10 @@ def non_mandatory_tour_frequency(
     if estimator:
         # make sure they created the right tours
         survey_tours = estimation.manager.get_survey_table("tours").sort_index()
+        # need the household_id check below incase household_sample_size != 0
         non_mandatory_survey_tours = survey_tours[
-            survey_tours.tour_category == "non_mandatory"
+            (survey_tours.tour_category == "non_mandatory")
+            & survey_tours.household_id.isin(persons.household_id)
         ]
         # need to remove the pure-escort tours from the survey tours table for comparison below
         if state.is_table("school_escort_tours"):

@@ -40,7 +40,7 @@ estimation_table_recipes:
       alternatives_combined:
         - interaction_sample_alternatives
         - interaction_expression_values
-    omnibus_tables_append_columns: [choosers_combined]
+    omnibus_tables_append_columns: [choosers_combined, alternatives_combined]
 
   interaction_simulate:
     omnibus_tables:
@@ -77,7 +77,7 @@ estimation_table_recipes:
     omnibus_tables_append_columns: [values_combined]
 
 
-model_estimation_table_types:
+estimation_table_types:
   tour_scheduling_probabilistic: simple_probabilistic
   tour_od_choice: interaction_sample_simulate
   school_location: interaction_sample_simulate

@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import logging
 import os
 import sys
@@ -165,7 +167,8 @@ def infer_non_mandatory_tour_frequency(configs_dir, persons, tours):
 
     alts = read_alts()
     tour_types = list(alts.columns.values)
-    tour_types.remove("tot_tours")
+    if "tot_tours" in tour_types:
+        tour_types.remove("tot_tours")
 
     # tour_frequency is index in alts table
     alts["alt_id"] = alts.index

@@ -8,14 +8,14 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core import (
-    estimation,
     chunk,
+    estimation,
     interaction_simulate,
     logit,
     simulate,
     tracing,
-    workflow,
     util,
+    workflow,
 )
 from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.skim_dataset import DatasetWrapper

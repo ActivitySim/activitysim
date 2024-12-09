@@ -134,6 +134,18 @@ class FileSystem(PydanticBase, validate_assignment=True):
 
         return self
 
+    def parse_settings(self, settings):
+        def _parse_setting(name, x):
+            v = getattr(settings, x, None)
+            if v is not None:
+                setattr(self, name, v)
+
+        _parse_setting("cache_dir", "cache_dir")
+        _parse_setting("sharrow_cache_dir", "sharrow_cache_dir")
+        _parse_setting("profile_dir", "profile_dir")
+        _parse_setting("pipeline_file_name", "pipeline_file_name")
+        return
+
     def get_working_subdir(self, subdir) -> Path:
         if self.working_dir:
             return self.working_dir.joinpath(subdir)
@@ -157,7 +169,8 @@ class FileSystem(PydanticBase, validate_assignment=True):
         if subdir is not None:
             out = out.joinpath(subdir)
         if not out.exists():
-            out.mkdir(parents=True)
+            out.mkdir(parents=True, exist_ok=True)
+            # we set exist_ok=True so we avoid multiprocess race conditions
         return out
 
     def get_output_file_path(self, file_name) -> Path:

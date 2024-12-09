@@ -19,7 +19,6 @@ from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
 
-
 """
 The school/workplace location model predicts the zones in which various people will
 work or attend school.
@@ -140,7 +139,7 @@ def _location_sample(
 
     sample_size = model_settings.SAMPLE_SIZE
 
-    if estimator:
+    if estimator and model_settings.ESTIMATION_SAMPLE_SIZE >= 0:
         sample_size = model_settings.ESTIMATION_SAMPLE_SIZE
         logger.info(
             f"Estimation mode for {trace_label} using sample size of {sample_size}"

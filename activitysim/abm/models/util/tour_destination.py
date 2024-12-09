@@ -9,7 +9,7 @@ import pandas as pd
 
 from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
-from activitysim.core import estimation, config, los, simulate, tracing, workflow
+from activitysim.core import config, estimation, los, simulate, tracing, workflow
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
@@ -87,7 +87,7 @@ def _destination_sample(
     logger.info("running %s with %d tours", trace_label, len(choosers))
 
     sample_size = model_settings.SAMPLE_SIZE
-    if estimator:
+    if estimator and model_settings.ESTIMATION_SAMPLE_SIZE >= 0:
         sample_size = model_settings.ESTIMATION_SAMPLE_SIZE
         logger.info(
             f"Estimation mode for {trace_label} using sample size of {sample_size}"
@@ -457,7 +457,12 @@ def choose_MAZ_for_TAZ(
             transpose=False,
         )
 
-    if estimation.manager.enabled and (model_settings.ESTIMATION_SAMPLE_SIZE > 0):
+    if estimation.manager.enabled and (
+        model_settings.ESTIMATION_SAMPLE_SIZE > 0
+        or (
+            model_settings.ESTIMATION_SAMPLE_SIZE < 0 and model_settings.SAMPLE_SIZE > 0
+        )
+    ):
         # want to ensure the override choice is in the choice set
         survey_choices = estimation.manager.get_survey_destination_choices(
             state, chooser_df, trace_label

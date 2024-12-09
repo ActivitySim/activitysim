@@ -173,7 +173,7 @@ def _destination_sample(
     )
 
     sample_size = model_settings.SAMPLE_SIZE
-    if estimator:
+    if estimator and model_settings.ESTIMATION_SAMPLE_SIZE >= 0:
         sample_size = model_settings.ESTIMATION_SAMPLE_SIZE
         logger.info(
             f"Estimation mode for {trace_label} using sample size of {sample_size}"
@@ -533,7 +533,12 @@ def choose_MAZ_for_TAZ(
             transpose=False,
         )
 
-    if estimation.manager.enabled and (model_settings.ESTIMATION_SAMPLE_SIZE > 0):
+    if estimation.manager.enabled and (
+        model_settings.ESTIMATION_SAMPLE_SIZE > 0
+        or (
+            model_settings.ESTIMATION_SAMPLE_SIZE < 0 and model_settings.SAMPLE_SIZE > 0
+        )
+    ):
         # want to ensure the override choice is in the choice set
         survey_choices = estimation.manager.get_survey_destination_choices(
             state, chooser_df, trace_label

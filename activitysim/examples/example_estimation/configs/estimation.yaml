@@ -60,7 +60,7 @@ estimation_table_recipes:
       alternatives_combined:
         - interaction_sample_alternatives
         - interaction_expression_values
-    omnibus_tables_append_columns: [choosers_combined]
+    omnibus_tables_append_columns: [choosers_combined, alternatives_combined]
 
   interaction_simulate:
     omnibus_tables:
@@ -97,7 +97,7 @@ estimation_table_recipes:
     omnibus_tables_append_columns: [values_combined]
 
 
-model_estimation_table_types:
+estimation_table_types:
   school_location: interaction_sample_simulate
   workplace_location:  interaction_sample_simulate
   auto_ownership: simple_simulate

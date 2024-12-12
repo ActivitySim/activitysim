@@ -26,16 +26,16 @@ Cell [0;32mIn[6], line 1[0m
 [0;32m----> 1[0m [43mstate[49m[38;5;241;43m.[39;49m[43msettings[49m[38;5;241;43m.[39;49m[43mhouseholds_sample_size[49m [38;5;241m=[39m [38;5;241m3500.8[39m
 [1;32m      2[0m state[38;5;241m.[39msettings[38;5;241m.[39mhouseholds_sample_size
 
-File [0;32m~/miniconda3/envs/docbuild/lib/python3.10/site-packages/pydantic/main.py:881[0m, in [0;36mBaseModel.__setattr__[0;34m(self, name, value)[0m
-[1;32m    879[0m     attr[38;5;241m.[39m[38;5;21m__set__[39m([38;5;28mself[39m, value)
-[1;32m    880[0m [38;5;28;01melif[39;00m [38;5;28mself[39m[38;5;241m.[39mmodel_config[38;5;241m.[39mget([38;5;124m'[39m[38;5;124mvalidate_assignment[39m[38;5;124m'[39m, [38;5;28;01mNone[39;00m):
-[0;32m--> 881[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m__pydantic_validator__[49m[38;5;241;43m.[39;49m[43mvalidate_assignment[49m[43m([49m[38;5;28;43mself[39;49m[43m,[49m[43m [49m[43mname[49m[43m,[49m[43m [49m[43mvalue[49m[43m)[49m
-[1;32m    882[0m [38;5;28;01melif[39;00m [38;5;28mself[39m[38;5;241m.[39mmodel_config[38;5;241m.[39mget([38;5;124m'[39m[38;5;124mextra[39m[38;5;124m'[39m) [38;5;241m!=[39m [38;5;124m'[39m[38;5;124mallow[39m[38;5;124m'[39m [38;5;129;01mand[39;00m name [38;5;129;01mnot[39;00m [38;5;129;01min[39;00m [38;5;28mself[39m[38;5;241m.[39mmodel_fields:
-[1;32m    883[0m     [38;5;66;03m# TODO - matching error[39;00m
-[1;32m    884[0m     [38;5;28;01mraise[39;00m [38;5;167;01mValueError[39;00m([38;5;124mf[39m[38;5;124m'[39m[38;5;124m"[39m[38;5;132;01m{[39;00m[38;5;28mself[39m[38;5;241m.[39m[38;5;18m__class__[39m[38;5;241m.[39m[38;5;18m__name__[39m[38;5;132;01m}[39;00m[38;5;124m"[39m[38;5;124m object has no field [39m[38;5;124m"[39m[38;5;132;01m{[39;00mname[38;5;132;01m}[39;00m[38;5;124m"[39m[38;5;124m'[39m)
+File [0;32m~/miniconda3/envs/docbuild/lib/python3.10/site-packages/pydantic/main.py:923[0m, in [0;36mBaseModel.__setattr__[0;34m(self, name, value)[0m
+[1;32m    921[0m     [38;5;28mself[39m[38;5;241m.[39m[38;5;18m__dict__[39m[name] [38;5;241m=[39m value
+[1;32m    922[0m [38;5;28;01melif[39;00m [38;5;28mself[39m[38;5;241m.[39mmodel_config[38;5;241m.[39mget([38;5;124m'[39m[38;5;124mvalidate_assignment[39m[38;5;124m'[39m, [38;5;28;01mNone[39;00m):
+[0;32m--> 923[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m__pydantic_validator__[49m[38;5;241;43m.[39;49m[43mvalidate_assignment[49m[43m([49m[38;5;28;43mself[39;49m[43m,[49m[43m [49m[43mname[49m[43m,[49m[43m [49m[43mvalue[49m[43m)[49m
+[1;32m    924[0m [38;5;28;01melif[39;00m [38;5;28mself[39m[38;5;241m.[39mmodel_config[38;5;241m.[39mget([38;5;124m'[39m[38;5;124mextra[39m[38;5;124m'[39m) [38;5;241m!=[39m [38;5;124m'[39m[38;5;124mallow[39m[38;5;124m'[39m [38;5;129;01mand[39;00m name [38;5;129;01mnot[39;00m [38;5;129;01min[39;00m [38;5;28mself[39m[38;5;241m.[39m__pydantic_fields__:
+[1;32m    925[0m     [38;5;66;03m# TODO - matching error[39;00m
+[1;32m    926[0m     [38;5;28;01mraise[39;00m [38;5;167;01mValueError[39;00m([38;5;124mf[39m[38;5;124m'[39m[38;5;124m"[39m[38;5;132;01m{[39;00m[38;5;28mself[39m[38;5;241m.[39m[38;5;18m__class__[39m[38;5;241m.[39m[38;5;18m__name__[39m[38;5;132;01m}[39;00m[38;5;124m"[39m[38;5;124m object has no field [39m[38;5;124m"[39m[38;5;132;01m{[39;00mname[38;5;132;01m}[39;00m[38;5;124m"[39m[38;5;124m'[39m)
 
 [0;31mValidationError[0m: 1 validation error for Settings
 households_sample_size
   Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=3500.8, input_type=float]
-    For further information visit https://errors.pydantic.dev/2.9/v/int_from_float
+    For further information visit https://errors.pydantic.dev/2.10/v/int_from_float
 

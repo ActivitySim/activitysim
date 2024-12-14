@@ -118,7 +118,7 @@ class EstimationConfig(PydanticReadable):
     This is useful for saving disk space and decreasing runtime
     if you do not care about the estimation output for all models.
     """
-    EDB_FILETYPE: Literal["csv", "parquet", "pkl"] = "csv"
+    EDB_FILETYPE: Literal["csv", "parquet", "pkl"] = "parquet"
 
     DELETE_MP_SUBDIRS: bool = True
     """Flag to delete the multiprocessing subdirectories after coalescing the results.

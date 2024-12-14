@@ -21,6 +21,49 @@ logger = logging.getLogger("estimation")
 
 ESTIMATION_SETTINGS_FILE_NAME = "estimation.yaml"
 
+ESTIMATION_TABLE_RECIPES = {
+    "interaction_sample_simulate": {
+        "omnibus_tables": {
+            "choosers_combined": ["choices", "override_choices", "choosers"],
+            "alternatives_combined": [
+                "interaction_sample_alternatives",
+                "interaction_expression_values",
+            ],
+        },
+        "omnibus_tables_append_columns": ["choosers_combined", "alternatives_combined"],
+    },
+    "interaction_simulate": {
+        "omnibus_tables": {
+            "choosers_combined": ["choices", "override_choices", "choosers"],
+            "alternatives_combined": ["interaction_expression_values"],
+        },
+        "omnibus_tables_append_columns": ["choosers_combined", "alternatives_combined"],
+    },
+    "simple_simulate": {
+        "omnibus_tables": {
+            "values_combined": [
+                "choices",
+                "override_choices",
+                "expression_values",
+                "choosers",
+            ]
+        },
+        "omnibus_tables_append_columns": ["values_combined"],
+    },
+    "cdap_simulate": {
+        "omnibus_tables": {
+            "values_combined": ["choices", "override_choices", "choosers"]
+        },
+        "omnibus_tables_append_columns": ["values_combined"],
+    },
+    "simple_probabilistic": {
+        "omnibus_tables": {
+            "values_combined": ["choices", "override_choices", "choosers", "probs"]
+        },
+        "omnibus_tables_append_columns": ["values_combined"],
+    },
+}
+
 
 def unlink_files(directory_path, file_types=("csv", "yaml", "parquet", "pkl")):
     """
@@ -76,12 +119,7 @@ class EstimationConfig(PydanticReadable):
     if you do not care about the estimation output for all models.
     """
     EDB_FILETYPE: Literal["csv", "parquet", "pkl"] = "csv"
-    EDB_ALTS_FILE_FORMAT: Literal["verbose", "compact"] = "compact"
-    """Format of the alternatives table in the estimation data bundle.
 
-    verbose: every possible alternative is listed in the table
-    compact: alternatives are renumbered from 1 to sample_size
-    """
     DELETE_MP_SUBDIRS: bool = True
     """Flag to delete the multiprocessing subdirectories after coalescing the results.
 
@@ -104,14 +142,27 @@ class EstimationConfig(PydanticReadable):
     'interaction_sample_simulate', etc.
     """
 
-    estimation_table_recipes: dict[str, EstimationTableRecipeConfig] = {}
-    """Mapping of estimation table recipe names to their configurations.
+    estimation_table_recipes: dict[str, EstimationTableRecipeConfig] = None
+    """This option has been removed from the user-facing configuration file.
+    
+    Mapping of estimation table recipe names to their configurations.
 
     The keys of this mapping are the names of the estimation table recipes.
     The recipes are generally related to the generic model types, such as
     'simple_simulate', 'interaction_simulate', 'interaction_sample_simulate',
     etc. The values are the configurations for the estimation table recipes.
     """
+
+    @model_validator(mode="before")
+    def check_estimation_table_recipes(cls, values):
+        if (
+            "estimation_table_recipes" in values
+            and values["estimation_table_recipes"] is not None
+        ):
+            raise ValueError(
+                "estimation_table_recipes is no longer an accepted input. Please delete it from your estimation.yaml file."
+            )
+        return values
 
     survey_tables: dict[str, SurveyTableConfig] = {}
 
@@ -121,7 +172,7 @@ class EstimationConfig(PydanticReadable):
     @model_validator(mode="after")
     def validate_estimation_table_types(self):
         for key, value in self.estimation_table_types.items():
-            if value not in self.estimation_table_recipes:
+            if value not in ESTIMATION_TABLE_RECIPES:
                 raise ValueError(
                     f"estimation_table_types value '{value}' not in estimation_table_recipes"
                 )
@@ -639,100 +690,7 @@ class Estimator:
                     model_settings, "inherited_model_settings", bundle_directory
                 )
 
-    def melt_alternatives(self, df):
-        alt_id_name = self.alt_id_column_name
-
-        assert alt_id_name is not None, (
-            "alt_id not set. Did you forget to call set_alt_id()? (%s)"
-            % self.model_name
-        )
-        assert (
-            alt_id_name in df
-        ), "alt_id_column_name '%s' not in alternatives table (%s)" % (
-            alt_id_name,
-            self.model_name,
-        )
-
-        variable_column = "variable"
-
-        #            alt_dest  util_dist_0_1  util_dist_1_2  ...
-        # person_id                                          ...
-        # 31153             1            1.0           0.75  ...
-        # 31153             2            1.0           0.46  ...
-        # 31153             3            1.0           0.28  ...
-
-        if df.index.name is not None:
-            chooser_name = df.index.name
-            assert self.chooser_id_column_name in (chooser_name, None)
-            df = df.reset_index()
-        else:
-            assert self.chooser_id_column_name is not None
-            chooser_name = self.chooser_id_column_name
-            assert chooser_name in df
-
-        # mergesort is the only stable sort, and we want the expressions to appear in original df column order
-        melt_df = (
-            pd.melt(df, id_vars=[chooser_name, alt_id_name])
-            .sort_values(by=[chooser_name, alt_id_name, "variable"], kind="mergesort")
-            .rename(columns={"variable": variable_column})
-        )
-
-        # person_id,alt_dest,expression,value
-        # 31153,1,util_dist_0_1,1.0
-        # 31153,2,util_dist_0_1,1.0
-        # 31153,3,util_dist_0_1,1.0
-
-        output_format = self.settings.EDB_ALTS_FILE_FORMAT
-        assert output_format in ["verbose", "compact"]
-
-        # original_alt_ids = None
-        # if output_format == "compact":
-        #     # preserve the original alt_ids in the EDB output
-        #     original_alt_ids = melt_df[[chooser_name, alt_id_name]].drop_duplicates(
-        #         ignore_index=True
-        #     )
-        #     original_alt_ids = original_alt_ids.set_index(
-        #         [chooser_name, alt_id_name], drop=False
-        #     )[alt_id_name]
-        #     original_alt_ids.index = pd.MultiIndex.from_arrays(
-        #         [
-        #             original_alt_ids.index.get_level_values(0),
-        #             original_alt_ids.groupby(level=0).cumcount(),
-        #         ],
-        #         names=[chooser_name, alt_id_name],
-        #     )
-        #     original_alt_ids = original_alt_ids.unstack(1, fill_value=-1)
-        #
-        #     # renumber the alt_id column to just count from 1 to n
-        #     # this loses the alt_id information, but drops all of the empty columns
-        #     # (can still get empty columns if not every chooser has same number of alts)
-        #     # (this can happen if the pick count > 1 and/or sampled alts are not included)
-        #     melt_df[alt_id_name] = melt_df.groupby([chooser_name, variable_column])[
-        #         alt_id_name
-        #     ].cumcount()
-
-        melt_df = melt_df.set_index(
-            [chooser_name, variable_column, alt_id_name]
-        ).unstack(2)
-        melt_df.columns = melt_df.columns.droplevel(0)
-        # if original_alt_ids is not None:
-        #     original_alt_ids.index = pd.MultiIndex.from_arrays(
-        #         [original_alt_ids.index, pd.Index(["alt_id"] * len(original_alt_ids))],
-        #         names=melt_df.index.names,
-        #     )
-        #     melt_df = pd.concat([melt_df, original_alt_ids], axis=0)
-        melt_df = melt_df.sort_index().reset_index(1)
-
-        # person_id,expression,1,2,3,4,5,...
-        # 31153,util_dist_0_1,0.75,0.46,0.27,0.63,0.48,...
-        # 31153,util_dist_1_2,0.0,0.0,0.0,0.0,0.0,...
-        # 31153,util_dist_2_3,0.0,0.0,0.0,0.0,0.0,...
-
-        return melt_df
-
     def write_interaction_expression_values(self, df):
-        if self.settings.EDB_ALTS_FILE_FORMAT == "verbose":
-            df = self.melt_alternatives(df)
         self.write_table(
             df,
             "interaction_expression_values",
@@ -757,8 +715,6 @@ class Estimator:
         )
 
     def write_interaction_sample_alternatives(self, alternatives_df):
-        if self.settings.EDB_ALTS_FILE_FORMAT == "verbose":
-            alternatives_df = self.melt_alternatives(alternatives_df)
         self.write_table(
             alternatives_df,
             "interaction_sample_alternatives",
@@ -767,8 +723,6 @@ class Estimator:
         )
 
     def write_interaction_simulate_alternatives(self, interaction_df):
-        if self.settings.EDB_ALTS_FILE_FORMAT == "verbose":
-            interaction_df = self.melt_alternatives(interaction_df)
         self.write_table(
             interaction_df,
             "interaction_simulate_alternatives",
@@ -828,7 +782,7 @@ class EstimationManager(object):
         self.bundles = self.settings.bundles
 
         self.estimation_table_types = self.settings.estimation_table_types
-        self.estimation_table_recipes = self.settings.estimation_table_recipes
+        self.estimation_table_recipes = ESTIMATION_TABLE_RECIPES
 
         if self.enabled:
             self.survey_tables = self.settings.survey_tables
@@ -925,9 +879,9 @@ class EstimationManager(object):
             state,
             bundle_name,
             model_name,
-            estimation_table_recipe=self.estimation_table_recipes[
-                model_estimation_table_type
-            ],
+            estimation_table_recipe=EstimationTableRecipeConfig(
+                **self.estimation_table_recipes[model_estimation_table_type]
+            ),
             settings=self.settings,
         )
 

@@ -328,7 +328,7 @@ class Estimator:
         ), f"file already exists: {file_path}"
 
         # Explicitly set the data types of the columns
-        for col_name, col_data in df.iteritems():
+        for col_name, col_data in df.items():
             if "int" in str(col_data.dtype):
                 pass
             elif (

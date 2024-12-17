@@ -27,7 +27,6 @@ dependencies:
 - ipykernel  # so this env will appear in jupyter as a selection
 - isort
 - jupyterlab
-- larch = 5.7.*
 - matplotlib
 - myst-parser  # allows markdown in sphinx
 - nbconvert
@@ -75,4 +74,5 @@ dependencies:
 
 - pip:
   - autodoc_pydantic
+  - larch6 >= 6.0.34
   - -e ..

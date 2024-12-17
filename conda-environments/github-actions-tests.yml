@@ -12,6 +12,7 @@ dependencies:
 - cytoolz = 0.12.2
 - dask = 2023.3.2
 - isort = 5.12.0
+- matplotlib = 3.9.*
 - nbmake = 1.4.6
 - numba = 0.57.*
 - numpy = 1.23.5
@@ -36,5 +37,6 @@ dependencies:
 - simwrapper > 1.7
 - sparse
 - xarray = 2023.2.*
+- xlsxwriter = 3.2.*
 - zarr = 2.14.*
 - zstandard

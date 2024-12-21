@@ -30,7 +30,7 @@ def interaction_simulate_data(
     alt_def_file="{name}_alternatives.csv",
     coefficients_files="{segment_name}/{name}_coefficients_{segment_name}.csv",
     chooser_data_files="{segment_name}/{name}_choosers_combined.csv",
-    alt_values_files="{segment_name}/{name}_interaction_expression_values.csv",
+    alt_values_files="{segment_name}/{name}_alternatives_combined.csv",
     segment_subset=(),
 ):
     edb_directory = edb_directory.format(name=name)

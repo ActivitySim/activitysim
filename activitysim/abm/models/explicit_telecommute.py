@@ -16,7 +16,7 @@ from activitysim.core import (
     workflow,
 )
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
-from activitysim.core.configuration.logit import LogitComponentSettings
+from activitysim.core.configuration.logit import LogitComponentSettings, TourLocationComponentSettings
 
 logger = logging.getLogger("activitysim")
 
@@ -34,9 +34,6 @@ class ExplicitTelecommuteSettings(LogitComponentSettings, extra="forbid"):
 
     CHOOSER_FILTER_COLUMN_NAME: str = "is_worker"
     """Column name in the dataframe to represent worker."""
-
-    DEST_CHOICE_COLUMN_NAME: str = "workplace_zone_id"
-    """Column name in persons dataframe to specify the workplace zone id. """
 
 
 
@@ -60,6 +57,11 @@ def explicit_telecommute(
             state.filesystem,
             model_settings_file_name,
         )
+
+    workplace_model_settings = TourLocationComponentSettings.read_settings_file(
+        state.filesystem,
+        "workplace_location.yaml",
+    )
 
     choosers = persons_merged
     chooser_filter_column_name = model_settings.CHOOSER_FILTER_COLUMN_NAME
@@ -130,12 +132,15 @@ def explicit_telecommute(
         choices.reindex(persons.index).fillna(0).astype(bool)
     ) 
     # save original workplace_zone_id values to a new variable out_of_home_work_location
-    # setting workplace_zone_id to -1 if person is telecommuting on simulation day
-    dest_choice_column_name = model_settings.DEST_CHOICE_COLUMN_NAME
-    if dest_choice_column_name in persons.columns:
-        persons['out_of_home_work_location'] = persons[dest_choice_column_name]
-        persons[dest_choice_column_name] = np.where(
-            persons.is_telecommuting == True, -1, persons[dest_choice_column_name]
+    # setting workplace_zone_id to home_zone_id if person is telecommuting on simulation day
+    workplace_location = workplace_model_settings.DEST_CHOICE_COLUMN_NAME
+    home_zone = workplace_model_settings.CHOOSER_ORIG_COL_NAME
+    if workplace_location in persons.columns:
+        persons['out_of_home_work_location'] = persons[workplace_location]
+        persons[workplace_location] = np.where(
+            persons.is_telecommuting == True, 
+            persons[home_zone], 
+            persons[workplace_location]
         )
 
     state.add_table("persons", persons)

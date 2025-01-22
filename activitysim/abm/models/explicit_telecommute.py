@@ -65,10 +65,7 @@ def explicit_telecommute(
 
     choosers = persons_merged
     chooser_filter_column_name = model_settings.CHOOSER_FILTER_COLUMN_NAME
-    choosers = choosers[
-        (choosers[chooser_filter_column_name])
-        & (choosers.cdap_activity == "M")
-    ]
+    choosers = choosers[(choosers[chooser_filter_column_name])]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
     estimator = estimation.manager.begin_estimation(state, "explicit_telecommute")

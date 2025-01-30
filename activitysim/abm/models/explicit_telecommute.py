@@ -129,14 +129,13 @@ def explicit_telecommute(
         choices.reindex(persons.index).fillna(0).astype(bool)
     ) 
     # save original workplace_zone_id values to a new variable out_of_home_work_location
-    # setting workplace_zone_id to home_zone_id if person is telecommuting on simulation day
+    # setting workplace_zone_id to -1 if person is telecommuting on simulation day
     workplace_location = workplace_model_settings.DEST_CHOICE_COLUMN_NAME
-    home_zone = workplace_model_settings.CHOOSER_ORIG_COL_NAME
     if workplace_location in persons.columns:
         persons['out_of_home_work_location'] = persons[workplace_location]
         persons[workplace_location] = np.where(
             persons.is_telecommuting == True, 
-            persons[home_zone], 
+            -1, 
             persons[workplace_location]
         )
 

@@ -16,7 +16,7 @@ from activitysim.core import (
     workflow,
 )
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
-from activitysim.core.configuration.logit import LogitComponentSettings, TourLocationComponentSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger("activitysim")
 
@@ -49,19 +49,12 @@ def explicit_telecommute(
     """
     This model predicts whether a person (worker) telecommutes on the simulation day.
     The output from this model is TRUE (if telecommutes) or FALSE (works away from home).
-    The workplace location choice is overridden for workers who telecommute
-    and set to -1.
     """
     if model_settings is None:
         model_settings = ExplicitTelecommuteSettings.read_settings_file(
             state.filesystem,
             model_settings_file_name,
         )
-
-    workplace_model_settings = TourLocationComponentSettings.read_settings_file(
-        state.filesystem,
-        "workplace_location.yaml",
-    )
 
     choosers = persons_merged
     chooser_filter_column_name = model_settings.CHOOSER_FILTER_COLUMN_NAME
@@ -128,16 +121,6 @@ def explicit_telecommute(
     persons["is_telecommuting"] = (
         choices.reindex(persons.index).fillna(0).astype(bool)
     ) 
-    # save original workplace_zone_id values to a new variable out_of_home_work_location
-    # setting workplace_zone_id to -1 if person is telecommuting on simulation day
-    workplace_location = workplace_model_settings.DEST_CHOICE_COLUMN_NAME
-    if workplace_location in persons.columns:
-        persons['out_of_home_work_location'] = persons[workplace_location]
-        persons[workplace_location] = np.where(
-            persons.is_telecommuting == True, 
-            -1, 
-            persons[workplace_location]
-        )
 
     state.add_table("persons", persons)
 

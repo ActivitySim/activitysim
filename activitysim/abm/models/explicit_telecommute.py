@@ -36,7 +36,6 @@ class ExplicitTelecommuteSettings(LogitComponentSettings, extra="forbid"):
     """Column name in the dataframe to represent worker."""
 
 
-
 @workflow.step
 def explicit_telecommute(
     state: workflow.State,
@@ -83,8 +82,8 @@ def explicit_telecommute(
     model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
-            state, model_spec, coefficients_df, estimator
-        )
+        state, model_spec, coefficients_df, estimator
+    )
     nest_spec = config.get_logit_model_settings(model_settings)
 
     if estimator:
@@ -110,23 +109,16 @@ def explicit_telecommute(
 
     if estimator:
         estimator.write_choices(choices)
-        choices = estimator.get_survey_values(
-            choices, 
-            "persons", 
-            "is_telecommuting"
-        )
+        choices = estimator.get_survey_values(choices, "persons", "is_telecommuting")
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    persons["is_telecommuting"] = (
-        choices.reindex(persons.index).fillna(0).astype(bool)
-    ) 
+    persons["is_telecommuting"] = choices.reindex(persons.index).fillna(0).astype(bool)
 
     state.add_table("persons", persons)
 
     tracing.print_summary(
-        "explicit_telecommute", 
-        persons.is_telecommuting, value_counts=True
+        "explicit_telecommute", persons.is_telecommuting, value_counts=True
     )
 
     if state.settings.trace_hh_id:

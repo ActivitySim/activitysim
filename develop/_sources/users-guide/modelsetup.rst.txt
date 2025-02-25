@@ -134,7 +134,7 @@ installs a variety of things on your system, and it is quite likely to be flagge
 Windows, anti-virus, or institutional IT policies as "unusual" software, which
 may require special treatment to actually install and use.
 
-Download the installer from GitHub `here <https://github.com/ActivitySim/activitysim/releases/download/v1.2.0/Activitysim-1.2.0-Windows-x86_64.exe>`_.
+Download the installer from GitHub `here <https://github.com/ActivitySim/activitysim/releases/download/v1.3.1/Activitysim-1.3.1-Windows-x86_64.exe>`_.
 It is strongly recommended to choose the option to install "for me only", as this
 should not require administrator privileges on your machine.  Pay attention
 to the *complete path* of the installation location. You will need to know

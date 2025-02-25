@@ -16,34 +16,31 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
-  <!-- 
-    this give us a css class that will be invisible only if js is disabled 
-  -->
-  <noscript>
-    <style>
-      .pst-js-only { display: none !important; }
-
-    </style>
-  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=86d88d25" />
   
-  <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=ff372ac2"></script>
+    <script src="_static/documentation_options.js?v=45b7e9ca"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -51,7 +48,7 @@
     <script src="_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'howitworks';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.16.0';
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.3';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
@@ -62,8 +59,7 @@
     <link rel="prev" title="Anatomy of a Model" href="users-guide/model_anatomy.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="1.3.3" />
-    <meta name="docbuild:last-update" content="Dec 13, 2024"/>
+    <meta name="docbuild:last-update" content="Feb 25, 2025"/>
   </head>
   
   
@@ -79,8 +75,19 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <dialog id="pst-search-dialog">
-    
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -88,6 +95,7 @@
   <input type="search"
          class="form-control"
          name="q"
+         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -95,8 +103,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-  </dialog>
+</form></div>
+  </div>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -163,33 +171,41 @@
         <div class="navbar-item navbar-persistent--container">
           
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
         </div>
       
       
         <div class="navbar-item">
-<div class="version-switcher__container dropdown pst-js-only">
-  <button id="pst-version-switcher-button-2"
-    type="button"
-    class="version-switcher__button btn btn-sm dropdown-toggle"
-    data-bs-toggle="dropdown"
-    aria-haspopup="listbox"
-    aria-controls="pst-version-switcher-list-2"
-    aria-label="Version switcher list"
-  >
-    Choose version  <!-- this text may get changed later by javascript -->
-    <span class="caret"></span>
-  </button>
-  <div id="pst-version-switcher-list-2"
-    class="version-switcher__menu dropdown-menu list-group-flush py-0"
-    role="listbox" aria-labelledby="pst-version-switcher-button-2">
-    <!-- dropdown will be populated by javascript on page load -->
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
   </div>
-</div></div>
+`);
+</script></div>
       
     </div>
     
@@ -198,11 +214,15 @@
   
     <div class="navbar-persistent--mobile">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
     </div>
   
 
@@ -221,8 +241,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+      <div class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -261,24 +280,28 @@
       <div class="sidebar-header-items__end">
         
           <div class="navbar-item">
-<div class="version-switcher__container dropdown pst-js-only">
-  <button id="pst-version-switcher-button-3"
-    type="button"
-    class="version-switcher__button btn btn-sm dropdown-toggle"
-    data-bs-toggle="dropdown"
-    aria-haspopup="listbox"
-    aria-controls="pst-version-switcher-list-3"
-    aria-label="Version switcher list"
-  >
-    Choose version  <!-- this text may get changed later by javascript -->
-    <span class="caret"></span>
-  </button>
-  <div id="pst-version-switcher-list-3"
-    class="version-switcher__menu dropdown-menu list-group-flush py-0"
-    role="listbox" aria-labelledby="pst-version-switcher-button-3">
-    <!-- dropdown will be populated by javascript on page load -->
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
   </div>
-</div></div>
+`);
+</script></div>
         
       </div>
     
@@ -335,6 +358,8 @@
       
         <div class="header-article-item">
 
+
+
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -346,7 +371,7 @@
     
     <li class="breadcrumb-item"><a href="users-guide/index.html" class="nav-link">Users Guide</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">How the System Works</span></li>
+    <li class="breadcrumb-item active" aria-current="page">How the System Works</li>
   </ul>
 </nav>
 </div>
@@ -373,18 +398,18 @@
 <section id="initialization">
 <h3>Initialization<a class="headerlink" href="#initialization" title="Link to this heading">#</a></h3>
 <p>The first significant step of the <code class="docutils literal notranslate"><span class="pre">run</span></code> command is:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">activitysim</span> <span class="kn">import</span> <span class="n">abm</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">activitysim</span><span class="w"> </span><span class="kn">import</span> <span class="n">abm</span>
 </pre></div>
 </div>
 <p>which loads <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.__init__</span></code>, which calls:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">misc</span>
-<span class="kn">import</span> <span class="nn">tables</span>
-<span class="kn">import</span> <span class="nn">models</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">misc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tables</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">models</span>
 </pre></div>
 </div>
 <p>which then loads the misc, tables, and models class definitions.  Loading <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.misc</span></code> calls:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">activitysim.core</span> <span class="kn">import</span> <span class="n">config</span>
-<span class="kn">from</span> <span class="nn">activitysim.core</span> <span class="kn">import</span> <span class="n">inject</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">activitysim.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">activitysim.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">inject</span>
 </pre></div>
 </div>
 <p>which loads the config and inject classes.  These define Inject injectables (functions) and
@@ -392,7 +417,7 @@ helper functions for running models.  For example, the Python decorator <code cl
 execute this function whenever the <code class="docutils literal notranslate"><span class="pre">settings</span></code> object is called by the system.  The <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.inject</span></code> manages the data
 pipeline.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inject</span><span class="o">.</span><span class="n">injectable</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">settings</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">settings</span><span class="p">():</span>
     <span class="n">settings_dict</span> <span class="o">=</span> <span class="n">read_settings_file</span><span class="p">(</span><span class="s1">&#39;settings.yaml&#39;</span><span class="p">,</span> <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">settings_dict</span>
 </pre></div>
@@ -401,37 +426,37 @@ pipeline.</p>
 define the dynamic inject tables (households, persons, skims, etc.), but does not load them. It also defines the
 core dynamic injectables (functions) defined in the classes. The Python decorator <code class="docutils literal notranslate"><span class="pre">&#64;inject.table</span></code> override the function
 definitions so the name of the function becomes the name of the table when dynamically called by the system.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">households</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">persons</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">households</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">persons</span>
 <span class="c1">#etc...</span>
 
 <span class="c1">#then in households.py</span>
 <span class="nd">@inject</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">households</span><span class="p">(</span><span class="n">households_sample_size</span><span class="p">,</span> <span class="n">override_hh_ids</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">households</span><span class="p">(</span><span class="n">households_sample_size</span><span class="p">,</span> <span class="n">override_hh_ids</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
 </pre></div>
 </div>
 <p>The models module then loads all the sub-models, which are registered as model steps with
 the <code class="docutils literal notranslate"><span class="pre">&#64;inject.step()</span></code> decorator.  These steps will eventually be run by the data pipeliner.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">accessibility</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">atwork_subtour_destination</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">atwork_subtour_frequency</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">accessibility</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">atwork_subtour_destination</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">atwork_subtour_frequency</span>
 <span class="c1">#etc...</span>
 
 <span class="c1">#then in accessibility.py</span>
 <span class="nd">@inject</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">compute_accessibility</span><span class="p">(</span><span class="n">accessibility</span><span class="p">,</span> <span class="n">network_los</span><span class="p">,</span> <span class="n">land_use</span><span class="p">,</span> <span class="n">trace_od</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_accessibility</span><span class="p">(</span><span class="n">accessibility</span><span class="p">,</span> <span class="n">network_los</span><span class="p">,</span> <span class="n">land_use</span><span class="p">,</span> <span class="n">trace_od</span><span class="p">):</span>
 </pre></div>
 </div>
 <p>Back in the main <code class="docutils literal notranslate"><span class="pre">run</span></code> command, the next steps are to load the tracing, configuration, setting, and pipeline classes
 to get the system management components up and running.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">activitysim.core</span> <span class="kn">import</span> <span class="n">tracing</span>
-<span class="kn">from</span> <span class="nn">activitysim.core</span> <span class="kn">import</span> <span class="n">config</span>
-<span class="kn">from</span> <span class="nn">activitysim.core</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">activitysim.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">tracing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">activitysim.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">activitysim.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">pipeline</span>
 </pre></div>
 </div>
 <p>The next step in the example is to define the <code class="docutils literal notranslate"><span class="pre">run</span></code> method, call it if the script is being run as the program entry point, and handle the
 arguments passed in via the command line.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">run</span><span class="p">():</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">():</span>
   <span class="c1">#etc...</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
@@ -458,7 +483,7 @@ households and persons into memory.</p>
 <h3>Initialize Households<a class="headerlink" href="#initialize-households" title="Link to this heading">#</a></h3>
 <p>The initialize households step/model is run via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inject</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">initialize_households</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">initialize_households</span><span class="p">():</span>
 
    <span class="n">trace_label</span> <span class="o">=</span> <span class="s1">&#39;initialize_households&#39;</span>
    <span class="n">model_settings</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">read_model_settings</span><span class="p">(</span><span class="s1">&#39;initialize_households.yaml&#39;</span><span class="p">,</span> <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -495,7 +520,7 @@ inject goes looking for it as explained below.</p>
         <span class="o">-</span> <span class="n">households</span>
 
 <span class="c1">#initialize.py</span>
-<span class="k">def</span> <span class="nf">annotate_tables</span><span class="p">(</span><span class="n">model_settings</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">annotate_tables</span><span class="p">(</span><span class="n">model_settings</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">):</span>
 
  <span class="n">annotate_tables</span> <span class="o">=</span> <span class="n">model_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;annotate_tables&#39;</span><span class="p">,</span> <span class="p">[])</span>
 
@@ -523,7 +548,7 @@ imported.  Now that the <code class="docutils literal notranslate"><span class="
 as well.  The various calls also setup logging, tracing, stable random number management, etc.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#persons in persons.py requires households, trace_hh_id</span>
 <span class="nd">@inject</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">persons</span><span class="p">(</span><span class="n">households</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">persons</span><span class="p">(</span><span class="n">households</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
 
   <span class="n">df</span> <span class="o">=</span> <span class="n">read_raw_persons</span><span class="p">(</span><span class="n">households</span><span class="p">)</span>
 
@@ -544,7 +569,7 @@ as well.  The various calls also setup logging, tracing, stable random number ma
 
 <span class="c1">#households requires households_sample_size, override_hh_ids, trace_hh_id</span>
 <span class="nd">@inject</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">households</span><span class="p">(</span><span class="n">households_sample_size</span><span class="p">,</span> <span class="n">override_hh_ids</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">households</span><span class="p">(</span><span class="n">households_sample_size</span><span class="p">,</span> <span class="n">override_hh_ids</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
 
   <span class="n">df_full</span> <span class="o">=</span> <span class="n">read_input_table</span><span class="p">(</span><span class="s2">&quot;households&quot;</span><span class="p">)</span>
 </pre></div>
@@ -619,8 +644,7 @@ actually reads the input tables from the input HDF5 or CSV file using the <code 
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -664,8 +688,8 @@ actually reads the input tables from the input HDF5 or CSV file using the <code 
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -674,7 +698,7 @@ actually reads the input tables from the input HDF5 or CSV file using the <code 
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.3.dev5+g171f1721, documentation last updated Dec 13, 2024.<br/>
+ActivitySim 1.3.3.dev6+gbf64b7be, documentation last updated Feb 25, 2025.<br/>
 </p></div>
       
         <div class="footer-item">
@@ -693,7 +717,7 @@ ActivitySim 1.3.3.dev5+g171f1721, documentation last updated Dec 13, 2024.<br/>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
 </p></div>
       
     </div>

@@ -29,6 +29,7 @@ dependencies:
 - jupyterlab
 - larch = 5.7.*
 - matplotlib
+- multimethod <2.0
 - myst-parser  # allows markdown in sphinx
 - nbconvert
 - nbformat

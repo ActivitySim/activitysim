@@ -32,6 +32,7 @@ jobs:
             miniforge-version: latest
             activate-environment: asim-test
             python-version: ${{ matrix.python-version }}
+            conda-solver: conda
 
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV

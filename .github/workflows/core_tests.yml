@@ -42,9 +42,6 @@ jobs:
           path: /usr/share/miniconda3/envs/asim-test
           key: linux-64-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
-      
-      - name: Clear conda package cache
-        run: conda clean --all -y
 
       - name: Update environment
         run: |

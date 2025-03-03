@@ -17,7 +17,7 @@ dependencies:
 - bump2version  # for making a release
 - coveralls
 - cytoolz = 0.12.*
-- dask = 2023.3.*
+- dask = 2023.11.*
 - descartes
 - filelock
 - fsspec
@@ -36,7 +36,7 @@ dependencies:
 - nbmake
 - numba = 0.57.*
 - numexpr
-- numpy = 1.23.*
+- numpy = 1.24.*
 - numpydoc
 - openmatrix = 0.3.*
 - orca = 1.8

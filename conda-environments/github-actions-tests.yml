@@ -10,12 +10,12 @@ dependencies:
 - black = 22.12.0
 - coveralls = 3.3.1
 - cytoolz = 0.12.2
-- dask = 2023.3.2
+- dask = 2023.11.*
 - isort = 5.12.0
 - multimethod <2.0
 - nbmake = 1.4.6
 - numba = 0.57.*
-- numpy = 1.23.5
+- numpy = 1.24.*
 - openmatrix = 0.3.5.0
 - orca = 1.8
 - pandera >= 0.15, <0.18.1

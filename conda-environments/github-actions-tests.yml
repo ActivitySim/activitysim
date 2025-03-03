@@ -37,5 +37,5 @@ dependencies:
 - simwrapper > 1.7
 - sparse
 - xarray = 2025.01.*
-- zarr = 2.14.*
+- zarr>=2,<3
 - zstandard

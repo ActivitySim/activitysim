@@ -56,7 +56,7 @@ dependencies:
 - sphinx-remove-toctrees
 - sphinx_rtd_theme
 - xarray = 2025.01.*
-- zarr
+- zarr>=2,<3
 
 - pip:
   - autodoc_pydantic

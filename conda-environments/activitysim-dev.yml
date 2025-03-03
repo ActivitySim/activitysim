@@ -71,7 +71,7 @@ dependencies:
 - sphinx-argparse = 0.4.*
 - xarray = 2025.01.*
 - xmle
-- zarr = 2.14.*
+- zarr>=2,<3
 - zstandard
 
 - pip:

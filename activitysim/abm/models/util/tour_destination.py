@@ -123,6 +123,10 @@ def _destination_sample(
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer=zone_layer,
+        explicit_chunk_size=model_settings.explicit_chunk,
+        compute_settings=model_settings.compute_settings.subcomponent_settings(
+            "sample"
+        ),
     )
 
     # if special person id is passed
@@ -777,6 +781,7 @@ def run_destination_simulate(
         trace_choice_name="destination",
         estimator=estimator,
         skip_choice=skip_choice,
+        compute_settings=model_settings.compute_settings,
     )
 
     if not want_logsums:

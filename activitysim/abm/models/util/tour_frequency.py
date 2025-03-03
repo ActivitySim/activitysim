@@ -628,21 +628,21 @@ def process_tours_frequency_composition(
 
 
 class JointTourFreqCompContent(PydanticReadable):
-    VALUE_MAP: dict[int, str]
-    COLUMNS: list[str]
+    VALUE_MAP: dict[int, str] = {}
+    COLUMNS: list[str] = []
 
 
 class JointTourFreqCompAlts(PydanticReadable):
-    PURPOSE: JointTourFreqCompContent
-    COMPOSITION: JointTourFreqCompContent
+    PURPOSE: JointTourFreqCompContent = JointTourFreqCompContent()
+    COMPOSITION: JointTourFreqCompContent = JointTourFreqCompContent()
 
 
-class JointTourFreqCompSettings(LogitComponentSettings):
+class JointTourFreqCompSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for joint tour frequency and composition.
     """
 
-    ALTS_TABLE_STRUCTURE: JointTourFreqCompAlts
+    ALTS_TABLE_STRUCTURE: JointTourFreqCompAlts = JointTourFreqCompAlts()
     preprocessor: PreprocessorSettings | None = None
     ALTS_PREPROCESSOR: PreprocessorSettings | None = None
 
@@ -791,5 +791,6 @@ def create_joint_tours(
     tours["tour_type_num"] = tours["tour_type_num"].astype("int8")
     tours["tour_type_count"] = tours["tour_type_count"].astype("int8")
     tours["number_of_participants"] = tours["number_of_participants"].astype("int8")
+    tours["tour_type"] = tours["tour_type"].astype("category")
 
     return tours

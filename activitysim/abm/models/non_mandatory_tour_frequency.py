@@ -12,8 +12,8 @@ import pandas as pd
 
 from activitysim.abm.models.util import annotate
 from activitysim.abm.models.util.overlap import (
-    person_max_window,
     person_available_periods,
+    person_max_window,
 )
 from activitysim.abm.models.util.school_escort_tours_trips import (
     recompute_tour_count_statistics,
@@ -161,7 +161,7 @@ class NonMandatoryTourSpecSegment(PydanticReadable):
     COEFFICIENTS: Path
 
 
-class NonMandatoryTourFrequencySettings(LogitComponentSettings):
+class NonMandatoryTourFrequencySettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `non_mandatory_tour_frequency` component.
     """
@@ -181,8 +181,11 @@ class NonMandatoryTourFrequencySettings(LogitComponentSettings):
     annotate_tours: PreprocessorSettings | None = None
     """Preprocessor settings to annotate tours"""
 
-    explicit_chunk: int = 0
-    """Number of rows to process in each chunk when explicit chunking is enabled"""
+    explicit_chunk: float = 0
+    """
+    If > 0, use this chunk size instead of adaptive chunking.
+    If less than 1, use this fraction of the total number of rows.
+    """
 
 
 @workflow.step
@@ -321,6 +324,7 @@ def non_mandatory_tour_frequency(
             trace_choice_name="non_mandatory_tour_frequency",
             estimator=estimator,
             explicit_chunk_size=model_settings.explicit_chunk,
+            compute_settings=model_settings.compute_settings,
         )
 
         if estimator:
@@ -333,6 +337,9 @@ def non_mandatory_tour_frequency(
 
         choices_list.append(choices)
 
+    # FIXME only want to keep actual purposes, adding cols in alts will mess this up
+    # this is complicated by canonical_ids calculated based on alts if not specified explicitly
+    # thus, adding column to input alts will change IDs and break estimation mode....
     del alternatives["tot_tours"]  # del tot_tours column we added above
 
     # The choice value 'non_mandatory_tour_frequency' assigned by interaction_simulate

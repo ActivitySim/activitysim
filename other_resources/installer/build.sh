@@ -4,6 +4,8 @@ set -xe
 
 env | sort
 
+eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)"
+
 echo "***** Start: Building Activitysim installer *****"
 CONSTRUCT_ROOT="${CONSTRUCT_ROOT:-${PWD}}"
 
@@ -19,7 +21,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
 fi
 # shellcheck disable=SC2154
 if [[ "${TARGET_PLATFORM}" == win-* ]]; then
-    conda install -y "nsis=3.01" -c conda-forge --override-channels
+    conda install -y "nsis>=3.01" -c conda-forge --override-channels
 fi
 # pip install git+git://github.com/conda/constructor@3.3.1#egg=constructor --force --no-deps
 conda list

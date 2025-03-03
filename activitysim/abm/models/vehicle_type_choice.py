@@ -485,6 +485,7 @@ def iterate_vehicle_type_choice(
                 trace_choice_name="vehicle_type",
                 estimator=estimator,
                 explicit_chunk_size=model_settings.explicit_chunk,
+                compute_settings=model_settings.compute_settings,
             )
 
         # otherwise, "simple simulation" should suffice, with a model spec that enumerates
@@ -500,6 +501,7 @@ def iterate_vehicle_type_choice(
                 trace_label=trace_label,
                 trace_choice_name="vehicle_type",
                 estimator=estimator,
+                compute_settings=model_settings.compute_settings,
             )
         else:
             raise NotImplementedError(simulation_type)
@@ -554,7 +556,7 @@ def iterate_vehicle_type_choice(
     return all_choices, all_choosers
 
 
-class VehicleTypeChoiceSettings(LogitComponentSettings):
+class VehicleTypeChoiceSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `vehicle_type_choice` component.
     """
@@ -583,8 +585,11 @@ class VehicleTypeChoiceSettings(LogitComponentSettings):
 
     FLEET_YEAR: int
 
-    explicit_chunk: int = 0
-    """If > 0, use this chunk size instead of adaptive chunking."""
+    explicit_chunk: float = 0
+    """
+    If > 0, use this chunk size instead of adaptive chunking.
+    If less than 1, use this fraction of the total number of rows.
+    """
 
 
 @workflow.step

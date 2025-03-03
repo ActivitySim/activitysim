@@ -19,8 +19,6 @@ from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
 
-# import multiprocessing
-
 
 """
 The school/workplace location model predicts the zones in which various people will
@@ -192,6 +190,10 @@ def _location_sample(
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer=zone_layer,
+        explicit_chunk_size=model_settings.explicit_chunk,
+        compute_settings=model_settings.compute_settings.subcomponent_settings(
+            "sample"
+        ),
     )
 
     return choices
@@ -696,6 +698,10 @@ def run_location_simulate(
         trace_choice_name=model_settings.DEST_CHOICE_COLUMN_NAME,
         estimator=estimator,
         skip_choice=skip_choice,
+        explicit_chunk_size=model_settings.explicit_chunk,
+        compute_settings=model_settings.compute_settings.subcomponent_settings(
+            "simulate"
+        ),
     )
 
     if not want_logsums:
@@ -1178,11 +1184,6 @@ def workplace_location(
         write_estimation_specs(
             state, estimator, model_settings, "workplace_location.yaml"
         )
-
-    # FIXME - debugging code to test multiprocessing failure handling
-    # process_name = multiprocessing.current_process().name
-    # if multiprocessing.current_process().name =='mp_households_0':
-    #     raise RuntimeError(f"fake fail {process_name}")
 
     # disable locutor for benchmarking
     if state.settings.benchmarking:

@@ -32,11 +32,12 @@ dependencies:
 - isort
 - jupyterlab
 - matplotlib
+- multimethod <2.0
 - myst-parser  # allows markdown in sphinx
 - nbconvert
 - nbformat
 - nbmake
-- numba = 0.56.*
+- numba = 0.57.*
 - numexpr
 - numpy = 1.23.*
 - numpydoc

@@ -277,6 +277,7 @@ def trip_mode_choice(
             trace_label=segment_trace_label,
             trace_choice_name="trip_mode_choice",
             estimator=estimator,
+            compute_settings=model_settings.compute_settings,
         )
 
         if state.settings.trace_hh_id:
@@ -370,6 +371,12 @@ def trip_mode_choice(
     state.add_table("trips", trips_df)
 
     if model_settings.annotate_trips:
+        # need to update locals_dict to access skims that are the same .shape as trips table
+        locals_dict = {}
+        locals_dict.update(constants)
+        simulate.set_skim_wrapper_targets(trips_merged, skims)
+        locals_dict.update(skims)
+        locals_dict["timeframe"] = "trip"
         annotate.annotate_trips(state, model_settings, trace_label, locals_dict)
 
     if state.settings.trace_hh_id:

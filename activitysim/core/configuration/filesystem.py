@@ -105,8 +105,8 @@ class FileSystem(PydanticBase, validate_assignment=True):
     """
     Name of the output directory for sharrow cache files.
 
-    If not given, a directory named "__sharrowcache__" will be created inside
-    the general cache directory.
+    If not given, the sharrow cache is stored in a run-independent persistent
+    location, according to `platformdirs.user_cache_dir`.  See `persist_sharrow_cache`.
     """
 
     settings_file_name: str = "settings.yaml"
@@ -133,6 +133,18 @@ class FileSystem(PydanticBase, validate_assignment=True):
         _parse_arg("output_dir", "output")
 
         return self
+
+    def parse_settings(self, settings):
+        def _parse_setting(name, x):
+            v = getattr(settings, x, None)
+            if v is not None:
+                setattr(self, name, v)
+
+        _parse_setting("cache_dir", "cache_dir")
+        _parse_setting("sharrow_cache_dir", "sharrow_cache_dir")
+        _parse_setting("profile_dir", "profile_dir")
+        _parse_setting("pipeline_file_name", "pipeline_file_name")
+        return
 
     def get_working_subdir(self, subdir) -> Path:
         if self.working_dir:
@@ -395,7 +407,8 @@ class FileSystem(PydanticBase, validate_assignment=True):
         Path
         """
         if self.sharrow_cache_dir is None:
-            out = self.get_cache_dir("__sharrowcache__")
+            self.persist_sharrow_cache()
+            out = self.sharrow_cache_dir
         else:
             out = self.get_working_subdir(self.sharrow_cache_dir)
         if not out.exists():
@@ -425,9 +438,12 @@ class FileSystem(PydanticBase, validate_assignment=True):
         --------
         FileSystem.sharrow_cache_dir
         """
+        import sharrow as sh
+
+        sharrow_minor_version = ".".join(sh.__version__.split(".")[:2])
         self.sharrow_cache_dir = Path(
             platformdirs.user_cache_dir(appname="ActivitySim")
-        ).joinpath(f"numba-{numba.__version__}")
+        ).joinpath(f"sharrow-{sharrow_minor_version}-numba-{numba.__version__}")
         self.sharrow_cache_dir.mkdir(parents=True, exist_ok=True)
 
     def _cascading_input_file_path(

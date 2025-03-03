@@ -478,14 +478,11 @@ class State:
             include_stack=False,
         )
 
-        # the settings can redefine the cache directories.
-        cache_dir = raw_settings.pop("cache_dir", None)
-        if cache_dir:
-            if self.filesystem.cache_dir != cache_dir:
-                logger.warning(f"settings file changes cache_dir to {cache_dir}")
-                self.filesystem.cache_dir = cache_dir
         settings_class = self.__class__.settings.member_type
         self.settings: Settings = settings_class.model_validate(raw_settings)
+
+        # need to parse any filesystem settings set in the settings file itself
+        self.filesystem.parse_settings(self.settings)
 
         extra_settings = set(self.settings.__dict__) - set(settings_class.__fields__)
 

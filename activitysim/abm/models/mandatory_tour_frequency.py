@@ -53,7 +53,7 @@ def add_null_results(state, trace_label, mandatory_tour_frequency_settings):
     state.add_table("persons", persons)
 
 
-class MandatoryTourFrequencySettings(LogitComponentSettings):
+class MandatoryTourFrequencySettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `mandatory_tour_frequency` component.
     """
@@ -134,6 +134,7 @@ def mandatory_tour_frequency(
         trace_label=trace_label,
         trace_choice_name="mandatory_tour_frequency",
         estimator=estimator,
+        compute_settings=model_settings.compute_settings,
     )
 
     # convert indexes to alternative names

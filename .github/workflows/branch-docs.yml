@@ -15,16 +15,14 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # get all tags, lets setuptools_scm do its thing
 
-      - name: Setup Mambaforge
+      - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v2
         with:
-          miniforge-variant: Mambaforge
           miniforge-version: latest
-          use-mamba: true
           python-version: "3.10"
           activate-environment: docbuild
           auto-activate-base: false
@@ -40,7 +38,7 @@ jobs:
         id: cache
 
       - name: Update environment
-        run: mamba env update --verbose -n docbuild -f conda-environments/docbuild.yml
+        run: conda env update --verbose -n docbuild -f conda-environments/docbuild.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install activitysim

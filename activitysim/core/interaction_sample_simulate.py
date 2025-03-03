@@ -7,7 +7,9 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, interaction_simulate, logit, tracing, workflow
+
+from activitysim.core import chunk, interaction_simulate, logit, tracing, workflow, util
+from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.simulate import set_skim_wrapper_targets
 
 logger = logging.getLogger(__name__)
@@ -31,6 +33,7 @@ def _interaction_sample_simulate(
     skip_choice=False,
     *,
     chunk_sizer: chunk.ChunkSizer,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -134,6 +137,39 @@ def _interaction_sample_simulate(
     logger.info(
         f"{trace_label} start merging choosers and alternatives to create interaction_df"
     )
+
+    # drop variables before the interaction dataframe is created
+    sharrow_enabled = state.settings.sharrow
+
+    if compute_settings is None:
+        compute_settings = ComputeSettings()
+
+    # check if tracing is enabled and if we have trace targets
+    # if not estimation mode, drop unused columns
+    if (
+        (not have_trace_targets)
+        and (estimator is None)
+        and (compute_settings.drop_unused_columns)
+    ):
+
+        choosers = util.drop_unused_columns(
+            choosers,
+            spec,
+            locals_d,
+            custom_chooser=None,
+            sharrow_enabled=sharrow_enabled,
+            additional_columns=compute_settings.protect_columns,
+        )
+
+        alternatives = util.drop_unused_columns(
+            alternatives,
+            spec,
+            locals_d,
+            custom_chooser=None,
+            sharrow_enabled=sharrow_enabled,
+            additional_columns=["tdd"] + compute_settings.protect_columns,
+        )
+
     interaction_df = alternatives.join(choosers, how="left", rsuffix="_chooser")
     logger.info(
         f"{trace_label} end merging choosers and alternatives to create interaction_df"
@@ -181,6 +217,7 @@ def _interaction_sample_simulate(
         trace_rows,
         estimator=estimator,
         log_alt_losers=log_alt_losers,
+        compute_settings=compute_settings,
     )
     chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
 
@@ -375,6 +412,9 @@ def interaction_sample_simulate(
     trace_choice_name=None,
     estimator=None,
     skip_choice=False,
+    explicit_chunk_size=0,
+    *,
+    compute_settings: ComputeSettings | None = None,
 ):
     """
     Run a simulation in the situation in which alternatives must
@@ -416,6 +456,9 @@ def interaction_sample_simulate(
     skip_choice: bool
         This skips the logit choice step and simply returns the alternatives table with logsums
         (used in disaggregate accessibility)
+    explicit_chunk_size : float, optional
+        If > 0, specifies the chunk size to use when chunking the interaction
+        simulation. If < 1, specifies the fraction of the total number of choosers.
 
     Returns
     -------
@@ -445,7 +488,13 @@ def interaction_sample_simulate(
         chunk_trace_label,
         chunk_sizer,
     ) in chunk.adaptive_chunked_choosers_and_alts(
-        state, choosers, alternatives, trace_label, chunk_tag, chunk_size=chunk_size
+        state,
+        choosers,
+        alternatives,
+        trace_label,
+        chunk_tag,
+        chunk_size=chunk_size,
+        explicit_chunk_size=explicit_chunk_size,
     ):
         choices = _interaction_sample_simulate(
             state,
@@ -464,6 +513,7 @@ def interaction_sample_simulate(
             estimator,
             skip_choice,
             chunk_sizer=chunk_sizer,
+            compute_settings=compute_settings,
         )
 
         result_list.append(choices)

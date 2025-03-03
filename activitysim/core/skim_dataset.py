@@ -714,6 +714,7 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
     omx_file_paths = state.filesystem.expand_input_file_list(
         network_los_preload.omx_file_names(skim_tag),
     )
+    omx_file_handles = []
     zarr_file = network_los_preload.zarr_file_name(skim_tag)
 
     if state.settings.disable_zarr:
@@ -746,7 +747,10 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
     else:
         remapper = None
 
-    d = _use_existing_backing_if_valid(backing, omx_file_paths, skim_tag)
+    if state.settings.store_skims_in_shm:
+        d = _use_existing_backing_if_valid(backing, omx_file_paths, skim_tag)
+    else:
+        d = None  # skims are not stored in shared memory, so we need to load them
     do_not_save_zarr = False
 
     if d is None:
@@ -768,8 +772,11 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
         if d is None:
             if zarr_file and not do_not_save_zarr:
                 logger.info("did not find zarr skims, loading omx")
+            omx_file_handles = [
+                openmatrix.open_file(f, mode="r") for f in omx_file_paths
+            ]
             d = sh.dataset.from_omx_3d(
-                [openmatrix.open_file(f, mode="r") for f in omx_file_paths],
+                omx_file_handles,
                 index_names=(
                     ("otap", "dtap", "time_period")
                     if skim_tag == "tap"
@@ -777,6 +784,7 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
                 ),
                 time_periods=time_periods,
                 max_float_precision=max_float_precision,
+                ignore=state.settings.omx_ignore_patterns,
             )
 
             if zarr_file:
@@ -835,6 +843,7 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
     else:
         land_use_zone_id = None
 
+    dask_required = False
     if network_los_preload.zone_system == ONE_ZONE:
         # check TAZ alignment for ONE_ZONE system.
         # other systems use MAZ for most lookups, which dynamically
@@ -845,6 +854,7 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
             except AssertionError as err:
                 logger.info(f"otaz realignment required\n{err}")
                 d = d.reindex(otaz=land_use_zone_id)
+                dask_required = True
             else:
                 logger.info("otaz alignment ok")
             d["otaz"] = land_use.index.to_numpy()
@@ -858,6 +868,7 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
             except AssertionError as err:
                 logger.info(f"dtaz realignment required\n{err}")
                 d = d.reindex(dtaz=land_use_zone_id)
+                dask_required = True
             else:
                 logger.info("dtaz alignment ok")
             d["dtaz"] = land_use.index.to_numpy()
@@ -866,10 +877,34 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
             np.testing.assert_array_equal(land_use.index, d.dtaz)
 
     if d.shm.is_shared_memory:
+        for f in omx_file_handles:
+            f.close()
+        return d
+    elif not state.settings.store_skims_in_shm:
+        logger.info(
+            "store_skims_in_shm is False, keeping skims in process-local memory"
+        )
         return d
     else:
         logger.info("writing skims to shared memory")
-        return d.shm.to_shared_memory(backing, mode="r")
+        if dask_required:
+            # setting `load` to True uses dask to load the data into memory
+            d_shared_mem = d.shm.to_shared_memory(backing, mode="r", load=True)
+        else:
+            # setting `load` to false then calling `reload_from_omx_3d` avoids
+            # using dask to load the data into memory, which is not performant
+            # on Windows for large datasets, but this only works if the data
+            # requires no realignment (i.e. the land use table and skims match
+            # exactly in order and length).
+            d_shared_mem = d.shm.to_shared_memory(backing, mode="r", load=False)
+            sh.dataset.reload_from_omx_3d(
+                d_shared_mem,
+                [str(i) for i in omx_file_paths],
+                ignore=state.settings.omx_ignore_patterns,
+            )
+        for f in omx_file_handles:
+            f.close()
+        return d_shared_mem
 
 
 @workflow.cached_object

@@ -83,7 +83,9 @@ def fast_eval(df: pd.DataFrame, expr: str, **kwargs) -> Any | None:
     kwargs["resolvers"] = tuple(kwargs.get("resolvers", ())) + resolvers
 
     try:
-        return _eval(expr, inplace=inplace, **kwargs)
+        return pd.Series(
+            _eval(expr, inplace=inplace, **kwargs), index=df.index, name=expr
+        ).__finalize__(df)
     except Exception as e:
         # Initially assume that the exception is caused by the potentially
         # breaking change in _get_cleaned_column_resolvers, and try again

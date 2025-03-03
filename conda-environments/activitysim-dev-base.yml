@@ -71,7 +71,7 @@ dependencies:
 - sphinx = 6.1.*
 - sphinx_rtd_theme = 1.2.*
 - sphinx-argparse = 0.4.*
-- xarray >= 2023.2
+- xarray = 2025.01.*
 - xmle
 - zarr = 2.14.*
 - zstandard

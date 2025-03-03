@@ -36,6 +36,6 @@ dependencies:
 - sharrow >= 2.9.1
 - simwrapper > 1.7
 - sparse
-- xarray = 2023.2.*
+- xarray = 2025.01.*
 - zarr = 2.14.*
 - zstandard

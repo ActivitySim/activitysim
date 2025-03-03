@@ -55,7 +55,7 @@ dependencies:
 - sphinx-copybutton
 - sphinx-remove-toctrees
 - sphinx_rtd_theme
-- xarray >= 0.21
+- xarray = 2025.01.*
 - zarr
 
 - pip:

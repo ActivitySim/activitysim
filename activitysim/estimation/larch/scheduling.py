@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from typing import Collection
@@ -7,6 +9,8 @@ import pandas as pd
 import yaml
 from larch import DataFrames, Model, P, X
 from larch.util import Dict
+
+from activitysim.core.fast_eval import fast_eval
 
 from .general import (
     apply_coefficients,
@@ -202,7 +206,7 @@ def construct_availability_ca(model, chooser_data, alt_codes_to_names):
             (
                 chooser_data[i.data]
                 if i.data in chooser_data
-                else chooser_data.eval(i.data)
+                else fast_eval(chooser_data, i.data)
             )
             for i in model.utility_co[acode]
             if (i.param == "-999" or i.param == "-999.0")

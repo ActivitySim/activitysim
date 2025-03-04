@@ -31,7 +31,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-          conda-solver: libmamba
+          conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ matrix.python-version }}
 
@@ -116,7 +116,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-          conda-solver: libmamba
+          conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ matrix.python-version }}
 
@@ -199,7 +199,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-          conda-solver: libmamba
+          conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -287,7 +287,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-          conda-solver: libmamba
+          conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -350,7 +350,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-          conda-solver: libmamba
+          conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -402,7 +402,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-          conda-solver: libmamba
+          conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 

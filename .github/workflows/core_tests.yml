@@ -33,6 +33,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
           conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ matrix.python-version }}
@@ -118,6 +119,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
           conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ matrix.python-version }}
@@ -201,6 +203,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
           conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
@@ -289,6 +292,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
           conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
@@ -352,6 +356,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
           conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
@@ -404,6 +409,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
           conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
@@ -463,6 +469,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-version: latest
+          mamba-version: "2.0.5"
           environment-file: conda-environments/docbuild.yml
           python-version: "3.10"
           activate-environment: docbuild

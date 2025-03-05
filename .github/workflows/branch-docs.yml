@@ -11,6 +11,8 @@ jobs:
     # develop branch docs are built at the end of the core test workflow, regardless of repository owner or commit message flags
     name: ubuntu-latest py3.10
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     defaults:
       run:
         shell: bash -l {0}
@@ -60,7 +62,7 @@ jobs:
           make html
 
       - name: Push to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3.8.0
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Token is created automatically by Github Actions, no other config needed

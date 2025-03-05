@@ -10,7 +10,7 @@ on:
       - '*'
 
 env:
-  CACHE_NUMBER: 2  # increase to reset cache manually
+  CACHE_NUMBER: 0  # increase to reset cache manually
 
 jobs:
   foundation:
@@ -29,9 +29,11 @@ jobs:
       - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v3
         with:
-            miniforge-version: latest
-            activate-environment: asim-test
-            python-version: ${{ matrix.python-version }}
+          auto-update-conda: true
+          miniforge-version: latest
+          conda-solver: classic
+          activate-environment: asim-test
+          python-version: ${{ matrix.python-version }}
 
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
@@ -112,9 +114,11 @@ jobs:
       - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v3
         with:
-            miniforge-version: latest
-            activate-environment: asim-test
-            python-version: ${{ matrix.python-version }}
+          auto-update-conda: true
+          miniforge-version: latest
+          conda-solver: classic
+          activate-environment: asim-test
+          python-version: ${{ matrix.python-version }}
 
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
@@ -193,7 +197,9 @@ jobs:
       - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v3
         with:
+          auto-update-conda: true
           miniforge-version: latest
+          conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -279,7 +285,9 @@ jobs:
       - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v3
         with:
+          auto-update-conda: true
           miniforge-version: latest
+          conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -340,7 +348,9 @@ jobs:
       - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v3
         with:
+          auto-update-conda: true
           miniforge-version: latest
+          conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -390,7 +400,9 @@ jobs:
       - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v3
         with:
+          auto-update-conda: true
           miniforge-version: latest
+          conda-solver: classic
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -432,6 +444,8 @@ jobs:
     if: github.ref_name == 'main'
     name: develop-docbuild
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     defaults:
       run:
         shell: bash -l {0}
@@ -472,7 +486,7 @@ jobs:
           make clean
           make html
       - name: Push to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3.8.0
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Token is created automatically by Github Actions, no other config needed

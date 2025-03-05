@@ -112,6 +112,13 @@
     trigger various GitHub Actions scripts to build, test, and publish the
     new release to PyPI and conda forge, assuming there are no errors.
 
+00. Build the ActivitySim Standalone Windows Installer.  This is done using 
+    GitHub Actions, but it is not done automatically when a release is created, 
+    instead it requires a manual workflow dispatch trigger.  You can do this by 
+    going to the [build_installer workflow page](https://github.com/ActivitySim/activitysim/actions/workflows/build_installer.yml)
+    and clicking on the "Run workflow" button.  You will need to provide the 
+    version number and choose to add the built installer to the release.
+
 00. Clean up your workspace, including removing the Conda environment used for
     testing (which will prevent you from accidentally using an old
     environment when you should have a fresh up-to-date one next time).

@@ -8,6 +8,8 @@ on:
   pull_request:
     branches:
       - '*'
+  
+  workflow_dispatch:
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
@@ -31,7 +33,9 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
           conda-solver: classic
+          conda-remove-defaults: true
           activate-environment: asim-test
           python-version: ${{ matrix.python-version }}
 
@@ -116,7 +120,9 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
           conda-solver: classic
+          conda-remove-defaults: true
           activate-environment: asim-test
           python-version: ${{ matrix.python-version }}
 
@@ -199,7 +205,9 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
           conda-solver: classic
+          conda-remove-defaults: true
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -287,7 +295,9 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
           conda-solver: classic
+          conda-remove-defaults: true
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -350,7 +360,9 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
           conda-solver: classic
+          conda-remove-defaults: true
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -402,7 +414,9 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
           conda-solver: classic
+          conda-remove-defaults: true
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -461,6 +475,8 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-version: latest
+          mamba-version: "2.0.5"
+          conda-remove-defaults: true
           environment-file: conda-environments/docbuild.yml
           python-version: "3.10"
           activate-environment: docbuild

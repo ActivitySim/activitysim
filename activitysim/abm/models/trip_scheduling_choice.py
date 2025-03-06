@@ -358,7 +358,6 @@ def trip_scheduling_choice(
     model_settings_file_name: str = "trip_scheduling_choice.yaml",
     trace_label: str = "trip_scheduling_choice",
 ) -> None:
-
     if model_settings is None:
         model_settings = TripSchedulingChoiceSettings.read_settings_file(
             state.filesystem,
@@ -416,7 +415,6 @@ def trip_scheduling_choice(
     }
 
     if preprocessor_settings:
-
         simulate.set_skim_wrapper_targets(tours_df, skims)
 
         expressions.assign_columns(

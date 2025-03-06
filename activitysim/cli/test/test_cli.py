@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
@@ -12,7 +14,6 @@ if sys.version_info < (3, 7):
 
 
 def test_help():
-
     # cp = completed process
     cp = subprocess.run(["activitysim", "-h"], capture_output=True)
 
@@ -20,14 +21,12 @@ def test_help():
 
 
 def test_create_help():
-
     cp = subprocess.run(["activitysim", "create", "-h"], capture_output=True)
 
     assert "usage: activitysim create [-h] (-l | -e PATH) [-d PATH]" in str(cp.stdout)
 
 
 def test_create_list():
-
     cp = subprocess.run(["activitysim", "create", "--list"], capture_output=True)
 
     assert "Available examples" in str(cp.stdout)
@@ -35,7 +34,6 @@ def test_create_list():
 
 
 def test_create_copy():
-
     target = os.path.join(os.path.dirname(__file__), "test_example")
     cp = subprocess.run(
         [
@@ -67,7 +65,6 @@ def test_create_copy():
 
 
 def test_run():
-
     cp = subprocess.run(["activitysim", "run"], capture_output=True)
 
     # expect error
@@ -75,7 +72,6 @@ def test_run():
 
 
 if __name__ == "__main__":
-
     test_help()
     test_create_help()
     test_create_list()

@@ -14,7 +14,6 @@ from activitysim.core import assign, workflow
 
 
 def close_handlers():
-
     loggers = logging.Logger.manager.loggerDict
     for name in loggers:
         logger = logging.getLogger(name)

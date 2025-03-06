@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import os
 
@@ -91,7 +93,6 @@ print(f"output_dir {output_dir} maz_min {maz_min} maz_max {maz_max}")
 
 
 if check_geography:
-
     # ######## check for orphan_households not in any maz in land_use
     land_use = read_csv("land_use.csv")
     land_use = land_use[["MAZ", "TAZ"]]  # King County
@@ -255,7 +256,6 @@ for omx_file in omx_out:
 
 iskim = 0
 for mat_name in omx_in.list_matrices():
-
     # make sure we have a vanilla numpy array, not a CArray
     m = np.asanyarray(omx_in[mat_name]).astype(skim_data_type)
     m = m[tazs_indexes, :][:, tazs_indexes]

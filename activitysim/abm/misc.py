@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 @workflow.cached_object
 def households_sample_size(state: workflow.State, override_hh_ids) -> int:
-
     if override_hh_ids is None:
         return state.settings.households_sample_size
     else:
@@ -27,7 +26,6 @@ def households_sample_size(state: workflow.State, override_hh_ids) -> int:
 
 @workflow.cached_object
 def override_hh_ids(state: workflow.State) -> np.ndarray | None:
-
     hh_ids_filename = state.settings.hh_ids
     if hh_ids_filename is None:
         return None
@@ -65,7 +63,6 @@ def override_hh_ids(state: workflow.State) -> np.ndarray | None:
 
 @workflow.cached_object
 def trace_od(state: workflow.State) -> tuple[int, int] | None:
-
     od = state.settings.trace_od
 
     if od and not (

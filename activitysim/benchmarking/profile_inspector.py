@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import contextlib
 import io
@@ -51,7 +53,6 @@ def benchmark_snakeviz(json_record, benchmark=None):
         except KeyboardInterrupt:
             pass
         except Exception:
-
             traceback.print_exc()
             input(input("Press Enter to continue..."))
         finally:

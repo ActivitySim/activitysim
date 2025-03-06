@@ -95,7 +95,6 @@ def make_scene_name(it, params):
 
 
 def copy_output(scene_name, model_settings):
-
     scene_dir_name = os.path.join("scenarios_output", scene_name)
 
     if os.path.exists(extended_path(scene_dir_name)):

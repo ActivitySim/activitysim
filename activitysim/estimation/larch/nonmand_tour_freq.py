@@ -1,9 +1,21 @@
+from __future__ import annotations
+
 import logging
 import os
+import pickle
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
 import yaml
+
+from .general import (
+    apply_coefficients,
+    cv_to_ca,
+    linear_utility_from_spec,
+    remove_apostrophes,
+)
+
 try:
     import larch
 except ImportError:
@@ -13,15 +25,7 @@ else:
     from larch import DataFrames, Model
     from larch.log import logger_name
     from larch.util import Dict
-import pickle
-from datetime import datetime
 
-from .general import (
-    apply_coefficients,
-    cv_to_ca,
-    linear_utility_from_spec,
-    remove_apostrophes,
-)
 
 _logger = logging.getLogger(logger_name)
 

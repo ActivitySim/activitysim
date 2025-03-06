@@ -72,7 +72,6 @@ def auto_ownership_simulate(
     # - preprocessor
     preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
-
         locals_d = {}
         if constants is not None:
             locals_d.update(constants)

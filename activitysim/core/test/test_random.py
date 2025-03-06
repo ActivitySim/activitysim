@@ -11,7 +11,6 @@ from activitysim.core import random
 
 
 def test_basic():
-
     rng = random.Random()
 
     rng.set_base_seed(0)
@@ -34,7 +33,6 @@ def test_basic():
 
 
 def test_channel():
-
     channels = {
         "households": "household_id",
         "persons": "person_id",

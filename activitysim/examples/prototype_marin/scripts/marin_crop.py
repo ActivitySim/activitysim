@@ -1,6 +1,8 @@
 # crop marin tvpb example data processing to one county
 # Ben Stabler, ben.stabler@rsginc.com, 09/17/20
 
+from __future__ import annotations
+
 import argparse
 import os
 
@@ -95,7 +97,6 @@ ACCESSIBILITY = "access.csv"
 WORK_TOURS = "work_tours.csv"
 
 if check_geography:
-
     # ######## check for orphan_households not in any maz in land_use
     land_use = read_csv(LAND_USE)
     land_use = land_use[["MAZ", "TAZ"]]

@@ -236,7 +236,6 @@ def non_mandatory_tour_frequency(
     # - preprocessor
     preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
-
         locals_dict = {
             "person_max_window": lambda x: person_max_window(state, x),
             "person_available_periods": lambda persons, start_bin, end_bin, continuous: person_available_periods(

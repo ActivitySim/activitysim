@@ -2,6 +2,8 @@
 # Ben Stabler, ben.stabler@rsginc.com, 06/06/18
 # C:\projects\development\activitysim\example>python ../scripts/make_pipeline_output.py
 
+from __future__ import annotations
+
 import pandas as pd
 
 pipeline_filename = "output\\pipeline.h5"
@@ -26,7 +28,6 @@ p_tables = p_tables.sort_values(by=["table", "timestamp"])
 # TABLE, FIELD, DTYPE, CREATOR, NCOL, NROW
 tables_fields = dict()
 for i in range(len(p_tables)):
-
     cur_table = p_tables["table"].iloc[i]
     cur_cp = p_tables["cp"].iloc[i]
 

@@ -91,7 +91,6 @@ def test_arc_sharrow():
 
 
 if __name__ == "__main__":
-
     _test_arc()
     _test_arc(recode=True)
     _test_arc(sharrow=True)

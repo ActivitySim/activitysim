@@ -40,7 +40,7 @@ dependencies:
 - numpydoc
 - openmatrix = 0.3.*
 - orca = 1.8
-- pandas = 1.4.*
+- pandas = 2.2.*
 - pandera >= 0.15, <0.18.1
 - platformdirs = 3.2.*
 - pre-commit

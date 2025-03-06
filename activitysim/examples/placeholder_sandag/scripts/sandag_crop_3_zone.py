@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import os
 
@@ -83,7 +85,6 @@ def to_csv(df, file_name):
 
 
 def crop_omx(omx_file_name, zones, num_outfiles=1):
-
     skim_data_type = np.float32
 
     omx_in = omx.open_file(input_path(f"{omx_file_name}.omx"))
@@ -139,7 +140,6 @@ TAZ = "taz.csv"
 
 
 if check_geography:
-
     # ######## check for orphan_households not in any maz in land_use
     land_use = read_csv(LAND_USE)
     land_use = land_use[["MAZ", "TAZ"]]

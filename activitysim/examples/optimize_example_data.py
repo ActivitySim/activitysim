@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 import openmatrix
@@ -5,7 +7,6 @@ import pandas as pd
 
 
 def patch_example_sandag_1_zone(example_dir):
-
     cwd = os.getcwd()
     try:
         os.chdir(example_dir)

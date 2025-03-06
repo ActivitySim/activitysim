@@ -73,5 +73,4 @@ def test_mwcog_sharrow():
 
 
 if __name__ == "__main__":
-
     test_mwcog()

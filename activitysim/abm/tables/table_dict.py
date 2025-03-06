@@ -18,13 +18,11 @@ should be registered as random number generator channels.
 
 @workflow.cached_object
 def rng_channels(state: workflow.State):
-
     return cid.RANDOM_CHANNELS
 
 
 @workflow.cached_object
 def traceable_tables(state: workflow.State):
-
     # names of all traceable tables ordered by dependency on household_id
     # e.g. 'persons' has to be registered AFTER 'households'
 

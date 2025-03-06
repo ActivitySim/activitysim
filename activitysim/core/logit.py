@@ -72,7 +72,6 @@ def report_bad_choices(
 
     # log the indexes of the first MAX_DUMP offending rows
     for idx in df.index[:MAX_PRINT].values:
-
         row_msg = "%s : %s in: %s = %s (hh_id = %s)" % (
             trace_label,
             msg,
@@ -313,7 +312,6 @@ def make_choices(
     ).abs() > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
 
     if bad_probs.any() and not allow_bad_probs:
-
         report_bad_choices(
             state,
             bad_probs,
@@ -458,7 +456,6 @@ class Nest:
 
 
 def validate_nest_spec(nest_spec: dict | LogitNestSpec, trace_label: str):
-
     keys = []
     duplicates = []
     for nest in each_nest(nest_spec):

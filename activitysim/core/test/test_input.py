@@ -48,7 +48,6 @@ def state():
 
 
 def test_missing_table_list(state):
-
     state.load_settings()
     assert isinstance(state.settings, configuration.Settings)
 
@@ -58,7 +57,6 @@ def test_missing_table_list(state):
 
 
 def test_csv_reader(seed_households, state):
-
     settings_yaml = """
         input_table_list:
           - tablename: households
@@ -83,7 +81,6 @@ def test_csv_reader(seed_households, state):
 
 
 def test_hdf_reader1(seed_households, state):
-
     settings_yaml = """
         input_table_list:
           - tablename: households
@@ -108,7 +105,6 @@ def test_hdf_reader1(seed_households, state):
 
 
 def test_hdf_reader2(seed_households, state):
-
     settings_yaml = """
         input_table_list:
           - tablename: households
@@ -134,7 +130,6 @@ def test_hdf_reader2(seed_households, state):
 
 
 def test_hdf_reader3(seed_households, state):
-
     settings_yaml = """
         input_store: input_data.h5
         input_table_list:
@@ -159,7 +154,6 @@ def test_hdf_reader3(seed_households, state):
 
 
 def test_missing_filename(seed_households, state):
-
     settings_yaml = """
         input_table_list:
           - tablename: households
@@ -178,7 +172,6 @@ def test_missing_filename(seed_households, state):
 
 
 def test_create_input_store(seed_households, state):
-
     settings_yaml = """
         create_input_store: True
         input_table_list:

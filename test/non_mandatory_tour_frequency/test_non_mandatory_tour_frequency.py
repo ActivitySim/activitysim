@@ -18,6 +18,7 @@ from activitysim.core.util import read_csv, to_csv
 
 logger = logging.getLogger(__name__)
 
+
 # Used by conftest.py initialize_pipeline method
 @pytest.fixture(scope="module")
 def module() -> str:

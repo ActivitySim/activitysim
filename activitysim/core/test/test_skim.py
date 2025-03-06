@@ -22,7 +22,6 @@ class FakeSkimInfo(object):
 
 
 def test_skims(data):
-
     # ROW_MAJOR_LAYOUT
     omx_shape = (10, 10)
     num_skims = 2
@@ -61,7 +60,6 @@ def test_skims(data):
 
 
 def test_3dskims(data):
-
     # ROW_MAJOR_LAYOUT
     omx_shape = (10, 10)
     num_skims = 2

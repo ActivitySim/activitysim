@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 import pandas as pd
@@ -26,7 +28,6 @@ def composite_log(
     archive_dir,
     compares=("compile", "sharrow", "legacy", "reference"),
 ) -> dict:
-
     reset_progress_step(description="composite timing and memory logs")
 
     timings = {}

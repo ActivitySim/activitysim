@@ -7,7 +7,7 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-from ..util import other_than, quick_loc_df, quick_loc_series, reindex, df_from_dict
+from ..util import df_from_dict, other_than, quick_loc_df, quick_loc_series, reindex
 
 
 @pytest.fixture(scope="module")
@@ -41,7 +41,6 @@ def test_reindex():
 
 
 def test_quick_loc_df():
-
     df = pd.DataFrame({"attrib": ["1", "2", "3", "4", "5"]}, index=[1, 2, 3, 4, 5])
 
     loc_list = np.asanyarray([2, 1, 3, 4, 4, 5, 1])
@@ -54,7 +53,6 @@ def test_quick_loc_df():
 
 
 def test_quick_loc_series():
-
     series = pd.Series(["1", "2", "3", "4", "5"], index=[1, 2, 3, 4, 5])
 
     loc_list = np.asanyarray([2, 1, 3, 4, 4, 5, 1])
@@ -65,7 +63,6 @@ def test_quick_loc_series():
 
 
 def test_df_from_dict():
-
     index = [1, 2, 3, 4, 5]
     df = pd.DataFrame({"attrib": [1, 2, 2, 3, 1]}, index=index)
 

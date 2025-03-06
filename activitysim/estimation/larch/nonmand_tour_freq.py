@@ -4,9 +4,15 @@ from pathlib import Path
 
 import pandas as pd
 import yaml
-from larch import DataFrames, Model
-from larch.log import logger_name
-from larch.util import Dict
+try:
+    import larch
+except ImportError:
+    larch = None
+    logger_name = "larch"
+else:
+    from larch import DataFrames, Model
+    from larch.log import logger_name
+    from larch.util import Dict
 import pickle
 from datetime import datetime
 

@@ -7,14 +7,20 @@ import os
 import re
 from pathlib import Path
 
-import larch
+try:
+    import larch
+except ImportError:
+    larch = None
+    logger_name = "larch"
+else:
+    from larch import DataFrames, Model, P, X
+    from larch.log import logger_name
+    from larch.model.model_group import ModelGroup
+    from larch.util import Dict
+
 import numpy as np
 import pandas as pd
 import yaml
-from larch import DataFrames, Model, P, X
-from larch.log import logger_name
-from larch.model.model_group import ModelGroup
-from larch.util import Dict
 
 from ...abm.models.util import cdap
 from .general import apply_coefficients, explicit_value_parameters

@@ -236,7 +236,7 @@ intersphinx_mapping = {
     "pandas": ("http://pandas.pydata.org/pandas-docs/stable", None),
     "xarray": ("https://docs.xarray.dev/en/stable", None),
     "pyarrow": ("https://arrow.apache.org/docs", None),
-    "numba": ("https://numba.pydata.org/numba-doc/latest", None),
+    "numba": ("https://numba.readthedocs.io/en/latest/", None),
     "psutil": ("https://psutil.readthedocs.io/en/latest", None),
 }
 

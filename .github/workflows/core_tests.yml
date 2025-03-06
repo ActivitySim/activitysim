@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
       - '*'
-  
+
   workflow_dispatch:
 
 env:
@@ -454,7 +454,7 @@ jobs:
           python -m pytest activitysim/estimation/test/test_larch_estimation.py --durations=0
 
   develop-docbuild:
-    needs: foundation
+    # needs: foundation # don't block for now...
     if: github.ref_name == 'main' || github.ref_name == 'docs-fix'
     name: develop-docbuild
     runs-on: ubuntu-latest

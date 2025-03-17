@@ -112,6 +112,12 @@
     trigger various GitHub Actions scripts to build, test, and publish the
     new release to PyPI and conda forge, assuming there are no errors.
 
+00. If the dependencies of ActivitySim have changed, also be sure to update the
+    dependencies of the conda-forge [recipe](https://github.com/conda-forge/activitysim-feedstock/tree/main/recipe).
+    If the dependencies of ActivitySim have not changed, the conda-forge version
+    of ActivitySim should auto-update within a few hours of making the release on
+    Github.
+
 00. Build the ActivitySim Standalone Windows Installer.  This is done using 
     GitHub Actions, but it is not done automatically when a release is created, 
     instead it requires a manual workflow dispatch trigger.  You can do this by 

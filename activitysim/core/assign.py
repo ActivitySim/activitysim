@@ -311,7 +311,6 @@ def assign_variables(
             n_randoms += 1
             assignment_expressions.loc[expression_idx, "expression"] = expression
     if n_randoms:
-
         try:
             random_draws = state.get_rn_generator().normal_for_df(
                 df, broadcast=True, size=n_randoms

@@ -7,8 +7,6 @@ from typing import Collection
 import numpy as np
 import pandas as pd
 import yaml
-from larch import DataFrames, Model, P, X
-from larch.util import Dict
 
 from activitysim.core.fast_eval import fast_eval
 
@@ -21,6 +19,14 @@ from .general import (
     remove_apostrophes,
     str_repr,
 )
+
+try:
+    import larch
+except ImportError:
+    larch = None
+else:
+    from larch import DataFrames, Model, P, X
+    from larch.util import Dict
 
 
 def schedule_choice_model(

@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import os
 import sys
 
@@ -23,7 +25,6 @@ dest_data_dir = "/Users/jeff.doyle/work/activitysim-data"
 
 
 def create_subset(dest_store, dest_skims, maxZone, households_sample_size=0):
-
     dest_store_path = os.path.join(dest_data_dir, dest_store)
     dest_skims_path = os.path.join(dest_data_dir, dest_skims)
 

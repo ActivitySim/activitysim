@@ -2,6 +2,8 @@
 # crop marin tvpb example data processing to one county
 # Ben Stabler, ben.stabler@rsginc.com, 09/17/20
 
+from __future__ import annotations
+
 import argparse
 import glob
 import os
@@ -83,7 +85,6 @@ def to_csv(df, file_name):
 
 
 def crop_omx(omx_file_name, zones, num_outfiles=1):
-
     skim_data_type = np.float32
 
     omx_in = omx.open_file(input_path(f"{omx_file_name}.omx"))

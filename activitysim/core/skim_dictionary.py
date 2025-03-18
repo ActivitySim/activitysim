@@ -1,10 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 from __future__ import annotations
-from collections import OrderedDict
 
 import logging
 from builtins import object, range
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
@@ -38,7 +38,6 @@ class OffsetMapper(object):
     """
 
     def __init__(self, offset_int=None, offset_list=None, offset_series=None):
-
         self.offset_int = self.offset_series = None
 
         assert (offset_int is not None) + (offset_list is not None) + (
@@ -160,7 +159,6 @@ class SkimDict:
     """
 
     def __init__(self, state, skim_tag, skim_info, skim_data):
-
         logger.info(f"SkimDict init {skim_tag}")
 
         self.skim_tag = skim_tag
@@ -772,7 +770,6 @@ class MazSkimDict(SkimDict):
         is_nan = np.isnan(values)
 
         if max_blend_distance > 0:
-
             # print(f"{is_nan.sum()} nans out of {len(is_nan)} for key '{self.key}")
             # print(f"blend_distance_skim_name {self.blend_distance_skim_name}")
 
@@ -802,7 +799,6 @@ class MazSkimDict(SkimDict):
             # print(f"{is_nan.sum()} nans out of {len(is_nan)} for key '{self.key}")
 
             if key in self.base_keys:
-
                 # replace nan values using simple backstop without blending
                 backstop_values = super().lookup(orig, dest, key)
                 values = np.where(is_nan, backstop_values, values)

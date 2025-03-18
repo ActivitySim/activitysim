@@ -114,7 +114,6 @@ logging_config_content = {
 
 @pytest.mark.parametrize("logging_yaml", logging_config_content.keys())
 def test_config_logger(capsys, logging_yaml):
-
     print(logging_config_content[logging_yaml])
 
     state = workflow.State.make_temp()

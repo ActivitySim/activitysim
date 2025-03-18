@@ -148,7 +148,6 @@ def initialize_households(
     model_settings_file_name: str = "initialize_households.yaml",
     trace_label: str = "initialize_households",
 ) -> None:
-
     with chunk.chunk_log(state, trace_label, base=True) as chunk_sizer:
         chunk_sizer.log_rss(f"{trace_label}.inside-yield")
 

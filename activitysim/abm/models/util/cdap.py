@@ -297,7 +297,6 @@ def cached_joint_spec_name(hhsize):
 
 
 def get_cached_spec(state: workflow.State, hhsize):
-
     spec_name = cached_spec_name(hhsize)
 
     spec = state.get_injectable(spec_name, None)
@@ -319,7 +318,6 @@ def get_cached_spec(state: workflow.State, hhsize):
 
 
 def get_cached_joint_spec(state: workflow.State, hhsize):
-
     spec_name = cached_joint_spec_name(hhsize)
 
     spec = state.get_injectable(spec_name, None)
@@ -625,7 +623,6 @@ def build_cdap_joint_spec(
     #         N_p1  0.0  0.0  0.0  1.0  1.0  1.0  0.0  0.0  0.0
     for pnum in range(1, hhsize + 1):
         for activity in ["M", "N", "H"]:
-
             new_row_index = len(spec)
             spec.loc[new_row_index, expression_name] = add_pn(activity, pnum)
 
@@ -638,7 +635,6 @@ def build_cdap_joint_spec(
 
     # for each row in the joint util table
     for row in joint_tour_coefficients.itertuples():
-
         # if there is no dependencies
         if row.dependency is np.nan:
             expression = row.Expression

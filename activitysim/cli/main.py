@@ -6,7 +6,6 @@ import sys
 
 
 def prog():
-
     from activitysim import __doc__, __version__, workflows
     from activitysim.cli import CLI, benchmark, create, exercise, run
 
@@ -45,7 +44,6 @@ def prog():
 
 
 def main():
-
     # set all these before we import numpy or any other math library
     if len(sys.argv) > 1 and sys.argv[1] == "benchmark":
         os.environ["MKL_NUM_THREADS"] = "1"

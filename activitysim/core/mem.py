@@ -147,7 +147,6 @@ def consolidate_logs(state: workflow.State):
 
 
 def check_global_hwm(tag, value, label):
-
     assert value is not None
 
     hwm = GLOBAL_HWM.setdefault(tag, {})
@@ -164,7 +163,6 @@ def check_global_hwm(tag, value, label):
 
 
 def log_global_hwm():
-
     process_name = multiprocessing.current_process().name
 
     for tag in GLOBAL_HWM:
@@ -177,7 +175,6 @@ def log_global_hwm():
 
 
 def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False, *, state):
-
     global MEM_TICK
 
     if state is None:
@@ -232,7 +229,6 @@ def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False, *, stat
     noteworthy = check_global_hwm("uss", uss, event) or noteworthy
 
     if noteworthy:
-
         # logger.debug(f"trace_memory_info {event} "
         #              f"rss: {GB(full_rss) if num_children else GB(rss)} "
         #              f"uss: {GB(rss)} ")
@@ -266,7 +262,6 @@ def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False, *, stat
 
 
 def get_rss(force_garbage_collect=False, uss=False):
-
     if force_garbage_collect:
         was_disabled = not gc.isenabled()
         if was_disabled:

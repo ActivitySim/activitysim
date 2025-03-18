@@ -6,8 +6,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
-from larch import DataFrames, Model
-from larch.util import Dict
 
 from activitysim.core.fast_eval import fast_eval
 
@@ -17,6 +15,14 @@ from .general import (
     dict_of_linear_utility_from_spec,
     remove_apostrophes,
 )
+
+try:
+    import larch
+except ImportError:
+    larch = None
+else:
+    from larch import DataFrames, Model
+    from larch.util import Dict
 
 
 def construct_availability(model, chooser_data, alt_codes_to_names):

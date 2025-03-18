@@ -209,7 +209,6 @@ def validate_with_pydantic(
 
 
 def report_errors(state, input_checker_settings, v_warnings, v_errors):
-
     # logging overall statistics first before printing details
     for table_settings in input_checker_settings["table_list"]:
         table_name = table_settings["name"]

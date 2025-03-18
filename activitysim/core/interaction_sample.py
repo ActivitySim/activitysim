@@ -13,8 +13,8 @@ from activitysim.core import (
     logit,
     simulate,
     tracing,
-    workflow,
     util,
+    workflow,
 )
 from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.skim_dataset import DatasetWrapper
@@ -250,7 +250,6 @@ def _interaction_sample(
     # check if tracing is enabled and if we have trace targets
     # if not estimation mode, drop unused columns
     if (not have_trace_targets) and (compute_settings.drop_unused_columns):
-
         choosers = util.drop_unused_columns(
             choosers,
             spec,

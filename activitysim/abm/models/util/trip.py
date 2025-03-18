@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 def failed_trip_cohorts(trips, failed):
-
     # outbound trips in a tour with a failed outbound trip
     bad_outbound_trips = trips.outbound & (
         trips.tour_id.isin(trips.tour_id[failed & trips.outbound])

@@ -114,11 +114,9 @@ class SkimInfo(object):
         self.omx_manifest = {}  # dict mapping { omx_key: skim_name }
 
         for omx_file_path in self.omx_file_paths:
-
             logger.debug(f"load_skim_info {skim_tag} reading {omx_file_path}")
 
             with omx.open_file(omx_file_path, mode="r") as omx_file:
-
                 # fixme call to omx_file.shape() failing in windows p3.5
                 if self.omx_shape is None:
                     self.omx_shape = tuple(
@@ -190,7 +188,6 @@ class SkimInfo(object):
         # ('DRV_COM_WLK_BOARDS', 'MD') 4, ...
         self.block_offsets = dict()
         for skim_key in self.omx_keys:
-
             if isinstance(skim_key, tuple):
                 key1, key2 = skim_key
             else:
@@ -281,7 +278,6 @@ class AbstractSkimFactory(ABC):
         omx_manifest = skim_info.omx_manifest  # dict mapping { omx_key: skim_name }
 
         for omx_file_path in skim_info.omx_file_paths:
-
             num_skims_loaded = 0
 
             logger.info(f"_read_skims_from_omx {omx_file_path}")
@@ -289,9 +285,7 @@ class AbstractSkimFactory(ABC):
             # read skims into skim_data
             with omx.open_file(omx_file_path, mode="r") as omx_file:
                 for skim_key, omx_key in omx_keys.items():
-
                     if omx_manifest[omx_key] == omx_file_path:
-
                         offset = skim_info.block_offsets[skim_key]
                         logger.debug(
                             f"_read_skims_from_omx file {omx_file_path} omx_key {omx_key} "
@@ -366,7 +360,6 @@ class AbstractSkimFactory(ABC):
         return data
 
     def copy_omx_to_mmap_file(self, skim_info):
-
         skim_data = self._create_empty_writable_memmap_skim_cache(skim_info)
         self._read_skims_from_omx(skim_info, skim_data)
         skim_data._mmap.close()

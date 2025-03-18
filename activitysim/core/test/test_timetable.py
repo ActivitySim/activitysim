@@ -15,7 +15,6 @@ from activitysim.core import workflow
 
 @pytest.fixture
 def persons():
-
     df = pd.DataFrame(index=list(range(6)))
 
     return df
@@ -55,11 +54,9 @@ def tdd_alts():
 
 
 def test_basic(persons, tdd_alts):
-
     state = workflow.State().default_settings()
 
     with chunk.chunk_log(state, "test_basic", base=True):
-
         person_windows = tt.create_timetable_windows(persons, tdd_alts)
 
         timetable = tt.TimeTable(person_windows, tdd_alts, "person_windows")

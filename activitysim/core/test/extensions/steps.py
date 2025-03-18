@@ -7,28 +7,24 @@ from activitysim.core import workflow
 
 @workflow.step
 def step1(state: workflow.State) -> None:
-
     table1 = pd.DataFrame({"c": [1, 2, 3]})
     state.add_table("table1", table1)
 
 
 @workflow.step
 def step2(state: workflow.State) -> None:
-
     table1 = pd.DataFrame({"c": [2, 4, 6]})
     state.add_table("table2", table1)
 
 
 @workflow.step
 def step3(state: workflow.State) -> None:
-
     table1 = pd.DataFrame({"c": [3, 6, 9]})
     state.add_table("table3", table1)
 
 
 @workflow.step
 def step_add_col(state: workflow.State) -> None:
-
     table_name = state.get_step_arg("table_name")
     assert table_name is not None
 
@@ -46,7 +42,6 @@ def step_add_col(state: workflow.State) -> None:
 
 @workflow.step
 def step_forget_tab(state: workflow.State) -> None:
-
     table_name = state.get_step_arg("table_name")
     assert table_name is not None
 
@@ -57,7 +52,6 @@ def step_forget_tab(state: workflow.State) -> None:
 
 @workflow.step
 def create_households(state: workflow.State) -> None:
-
     df = pd.DataFrame({"household_id": [1, 2, 3], "home_zone_id": {100, 100, 101}})
     state.add_table("households", df)
 

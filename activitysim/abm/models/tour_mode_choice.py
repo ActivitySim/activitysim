@@ -325,6 +325,20 @@ def tour_mode_choice_simulate(
         not_university, "univ"
     )
 
+    # split work purpose into work_white_collar and work_blue_collar which have different coefficients
+    primary_tours_merged['tour_purpose'] = np.where((primary_tours_merged['tour_purpose'] == 'work') & 
+        (primary_tours_merged['work_segment'].isin([1,2,3,4])), 'work_white_collar', primary_tours_merged['tour_purpose'])
+    
+    primary_tours_merged['tour_purpose'] = np.where((primary_tours_merged['tour_purpose'] == 'work') & 
+        (primary_tours_merged['work_segment'] == 5), 'work_blue_collar', primary_tours_merged['tour_purpose'])
+    
+    # split school purpose into school_primary and school_secondary which have different coefficients
+    primary_tours_merged['tour_purpose'] = np.where((primary_tours_merged['tour_purpose'] == 'school') & 
+        (primary_tours_merged.is_primary_student), 'school_primary', primary_tours_merged['tour_purpose'])
+    
+    primary_tours_merged['tour_purpose'] = np.where((primary_tours_merged['tour_purpose'] == 'school') & 
+        (primary_tours_merged.is_secondary_student), 'school_secondary', primary_tours_merged['tour_purpose'])
+
     # if trip logsums are used, run trip mode choice and append the logsums
     if model_settings.COMPUTE_TRIP_MODE_CHOICE_LOGSUMS:
         primary_tours_merged = get_trip_mc_logsums_for_all_modes(

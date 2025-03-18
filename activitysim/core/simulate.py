@@ -418,7 +418,7 @@ def get_segment_coefficients(
         coefficients_df = filesystem.read_model_coefficients(model_settings)
         template_df = read_model_coefficient_template(filesystem, model_settings)
         coefficients_col = (
-            template_df[segment_name].map(coefficients_df.value).astype(float)
+            template_df[segment_name].replace(coefficients_df.value).astype(float)
         )
 
         if coefficients_col.isnull().any():
@@ -430,6 +430,8 @@ def get_segment_coefficients(
             assert not coefficients_col.isnull().any()
 
         coefficients_dict = coefficients_col.to_dict()
+    
+    coefficients_dict['SEGMENT_NAME'] = segment_name
 
     return coefficients_dict
 

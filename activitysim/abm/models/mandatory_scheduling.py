@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 
+import numpy as np
 import pandas as pd
 
 from activitysim.abm.models.util.tour_scheduling import run_tour_scheduling
@@ -52,6 +53,24 @@ def mandatory_tour_scheduling(
     mandatory_tours[tour_segment_col] = mandatory_tours.tour_type.where(
         ~is_university_tour, "univ"
     )
+
+    # split work purpose into work_white_collar and work_blue_collar which have different coefficients
+    mandatory_tours[tour_segment_col] = np.where((mandatory_tours.tour_type == 'work') & 
+        (reindex(persons_merged['work_segment'].isin([1,2,3,4]), mandatory_tours.person_id)), 
+        'work_white_collar', mandatory_tours[tour_segment_col])
+        
+    mandatory_tours[tour_segment_col] = np.where((mandatory_tours.tour_type == 'work') & 
+        (reindex((persons_merged['work_segment'] == 5), mandatory_tours.person_id)), 
+        'work_blue_collar', mandatory_tours[tour_segment_col])
+    
+    # split school purpose into school_primary and school_secondary which have different coefficients
+    mandatory_tours[tour_segment_col] = np.where((mandatory_tours.tour_type == 'school') & 
+        (reindex(persons_merged.is_primary_student, mandatory_tours.person_id)), 
+        'school_primary', mandatory_tours[tour_segment_col])
+    
+    mandatory_tours[tour_segment_col] = np.where((mandatory_tours.tour_type == 'school') & 
+        (reindex(persons_merged.is_secondary_student, mandatory_tours.person_id)), 
+        'school_secondary', mandatory_tours[tour_segment_col])
 
     choices = run_tour_scheduling(
         state,

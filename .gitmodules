@@ -1,0 +1,3 @@
+[submodule "vitm"]
+	path = vitm
+	url = https://github.com/VictoriaTransport/activitysim-vitm.git

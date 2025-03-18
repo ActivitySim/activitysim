@@ -31,10 +31,12 @@ def _get_cleaned_column_resolvers(
     # give the raw arrays to the compute engine. This is potentially a breaking
     # change if any of the operations in the eval string require a pd.Series.
     if raw:
+        # Performance tradeoff: in the dict below, we iterate over `df.items`,
+        # which yields tuples of (column_name, data as pd.Series). This is marginally
+        # slower than iterating over `df.columns` and `df._iter_column_arrays()`,
+        # but the latter is not in Pandas' public API, and may be removed in the future.
         return {
-            clean_column_name(k): v
-            for k, v in zip(df.columns, df._iter_column_arrays())
-            if not isinstance(k, int)
+            clean_column_name(k): v for k, v in df.items() if not isinstance(k, int)
         }
 
     # CHANGED FROM PANDAS: do not call df.dtype inside the dict comprehension loop

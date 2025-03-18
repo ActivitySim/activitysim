@@ -104,10 +104,13 @@ def determine_mandatory_tour_flavors(mtf_settings, model_spec, default_flavors):
         # hard code work and school tours
         "work": parse_tour_flavor_from_columns(model_spec.columns, "work"),
         "school": parse_tour_flavor_from_columns(model_spec.columns, "school"),
+        "business": parse_tour_flavor_from_columns(model_spec.columns, "business"),
     }
 
     valid_flavors = (mandatory_tour_flavors["work"] >= 1) & (
         mandatory_tour_flavors["school"] >= 1
+    ) & (
+        mandatory_tour_flavors["business"] >= 1
     )
 
     if provided_flavors is not None:
@@ -264,7 +267,7 @@ def canonical_tours(state: workflow.State):
     )
     mtf_spec = mtf_model_settings.get("SPEC", "mandatory_tour_frequency.csv")
     mtf_model_spec = read_alts_file(state, file_name=mtf_spec)
-    default_mandatory_tour_flavors = {"work": 2, "school": 2}
+    default_mandatory_tour_flavors = {"work": 2, "school": 2, "business": 2}
 
     mandatory_tour_flavors = determine_mandatory_tour_flavors(
         mtf_model_settings, mtf_model_spec, default_mandatory_tour_flavors

@@ -222,6 +222,7 @@ def process_mandatory_tours(
         "workplace_zone_id",
         "home_zone_id",
         "household_id",
+        "business_zone_id",
     ]
     assert not persons.mandatory_tour_frequency.isnull().any()
 
@@ -249,10 +250,20 @@ def process_mandatory_tours(
     )
 
     # work tours destination is workplace_zone_id, school tours destination is school_zone_id
-    tours["destination"] = tours_merged.workplace_zone_id.where(
-        (tours_merged.tour_type == "work"), tours_merged.school_zone_id
-    )
+    conditions = [
+        tours_merged.tour_type == "work",
+        tours_merged.tour_type == "school",
+        tours_merged.tour_type == "business"
+    ]
 
+    choices = [
+        tours_merged.workplace_zone_id,
+        tours_merged.school_zone_id,
+        tours_merged.business_zone_id
+    ]
+
+    tours["destination"] = np.select(conditions, choices, default=-1)
+    
     tours["origin"] = tours_merged.home_zone_id
 
     tours["household_id"] = tours_merged.household_id

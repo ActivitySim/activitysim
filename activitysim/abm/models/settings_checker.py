@@ -24,8 +24,22 @@ def load_settings_and_eval_spec(state: State) -> None:
         if not c in COMPONENTS_TO_SETTINGS:
             continue
         
+        # first, attempt to load the model settings
         settings_cls = COMPONENTS_TO_SETTINGS[c]['settings_cls']
         settings_file = COMPONENTS_TO_SETTINGS[c]['settings_file']
-        logger.info(f"Attempting to load {c} settings via {settings_cls.__name__} and {settings_file}")
+        logger.info(f"Attempting to load model settings for {c} via {settings_cls.__name__} and {settings_file}")
         settings = settings_cls.read_settings_file(filesystem, settings_file)
+        logger.info(f"Successfully loaded model settings from {settings_file}")
+
+        # then, attempt to resolve coefficients from SPEC file
+        logger.info(f"Attempting to load and resolve coefficients for {settings_cls.__name__}")
+        spec_file = settings.model_dump().get("SPEC")
+        if spec_file is None:
+            logger.info(f"No SPEC file is associated with {settings_cls.__name__}")
+        spec = filesystem.read_model_spec(spec_file)
+        coefs = filesystem.read_model_coefficients(settings)
+        eval_spec = eval_coefficients(state, spec, coefs)
+        logger.info(f"Successfully loaded model SPEC {spec_file} and coefficients")
+        
+        breakpoint()
 

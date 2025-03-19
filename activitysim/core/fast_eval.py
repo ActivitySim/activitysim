@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import pandas as pd
-from pandas.core.computation.eval import eval as _eval
+from pandas import eval as _eval
 
 if TYPE_CHECKING:
     from collections.abc import Hashable, Iterator, Mapping, Sequence
@@ -21,8 +21,8 @@ def _get_cleaned_column_resolvers(
     be referred to by backtick quoting.
     Used in :meth:`DataFrame.eval`.
     """
+    from pandas import Series
     from pandas.core.computation.parsing import clean_column_name
-    from pandas.core.series import Series
 
     if isinstance(df, pd.Series):
         return {clean_column_name(df.name): df}

@@ -59,7 +59,7 @@ def load_settings_and_eval_spec(state: State) -> None:
         if hasattr(settings, "COEFFICIENTS"):
             coefs_file = settings.COEFFICIENTS
             coefs = filesystem.read_model_coefficients(settings)
-            eval_spec = eval_coefficients(state, spec, coefs)
+            eval_spec = eval_coefficients(state, spec, coefs, estimator=None)
             logger.info(
                 f"Successfully read and evaluated coefficients from {coefs_file}"
             )

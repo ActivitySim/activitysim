@@ -49,6 +49,9 @@ coverage.xml
 .project
 .pydevproject
 
+# ides
+.vscode/
+
 # Rope
 .ropeproject
 

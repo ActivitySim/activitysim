@@ -30,6 +30,14 @@ COMPONENTS_TO_SETTINGS = {
     }
 }
 
+def try_load_model_settings(model_name: str, model_settings_class: Type[PydanticBase], model_settings_file: str, state: State) -> PydanticBase:
+        logger.info(
+            f"Attempting to load model settings for {model_name} via {model_settings_class.__name__} and {model_settings_file}"
+        )
+        settings = model_settings_class.read_settings_file(state.filesystem, model_settings_file)
+        logger.info(f"Successfully loaded model settings from {model_settings_file}")
+        return settings
+
 def try_load_spec(model_name: str, model_settings: PydanticBase, state: State) -> DataFrame:
     logger.info(f"Attempting to load SPEC for {model_name} via {model_settings.__class__.__name__}")
     spec_file = model_settings.model_dump().get("SPEC")
@@ -58,7 +66,7 @@ def try_load_and_eval_coefs(model_name: str, model_settings: PydanticBase, spec:
     return None, None
 
 
-def load_settings_and_eval_spec(state: State) -> None:
+def check_model_settings(state: State) -> None:
 
     components = state.settings.models  # _RUNNABLE_STEPS.keys() may be better?
 
@@ -75,8 +83,7 @@ def load_settings_and_eval_spec(state: State) -> None:
         logger.info(
             f"Attempting to load model settings for {c} via {settings_cls.__name__} and {settings_file}"
         )
-        settings = settings_cls.read_settings_file(state.filesystem, settings_file)
-        logger.info(f"Successfully loaded model settings from {settings_file}")
+        settings = try_load_model_settings(model_name=c, model_settings_class=settings_cls, model_settings_file=settings_file, state=state)
 
         # then, attempt to read SPEC file
         spec = try_load_spec(model_name=c, model_settings=settings, state=state)

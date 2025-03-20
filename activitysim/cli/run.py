@@ -14,7 +14,7 @@ import numpy as np
 from activitysim.core import chunk, config, mem, tracing, workflow
 from activitysim.core.configuration import FileSystem, Settings
 
-from activitysim.abm.models.settings_checker import load_settings_and_eval_spec
+from activitysim.abm.models.settings_checker import check_model_settings
 
 logger = logging.getLogger(__name__)
 
@@ -374,7 +374,7 @@ def run(args):
 
     # TODO: Move this into the state.run function
     logger.info("Checking Settings Files")
-    load_settings_and_eval_spec(state)
+    check_model_settings(state)
 
     try:
         if state.settings.multiprocess:

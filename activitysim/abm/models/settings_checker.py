@@ -5,7 +5,7 @@ from activitysim.core.simulate import eval_coefficients
 
 # import model settings
 from activitysim.abm.models.accessibility import AccessibilitySettings
-
+from activitysim.abm.models.atwork_subtour_frequency import AtworkSubtourFrequencySettings
 # import logit model settings
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 
@@ -21,6 +21,10 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": TourLocationComponentSettings,
         "settings_file": "atwork_subtour_destination.yaml",
     },
+    "atwork_subtour_frequency": {
+        "settings_cls": AtworkSubtourFrequencySettings,
+        "settings_file": "atwork_subtour_frequency.yaml" 
+    }
 }
 
 

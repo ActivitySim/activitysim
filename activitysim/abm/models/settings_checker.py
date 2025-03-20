@@ -8,7 +8,10 @@ from activitysim.core.simulate import eval_coefficients
 
 # import model settings
 from activitysim.abm.models.accessibility import AccessibilitySettings
-from activitysim.abm.models.atwork_subtour_frequency import AtworkSubtourFrequencySettings
+from activitysim.abm.models.atwork_subtour_frequency import (
+    AtworkSubtourFrequencySettings,
+)
+
 # import logit model settings
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 
@@ -26,28 +29,46 @@ COMPONENTS_TO_SETTINGS = {
     },
     "atwork_subtour_frequency": {
         "settings_cls": AtworkSubtourFrequencySettings,
-        "settings_file": "atwork_subtour_frequency.yaml" 
-    }
+        "settings_file": "atwork_subtour_frequency.yaml",
+    },
 }
 
-def try_load_model_settings(model_name: str, model_settings_class: Type[PydanticBase], model_settings_file: str, state: State) -> PydanticBase:
-        logger.info(
-            f"Attempting to load model settings for {model_name} via {model_settings_class.__name__} and {model_settings_file}"
-        )
-        settings = model_settings_class.read_settings_file(state.filesystem, model_settings_file)
-        logger.info(f"Successfully loaded model settings from {model_settings_file}")
-        return settings
 
-def try_load_spec(model_name: str, model_settings: PydanticBase, state: State) -> DataFrame:
-    logger.info(f"Attempting to load SPEC for {model_name} via {model_settings.__class__.__name__}")
+def try_load_model_settings(
+    model_name: str,
+    model_settings_class: Type[PydanticBase],
+    model_settings_file: str,
+    state: State,
+) -> PydanticBase:
+    logger.info(
+        f"Attempting to load model settings for {model_name} via {model_settings_class.__name__} and {model_settings_file}"
+    )
+    settings = model_settings_class.read_settings_file(
+        state.filesystem, model_settings_file
+    )
+    logger.info(f"Successfully loaded model settings from {model_settings_file}")
+    return settings
+
+
+def try_load_spec(
+    model_name: str, model_settings: PydanticBase, state: State
+) -> DataFrame:
+    logger.info(
+        f"Attempting to load SPEC for {model_name} via {model_settings.__class__.__name__}"
+    )
     spec_file = model_settings.model_dump().get("SPEC")
     if spec_file is None:
-        logger.info(f"No SPEC file is associated with {model_settings.__class__.__name__}")
+        logger.info(
+            f"No SPEC file is associated with {model_settings.__class__.__name__}"
+        )
     spec = state.filesystem.read_model_spec(spec_file)
     logger.info(f"Successfully loaded model SPEC from {spec_file}")
     return spec
 
-def try_load_and_eval_coefs(model_name: str, model_settings: PydanticBase, spec: DataFrame, state: State) -> tuple[DataFrame | None, DataFrame | None]:
+
+def try_load_and_eval_coefs(
+    model_name: str, model_settings: PydanticBase, spec: DataFrame, state: State
+) -> tuple[DataFrame | None, DataFrame | None]:
     logger.info(
         f"Attempting to load coefficients for {model_name} via {model_settings.__class__.__name__}"
     )
@@ -55,15 +76,37 @@ def try_load_and_eval_coefs(model_name: str, model_settings: PydanticBase, spec:
         coefs_file = model_settings.COEFFICIENTS
         coefs = state.filesystem.read_model_coefficients(model_settings)
         eval_coefs = eval_coefficients(state, spec, coefs, estimator=None)
-        logger.info(
-            f"Successfully read and evaluated coefficients from {coefs_file}"
-        )
+        logger.info(f"Successfully read and evaluated coefficients from {coefs_file}")
         return coefs, eval_coefs
     else:
         logger.info(
             f"No coefficients file is associated with {model_settings.__class__.__name__}"
         )
     return None, None
+
+
+def try_load_and_check(
+    model_name: str,
+    model_settings_class: Type[PydanticBase],
+    model_settings_file: str,
+    state: State,
+) -> None:
+
+    # first, attempt to load settings
+    settings = try_load_model_settings(
+        model_name=model_name,
+        model_settings_class=model_settings_class,
+        model_settings_file=model_settings_file,
+        state=state,
+    )
+
+    # then, attempt to read SPEC file
+    spec = try_load_spec(model_name=model_name, model_settings=settings, state=state)
+
+    # then, attempt to read and evaluate coefficients
+    coefs, eval_coefs = try_load_and_eval_coefs(
+        model_name=model_name, model_settings=settings, spec=spec, state=state
+    )
 
 
 def check_model_settings(state: State) -> None:
@@ -74,20 +117,18 @@ def check_model_settings(state: State) -> None:
 
         # TODO: this check allows incremental development, but should be deleted.
         if not c in COMPONENTS_TO_SETTINGS:
-            logger.info(f"Cannot pre-check settings for model component {c}: mapping to a Pydantic data model is undefined in the checker.")
+            logger.info(
+                f"Cannot pre-check settings for model component {c}: mapping to a Pydantic data model is undefined in the checker."
+            )
             continue
 
         # first, attempt to load the model settings
         settings_cls = COMPONENTS_TO_SETTINGS[c]["settings_cls"]
         settings_file = COMPONENTS_TO_SETTINGS[c]["settings_file"]
-        logger.info(
-            f"Attempting to load model settings for {c} via {settings_cls.__name__} and {settings_file}"
+        try_load_and_check(
+            model_name=c,
+            model_settings_class=settings_cls,
+            model_settings_file=settings_file,
+            state=state,
         )
-        settings = try_load_model_settings(model_name=c, model_settings_class=settings_cls, model_settings_file=settings_file, state=state)
-
-        # then, attempt to read SPEC file
-        spec = try_load_spec(model_name=c, model_settings=settings, state=state)
-
-        # then, attempt to read and evaluate coefficients
-        coefs, eval_coefs = try_load_and_eval_coefs(model_name=c, model_settings=settings, spec=spec, state=state)
         

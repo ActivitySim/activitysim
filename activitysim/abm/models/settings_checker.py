@@ -108,6 +108,12 @@ def try_load_and_check(
         model_name=model_name, model_settings=settings, spec=spec, state=state
     )
 
+    # then, check preprocessors if any
+    # for now, check is limited to check that the SPEC file is loadable
+    if settings.model_dump().get("preprocessor"):
+        preprocessor_settings = settings.preprocessor
+        spec = try_load_spec(model_name=model_name + ": preprocessor", model_settings=preprocessor_settings, state=state)
+        breakpoint()
 
 def check_model_settings(state: State) -> None:
 

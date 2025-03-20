@@ -1,4 +1,7 @@
 import logging
+from pandas import DataFrame
+from pydantic import BaseModel as PydanticBase
+from typing import Type
 
 from activitysim.core.workflow import State
 from activitysim.core.simulate import eval_coefficients
@@ -27,16 +30,43 @@ COMPONENTS_TO_SETTINGS = {
     }
 }
 
+def try_load_spec(model_name: str, model_settings: PydanticBase, state: State) -> DataFrame:
+    logger.info(f"Attempting to load SPEC for {model_name} via {model_settings.__class__.__name__}")
+    spec_file = model_settings.model_dump().get("SPEC")
+    if spec_file is None:
+        logger.info(f"No SPEC file is associated with {model_settings.__class__.__name__}")
+    spec = state.filesystem.read_model_spec(spec_file)
+    logger.info(f"Successfully loaded model SPEC from {spec_file}")
+    return spec
+
+def try_load_and_eval_coefs(model_name: str, model_settings: PydanticBase, spec: DataFrame, state: State) -> tuple[DataFrame | None, DataFrame | None]:
+    logger.info(
+        f"Attempting to load coefficients for {model_name} via {model_settings.__class__.__name__}"
+    )
+    if hasattr(model_settings, "COEFFICIENTS"):
+        coefs_file = model_settings.COEFFICIENTS
+        coefs = state.filesystem.read_model_coefficients(model_settings)
+        eval_coefs = eval_coefficients(state, spec, coefs, estimator=None)
+        logger.info(
+            f"Successfully read and evaluated coefficients from {coefs_file}"
+        )
+        return coefs, eval_coefs
+    else:
+        logger.info(
+            f"No coefficients file is associated with {model_settings.__class__.__name__}"
+        )
+    return None, None
+
 
 def load_settings_and_eval_spec(state: State) -> None:
 
-    filesystem = state.filesystem
     components = state.settings.models  # _RUNNABLE_STEPS.keys() may be better?
 
     for c in components:
 
         # TODO: this check allows incremental development, but should be deleted.
         if not c in COMPONENTS_TO_SETTINGS:
+            logger.info(f"Cannot pre-check settings for model component {c}: mapping to a Pydantic data model is undefined in the checker.")
             continue
 
         # first, attempt to load the model settings
@@ -45,30 +75,12 @@ def load_settings_and_eval_spec(state: State) -> None:
         logger.info(
             f"Attempting to load model settings for {c} via {settings_cls.__name__} and {settings_file}"
         )
-        settings = settings_cls.read_settings_file(filesystem, settings_file)
+        settings = settings_cls.read_settings_file(state.filesystem, settings_file)
         logger.info(f"Successfully loaded model settings from {settings_file}")
 
         # then, attempt to read SPEC file
-        logger.info(f"Attempting to load SPEC for {c} via {settings_cls.__name__}")
-        spec_file = settings.model_dump().get("SPEC")
-        if spec_file is None:
-            logger.info(f"No SPEC file is associated with {settings_cls.__name__}")
-        spec = filesystem.read_model_spec(spec_file)
-        logger.info(f"Successfully loaded model SPEC from {spec_file}")
+        spec = try_load_spec(model_name=c, model_settings=settings, state=state)
 
-        # finally, attempt to read and evaluate coefficients
-        logger.info(
-            f"Attempting to load coefficients for {c} via {settings_cls.__name__}"
-        )
-        if hasattr(settings, "COEFFICIENTS"):
-            coefs_file = settings.COEFFICIENTS
-            coefs = filesystem.read_model_coefficients(settings)
-            eval_spec = eval_coefficients(state, spec, coefs, estimator=None)
-            logger.info(
-                f"Successfully read and evaluated coefficients from {coefs_file}"
-            )
-        else:
-            logger.info(
-                f"No coefficients file is associated with {settings_cls.__name__}"
-            )
-        breakpoint()
+        # then, attempt to read and evaluate coefficients
+        coefs, eval_coefs = try_load_and_eval_coefs(model_name=c, model_settings=settings, spec=spec, state=state)
+        

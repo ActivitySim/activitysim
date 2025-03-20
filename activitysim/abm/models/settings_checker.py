@@ -4,7 +4,7 @@ from pydantic import BaseModel as PydanticBase
 from typing import Type
 
 from activitysim.core.workflow import State
-from activitysim.core.simulate import eval_coefficients
+from activitysim.core.simulate import eval_coefficients, eval_nest_coefficients
 
 # import model settings
 from activitysim.abm.models.accessibility import AccessibilitySettings
@@ -13,7 +13,10 @@ from activitysim.abm.models.atwork_subtour_frequency import (
 )
 
 # import logit model settings
-from activitysim.core.configuration.logit import TourLocationComponentSettings
+from activitysim.core.configuration.logit import (
+    TourLocationComponentSettings,
+    TourModeComponentSettings,
+)
 
 logger = logging.getLogger(__name__)
 file_logger = logger.getChild("logfile")
@@ -31,6 +34,10 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": AtworkSubtourFrequencySettings,
         "settings_file": "atwork_subtour_frequency.yaml",
     },
+    "atwork_subtour_mode_choice": {
+        "settings_cls": TourModeComponentSettings,
+        "settings_file": "tour_mode_choice.yaml",
+    },  # Nested settings
 }
 
 
@@ -75,7 +82,15 @@ def try_load_and_eval_coefs(
     if hasattr(model_settings, "COEFFICIENTS"):
         coefs_file = model_settings.COEFFICIENTS
         coefs = state.filesystem.read_model_coefficients(model_settings)
-        eval_coefs = eval_coefficients(state, spec, coefs, estimator=None)
+        # check whether coefficients should be evaluated as NESTS or not
+        if model_settings.model_dump().get("NESTS"):
+            # TODO: determine appropriate value of trace_label?
+            # FIXME: is this the correct way to invoke this?
+            eval_coefs = eval_nest_coefficients(
+                model_settings.NESTS, coefs, trace_label=None
+            )
+        else:
+            eval_coefs = eval_coefficients(state, spec, coefs, estimator=None)
         logger.info(f"Successfully read and evaluated coefficients from {coefs_file}")
         return coefs, eval_coefs
     else:
@@ -117,7 +132,6 @@ def try_load_and_check(
             model_settings=preprocessor_settings,
             state=state,
         )
-        breakpoint()
 
 
 def check_model_settings(state: State) -> None:

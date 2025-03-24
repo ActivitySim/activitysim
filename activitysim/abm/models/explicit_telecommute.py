@@ -30,7 +30,7 @@ class ExplicitTelecommuteSettings(LogitComponentSettings, extra="forbid"):
     """Setting for the preprocessor."""
 
     TELECOMMUTE_ALT: int
-    """The code for telecommuting"""
+    """Value that specifies if the worker is telecommuting on the simulation day."""
 
     CHOOSER_FILTER_COLUMN_NAME: str = "is_worker"
     """Column name in the dataframe to represent worker."""
@@ -47,7 +47,7 @@ def explicit_telecommute(
 ) -> None:
     """
     This model predicts whether a person (worker) telecommutes on the simulation day.
-    The output from this model is TRUE (if telecommutes) or FALSE (works away from home).
+    The output from this model is TRUE (if telecommutes) or FALSE (if does not telecommute).
     """
     if model_settings is None:
         model_settings = ExplicitTelecommuteSettings.read_settings_file(

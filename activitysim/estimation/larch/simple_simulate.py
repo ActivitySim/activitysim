@@ -247,8 +247,8 @@ def work_from_home_model(
     )
 
 
-def explicit_telecommute_model(
-    name="explicit_telecommute",
+def telecommute_status_model(
+    name="telecommute_status",
     edb_directory="output/estimation_data_bundle/{name}/",
     return_data=False,
 ):

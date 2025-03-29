@@ -21,9 +21,9 @@ from activitysim.core.configuration.logit import LogitComponentSettings
 logger = logging.getLogger("activitysim")
 
 
-class ExplicitTelecommuteSettings(LogitComponentSettings, extra="forbid"):
+class TelecommuteStatusSettings(LogitComponentSettings, extra="forbid"):
     """
-    Settings for the `explicit_telecommute` component.
+    Settings for the `telecommute_status` component.
     """
 
     preprocessor: PreprocessorSettings | None = None
@@ -37,20 +37,20 @@ class ExplicitTelecommuteSettings(LogitComponentSettings, extra="forbid"):
 
 
 @workflow.step
-def explicit_telecommute(
+def telecommute_status(
     state: workflow.State,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
-    model_settings: ExplicitTelecommuteSettings | None = None,
-    model_settings_file_name: str = "explicit_telecommute.yaml",
-    trace_label: str = "explicit_telecommute",
+    model_settings: TelecommuteStatusSettings | None = None,
+    model_settings_file_name: str = "telecommute_status.yaml",
+    trace_label: str = "telecommute_status",
 ) -> None:
     """
     This model predicts whether a person (worker) telecommutes on the simulation day.
     The output from this model is TRUE (if telecommutes) or FALSE (if does not telecommute).
     """
     if model_settings is None:
-        model_settings = ExplicitTelecommuteSettings.read_settings_file(
+        model_settings = TelecommuteStatusSettings.read_settings_file(
             state.filesystem,
             model_settings_file_name,
         )
@@ -60,7 +60,7 @@ def explicit_telecommute(
     choosers = choosers[(choosers[chooser_filter_column_name])]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    estimator = estimation.manager.begin_estimation(state, "explicit_telecommute")
+    estimator = estimation.manager.begin_estimation(state, "telecommute_status")
 
     constants = config.get_model_constants(model_settings)
 
@@ -118,7 +118,7 @@ def explicit_telecommute(
     state.add_table("persons", persons)
 
     tracing.print_summary(
-        "explicit_telecommute", persons.is_telecommuting, value_counts=True
+        "telecommute_status", persons.is_telecommuting, value_counts=True
     )
 
     if state.settings.trace_hh_id:

@@ -647,6 +647,7 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
         "memory_profile",
         "instrument",
         "sharrow",
+        "use_explicit_error_terms",
     )
     """
     Setting to log on startup.

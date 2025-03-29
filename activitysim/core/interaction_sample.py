@@ -81,8 +81,9 @@ def make_sample_choices_utility_based(
     #i, j = np.nonzero(choices_array)
     chunk_sizer.log_df(trace_label, 'chooser_idx', chooser_idx)
 
-    probs = logit.utils_to_probs(utilities, allow_zero_probs=allow_zero_probs,
-                                    trace_label=trace_label, trace_choosers=choosers)
+    probs = logit.utils_to_probs(
+        state, utilities, allow_zero_probs=allow_zero_probs, trace_label=trace_label, trace_choosers=choosers
+    )
     chunk_sizer.log_df(trace_label, 'probs', probs)
 
     choices_df = pd.DataFrame({

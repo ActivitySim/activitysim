@@ -59,7 +59,7 @@ def test_create_copy():
 
     assert os.path.exists(target)
     for folder in ["configs", "configs_mp", "data", "output"]:
-        assert os.path.isdir(os.path.join(target, folder))
+        assert os.path.isdir(os.path.join(target, "prototype_mtc", folder))
 
     # clean up
     shutil.rmtree(target)
@@ -70,14 +70,8 @@ def test_run():
 
     cp = subprocess.run(["activitysim", "run"], capture_output=True)
 
-    msg = (
-        "please specify either a --working_dir "
-        "containing 'configs', 'data', and 'output' "
-        "folders or all three of --config, --data, and --output"
-    )
-
     # expect error
-    assert msg in str(cp.stderr)
+    assert "missing" in str(cp.stderr)
 
 
 if __name__ == "__main__":

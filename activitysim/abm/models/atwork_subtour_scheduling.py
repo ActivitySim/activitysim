@@ -1,35 +1,45 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate
+from activitysim.abm.models.util.vectorize_tour_scheduling import (
+    TourSchedulingSettings,
+    vectorize_subtour_scheduling,
+)
+from activitysim.core import config, estimation, expressions, simulate
 from activitysim.core import timetable as tt
-from activitysim.core import tracing
+from activitysim.core import tracing, workflow
+from activitysim.core.configuration.base import PydanticReadable
+from activitysim.core.skim_dataset import SkimDataset
+from activitysim.core.skim_dictionary import SkimDict
 from activitysim.core.util import assign_in_place
-
-from .util import estimation
-from .util.vectorize_tour_scheduling import vectorize_subtour_scheduling
 
 logger = logging.getLogger(__name__)
 
 DUMP = False
 
 
-@inject.step()
+@workflow.step
 def atwork_subtour_scheduling(
-    tours, persons_merged, tdd_alts, skim_dict, chunk_size, trace_hh_id
-):
+    state: workflow.State,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    tdd_alts: pd.DataFrame,
+    skim_dict: SkimDict | SkimDataset,
+    model_settings: TourSchedulingSettings | None = None,
+    model_settings_file_name: str = "tour_scheduling_atwork.yaml",
+    trace_label: str = "atwork_subtour_scheduling",
+) -> None:
     """
     This model predicts the departure time and duration of each activity for at work subtours tours
     """
 
-    trace_label = "atwork_subtour_scheduling"
-    model_settings_file_name = "tour_scheduling_atwork.yaml"
-
-    tours = tours.to_frame()
+    trace_hh_id = state.settings.trace_hh_id
     subtours = tours[tours.tour_category == "atwork"]
 
     # - if no atwork subtours
@@ -37,15 +47,19 @@ def atwork_subtour_scheduling(
         tracing.no_results(trace_label)
         return
 
-    model_settings = config.read_model_settings(model_settings_file_name)
-    estimator = estimation.manager.begin_estimation("atwork_subtour_scheduling")
+    if model_settings is None:
+        model_settings = TourSchedulingSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    sharrow_skip = model_settings.get("sharrow_skip")
-    coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    estimator = estimation.manager.begin_estimation(state, "atwork_subtour_scheduling")
 
-    persons_merged = persons_merged.to_frame()
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(
+        state, model_spec, coefficients_df, estimator
+    )
 
     logger.info("Running %s with %d tours", trace_label, len(subtours))
 
@@ -56,7 +70,7 @@ def atwork_subtour_scheduling(
         "od_skims": od_skim_wrapper,
     }
     expressions.annotate_preprocessors(
-        subtours, constants, skims, model_settings, trace_label
+        state, subtours, constants, skims, model_settings, trace_label
     )
 
     # parent_tours table with columns ['tour_id', 'tdd'] index = tour_id
@@ -71,6 +85,7 @@ def atwork_subtour_scheduling(
         # we don't need to update timetable because subtours are scheduled inside work trip windows
 
     choices = vectorize_subtour_scheduling(
+        state,
         parent_tours,
         subtours,
         persons_merged,
@@ -78,9 +93,9 @@ def atwork_subtour_scheduling(
         model_spec,
         model_settings,
         estimator=estimator,
-        chunk_size=chunk_size,
+        chunk_size=state.settings.chunk_size,
         trace_label=trace_label,
-        sharrow_skip=sharrow_skip,
+        compute_settings=model_settings.compute_settings,
     )
 
     if estimator:
@@ -95,11 +110,13 @@ def atwork_subtour_scheduling(
         choices.to_frame("tdd"), tdd_alts, left_on=["tdd"], right_index=True, how="left"
     )
 
-    assign_in_place(tours, tdd_choices)
-    pipeline.replace_table("tours", tours)
+    assign_in_place(
+        tours, tdd_choices, state.settings.downcast_int, state.settings.downcast_float
+    )
+    state.add_table("tours", tours)
 
     if trace_hh_id:
-        tracing.trace_df(
+        state.tracing.trace_df(
             tours[tours.tour_category == "atwork"],
             label="atwork_subtour_scheduling",
             slicer="person_id",
@@ -111,12 +128,12 @@ def atwork_subtour_scheduling(
         subtours = tours[tours.tour_category == "atwork"]
         parent_tours = tours[tours.index.isin(subtours.parent_tour_id)]
 
-        tracing.dump_df(DUMP, subtours, trace_label, "sub_tours")
-        tracing.dump_df(DUMP, parent_tours, trace_label, "parent_tours")
+        state.tracing.dump_df(DUMP, subtours, trace_label, "sub_tours")
+        state.tracing.dump_df(DUMP, parent_tours, trace_label, "parent_tours")
 
         parent_tours["parent_tour_id"] = parent_tours.index
         subtours = pd.concat([parent_tours, subtours])
-        tracing.dump_df(
+        state.tracing.dump_df(
             DUMP,
             tt.tour_map(
                 parent_tours, subtours, tdd_alts, persons_id_col="parent_tour_id"

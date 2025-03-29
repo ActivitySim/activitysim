@@ -1,12 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
 
 import numpy as np
 import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-from ..util import other_than, quick_loc_df, quick_loc_series, reindex
+from ..util import other_than, quick_loc_df, quick_loc_series, reindex, df_from_dict
 
 
 @pytest.fixture(scope="module")
@@ -61,3 +62,30 @@ def test_quick_loc_series():
 
     assert list(quick_loc_series(loc_list, series)) == attrib_list
     assert list(quick_loc_series(loc_list, series)) == list(series.loc[loc_list])
+
+
+def test_df_from_dict():
+
+    index = [1, 2, 3, 4, 5]
+    df = pd.DataFrame({"attrib": [1, 2, 2, 3, 1]}, index=index)
+
+    # scramble index order for one expression and not the other
+    sorted = df.eval("attrib.sort_values()")
+    not_sorted = df.eval("attrib * 1")
+
+    # check above expressions
+    pdt.assert_series_equal(
+        sorted, pd.Series([1, 1, 2, 2, 3], index=[1, 5, 2, 3, 4]), check_names=False
+    )
+    pdt.assert_series_equal(not_sorted, df.attrib, check_names=False)
+
+    # create a new dataframe from the above expressions
+    values = {"sorted": sorted, "not_sorted": not_sorted}
+    new_df = df_from_dict(values, index)
+
+    # index should become unscrambed and back to the same order as before
+    expected_df = pd.DataFrame(
+        {"sorted": [1, 2, 2, 3, 1], "not_sorted": [1, 2, 2, 3, 1]}, index=index
+    )
+
+    pdt.assert_frame_equal(new_df, expected_df)

@@ -1,18 +1,16 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 import os
 import warnings
+from typing import Any
 
-import pandas as pd
-
-from activitysim.abm.tables import shadow_pricing, disaggregate_accessibility
-from activitysim.core import chunk, config, expressions, inject, mem, pipeline, tracing
-from activitysim.core.steps.output import (
-    track_skim_usage,
-    write_data_dictionary,
-    write_tables,
-)
+from activitysim.abm.tables import disaggregate_accessibility, shadow_pricing
+from activitysim.core import chunk, expressions, tracing, workflow
+from activitysim.core.configuration.base import PydanticReadable
+from activitysim.core.configuration.logit import PreprocessorSettings
 
 # We are using the naming conventions in the mtc_asim.h5 example
 # file for our default list. This provides backwards compatibility
@@ -31,13 +29,27 @@ DEFAULT_TABLE_LIST = [
 logger = logging.getLogger(__name__)
 
 
-def annotate_tables(model_settings, trace_label):
+def annotate_tables(state: workflow.State, model_settings, trace_label, chunk_sizer):
+    """
+
+    Parameters
+    ----------
+    state : workflow.State
+    model_settings : PydanticReadable
+    trace_label : str
+    chunk_sizer : ChunkSizer
+
+    Returns
+    -------
+
+    """
 
     trace_label = tracing.extend_trace_label(trace_label, "annotate_tables")
 
-    chunk.log_rss(trace_label)
+    chunk_sizer.log_rss(trace_label)
 
-    annotate_tables = model_settings.get("annotate_tables", [])
+    annotate_tables = model_settings.annotate_tables
+    print(annotate_tables)
 
     if not annotate_tables:
         logger.warning(
@@ -51,18 +63,16 @@ def annotate_tables(model_settings, trace_label):
     t0 = tracing.print_elapsed_time()
 
     for table_info in annotate_tables:
+        tablename = table_info.tablename
 
-        tablename = table_info["tablename"]
+        chunk_sizer.log_rss(f"{trace_label}.pre-get_table.{tablename}")
 
-        chunk.log_rss(f"{trace_label}.pre-get_table.{tablename}")
-
-        df = inject.get_table(tablename).to_frame()
-        chunk.log_df(trace_label, tablename, df)
+        df = state.get_dataframe(tablename)
+        chunk_sizer.log_df(trace_label, tablename, df)
 
         # - rename columns
-        column_map = table_info.get("column_map", None)
+        column_map = table_info.column_map
         if column_map:
-
             warnings.warn(
                 f"Setting 'column_map' has been changed to 'rename_columns'. "
                 f"Support for 'column_map' in annotate_tables  will be removed in future versions.",
@@ -73,127 +83,143 @@ def annotate_tables(model_settings, trace_label):
             df.rename(columns=column_map, inplace=True)
 
         # - annotate
-        annotate = table_info.get("annotate", None)
+        annotate = table_info.annotate
         if annotate:
-            logger.info(
-                f"{trace_label} - annotating {tablename} SPEC {annotate['SPEC']}"
-            )
+            logger.info(f"{trace_label} - annotating {tablename} SPEC {annotate.SPEC}")
             expressions.assign_columns(
-                df=df, model_settings=annotate, trace_label=trace_label
+                state, df=df, model_settings=annotate, trace_label=trace_label
             )
 
-        chunk.log_df(trace_label, tablename, df)
+        chunk_sizer.log_df(trace_label, tablename, df)
 
         # - write table to pipeline
-        pipeline.replace_table(tablename, df)
+        state.add_table(tablename, df)
 
         del df
-        chunk.log_df(trace_label, tablename, None)
+        chunk_sizer.log_df(trace_label, tablename, None)
 
 
-@inject.step()
-def initialize_landuse():
+class AnnotateTableSettings(PydanticReadable):
+    tablename: str
+    annotate: PreprocessorSettings
+    column_map: dict[str, str] | None = None
 
-    trace_label = "initialize_landuse"
 
-    with chunk.chunk_log(trace_label, base=True):
+class InitializeTableSettings(PydanticReadable):
+    """
+    Settings for the `initialize_landuse` component.
+    """
 
-        model_settings = config.read_model_settings(
-            "initialize_landuse.yaml", mandatory=True
-        )
+    annotate_tables: list[AnnotateTableSettings] = []
 
-        annotate_tables(model_settings, trace_label)
+
+@workflow.step
+def initialize_landuse(
+    state: workflow.State,
+    model_settings: InitializeTableSettings | None = None,
+    model_settings_file_name: str = "initialize_landuse.yaml",
+    trace_label: str = "initialize_landuse",
+) -> None:
+    """
+    Initialize the land use table.
+
+    Parameters
+    ----------
+    state : State
+    """
+    with chunk.chunk_log(state, trace_label, base=True) as chunk_sizer:
+        if model_settings is None:
+            model_settings = InitializeTableSettings.read_settings_file(
+                state.filesystem,
+                model_settings_file_name,
+                mandatory=True,
+            )
+
+        annotate_tables(state, model_settings, trace_label, chunk_sizer)
 
         # instantiate accessibility (must be checkpointed to be be used to slice accessibility)
-        accessibility = pipeline.get_table("accessibility")
-        chunk.log_df(trace_label, "accessibility", accessibility)
+        accessibility = state.get_dataframe("accessibility")
+        chunk_sizer.log_df(trace_label, "accessibility", accessibility)
 
 
-@inject.step()
-def initialize_households():
+@workflow.step
+def initialize_households(
+    state: workflow.State,
+    model_settings_file_name: str = "initialize_households.yaml",
+    trace_label: str = "initialize_households",
+) -> None:
 
-    trace_label = "initialize_households"
+    with chunk.chunk_log(state, trace_label, base=True) as chunk_sizer:
+        chunk_sizer.log_rss(f"{trace_label}.inside-yield")
 
-    with chunk.chunk_log(trace_label, base=True):
-
-        chunk.log_rss(f"{trace_label}.inside-yield")
-
-        households = inject.get_table("households").to_frame()
+        households = state.get_dataframe("households")
         assert not households._is_view
-        chunk.log_df(trace_label, "households", households)
+        chunk_sizer.log_df(trace_label, "households", households)
         del households
-        chunk.log_df(trace_label, "households", None)
+        chunk_sizer.log_df(trace_label, "households", None)
 
-        persons = inject.get_table("persons").to_frame()
+        persons = state.get_dataframe("persons")
         assert not persons._is_view
-        chunk.log_df(trace_label, "persons", persons)
+        chunk_sizer.log_df(trace_label, "persons", persons)
         del persons
-        chunk.log_df(trace_label, "persons", None)
+        chunk_sizer.log_df(trace_label, "persons", None)
 
-        model_settings = config.read_model_settings(
-            "initialize_households.yaml", mandatory=True
+        model_settings = InitializeTableSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+            mandatory=True,
         )
-        annotate_tables(model_settings, trace_label)
+        annotate_tables(state, model_settings, trace_label, chunk_sizer)
 
         # - initialize shadow_pricing size tables after annotating household and person tables
         # since these are scaled to model size, they have to be created while single-process
         # this can now be called as a stand alone model step instead, add_size_tables
-        add_size_tables = model_settings.get("add_size_tables", True)
-        if add_size_tables:
-            # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
-            suffixes = inject.get_injectable("disaggregate_suffixes")
-            shadow_pricing.add_size_tables(suffixes)
+        # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
+        suffixes = disaggregate_accessibility.disaggregate_suffixes(state)
+        shadow_pricing.add_size_tables(state, suffixes)
+
+        # create disaggregate_accessibility table if not model was run
+        if state.is_table("proto_disaggregate_accessibility"):
+            disaggregate_accessibility.disaggregate_accessibility(state)
 
         # - preload person_windows
-        person_windows = inject.get_table("person_windows").to_frame()
-        chunk.log_df(trace_label, "person_windows", person_windows)
+        person_windows = state.get_dataframe("person_windows")
+        chunk_sizer.log_df(trace_label, "person_windows", person_windows)
 
 
-@inject.injectable(cache=True)
-def preload_injectables():
+@workflow.cached_object
+def preload_injectables(state: workflow.State):
     """
     preload bulky injectables up front - stuff that isn't inserted into the pipeline
     """
 
     logger.info("preload_injectables")
 
-    inject.add_step("track_skim_usage", track_skim_usage)
-    inject.add_step("write_data_dictionary", write_data_dictionary)
-    inject.add_step("write_tables", write_tables)
-
-    table_list = config.setting("input_table_list")
-
-    # default ActivitySim table names and indices
-    if table_list is None:
-        logger.warning(
-            "No 'input_table_list' found in settings. This will be a "
-            "required setting in upcoming versions of ActivitySim."
-        )
-
-        new_settings = inject.get_injectable("settings")
-        new_settings["input_table_list"] = DEFAULT_TABLE_LIST
-        inject.add_injectable("settings", new_settings)
-
     # FIXME undocumented feature
-    if config.setting("write_raw_tables"):
-
+    if state.settings.write_raw_tables:
         # write raw input tables as csv (before annotation)
-        csv_dir = config.output_file_path("raw_tables")
+        csv_dir = state.get_output_file_path("raw_tables")
         if not os.path.exists(csv_dir):
             os.makedirs(csv_dir)  # make directory if needed
 
-        table_names = [t["tablename"] for t in table_list]
+        # default ActivitySim table names and indices
+        if state.settings.input_table_list is None:
+            raise ValueError(
+                "no `input_table_list` found in settings, " "cannot `write_raw_tables`."
+            )
+
+        table_names = [t["tablename"] for t in state.settings.input_table_list]
         for t in table_names:
-            df = inject.get_table(t).to_frame()
+            df = state.get_dataframe(t)
             df.to_csv(os.path.join(csv_dir, "%s.csv" % t), index=True)
 
     t0 = tracing.print_elapsed_time()
 
-    if config.setting("benchmarking", False):
+    if state.settings.benchmarking:
         # we don't want to pay for skim_dict inside any model component during
         # benchmarking, so we'll preload skim_dict here.  Preloading is not needed
         # for regular operation, as activitysim components can load-on-demand.
-        if inject.get_injectable("skim_dict", None) is not None:
+        if state.get_injectable("skim_dict", None) is not None:
             t0 = tracing.print_elapsed_time("preload skim_dict", t0, debug=True)
 
     return True

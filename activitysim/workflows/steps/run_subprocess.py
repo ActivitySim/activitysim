@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import subprocess
@@ -61,6 +63,7 @@ def run_activitysim_as_subprocess(
     conda_prefix=None,
     single_thread=True,
     multi_thread=None,
+    persist_sharrow_cache=False,
 ) -> None:
     if isinstance(pre_config_dirs, str):
         pre_config_dirs = [pre_config_dirs]
@@ -81,6 +84,8 @@ def run_activitysim_as_subprocess(
         flags.append(f" -r {resume_after}")
     if fast:
         flags.append("--fast")
+    if persist_sharrow_cache:
+        flags.append("--persist-sharrow-cache")
     if settings_file:
         flags.append(f"-s {settings_file}")
     flags = " ".join(flags)
@@ -97,7 +102,7 @@ def run_activitysim_as_subprocess(
     # args = shlex.split(args)
 
     env = os.environ.copy()
-    pythonpath = env.pop("PYTHONPATH", None)
+    _pythonpath = env.pop("PYTHONPATH", None)
 
     if single_thread:
         env["MKL_NUM_THREADS"] = "1"
@@ -114,18 +119,6 @@ def run_activitysim_as_subprocess(
         env["NUMBA_NUM_THREADS"] = str(multi_thread.get("NUMBA", 1))
         env["VECLIB_MAXIMUM_THREADS"] = str(multi_thread.get("VECLIB", 1))
         env["NUMEXPR_NUM_THREADS"] = str(multi_thread.get("NUMEXPR", 1))
-
-    # if pythonpath:
-    #     print(f"removed PYTHONPATH from ENV: {pythonpath}")
-    # else:
-    #     print(f"no removed PYTHONPATH from ENV!")
-    #
-    # for k, v in env.items():
-    #     print(f"  - {k}: {v}")
-
-    # if conda_prefix is not None:
-    # args = ["conda", "init", "bash", "&&", 'conda', 'activate', conda_prefix, '&&'] + list(args)
-    # args = ['conda', 'run', '-p', conda_prefix] + list(args)
 
     if conda_prefix:
         conda_prefix_1 = os.environ.get("CONDA_PREFIX_1", None)

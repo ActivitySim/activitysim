@@ -1,84 +1,336 @@
+from __future__ import annotations
+
 import logging
-import pandas as pd
+
 import numpy as np
-import warnings
+import pandas as pd
 
+from activitysim.abm.models.school_escorting import NUM_ESCORTEES
 from activitysim.abm.models.util import canonical_ids
-from activitysim.core import pipeline
-from activitysim.core import inject
+from activitysim.core import workflow
 from activitysim.core.util import reindex
-
-from ..school_escorting import NUM_ESCORTEES
 
 logger = logging.getLogger(__name__)
 
 
-def determine_chauf_outbound_flag(row, i):
-    if row["school_escort_direction"] == "outbound":
-        outbound = True
-    elif (
-        (row["school_escort_direction"] == "inbound")
-        & (i == 0)
-        & (row["escort_type"] == "pure_escort")
-    ):
-        # chauf is going to pick up the first child
-        outbound = True
-    else:
-        # chauf is inbound and has already picked up a child or taken their mandatory tour
-        outbound = False
-    return outbound
+def create_bundle_attributes(bundles):
+    """
+    Create attributes for school escorting bundles.
+    Majority of the code is to handle the different combinations of child order.
+    Structure is optimized for speed
+    (readability would be much better with pd.apply(), but this is too slow!)
+
+    Parameters
+    ----------
+    bundles : pandas.DataFrame
+        School escorting bundles
+
+    Returns
+    -------
+    pandas.DataFrame
+
+    """
+
+    # Initialize columns
+    bundles["escortees"] = ""
+    bundles["escortee_nums"] = ""
+    bundles["num_escortees"] = ""
+    bundles["school_destinations"] = ""
+    bundles["school_starts"] = ""
+    bundles["school_ends"] = ""
+    bundles["school_tour_ids"] = ""
+
+    if len(bundles) == 0:
+        return bundles
+
+    bundles[["first_child", "second_child", "third_child"]] = pd.DataFrame(
+        bundles["child_order"].to_list(), index=bundles.index
+    ).astype(int)
+
+    # index needs to be unique for filtering below
+    original_idx = bundles.index
+    bundles = bundles.reset_index(drop=True)
+
+    def join_attributes(df, column_names):
+        """
+        Concatenate the values of the columns in column_names into a single string.
+
+        e.g. bundle_child[1,2,3] contains person_ids of children in the bundle with -1 filled in for no child escorted,
+        Passing these into the function would return a series with the person_ids concatenated with '_' and leading and trailing underscores removed.
+        So if the first child escorted has id 200 and the second child escorted has id 300, the output would be "200_300"
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            DataFrame containing the columns to be concatenated
+        column_names : list
+            List of column names to be concatenated
+
+        Returns
+        -------
+        pandas.Series
+        """
+
+        # intialize series with empty strings
+        out_series = pd.Series("", index=df.index)
+        # loop through all columns and concatenate the values
+        for col in column_names:
+            series = (
+                df[col]
+                .fillna(-1)
+                .astype(int)
+                .astype(str)
+                .replace("-1", "", regex=False)
+            )
+            out_series = out_series.str.cat(series, sep="_")
+
+        # return series with leading and trailing underscores removed
+        return out_series.str.replace(r"^_+", "", regex=True).str.replace(
+            r"_+$", "", regex=True
+        )
+
+    # Loop through all possible combinations of child order
+    # once the order is known, we can fill in the escorting information in the child order
+    for first_child in [1, 2, 3]:
+        for second_child in [1, 2, 3]:
+            for third_child in [1, 2, 3]:
+                if (
+                    (first_child == second_child)
+                    | (first_child == third_child)
+                    | (second_child == third_child)
+                ):
+                    # children order is not unique
+                    continue
+
+                filtered_bundles = bundles[
+                    (bundles.first_child == first_child)
+                    & (bundles.second_child == second_child)
+                    & (bundles.third_child == third_child)
+                ]
+
+                if len(filtered_bundles) == 0:
+                    # no bundles for this combination of child order
+                    continue
+
+                bundles.loc[filtered_bundles.index, "escortees"] = join_attributes(
+                    filtered_bundles,
+                    [
+                        f"bundle_child{first_child}",
+                        f"bundle_child{second_child}",
+                        f"bundle_child{third_child}",
+                    ],
+                )
+
+                # escortee_nums contain the child number of the escortees concatenated with '_'
+                escortee_num1 = pd.Series(
+                    np.where(
+                        filtered_bundles[f"bundle_child{first_child}"] > 0,
+                        first_child,
+                        "",
+                    ),
+                    index=filtered_bundles.index,
+                ).astype(str)
+                escortee_num2 = pd.Series(
+                    np.where(
+                        filtered_bundles[f"bundle_child{second_child}"] > 0,
+                        second_child,
+                        "",
+                    ),
+                    index=filtered_bundles.index,
+                ).astype(str)
+                escortee_num3 = pd.Series(
+                    np.where(
+                        filtered_bundles[f"bundle_child{third_child}"] > 0,
+                        third_child,
+                        "",
+                    ),
+                    index=filtered_bundles.index,
+                ).astype(str)
+                bundles.loc[filtered_bundles.index, "escortee_nums"] = (
+                    (escortee_num1 + "_" + escortee_num2 + "_" + escortee_num3)
+                    .str.replace(r"^_+", "", regex=True)
+                    .str.replace(r"_+$", "", regex=True)
+                )
+
+                # num_escortees contain the number of escortees
+                bundles.loc[filtered_bundles.index, "num_escortees"] = (
+                    filtered_bundles[
+                        [
+                            f"bundle_child{first_child}",
+                            f"bundle_child{second_child}",
+                            f"bundle_child{third_child}",
+                        ]
+                    ]
+                    > 0
+                ).sum(axis=1)
+
+                # school_destinations, school_starts, school_ends, and school_tour_ids are concatenated
+                bundles.loc[
+                    filtered_bundles.index, "school_destinations"
+                ] = join_attributes(
+                    filtered_bundles,
+                    [
+                        f"school_destination_child{first_child}",
+                        f"school_destination_child{second_child}",
+                        f"school_destination_child{third_child}",
+                    ],
+                )
+
+                bundles.loc[filtered_bundles.index, "school_starts"] = join_attributes(
+                    filtered_bundles,
+                    [
+                        f"school_start_child{first_child}",
+                        f"school_start_child{second_child}",
+                        f"school_start_child{third_child}",
+                    ],
+                )
+
+                bundles.loc[filtered_bundles.index, "school_ends"] = join_attributes(
+                    filtered_bundles,
+                    [
+                        f"school_end_child{first_child}",
+                        f"school_end_child{second_child}",
+                        f"school_end_child{third_child}",
+                    ],
+                )
+
+                bundles.loc[
+                    filtered_bundles.index, "school_tour_ids"
+                ] = join_attributes(
+                    filtered_bundles,
+                    [
+                        f"school_tour_id_child{first_child}",
+                        f"school_tour_id_child{second_child}",
+                        f"school_tour_id_child{third_child}",
+                    ],
+                )
+
+    bundles.drop(columns=["first_child", "second_child", "third_child"], inplace=True)
+
+    return bundles.set_index(original_idx)
 
 
-def create_chauf_trip_table(row):
-    dropoff = True if row["school_escort_direction"] == "outbound" else False
+def create_column_as_concatenated_list(bundles, col_dict):
+    for col, data in col_dict.items():
+        df = pd.concat(
+            [df.dropna() for df in data], axis=1, ignore_index=False
+        ).reindex(bundles.index)
+        bundles[col] = [row.dropna().values.tolist() for _, row in df.iterrows()]
+    return bundles
 
-    row["person_id"] = row["chauf_id"]
-    row["destination"] = row["school_destinations"].split("_")
+
+def create_chauf_trip_table(bundles):
+    bundles["dropoff"] = bundles["school_escort_direction"] == "outbound"
+    bundles["person_id"] = bundles["chauf_id"]
+
+    original_index = bundles.index
+    bundles.reset_index(drop=True, inplace=True)
 
     participants = []
     school_escort_trip_num = []
     outbound = []
     purposes = []
+    destinations = []
 
-    for i, child_id in enumerate(row["escortees"].split("_")):
-        if dropoff:
-            # have the remaining children in car
-            participants.append("_".join(row["escortees"].split("_")[i:]))
-        else:
-            # remaining children not yet in car
-            participants.append("_".join(row["escortees"].split("_")[: i + 1]))
-        school_escort_trip_num.append(i + 1)
-        outbound.append(determine_chauf_outbound_flag(row, i))
-        purposes.append("escort")
+    for i in range(bundles["num_escortees"].max()):
+        dropoff_mask = (bundles["dropoff"] == True) & (
+            bundles["num_escortees"] >= (i + 1)
+        )
+        pickup_mask = (bundles["dropoff"] == False) & (
+            bundles["num_escortees"] >= (i + 1)
+        )
+        participants.append(
+            bundles.loc[dropoff_mask, "escortees"].str.split("_").str[i:].str.join("_")
+        )
+        participants.append(
+            bundles.loc[pickup_mask, "escortees"]
+            .str.split("_")
+            .str[: i + 1]
+            .str.join("_")
+        )
+        school_escort_trip_num.append(
+            pd.Series(index=bundles.loc[dropoff_mask | pickup_mask].index, data=(i + 1))
+        )
 
-    if not dropoff:
-        # adding trip home
-        outbound.append(False)
-        school_escort_trip_num.append(i + 2)
-        purposes.append("home")
-        row["destination"].append(row["home_zone_id"])
-        # kids aren't in car until after they are picked up, inserting empty car for first trip
-        participants = [""] + participants
+        outbound_flag = np.where(
+            # is outbound trip
+            (
+                bundles.loc[dropoff_mask | pickup_mask, "school_escort_direction"]
+                == "outbound"
+            )
+            # or chauf is going back to pick up the first child
+            | (
+                (i == 0)
+                & (
+                    bundles.loc[dropoff_mask | pickup_mask, "escort_type"]
+                    == "pure_escort"
+                )
+                & (
+                    bundles.loc[dropoff_mask | pickup_mask, "school_escort_direction"]
+                    == "inbound"
+                )
+            ),
+            True,
+            # chauf is inbound and has already picked up a child or taken their mandatory tour
+            False,
+        )
+        outbound.append(
+            pd.Series(
+                index=bundles.loc[dropoff_mask | pickup_mask].index, data=outbound_flag
+            )
+        )
 
-    if dropoff & (row["escort_type"] == "ride_share"):
-        # adding trip to work
-        outbound.append(True)
-        school_escort_trip_num.append(i + 2)
-        purposes.append(row["first_mand_tour_purpose"])
-        row["destination"].append(row["first_mand_tour_dest"])
-        # kids have already been dropped off
-        participants = participants + [""]
+        purposes.append(
+            pd.Series(
+                index=bundles.loc[dropoff_mask | pickup_mask].index, data="escort"
+            )
+        )
+        destinations.append(
+            bundles.loc[dropoff_mask | pickup_mask, "school_destinations"]
+            .str.split("_")
+            .str[i]
+        )
 
-    row["escort_participants"] = participants
-    row["school_escort_trip_num"] = school_escort_trip_num
-    row["outbound"] = outbound
-    row["purpose"] = purposes
-    return row
+    # adding trip home for inbound
+    inbound_mask = bundles["dropoff"] == False
+    outbound.append(pd.Series(index=bundles.loc[inbound_mask].index, data=False))
+    school_escort_trip_num.append(bundles.loc[inbound_mask, "num_escortees"] + 1)
+    purposes.append(pd.Series(index=bundles.loc[inbound_mask].index, data="home"))
+    destinations.append(bundles.loc[inbound_mask, "home_zone_id"])
+    # kids aren't in the car until after they are picked up, inserting empty car for first trip
+    participants.insert(0, pd.Series(index=bundles.loc[inbound_mask].index, data=""))
+
+    # adding trip to work
+    to_work_mask = (bundles["dropoff"] == True) & (
+        bundles["escort_type"] == "ride_share"
+    )
+    outbound.append(pd.Series(index=bundles.loc[to_work_mask].index, data=True))
+    school_escort_trip_num.append(bundles.loc[to_work_mask, "num_escortees"] + 1)
+    purposes.append(bundles.loc[to_work_mask, "first_mand_tour_purpose"])
+    destinations.append(bundles.loc[to_work_mask, "first_mand_tour_dest"])
+    # kids have already been dropped off
+    participants.append(pd.Series(index=bundles.loc[to_work_mask].index, data=""))
+
+    bundles = create_column_as_concatenated_list(
+        bundles,
+        {
+            "destination": destinations,
+            "escort_participants": participants,
+            "school_escort_trip_num": school_escort_trip_num,
+            "outbound": outbound,
+            "purpose": purposes,
+        },
+    )
+
+    bundles.drop(columns=["dropoff"], inplace=True)
+    bundles["person_id"] = bundles["person_id"].fillna(-1).astype("int64")
+
+    bundles.index = original_index
+    return bundles
 
 
 def create_chauf_escort_trips(bundles):
-
-    chauf_trip_bundles = bundles.apply(lambda row: create_chauf_trip_table(row), axis=1)
+    chauf_trip_bundles = create_chauf_trip_table(bundles.copy())
     chauf_trip_bundles["tour_id"] = bundles["chauf_tour_id"].astype(int)
 
     # departure time is the first school start in the outbound school_escort_direction and the last school end in the inbound school_escort_direction
@@ -159,72 +411,117 @@ def create_chauf_escort_trips(bundles):
     return chauf_trips
 
 
-def create_child_escorting_stops(row, escortee_num):
-    escortees = row["escortees"].split("_")
-    if escortee_num > (len(escortees) - 1):
-        # this bundle does not have this many escortees
-        return row
-    dropoff = True if row["school_escort_direction"] == "outbound" else False
+def create_child_escorting_stops(bundles, escortee_num):
+    bundles["num_escortees"] = bundles["escortees"].str.split("_").str.len()
 
-    row["person_id"] = int(escortees[escortee_num])
-    row["tour_id"] = row["school_tour_ids"].split("_")[escortee_num]
-    school_dests = row["school_destinations"].split("_")
+    # only want the escortee bundles where the escortee_num is less than the number of escortees
+    if (escortee_num > (bundles["num_escortees"] - 1)).all():
+        return bundles
+    bundles = bundles[escortee_num <= (bundles["num_escortees"] - 1)]
+    original_index = bundles.index
+    bundles.reset_index(drop=True, inplace=True)
 
-    destinations = []
-    purposes = []
+    # intializing variables
+    bundles["dropoff"] = bundles["school_escort_direction"] == "outbound"
+    bundles["person_id"] = bundles["escortees"].str.split("_").str[escortee_num]
+    bundles["tour_id"] = bundles["school_tour_ids"].str.split("_").str[escortee_num]
     participants = []
+    purposes = []
+    destinations = []
     school_escort_trip_num = []
 
-    escortee_order = (
-        escortees[: escortee_num + 1] if dropoff else escortees[escortee_num:]
+    # looping up through the current escorting destination
+    for i in range(escortee_num + 1):
+        # dropping off children
+        dropoff_mask = (bundles["dropoff"] == True) & (
+            bundles["num_escortees"] >= (i + 1)
+        )
+        participants.append(
+            bundles.loc[dropoff_mask, "escortees"].str.split("_").str[i:].str.join("_")
+        )
+        destinations.append(
+            bundles.loc[dropoff_mask, "school_destinations"].str.split("_").str[i]
+        )
+        purposes.append(
+            pd.Series(
+                index=bundles.loc[dropoff_mask].index,
+                data=np.where(
+                    bundles.loc[dropoff_mask, "person_id"]
+                    == bundles.loc[dropoff_mask, "escortees"].str.split("_").str[i],
+                    "school",
+                    "escort",
+                ),
+            )
+        )
+        school_escort_trip_num.append(
+            pd.Series(index=bundles.loc[dropoff_mask].index, data=(i + 1))
+        )
+
+    # picking up children after the current child, i.e. escortees[escortee_num:]
+    bundles["pickup_count"] = np.where(
+        bundles["num_escortees"] >= escortee_num,
+        bundles["escortees"].str.split("_").str[escortee_num:],
+        0,
+    )
+    for i in range(bundles["pickup_count"].str.len().max()):
+        pickup_mask = (bundles["dropoff"] == False) & (
+            bundles["pickup_count"].str[i].isna() == False
+        )
+        participants.append(
+            bundles.loc[pickup_mask, "escortees"]
+            .str.split("_")
+            .str[: escortee_num + i + 1]
+            .str.join("_")
+        )
+        is_last_stop = i == (bundles.loc[pickup_mask, "pickup_count"].str.len() - 1)
+        destinations.append(
+            pd.Series(
+                index=bundles.loc[pickup_mask].index,
+                data=np.where(
+                    is_last_stop,
+                    bundles.loc[pickup_mask, "home_zone_id"],
+                    bundles.loc[pickup_mask, "school_destinations"]
+                    .str.split("_")
+                    .str[escortee_num + i + 1],
+                ),
+            )
+        )
+        purposes.append(
+            pd.Series(
+                index=bundles.loc[pickup_mask].index,
+                data=np.where(is_last_stop, "home", "escort"),
+            )
+        )
+
+        school_escort_trip_num.append(
+            pd.Series(index=bundles.loc[pickup_mask].index, data=(i + 1))
+        )
+
+    bundles = create_column_as_concatenated_list(
+        bundles,
+        {
+            "escort_participants": participants,
+            "school_escort_trip_num": school_escort_trip_num,
+            "purpose": purposes,
+            "destination": destinations,
+        },
     )
 
-    # for i, child_id in enumerate(escortees[:escortee_num+1]):
-    for i, child_id in enumerate(escortee_order):
-        is_last_stop = i == len(escortee_order) - 1
+    bundles.drop(columns=["dropoff", "pickup_count"], inplace=True)
+    bundles["person_id"] = bundles["person_id"].fillna(-1).astype("int64")
 
-        if dropoff:
-            # dropping childen off
-            # children in car are the child and the children after
-            participants.append("_".join(escortees[i:]))
-            dest = school_dests[i]
-            purpose = "school" if row["person_id"] == int(child_id) else "escort"
-
-        else:
-            # picking children up
-            # children in car are the child and those already picked up
-            participants.append("_".join(escortees[: escortee_num + i + 1]))
-            # going home if last stop, otherwise to next school destination
-            dest = (
-                row["home_zone_id"]
-                if is_last_stop
-                else school_dests[escortee_num + i + 1]
-            )
-            purpose = "home" if is_last_stop else "escort"
-
-        # filling arrays
-        destinations.append(dest)
-        school_escort_trip_num.append(i + 1)
-        purposes.append(purpose)
-
-    row["escort_participants"] = participants
-    row["school_escort_trip_num"] = school_escort_trip_num
-    row["purpose"] = purposes
-    row["destination"] = destinations
-    return row
+    bundles.index = original_index
+    return bundles
 
 
 def create_escortee_trips(bundles):
-
     escortee_trips = []
     for escortee_num in range(0, int(bundles.num_escortees.max()) + 1):
-        escortee_bundles = bundles.apply(
-            lambda row: create_child_escorting_stops(row, escortee_num), axis=1
-        )
+        escortee_bundles = create_child_escorting_stops(bundles.copy(), escortee_num)
         escortee_trips.append(escortee_bundles)
 
     escortee_trips = pd.concat(escortee_trips)
-    escortee_trips = escortee_trips[~escortee_trips.person_id.isna()]
+    escortee_trips = escortee_trips[escortee_trips.person_id > 0]
 
     # departure time is the first school start in the outbound direction and the last school end in the inbound direction
     starts = escortee_trips["school_starts"].str.split("_", expand=True).astype(float)
@@ -317,6 +614,14 @@ def add_pure_escort_tours(tours, school_escort_tours):
 def add_school_escorting_type_to_tours_table(escort_bundles, tours):
     school_tour = (tours.tour_type == "school") & (tours.tour_num == 1)
 
+    escort_type_cat = pd.api.types.CategoricalDtype(
+        ["pure_escort", "ride_share"], ordered=False
+    )
+    tours["school_esc_outbound"] = pd.NA
+    tours["school_esc_inbound"] = pd.NA
+    tours["school_esc_outbound"] = tours["school_esc_outbound"].astype(escort_type_cat)
+    tours["school_esc_inbound"] = tours["school_esc_inbound"].astype(escort_type_cat)
+
     for school_escort_direction in ["outbound", "inbound"]:
         for escort_type in ["ride_share", "pure_escort"]:
             bundles = escort_bundles[
@@ -338,14 +643,16 @@ def add_school_escorting_type_to_tours_table(escort_bundles, tours):
     return tours
 
 
-def process_tours_after_escorting_model(escort_bundles, tours):
+def process_tours_after_escorting_model(state: workflow.State, escort_bundles, tours):
     # adding indicators to tours that include school escorting
     tours = add_school_escorting_type_to_tours_table(escort_bundles, tours)
 
     # setting number of escortees on tour
-    num_escortees = escort_bundles.drop_duplicates("chauf_tour_id").set_index(
-        "chauf_tour_id"
-    )["num_escortees"]
+    num_escortees = (
+        escort_bundles.drop_duplicates("chauf_tour_id")
+        .set_index("chauf_tour_id")["num_escortees"]
+        .astype(int)
+    )
     tours.loc[num_escortees.index, "num_escortees"] = num_escortees
 
     # set same start / end time for tours if they are bundled together
@@ -376,7 +683,7 @@ def process_tours_after_escorting_model(escort_bundles, tours):
     tours.loc[bad_end_times, "end"] = tours.loc[bad_end_times, "start"]
 
     # updating tdd to match start and end times
-    tdd_alts = inject.get_injectable("tdd_alts")
+    tdd_alts = state.get_injectable("tdd_alts")
     tdd_alts["tdd"] = tdd_alts.index
     tours.drop(columns="tdd", inplace=True)
 
@@ -394,10 +701,23 @@ def process_tours_after_escorting_model(escort_bundles, tours):
     return tours
 
 
-def merge_school_escort_trips_into_pipeline():
-    school_escort_trips = pipeline.get_table("school_escort_trips")
-    tours = pipeline.get_table("tours")
-    trips = pipeline.get_table("trips")
+def merge_school_escort_trips_into_pipeline(state: workflow.State):
+    school_escort_trips = state.get_dataframe("school_escort_trips")
+    tours = state.get_dataframe("tours")
+    trips = state.get_dataframe("trips")
+
+    # checking to see if there are school escort trips to merge in
+    if len(school_escort_trips) == 0:
+        # if no trips, fill escorting columns with NA
+        trips[
+            [
+                "escort_participants",
+                "school_escort_direction",
+                "school_escort_trip_id",
+            ]
+        ] = pd.NA
+        state.add_table("trips", trips)
+        return trips
 
     # want to remove stops if school escorting takes place on that half tour so we can replace them with the actual stops
     out_se_tours = tours[
@@ -440,6 +760,19 @@ def merge_school_escort_trips_into_pipeline():
     # for better merge with trips created in stop frequency
     school_escort_trips["failed"] = False
 
+    # make sure the pandas categorical columns share the same categories before cancat
+    # union categoricals
+    for c in trips.columns.intersection(school_escort_trips.columns):
+        if isinstance(trips[c].dtype, pd.api.types.CategoricalDtype):
+            if isinstance(school_escort_trips[c].dtype, pd.api.types.CategoricalDtype):
+                from pandas.api.types import union_categoricals
+
+                uc = union_categoricals([trips[c], school_escort_trips[c]])
+                trips[c] = pd.Categorical(trips[c], categories=uc.categories)
+                school_escort_trips[c] = pd.Categorical(
+                    school_escort_trips[c], categories=uc.categories
+                )
+
     trips = pd.concat(
         [
             trips,
@@ -468,8 +801,15 @@ def merge_school_escort_trips_into_pipeline():
     trips["origin"] = trips["origin"].astype(int)
     trips["destination"] = trips["destination"].astype(int)
 
+    # converting to categoricals
+    trips["school_escort_direction"] = trips["school_escort_direction"].astype(
+        pd.api.types.CategoricalDtype(["outbound", "inbound"], ordered=False)
+    )
+    # trips["escort_participants"] is left with dtype of object (i.e. Python strings)
+    #  as it doesn't have a fixed number of categories
+
     # updating trip_id now that we have all trips
-    trips = canonical_ids.set_trip_index(trips)
+    trips = canonical_ids.set_trip_index(state, trips)
     school_escort_trip_id_map = {
         v: k
         for k, v in trips.loc[
@@ -492,10 +832,10 @@ def merge_school_escort_trips_into_pipeline():
     trips.drop(columns="school_escort_trip_id", inplace=True)
 
     # replace trip table and pipeline and register with the random number generator
-    pipeline.replace_table("trips", trips)
-    pipeline.get_rn_generator().drop_channel("trips")
-    pipeline.get_rn_generator().add_channel("trips", trips)
-    pipeline.replace_table("school_escort_trips", school_escort_trips)
+    state.add_table("trips", trips)
+    state.get_rn_generator().drop_channel("trips")
+    state.get_rn_generator().add_channel("trips", trips)
+    state.add_table("school_escort_trips", school_escort_trips)
 
     # updating stop frequency in tours tabel to be consistent
     num_outbound_stops = (
@@ -510,13 +850,13 @@ def merge_school_escort_trips_into_pipeline():
     tours.loc[stop_freq.index, "stop_frequency"] = stop_freq
 
     # no need to reset random number generator since no tours added
-    pipeline.replace_table("tours", tours)
+    state.add_table("tours", tours)
 
     return trips
 
 
-def recompute_tour_count_statistics():
-    tours = pipeline.get_table("tours")
+def recompute_tour_count_statistics(state: workflow.State):
+    tours = state.get_dataframe("tours")
 
     grouped = tours.groupby(["person_id", "tour_type"])
     tours["tour_type_num"] = grouped.cumcount() + 1
@@ -528,10 +868,16 @@ def recompute_tour_count_statistics():
     tours["tour_num"] = grouped.cumcount() + 1
     tours["tour_count"] = tours["tour_num"] + grouped.cumcount(ascending=False)
 
-    pipeline.replace_table("tours", tours)
+    # downcast
+    tours["tour_count"] = tours["tour_count"].astype("int8")
+    tours["tour_num"] = tours["tour_num"].astype("int8")
+    tours["tour_type_num"] = tours["tour_type_num"].astype("int8")
+    tours["tour_type_count"] = tours["tour_type_count"].astype("int8")
+
+    state.add_table("tours", tours)
 
 
-def create_pure_school_escort_tours(bundles):
+def create_pure_school_escort_tours(state: workflow.State, bundles):
     # creating home to school tour for chauffers making pure escort tours
     # ride share tours are already created since they go off the mandatory tour
     pe_tours = bundles[bundles["escort_type"] == "pure_escort"]
@@ -556,8 +902,16 @@ def create_pure_school_escort_tours(bundles):
     pe_tours["person_id"] = pe_tours["chauf_id"]
 
     pe_tours["tour_category"] = "non_mandatory"
+    # convert tour category to categorical
+    pe_tours["tour_category"] = pe_tours["tour_category"].astype(
+        state.get_dataframe("tours").tour_category.dtype
+    )
     pe_tours["number_of_participants"] = 1
     pe_tours["tour_type"] = "escort"
+    # convert tour type to categorical
+    pe_tours["tour_type"] = pe_tours["tour_type"].astype(
+        state.get_dataframe("tours").tour_type.dtype
+    )
     pe_tours["school_esc_outbound"] = np.where(
         pe_tours["school_escort_direction"] == "outbound", "pure_escort", pd.NA
     )
@@ -582,7 +936,7 @@ def create_pure_school_escort_tours(bundles):
     pe_tours["tour_num"] = grouped.cumcount() + 1
     pe_tours["tour_count"] = pe_tours["tour_num"] + grouped.cumcount(ascending=False)
 
-    pe_tours = canonical_ids.set_tour_index(pe_tours, is_school_escorting=True)
+    pe_tours = canonical_ids.set_tour_index(state, pe_tours, is_school_escorting=True)
 
     return pe_tours
 
@@ -597,11 +951,15 @@ def split_out_school_escorting_trips(trips, school_escort_trips):
     return trips, se_trips, full_trips_index
 
 
-def force_escortee_tour_modes_to_match_chauffeur(tours):
+def force_escortee_tour_modes_to_match_chauffeur(state: workflow.State, tours):
     # FIXME: escortee tour can have different chauffeur in outbound vs inbound direction
     # which tour mode should it be set to?  Currently it's whatever comes last.
     # Does it even matter if trip modes are getting matched later?
-    escort_bundles = inject.get_table("escort_bundles").to_frame()
+    escort_bundles = state.get_dataframe("escort_bundles")
+
+    if len(escort_bundles) == 0:
+        # do not need to do anything if no escorting
+        return tours
 
     # grabbing the school tour ids for each school escort bundle
     se_tours = escort_bundles[["school_tour_ids", "chauf_tour_id"]].copy()
@@ -628,8 +986,8 @@ def force_escortee_tour_modes_to_match_chauffeur(tours):
     return tours
 
 
-def force_escortee_trip_modes_to_match_chauffeur(trips):
-    school_escort_trips = inject.get_table("school_escort_trips").to_frame()
+def force_escortee_trip_modes_to_match_chauffeur(state: workflow.State, trips):
+    school_escort_trips = state.get_dataframe("school_escort_trips")
 
     # starting with only trips that are created as part of the school escorting model
     se_trips = trips[trips.index.isin(school_escort_trips.index)].copy()

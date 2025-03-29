@@ -1,12 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
-from builtins import range
+import warnings
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from pydantic import root_validator
 
+from activitysim.abm.models.util.school_escort_tours_trips import (
+    split_out_school_escorting_trips,
+)
 from activitysim.abm.models.util.trip import (
     cleanup_failed_trips,
     flag_failed_trip_leg_mates,
@@ -15,22 +21,20 @@ from activitysim.abm.tables.size_terms import tour_destination_size_terms
 from activitysim.core import (
     chunk,
     config,
+    estimation,
     expressions,
-    inject,
     los,
-    pipeline,
     simulate,
     tracing,
+    workflow,
 )
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import LocationComponentSettings
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.skim_dictionary import DataFrameMatrix
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place, reindex
-
-from ...core.configuration.base import Any, PydanticBase
-from .util.school_escort_tours_trips import split_out_school_escorting_trips
-from .util import estimation
 
 logger = logging.getLogger(__name__)
 
@@ -42,50 +46,104 @@ ALT_DEST_TAZ = "ALT_DEST_TAZ"
 # DEST_MAZ = 'dest_maz'
 
 
-class TripDestinationSettings(PydanticBase):
+class TripDestinationSettings(LocationComponentSettings, extra="forbid"):
     """Settings for the trip_destination component.
 
     .. versionadded:: 1.2
-
-    Note that this implementation is presently used only for generating
-    documentation, but future work may migrate the settings implementation to
-    actually use this pydantic code to validate the settings before running
-    the model.
     """
 
-    SAMPLE_SPEC: Path
-    SPEC: Path
-    COEFFICIENTS: Path
-    SAMPLE_SIZE: int
-    """This many candidate stop locations will be sampled for each choice."""
-    DESTINATION_SAMPLE_SPEC: Path
-    DESTINATION_SPEC: Path
-    LOGSUM_SETTINGS: Path
     DEST_CHOICE_LOGSUM_COLUMN_NAME: str = None
     DEST_CHOICE_SAMPLE_TABLE_NAME: str = None
     TRIP_ORIGIN: str = "origin"
     ALT_DEST_COL_NAME: str = "dest_taz"
+    PRIMARY_ORIGIN: str = "origin"
     PRIMARY_DEST: str = "tour_leg_dest"  # must be created in preprocessor
-    REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS: list[str] = None
-    CONSTANTS: dict[str, Any] = None
-    preprocessor: Any
+    REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS: list[str] | None = None
+    preprocessor: PreprocessorSettings | None = None
+    alts_preprocessor_sample: PreprocessorSettings | None = None
+    alts_preprocessor_simulate: PreprocessorSettings | None = None
     CLEANUP: bool
     fail_some_trips_for_testing: bool = False
     """This setting is used by testing code to force failed trip_destination."""
 
+    @root_validator(pre=True)
+    def deprecated_destination_prefix(cls, values):
+        replacements = {
+            "DESTINATION_SAMPLE_SPEC": "SAMPLE_SPEC",
+            "DESTINATION_SPEC": "SPEC",
+        }
+        for badkey, goodkey in replacements.items():
+            if badkey in values:
+                if goodkey in values:
+                    if values[badkey] != values[goodkey]:
+                        # both keys are given, with different values -> error
+                        raise ValueError(
+                            f"Deprecated `{badkey}` field must have the "
+                            f"same value as `{goodkey}` if both are provided."
+                        )
+                    else:
+                        # both keys are given, with same values -> warning
+                        warnings.warn(
+                            f"Use of the field `{badkey}` in the "
+                            "trip_destination configuration file is deprecated, use "
+                            f"just `{goodkey}` instead (currently both are given).",
+                            FutureWarning,
+                            stacklevel=2,
+                        )
+                        values.pop(badkey)
+                else:
+                    # only the wrong key is given -> warning
+                    warnings.warn(
+                        f"Use of the field `{badkey}` in the "
+                        "trip_destination configuration file is deprecated, use "
+                        f"`{goodkey}` instead.",
+                        FutureWarning,
+                        stacklevel=2,
+                    )
+                    values[goodkey] = values[badkey]
+                    values.pop(badkey)
+        return values
 
+    @property
+    def DESTINATION_SAMPLE_SPEC(self) -> Path:
+        """Alias for `SAMPLE_SPEC`.
+
+        .. deprecated:: 1.3
+        """
+        warnings.warn(
+            "DESTINATION_SAMPLE_SPEC is deprecated, use SAMPLE_SPEC",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.SAMPLE_SPEC
+
+    @property
+    def DESTINATION_SPEC(self) -> Path:
+        """Alias for `SPEC`.
+
+        .. deprecated:: 1.3
+        """
+        warnings.warn(
+            "DESTINATION_SPEC is deprecated, use SPEC",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.SPEC
+
+
+@workflow.func
 def _destination_sample(
+    state: workflow.State,
     primary_purpose,
     trips,
     alternatives,
-    model_settings,
+    model_settings: TripDestinationSettings,
     size_term_matrix,
     skims,
     alt_dest_col_name,
     estimator,
-    chunk_size,
-    chunk_tag,
-    trace_label,
+    chunk_tag: str,
+    trace_label: str,
     zone_layer=None,
 ):
     """
@@ -105,24 +163,28 @@ def _destination_sample(
     """
 
     spec = simulate.spec_for_segment(
-        model_settings,
-        spec_id="DESTINATION_SAMPLE_SPEC",
+        state,
+        None,
+        spec_id="SAMPLE_SPEC",
         segment_name=primary_purpose,
         estimator=estimator,
+        spec_file_name=model_settings.SAMPLE_SPEC,
+        coefficients_file_name=model_settings.COEFFICIENTS,
     )
 
-    sample_size = model_settings["SAMPLE_SIZE"]
-    if config.setting("disable_destination_sampling", False) or (
+    sample_size = model_settings.SAMPLE_SIZE
+    if state.settings.disable_destination_sampling or (
         estimator and estimator.want_unsampled_alternatives
     ):
         # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
         logger.info(
-            "Estimation mode for %s using unsampled alternatives short_circuit_choices"
-            % (trace_label,)
+            f"Estimation mode for {trace_label} using "
+            f"unsampled alternatives short_circuit_choices"
         )
         sample_size = 0
 
-    locals_dict = config.get_model_constants(model_settings).copy()
+    locals_dict = state.get_global_constants().copy()
+    locals_dict.update(model_settings.CONSTANTS)
 
     # size_terms of destination zones are purpose-specific, and trips have various purposes
     # so the relevant size_term for each interaction_sample row
@@ -134,13 +196,24 @@ def _destination_sample(
             "size_terms": size_term_matrix,
             "size_terms_array": size_term_matrix.df.to_numpy(),
             "timeframe": "trip",
+            "land_use": state.get_dataframe("land_use"),
         }
     )
     locals_dict.update(skims)
 
-    log_alt_losers = config.setting("log_alt_losers", False)
+    log_alt_losers = state.settings.log_alt_losers
+
+    if model_settings.alts_preprocessor_sample:
+        expressions.assign_columns(
+            state,
+            df=alternatives,
+            model_settings=model_settings.alts_preprocessor_sample,
+            locals_dict=locals_dict,
+            trace_label=tracing.extend_trace_label(trace_label, "alts"),
+        )
 
     choices = interaction_sample(
+        state,
         choosers=trips,
         alternatives=alternatives,
         sample_size=sample_size,
@@ -150,33 +223,39 @@ def _destination_sample(
         spec=spec,
         skims=skims,
         locals_d=locals_dict,
-        chunk_size=chunk_size,
+        chunk_size=state.settings.chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer=zone_layer,
+        explicit_chunk_size=model_settings.explicit_chunk,
+        compute_settings=model_settings.compute_settings.subcomponent_settings(
+            "sample"
+        ),
     )
 
     return choices
 
 
+@workflow.func
 def destination_sample(
+    state: workflow.State,
     primary_purpose,
     trips,
     alternatives,
-    model_settings,
+    model_settings: TripDestinationSettings,
     size_term_matrix,
     skim_hotel,
     estimator,
     chunk_size,
     trace_label,
 ):
-
     chunk_tag = "trip_destination.sample"
 
     skims = skim_hotel.sample_skims(presample=False)
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
     choices = _destination_sample(
+        state,
         primary_purpose,
         trips,
         alternatives,
@@ -185,7 +264,6 @@ def destination_sample(
         skims,
         alt_dest_col_name,
         estimator,
-        chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
     )
@@ -194,7 +272,6 @@ def destination_sample(
 
 
 def aggregate_size_term_matrix(maz_size_term_matrix, network_los):
-
     df = maz_size_term_matrix.df
     assert ALT_DEST_TAZ not in df
 
@@ -207,7 +284,13 @@ def aggregate_size_term_matrix(maz_size_term_matrix, network_los):
 
 
 def choose_MAZ_for_TAZ(
-    taz_sample, MAZ_size_terms, trips, network_los, alt_dest_col_name, trace_label
+    state,
+    taz_sample,
+    MAZ_size_terms,
+    trips,
+    network_los,
+    alt_dest_col_name,
+    trace_label,
 ):
     """
     Convert taz_sample table with TAZ zone sample choices to a table with a MAZ zone chosen for each TAZ
@@ -235,14 +318,14 @@ def choose_MAZ_for_TAZ(
 
     taz_sample.rename(columns={alt_dest_col_name: DEST_TAZ}, inplace=True)
 
-    trace_hh_id = inject.get_injectable("trace_hh_id", None)
-    have_trace_targets = trace_hh_id and tracing.has_trace_targets(taz_sample)
+    trace_hh_id = state.settings.trace_hh_id
+    have_trace_targets = trace_hh_id and state.tracing.has_trace_targets(taz_sample)
     if have_trace_targets:
         trace_label = tracing.extend_trace_label(trace_label, "choose_MAZ_for_TAZ")
 
         # write taz choices, pick_counts, probs
-        trace_targets = tracing.trace_targets(taz_sample)
-        tracing.trace_df(
+        trace_targets = state.tracing.trace_targets(taz_sample)
+        state.tracing.trace_df(
             taz_sample[trace_targets],
             label=tracing.extend_trace_label(trace_label, "taz_sample"),
             transpose=False,
@@ -298,7 +381,8 @@ def choose_MAZ_for_TAZ(
     # (preserve index, which will have duplicates as result of join)
 
     maz_taz = (
-        network_los.get_maz_to_taz_series.rename(DEST_TAZ)
+        network_los.get_maz_to_taz_series(state)
+        .rename(DEST_TAZ)
         .rename_axis(index=DEST_MAZ)
         .to_frame()
         .reset_index()
@@ -323,9 +407,11 @@ def choose_MAZ_for_TAZ(
 
     if have_trace_targets:
         # write maz_sizes: maz_sizes[index,trip_id,dest_TAZ,zone_id,size_term]
-        maz_sizes_trace_targets = tracing.trace_targets(maz_sizes, slicer="trip_id")
+        maz_sizes_trace_targets = state.tracing.trace_targets(
+            maz_sizes, slicer="trip_id"
+        )
         trace_maz_sizes = maz_sizes[maz_sizes_trace_targets]
-        tracing.trace_df(
+        state.tracing.trace_df(
             trace_maz_sizes,
             label=tracing.extend_trace_label(trace_label, "maz_sizes"),
             transpose=False,
@@ -358,7 +444,7 @@ def choose_MAZ_for_TAZ(
     assert maz_probs.shape == (num_choosers * taz_sample_size, max_maz_count)
 
     rands = (
-        pipeline.get_rn_generator()
+        state.get_rn_generator()
         .random_for_df(chooser_df, n=taz_sample_size)
         .reshape(-1, 1)
     )
@@ -378,10 +464,11 @@ def choose_MAZ_for_TAZ(
     taz_choices["prob"] = taz_choices["TAZ_prob"] * taz_choices["MAZ_prob"]
 
     if have_trace_targets:
-
-        taz_choices_trace_targets = tracing.trace_targets(taz_choices, slicer="trip_id")
+        taz_choices_trace_targets = state.tracing.trace_targets(
+            taz_choices, slicer="trip_id"
+        )
         trace_taz_choices_df = taz_choices[taz_choices_trace_targets]
-        tracing.trace_df(
+        state.tracing.trace_df(
             trace_taz_choices_df,
             label=tracing.extend_trace_label(trace_label, "taz_choices"),
             transpose=False,
@@ -407,7 +494,7 @@ def choose_MAZ_for_TAZ(
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        tracing.trace_df(
+        state.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_alts"),
             transpose=False,
@@ -423,7 +510,7 @@ def choose_MAZ_for_TAZ(
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        tracing.trace_df(
+        state.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_size_terms"),
             transpose=False,
@@ -437,7 +524,7 @@ def choose_MAZ_for_TAZ(
         )
         df = pd.concat([lhs_df, df], axis=1)
         df["rand"] = rands[taz_choices_trace_targets]
-        tracing.trace_df(
+        state.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_probs"),
             transpose=False,
@@ -453,29 +540,28 @@ def choose_MAZ_for_TAZ(
     return taz_choices
 
 
+@workflow.func
 def destination_presample(
+    state: workflow.State,
     primary_purpose,
     trips,
     alternatives,
-    model_settings,
+    model_settings: TripDestinationSettings,
     size_term_matrix,
     skim_hotel,
     network_los,
     estimator,
-    chunk_size,
-    trace_hh_id,
     trace_label,
 ):
-
     trace_label = tracing.extend_trace_label(trace_label, "presample")
     chunk_tag = "trip_destination.presample"  # distinguish from trip_destination.sample
 
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
     TAZ_size_term_matrix = aggregate_size_term_matrix(size_term_matrix, network_los)
 
-    TRIP_ORIGIN = model_settings["TRIP_ORIGIN"]
-    PRIMARY_DEST = model_settings["PRIMARY_DEST"]
+    TRIP_ORIGIN = model_settings.TRIP_ORIGIN
+    PRIMARY_DEST = model_settings.PRIMARY_DEST
     trips_taz = trips.copy()
 
     trips_taz[TRIP_ORIGIN] = network_los.map_maz_to_taz(trips_taz[TRIP_ORIGIN])
@@ -494,6 +580,7 @@ def destination_presample(
     skims = skim_hotel.sample_skims(presample=True)
 
     taz_sample = _destination_sample(
+        state,
         primary_purpose,
         trips_taz,
         alternatives,
@@ -502,7 +589,6 @@ def destination_presample(
         skims,
         alt_dest_col_name,
         estimator,
-        chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer="taz",
@@ -510,7 +596,13 @@ def destination_presample(
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
     maz_sample = choose_MAZ_for_TAZ(
-        taz_sample, size_term_matrix, trips, network_los, alt_dest_col_name, trace_label
+        state,
+        taz_sample,
+        size_term_matrix,
+        trips,
+        network_los,
+        alt_dest_col_name,
+        trace_label,
     )
 
     assert alt_dest_col_name in maz_sample
@@ -519,6 +611,7 @@ def destination_presample(
 
 
 def trip_destination_sample(
+    state: workflow.State,
     primary_purpose,
     trips,
     alternatives,
@@ -527,7 +620,6 @@ def trip_destination_sample(
     skim_hotel,
     estimator,
     chunk_size,
-    trace_hh_id,
     trace_label,
 ):
     """
@@ -552,9 +644,9 @@ def trip_destination_sample(
     assert len(alternatives) > 0
 
     # by default, enable presampling for multizone systems, unless they disable it in settings file
-    network_los = inject.get_injectable("network_los")
+    network_los = state.get_injectable("network_los")
     pre_sample_taz = network_los.zone_system != los.ONE_ZONE
-    if pre_sample_taz and not config.setting("want_dest_choice_presampling", True):
+    if pre_sample_taz and not state.settings.want_dest_choice_presampling:
         pre_sample_taz = False
         logger.info(
             f"Disabled destination zone presampling for {trace_label} "
@@ -562,13 +654,13 @@ def trip_destination_sample(
         )
 
     if pre_sample_taz:
-
         logger.info(
             "Running %s trip_destination_presample with %d trips"
             % (trace_label, len(trips))
         )
 
         choices = destination_presample(
+            state,
             primary_purpose,
             trips,
             alternatives,
@@ -577,13 +669,12 @@ def trip_destination_sample(
             skim_hotel,
             network_los,
             estimator,
-            chunk_size,
-            trace_hh_id,
             trace_label,
         )
 
     else:
         choices = destination_sample(
+            state,
             primary_purpose,
             trips,
             alternatives,
@@ -598,7 +689,9 @@ def trip_destination_sample(
     return choices
 
 
+@workflow.func
 def compute_ood_logsums(
+    state: workflow.State,
     choosers,
     logsum_settings,
     nest_spec,
@@ -608,6 +701,7 @@ def compute_ood_logsums(
     chunk_size,
     trace_label,
     chunk_tag,
+    explicit_chunk_size=0,
 ):
     """
     Compute one (of two) out-of-direction logsums for destination alternatives
@@ -623,13 +717,16 @@ def compute_ood_logsums(
     # in `chunk.chunk_log()` at chunk.py L927. To avoid failing this assertion,
     # the preprocessor must be called from within a "null chunker" as follows:
     with chunk.chunk_log(
-        tracing.extend_trace_label(trace_label, "annotate_preprocessor"), base=True
+        state,
+        tracing.extend_trace_label(trace_label, "annotate_preprocessor"),
+        base=True,
     ):
         expressions.annotate_preprocessors(
-            choosers, locals_dict, od_skims, logsum_settings, trace_label
+            state, choosers, locals_dict, od_skims, logsum_settings, trace_label
         )
 
     logsums = simulate.simple_simulate_logsums(
+        state,
         choosers,
         logsum_spec,
         nest_spec,
@@ -638,6 +735,7 @@ def compute_ood_logsums(
         chunk_size=chunk_size,
         trace_label=trace_label,
         chunk_tag=chunk_tag,
+        explicit_chunk_size=explicit_chunk_size,
     )
 
     assert logsums.index.equals(choosers.index)
@@ -649,14 +747,14 @@ def compute_ood_logsums(
 
 
 def compute_logsums(
+    state: workflow.State,
     primary_purpose,
-    trips,
+    trips: pd.DataFrame,
     destination_sample,
-    tours_merged,
-    model_settings,
+    tours_merged: pd.DataFrame,
+    model_settings: TripDestinationSettings,
     skim_hotel,
-    chunk_size,
-    trace_label,
+    trace_label: str,
 ):
     """
     Calculate mode choice logsums using the same recipe as for trip_mode_choice, but do it twice
@@ -674,7 +772,7 @@ def compute_logsums(
     chunk_tag = "trip_destination.compute_logsums"
 
     # FIXME should pass this in?
-    network_los = inject.get_injectable("network_los")
+    network_los = state.get_injectable("network_los")
 
     # - trips_merged - merge trips and tours_merged
     trips_merged = pd.merge(
@@ -694,14 +792,20 @@ def compute_logsums(
     ).set_index("trip_id")
     assert choosers.index.equals(destination_sample.index)
 
-    logsum_settings = config.read_model_settings(model_settings["LOGSUM_SETTINGS"])
-    coefficients = simulate.get_segment_coefficients(logsum_settings, primary_purpose)
+    logsum_settings = state.filesystem.read_model_settings(
+        model_settings.LOGSUM_SETTINGS
+    )
+    coefficients = state.filesystem.get_segment_coefficients(
+        logsum_settings, primary_purpose
+    )
 
     nest_spec = config.get_logit_model_settings(logsum_settings)
     nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)
 
-    logsum_spec = simulate.read_model_spec(file_name=logsum_settings["SPEC"])
-    logsum_spec = simulate.eval_coefficients(logsum_spec, coefficients, estimator=None)
+    logsum_spec = state.filesystem.read_model_spec(file_name=logsum_settings["SPEC"])
+    logsum_spec = simulate.eval_coefficients(
+        state, logsum_spec, coefficients, estimator=None
+    )
 
     locals_dict = {}
     locals_dict.update(config.get_model_constants(logsum_settings))
@@ -719,8 +823,8 @@ def compute_logsums(
 
     # - od_logsums
     od_skims = {
-        "ORIGIN": model_settings["TRIP_ORIGIN"],
-        "DESTINATION": model_settings["ALT_DEST_COL_NAME"],
+        "ORIGIN": model_settings.TRIP_ORIGIN,
+        "DESTINATION": model_settings.ALT_DEST_COL_NAME,
         "odt_skims": skims["odt_skims"],
         "dot_skims": skims["dot_skims"],
         "od_skims": skims["od_skims"],
@@ -734,21 +838,23 @@ def compute_logsums(
             }
         )
     destination_sample["od_logsum"] = compute_ood_logsums(
+        state,
         choosers,
         logsum_settings,
         nest_spec,
         logsum_spec,
         od_skims,
         locals_dict,
-        chunk_size,
+        state.settings.chunk_size,
         trace_label=tracing.extend_trace_label(trace_label, "od"),
         chunk_tag=chunk_tag,
+        explicit_chunk_size=model_settings.explicit_chunk,
     )
 
     # - dp_logsums
     dp_skims = {
-        "ORIGIN": model_settings["ALT_DEST_COL_NAME"],
-        "DESTINATION": model_settings["PRIMARY_DEST"],
+        "ORIGIN": model_settings.ALT_DEST_COL_NAME,
+        "DESTINATION": model_settings.PRIMARY_DEST,
         "odt_skims": skims["dpt_skims"],
         "dot_skims": skims["pdt_skims"],
         "od_skims": skims["dp_skims"],
@@ -762,31 +868,32 @@ def compute_logsums(
         )
 
     destination_sample["dp_logsum"] = compute_ood_logsums(
+        state,
         choosers,
         logsum_settings,
         nest_spec,
         logsum_spec,
         dp_skims,
         locals_dict,
-        chunk_size,
+        state.settings.chunk_size,
         trace_label=tracing.extend_trace_label(trace_label, "dp"),
         chunk_tag=chunk_tag,
+        explicit_chunk_size=model_settings.explicit_chunk,
     )
 
     return destination_sample
 
 
 def trip_destination_simulate(
+    state: workflow.State,
     primary_purpose,
     trips,
     destination_sample,
-    model_settings,
+    model_settings: TripDestinationSettings,
     want_logsums,
     size_term_matrix,
     skim_hotel,
     estimator,
-    chunk_size,
-    trace_hh_id,
     trace_label,
 ):
     """
@@ -802,39 +909,60 @@ def trip_destination_simulate(
     chunk_tag = "trip_destination.simulate"
 
     spec = simulate.spec_for_segment(
-        model_settings,
-        spec_id="DESTINATION_SPEC",
+        state,
+        None,
+        spec_id="SPEC",
         segment_name=primary_purpose,
         estimator=estimator,
+        spec_file_name=model_settings.SPEC,
+        coefficients_file_name=model_settings.COEFFICIENTS,
     )
 
     if estimator:
         estimator.write_choosers(trips)
 
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
     logger.info("Running trip_destination_simulate with %d trips", len(trips))
 
     skims = skim_hotel.sample_skims(presample=False)
 
-    if not np.issubdtype(trips["trip_period"].dtype, np.integer):
+    if isinstance(trips["trip_period"].dtype, pd.api.types.CategoricalDtype):
         if hasattr(skims["odt_skims"], "map_time_periods"):
             trip_period_idx = skims["odt_skims"].map_time_periods(trips)
             if trip_period_idx is not None:
                 trips["trip_period"] = trip_period_idx
+    elif not np.issubdtype(trips["trip_period"].dtype, np.integer):
+        if hasattr(skims["odt_skims"], "map_time_periods"):
+            trip_period_idx = skims["odt_skims"].map_time_periods(trips)
+            if trip_period_idx is not None:
+                trips["trip_period"] = trip_period_idx
+    else:
+        None
 
-    locals_dict = config.get_model_constants(model_settings).copy()
+    locals_dict = model_settings.CONSTANTS.copy()
     locals_dict.update(
         {
             "size_terms": size_term_matrix,
             "size_terms_array": size_term_matrix.df.to_numpy(),
             "timeframe": "trip",
+            "land_use": state.get_dataframe("land_use"),
         }
     )
     locals_dict.update(skims)
 
-    log_alt_losers = config.setting("log_alt_losers", False)
+    if model_settings.alts_preprocessor_simulate:
+        expressions.assign_columns(
+            state,
+            df=destination_sample,
+            model_settings=model_settings.alts_preprocessor_simulate,
+            locals_dict=locals_dict,
+            trace_label=tracing.extend_trace_label(trace_label, "alts"),
+        )
+
+    log_alt_losers = state.settings.log_alt_losers
     destinations = interaction_sample_simulate(
+        state,
         choosers=trips,
         alternatives=destination_sample,
         spec=spec,
@@ -845,11 +973,12 @@ def trip_destination_simulate(
         zero_prob_choice_val=NO_DESTINATION,
         skims=skims,
         locals_d=locals_dict,
-        chunk_size=chunk_size,
+        chunk_size=state.settings.chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         trace_choice_name="trip_dest",
         estimator=estimator,
+        explicit_chunk_size=model_settings.explicit_chunk,
     )
 
     if not want_logsums:
@@ -874,28 +1003,29 @@ def trip_destination_simulate(
     return destinations
 
 
+@workflow.func
 def choose_trip_destination(
+    state: workflow.State,
     primary_purpose,
     trips,
     alternatives,
     tours_merged,
-    model_settings,
+    model_settings: TripDestinationSettings,
     want_logsums,
     want_sample_table,
     size_term_matrix,
     skim_hotel,
     estimator,
     chunk_size,
-    trace_hh_id,
     trace_label,
 ):
-
     logger.info("choose_trip_destination %s with %d trips", trace_label, trips.shape[0])
 
     t0 = print_elapsed_time()
 
     # - trip_destination_sample
     destination_sample = trip_destination_sample(
+        state,
         primary_purpose=primary_purpose,
         trips=trips,
         alternatives=alternatives,
@@ -904,7 +1034,6 @@ def choose_trip_destination(
         skim_hotel=skim_hotel,
         estimator=estimator,
         chunk_size=chunk_size,
-        trace_hh_id=trace_hh_id,
         trace_label=trace_label,
     )
 
@@ -924,20 +1053,20 @@ def choose_trip_destination(
 
     # - compute logsums
     destination_sample = compute_logsums(
+        state,
         primary_purpose=primary_purpose,
         trips=trips,
         destination_sample=destination_sample,
         tours_merged=tours_merged,
         model_settings=model_settings,
         skim_hotel=skim_hotel,
-        chunk_size=chunk_size,
         trace_label=trace_label,
     )
 
     t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0)
 
-    # - trip_destination_simulate
     destinations = trip_destination_simulate(
+        state,
         primary_purpose=primary_purpose,
         trips=trips,
         destination_sample=destination_sample,
@@ -946,8 +1075,6 @@ def choose_trip_destination(
         size_term_matrix=size_term_matrix,
         skim_hotel=skim_hotel,
         estimator=estimator,
-        chunk_size=chunk_size,
-        trace_hh_id=trace_hh_id,
         trace_label=trace_label,
     )
 
@@ -962,7 +1089,7 @@ def choose_trip_destination(
     if want_sample_table:
         # FIXME - sample_table
         destination_sample.set_index(
-            model_settings["ALT_DEST_COL_NAME"], append=True, inplace=True
+            model_settings.ALT_DEST_COL_NAME, append=True, inplace=True
         )
     else:
         destination_sample = None
@@ -972,20 +1099,23 @@ def choose_trip_destination(
     return destinations, destination_sample
 
 
-class SkimHotel(object):
-    def __init__(self, model_settings, network_los, trace_label):
-
+class SkimHotel:
+    def __init__(
+        self,
+        model_settings: TripDestinationSettings,
+        network_los: los.Network_LOS,
+        trace_label: str,
+    ):
         self.model_settings = model_settings
         self.trace_label = tracing.extend_trace_label(trace_label, "skim_hotel")
         self.network_los = network_los
         self.zone_system = network_los.zone_system
 
     def sample_skims(self, presample):
-
-        o = self.model_settings["TRIP_ORIGIN"]
-        d = self.model_settings["ALT_DEST_COL_NAME"]
-        n = self.model_settings.get("PRIMARY_ORIGIN", "origin")
-        p = self.model_settings["PRIMARY_DEST"]
+        o = self.model_settings.TRIP_ORIGIN
+        d = self.model_settings.ALT_DEST_COL_NAME
+        n = self.model_settings.PRIMARY_ORIGIN
+        p = self.model_settings.PRIMARY_DEST
 
         if presample:
             assert not (self.zone_system == los.ONE_ZONE)
@@ -1027,10 +1157,9 @@ class SkimHotel(object):
         return skims
 
     def logsum_skims(self):
-
-        o = self.model_settings["TRIP_ORIGIN"]
-        d = self.model_settings["ALT_DEST_COL_NAME"]
-        p = self.model_settings["PRIMARY_DEST"]
+        o = self.model_settings.TRIP_ORIGIN
+        d = self.model_settings.ALT_DEST_COL_NAME
+        p = self.model_settings.PRIMARY_DEST
         skim_dict = self.network_los.get_default_skim_dict()
 
         skims = {
@@ -1099,14 +1228,17 @@ class SkimHotel(object):
         return skims
 
 
+@workflow.func
 def run_trip_destination(
-    trips,
-    tours_merged,
-    estimator,
-    chunk_size,
-    trace_hh_id,
-    trace_label,
-    fail_some_trips_for_testing=False,
+    state: workflow.State,
+    trips: pd.DataFrame,
+    tours_merged: pd.DataFrame,
+    estimator: estimation.Estimator | None,
+    chunk_size: int,
+    trace_label: str,
+    fail_some_trips_for_testing: bool = False,
+    model_settings: TripDestinationSettings | None = None,
+    model_settings_file_name: str = "trip_destination.yaml",
 ):
     """
     trip destination - main functionality separated from model step so it can be called iteratively
@@ -1119,35 +1251,41 @@ def run_trip_destination(
 
     Parameters
     ----------
-    trips
-    tours_merged
-    want_sample_table
-    chunk_size
-    trace_hh_id
-    trace_label
+    state : workflow.State
+    trips : pd.DataFrame
+    tours_merged : pd.DataFrame
+    estimator
+    chunk_size : int
+    trace_label : str
+    fail_some_trips_for_testing : bool, default False
+    model_settings : TripDestinationSettings, optional
+    model_settings_file_name : str, default "trip_destination.yaml"
 
     Returns
     -------
-
+    trips : pd.DataFrame
+    sample_list : pd.DataFrame
     """
-
-    model_settings_file_name = "trip_destination.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
-    preprocessor_settings = model_settings.get("preprocessor", None)
-    logsum_settings = config.read_model_settings(model_settings["LOGSUM_SETTINGS"])
-
-    logsum_column_name = model_settings.get("DEST_CHOICE_LOGSUM_COLUMN_NAME")
-    want_logsums = logsum_column_name is not None
-
-    sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
-    want_sample_table = (
-        config.setting("want_dest_choice_sample_tables")
-        and sample_table_name is not None
+    if model_settings is None:
+        model_settings = TripDestinationSettings.read_settings_file(
+            state.filesystem, model_settings_file_name
+        )
+    preprocessor_settings = model_settings.preprocessor
+    logsum_settings = state.filesystem.read_model_settings(
+        model_settings.LOGSUM_SETTINGS
     )
 
-    land_use = inject.get_table("land_use")
-    size_terms = inject.get_injectable("size_terms")
-    network_los = inject.get_injectable("network_los")
+    logsum_column_name = model_settings.DEST_CHOICE_LOGSUM_COLUMN_NAME
+    want_logsums = logsum_column_name is not None
+
+    sample_table_name = model_settings.DEST_CHOICE_SAMPLE_TABLE_NAME
+    want_sample_table = (
+        state.settings.want_dest_choice_sample_tables and sample_table_name is not None
+    )
+
+    land_use = state.get_dataframe("land_use")
+    size_terms = state.get_injectable("size_terms")
+    network_los = state.get_injectable("network_los")
     trips = trips.sort_index()
     trips["next_trip_id"] = np.roll(trips.index, -1)
     trips.next_trip_id = trips.next_trip_id.where(trips.trip_num < trips.trip_count, 0)
@@ -1162,7 +1300,7 @@ def run_trip_destination(
     # stop_frequency step calls trip.initialize_from_tours. But if this module is being
     # called from trip_destination_and_purpose, these columns will have been deleted
     # so they must be re-created
-    if pipeline.get_rn_generator().step_name == "trip_purpose_and_destination":
+    if state.get_rn_generator().step_name == "trip_purpose_and_destination":
         trips["destination"] = np.where(trips.outbound, tour_destination, tour_origin)
         trips["origin"] = np.where(trips.outbound, tour_origin, tour_destination)
         trips["failed"] = False
@@ -1204,11 +1342,11 @@ def run_trip_destination(
     # - filter tours_merged (AFTER copying destination and origin columns to trips)
     # tours_merged is used for logsums, we filter it here upfront to save space and time
     tours_merged_cols = logsum_settings["TOURS_MERGED_CHOOSER_COLUMNS"]
-    redundant_cols = model_settings.get("REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS", [])
+    redundant_cols = model_settings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS or []
     if redundant_cols:
         tours_merged_cols = [c for c in tours_merged_cols if c not in redundant_cols]
 
-    assert model_settings["PRIMARY_DEST"] not in tours_merged_cols
+    assert model_settings.PRIMARY_DEST not in tours_merged_cols
     tours_merged = tours_merged[tours_merged_cols]
 
     # - skims
@@ -1222,22 +1360,18 @@ def run_trip_destination(
     # returns a series of size_terms for each chooser's dest_zone_id and purpose with chooser index
     size_term_matrix = DataFrameMatrix(alternatives)
 
-    # don't need size terms in alternatives, just zone_id index
-    alternatives = alternatives.drop(alternatives.columns, axis=1)
-    alternatives.index.name = model_settings["ALT_DEST_COL_NAME"]
+    alternatives.index.name = model_settings.ALT_DEST_COL_NAME
 
     sample_list = []
 
     # - process intermediate trips in ascending trip_num order
     intermediate = trips.trip_num < trips.trip_count
     if intermediate.any():
-
         first_trip_num = trips[intermediate].trip_num.min()
         last_trip_num = trips[intermediate].trip_num.max()
 
         # iterate over trips in ascending trip_num order
         for trip_num in range(first_trip_num, last_trip_num + 1):
-
             nth_trips = trips[intermediate & (trips.trip_num == trip_num)]
             nth_trace_label = tracing.extend_trace_label(
                 trace_label, "trip_num_%s" % trip_num
@@ -1247,18 +1381,21 @@ def run_trip_destination(
                 "network_los": network_los,
                 "size_terms": size_term_matrix,
             }
-            locals_dict.update(config.get_model_constants(model_settings))
+            locals_dict.update(model_settings.CONSTANTS)
 
             # - annotate nth_trips
             if preprocessor_settings:
                 expressions.assign_columns(
+                    state,
                     df=nth_trips,
                     model_settings=preprocessor_settings,
                     locals_dict=locals_dict,
                     trace_label=nth_trace_label,
                 )
 
-            if not np.issubdtype(nth_trips["trip_period"].dtype, np.integer):
+            if isinstance(
+                nth_trips["trip_period"].dtype, pd.api.types.CategoricalDtype
+            ):
                 skims = network_los.get_default_skim_dict()
                 if hasattr(skims, "map_time_periods_from_series"):
                     trip_period_idx = skims.map_time_periods_from_series(
@@ -1266,13 +1403,26 @@ def run_trip_destination(
                     )
                     if trip_period_idx is not None:
                         nth_trips["trip_period"] = trip_period_idx
+            elif not np.issubdtype(nth_trips["trip_period"].dtype, np.integer):
+                skims = network_los.get_default_skim_dict()
+                if hasattr(skims, "map_time_periods_from_series"):
+                    trip_period_idx = skims.map_time_periods_from_series(
+                        nth_trips["trip_period"]
+                    )
+                    if trip_period_idx is not None:
+                        nth_trips["trip_period"] = trip_period_idx
+            else:
+                None
 
             logger.info("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])
 
             # - choose destination for nth_trips, segmented by primary_purpose
             choices_list = []
-            for primary_purpose, trips_segment in nth_trips.groupby("primary_purpose"):
+            for primary_purpose, trips_segment in nth_trips.groupby(
+                "primary_purpose", observed=True
+            ):
                 choices, destination_sample = choose_trip_destination(
+                    state,
                     primary_purpose,
                     trips_segment,
                     alternatives,
@@ -1284,7 +1434,6 @@ def run_trip_destination(
                     skim_hotel,
                     estimator,
                     chunk_size,
-                    trace_hh_id,
                     trace_label=tracing.extend_trace_label(
                         nth_trace_label, primary_purpose
                     ),
@@ -1324,18 +1473,31 @@ def run_trip_destination(
                 # - assign choices to this trip's destinations
                 # if estimator, then the choices will already have been overridden by trip_destination_simulate
                 # because we need to overwrite choices before any failed choices are suppressed
-                assign_in_place(trips, destinations_df.choice.to_frame("destination"))
+                assign_in_place(
+                    trips,
+                    destinations_df.choice.to_frame("destination"),
+                    state.settings.downcast_int,
+                    state.settings.downcast_float,
+                )
                 if want_logsums:
                     assert "logsum" in destinations_df.columns
                     assign_in_place(
-                        trips, destinations_df.logsum.to_frame(logsum_column_name)
+                        trips,
+                        destinations_df.logsum.to_frame(logsum_column_name),
+                        state.settings.downcast_int,
+                        state.settings.downcast_float,
                     )
 
                 # - assign choice to next trip's origin
                 destinations_df.index = nth_trips.next_trip_id.reindex(
                     destinations_df.index
                 )
-                assign_in_place(trips, destinations_df.choice.to_frame("origin"))
+                assign_in_place(
+                    trips,
+                    destinations_df.choice.to_frame("origin"),
+                    state.settings.downcast_int,
+                    state.settings.downcast_float,
+                )
 
     del trips["next_trip_id"]
 
@@ -1348,8 +1510,15 @@ def run_trip_destination(
     return trips, save_sample_df
 
 
-@inject.step()
-def trip_destination(trips, tours_merged, chunk_size, trace_hh_id):
+@workflow.step
+def trip_destination(
+    state: workflow.State,
+    trips: pd.DataFrame,
+    tours_merged: pd.DataFrame,
+    model_settings: TripDestinationSettings | None = None,
+    model_settings_file_name: str = "trip_destination.yaml",
+    trace_label: str = "trip_destination",
+) -> None:
     """
     Choose a destination for all intermediate trips based on trip purpose.
 
@@ -1364,69 +1533,66 @@ def trip_destination(trips, tours_merged, chunk_size, trace_hh_id):
 
     Parameters
     ----------
-    trips : orca.DataFrameWrapper
+    state : workflow.State
+    trips : DataFrame
         The trips table.  This table is edited in-place to add the trip
         destinations.
-    tours_merged : orca.DataFrameWrapper
+    tours_merged : DataFrame
         The tours table, with columns merge from persons and households as well.
-    chunk_size : int
-        If non-zero, iterate over trips using this chunk size.
-    trace_hh_id : int or list[int]
-        Generate trace output for these households.
-
+    model_settings : TripDestinationSettings, optional
+        The settings used in this model component.  If not provided, they are
+        loaded out of the configs directory YAML file referenced by
+        the `model_settings_file_name` argument.
+    model_settings_file_name : str, default "trip_destination.yaml"
+        This is where model setting are found if `model_settings` is not given
+        explicitly.  The same filename is also used to write settings files to
+        the estimation data bundle in estimation mode.
+    trace_label : str, default "free_parking"
+        This label is used for various tracing purposes.
     """
-    trace_label = "trip_destination"
+    if model_settings is None:
+        model_settings = TripDestinationSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
-    model_settings_file_name = "trip_destination.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    fail_some_trips_for_testing = model_settings.fail_some_trips_for_testing
+    trips_df = trips
+    tours_merged_df = tours_merged
 
-    CLEANUP = model_settings.get("CLEANUP", True)
-    fail_some_trips_for_testing = model_settings.get(
-        "fail_some_trips_for_testing", False
-    )
-
-    trips_df = trips.to_frame()
-    tours_merged_df = tours_merged.to_frame()
-
-    if pipeline.is_table("school_escort_trips"):
-        school_escort_trips = pipeline.get_table("school_escort_trips")
+    if state.is_table("school_escort_trips"):
+        school_escort_trips = state.get_dataframe("school_escort_trips")
         # separate out school escorting trips to exclude them from the model and estimation data bundle
         trips_df, se_trips_df, full_trips_index = split_out_school_escorting_trips(
             trips_df, school_escort_trips
         )
 
-    estimator = estimation.manager.begin_estimation("trip_destination")
+    estimator = estimation.manager.begin_estimation(state, "trip_destination")
 
     if estimator:
-        estimator.write_coefficients(model_settings=model_settings)
-        # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
-        estimator.write_spec(model_settings, tag="SPEC")
-        estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
+        estimator.write_coefficients(file_name=model_settings.COEFFICIENTS)
+        estimator.write_spec(file_name=model_settings.SPEC, tag="SPEC")
+        estimator.set_alt_id(model_settings.ALT_DEST_COL_NAME)
         estimator.write_table(
-            inject.get_injectable("size_terms"), "size_terms", append=False
+            state.get_injectable("size_terms"), "size_terms", append=False
         )
-        estimator.write_table(
-            inject.get_table("land_use").to_frame(), "landuse", append=False
-        )
+        estimator.write_table(state.get_dataframe("land_use"), "landuse", append=False)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
     logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
 
     trips_df, save_sample_df = run_trip_destination(
+        state,
         trips_df,
         tours_merged_df,
         estimator=estimator,
-        chunk_size=chunk_size,
-        trace_hh_id=trace_hh_id,
+        chunk_size=state.settings.chunk_size,
         trace_label=trace_label,
         fail_some_trips_for_testing=fail_some_trips_for_testing,
     )
 
     # testing feature t0 make sure at least one trip fails so trip_purpose_and_destination model is run
-    if (
-        config.setting("testing_fail_trip_destination", False)
-        and not trips_df.failed.any()
-    ):
+    if state.settings.testing_fail_trip_destination and not trips_df.failed.any():
         if (trips_df.trip_num < trips_df.trip_count).sum() == 0:
             raise RuntimeError(
                 "can't honor 'testing_fail_trip_destination' setting because no intermediate trips"
@@ -1439,12 +1605,12 @@ def trip_destination(trips, tours_merged, chunk_size, trace_hh_id):
 
     if trips_df.failed.any():
         logger.warning("%s %s failed trips", trace_label, trips_df.failed.sum())
-        if inject.get_injectable("pipeline_file_prefix", None):
-            file_name = f"{trace_label}_failed_trips_{inject.get_injectable('pipeline_file_prefix')}"
+        if state.get_injectable("pipeline_file_prefix", None):
+            file_name = f"{trace_label}_failed_trips_{state.get_injectable('pipeline_file_prefix')}"
         else:
             file_name = f"{trace_label}_failed_trips"
         logger.info("writing failed trips to %s", file_name)
-        tracing.write_csv(
+        state.tracing.write_csv(
             trips_df[trips_df.failed], file_name=file_name, transpose=False
         )
 
@@ -1453,8 +1619,7 @@ def trip_destination(trips, tours_merged, chunk_size, trace_hh_id):
         # no trips should have failed since we overwrite choices and sample should have not failed trips
         assert not trips_df.failed.any()
 
-    if CLEANUP:
-
+    if model_settings.CLEANUP:
         if trips_df.failed.any():
             flag_failed_trip_leg_mates(trips_df, "failed")
 
@@ -1463,11 +1628,11 @@ def trip_destination(trips, tours_merged, chunk_size, trace_hh_id):
                     trips_df.index[trips_df.failed], level="trip_id", inplace=True
                 )
 
-            trips_df = cleanup_failed_trips(trips_df)
+            trips_df = cleanup_failed_trips(state, trips_df)
 
         trips_df.drop(columns="failed", inplace=True, errors="ignore")
 
-    if pipeline.is_table("school_escort_trips"):
+    if state.is_table("school_escort_trips"):
         # setting destination for school escort trips
         se_trips_df["destination"] = reindex(
             school_escort_trips.destination, se_trips_df.index
@@ -1479,15 +1644,15 @@ def trip_destination(trips, tours_merged, chunk_size, trace_hh_id):
         # Origin is previous destination
         # (leaving first origin alone as it's already set correctly)
         trips_df["origin"] = np.where(
-            (trips_df["trip_num"] == 1) & (trips_df["outbound"] == True),
+            (trips_df["trip_num"] == 1) & (trips_df["outbound"] == 1),
             trips_df["origin"],
             trips_df.groupby("tour_id")["destination"].shift(),
         ).astype(int)
 
-    pipeline.replace_table("trips", trips_df)
+    state.add_table("trips", trips_df)
 
-    if trace_hh_id:
-        tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             trips_df,
             label=trace_label,
             slicer="trip_id",
@@ -1503,14 +1668,12 @@ def trip_destination(trips, tours_merged, chunk_size, trace_hh_id):
             trips_df[trips_df.trip_num < trips_df.trip_count]
         )
 
-        sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
+        sample_table_name = model_settings.DEST_CHOICE_SAMPLE_TABLE_NAME
         assert sample_table_name is not None
 
-        logger.info(
-            "adding %s samples to %s" % (len(save_sample_df), sample_table_name)
-        )
+        logger.info(f"adding {len(save_sample_df)} samples to {sample_table_name}")
 
         # lest they try to put tour samples into the same table
-        if pipeline.is_table(sample_table_name):
+        if state.is_table(sample_table_name):
             raise RuntimeError("sample table %s already exists" % sample_table_name)
-        pipeline.extend_table(sample_table_name, save_sample_df)
+        state.extend_table(sample_table_name, save_sample_df)

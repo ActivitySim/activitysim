@@ -11,6 +11,31 @@ This page describes how to get started with ActivitySim.
 .. index:: installation
 
 
+Pre-packaged Installer
+----------------------
+
+Beginning with version 1.2, ActivitySim is now available for Windows via a
+pre-packaged installer.  This installer provides everything you need to run
+ActivitySim, including Python, all the necessary supporting packages, and
+ActivitySim itself.  You should only choose this installation process if you
+plan to use ActivitySim but you don't need or want to do other Python
+development.  Note this installer is provided as an "executable" which (of course)
+installs a variety of things on your system, and it is quite likely to be flagged by
+Windows, anti-virus, or institutional IT policies as "unusual" software, which
+may require special treatment to actually install and use.
+
+Download the installer from GitHub `here <https://github.com/ActivitySim/activitysim/releases/download/v1.3.1/Activitysim-1.3.1-Windows-x86_64.exe>`_.
+It is strongly recommended to choose the option to install "for me only", as this
+should not require administrator privileges on your machine.  Pay attention
+to the *complete path* of the installation location. You will need to know
+that path to run ActivitySim in the future, as the installer does not modify
+your "PATH" and the location of the `ActivitySim.exe` command line tool will not
+be available without knowing the path to where the install has happened.
+
+Once the install is complete, ActivitySim can be run directly from any command
+prompt by running `<install_location>/Scripts/ActivitySim.exe`.
+
+
 Installation
 ------------
 
@@ -45,7 +70,7 @@ home installation folder, such as:
 3. Create a conda environment (basically a Python install just for this project)
 using conda Prompt (on Windows) or the terminal (macOS or Linux)::
 
-  mamba create -n asim python=3.9 activitysim -c conda-forge --override-channels
+  mamba create -n asim python=3.10 activitysim -c conda-forge --override-channels
 
 This command will create the environment and install all the dependencies
 required for running ActivitySim.  It is only necessary to create the environment
@@ -53,13 +78,13 @@ once per machine, you do not need to (re)create the environment for each session
 If you would also like to install other tools or optional dependencies, it is
 possible to do so by adding additional libraries to this command.  For example::
 
-  mamba create -n asim python=3.9 activitysim jupyterlab larch -c conda-forge --override-channels
+  mamba create -n asim python=3.10 activitysim jupyterlab larch -c conda-forge --override-channels
 
-This example installs a specific version of Python, version 3.9.  A similar
+This example installs a specific version of Python, version 3.10.  A similar
 approach can be used to install specific versions of other libraries as well,
 including ActivitySim, itself. For example::
 
-  mamba create -n asim python=3.9 activitysim=1.0.2 -c conda-forge --override-channels
+  mamba create -n asim python=3.10 activitysim=1.0.2 -c conda-forge --override-channels
 
 Additional libraries can also be installed later.  You may want to consider these
 tools for certain development tasks::
@@ -165,8 +190,14 @@ ActivitySim includes a :ref:`cli` for creating examples and running the model.
 To setup and run the primary example (see :ref:`examples`), do the following:
 
 * Open a command prompt
-* Activate the conda environment with ActivitySim installed (i.e. ``conda activate asim``)
-* Type ``activitysim create -e prototype_mtc -d test_prototype_mtc`` to copy the very small prototype_mtc example to a new test_prototype_mtc directory
+* If you installed ActivitySim using conda environments, activate the conda
+  environment with ActivitySim installed (i.e. ``conda activate asim``)
+* Or, if you used the :ref:`pre-packaged installer<Pre-packaged Installer>`,
+  replace all the commands below that call ``activitysim ...`` with the complete
+  path to your installed location, which is probably something
+  like ``c:\programdata\activitysim\scripts\activitysim.exe``.
+* Type ``activitysim create -e prototype_mtc -d test_prototype_mtc`` to copy
+  the very small prototype_mtc example to a new test_prototype_mtc directory
 * Change to the test_prototype_mtc directory
 * Type ``activitysim run -c configs -o output -d data`` to run the example
 * Review the outputs in the output directory

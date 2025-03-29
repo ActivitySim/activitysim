@@ -1,4 +1,9 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -8,14 +13,19 @@ from activitysim.core import (
     chunk,
     config,
     expressions,
-    inject,
     interaction_simulate,
     logit,
-    pipeline,
     simulate,
     tracing,
+    workflow,
 )
-from activitysim.core.simulate import set_skim_wrapper_targets
+from activitysim.core.configuration.base import (
+    ComputeSettings,
+    PreprocessorSettings,
+    PydanticCompute,
+)
+from activitysim.core.skim_dataset import SkimDataset
+from activitysim.core.skim_dictionary import SkimDict
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
@@ -164,7 +174,6 @@ def build_patterns(trips, time_windows):
 
 
 def get_spec_for_segment(omnibus_spec, segment):
-
     spec = omnibus_spec[[segment]]
 
     # might as well ignore any spec rows with 0 utility
@@ -174,15 +183,24 @@ def get_spec_for_segment(omnibus_spec, segment):
     return spec
 
 
-def choose_tour_leg_pattern(trip_segment, patterns, spec, trace_label="trace_label"):
+def choose_tour_leg_pattern(
+    state,
+    trip_segment,
+    patterns,
+    spec,
+    trace_label="trace_label",
+    *,
+    chunk_sizer: chunk.ChunkSizer,
+    compute_settings: ComputeSettings | None = None,
+):
     alternatives = generate_alternatives(trip_segment, STOP_TIME_DURATION).sort_index()
-    have_trace_targets = tracing.has_trace_targets(trip_segment)
+    have_trace_targets = state.tracing.has_trace_targets(trip_segment)
 
     if have_trace_targets:
-        tracing.trace_df(
+        state.tracing.trace_df(
             trip_segment, tracing.extend_trace_label(trace_label, "choosers")
         )
-        tracing.trace_df(
+        state.tracing.trace_df(
             alternatives,
             tracing.extend_trace_label(trace_label, "alternatives"),
             transpose=False,
@@ -201,14 +219,14 @@ def choose_tour_leg_pattern(trip_segment, patterns, spec, trace_label="trace_lab
 
     interaction_df = alternatives.join(trip_segment, how="left", rsuffix="_chooser")
 
-    chunk.log_df(trace_label, "interaction_df", interaction_df)
+    chunk_sizer.log_df(trace_label, "interaction_df", interaction_df)
 
     if have_trace_targets:
-        trace_rows, trace_ids = tracing.interaction_trace_rows(
+        trace_rows, trace_ids = state.tracing.interaction_trace_rows(
             interaction_df, trip_segment
         )
 
-        tracing.trace_df(
+        state.tracing.trace_df(
             interaction_df,
             tracing.extend_trace_label(trace_label, "interaction_df"),
             transpose=False,
@@ -220,13 +238,20 @@ def choose_tour_leg_pattern(trip_segment, patterns, spec, trace_label="trace_lab
         interaction_utilities,
         trace_eval_results,
     ) = interaction_simulate.eval_interaction_utilities(
-        spec, interaction_df, None, trace_label, trace_rows, estimator=None
+        state,
+        spec,
+        interaction_df,
+        None,
+        trace_label,
+        trace_rows,
+        estimator=None,
+        compute_settings=compute_settings,
     )
 
     interaction_utilities = pd.concat(
         [interaction_df[STOP_TIME_DURATION], interaction_utilities], axis=1
     )
-    chunk.log_df(trace_label, "interaction_utilities", interaction_utilities)
+    chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
 
     interaction_utilities = pd.merge(
         interaction_utilities.reset_index(),
@@ -236,20 +261,20 @@ def choose_tour_leg_pattern(trip_segment, patterns, spec, trace_label="trace_lab
     )
 
     if have_trace_targets:
-        tracing.trace_interaction_eval_results(
+        state.tracing.trace_interaction_eval_results(
             trace_eval_results,
             trace_ids,
             tracing.extend_trace_label(trace_label, "eval"),
         )
 
-        tracing.trace_df(
+        state.tracing.trace_df(
             interaction_utilities,
             tracing.extend_trace_label(trace_label, "interaction_utilities"),
             transpose=False,
         )
 
     del interaction_df
-    chunk.log_df(trace_label, "interaction_df", None)
+    chunk_sizer.log_df(trace_label, "interaction_df", None)
 
     interaction_utilities = interaction_utilities.groupby(
         [TOUR_ID, OUTBOUND, PATTERN_ID], as_index=False
@@ -271,7 +296,7 @@ def choose_tour_leg_pattern(trip_segment, patterns, spec, trace_label="trace_lab
     sample_counts = (
         interaction_utilities.groupby(interaction_utilities.index).size().values
     )
-    chunk.log_df(trace_label, "sample_counts", sample_counts)
+    chunk_sizer.log_df(trace_label, "sample_counts", sample_counts)
 
     # max number of alternatvies for any chooser
     max_sample_count = sample_counts.max()
@@ -286,68 +311,74 @@ def choose_tour_leg_pattern(trip_segment, patterns, spec, trace_label="trace_lab
     inserts = np.repeat(last_row_offsets, max_sample_count - sample_counts)
 
     del sample_counts
-    chunk.log_df(trace_label, "sample_counts", None)
+    chunk_sizer.log_df(trace_label, "sample_counts", None)
 
     # insert the zero-prob utilities to pad each alternative set to same size
     padded_utilities = np.insert(interaction_utilities.utility.values, inserts, -999)
     del inserts
 
     del interaction_utilities
-    chunk.log_df(trace_label, "interaction_utilities", None)
+    chunk_sizer.log_df(trace_label, "interaction_utilities", None)
 
     # reshape to array with one row per chooser, one column per alternative
     padded_utilities = padded_utilities.reshape(-1, max_sample_count)
-    chunk.log_df(trace_label, "padded_utilities", padded_utilities)
+    chunk_sizer.log_df(trace_label, "padded_utilities", padded_utilities)
 
     # convert to a dataframe with one row per chooser and one column per alternative
     utilities_df = pd.DataFrame(padded_utilities, index=tour_choosers.index.unique())
-    chunk.log_df(trace_label, "utilities_df", utilities_df)
+    chunk_sizer.log_df(trace_label, "utilities_df", utilities_df)
 
     del padded_utilities
-    chunk.log_df(trace_label, "padded_utilities", None)
+    chunk_sizer.log_df(trace_label, "padded_utilities", None)
 
     if have_trace_targets:
-        tracing.trace_df(
+        state.tracing.trace_df(
             utilities_df,
             tracing.extend_trace_label(trace_label, "utilities"),
             column_labels=["alternative", "utility"],
         )
 
-    if config.setting("freeze_unobserved_utilities", False):
+    if state.settings.use_explicit_error_terms:
         # make choices
         # positions is series with the chosen alternative represented as a column index in probs
         # which is an integer between zero and num alternatives in the alternative sample
         positions, rands = logit.make_choices_utility_based(
-            utilities_df, trace_label=trace_label, trace_choosers=trip_segment
+            state, utilities_df, trace_label=trace_label, trace_choosers=trip_segment
         )
 
         del utilities_df
-        chunk.log_df(trace_label, 'utilities_df', None)
+        chunk_sizer.log_df(trace_label, 'utilities_df', None)
     else:
         # convert to probabilities (utilities exponentiated and normalized to probs)
         # probs is same shape as utilities, one row per chooser and one column for alternative
-        probs = logit.utils_to_probs(utilities_df,
-                                     trace_label=trace_label, trace_choosers=trip_segment)
+        probs = logit.utils_to_probs(
+            state, utilities_df, trace_label=trace_label, trace_choosers=trip_segment
+        )
 
-        chunk.log_df(trace_label, 'probs', probs)
-
-        if have_trace_targets:
-            tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
-                             column_labels=['alternative', 'probability'])
+        chunk_sizer.log_df(trace_label, "probs", probs)
 
         del utilities_df
-        chunk.log_df(trace_label, 'utilities_df', None)
+        chunk_sizer.log_df(trace_label, "utilities_df", None)
+
+        if have_trace_targets:
+            state.tracing.trace_df(
+                probs,
+                tracing.extend_trace_label(trace_label, "probs"),
+                column_labels=["alternative", "probability"],
+            )
 
         # make choices
         # positions is series with the chosen alternative represented as a column index in probs
         # which is an integer between zero and num alternatives in the alternative sample
-        positions, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=trip_segment)
+        positions, rands = logit.make_choices(
+            state, probs, trace_label=trace_label, trace_choosers=trip_segment
+        )
 
         del probs
-        chunk.log_df(trace_label, 'probs', None)
+        chunk_sizer.log_df(trace_label, "probs", None)
 
-    chunk.log_df(trace_label, "positions", positions)
-    chunk.log_df(trace_label, "rands", rands)
+    chunk_sizer.log_df(trace_label, "positions", positions)
+    chunk_sizer.log_df(trace_label, "rands", rands)
 
     # shouldn't have chosen any of the dummy pad utilities
     assert positions.max() < max_sample_count
@@ -359,15 +390,15 @@ def choose_tour_leg_pattern(trip_segment, patterns, spec, trace_label="trace_lab
     # resulting pandas Int64Index has one element per chooser row and is in same order as choosers
     choices = tour_choosers[PATTERN_ID].take(positions + first_row_offsets)
 
-    chunk.log_df(trace_label, "choices", choices)
+    chunk_sizer.log_df(trace_label, "choices", choices)
 
     if have_trace_targets:
-        tracing.trace_df(
+        state.tracing.trace_df(
             choices,
             tracing.extend_trace_label(trace_label, "choices"),
             columns=[None, PATTERN_ID],
         )
-        tracing.trace_df(
+        state.tracing.trace_df(
             rands,
             tracing.extend_trace_label(trace_label, "rands"),
             columns=[None, "rand"],
@@ -376,8 +407,14 @@ def choose_tour_leg_pattern(trip_segment, patterns, spec, trace_label="trace_lab
     return choices
 
 
-def apply_stage_two_model(omnibus_spec, trips, chunk_size, trace_label):
-
+def apply_stage_two_model(
+    state: workflow.State,
+    omnibus_spec,
+    trips,
+    chunk_size,
+    trace_label: str,
+    compute_settings: ComputeSettings | None = None,
+):
     if not trips.index.is_monotonic:
         trips = trips.sort_index()
 
@@ -428,22 +465,26 @@ def apply_stage_two_model(omnibus_spec, trips, chunk_size, trace_label):
     trip_list = []
 
     for (
-        i,
+        _i,
         chooser_chunk,
         chunk_trace_label,
-    ) in chunk.adaptive_chunked_choosers_by_chunk_id(
-        side_trips, chunk_size, trace_label
-    ):
-
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers_by_chunk_id(state, side_trips, trace_label):
         for is_outbound, trip_segment in chooser_chunk.groupby(OUTBOUND):
             direction = OUTBOUND if is_outbound else "inbound"
             spec = get_spec_for_segment(omnibus_spec, direction)
-            segment_trace_label = "{}_{}".format(direction, chunk_trace_label)
+            segment_trace_label = f"{direction}_{chunk_trace_label}"
 
             patterns = build_patterns(trip_segment, time_windows)
 
             choices = choose_tour_leg_pattern(
-                trip_segment, patterns, spec, trace_label=segment_trace_label
+                state,
+                trip_segment,
+                patterns,
+                spec,
+                trace_label=segment_trace_label,
+                chunk_sizer=chunk_sizer,
+                compute_settings=compute_settings,
             )
 
             choices = pd.merge(
@@ -471,15 +512,39 @@ def apply_stage_two_model(omnibus_spec, trips, chunk_size, trace_label):
     return trips["depart"].astype(int)
 
 
-@inject.step()
-def trip_departure_choice(trips, trips_merged, skim_dict, chunk_size, trace_hh_id):
+class TripDepartureChoiceSettings(PydanticCompute, extra="forbid"):
+    """
+    Settings for the `trip_departure_choice` component.
+    """
 
-    trace_label = "trip_departure_choice"
-    model_settings = config.read_model_settings("trip_departure_choice.yaml")
+    PREPROCESSOR: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
 
-    spec = simulate.read_model_spec(file_name=model_settings["SPECIFICATION"])
+    SPECIFICATION: str = "trip_departure_choice.csv"
+    """Filename for the trip departure choice (.csv) file."""
 
-    trips_merged_df = trips_merged.to_frame()
+    CONSTANTS: dict[str, Any] = {}
+
+
+@workflow.step
+def trip_departure_choice(
+    state: workflow.State,
+    trips: pd.DataFrame,
+    trips_merged: pd.DataFrame,
+    skim_dict: SkimDict | SkimDataset,
+    model_settings: TripDepartureChoiceSettings | None = None,
+    model_settings_file_name: str = "trip_departure_choice.yaml",
+    trace_label: str = "trip_departure_choice",
+) -> None:
+    if model_settings is None:
+        model_settings = TripDepartureChoiceSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
+
+    spec = state.filesystem.read_model_spec(file_name=model_settings.SPECIFICATION)
+
+    trips_merged_df = trips_merged
     # add tour-based chunk_id so we can chunk all trips in tour together
     tour_ids = trips_merged[TOUR_ID].unique()
     trips_merged_df["chunk_id"] = reindex(
@@ -493,9 +558,9 @@ def trip_departure_choice(trips, trips_merged, skim_dict, chunk_size, trace_hh_i
     )
     locals_d = config.get_model_constants(model_settings).copy()
 
-    preprocessor_settings = model_settings.get("PREPROCESSOR", None)
+    preprocessor_settings = model_settings.PREPROCESSOR
     tour_legs = get_tour_legs(trips_merged_df)
-    pipeline.get_rn_generator().add_channel("tour_legs", tour_legs)
+    state.get_rn_generator().add_channel("tour_legs", tour_legs)
 
     if preprocessor_settings:
         od_skim = skim_dict.wrap("origin", "destination")
@@ -513,18 +578,26 @@ def trip_departure_choice(trips, trips_merged, skim_dict, chunk_size, trace_hh_i
         )
 
         expressions.assign_columns(
+            state,
             df=trips_merged_df,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
             trace_label=trace_label,
         )
 
-    choices = apply_stage_two_model(spec, trips_merged_df, chunk_size, trace_label)
+    choices = apply_stage_two_model(
+        state,
+        spec,
+        trips_merged_df,
+        state.settings.chunk_size,
+        trace_label,
+        compute_settings=model_settings.compute_settings,
+    )
 
-    trips_df = trips.to_frame()
+    trips_df = trips
     trip_length = len(trips_df)
     trips_df = pd.concat([trips_df, choices], axis=1)
     assert len(trips_df) == trip_length
     assert trips_df[trips_df["depart"].isnull()].empty
 
-    pipeline.replace_table("trips", trips_df)
+    state.add_table("trips", trips_df)

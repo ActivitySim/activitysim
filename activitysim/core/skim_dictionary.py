@@ -1,11 +1,16 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+from collections import OrderedDict
 
 import logging
 from builtins import object, range
 
 import numpy as np
 import pandas as pd
+
+from activitysim.core import workflow
+from activitysim.core.exceptions import StateAccessError
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +151,7 @@ class OffsetMapper(object):
         return offsets
 
 
-class SkimDict(object):
+class SkimDict:
     """
     A SkimDict object is a wrapper around a dict of multiple skim objects,
     where each object is identified by a key.
@@ -154,7 +159,7 @@ class SkimDict(object):
     Note that keys are either strings or tuples of two strings (to support stacking of skims.)
     """
 
-    def __init__(self, skim_tag, skim_info, skim_data):
+    def __init__(self, state, skim_tag, skim_info, skim_data):
 
         logger.info(f"SkimDict init {skim_tag}")
 
@@ -162,8 +167,22 @@ class SkimDict(object):
         self.skim_info = skim_info
         self.usage = set()  # track keys of skims looked up
 
-        self.offset_mapper = (
-            self._offset_mapper()
+        try:
+            self.time_label_dtype = pd.api.types.CategoricalDtype(
+                list(
+                    OrderedDict.fromkeys(
+                        state.network_settings.skim_time_periods.labels
+                    )
+                ),
+                ordered=True,
+            )
+        except StateAccessError:
+            logger.info(
+                f"Cannot access state.network_settings.skim_time_periods.labels. SkimDict.time_label_dtype is not set"
+            )
+
+        self.offset_mapper = self._offset_mapper(
+            state
         )  # (in function so subclass can override)
 
         self.omx_shape = skim_info.omx_shape
@@ -184,7 +203,7 @@ class SkimDict(object):
             f"SkimDict.build_3d_skim_block_offset_table registered {len(self.skim_dim3)} 3d keys"
         )
 
-    def _offset_mapper(self):
+    def _offset_mapper(self, state):
         """
         Return an OffsetMapper to set self.offset_mapper for use with skims
         This allows subclasses (e.g. MazSkimDict) to 'tweak' the parent offset mapper.
@@ -613,7 +632,7 @@ class MazSkimDict(SkimDict):
     to return values of for more distant pairs (or for skims that are not attributes in the maz-maz table.)
     """
 
-    def __init__(self, skim_tag, network_los, taz_skim_dict):
+    def __init__(self, state: workflow.State, skim_tag, network_los, taz_skim_dict):
         """
         we need network_los because we have dependencies on network_los.load_data (e.g. maz_to_maz_df, maz_taz_df,
         and the fallback taz skim_dict)
@@ -638,10 +657,10 @@ class MazSkimDict(SkimDict):
             should_recode_based_on_table,
         )
 
-        if should_recode_based_on_table("land_use_taz"):
+        if should_recode_based_on_table(state, "land_use_taz"):
             from .skim_dict_factory import SkimInfo
 
-            skim_info = SkimInfo(None, network_los)
+            skim_info = SkimInfo(state, None, network_los)
             skim_info.skim_tag = taz_skim_dict.skim_info.skim_tag
             skim_info.dtype_name = network_los.skim_dtype_name
             skim_info.omx_manifest = taz_skim_dict.skim_info.omx_manifest
@@ -654,24 +673,27 @@ class MazSkimDict(SkimDict):
             skim_info.block_offsets = taz_skim_dict.skim_info.block_offsets
 
             skim_info.offset_map = recode_based_on_table(
-                taz_skim_dict.skim_info.offset_map, "land_use_taz"
+                state, taz_skim_dict.skim_info.offset_map, "land_use_taz"
             )
         else:
             skim_info = taz_skim_dict.skim_info
 
-        super().__init__(skim_tag, skim_info, taz_skim_dict.skim_data)
+        super().__init__(state, skim_tag, skim_info, taz_skim_dict.skim_data)
         assert (
             self.offset_mapper is not None
         )  # should have been set with _init_offset_mapper
 
         self.dtype = np.dtype(self.skim_info.dtype_name)
         self.base_keys = taz_skim_dict.skim_info.base_keys
-        self.sparse_keys = list(
-            set(network_los.maz_to_maz_df.columns) - {"OMAZ", "DMAZ"}
-        )
+        if network_los.maz_to_maz_df is not None:
+            self.sparse_keys = list(
+                set(network_los.maz_to_maz_df.columns) - {"OMAZ", "DMAZ"}
+            )
+        else:
+            self.sparse_keys = []
         self.sparse_key_usage = set()
 
-    def _offset_mapper(self):
+    def _offset_mapper(self, state):
         """
         return an OffsetMapper to map maz zone_ids to taz skim indexes
         Specifically, an offset_series with MAZ zone_id index and TAZ skim array offset values
@@ -684,13 +706,13 @@ class MazSkimDict(SkimDict):
         """
 
         # use taz offset_mapper to create series mapping directly from MAZ to TAZ skim index
-        taz_offset_mapper = super()._offset_mapper()
-        maz_taz = self.network_los.get_maz_to_taz_series
+        taz_offset_mapper = super()._offset_mapper(state)
+        maz_taz = self.network_los.get_maz_to_taz_series(state)
         maz_to_skim_offset = taz_offset_mapper.map(maz_taz)
 
         if isinstance(maz_to_skim_offset, np.ndarray):
             maz_to_skim_offset = pd.Series(
-                maz_to_skim_offset, self.network_los.get_maz_to_taz_series.index
+                maz_to_skim_offset, self.network_los.get_maz_to_taz_series(state).index
             )  # bug
 
         # MAZ
@@ -731,7 +753,10 @@ class MazSkimDict(SkimDict):
 
         self.sparse_key_usage.add(key)
 
-        max_blend_distance = self.network_los.max_blend_distance.get(key, 0)
+        if self.network_los.max_blend_distance is None:
+            max_blend_distance = 0
+        else:
+            max_blend_distance = self.network_los.max_blend_distance.get(key, 0)
 
         if max_blend_distance == 0:
             blend_distance_skim_name = None

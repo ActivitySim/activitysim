@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import os.path
 
 import pandas as pd
@@ -8,9 +10,8 @@ import pandas.testing as pdt
 import pytest
 import yaml
 
-from activitysim.core import chunk, config, inject, simulate
-
-from .. import cdap
+from activitysim.abm.models.util import cdap
+from activitysim.core import chunk, simulate, workflow
 
 
 @pytest.fixture(scope="module")
@@ -21,11 +22,6 @@ def data_dir():
 @pytest.fixture(scope="module")
 def people(data_dir):
     return pd.read_csv(os.path.join(data_dir, "people.csv"), index_col="id")
-
-
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
 
 
 @pytest.fixture(scope="module")
@@ -41,17 +37,11 @@ def configs_dir():
     return os.path.join(os.path.dirname(__file__), "configs")
 
 
-def setup_function():
-    configs_dir = os.path.join(os.path.dirname(__file__), "configs")
-    inject.add_injectable("configs_dir", configs_dir)
-    output_dir = os.path.join(os.path.dirname(__file__), "output")
-    inject.add_injectable("output_dir", output_dir)
-
-
 def test_bad_coefficients():
-
+    state = workflow.State.make_default(__file__)
     coefficients = pd.read_csv(
-        config.config_file_path("cdap_interaction_coefficients.csv"), comment="#"
+        state.filesystem.get_config_file_path("cdap_interaction_coefficients.csv"),
+        comment="#",
     )
     coefficients = cdap.preprocess_interaction_coefficients(coefficients)
 
@@ -63,11 +53,11 @@ def test_bad_coefficients():
 
 
 def test_assign_cdap_rank(people, model_settings):
-
+    state = workflow.State.make_default(__file__)
     person_type_map = model_settings.get("PERSON_TYPE_MAP", {})
 
-    with chunk.chunk_log("test_assign_cdap_rank", base=True):
-        cdap.assign_cdap_rank(people, person_type_map)
+    with chunk.chunk_log(state, "test_assign_cdap_rank", base=True):
+        cdap.assign_cdap_rank(state, people, person_type_map)
 
     expected = pd.Series(
         [1, 1, 1, 2, 2, 1, 3, 1, 2, 1, 3, 2, 1, 3, 2, 4, 1, 3, 4, 2], index=people.index
@@ -79,17 +69,21 @@ def test_assign_cdap_rank(people, model_settings):
 
 
 def test_individual_utilities(people, model_settings):
-
-    cdap_indiv_and_hhsize1 = simulate.read_model_spec(
+    state = workflow.State.make_default(__file__)
+    cdap_indiv_and_hhsize1 = state.filesystem.read_model_spec(
         file_name="cdap_indiv_and_hhsize1.csv"
     )
 
     person_type_map = model_settings.get("PERSON_TYPE_MAP", {})
 
-    with chunk.chunk_log("test_individual_utilities", base=True):
-        cdap.assign_cdap_rank(people, person_type_map)
+    with chunk.chunk_log(state, "test_individual_utilities", base=True) as chunk_sizer:
+        cdap.assign_cdap_rank(state, people, person_type_map)
         individual_utils = cdap.individual_utilities(
-            people, cdap_indiv_and_hhsize1, locals_d=None
+            state,
+            people,
+            cdap_indiv_and_hhsize1,
+            locals_d=None,
+            chunk_sizer=chunk_sizer,
         )
 
     individual_utils = individual_utils[["M", "N", "H"]]
@@ -127,14 +121,15 @@ def test_individual_utilities(people, model_settings):
 
 
 def test_build_cdap_spec_hhsize2(people, model_settings):
-
+    state = workflow.State.make_default(__file__)
     hhsize = 2
-    cdap_indiv_and_hhsize1 = simulate.read_model_spec(
+    cdap_indiv_and_hhsize1 = state.filesystem.read_model_spec(
         file_name="cdap_indiv_and_hhsize1.csv"
     )
 
     interaction_coefficients = pd.read_csv(
-        config.config_file_path("cdap_interaction_coefficients.csv"), comment="#"
+        state.filesystem.get_config_file_path("cdap_interaction_coefficients.csv"),
+        comment="#",
     )
     interaction_coefficients = cdap.preprocess_interaction_coefficients(
         interaction_coefficients
@@ -142,23 +137,29 @@ def test_build_cdap_spec_hhsize2(people, model_settings):
 
     person_type_map = model_settings.get("PERSON_TYPE_MAP", {})
 
-    with chunk.chunk_log("test_build_cdap_spec_hhsize2", base=True):
-        cdap.assign_cdap_rank(people, person_type_map)
+    with chunk.chunk_log(
+        state, "test_build_cdap_spec_hhsize2", base=True
+    ) as chunk_sizer:
+        cdap.assign_cdap_rank(state, people, person_type_map)
         indiv_utils = cdap.individual_utilities(
-            people, cdap_indiv_and_hhsize1, locals_d=None
+            state,
+            people,
+            cdap_indiv_and_hhsize1,
+            locals_d=None,
+            chunk_sizer=chunk_sizer,
         )
 
-        choosers = cdap.hh_choosers(indiv_utils, hhsize=hhsize)
+        choosers = cdap.hh_choosers(state, indiv_utils, hhsize=hhsize)
 
         spec = cdap.build_cdap_spec(
-            interaction_coefficients, hhsize=hhsize, cache=False
+            state, interaction_coefficients, hhsize=hhsize, cache=False
         )
 
         # pandas.dot depends on column names of expression_values matching spec index values
         # expressions should have been uniquified when spec was read
         assert spec.index.is_unique
 
-        vars = simulate.eval_variables(spec.index, choosers)
+        vars = simulate.eval_variables(state, spec.index, choosers)
         assert (spec.index.values == vars.columns.values).all()
 
     # spec = spec.astype(np.float64)

@@ -1,44 +1,70 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
-
-from .util import estimation
-from .util.overlap import hh_time_window_overlap
-from .util.tour_frequency import process_joint_tours
+from activitysim.abm.models.util.overlap import hh_time_window_overlap
+from activitysim.abm.models.util.tour_frequency import process_joint_tours
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    simulate,
+    tracing,
+    workflow,
+)
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def joint_tour_frequency(households, persons, chunk_size, trace_hh_id):
+class JointTourFrequencySettings(LogitComponentSettings, extra="forbid"):
+    """
+    Settings for the `free_parking` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+
+@workflow.step
+def joint_tour_frequency(
+    state: workflow.State,
+    households: pd.DataFrame,
+    persons: pd.DataFrame,
+    model_settings: JointTourFrequencySettings | None = None,
+    model_settings_file_name: str = "joint_tour_frequency.yaml",
+    trace_label: str = "joint_tour_frequency",
+) -> None:
     """
     This model predicts the frequency of making fully joint trips (see the
     alternatives above).
     """
-    trace_label = "joint_tour_frequency"
-    model_settings_file_name = "joint_tour_frequency.yaml"
+    if model_settings is None:
+        model_settings = JointTourFrequencySettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
-    estimator = estimation.manager.begin_estimation("joint_tour_frequency")
+    trace_hh_id = state.settings.trace_hh_id
 
-    model_settings = config.read_model_settings(model_settings_file_name)
+    estimator = estimation.manager.begin_estimation(state, "joint_tour_frequency")
 
     alternatives = simulate.read_model_alts(
-        "joint_tour_frequency_alternatives.csv", set_index="alt"
+        state, "joint_tour_frequency_alternatives.csv", set_index="alt"
     )
 
     # - only interested in households with more than one cdap travel_active person and
     # - at least one non-preschooler
-    households = households.to_frame()
     multi_person_households = households[households.participates_in_jtf_model].copy()
 
     # - only interested in persons in multi_person_households
     # FIXME - gratuitous pathological efficiency move, just let yaml specify persons?
-    persons = persons.to_frame()
     persons = persons[persons.household_id.isin(multi_person_households.index)]
 
     logger.info(
@@ -47,24 +73,26 @@ def joint_tour_frequency(households, persons, chunk_size, trace_hh_id):
     )
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
-
         locals_dict = {
             "persons": persons,
-            "hh_time_window_overlap": hh_time_window_overlap,
+            "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
         }
 
         expressions.assign_columns(
+            state,
             df=multi_person_households,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
             trace_label=trace_label,
         )
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(
+        state, model_spec, coefficients_df, estimator
+    )
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
@@ -76,18 +104,24 @@ def joint_tour_frequency(households, persons, chunk_size, trace_hh_id):
         estimator.write_choosers(multi_person_households)
 
     choices = simulate.simple_simulate(
+        state,
         choosers=multi_person_households,
         spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
-        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name="joint_tour_frequency",
         estimator=estimator,
+        compute_settings=model_settings.compute_settings,
     )
 
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
+    cat_type = pd.api.types.CategoricalDtype(
+        model_spec.columns.tolist(),
+        ordered=False,
+    )
+    choices = choices.astype(cat_type)
 
     if estimator:
         estimator.write_choices(choices)
@@ -108,19 +142,25 @@ def joint_tour_frequency(households, persons, chunk_size, trace_hh_id):
     temp_point_persons = temp_point_persons.set_index("household_id")
     temp_point_persons = temp_point_persons[["person_id", "home_zone_id"]]
 
-    joint_tours = process_joint_tours(choices, alternatives, temp_point_persons)
+    joint_tours = process_joint_tours(state, choices, alternatives, temp_point_persons)
 
-    tours = pipeline.extend_table("tours", joint_tours)
+    # convert purpose to pandas categoricals
+    purpose_type = pd.api.types.CategoricalDtype(
+        alternatives.columns.tolist(), ordered=False
+    )
+    joint_tours["tour_type"] = joint_tours["tour_type"].astype(purpose_type)
 
-    tracing.register_traceable_table("tours", joint_tours)
-    pipeline.get_rn_generator().add_channel("tours", joint_tours)
+    tours = state.extend_table("tours", joint_tours)
+
+    state.tracing.register_traceable_table("tours", joint_tours)
+    state.get_rn_generator().add_channel("tours", joint_tours)
 
     # - annotate households
 
     # we expect there to be an alt with no tours - which we can use to backfill non-travelers
     no_tours_alt = (alternatives.sum(axis=1) == 0).index[0]
-    households["joint_tour_frequency"] = (
-        choices.reindex(households.index).fillna(no_tours_alt).astype(str)
+    households["joint_tour_frequency"] = choices.reindex(households.index).fillna(
+        no_tours_alt
     )
 
     households["num_hh_joint_tours"] = (
@@ -131,16 +171,16 @@ def joint_tour_frequency(households, persons, chunk_size, trace_hh_id):
         .astype(np.int8)
     )
 
-    pipeline.replace_table("households", households)
+    state.add_table("households", households)
 
     tracing.print_summary(
         "joint_tour_frequency", households.joint_tour_frequency, value_counts=True
     )
 
     if trace_hh_id:
-        tracing.trace_df(households, label="joint_tour_frequency.households")
+        state.tracing.trace_df(households, label="joint_tour_frequency.households")
 
-        tracing.trace_df(
+        state.tracing.trace_df(
             joint_tours, label="joint_tour_frequency.joint_tours", slicer="household_id"
         )
 

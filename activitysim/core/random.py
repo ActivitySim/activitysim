@@ -1,5 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
 
 import hashlib
 import logging
@@ -66,7 +67,6 @@ class SimpleChannel(object):
     """
 
     def __init__(self, channel_name, base_seed, domain_df, step_name):
-
         self.base_seed = base_seed
 
         # ensure that every channel is different, even for the same df index values and max_steps
@@ -100,7 +100,6 @@ class SimpleChannel(object):
         assert self.step_name
 
         if self.step_name and not row_states.empty:
-
             row_states["row_seed"] = (
                 self.base_seed + self.channel_seed + self.step_seed + row_states.index
             ) % _MAX_SEED
@@ -164,7 +163,6 @@ class SimpleChannel(object):
         self.multi_choice_offset = None
 
     def end_step(self, step_name):
-
         assert self.step_name == step_name
 
         self.step_name = None
@@ -199,7 +197,6 @@ class SimpleChannel(object):
         # np.random.default_rng()
         prng = np.random.RandomState()
         for row in df_row_states.itertuples():
-
             prng.seed(row.row_seed)
 
             if row.offset:
@@ -421,7 +418,6 @@ class SimpleChannel(object):
 
 class Random(object):
     def __init__(self):
-
         self.channels = {}
 
         # dict mapping df index name to channel name
@@ -461,7 +457,8 @@ class Random(object):
             pipeline step name
         """
 
-        assert self.step_name is None
+        if self.step_name is not None:
+            raise ValueError(f"already in step {self.step_name}")
         assert step_name is not None
 
         self.step_name = step_name
@@ -484,7 +481,9 @@ class Random(object):
         step_name : str
             name of current step (just a consistency check)
         """
-        assert self.step_name is not None
+        if self.step_name is None:
+            # maybe a step was aborted, this is fine
+            return
         assert self.step_name == step_name
 
         for c in self.channels:
@@ -516,7 +515,6 @@ class Random(object):
         """
 
         if channel_name in self.channels:
-
             assert channel_name == self.index_to_channel[domain_df.index.name]
             logger.debug(
                 "Random: extending channel '%s' %s ids"

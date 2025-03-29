@@ -1,13 +1,16 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
-from builtins import object
+import warnings
 
 import numpy as np
 import pandas as pd
 
-from . import config, pipeline, tracing
-from .choosing import choice_maker
+from activitysim.core import tracing, workflow
+from activitysim.core.choosing import choice_maker
+from activitysim.core.configuration.logit import LogitNestSpec
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +22,13 @@ PROB_MAX = 1.0
 
 
 def report_bad_choices(
-    bad_row_map, df, trace_label, msg, trace_choosers=None, raise_error=True
+    state: workflow.State,
+    bad_row_map,
+    df,
+    trace_label,
+    msg,
+    trace_choosers=None,
+    raise_error=True,
 ):
     """
 
@@ -59,7 +68,7 @@ def report_bad_choices(
 
     if trace_label:
         logger.info("dumping %s" % trace_label)
-        tracing.write_csv(df[:MAX_DUMP], file_name=trace_label, transpose=False)
+        state.tracing.write_csv(df[:MAX_DUMP], file_name=trace_label, transpose=False)
 
     # log the indexes of the first MAX_DUMP offending rows
     for idx in df.index[:MAX_PRINT].values:
@@ -116,11 +125,14 @@ def utils_to_logsums(utils, exponentiated=False, allow_zero_probs=False):
 
 
 def utils_to_probs(
+    state: workflow.State,
     utils,
     trace_label=None,
     exponentiated=False,
     allow_zero_probs=False,
     trace_choosers=None,
+    overflow_protection: bool = True,
+    return_logsums: bool = False,
 ):
     """
     Convert a table of utilities to probabilities.
@@ -130,7 +142,7 @@ def utils_to_probs(
     utils : pandas.DataFrame
         Rows should be choosers and columns should be alternatives.
 
-    trace_label : str
+    trace_label : str, optional
         label for tracing bad utility or probability values
 
     exponentiated : bool
@@ -146,6 +158,20 @@ def utils_to_probs(
         by report_bad_choices because it can't deduce hh_id from the interaction_dataset
         which is indexed on index values from alternatives df
 
+    overflow_protection : bool, default True
+        Always shift utility values such that the maximum utility in each row is
+        zero.  This constant per-row shift should not fundamentally alter the
+        computed probabilities, but will ensure that an overflow does not occur
+        that will create infinite or NaN values.  This will also provide effective
+        protection against underflow; extremely rare probabilities will round to
+        zero, but by definition they are extremely rare and losing them entirely
+        should not impact the simulation in a measureable fashion, and at least one
+        (and sometimes only one) alternative is guaranteed to have non-zero
+        probability, as long as at least one alternative has a finite utility value.
+        If utility values are certain to be well-behaved and non-extreme, enabling
+        overflow_protection will have no benefit but impose a modest computational
+        overhead cost.
+
     Returns
     -------
     probs : pandas.DataFrame
@@ -158,9 +184,27 @@ def utils_to_probs(
     # utils_arr = utils.values.astype('float')
     utils_arr = utils.values
 
-    if utils_arr.dtype == np.float32 and utils_arr.max() > 85:
+    if allow_zero_probs:
+        if overflow_protection:
+            warnings.warn(
+                "cannot set overflow_protection with allow_zero_probs", stacklevel=2
+            )
+            overflow_protection = utils_arr.dtype == np.float32 and utils_arr.max() > 85
+            if overflow_protection:
+                raise ValueError(
+                    "cannot prevent expected overflow with allow_zero_probs"
+                )
+    else:
+        overflow_protection = overflow_protection or (
+            utils_arr.dtype == np.float32 and utils_arr.max() > 85
+        )
+
+    if overflow_protection:
         # exponentiated utils will overflow, downshift them
-        utils_arr -= utils_arr.max(1, keepdims=True)
+        shifts = utils_arr.max(1, keepdims=True)
+        utils_arr -= shifts
+    else:
+        shifts = None
 
     if not exponentiated:
         # TODO: reduce memory usage by exponentiating in-place.
@@ -176,10 +220,20 @@ def utils_to_probs(
 
     arr_sum = utils_arr.sum(axis=1)
 
+    if return_logsums:
+        with np.errstate(divide="ignore" if allow_zero_probs else "warn"):
+            logsums = np.log(arr_sum)
+        if shifts is not None:
+            logsums += np.squeeze(shifts, 1)
+        logsums = pd.Series(logsums, index=utils.index)
+    else:
+        logsums = None
+
     if not allow_zero_probs:
         zero_probs = arr_sum == 0.0
         if zero_probs.any():
             report_bad_choices(
+                state,
                 zero_probs,
                 utils,
                 trace_label=tracing.extend_trace_label(trace_label, "zero_prob_utils"),
@@ -190,6 +244,7 @@ def utils_to_probs(
     inf_utils = np.isinf(arr_sum)
     if inf_utils.any():
         report_bad_choices(
+            state,
             inf_utils,
             utils,
             trace_label=tracing.extend_trace_label(trace_label, "inf_exp_utils"),
@@ -211,12 +266,15 @@ def utils_to_probs(
 
     probs = pd.DataFrame(utils_arr, columns=utils.columns, index=utils.index)
 
+    if return_logsums:
+        return probs, logsums
     return probs
 
 
-def add_ev1_random(df):
+# todo: check state, add type annotations, check new-world tracing, etc.
+def add_ev1_random(state: workflow.State, df: pd.DataFrame):
     nest_utils_for_choice = df.copy()
-    nest_utils_for_choice += pipeline.get_rn_generator().gumbel_for_df(nest_utils_for_choice, n=df.shape[1])
+    nest_utils_for_choice += state.get_rn_generator().gumbel_for_df(nest_utils_for_choice, n=df.shape[1])
     return nest_utils_for_choice
 
 
@@ -240,9 +298,9 @@ def choose_from_tree(nest_utils, all_alternatives, logit_nest_groups, nest_alter
 # alternatives and set the corresponding entry to 1 for each row, set all other alternatives at this level to zero.
 # Once the tree is walked (all alternatives have been processed), take the product of the alternatives in each
 # leaf's alternative list. Then pick the only alternative with entry 1, all others must be 0.
-def make_choices_ru_frozen_nl(nested_utilities, alt_order_array, nest_spec):
+def make_choices_explicit_error_term_nl(state, nested_utilities, alt_order_array, nest_spec):
     """ walk down the nesting tree and make choice at each level, which is the root of the next level choice."""
-    nest_utils_for_choice = add_ev1_random(nested_utilities)
+    nest_utils_for_choice = add_ev1_random(state, nested_utilities)
 
     all_alternatives = set(nest.name for nest in each_nest(nest_spec, type='leaf'))
     logit_nest_groups = group_nest_names_by_level(nest_spec)
@@ -262,45 +320,53 @@ def make_choices_ru_frozen_nl(nested_utilities, alt_order_array, nest_spec):
     return choices
 
 
-def make_choices_ru_frozen_mnl(utilities):
-    utilities_incl_unobs = add_ev1_random(utilities)
+def make_choices_explicit_error_term_mnl(state, utilities):
+    utilities_incl_unobs = add_ev1_random(state, utilities)
     choices = np.argmax(utilities_incl_unobs.to_numpy(), axis=1)
+    # TODO: reporting like for zero probs
     assert not np.isnan(choices).any(), "No choice for XXX - implement reporting"
     choices = pd.Series(choices, index=utilities_incl_unobs.index)
     return choices
 
 
-def make_choices_ru_frozen(utilities, alt_order_array, nest_spec=None, trace_label=None):
-    trace_label = tracing.extend_trace_label(trace_label, 'make_choices_ru_frozen')
+def make_choices_explicit_error_term(state, utilities, alt_order_array, nest_spec=None, trace_label=None):
+    trace_label = state.tracing.extend_trace_label(trace_label, 'make_choices_ru_frozen')
     if nest_spec is None:
-        choices = make_choices_ru_frozen_mnl(utilities)
+        choices = make_choices_explicit_error_term_mnl(state, utilities)
     else:
-        choices = make_choices_ru_frozen_nl(utilities, alt_order_array, nest_spec)
+        choices = make_choices_explicit_error_term_nl(state, utilities, alt_order_array, nest_spec)
     return choices
 
 
 # TODO: memory usage
 def make_choices_utility_based(
-        utilities,
+        state: workflow.State,
+        utilities: pd.DataFrame,
         # for nested: need mapping of index to alternative name to "fake" indexes if I want to keep with current
         #  structure, OR need to make returning names optional. sharrow impl will make our life so much easier
         name_mapping=None,
         nest_spec=None,
-        trace_label=None,
+        trace_label: str = None,
         trace_choosers=None,
         allow_bad_probs=False,
-):
+) -> tuple[pd.Series, pd.Series]:
     trace_label = tracing.extend_trace_label(trace_label, 'make_choices_utility_based')
 
     # TODO: index of choices for nested utilities is different than unnested - this needs to be consistent for
     #  turning indexes into alternative names to keep code changes to minimum for now
-    choices = make_choices_ru_frozen(utilities, name_mapping, nest_spec, trace_label)
+    choices = make_choices_explicit_error_term(state, utilities, name_mapping, nest_spec, trace_label)
     # TODO: rands - log all zeros for now
     rands = pd.Series(np.zeros_like(utilities.index.values), index=utilities.index)
     return choices, rands
 
 
-def make_choices(probs, trace_label=None, trace_choosers=None, allow_bad_probs=False):
+def make_choices(
+    state: workflow.State,
+    probs: pd.DataFrame,
+    trace_label: str = None,
+    trace_choosers=None,
+    allow_bad_probs=False,
+) -> tuple[pd.Series, pd.Series]:
     """
     Make choices for each chooser from among a set of alternatives.
     Parameters
@@ -333,6 +399,7 @@ def make_choices(probs, trace_label=None, trace_choosers=None, allow_bad_probs=F
     if bad_probs.any() and not allow_bad_probs:
 
         report_bad_choices(
+            state,
             bad_probs,
             probs,
             trace_label=tracing.extend_trace_label(trace_label, "bad_probs"),
@@ -340,7 +407,7 @@ def make_choices(probs, trace_label=None, trace_choosers=None, allow_bad_probs=F
             trace_choosers=trace_choosers,
         )
 
-    rands = pipeline.get_rn_generator().random_for_df(probs)
+    rands = state.get_rn_generator().random_for_df(probs)
 
     choices = pd.Series(choice_maker(probs.values, rands), index=probs.index)
 
@@ -350,7 +417,12 @@ def make_choices(probs, trace_label=None, trace_choosers=None, allow_bad_probs=F
 
 
 def interaction_dataset(
-    choosers, alternatives, sample_size=None, alt_index_id=None, chooser_index_id=None
+    state: workflow.State,
+    choosers,
+    alternatives,
+    sample_size=None,
+    alt_index_id=None,
+    chooser_index_id=None,
 ):
     """
     Combine choosers and alternatives into one table for the purposes
@@ -390,7 +462,7 @@ def interaction_dataset(
     alts_idx = np.arange(numalts)
 
     if sample_size < numalts:
-        sample = pipeline.get_rn_generator().choice_for_df(
+        sample = state.get_rn_generator().choice_for_df(
             choosers, alts_idx, sample_size, replace=False
         )
     else:
@@ -424,7 +496,7 @@ def interaction_dataset(
     return alts_sample
 
 
-class Nest(object):
+class Nest:
     """
     Data for a nest-logit node or leaf
 
@@ -469,15 +541,14 @@ class Nest(object):
         return ["leaf", "node"]
 
 
-def validate_nest_spec(nest_spec, trace_label):
+def validate_nest_spec(nest_spec: dict | LogitNestSpec, trace_label: str):
 
     keys = []
     duplicates = []
     for nest in each_nest(nest_spec):
         if nest.name in keys:
             logger.error(
-                "validate_nest_spec:duplicate nest key '%s' in nest spec - %s"
-                % (nest.name, trace_label)
+                f"validate_nest_spec:duplicate nest key '{nest.name}' in nest spec - {trace_label}"
             )
             duplicates.append(nest.name)
 
@@ -486,12 +557,11 @@ def validate_nest_spec(nest_spec, trace_label):
 
     if duplicates:
         raise RuntimeError(
-            "validate_nest_spec:duplicate nest key/s '%s' in nest spec - %s"
-            % (duplicates, trace_label)
+            f"validate_nest_spec:duplicate nest key/s '{duplicates}' in nest spec - {trace_label}"
         )
 
 
-def _each_nest(spec, parent_nest, post_order):
+def _each_nest(spec: LogitNestSpec, parent_nest, post_order):
     """
     Iterate over each nest or leaf node in the tree (of subtree)
 
@@ -499,7 +569,7 @@ def _each_nest(spec, parent_nest, post_order):
 
     Parameters
     ----------
-    spec : dict
+    spec : LogitNestSpec
         Nest spec dict tree (or subtree when recursing) from the model spec yaml file
     parent_nest : Nest
         nest of parent node (passed to accumulate level, ancestors, and product_of_coefficients)
@@ -509,7 +579,7 @@ def _each_nest(spec, parent_nest, post_order):
 
     Yields
     ------
-        spec_node : dict
+        spec_node : LogitNestSpec
             Nest tree spec dict for this node subtree
         nest : Nest
             Nest object with info about the current node (nest or leaf)
@@ -518,18 +588,20 @@ def _each_nest(spec, parent_nest, post_order):
 
     level = parent_nest.level + 1
 
-    if isinstance(spec, dict):
-        name = spec["name"]
-        coefficient = spec["coefficient"]
+    if isinstance(spec, LogitNestSpec):
+        name = spec.name
+        coefficient = spec.coefficient
         assert isinstance(
-            coefficient, (int, float)
-        ), "Coefficient '%s' (%s) not a number" % (
-            name,
-            coefficient,
-        )  # forgot to eval coefficient?
-        alternatives = [
-            a["name"] if isinstance(a, dict) else a for a in spec["alternatives"]
-        ]
+            coefficient, int | float
+        ), f"Coefficient '{name}' ({coefficient}) not a number"  # forgot to eval coefficient?
+        alternatives = []
+        for a in spec.alternatives:
+            if isinstance(a, dict):
+                alternatives.append(a["name"])
+            elif isinstance(a, LogitNestSpec):
+                alternatives.append(a.name)
+            else:
+                alternatives.append(a)
 
         nest = Nest(name=name)
         nest.level = parent_nest.level + 1
@@ -542,7 +614,7 @@ def _each_nest(spec, parent_nest, post_order):
             yield spec, nest
 
         # recursively iterate the list of alternatives
-        for alternative in spec["alternatives"]:
+        for alternative in spec.alternatives:
             for sub_node, sub_nest in _each_nest(alternative, nest, post_order):
                 yield sub_node, sub_nest
 
@@ -561,13 +633,13 @@ def _each_nest(spec, parent_nest, post_order):
         yield spec, nest
 
 
-def each_nest(nest_spec, type=None, post_order=False):
+def each_nest(nest_spec: dict | LogitNestSpec, type=None, post_order=False):
     """
     Iterate over each nest or leaf node in the tree (of subtree)
 
     Parameters
     ----------
-    nest_spec : dict
+    nest_spec : dict or LogitNestSpec
         Nest tree dict from the model spec yaml file
     type : str
         Nest class type to yield
@@ -586,11 +658,15 @@ def each_nest(nest_spec, type=None, post_order=False):
     if type is not None and type not in Nest.nest_types():
         raise RuntimeError("Unknown nest type '%s' in call to each_nest" % type)
 
-    for node, nest in _each_nest(nest_spec, parent_nest=Nest(), post_order=post_order):
+    if isinstance(nest_spec, dict):
+        nest_spec = LogitNestSpec.model_validate(nest_spec)
+
+    for _node, nest in _each_nest(nest_spec, parent_nest=Nest(), post_order=post_order):
         if type is None or (type == nest.type):
             yield nest
 
 
+# TODO: do I need to implement this for LogitNestSpec?
 def count_nests(nest_spec):
     """
     count the nests in nest_spec, return 0 if nest_spec is none

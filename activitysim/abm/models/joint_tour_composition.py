@@ -1,47 +1,77 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
-
-from .util import estimation
-from .util.overlap import hh_time_window_overlap
+from activitysim.abm.models.util.overlap import hh_time_window_overlap
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    simulate,
+    tracing,
+    workflow,
+)
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger(__name__)
 
 
-def add_null_results(trace_label, tours):
+def add_null_results(state, trace_label, tours):
     logger.info("Skipping %s: add_null_results" % trace_label)
     tours["composition"] = ""
-    pipeline.replace_table("tours", tours)
+    cat_type = pd.api.types.CategoricalDtype(
+        ["", "adults", "children", "mixed"], ordered=False
+    )
+    tours["composition"] = tours["composition"].astype(cat_type)
+    state.add_table("tours", tours)
 
 
-@inject.step()
-def joint_tour_composition(tours, households, persons, chunk_size, trace_hh_id):
+class JointTourCompositionSettings(LogitComponentSettings, extra="forbid"):
+    """
+    Settings for the `joint_tour_composition` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+
+@workflow.step
+def joint_tour_composition(
+    state: workflow.State,
+    tours: pd.DataFrame,
+    households: pd.DataFrame,
+    persons: pd.DataFrame,
+    model_settings: JointTourCompositionSettings | None = None,
+    model_settings_file_name: str = "joint_tour_composition.yaml",
+    trace_label: str = "joint_tour_composition",
+) -> None:
     """
     This model predicts the makeup of the travel party (adults, children, or mixed).
     """
-    trace_label = "joint_tour_composition"
-    model_settings_file_name = "joint_tour_composition.yaml"
 
-    tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == "joint"]
+
+    if model_settings is None:
+        model_settings = JointTourCompositionSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
     # - if no joint tours
     if joint_tours.shape[0] == 0:
-        add_null_results(trace_label, tours)
+        add_null_results(state, trace_label, tours)
         return
 
-    model_settings = config.read_model_settings(model_settings_file_name)
-    estimator = estimation.manager.begin_estimation("joint_tour_composition")
+    estimator = estimation.manager.begin_estimation(state, "joint_tour_composition")
 
     # - only interested in households with joint_tours
-    households = households.to_frame()
     households = households[households.num_hh_joint_tours > 0]
 
-    persons = persons.to_frame()
     persons = persons[persons.household_id.isin(households.index)]
 
     logger.info(
@@ -49,15 +79,15 @@ def joint_tour_composition(tours, households, persons, chunk_size, trace_hh_id):
     )
 
     # - run preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
-
         locals_dict = {
             "persons": persons,
-            "hh_time_window_overlap": hh_time_window_overlap,
+            "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
         }
 
         expressions.assign_columns(
+            state,
             df=households,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -69,9 +99,11 @@ def joint_tour_composition(tours, households, persons, chunk_size, trace_hh_id):
     )
 
     # - simple_simulate
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(
+        state, model_spec, coefficients_df, estimator
+    )
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
@@ -83,18 +115,23 @@ def joint_tour_composition(tours, households, persons, chunk_size, trace_hh_id):
         estimator.write_choosers(joint_tours_merged)
 
     choices = simulate.simple_simulate(
+        state,
         choosers=joint_tours_merged,
         spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
-        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name="composition",
         estimator=estimator,
+        compute_settings=model_settings.compute_settings,
     )
 
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
+    cat_type = pd.api.types.CategoricalDtype(
+        model_spec.columns.tolist() + [""], ordered=False
+    )
+    choices = choices.astype(cat_type)
 
     if estimator:
         estimator.write_choices(choices)
@@ -106,15 +143,15 @@ def joint_tour_composition(tours, households, persons, chunk_size, trace_hh_id):
     joint_tours["composition"] = choices
 
     # reindex since we ran model on a subset of households
-    tours["composition"] = choices.reindex(tours.index).fillna("").astype(str)
-    pipeline.replace_table("tours", tours)
+    tours["composition"] = choices.reindex(tours.index).fillna("")
+    state.add_table("tours", tours)
 
     tracing.print_summary(
         "joint_tour_composition", joint_tours.composition, value_counts=True
     )
 
-    if trace_hh_id:
-        tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             joint_tours,
             label="joint_tour_composition.joint_tours",
             slicer="household_id",

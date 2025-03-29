@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
@@ -77,7 +79,7 @@ def run_test_random_seed():
             except AssertionError:
                 pass
             else:
-                raise AssertionError
+                raise AssertionError("outputs did not change when they should have")
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
 

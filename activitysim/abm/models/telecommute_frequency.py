@@ -1,17 +1,43 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
 
-from activitysim.abm.models.util import estimation
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    simulate,
+    tracing,
+    workflow,
+)
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 
 logger = logging.getLogger("activitysim")
 
 
-@inject.step()
-def telecommute_frequency(persons_merged, persons, chunk_size, trace_hh_id):
+class TelecommuteFrequencySettings(LogitComponentSettings, extra="forbid"):
+    """
+    Settings for the `telecommute_frequency` component.
+    """
+
+    preprocessor: PreprocessorSettings | None = None
+    """Setting for the preprocessor."""
+
+
+@workflow.step
+def telecommute_frequency(
+    state: workflow.State,
+    persons_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+    model_settings: TelecommuteFrequencySettings | None = None,
+    model_settings_file_name: str = "telecommute_frequency.yaml",
+    trace_label: str = "telecommute_frequency",
+) -> None:
     """
     This model predicts the frequency of telecommute for a person (worker) who
     does not works from home. The alternatives of this model are 'No Telecommute',
@@ -20,58 +46,68 @@ def telecommute_frequency(persons_merged, persons, chunk_size, trace_hh_id):
     office during a week.
     """
 
-    trace_label = "telecommute_frequency"
-    model_settings_file_name = "telecommute_frequency.yaml"
+    if model_settings is None:
+        model_settings = TelecommuteFrequencySettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
-    choosers = persons_merged.to_frame()
+    choosers = persons_merged
     choosers = choosers[choosers.workplace_zone_id > -1]
 
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    model_settings = config.read_model_settings(model_settings_file_name)
-    estimator = estimation.manager.begin_estimation("telecommute_frequency")
+    estimator = estimation.manager.begin_estimation(state, "telecommute_frequency")
 
     constants = config.get_model_constants(model_settings)
 
     # - preprocessor
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
-
         locals_d = {}
         if constants is not None:
             locals_d.update(constants)
 
         expressions.assign_columns(
+            state,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
             trace_label=trace_label,
         )
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(
+        state, model_spec, coefficients_df, estimator
+    )
 
     nest_spec = config.get_logit_model_settings(model_settings)
 
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_spec(model_settings)
-        estimator.write_coefficients(coefficients_df)
+        estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_choosers(choosers)
 
     choices = simulate.simple_simulate(
+        state,
         choosers=choosers,
         spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
-        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name="telecommute_frequency",
         estimator=estimator,
+        compute_settings=model_settings.compute_settings,
     )
 
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
+    telecommute_frequency_cat = pd.api.types.CategoricalDtype(
+        model_spec.columns.tolist() + [""],
+        ordered=False,
+    )
+    choices = choices.astype(telecommute_frequency_cat)
 
     if estimator:
         estimator.write_choices(choices)
@@ -81,16 +117,13 @@ def telecommute_frequency(persons_merged, persons, chunk_size, trace_hh_id):
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    persons = persons.to_frame()
-    persons["telecommute_frequency"] = (
-        choices.reindex(persons.index).fillna("").astype(str)
-    )
+    persons["telecommute_frequency"] = choices.reindex(persons.index).fillna("")
 
-    pipeline.replace_table("persons", persons)
+    state.add_table("persons", persons)
 
     tracing.print_summary(
         "telecommute_frequency", persons.telecommute_frequency, value_counts=True
     )
 
-    if trace_hh_id:
-        tracing.trace_df(persons, label=trace_label, warn_if_empty=True)
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)

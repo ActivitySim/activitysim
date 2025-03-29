@@ -65,9 +65,22 @@ output_tables:
   prefix: final_2_zone_
   sort: True
   tables:
-    - tours
-    - trips
-    - vehicles
-    - proto_disaggregate_accessibility
-
-recode_pipeline_columns: False
+    - tablename: tours
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+    - tablename: trips
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+    - tablename: proto_disaggregate_accessibility
+      decode_columns:
+        home_zone_id: land_use.zone_id
+        TAZ: land_use_taz.TAZ
+    - tablename: land_use
+      decode_columns:
+        zone_id: land_use.zone_id
+    - tablename: accessibility
+      decode_columns:
+        home_zone_id: land_use.zone_id
+        TAZ: land_use_taz.TAZ

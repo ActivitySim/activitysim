@@ -16,7 +16,7 @@ fail_fast: True
 models:
   ## Disaggregate Accessibility steps
   # only including for 2 zone sandag test
-  - initialize_proto_population 
+  - initialize_proto_population
   - compute_disaggregate_accessibility
   ### mp_initialize step
   - initialize_landuse
@@ -84,7 +84,27 @@ output_tables:
   prefix: final_2_zone_
   sort: True
   tables:
-    - tours
-    - trips
-    - vehicles
-    - proto_disaggregate_accessibility
+    - tablename: land_use
+      decode_columns:
+        zone_id: land_use.zone_id
+    - tablename: households
+      decode_columns:
+        home_zone_id: land_use.zone_id
+    - tablename: persons
+      decode_columns:
+        home_zone_id: land_use.zone_id
+        school_zone_id: nonnegative | land_use.zone_id
+        workplace_zone_id: nonnegative | land_use.zone_id
+    - tablename: tours
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+    - tablename: trips
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+    - joint_tour_participants
+    - tablename: proto_disaggregate_accessibility
+      decode_columns:
+        home_zone_id: land_use.zone_id
+        TAZ: land_use_taz.TAZ

@@ -1,25 +1,32 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
 
 import argparse
 import collections
 import itertools
 import logging
+import numbers
 import os
-from builtins import zip
+from collections.abc import Iterable
 from operator import itemgetter
+from pathlib import Path
+from typing import Optional, TypeVar
 
 import cytoolz as tz
 import cytoolz.curried
 import numpy as np
 import pandas as pd
+import pyarrow as pa
+import pyarrow.csv as csv
+import pyarrow.parquet as pq
 import yaml
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
 
 def si_units(x, kind="B", digits=3, shift=1000):
-
     #       nano micro milli    kilo mega giga tera peta exa  zeta yotta
     tiers = ["n", "µ", "m", "", "K", "M", "G", "T", "P", "E", "Z", "Y"]
 
@@ -307,7 +314,7 @@ def quick_loc_series(loc_list, target_series):
     return df.right
 
 
-def assign_in_place(df, df2):
+def assign_in_place(df, df2, downcast_int=False, downcast_float=False):
     """
     update existing row values in df from df2, adding columns to df if they are not there
 
@@ -317,6 +324,10 @@ def assign_in_place(df, df2):
         assignment left-hand-side (dest)
     df2: pd.DataFrame
         assignment right-hand-side (source)
+    downcast_int: bool
+        if True, downcast int columns if possible
+    downcast_float: bool
+        if True, downcast float columns if possible
     Returns
     -------
 
@@ -335,7 +346,6 @@ def assign_in_place(df, df2):
         # this is a hack fix for a bug in pandas.update
         # github.com/pydata/pandas/issues/4094
         for c, old_dtype in zip(common_columns, old_dtypes):
-
             # if both df and df2 column were same type, but result is not
             if (old_dtype == df2[c].dtype) and (df[c].dtype != old_dtype):
                 try:
@@ -345,6 +355,9 @@ def assign_in_place(df, df2):
                         "assign_in_place changed dtype %s of column %s to %s"
                         % (old_dtype, c, df[c].dtype)
                     )
+
+            if isinstance(old_dtype, pd.api.types.CategoricalDtype):
+                continue
 
             # if both df and df2 column were ints, but result is not
             if (
@@ -365,8 +378,92 @@ def assign_in_place(df, df2):
 
     df[new_columns] = df2[new_columns]
 
+    for c in new_columns:
+        if pd.api.types.is_object_dtype(df[c]):
+            df[c] = df[c].astype("category")
+
+    auto_opt_pd_dtypes(df, downcast_int, downcast_float, inplace=True)
+
+
+def auto_opt_pd_dtypes(
+    df_: pd.DataFrame, downcast_int=False, downcast_float=False, inplace=False
+) -> Optional[pd.DataFrame]:
+    """
+    Automatically downcast Number dtypes for minimal possible,
+    will not touch other (datetime, str, object, etc)
+
+    Parameters
+    ----------
+    df_ : pd.DataFrame
+        assignment left-hand-side (dest)
+    downcast_int: bool
+        if True, downcast int columns if possible
+    downcast_float: bool
+        if True, downcast float columns if possible
+    inplace: bool
+        if False, will return a copy of input dataset
+
+    Returns
+    -------
+        `None` if `inplace=True` or dataframe if `inplace=False`
+
+    """
+    df = df_ if inplace else df_.copy()
+
+    for col in df.columns:
+        dtype = df[col].dtype
+        # Skip optimizing floats for precision concerns
+        if pd.api.types.is_float_dtype(dtype):
+            if not downcast_float:
+                continue
+            else:
+                # there is a bug in pandas to_numeric
+                # when convert int and floats gt 16777216
+                # https://github.com/pandas-dev/pandas/issues/43693
+                # https://github.com/pandas-dev/pandas/issues/23676#issuecomment-438488603
+                if df[col].max() >= 16777216:
+                    continue
+                else:
+                    df[col] = pd.to_numeric(df[col], downcast="float")
+        # Skip if the column is already categorical
+        if pd.api.types.is_categorical_dtype(dtype):
+            continue
+        # Handle integer types
+        if pd.api.types.is_integer_dtype(dtype):
+            if not downcast_int:
+                continue
+            # there is a bug in pandas to_numeric
+            # when convert int and floats gt 16777216
+            # https://github.com/pandas-dev/pandas/issues/43693
+            # https://github.com/pandas-dev/pandas/issues/23676#issuecomment-438488603
+            if df[col].max() >= 16777216:
+                continue
+            else:
+                df[col] = pd.to_numeric(df[col], downcast="integer")
+                continue
+            # Initially thought of using unsigned integers, BUT:
+            # There are calculations in asim (e.g., UECs) that expect results in negative values,
+            # and operations on two unsigned types will not produce negative values,
+            # therefore, we did not use unsigned integers.
+
+    if not inplace:
+        return df
+
+
+def reindex_if_series(values, index):
+    if index is not None:
+        return values
+
+    if isinstance(values, pd.Series):
+        assert len(set(values.index).intersection(index)) == len(index)
+
+        if all(values.index != index):
+            return values.reindex(index=index)
+
 
 def df_from_dict(values, index=None):
+    # If value object is a series and has out of order index, reindex it
+    values = {k: reindex_if_series(v, index) for k, v in values.items()}
 
     df = pd.DataFrame.from_dict(values)
     if index is not None:
@@ -418,13 +515,26 @@ def recursive_replace(obj, search, replace):
     return obj
 
 
+T = TypeVar("T")
+
+
 def suffix_tables_in_settings(
-    model_settings,
-    suffix="proto_",
-    tables=["persons", "households", "tours", "persons_merged"],
-):
+    model_settings: T,
+    suffix: str = "proto_",
+    tables: Iterable[str] = ("persons", "households", "tours", "persons_merged"),
+) -> T:
+    if not isinstance(model_settings, dict):
+        model_settings_type = type(model_settings)
+        model_settings = model_settings.dict()
+    else:
+        model_settings_type = None
+
     for k in tables:
         model_settings = recursive_replace(model_settings, k, suffix + k)
+
+    if model_settings_type is not None:
+        model_settings = model_settings_type.model_validate(model_settings)
+
     return model_settings
 
 
@@ -447,6 +557,10 @@ def parse_suffix_args(args):
 
 
 def concat_suffix_dict(args):
+    if isinstance(args, BaseModel):
+        args = args.dict()
+        if "source_file_paths" in args:
+            del args["source_file_paths"]
     if isinstance(args, dict):
         args = sum([["--" + k, v] for k, v in args.items()], [])
     if isinstance(args, list):
@@ -468,3 +582,141 @@ def nearest_node_index(node, nodes):
     deltas = nodes - node
     dist_2 = np.einsum("ij,ij->i", deltas, deltas)
     return np.argmin(dist_2)
+
+
+def read_csv(filename):
+    """Simple read of a CSV file, much faster than pandas.read_csv"""
+    return csv.read_csv(filename).to_pandas()
+
+
+def to_csv(df, filename, index=False):
+    """Simple write of a CSV file, much faster than pandas.DataFrame.to_csv"""
+    filename = Path(filename)
+    if filename.suffix == ".gz":
+        with pa.CompressedOutputStream(filename, "gzip") as out:
+            csv.write_csv(pa.Table.from_pandas(df, preserve_index=index), out)
+    else:
+        csv.write_csv(pa.Table.from_pandas(df, preserve_index=index), filename)
+
+
+def read_parquet(filename):
+    """Simple read of a parquet file"""
+    return pq.read_table(filename).to_pandas()
+
+
+def to_parquet(df, filename, index=False):
+    filename = Path(filename)
+    pq.write_table(pa.Table.from_pandas(df, preserve_index=index), filename)
+
+
+def latest_file_modification_time(filenames: Iterable[Path]):
+    """Find the most recent file modification time."""
+    return max(os.path.getmtime(filename) for filename in filenames)
+
+
+def oldest_file_modification_time(filenames: Iterable[Path]):
+    """Find the least recent file modification time."""
+    return min(os.path.getmtime(filename) for filename in filenames)
+
+
+def zarr_file_modification_time(zarr_dir: Path):
+    """Find the most recent file modification time inside a zarr dir."""
+    t = 0
+    for dirpath, dirnames, filenames in os.walk(zarr_dir):
+        if os.path.basename(dirpath).startswith(".git"):
+            continue
+        for n in range(len(dirnames) - 1, -1, -1):
+            if dirnames[n].startswith(".git"):
+                dirnames.pop(n)
+        for f in filenames:
+            if f.startswith(".git") or f == ".DS_Store":
+                continue
+            finame = Path(os.path.join(dirpath, f))
+            file_time = os.path.getmtime(finame)
+            if file_time > t:
+                t = file_time
+    if t == 0:
+        raise FileNotFoundError(zarr_dir)
+    return t
+
+
+def drop_unused_columns(
+    choosers,
+    spec,
+    locals_d,
+    custom_chooser,
+    sharrow_enabled=False,
+    additional_columns=None,
+):
+    """
+    Drop unused columns from the chooser table, based on the spec and custom_chooser function.
+    """
+    # keep only variables needed for spec
+    import re
+
+    # define a regular expression to find variables in spec
+    pattern = r"[a-zA-Z_][a-zA-Z0-9_]*"
+
+    unique_variables_in_spec = set(
+        spec.reset_index()["Expression"].apply(lambda x: re.findall(pattern, x)).sum()
+    )
+
+    unique_variables_in_spec |= set(additional_columns or [])
+
+    if locals_d:
+        unique_variables_in_spec.add(locals_d.get("orig_col_name", None))
+        unique_variables_in_spec.add(locals_d.get("dest_col_name", None))
+        if locals_d.get("timeframe") == "trip":
+            orig_col_name = locals_d.get("ORIGIN", None)
+            dest_col_name = locals_d.get("DESTINATION", None)
+            stop_col_name = None
+            parking_col_name = locals_d.get("PARKING", None)
+            primary_origin_col_name = None
+            if orig_col_name is None and "od_skims" in locals_d:
+                orig_col_name = locals_d["od_skims"].orig_key
+            if dest_col_name is None and "od_skims" in locals_d:
+                dest_col_name = locals_d["od_skims"].dest_key
+            if stop_col_name is None and "dp_skims" in locals_d:
+                stop_col_name = locals_d["dp_skims"].dest_key
+            if primary_origin_col_name is None and "dnt_skims" in locals_d:
+                primary_origin_col_name = locals_d["dnt_skims"].dest_key
+            unique_variables_in_spec.add(orig_col_name)
+            unique_variables_in_spec.add(dest_col_name)
+            unique_variables_in_spec.add(parking_col_name)
+            unique_variables_in_spec.add(primary_origin_col_name)
+            unique_variables_in_spec.add(stop_col_name)
+            unique_variables_in_spec.add("trip_period")
+        # when using trip_scheduling_choice for trup scheduling
+        unique_variables_in_spec.add("last_outbound_stop")
+        unique_variables_in_spec.add("last_inbound_stop")
+
+    # when sharrow mode, need to keep the following columns in the choosers table
+    if sharrow_enabled:
+        unique_variables_in_spec.add("out_period")
+        unique_variables_in_spec.add("in_period")
+        unique_variables_in_spec.add("purpose_index_num")
+
+    if custom_chooser:
+        import inspect
+
+        custom_chooser_lines = inspect.getsource(custom_chooser)
+        unique_variables_in_spec.update(re.findall(pattern, custom_chooser_lines))
+
+    logger.info("Dropping unused variables in chooser table")
+
+    logger.info(
+        "before dropping, the choosers table has {} columns: {}".format(
+            len(choosers.columns), choosers.columns
+        )
+    )
+
+    # keep only variables needed for spec
+    choosers = choosers[[c for c in choosers.columns if c in unique_variables_in_spec]]
+
+    logger.info(
+        "after dropping, the choosers table has {} columns: {}".format(
+            len(choosers.columns), choosers.columns
+        )
+    )
+
+    return choosers

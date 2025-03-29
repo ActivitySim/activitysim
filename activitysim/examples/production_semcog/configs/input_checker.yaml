@@ -1,0 +1,31 @@
+# name of input checker python file where input checks are listed
+# should exist in the data_model directory
+input_checker_code: input_checks.py
+
+
+# ------- checking with pandera examples ----------
+table_list:
+  - name: households
+    is_activitysim_input: True  # will load via ActivitySim's built-in reader and apply column transformations
+    validation:
+      method: pandera
+      class: Household
+
+  - name: persons
+    is_activitysim_input: True  # will load via ActivitySim's built-in reader and apply column transformations
+    validation:
+      method: pandera
+      class: Person
+
+  - name: land_use
+    is_activitysim_input: True # will load via ActivitySim's built-in reader and apply column transformations
+    validation:
+      method: pandera
+      class: Landuse
+     
+  - name: Network
+    # path: .         # must be absolute path or relative path.  Can also omit if supplied in a data directory
+    is_activitysim_input: False # will read raw table with pandas.read_csv from above path
+    validation:
+      class: NetworkLinks
+      method: pandera

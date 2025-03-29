@@ -1,0 +1,17 @@
+coefficient_name,coefficient_name.1,value,constrain
+coef_ft,Full-time worker,1.8826656640000001,F
+coef_pt,Part-time worker,1.360746182,F
+coef_un,University/College,2.026985147,F
+coef_na70,NAICS 70 (Entertain/accom),-0.659568416,F
+coef_na80,NAICS 80 (Other services),-0.35258885799999995,F
+coef_publ,NAICS 90 (Public admin),0.8649915709999999,F
+coef_tr_hh_emp,Transit accessibility to households,0.049608562,F
+coef_pkcost,Daily parking cost (dollars),0.060145818,F
+coef_sub_asc,Constant,-5.138015944,F
+coef_ft_asc,ptype_ft calibration constant,-1.4480580144656137,F
+coef_pt_asc,ptype_pt calibration constant,-0.5618957069861918,F
+coef_un_asc,ptype_un calibration constant,0.9180815482670087,F
+coef_na_asc,ptype_na calibration constant,1.800286399805092,F
+coef_da_asc,ptype_da calibration constant,1.1347405644999717,F
+coef_nd_asc,ptype_nd calibration constant,-1.4385176853101924,F
+coef_ps_asc,ptype_ps calibration constant,-2.0,F

@@ -10,7 +10,7 @@
     by starting where ActivitySim is not yet cloned (e.g. in an empty
     directory) and running:
     ```sh
-    conda create -n TEMP-ASIM-DEV python=3.9 git gh -c conda-forge --override-channels
+    conda create -n TEMP-ASIM-DEV python=3.10 git gh -c conda-forge --override-channels
     conda activate TEMP-ASIM-DEV
     gh auth login   # <--- (only needed if gh is not logged in)
     gh repo clone ActivitySim/activitysim
@@ -42,15 +42,16 @@
 
 00. Run black to ensure that the codebase passes all style checks.
     This check should only take a few seconds.  These checks are also done on
-    Travis and are platform independent, so they should not be necessary to
+    GitHub Actions and are platform independent, so they should not be necessary to
     replicate locally, but are listed here for completeness.
     ```sh
     black --check --diff .
     ```
 
-00. Run the regular test suite on Windows. Travis tests are done on Linux,
-    but most users are on Windows, and the test suite should also be run
-    on Windows to ensure that it works on that platform as well.  If you
+00. Run the regular test suite on Windows. Most GitHub Actions tests are done on Linux,
+    Linux (it's faster to start up and run a new clean VM for testing) but most
+    users are on Windows, and the test suite should also be run on Windows to
+    ensure that it works on that platform as well.  If you
     are not preparing this release on Windows, you should be sure to run
     at least through this step on a Windows machine before finalizing a
     release.
@@ -135,6 +136,10 @@
     ```sh
     gh release create v1.2.3
     ```
+    The process of creating and tagging a release will automatically
+    trigger various GitHub Actions scripts to build, test, and publish the
+    new release to PyPI and conda forge, assuming there are no errors.
+
     For a development pre-release, include the `--prerelease` argument.
     As the project's policy is that only formally released code is merged
     to the main branch, any pre-release should also be built against a

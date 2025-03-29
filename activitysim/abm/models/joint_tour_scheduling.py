@@ -1,29 +1,64 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
+from activitysim.abm.models.util.vectorize_tour_scheduling import (
+    TourSchedulingSettings,
+    vectorize_joint_tour_scheduling,
+)
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    simulate,
+    tracing,
+    workflow,
+)
+from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.util import assign_in_place, reindex
-
-from .util import estimation
-from .util.vectorize_tour_scheduling import vectorize_joint_tour_scheduling
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def joint_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_id):
+# class JointTourSchedulingSettings(LogitComponentSettings, extra="forbid"):
+#     """
+#     Settings for the `joint_tour_scheduling` component.
+#     """
+#
+#     preprocessor: PreprocessorSettings | None = None
+#     """Setting for the preprocessor."""
+#
+#     sharrow_skip: bool = False
+#     """Setting to skip sharrow"""
+#
+
+
+@workflow.step
+def joint_tour_scheduling(
+    state: workflow.State,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    tdd_alts: pd.DataFrame,
+    model_settings: TourSchedulingSettings | None = None,
+    model_settings_file_name: str = "joint_tour_scheduling.yaml",
+    trace_label: str = "joint_tour_scheduling",
+) -> None:
     """
     This model predicts the departure time and duration of each joint tour
     """
-    trace_label = "joint_tour_scheduling"
 
-    model_settings_file_name = "joint_tour_scheduling.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    if model_settings is None:
+        model_settings = TourSchedulingSettings.read_settings_file(
+            state.filesystem,
+            model_settings_file_name,
+        )
 
-    tours = tours.to_frame()
+    trace_hh_id = state.settings.trace_hh_id
     joint_tours = tours[tours.tour_category == "joint"]
 
     # - if no joint tours
@@ -31,10 +66,8 @@ def joint_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_
         tracing.no_results(trace_label)
         return
 
-    # use inject.get_table as this won't exist if there are no joint_tours
-    joint_tour_participants = inject.get_table("joint_tour_participants").to_frame()
-
-    persons_merged = persons_merged.to_frame()
+    # use state.get_dataframe as this won't exist if there are no joint_tours
+    joint_tour_participants = state.get_dataframe("joint_tour_participants")
 
     logger.info("Running %s with %d joint tours", trace_label, joint_tours.shape[0])
 
@@ -52,28 +85,29 @@ def joint_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_
     constants = config.get_model_constants(model_settings)
 
     # - run preprocessor to annotate choosers
-    preprocessor_settings = model_settings.get("preprocessor", None)
+    preprocessor_settings = model_settings.preprocessor
     if preprocessor_settings:
-
         locals_d = {}
         if constants is not None:
             locals_d.update(constants)
 
         expressions.assign_columns(
+            state,
             df=joint_tours,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
             trace_label=trace_label,
         )
 
-    timetable = inject.get_injectable("timetable")
+    timetable = state.get_injectable("timetable")
 
-    estimator = estimation.manager.begin_estimation("joint_tour_scheduling")
+    estimator = estimation.manager.begin_estimation(state, "joint_tour_scheduling")
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    sharrow_skip = model_settings.get("sharrow_skip", False)
-    coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(
+        state, model_spec, coefficients_df, estimator
+    )
 
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
@@ -82,6 +116,7 @@ def joint_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_
         timetable.begin_transaction(estimator)
 
     choices = vectorize_joint_tour_scheduling(
+        state,
         joint_tours,
         joint_tour_participants,
         persons_merged,
@@ -90,9 +125,9 @@ def joint_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_
         spec=model_spec,
         model_settings=model_settings,
         estimator=estimator,
-        chunk_size=chunk_size,
+        chunk_size=state.settings.chunk_size,
         trace_label=trace_label,
-        sharrow_skip=sharrow_skip,
+        compute_settings=model_settings.compute_settings,
     )
 
     if estimator:
@@ -117,7 +152,7 @@ def joint_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_
                 nth_participants.person_id, reindex(choices, nth_participants.tour_id)
             )
 
-    timetable.replace_table()
+    timetable.replace_table(state)
 
     # choices are tdd alternative ids
     # we want to add start, end, and duration columns to tours, which we have in tdd_alts table
@@ -125,13 +160,15 @@ def joint_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_
         choices.to_frame("tdd"), tdd_alts, left_on=["tdd"], right_index=True, how="left"
     )
 
-    assign_in_place(tours, choices)
-    pipeline.replace_table("tours", tours)
+    assign_in_place(
+        tours, choices, state.settings.downcast_int, state.settings.downcast_float
+    )
+    state.add_table("tours", tours)
 
     # updated df for tracing
     joint_tours = tours[tours.tour_category == "joint"]
 
     if trace_hh_id:
-        tracing.trace_df(
+        state.tracing.trace_df(
             joint_tours, label="joint_tour_scheduling", slicer="household_id"
         )

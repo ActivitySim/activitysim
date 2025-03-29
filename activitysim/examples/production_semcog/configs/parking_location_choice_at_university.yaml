@@ -1,0 +1,25 @@
+
+# Colunn in the landuse file containing the university codes
+LANDUSE_UNIV_CODE_COL_NAME: University_Name
+# Specify which university codes should require parking
+UNIV_CODES_THAT_REQUIRE_PARKING:
+ - University of Michigan
+
+# Parking on campus is should only be required for drive tours
+# Names need to be consistent with tour modes
+TOUR_MODES_THAT_REQUIRE_PARKING:
+  - DRIVEALONE
+  - SHARED2
+  - SHARED3
+
+# Tour Purposes that should be parked at the nearest lot instead of
+# sampled based on lot size (primary_purpose field in tours table)
+TOUR_PURPOSES_TO_NEAREST_LOT:
+  - work
+  - atwork
+
+# landuse column that contains the number of parking spaces in zone
+LANDUSE_PARKING_SPACES_COL_NAME: parking_spaces
+# landuse column containing the university the parking spaces belong to
+# codes should match the codes in LANDUSE_UNIV_CODE_COL_NAME
+LANDUSE_PARKING_UNIV_CODE_COL_NAME: University_Name

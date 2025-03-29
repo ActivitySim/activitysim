@@ -48,6 +48,11 @@
     - prototype_mtc_extended/configs_mp
     - prototype_mtc_extended/output
     - prototype_mtc_extended/README.MD
+    - prototype_mtc_extended/data_model
+  subdirs:
+    configs_dir:
+      - configs_extended/configs
+      - configs
 
 - name: prototype_mtc_extended_full
   description: Prototype MTC example model using data from the full 1475-zone MTC region with 2.8M households and 7.5M persons
@@ -63,6 +68,7 @@
     - prototype_mtc_extended/configs_mp
     - prototype_mtc_extended/output
     - prototype_mtc_extended/README.MD
+    - prototype_mtc_extended/data_model
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/skims.omx
       data/skims.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/households.csv
@@ -126,6 +132,11 @@
       data_sf/skims.omx
       579d6007266db3b055d0f9e4814004f4d5ccfae27a36e40f4881e3662bc3d3f1
     - prototype_mtc/output
+  subdirs:
+    configs_dir:
+      - configs_estimation/configs
+      - configs
+    data_dir: data_sf
 
 - name: placeholder_2_zone
   description: 2 zone system test example based on prototype MTC
@@ -488,77 +499,55 @@
       data/final_accessibility.csv
       949994345c9965054be260589fd64079e4032d2e4079e46b9eb9c758a40527c3
 
-- name: prototype_semcog
+- name: production_semcog
   description: 67 zone test example for the SEMCOG region
-  # activitysim create -e prototype_semcog -d test_prototype_semcog
-  # cd test_prototype_semcog
+  # activitysim create -e production_semcog -d test_production_semcog
+  # cd test_production_semcog
   # python simulation.py -c configs -o output -d data
   # cd ..
   include:
-    - prototype_semcog/extensions
-    - prototype_semcog/data
-    - prototype_semcog/configs
-    - prototype_semcog/configs_mp
-    - prototype_semcog/output
-    - prototype_semcog/README.MD
-    - prototype_semcog/simulation.py
+    - production_semcog/extensions
+    - production_semcog/data
+    - production_semcog/configs
+    - production_semcog/configs_mp
+    - production_semcog/output
+    - production_semcog/README.MD
+    - production_semcog/simulation.py
 
-- name: prototype_semcog_z500
-  description: 500 zone intermediate size example for the SEMCOG region
-  # activitysim create -e prototype_semcog_z500 -d test_prototype_semcog_z500
-  # cd test_prototype_semcog_z500
-  # python simulation.py -c configs -o output -d data
-  # cd ..
-  include:
-    - prototype_semcog/extensions
-    - prototype_semcog/data
-    - prototype_semcog/configs
-    - prototype_semcog/configs_mp
-    - prototype_semcog/output
-    - prototype_semcog/README.MD
-    - prototype_semcog/simulation.py
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_z500/skims.omx
-      data/skims.omx
-      7c824032940d1006e731d715bcee8771572e03558eef40ca1ca5f820bfc071ca
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_z500/households.csv
-      data/households.csv
-      93b74d3ad86c4c49222a2427cca6014a12a34c0b46c8a934fc8f849f943b820f
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_z500/persons.csv
-      data/persons.csv
-      3496761cc3b5f9718349ccd3ab97de7db96b8b5eed535a9bf97248fa087161a1
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_z500/land_use.csv
-      data/land_use.csv
-      d4ddb6f5fc7cd844e3e9149d03d32c841c5cb641a77aea9174045ddb85f27a3a
-
-- name: prototype_semcog_full
-  description: 2899 zone full size example for the SEMCOG region
-  # activitysim create -e prototype_semcog_full -d test_prototype_semcog_full
-  # cd test_prototype_semcog_full
+- name: production_semcog_full
+  description: 2899 zone full size production model for the SEMCOG region
+  # activitysim create -e production_semcog_full -d test_production_semcog_full
+  # cd test_production_semcog_full
   # python simulation.py -c configs_mp -c configs -o output -d data
   # cd ..
   include:
-    - prototype_semcog/extensions
-    # prototype_semcog/data  # data loaded from activitysim_resources
-    - prototype_semcog/configs
-    - prototype_semcog/configs_mp
-    - prototype_semcog/output
-    - prototype_semcog/README.MD
-    - prototype_semcog/simulation.py
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims.omx
-      data/skims.omx
-      efa1f87395df354ccfad7cfe4e67ace96c7ac04fa0290e5e6f8e2593fc0ba6a3
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims2.omx
-      data/skims2.omx
-      3cec3453f12c3f07a19ef896b98da2ab79cbcca8bb541f845f6541bf878feeff
+    - production_semcog/extensions
+    - production_semcog/configs
+    - production_semcog/configs_mp
+    - production_semcog/output
+    - production_semcog/README.MD
+    - production_semcog/simulation.py
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims_offpeak.omx
+      data/skims_offpeak.omx
+      685e93a725e2c04e4b1fc11b92609472c347ce830475448e39b52947fa729d80
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims_peak.omx
+      data/skims_peak.omx
+      f92d924728c3984bc0d960b0258f6a395be5169167ccc88747503a446ff153f9
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/households.csv
       data/households.csv
-      25f5fcabd2953951e0e1cfe3ca2cc8bb4bc63ee11bbdee299a8fc026a775986d
+      34d5db243f7d176c536012f4d475fcc7dc51deb46c070e0e74f5e667578bcd15
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/persons.csv
       data/persons.csv
-      934209ad17b789de07ad601c3f77a905a1c35c4bd7c15c62f088c045b3c64f43
+      d8c7eac449efd57758504ca80cf86f150d232b85d659423baab9d203a47dbb6d
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/land_use.csv
       data/land_use.csv
-      8f9146993bff315afc6ada52182cb3ea719a6a1ed07095b51535bc7c026285f6
+      2e3c5a8b50d638f6956b3c78c9402ce15f3ceaa4cdc5a51d9d802652b6843772
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/maz_to_maz_walk.csv
+      data/maz_to_maz_walk.csv
+      3dd2511cfdac1380653f8cf93a11ee00c625800aad378b46cd1ce191371cec39
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/maz_to_maz_bike.csv
+      data/maz_to_maz_bike.csv
+      b158a181a48723117c86286a2e3041a35a980143d6b767e3f541c28bfbd38dcf
 
 - name: prototype_arc
   description: 36 zone test example for the ARC region
@@ -763,6 +752,12 @@
     - placeholder_sandag/configs_3_zone
     - placeholder_sandag/configs_skip_accessibility
     - placeholder_sandag/output_3
+  subdirs:
+    configs_dir:
+      - configs_3_zone
+      - prototype_mtc/configs
+    data_dir: data_3
+    output_dir: output_3
 
 - name: placeholder_sandag_3_zone_full
   description: full 3-zone example for the SANDAG region

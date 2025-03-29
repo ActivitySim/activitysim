@@ -1,0 +1,8 @@
+Description,Target,Expression
+,_HH_OVERLAPS,"hh_time_window_overlap(households, persons)"
+,time_window_overlap_adult,_HH_OVERLAPS['aa']
+,time_window_overlap_child,_HH_OVERLAPS['cc']
+,time_window_overlap_adult_child,_HH_OVERLAPS['ac']
+logTimeWindowOverlapAdult,log_time_window_overlap_adult,np.log1p(time_window_overlap_adult)
+logTimeWindowOverlapChild,log_time_window_overlap_child,np.log1p(time_window_overlap_child)
+logTimeWindowOverlapAdultChild,log_time_window_overlap_adult_child,np.log1p(time_window_overlap_adult_child)

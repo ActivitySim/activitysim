@@ -1,31 +1,34 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import io
 import logging
 
 import pandas as pd
 
-from activitysim.core import inject, pipeline, tracing
+from activitysim.abm.tables.util import simple_table_join
+from activitysim.core import workflow
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
 
 
-def read_raw_persons(households):
+def read_raw_persons(state, households):
+    df = read_input_table(state, "persons")
 
-    df = read_input_table("persons")
-
-    if inject.get_injectable("households_sliced", False):
+    if state.get_injectable("households_sliced", False):
         # keep only persons in the sampled households
         df = df[df.household_id.isin(households.index)]
 
     return df
 
 
-@inject.table()
-def persons(households, trace_hh_id):
-
-    df = read_raw_persons(households)
+@workflow.table
+def persons(state: workflow.State) -> pd.DataFrame:
+    households = state.get_dataframe("households")
+    trace_hh_id = state.settings.trace_hh_id
+    df = read_raw_persons(state, households)
 
     logger.info("loaded persons %s" % (df.shape,))
     buffer = io.StringIO()
@@ -33,13 +36,13 @@ def persons(households, trace_hh_id):
     logger.debug("persons.info:\n" + buffer.getvalue())
 
     # replace table function with dataframe
-    inject.add_table("persons", df)
+    state.add_table("persons", df)
 
-    pipeline.get_rn_generator().add_channel("persons", df)
+    state.get_rn_generator().add_channel("persons", df)
 
-    tracing.register_traceable_table("persons", df)
+    state.tracing.register_traceable_table("persons", df)
     if trace_hh_id:
-        tracing.trace_df(df, "raw.persons", warn_if_empty=True)
+        state.tracing.trace_df(df, "raw.persons", warn_if_empty=True)
 
     logger.debug(f"{len(df.household_id.unique())} unique household_ids in persons")
     logger.debug(f"{len(households.index.unique())} unique household_ids in households")
@@ -49,7 +52,7 @@ def persons(households, trace_hh_id):
     persons_without_households = ~df.household_id.isin(households.index)
     if persons_without_households.any():
         logger.error(
-            f"{persons_without_households.sum()} persons out of {len(persons)} without households\n"
+            f"{persons_without_households.sum()} persons out of {len(df)} without households\n"
             f"{pd.Series({'person_id': persons_without_households.index.values})}"
         )
         raise RuntimeError(
@@ -71,21 +74,38 @@ def persons(households, trace_hh_id):
     return df
 
 
-# another common merge for persons
-@inject.table()
+@workflow.temp_table
 def persons_merged(
-    persons, households, land_use, accessibility, disaggregate_accessibility
+    state: workflow.State,
+    persons: pd.DataFrame,
+    land_use: pd.DataFrame,
+    households: pd.DataFrame,
+    accessibility: pd.DataFrame,
+    disaggregate_accessibility: pd.DataFrame = None,
 ):
-
-    if not disaggregate_accessibility.to_frame().empty:
-        tables = [
+    n_persons = len(persons)
+    households = simple_table_join(
+        households,
+        land_use,
+        left_on="home_zone_id",
+    )
+    households = simple_table_join(
+        households,
+        accessibility,
+        left_on="home_zone_id",
+    )
+    persons = simple_table_join(
+        persons,
+        households,
+        left_on="household_id",
+    )
+    if state.is_table("disaggregate_accessibility"):
+        disaggregate_accessibility = state.get_table("disaggregate_accessibility")
+        persons = simple_table_join(
             persons,
-            households,
-            land_use,
-            accessibility,
             disaggregate_accessibility,
-        ]
-    else:
-        tables = [persons, households, land_use, accessibility]
-
-    return inject.merge_tables(persons.name, tables=tables)
+            left_on="person_id",
+        )
+    if n_persons != len(persons):
+        raise RuntimeError("number of persons changed")
+    return persons

@@ -10,42 +10,41 @@ on:
       - '*'
 
 env:
-  CACHE_NUMBER: 1  # increase to reset cache manually
+  CACHE_NUMBER: 2  # increase to reset cache manually
 
 jobs:
   foundation:
 
     strategy:
       matrix:
-        python-version: [3.9]
+        python-version: ["3.10"]
     defaults:
       run:
         shell: bash -l {0}
     name: linux-64-py${{ matrix.python-version }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup Mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Setup Miniforge
+        uses: conda-incubator/setup-miniconda@v3
         with:
-            miniforge-variant: Mambaforge
             miniforge-version: latest
             activate-environment: asim-test
-            use-mamba: true
             python-version: ${{ matrix.python-version }}
 
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           path: /usr/share/miniconda3/envs/asim-test
           key: linux-64-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
       - name: Update environment
-        run: mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
+        run: |
+          conda env update -n asim-test -f conda-environments/github-actions-tests.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install activitysim
@@ -57,8 +56,8 @@ jobs:
 
       - name: Conda checkup
         run: |
-          mamba info -a
-          mamba list
+          conda info -a
+          conda list
 
       - name: Lint with Black
         run: |
@@ -80,6 +79,10 @@ jobs:
       - name: Test activitysim.cli
         run: |
           python -m pytest --pyargs activitysim.cli
+
+      - name: Test activitysim.examples.test
+        run: |
+          python -m pytest --pyargs activitysim.examples.test
 
 
   cross-platform:
@@ -91,13 +94,11 @@ jobs:
         include:
           - os: macos-latest
             label: macOS
-            prefix: /Users/runner/miniconda3/envs/asim-test
-            python-version: 3.9
+            python-version: "3.10"
 
           - os: windows-latest
             label: win-64
-            prefix: C:\Miniconda3\envs\asim-test
-            python-version: 3.9
+            python-version: "3.10"
 
     defaults:
       run:
@@ -106,28 +107,27 @@ jobs:
     name: ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup Mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Setup Miniforge
+        uses: conda-incubator/setup-miniconda@v3
         with:
-            miniforge-variant: Mambaforge
             miniforge-version: latest
             activate-environment: asim-test
-            use-mamba: true
             python-version: ${{ matrix.python-version }}
 
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
-          path: ${{ matrix.prefix }}
+          path: ${{ env.CONDA }}/envs
           key: ${{ matrix.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
       - name: Update environment
-        run: mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
+        run: |
+          conda env update -n asim-test -f conda-environments/github-actions-tests.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install activitysim
@@ -139,8 +139,8 @@ jobs:
 
       - name: Conda checkup
         run: |
-          mamba info -a
-          mamba list
+          conda info -a
+          conda list
 
       - name: Lint with Black
         run: |
@@ -164,23 +164,21 @@ jobs:
           python -m pytest --pyargs activitysim.cli
 
 
-  regional_models:
+  builtin_regional_models:
     needs: foundation
     env:
-      mamba-env-prefix: /usr/share/miniconda3/envs/asim-test
-      python-version: 3.9
+      python-version: "3.10"
       label: linux-64
     strategy:
       matrix:
         region:
           - prototype_mtc
-          - prototype_arc
           - placeholder_psrc
           - prototype_marin
           - prototype_mtc_extended
           - placeholder_sandag
           - prototype_sandag_xborder
-          - prototype_semcog
+          - production_semcog
           - prototype_mwcog
           - placeholder_multiple_zone
       fail-fast: false
@@ -190,28 +188,27 @@ jobs:
     name: ${{ matrix.region }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup Mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Setup Miniforge
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          miniforge-variant: Mambaforge
           miniforge-version: latest
           activate-environment: asim-test
-          use-mamba: true
           python-version: ${{ env.python-version }}
 
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
-          path: ${{ env.mamba-env-prefix }}
+          path: ${{ env.CONDA }}/envs
           key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
       - name: Update environment
-        run: mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
+        run: |
+          conda env update -n asim-test -f conda-environments/github-actions-tests.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install activitysim
@@ -223,8 +220,8 @@ jobs:
 
       - name: Conda checkup
         run: |
-          mamba info -a
-          mamba list
+          conda info -a
+          conda list
 
       # TODO: Cache sharrow compiled flows?  The contents of __pycache__ appear to
       #       be ignored, so this is not working as expected right now
@@ -235,7 +232,7 @@ jobs:
       #  - name: Get a random number
       #    run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
       #
-      #  - uses: actions/cache@v2
+      #  - uses: actions/cache@v3
       #    # store the regional model's cache directory in github actions cache
       #    # this will (almost) never hit on primary key due to the random number
       #    # but will pull the most recent cache from restore-keys... and then
@@ -253,11 +250,83 @@ jobs:
         run: |
           python -m pytest activitysim/examples/${{ matrix.region }}/test --durations=0
 
+  external_regional_models:
+    needs: foundation
+    env:
+      python-version: "3.10"
+      label: linux-64
+    strategy:
+      matrix:
+        include:
+          - region: Standard 1-Zone Example (MTC)
+            region-org: ActivitySim
+            region-repo: activitysim-prototype-mtc
+            region-branch: extended
+          - region: Standard 2-Zone Example (SANDAG)
+            region-org: ActivitySim
+            region-repo: sandag-abm3-example
+            region-branch: main
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash -l {0}
+    name: ${{ matrix.region }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ActivitySim
+        uses: actions/checkout@v4
+
+      - name: Setup Miniforge
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          activate-environment: asim-test
+          python-version: ${{ env.python-version }}
+
+      - name: Set cache date for year and month
+        run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.CONDA }}/envs
+            ~/.cache/ActivitySim
+          key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+        id: cache
+
+      - name: Update environment
+        run: |
+          conda env update -n asim-test -f conda-environments/github-actions-tests.yml
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - name: Install activitysim
+        # installing without dependencies is faster, we trust that all needed dependencies
+        # are in the conda environment defined above.  Also, this avoids pip getting
+        # confused and reinstalling tables (pytables).
+        run: |
+          python -m pip install . --no-deps
+
+      - name: Conda checkup
+        run: |
+          conda info -a
+          conda list
+
+      - name: Checkout Example
+        uses: actions/checkout@v4
+        with:
+          repository: '${{ matrix.region-org }}/${{ matrix.region-repo }}'
+          ref: '${{ matrix.region-branch }}'
+          path: '${{ matrix.region-repo }}'
+
+      - name: Test ${{ matrix.region }}
+        run: |
+          cd ${{ matrix.region-repo }}/test
+          python -m pytest .
+
   random_seed_generation:
     needs: foundation
     env:
-      mamba-env-prefix: /usr/share/miniconda3/envs/asim-test
-      python-version: 3.9
+      python-version: "3.10"
       label: linux-64
     defaults:
       run:
@@ -266,28 +335,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup Mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Setup Miniforge
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          miniforge-variant: Mambaforge
           miniforge-version: latest
           activate-environment: asim-test
-          use-mamba: true
           python-version: ${{ env.python-version }}
 
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
-          path: ${{ env.mamba-env-prefix }}
+          path: ${{ env.CONDA }}/envs
           key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
       - name: Update environment
-        run: mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
+        run: |
+          conda env update -n asim-test -f conda-environments/github-actions-tests.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install activitysim
@@ -299,8 +367,8 @@ jobs:
 
       - name: Conda checkup
         run: |
-          mamba info -a
-          mamba list
+          conda info -a
+          conda list
 
       - name: Test Random Seed Generation
         run: |
@@ -309,41 +377,39 @@ jobs:
   estimation_mode:
     needs: foundation
     env:
-      mamba-env-prefix: /usr/share/miniconda3/envs/asim-test
-      python-version: 3.9
+      python-version: "3.10"
       label: linux-64
     defaults:
       run:
         shell: bash -l {0}
-    name: estimation_mode_test
+    name: Estimation Mode Unit Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup Mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Setup Miniforge
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          miniforge-variant: Mambaforge
           miniforge-version: latest
           activate-environment: asim-test
-          use-mamba: true
           python-version: ${{ env.python-version }}
 
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
-          path: ${{ env.mamba-env-prefix }}
+          path: ${{ env.CONDA }}/envs
           key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
       - name: Update environment
-        run: mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
+        run: |
+          conda env update -n asim-test -f conda-environments/github-actions-tests.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install Larch
-        run: mamba install "larch>=5.5.3"
+        run: mamba install "larch>=5.7.1"
 
       - name: Install activitysim
         # installing without dependencies is faster, we trust that all needed dependencies
@@ -354,8 +420,8 @@ jobs:
 
       - name: Conda checkup
         run: |
-          mamba info -a
-          mamba list
+          conda info -a
+          conda list
 
       - name: Test Estimation Mode
         run: |
@@ -363,28 +429,26 @@ jobs:
 
   develop-docbuild:
     needs: foundation
-    if: github.ref_name == 'develop'
+    if: github.ref_name == 'main'
     name: develop-docbuild
     runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash -l {0}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # get all tags, lets setuptools_scm do its thing
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v2
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: "3.10"
       - name: Install dependencies
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          miniforge-variant: Mambaforge
           miniforge-version: latest
-          use-mamba: true
           environment-file: conda-environments/docbuild.yml
-          python-version: 3.9
+          python-version: "3.10"
           activate-environment: docbuild
           auto-activate-base: false
           auto-update-conda: false

@@ -1,4 +1,11 @@
-from .base import PydanticBase, Union
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any, Literal
+
+from pydantic import model_validator, validator
+
+from activitysim.core.configuration.base import PydanticBase, Union
 
 
 class InputTable(PydanticBase):
@@ -9,14 +16,14 @@ class InputTable(PydanticBase):
     tablename: str
     """Name of the injected table"""
 
-    filename: str = None
+    filename: Path = None
     """
     Name of the CSV or HDF5 file to read.
 
     If not provided, defaults to `input_store`
     """
 
-    index_col: str = None
+    index_col: Union[str, None] = "NOTSET"
     """table column to use for the index"""
 
     rename_columns: dict[str, str] = None
@@ -65,8 +72,22 @@ class InputTable(PydanticBase):
     and retained.
     """
 
+    drop_columns: list[str] = None
+    """
+    Columns to drop once read in to memory.
+
+    Save only the columns needed for modeling or analysis to save on memory
+    and file I/O.  If not given, all columns in the input file will be read
+    and retained.
+    """
+
     h5_tablename: str = None
     """table name if reading from HDF5 and different from `tablename`"""
+
+    dtypes: dict[str, str] = None
+    """
+    dtypes for loaded columns
+    """
 
 
 class OutputTable(PydanticBase):
@@ -100,6 +121,11 @@ class OutputTables(PydanticBase):
     h5_store: bool = False
     """Write tables into a single HDF5 store instead of individual CSVs."""
 
+    file_type: Literal["csv", "parquet", "h5"] = "csv"
+    """
+    Specifies the file type for output tables. Options are limited to 'csv',
+    'h5' or 'parquet'. Only applied if h5_store is set to False."""
+
     action: str
     """Whether to 'include' or 'skip' the enumerated tables in `tables`."""
 
@@ -126,8 +152,17 @@ class OutputTables(PydanticBase):
     """
 
 
-class MultiprocessStepSlice(PydanticBase):
-    """Instructions on how to slice tables for each subprocess."""
+class MultiprocessStepSlice(PydanticBase, extra="forbid"):
+    """
+    Instructions on how to slice tables for each subprocess.
+
+    .. versionchanged:: 1.3
+
+        In ActivitySim versions 1.2 and earlier, slicing instructions for
+        multiprocess steps allowed for an "except" instruction, which has
+        been renamed to be "exclude" to avoid problems from using a reserved
+        Python keyword.
+    """
 
     tables: list[str]
     """
@@ -147,12 +182,16 @@ class MultiprocessStepSlice(PydanticBase):
     names as the persons table.
     """
 
-    exclude: Union[bool, str, list[str]]
+    exclude: Union[bool, str, list[str]] = None
     """
     Optional list of tables not to slice even if they have a sliceable index name.
 
     Or set to `True` or "*" to exclude all tables not explicitly listed in
     `tables`.
+
+    Note in ActivitySim versions 1.2 and earlier, this option was named "except"
+    instead of "exclude", but that is a reserved python keyword and cannot be
+    used as a Pydantic field name.
     """
 
 
@@ -178,8 +217,10 @@ class MultiprocessStep(PydanticBase):
     slice: MultiprocessStepSlice = None
     """Instructions on how to slice tables for each subprocess."""
 
+    chunk_size: int = None
 
-class Settings(PydanticBase):
+
+class Settings(PydanticBase, extra="allow", validate_assignment=True):
     """
     The overall settings for the ActivitySim model system.
 
@@ -192,7 +233,7 @@ class Settings(PydanticBase):
     the model.
     """
 
-    models: list[str]
+    models: list[str] = None
     """
     list of model steps to run - auto ownership, tour frequency, etc.
 
@@ -210,13 +251,13 @@ class Settings(PydanticBase):
     half the number of available CPU cores, plus 1.
     """
 
-    multiprocess_steps: list[MultiprocessStep]
+    multiprocess_steps: list[MultiprocessStep] = None
     """A list of multiprocess steps."""
 
-    resume_after: str = None
+    resume_after: str | None = None
     """to resume running the data pipeline after the last successful checkpoint"""
 
-    input_table_list: list[InputTable]
+    input_table_list: list[InputTable] = None
     """list of table names, indices, and column re-maps for each table in `input_store`"""
 
     input_store: str = None
@@ -235,40 +276,122 @@ class Settings(PydanticBase):
 
     If omitted or set to 0, ActivitySim will simulate all households.
     """
-    trace_hh_id: Union[int, list] = None
+    trace_hh_id: int | None = None
     """
-    Trace household id(s)
+    Trace this household id
 
     If omitted, no tracing is written out
     """
 
-    trace_od: list[int] = None
+    trace_od: tuple[int, int] | None = None
     """
     Trace origin, destination pair in accessibility calculation
 
     If omitted, no tracing is written out.
     """
 
-    chunk_training_mode: str = None
+    chunk_training_mode: Literal[
+        "disabled", "training", "production", "adaptive", "explicit"
+    ] = "disabled"
     """
     The method to use for chunk training.
 
-    Valid values include {disabled, training, production, adaptive}.
+    * "disabled"
+        All chunking is disabled. If you have enough RAM, this is the fastest
+        mode, but it requires potentially a lot of RAM.
+    * "training"
+        The model is run in training mode, which tracks the amount of memory
+        used by each table by submodel and writes the results to a cache file
+        that is then re-used for production runs. This mode is significantly
+        slower than production mode since it does significantly more memory
+        inspection.
+    * "production"
+        The model is run in production mode, using the cache file created in
+        training mode. If no such file is found, the model falls back to
+        training mode. This mode is significantly faster than training mode, as
+        it uses the cached memory inspection results to determine chunk sizes.
+    * "adaptive"
+        Like production mode, any existing cache file is used to determine the
+        starting chunk settings, but the model also updates the cache settings
+        based on additional memory inspection. This may additionally improve the
+        cache settings to reduce runtimes when run in production mode, but at
+        the cost of some slowdown during the run to accommodate extra memory
+        inspection.
+    * "explicit"
+        The model is run without memory inspection, and the chunk cache file is
+        not used, even if it exists. Instead, the chunk size settings are
+        explicitly set in the settings file of each compatible model step.  Only
+        those steps that have an "explicit_chunk" setting are chunkable with
+        this mode, all other steps are run without chunking.
+
     See :ref:`chunk_size` for more details.
     """
 
-    chunk_size: int = None
+    chunk_size: int = 0
     """
     Approximate amount of RAM to allocate to ActivitySim for batch processing.
 
     See :ref:`chunk_size` for more details.
     """
 
-    chunk_method: str = None
+    chunk_method: Literal[
+        "bytes",
+        "uss",
+        "hybrid_uss",
+        "rss",
+        "hybrid_rss",
+    ] = "hybrid_uss"
     """
     Memory use measure to use for chunking.
 
-    See :ref:`chunk_size`.
+    The following methods are supported to calculate memory overhead when chunking
+    is enabled:
+
+    * "bytes"
+        expected rowsize based on actual size (as reported by numpy and
+        pandas) of explicitly allocated data this can underestimate overhead due
+        to transient data requirements of operations (e.g. merge, sort, transpose).
+    * "uss"
+        expected rowsize based on change in (unique set size) (uss) both as
+        a result of explicit data allocation, and readings by MemMonitor sniffer
+        thread that measures transient uss during time-consuming numpy and pandas
+        operations.
+    * "hybrid_uss"
+        hybrid_uss avoids problems with pure uss, especially with
+        small chunk sizes (e.g. initial training chunks) as numpy may recycle
+        cached blocks and show no increase in uss even though data was allocated
+        and logged.
+    * "rss"
+        like uss, but for resident set size (rss), which is the portion of
+        memory occupied by a process that is held in RAM.
+    * "hybrid_rss"
+        like hybrid_uss, but for rss
+
+    RSS is reported by :py:meth:`psutil.Process.memory_info` and USS is reported by
+    :py:meth:`psutil.Process.memory_full_info`.  USS is the memory which is private to
+    a process and which would be freed if the process were terminated.  This is
+    the metric that most closely matches the rather vague notion of memory
+    "in use" (the meaning of which is difficult to pin down in operating systems
+    with virtual memory where memory can (but sometimes can't) be swapped or
+    mapped to disk. Previous testing found `hybrid_uss` performs best and is most
+    reliable and is therefore the default.
+
+    For more, see :ref:`chunk_size`.
+    """
+
+    keep_chunk_logs: bool = True
+    """
+    Whether to keep chunk logs when deleting other files.
+    """
+
+    default_initial_rows_per_chunk: int = 100
+    """
+    Default number of rows to use in initial chunking.
+    """
+
+    min_available_chunk_ratio: float = 0.05
+    """
+    minimum fraction of total chunk_size to reserve for adaptive chunking
     """
 
     checkpoints: Union[bool, list] = True
@@ -278,6 +401,11 @@ class Settings(PydanticBase):
     If True, checkpoints are written at each step. If False, no intermediate
     checkpoints will be written before the end of run.  Or, provide an explicit
     list of models to checkpoint.
+    """
+
+    checkpoint_format: Literal["hdf", "parquet"] = "parquet"
+    """
+    Storage format to use when saving checkpoint files.
     """
 
     check_for_variability: bool = False
@@ -348,6 +476,26 @@ class Settings(PydanticBase):
     True will disable the use of zarr.
     """
 
+    store_skims_in_shm: bool = True
+    """
+    Store skim dataset in shared memory.
+
+    .. versionadded:: 1.3
+
+    By default, if sharrow is enabled (any setting other than false), ActivitySim
+    stores the skim dataset in shared memory. This can be changed by setting this
+    option to False, in which case skims are stores in "typical" process-local
+    memory. Note that storing skims in shared memory is pretty much required for
+    multiprocessing, unless you have a very small model or an absurdly large amount
+    of RAM.
+    """
+
+    @model_validator(mode="after")
+    def _check_store_skims_in_shm(self):
+        if not self.store_skims_in_shm and self.multiprocess:
+            raise ValueError("store_skims_in_shm requires multiprocess to be False")
+        return self
+
     instrument: bool = False
     """
     Use `pyinstrument` to profile component performance.
@@ -414,13 +562,14 @@ class Settings(PydanticBase):
     This is generally a developer-only feature and not needed for regular usage
     of ActivitySim.
 
-    The data tables are written out before any annotation steps, but after
-    initial processing (renaming, filtering columns, recoding).
+    The data tables are written out to `<output_dir>/raw_tables` before any
+    annotation steps, but after initial processing (renaming, filtering columns,
+    recoding).
     """
 
     disable_destination_sampling: bool = False
 
-    want_dest_choice_presampling: bool = False
+    want_dest_choice_presampling: bool = True
 
     testing_fail_trip_destination: bool = False
 
@@ -439,7 +588,7 @@ class Settings(PydanticBase):
     developer-only feature for testing and development.
     """
 
-    recode_pipeline_columns: bool = True
+    recode_pipeline_columns: bool = False
     """
     Apply recoding instructions on input and final output for pipeline tables.
 
@@ -456,4 +605,136 @@ class Settings(PydanticBase):
         compatible with using :py:attr:`Settings.sharrow`.
     """
 
+    omx_ignore_patterns: list[str] = []
+    """
+    List of regex patterns to ignore when reading OMX files.
+
+    This is useful if you have tables in your OMX file that you don't want to
+    read in.  For example, if you have both time-of-day values and time-independent
+    values (e.g., "BIKE_TIME" and "BIKE_TIME__AM"), you can ignore the time-of-day
+    values by setting this to ["BIKE_TIME__.+"].
+
+    .. versionadded:: 1.3
+    """
+
     keep_mem_logs: bool = False
+
+    pipeline_complib: str = "NOTSET"
+    """
+    Compression library to use when storing pipeline tables in an HDF5 file.
+
+    .. versionadded:: 1.3
+    """
+
+    treat_warnings_as_errors: bool = False
+    """
+    Treat most warnings as errors.
+
+    Use of this setting is not recommended outside of rigorous testing regimes.
+
+    .. versionadded:: 1.3
+    """
+
+    log_settings: tuple[str] = (
+        "households_sample_size",
+        "chunk_size",
+        "chunk_method",
+        "chunk_training_mode",
+        "multiprocess",
+        "num_processes",
+        "resume_after",
+        "trace_hh_id",
+        "memory_profile",
+        "instrument",
+        "sharrow",
+    )
+    """
+    Setting to log on startup.
+    """
+
+    hh_ids: Path = None
+    """
+    Load only the household ids given in this file.
+
+    The file need only contain the desired households ids, nothing else.
+    If given as a relative path (or just a file name), both the data and
+    config directories are searched, in that order, for the matching file.
+    """
+
+    source_file_paths: list[Path] = None
+    """
+    A list of source files from which these settings were loaded.
+
+    This value should not be set by the user within the YAML settings files,
+    instead it is populated as those files are loaded.  It is primarily
+    provided for debugging purposes, and does not actually affect the operation
+    of the model.
+    """
+
+    inherit_settings: Union[bool, Path] = None
+    """
+    Instruction on if and how to find other files that can provide settings.
+
+    When this value is True, all config directories are searched in order for
+    additional files with the same filename.  If other files are found they
+    are also loaded, but only settings values that are not already explicitly
+    set are applied.  Alternatively, set this to a different file name, in which
+    case settings from that other file are loaded (again, backfilling unset
+    values only).  Once the settings files are loaded, this value does not
+    have any other effect on the operation of the model(s).
+    """
+
+    rng_base_seed: Union[int, None] = 0
+    """Base seed for pseudo-random number generator."""
+
+    duplicate_step_execution: Literal["error", "allow"] = "error"
+    """
+    How activitysim should handle attempts to re-run a step with the same name.
+
+    .. versionadded:: 1.3
+
+    * "error"
+        Attempts to re-run a step that has already been run and
+        checkpointed will raise a `RuntimeError`, halting model execution.
+        This is the default if no value is given.
+    * "allow"
+        Attempts to re-run a step are allowed, potentially overwriting
+        the results from the previous time that step was run.
+    """
+
+    downcast_int: bool = False
+    """
+    automatically downcasting integer variables.
+
+    Use of this setting should be tested by the region to confirm result consistency.
+
+    .. versionadded:: 1.3
+    """
+
+    downcast_float: bool = False
+    """
+    automatically downcasting float variables.
+
+    Use of this setting should be tested by the region to confirm result consistency.
+
+    .. versionadded:: 1.3
+    """
+
+    use_explicit_error_terms: bool = False
+    """
+    Make choice from random utility model by drawing from distribution of unobserved
+    part of utility and taking the maximum of total utility.
+    
+    Defaults to standard Monte Carlo method, i.e., calculating probabilities and then
+    drawing a single uniform random number to draw from cumulative probabily.
+
+    .. versionadded:: 1.x
+    """
+
+    other_settings: dict[str, Any] = None
+
+    def _get_attr(self, attr):
+        try:
+            return getattr(self, attr)
+        except AttributeError:
+            return self.other_settings.get(attr)

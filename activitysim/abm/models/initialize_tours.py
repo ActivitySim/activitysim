@@ -1,13 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
-import os
-import warnings
 
 import pandas as pd
 
 from activitysim.abm.models.util import tour_frequency as tf
-from activitysim.core import config, expressions, inject, pipeline, tracing
+from activitysim.core import expressions, tracing, workflow
+from activitysim.core.configuration import PydanticReadable
+from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
@@ -17,11 +19,11 @@ SURVEY_PARENT_TOUR_ID = "external_parent_tour_id"
 SURVEY_PARTICIPANT_ID = "external_participant_id"
 ASIM_TOUR_ID = "tour_id"
 ASIM_PARENT_TOUR_ID = "parent_tour_id"
-REQUIRED_TOUR_COLUMNS = set(["person_id", "tour_category", "tour_type"])
+REQUIRED_TOUR_COLUMNS = {"person_id", "tour_category", "tour_type"}
 
 
-def patch_tour_ids(tours):
-    def set_tour_index(tours, parent_tour_num_col, is_joint):
+def patch_tour_ids(state: workflow.State, tours):
+    def set_tour_index(state: workflow.State, tours, parent_tour_num_col, is_joint):
         group_cols = ["person_id", "tour_category", "tour_type"]
 
         if "parent_tour_num" in tours:
@@ -32,7 +34,7 @@ def patch_tour_ids(tours):
         )
 
         return tf.set_tour_index(
-            tours, parent_tour_num_col=parent_tour_num_col, is_joint=is_joint
+            state, tours, parent_tour_num_col=parent_tour_num_col, is_joint=is_joint
         )
 
     assert REQUIRED_TOUR_COLUMNS.issubset(
@@ -48,6 +50,7 @@ def patch_tour_ids(tours):
 
     # mandatory tours
     mandatory_tours = set_tour_index(
+        state,
         tours[tours.tour_category == "mandatory"],
         parent_tour_num_col=None,
         is_joint=False,
@@ -60,6 +63,7 @@ def patch_tour_ids(tours):
 
     # non_mandatory tours
     non_mandatory_tours = set_tour_index(
+        state,
         tours[tours.tour_category == "non_mandatory"],
         parent_tour_num_col=None,
         is_joint=False,
@@ -74,45 +78,57 @@ def patch_tour_ids(tours):
     return patched_tours
 
 
-@inject.step()
-def initialize_tours(network_los, households, persons, trace_hh_id):
+class InitializeToursSettings(PydanticReadable):
+    annotate_tours: PreprocessorSettings | None = None
+    """Preprocessor settings to annotate tours"""
 
+    skip_patch_tour_ids: bool = False
+    """Skip patching tour_ids"""
+
+
+@workflow.step
+def initialize_tours(
+    state: workflow.State,
+    households: pd.DataFrame,
+    persons: pd.DataFrame,
+) -> None:
     trace_label = "initialize_tours"
 
-    tours = read_input_table("tours")
+    trace_hh_id = state.settings.trace_hh_id
+    tours = read_input_table(state, "tours")
 
     # FIXME can't use households_sliced injectable as flag like persons table does in case of resume_after.
     # FIXME could just always slice...
-    slice_happened = (
-        inject.get_injectable("households_sample_size", 0) > 0
-        or inject.get_injectable("households_sample_size", 0) > 0
-    )
+    slice_happened = state.settings.households_sample_size > 0
     if slice_happened:
         logger.info("slicing tours %s" % (tours.shape,))
         # keep all persons in the sampled households
         tours = tours[tours.person_id.isin(persons.index)]
 
     # annotate before patching tour_id to allow addition of REQUIRED_TOUR_COLUMNS defined above
-    model_settings = config.read_model_settings("initialize_tours.yaml", mandatory=True)
+    model_settings = InitializeToursSettings.read_settings_file(
+        state.filesystem, "initialize_tours.yaml", mandatory=True
+    )
     expressions.assign_columns(
+        state,
         df=tours,
-        model_settings=model_settings.get("annotate_tours"),
+        model_settings=model_settings.annotate_tours,
         trace_label=tracing.extend_trace_label(trace_label, "annotate_tours"),
     )
 
-    skip_patch_tour_ids = model_settings.get("skip_patch_tour_ids", False)
+    skip_patch_tour_ids = model_settings.skip_patch_tour_ids
     if skip_patch_tour_ids:
         pass
     else:
-        tours = patch_tour_ids(tours)
+        tours = patch_tour_ids(state, tours)
     assert tours.index.name == "tour_id"
 
     # replace table function with dataframe
-    inject.add_table("tours", tours)
+    state.add_table("tours", tours)
 
-    pipeline.get_rn_generator().add_channel("tours", tours)
+    state.get_rn_generator().add_channel("tours", tours)
 
-    tracing.register_traceable_table("tours", tours)
+    state.tracing.register_traceable_table("tours", tours)
 
     logger.debug(f"{len(tours.household_id.unique())} unique household_ids in tours")
     logger.debug(f"{len(households.index.unique())} unique household_ids in households")
@@ -127,4 +143,4 @@ def initialize_tours(network_los, households, persons, trace_hh_id):
         raise RuntimeError(f"{tours_without_persons.sum()} tours with bad person_id")
 
     if trace_hh_id:
-        tracing.trace_df(tours, label="initialize_tours", warn_if_empty=True)
+        state.tracing.trace_df(tours, label="initialize_tours", warn_if_empty=True)

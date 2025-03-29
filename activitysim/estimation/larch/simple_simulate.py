@@ -231,6 +231,22 @@ def free_parking_model(
     )
 
 
+def work_from_home_model(
+    name="work_from_home",
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+):
+    return simple_simulate_model(
+        name=name,
+        edb_directory=edb_directory,
+        return_data=return_data,
+        choices={
+            True: 1,
+            False: 2,
+        },  # True is work from home, false is does not work from home, names match spec positions
+    )
+
+
 def mandatory_tour_frequency_model(
     name="mandatory_tour_frequency",
     edb_directory="output/estimation_data_bundle/{name}/",
@@ -293,5 +309,56 @@ def joint_tour_participation_model(
         choices={
             0: 1,  # 0 means participate, alternative 1
             1: 2,  # 1 means not participate, alternative 2
+        },
+    )
+
+
+def transit_pass_subsidy_model(
+    name="transit_pass_subsidy",
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+):
+    print("transit pass subsidy")
+    return simple_simulate_model(
+        name=name,
+        edb_directory=edb_directory,
+        return_data=return_data,
+        choices={
+            0: 1,  # 0 means no subsidy, alternative 1
+            1: 2,  # 1 means subsidy, alternative 2
+        },
+    )
+
+
+def transit_pass_ownership_model(
+    name="transit_pass_ownership",
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+):
+    return simple_simulate_model(
+        name=name,
+        edb_directory=edb_directory,
+        return_data=return_data,
+        choices={
+            0: 1,  # 0 means no pass, alternative 1
+            1: 2,  # 1 means pass, alternative 2
+        },
+    )
+
+
+def telecommute_frequency_model(
+    name="telecommute_frequency",
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+):
+    return simple_simulate_model(
+        name=name,
+        edb_directory=edb_directory,
+        return_data=return_data,
+        choices={
+            "No_Telecommute": 1,
+            "1_day_week": 2,
+            "2_3_days_week": 3,
+            "4_days_week": 4,
         },
     )

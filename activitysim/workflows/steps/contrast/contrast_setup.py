@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import multiprocessing
 import time
 
@@ -19,6 +21,7 @@ def contrast_setup(
     multiprocess=0,
     chunk_training_mode=None,
     main_n_households=None,
+    persist_sharrow_cache=False,
 ):
     reset_progress_step(description="Constrast Setup")
     if tag is None:
@@ -30,6 +33,8 @@ def contrast_setup(
         flags.append(f" -r {resume_after}")
     if fast:
         flags.append("--fast")
+    if persist_sharrow_cache:
+        flags.append("--persist-sharrow-cache")
 
     out = dict(tag=tag, contrast=contrast, flags=" ".join(flags))
     if isinstance(reference, str) and "." in reference:

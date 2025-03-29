@@ -283,7 +283,7 @@ def _interaction_sample_simulate(
             utilities_df, trace_label=trace_label, trace_choosers=choosers
         )
         del utilities_df
-        chunk.log_df(trace_label, "utilities_df", None)
+        chunk_sizer.log_df(trace_label, "utilities_df", None)
     else:
         # convert to probabilities (utilities exponentiated and normalized to probs)
         # probs is same shape as utilities, one row per chooser and one column for alternative
@@ -310,7 +310,7 @@ def _interaction_sample_simulate(
         chunk_sizer.log_df(trace_label, "probs", probs)
 
         del utilities_df
-        chunk.log_df(trace_label, "utilities_df", None)
+        chunk_sizer.log_df(trace_label, "utilities_df", None)
 
         if have_trace_targets:
             state.tracing.trace_df(

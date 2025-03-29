@@ -280,7 +280,7 @@ def _interaction_sample_simulate(
         # positions is series with the chosen alternative represented as a column index in utilities_df
         # which is an integer between zero and num alternatives in the alternative sample
         positions, rands = logit.make_choices_utility_based(
-            utilities_df, trace_label=trace_label, trace_choosers=choosers
+            state, utilities_df, trace_label=trace_label, trace_choosers=choosers
         )
         del utilities_df
         chunk_sizer.log_df(trace_label, "utilities_df", None)

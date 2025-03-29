@@ -330,7 +330,7 @@ def make_choices_explicit_error_term_mnl(state, utilities):
 
 
 def make_choices_explicit_error_term(state, utilities, alt_order_array, nest_spec=None, trace_label=None):
-    trace_label = state.tracing.extend_trace_label(trace_label, 'make_choices_ru_frozen')
+    trace_label = tracing.extend_trace_label(trace_label, 'make_choices_ru_frozen')
     if nest_spec is None:
         choices = make_choices_explicit_error_term_mnl(state, utilities)
     else:

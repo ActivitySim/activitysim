@@ -1304,7 +1304,7 @@ def eval_mnl(
 
     if state.settings.use_explicit_error_terms:
         if custom_chooser:
-            choices, rands = custom_chooser(state, utilities=utilities, choosers=choosers, spec=spec, trace_label=trace_label)
+            choices, rands = custom_chooser(state, utilities, choosers, spec, trace_label)
         else:
             choices, rands = logit.make_choices_utility_based(state, utilities, trace_label=trace_label)
 

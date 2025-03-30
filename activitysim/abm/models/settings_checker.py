@@ -8,14 +8,19 @@ from activitysim.core.simulate import eval_coefficients, eval_nest_coefficients
 
 # import model settings
 from activitysim.abm.models.accessibility import AccessibilitySettings
-from activitysim.abm.models.atwork_subtour_frequency import (
-    AtworkSubtourFrequencySettings,
+from activitysim.abm.models.atwork_subtour_frequency import AtworkSubtourFrequencySettings
+from activitysim.abm.models.auto_ownership import AutoOwnershipSettings
+from activitysim.abm.models.cdap import CdapSettings
+
+# import util settings
+from activitysim.abm.models.util.vectorize_tour_scheduling import (
+    TourSchedulingSettings,
 )
 
 # import logit model settings
 from activitysim.core.configuration.logit import (
     TourLocationComponentSettings,
-    TourModeComponentSettings,
+    TourModeComponentSettings
 )
 
 logger = logging.getLogger(__name__)
@@ -37,7 +42,19 @@ COMPONENTS_TO_SETTINGS = {
     "atwork_subtour_mode_choice": {
         "settings_cls": TourModeComponentSettings,
         "settings_file": "tour_mode_choice.yaml",
-    },  # Nested settings
+    },
+    "atwork_subtour_scheduling": {
+        "settings_cls": TourSchedulingSettings,
+        "settings_file": "tour_scheduling_atwork.yaml" 
+    },
+    "auto_ownership_simulate": {
+        "settings_cls": AutoOwnershipSettings,
+        "settings_file": "auto_ownership.yaml" 
+    },
+    "cdap_simulate": {
+        "settings_cls": CdapSettings,
+        "settings_file": "cdap.yaml"
+    }
 }
 
 
@@ -60,6 +77,11 @@ def try_load_model_settings(
 def try_load_spec(
     model_name: str, model_settings: PydanticBase, state: State
 ) -> DataFrame:
+    
+    if isinstance(model_settings, CdapSettings):
+        # debug
+        pass
+
     logger.info(
         f"Attempting to load SPEC for {model_name} via {model_settings.__class__.__name__}"
     )
@@ -68,6 +90,8 @@ def try_load_spec(
         logger.info(
             f"No SPEC file is associated with {model_settings.__class__.__name__}"
         )
+        # Need to return object with .copy() interface for eval_coefficients
+        return DataFrame()
     spec = state.filesystem.read_model_spec(spec_file)
     logger.info(f"Successfully loaded model SPEC from {spec_file}")
     return spec

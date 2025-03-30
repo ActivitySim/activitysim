@@ -11,6 +11,12 @@ from activitysim.abm.models.accessibility import AccessibilitySettings
 from activitysim.abm.models.atwork_subtour_frequency import AtworkSubtourFrequencySettings
 from activitysim.abm.models.auto_ownership import AutoOwnershipSettings
 from activitysim.abm.models.cdap import CdapSettings
+from activitysim.abm.models.disaggregate_accessibility import (
+    DisaggregateAccessibilitySettings, 
+    read_disaggregate_accessibility_yaml,
+)
+from activitysim.abm.models.free_parking import FreeParkingSettings
+from activitysim.abm.models.joint_tour_composition import JointTourCompositionSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -54,7 +60,20 @@ COMPONENTS_TO_SETTINGS = {
     "cdap_simulate": {
         "settings_cls": CdapSettings,
         "settings_file": "cdap.yaml"
+    },
+    "compute_disaggregate_accessibility": {
+        "settings_cls": DisaggregateAccessibilitySettings,
+        "settings_file": "disaggregate_accessibility.yaml"
+    }, # TODO: needs testing with further models
+    "free_parking": {
+        "settings_cls": FreeParkingSettings,
+        "settings_file": "free_parking.yaml"
+    },
+    "joint_tour_composition": {
+        "settings_cls": JointTourCompositionSettings,
+        "settings_file": "joint_tour_composition.yaml"
     }
+
 }
 
 
@@ -67,9 +86,12 @@ def try_load_model_settings(
     logger.info(
         f"Attempting to load model settings for {model_name} via {model_settings_class.__name__} and {model_settings_file}"
     )
-    settings = model_settings_class.read_settings_file(
-        state.filesystem, model_settings_file
-    )
+    if isinstance(model_settings_class, DisaggregateAccessibilitySettings):
+        settings = read_disaggregate_accessibility_yaml(state, model_settings_file)
+    else:
+        settings = model_settings_class.read_settings_file(
+            state.filesystem, model_settings_file
+        )
     logger.info(f"Successfully loaded model settings from {model_settings_file}")
     return settings
 

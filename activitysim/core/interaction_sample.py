@@ -524,7 +524,7 @@ def _interaction_sample(
 
     state.tracing.dump_df(DUMP, utilities, trace_label, "utilities")
 
-    if compute_settings and (compute_settings.use_explicit_error_terms is not None):
+    if compute_settings.use_explicit_error_terms is not None:
         use_eet = compute_settings.use_explicit_error_terms
         logger.info(f"Interaction sample model-specific EET overrides for {trace_label}: eet = {use_eet}")
     else:

@@ -135,6 +135,10 @@ class ComputeSettings(PydanticBase):
     Sharrow settings for a component.
     """
 
+    # Make this more general compute settings and use for explicit error term overrides
+    # TODO: Default None work for sub-components
+    use_explicit_error_terms: None | bool | dict[str, bool] = None
+
     sharrow_skip: bool | dict[str, bool] = False
     """Skip sharrow when evaluating this component.
 
@@ -244,6 +248,7 @@ class ComputeSettings(PydanticBase):
             use_numba=self.use_numba,
             drop_unused_columns=self.drop_unused_columns,
             protect_columns=self.protect_columns,
+            use_explicit_error_terms=self.use_explicit_error_terms,
         )
 
 

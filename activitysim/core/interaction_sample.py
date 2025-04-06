@@ -524,8 +524,14 @@ def _interaction_sample(
 
     state.tracing.dump_df(DUMP, utilities, trace_label, "utilities")
 
+    if compute_settings and (compute_settings.use_explicit_error_terms is not None):
+        use_eet = compute_settings.use_explicit_error_terms
+        logger.info(f"Interaction sample model-specific EET overrides for {trace_label}: eet = {use_eet}")
+    else:
+        use_eet = state.settings.use_explicit_error_terms
+
     # sample_size == 0 is for estimation mode, see below
-    if state.settings.use_explicit_error_terms and (sample_size != 0):
+    if (sample_size != 0) and use_eet:
         choices_df = make_sample_choices_utility_based(
             state,
             choosers,

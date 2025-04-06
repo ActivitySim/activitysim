@@ -4,6 +4,8 @@
 # C:\projects\activitysim\verification>python compare_results.py
 #############################################################
 
+from __future__ import annotations
+
 import openmatrix as omx
 import pandas as pd
 
@@ -138,7 +140,6 @@ asim_access.to_csv("outputs/asim_access.csv", na_rep=0)
 # work and school location
 
 if process_sp:
-
     if process_tm1:
         tm1_markets = [
             "work_low",

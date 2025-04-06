@@ -47,7 +47,6 @@ def run_test(zone, multiprocess=False, sharrow=False, recode=True):
         return os.path.join(os.path.dirname(__file__), dirname)
 
     def regress(zone):
-
         # ## regress tours
         if sharrow and os.path.isfile(
             test_path(f"regress/final_{zone}_zone_tours_sh.csv")
@@ -315,7 +314,6 @@ def test_3_zone_progressive():
 
 
 if __name__ == "__main__":
-
     # call each test explicitly so we get a pass/fail for each
     build_data()
     run_test(zone="1", multiprocess=False)

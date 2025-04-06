@@ -63,7 +63,6 @@ def logtime(tag, tag2=""):
 
 
 class TimeLogger:
-
     aggregate_timing = {}
 
     def __init__(self, tag1):
@@ -662,7 +661,7 @@ def new_flow(
         defs = {}
         # duplicate labels cause problems for sharrow, so we need to dedupe
         existing_labels = set()
-        for (expr, label) in zip(exprs, labels):
+        for expr, label in zip(exprs, labels):
             while label in existing_labels:
                 label = label + "_"
             existing_labels.add(label)
@@ -691,7 +690,7 @@ def new_flow(
         orig_col_name: {orig_col_name}
         dest_col_name: {dest_col_name}
         expressions:"""
-        for (expr, label) in zip(exprs, labels):
+        for expr, label in zip(exprs, labels):
             readme += f"\n            - {label}: {expr}"
         if extra_vars:
             readme += "\n        extra_vars:"

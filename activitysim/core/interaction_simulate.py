@@ -743,7 +743,6 @@ def _interaction_simulate(
         and (estimator is None)
         and (compute_settings.drop_unused_columns)
     ):
-
         choosers = util.drop_unused_columns(
             choosers,
             spec,

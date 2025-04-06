@@ -70,7 +70,6 @@ class TVPBCache(object):
     """
 
     def __init__(self, network_los: "los.Network_LOS", uid_calculator, cache_tag):
-
         # lightweight until opened
 
         self.cache_tag = cache_tag
@@ -121,7 +120,6 @@ class TVPBCache(object):
                         break
 
     def write_static_cache(self, data):
-
         assert not self.is_open
         assert self._data is None
         assert not self.is_changed
@@ -336,7 +334,6 @@ class TapTapUidCalculator:
     """
 
     def __init__(self, network_los):
-
         self.network_los = network_los
 
         # ensure that tap_df has been loaded
@@ -420,7 +417,6 @@ class TapTapUidCalculator:
 
         # need to know cardinality and integer representation of each tap/attribute
         for name, ordinalizer in self.ordinalizers.items():
-
             cardinality = ordinalizer.max() + 1
 
             if name in df:
@@ -484,7 +480,6 @@ class TapTapUidCalculator:
         # attribute names as list of strings
         attribute_names = list(self.segmentation.keys())
         for attribute_value_tuple in self.attribute_combination_tuples:
-
             # attribute_value_tuple is an tuple of attribute values - e.g. (0, 'AM', 'walk')
             # build dict of attribute name:value pairs - e.g. {'demographic_segment': 0, 'tod': 'AM', })
             scalar_attributes = {

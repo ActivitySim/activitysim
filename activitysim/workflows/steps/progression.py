@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import time
 from datetime import timedelta
@@ -26,12 +28,10 @@ class DummyProgress:
 dummy_progress = DummyProgress()
 
 try:
-
     from rich.panel import Panel
     from rich.progress import Progress, ProgressColumn, Text
 
 except ImportError:
-
     # allow printing in color on windows terminal
     if os.name == "nt":
         import ctypes

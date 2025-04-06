@@ -25,7 +25,6 @@ def ping_mem(pid=None):
 
 @workstep(updates_context=True)
 def memory_stress_test(n=37):
-
     logging.critical(f"ping_mem = {ping_mem()}")
     big = np.arange(int(2 ** float(n) / 8), dtype=np.float64)
     big *= 2.0

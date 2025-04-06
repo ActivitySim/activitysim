@@ -5,11 +5,18 @@ from typing import Mapping
 
 import numpy as np
 import pandas as pd
-from larch import DataFrames, Model, P, X  # noqa: F401
-from larch.log import logger_name
-from larch.model.abstract_model import AbstractChoiceModel
-from larch.model.tree import NestingTree
-from larch.util import Dict  # noqa: F401
+
+try:
+    import larch
+except ImportError:
+    larch = None
+    logger_name = "larch"
+else:
+    from larch import DataFrames, Model, P, X  # noqa: F401
+    from larch.log import logger_name
+    from larch.model.abstract_model import AbstractChoiceModel
+    from larch.model.tree import NestingTree
+    from larch.util import Dict  # noqa: F401
 
 _logger = logging.getLogger(logger_name)
 

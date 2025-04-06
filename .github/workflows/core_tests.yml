@@ -9,8 +9,10 @@ on:
     branches:
       - '*'
 
+  workflow_dispatch:
+
 env:
-  CACHE_NUMBER: 2  # increase to reset cache manually
+  CACHE_NUMBER: 0  # increase to reset cache manually
 
 jobs:
   foundation:
@@ -29,9 +31,13 @@ jobs:
       - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v3
         with:
-            miniforge-version: latest
-            activate-environment: asim-test
-            python-version: ${{ matrix.python-version }}
+          auto-update-conda: true
+          miniforge-version: latest
+          mamba-version: "2.0.5"
+          conda-solver: classic
+          conda-remove-defaults: true
+          activate-environment: asim-test
+          python-version: ${{ matrix.python-version }}
 
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
@@ -112,9 +118,13 @@ jobs:
       - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v3
         with:
-            miniforge-version: latest
-            activate-environment: asim-test
-            python-version: ${{ matrix.python-version }}
+          auto-update-conda: true
+          miniforge-version: latest
+          mamba-version: "2.0.5"
+          conda-solver: classic
+          conda-remove-defaults: true
+          activate-environment: asim-test
+          python-version: ${{ matrix.python-version }}
 
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
@@ -193,7 +203,11 @@ jobs:
       - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v3
         with:
+          auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
+          conda-solver: classic
+          conda-remove-defaults: true
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -279,7 +293,11 @@ jobs:
       - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v3
         with:
+          auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
+          conda-solver: classic
+          conda-remove-defaults: true
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -340,7 +358,11 @@ jobs:
       - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v3
         with:
+          auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
+          conda-solver: classic
+          conda-remove-defaults: true
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -390,7 +412,11 @@ jobs:
       - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v3
         with:
+          auto-update-conda: true
           miniforge-version: latest
+          mamba-version: "2.0.5"
+          conda-solver: classic
+          conda-remove-defaults: true
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 
@@ -429,9 +455,11 @@ jobs:
 
   develop-docbuild:
     needs: foundation
-    if: github.ref_name == 'main'
+    if: github.ref_name == 'main' || github.ref_name == 'docs-fix'
     name: develop-docbuild
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     defaults:
       run:
         shell: bash -l {0}
@@ -447,6 +475,8 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-version: latest
+          mamba-version: "2.0.5"
+          conda-remove-defaults: true
           environment-file: conda-environments/docbuild.yml
           python-version: "3.10"
           activate-environment: docbuild
@@ -472,7 +502,7 @@ jobs:
           make clean
           make html
       - name: Push to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3.8.0
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Token is created automatically by Github Actions, no other config needed

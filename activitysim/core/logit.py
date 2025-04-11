@@ -273,11 +273,15 @@ def utils_to_probs(
 # TODO-EET: check state, add type annotations, check new-world tracing, etc.
 def add_ev1_random(state: workflow.State, df: pd.DataFrame):
     nest_utils_for_choice = df.copy()
-    nest_utils_for_choice += state.get_rn_generator().gumbel_for_df(nest_utils_for_choice, n=df.shape[1])
+    nest_utils_for_choice += state.get_rn_generator().gumbel_for_df(
+        nest_utils_for_choice, n=df.shape[1]
+    )
     return nest_utils_for_choice
 
 
-def choose_from_tree(nest_utils, all_alternatives, logit_nest_groups, nest_alternatives_by_name):
+def choose_from_tree(
+    nest_utils, all_alternatives, logit_nest_groups, nest_alternatives_by_name
+):
     for level, nest_names in logit_nest_groups.items():
         if level == 1:
             next_level_alts = nest_alternatives_by_name[nest_names[0]]
@@ -297,17 +301,21 @@ def choose_from_tree(nest_utils, all_alternatives, logit_nest_groups, nest_alter
 # alternatives and set the corresponding entry to 1 for each row, set all other alternatives at this level to zero.
 # Once the tree is walked (all alternatives have been processed), take the product of the alternatives in each
 # leaf's alternative list. Then pick the only alternative with entry 1, all others must be 0.
-def make_choices_explicit_error_term_nl(state, nested_utilities, alt_order_array, nest_spec):
-    """ walk down the nesting tree and make choice at each level, which is the root of the next level choice."""
+def make_choices_explicit_error_term_nl(
+    state, nested_utilities, alt_order_array, nest_spec
+):
+    """walk down the nesting tree and make choice at each level, which is the root of the next level choice."""
     nest_utils_for_choice = add_ev1_random(state, nested_utilities)
 
-    all_alternatives = set(nest.name for nest in each_nest(nest_spec, type='leaf'))
+    all_alternatives = set(nest.name for nest in each_nest(nest_spec, type="leaf"))
     logit_nest_groups = group_nest_names_by_level(nest_spec)
     nest_alternatives_by_name = {n.name: n.alternatives for n in each_nest(nest_spec)}
 
     choices = nest_utils_for_choice.apply(
-        lambda x: choose_from_tree(x, all_alternatives, logit_nest_groups, nest_alternatives_by_name),
-        axis=1
+        lambda x: choose_from_tree(
+            x, all_alternatives, logit_nest_groups, nest_alternatives_by_name
+        ),
+        axis=1,
     )
     assert not choices.isnull().any(), "No choice for XXX - implement reporting"
     choices = pd.Series(choices, index=nest_utils_for_choice.index)
@@ -328,32 +336,38 @@ def make_choices_explicit_error_term_mnl(state, utilities):
     return choices
 
 
-def make_choices_explicit_error_term(state, utilities, alt_order_array, nest_spec=None, trace_label=None):
-    trace_label = tracing.extend_trace_label(trace_label, 'make_choices_ru_frozen')
+def make_choices_explicit_error_term(
+    state, utilities, alt_order_array, nest_spec=None, trace_label=None
+):
+    trace_label = tracing.extend_trace_label(trace_label, "make_choices_ru_frozen")
     if nest_spec is None:
         choices = make_choices_explicit_error_term_mnl(state, utilities)
     else:
-        choices = make_choices_explicit_error_term_nl(state, utilities, alt_order_array, nest_spec)
+        choices = make_choices_explicit_error_term_nl(
+            state, utilities, alt_order_array, nest_spec
+        )
     return choices
 
 
 # TODO-EET: memory usage
 def make_choices_utility_based(
-        state: workflow.State,
-        utilities: pd.DataFrame,
-        # for nested: need mapping of index to alternative name to "fake" indexes if I want to keep with current
-        #  structure, OR need to make returning names optional. sharrow impl will make our life so much easier
-        name_mapping=None,
-        nest_spec=None,
-        trace_label: str = None,
-        trace_choosers=None,
-        allow_bad_probs=False,
+    state: workflow.State,
+    utilities: pd.DataFrame,
+    # for nested: need mapping of index to alternative name to "fake" indexes if I want to keep with current
+    #  structure, OR need to make returning names optional. sharrow impl will make our life so much easier
+    name_mapping=None,
+    nest_spec=None,
+    trace_label: str = None,
+    trace_choosers=None,
+    allow_bad_probs=False,
 ) -> tuple[pd.Series, pd.Series]:
-    trace_label = tracing.extend_trace_label(trace_label, 'make_choices_utility_based')
+    trace_label = tracing.extend_trace_label(trace_label, "make_choices_utility_based")
 
     # TODO-EET: index of choices for nested utilities is different than unnested - this needs to be consistent for
     #  turning indexes into alternative names to keep code changes to minimum for now
-    choices = make_choices_explicit_error_term(state, utilities, name_mapping, nest_spec, trace_label)
+    choices = make_choices_explicit_error_term(
+        state, utilities, name_mapping, nest_spec, trace_label
+    )
     # TODO-EET: rands - log all zeros for now
     rands = pd.Series(np.zeros_like(utilities.index.values), index=utilities.index)
     return choices, rands
@@ -686,7 +700,7 @@ def count_nests(nest_spec):
 def group_nest_names_by_level(nest_spec):
     # group nests by level, returns {level: [nest.name at that level]}
     depth = np.max([x.level for x in each_nest(nest_spec)])
-    nest_levels = {x: [] for x in range(1, depth+1)}
+    nest_levels = {x: [] for x in range(1, depth + 1)}
     for n in each_nest(nest_spec):
         nest_levels[n.level].append(n.name)
     return nest_levels

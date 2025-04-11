@@ -887,7 +887,7 @@ def _interaction_simulate(
         )
 
         del utilities
-        chunk_sizer.log_df(trace_label, 'utilities', None)
+        chunk_sizer.log_df(trace_label, "utilities", None)
 
     else:
         # convert to probabilities (utilities exponentiated and normalized to probs)

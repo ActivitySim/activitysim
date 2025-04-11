@@ -1035,41 +1035,45 @@ def set_skim_wrapper_targets(df, skims):
 
 def compute_nested_utilities(raw_utilities, nest_spec):
     """
-        compute nest utilities based on nesting coefficients
+    compute nest utilities based on nesting coefficients
 
-        For nest nodes this is the logsum of alternatives adjusted by nesting coefficient
+    For nest nodes this is the logsum of alternatives adjusted by nesting coefficient
 
-        leaf <- raw_utility / nest_coefficient
-        nest <- ln(sum of exponentiated raw_utility of leaves) * nest_coefficient)
+    leaf <- raw_utility / nest_coefficient
+    nest <- ln(sum of exponentiated raw_utility of leaves) * nest_coefficient)
 
-        Parameters
-        ----------
-        raw_utilities : pandas.DataFrame
-            dataframe with the raw alternative utilities of all leaves
-            (what in non-nested logit would be the utilities of all the alternatives)
-        nest_spec : dict
-            Nest tree dict from the model spec yaml file
+    Parameters
+    ----------
+    raw_utilities : pandas.DataFrame
+        dataframe with the raw alternative utilities of all leaves
+        (what in non-nested logit would be the utilities of all the alternatives)
+    nest_spec : dict
+        Nest tree dict from the model spec yaml file
 
-        Returns
-        -------
-        nested_utilities : pandas.DataFrame
-            Will have the index of `raw_utilities` and columns for leaf and node utilities
-        """
+    Returns
+    -------
+    nested_utilities : pandas.DataFrame
+        Will have the index of `raw_utilities` and columns for leaf and node utilities
+    """
     nested_utilities = pd.DataFrame(index=raw_utilities.index)
 
     for nest in logit.each_nest(nest_spec, post_order=True):
         name = nest.name
         if nest.is_leaf:
             # do not scale here, do afterwards so recursive structure works
-            nested_utilities[name] = raw_utilities[name].astype(float) / nest.product_of_coefficients
+            nested_utilities[name] = (
+                raw_utilities[name].astype(float) / nest.product_of_coefficients
+            )
         else:
             # the alternative nested_utilities will already have been computed due to post_order
-            with np.errstate(divide='ignore'):
-                nested_utilities[name] = \
-                    nest.coefficient * np.log(
-                    np.exp(nested_utilities[nest.alternatives]).sum(axis=1))
+            with np.errstate(divide="ignore"):
+                nested_utilities[name] = nest.coefficient * np.log(
+                    np.exp(nested_utilities[nest.alternatives]).sum(axis=1)
+                )
 
     return nested_utilities
+
+
 # So it looks like TM1 was estimated such that the nest coefficient is the ratio of lower level and upper level
 # nest in larch. This means the values can all be between 0 and 1, unlike for larch where they need to be decreasing
 # going down the tree. In that world, the above would read
@@ -1304,12 +1308,16 @@ def eval_mnl(
 
     if state.settings.use_explicit_error_terms:
         if custom_chooser:
-            choices, rands = custom_chooser(state, utilities, choosers, spec, trace_label)
+            choices, rands = custom_chooser(
+                state, utilities, choosers, spec, trace_label
+            )
         else:
-            choices, rands = logit.make_choices_utility_based(state, utilities, trace_label=trace_label)
+            choices, rands = logit.make_choices_utility_based(
+                state, utilities, trace_label=trace_label
+            )
 
         del utilities
-        chunk_sizer.log_df(trace_label, 'utilities', None)
+        chunk_sizer.log_df(trace_label, "utilities", None)
 
     else:
         probs = logit.utils_to_probs(
@@ -1445,8 +1453,12 @@ def eval_nl(
         if want_logsums:
             # logsum of nest root
             # exponentiated utilities of leaves and nests
-            nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
-            chunk_sizer.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
+            nested_exp_utilities = compute_nested_exp_utilities(
+                raw_utilities, nest_spec
+            )
+            chunk_sizer.log_df(
+                trace_label, "nested_exp_utilities", nested_exp_utilities
+            )
             logsums = pd.Series(np.log(nested_exp_utilities.root), index=choosers.index)
             chunk_sizer.log_df(trace_label, "logsums", logsums)
 
@@ -1455,7 +1467,7 @@ def eval_nl(
         name_mapping = raw_utilities.columns.values
 
         del raw_utilities
-        chunk_sizer.log_df(trace_label, 'raw_utilities', None)
+        chunk_sizer.log_df(trace_label, "raw_utilities", None)
 
         if custom_chooser:
             choices, rands = custom_chooser(
@@ -1465,7 +1477,7 @@ def eval_nl(
                 choosers=choosers,
                 spec=spec,
                 nest_spec=nest_spec,
-                trace_label=trace_label
+                trace_label=trace_label,
             )
         else:
             choices, rands = logit.make_choices_utility_based(
@@ -1473,10 +1485,10 @@ def eval_nl(
                 nested_utilities,
                 name_mapping=name_mapping,
                 nest_spec=nest_spec,
-                trace_label=trace_label
+                trace_label=trace_label,
             )
 
-        del(nested_utilities)
+        del nested_utilities
         chunk_sizer.log_df(trace_label, "nested_utilities", None)
 
     else:

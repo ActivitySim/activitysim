@@ -76,7 +76,7 @@ class DisaggregateAccessibilityAnnotateSettings(PydanticReadable, extra="forbid"
 
 
 # TODO-EET: add eet override for SOA MC sampling
-class DisaggregateAccessibilitySettings(PydanticReadable):  #, extra="forbid")
+class DisaggregateAccessibilitySettings(PydanticReadable):  # , extra="forbid")
     suffixes: DisaggregateAccessibilitySuffixes = DisaggregateAccessibilitySuffixes()
     ORIGIN_SAMPLE_SIZE: float | int = 0
     """

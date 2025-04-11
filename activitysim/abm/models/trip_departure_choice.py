@@ -347,7 +347,7 @@ def choose_tour_leg_pattern(
         )
 
         del utilities_df
-        chunk_sizer.log_df(trace_label, 'utilities_df', None)
+        chunk_sizer.log_df(trace_label, "utilities_df", None)
     else:
         # convert to probabilities (utilities exponentiated and normalized to probs)
         # probs is same shape as utilities, one row per chooser and one column for alternative

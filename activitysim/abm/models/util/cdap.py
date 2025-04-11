@@ -996,7 +996,9 @@ def household_activity_choices(
         utils = utils.add(joint_tour_utils)
 
     if state.settings.use_explicit_error_terms:
-        idx_choices, rands = logit.make_choices_utility_based(state, utils, trace_label=trace_label)
+        idx_choices, rands = logit.make_choices_utility_based(
+            state, utils, trace_label=trace_label
+        )
     else:
         probs = logit.utils_to_probs(state, utils, trace_label=trace_label)
 

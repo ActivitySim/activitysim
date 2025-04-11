@@ -45,61 +45,69 @@ def make_sample_choices_utility_based(
 
     # Note [janzill Jun2022]: this needs for loop for memory like previous method, an array of dimension
     #   (len(choosers), alternative_count, sample_size) can get very large
-    #choices = np.zeros_like(utilities, dtype=np.uint32)
-    #zero_dim_index = np.arange(utilities.shape[0])
+    # choices = np.zeros_like(utilities, dtype=np.uint32)
+    # zero_dim_index = np.arange(utilities.shape[0])
     utils_array = utilities.to_numpy()
-    chunk_sizer.log_df(trace_label, 'utils_array', utils_array)
+    chunk_sizer.log_df(trace_label, "utils_array", utils_array)
     chosen_destinations = []
 
     rands = state.get_rn_generator().gumbel_for_df(utilities, n=alternative_count)
-    chunk_sizer.log_df(trace_label, 'rands', rands)
+    chunk_sizer.log_df(trace_label, "rands", rands)
 
     for i in range(sample_size):
-        #rands = pipeline.get_rn_generator().random_for_df(utilities, n=alternative_count)
-        #choices[zero_dim_index, np.argmax(inverse_ev1_cdf(rands) + utils_array, axis=1)] += 1
-        #choices[
+        # rands = pipeline.get_rn_generator().random_for_df(utilities, n=alternative_count)
+        # choices[zero_dim_index, np.argmax(inverse_ev1_cdf(rands) + utils_array, axis=1)] += 1
+        # choices[
         #    zero_dim_index,
         #    np.argmax(pipeline.get_rn_generator().gumbel_for_df(utilities, n=alternative_count) + utils_array, axis=1)
-        #] += 1
+        # ] += 1
         # created this once for memory logging
         if i > 0:
-            rands = state.get_rn_generator().gumbel_for_df(utilities, n=alternative_count)
+            rands = state.get_rn_generator().gumbel_for_df(
+                utilities, n=alternative_count
+            )
         chosen_destinations.append(np.argmax(utils_array + rands, axis=1))
     chosen_destinations = np.concatenate(chosen_destinations, axis=0)
 
-    chunk_sizer.log_df(trace_label, 'chosen_destinations', chosen_destinations)
+    chunk_sizer.log_df(trace_label, "chosen_destinations", chosen_destinations)
 
     del utils_array
-    chunk_sizer.log_df(trace_label, 'utils_array', None)
+    chunk_sizer.log_df(trace_label, "utils_array", None)
     del rands
-    chunk_sizer.log_df(trace_label, 'rands', None)
+    chunk_sizer.log_df(trace_label, "rands", None)
 
     chooser_idx = np.tile(np.arange(utilities.shape[0]), sample_size)
-    #chunk.log_df(trace_label, 'choices_array', choices_array)
+    # chunk.log_df(trace_label, 'choices_array', choices_array)
     # choices array has same dim as utilities, with values indicating number of counts per chooser and alternative
     # let's turn the nonzero values into a dataframe
-    #i, j = np.nonzero(choices_array)
-    chunk_sizer.log_df(trace_label, 'chooser_idx', chooser_idx)
+    # i, j = np.nonzero(choices_array)
+    chunk_sizer.log_df(trace_label, "chooser_idx", chooser_idx)
 
     probs = logit.utils_to_probs(
-        state, utilities, allow_zero_probs=allow_zero_probs, trace_label=trace_label, trace_choosers=choosers
+        state,
+        utilities,
+        allow_zero_probs=allow_zero_probs,
+        trace_label=trace_label,
+        trace_choosers=choosers,
     )
-    chunk_sizer.log_df(trace_label, 'probs', probs)
+    chunk_sizer.log_df(trace_label, "probs", probs)
 
-    choices_df = pd.DataFrame({
-        alt_col_name: alternatives.index.values[chosen_destinations],
-        #"pick_count": choices_array[i, j],
-        "prob": probs.to_numpy()[chooser_idx, chosen_destinations],
-        choosers.index.name: choosers.index.values[chooser_idx]
-    })
+    choices_df = pd.DataFrame(
+        {
+            alt_col_name: alternatives.index.values[chosen_destinations],
+            # "pick_count": choices_array[i, j],
+            "prob": probs.to_numpy()[chooser_idx, chosen_destinations],
+            choosers.index.name: choosers.index.values[chooser_idx],
+        }
+    )
     chunk_sizer.log_df(trace_label, "choices_df", choices_df)
 
     del chooser_idx
-    chunk_sizer.log_df(trace_label, 'chooser_idx', None)
+    chunk_sizer.log_df(trace_label, "chooser_idx", None)
     del chosen_destinations
-    chunk_sizer.log_df(trace_label, 'chosen_destinations', None)
+    chunk_sizer.log_df(trace_label, "chosen_destinations", None)
     del probs
-    chunk_sizer.log_df(trace_label, 'probs', None)
+    chunk_sizer.log_df(trace_label, "probs", None)
 
     # handing this off to caller
     chunk_sizer.log_df(trace_label, "choices_df", None)
@@ -525,7 +533,9 @@ def _interaction_sample(
 
     if compute_settings.use_explicit_error_terms is not None:
         use_eet = compute_settings.use_explicit_error_terms
-        logger.info(f"Interaction sample model-specific EET overrides for {trace_label}: eet = {use_eet}")
+        logger.info(
+            f"Interaction sample model-specific EET overrides for {trace_label}: eet = {use_eet}"
+        )
     else:
         use_eet = state.settings.use_explicit_error_terms
 
@@ -746,7 +756,6 @@ def interaction_sample(
     # FIXME - legacy logic - not sure this is needed or even correct?
     sample_size = min(sample_size, len(alternatives.index))
     logger.info(f" --- interaction_sample sample size = {sample_size}")
-
 
     result_list = []
     for (

@@ -98,12 +98,16 @@ def _interaction_sample_simulate(
 
     # this is the more general check (not requiring is_monotonic_increasing)
     last_repeat = alternatives.index != np.roll(alternatives.index, -1)
-    assert (choosers.shape[0] == 1) or choosers.index.equals(alternatives.index[last_repeat])
+    assert (choosers.shape[0] == 1) or choosers.index.equals(
+        alternatives.index[last_repeat]
+    )
 
     have_trace_targets = state.tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
-        state.tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, "choosers"))
+        state.tracing.trace_df(
+            choosers, tracing.extend_trace_label(trace_label, "choosers")
+        )
         state.tracing.trace_df(
             alternatives,
             tracing.extend_trace_label(trace_label, "alternatives"),
@@ -129,7 +133,9 @@ def _interaction_sample_simulate(
 
     # assert alternatives.index.name == choosers.index.name
     # asserting the index names are the same tells us nothing about the underlying data so why?
-    logger.info(f"{trace_label} start merging choosers and alternatives to create interaction_df")
+    logger.info(
+        f"{trace_label} start merging choosers and alternatives to create interaction_df"
+    )
 
     # drop variables before the interaction dataframe is created
     sharrow_enabled = state.settings.sharrow
@@ -163,17 +169,23 @@ def _interaction_sample_simulate(
         )
 
     interaction_df = alternatives.join(choosers, how="left", rsuffix="_chooser")
-    logger.info(f"{trace_label} end merging choosers and alternatives to create interaction_df")
+    logger.info(
+        f"{trace_label} end merging choosers and alternatives to create interaction_df"
+    )
 
     if log_alt_losers:
         # logit.interaction_dataset adds ALT_CHOOSER_ID column if log_alt_losers is True
         # to enable detection of zero_prob-driving utils (e.g. -999 for all alts in a chooser)
-        interaction_df[interaction_simulate.ALT_CHOOSER_ID] = interaction_df.index.values
+        interaction_df[
+            interaction_simulate.ALT_CHOOSER_ID
+        ] = interaction_df.index.values
 
     chunk_sizer.log_df(trace_label, "interaction_df", interaction_df)
 
     if have_trace_targets:
-        trace_rows, trace_ids = state.tracing.interaction_trace_rows(interaction_df, choosers)
+        trace_rows, trace_ids = state.tracing.interaction_trace_rows(
+            interaction_df, choosers
+        )
 
         state.tracing.trace_df(
             interaction_df,
@@ -229,7 +241,9 @@ def _interaction_sample_simulate(
     # so we need to pad with dummy utilities so low that they are never chosen
 
     # number of samples per chooser
-    sample_counts = interaction_utilities.groupby(interaction_utilities.index).size().values
+    sample_counts = (
+        interaction_utilities.groupby(interaction_utilities.index).size().values
+    )
     chunk_sizer.log_df(trace_label, "sample_counts", sample_counts)
 
     # max number of alternatvies for any chooser
@@ -274,7 +288,9 @@ def _interaction_sample_simulate(
 
     if state.settings.use_explicit_error_terms:
         if want_logsums:
-            logsums = logit.utils_to_logsums(utilities_df, allow_zero_probs=allow_zero_probs)
+            logsums = logit.utils_to_logsums(
+                utilities_df, allow_zero_probs=allow_zero_probs
+            )
             chunk_sizer.log_df(trace_label, "logsums", logsums)
 
         if skip_choice:
@@ -334,7 +350,9 @@ def _interaction_sample_simulate(
         # make choices
         # positions is series with the chosen alternative represented as a column index in probs
         # which is an integer between zero and num alternatives in the alternative sample
-        positions, rands = logit.make_choices(state, probs, trace_label=trace_label, trace_choosers=choosers)
+        positions, rands = logit.make_choices(
+            state, probs, trace_label=trace_label, trace_choosers=choosers
+        )
 
         del probs
         chunk_sizer.log_df(trace_label, "probs", None)

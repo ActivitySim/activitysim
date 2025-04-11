@@ -270,7 +270,7 @@ def utils_to_probs(
     return probs
 
 
-# todo: check state, add type annotations, check new-world tracing, etc.
+# TODO-EET: check state, add type annotations, check new-world tracing, etc.
 def add_ev1_random(state: workflow.State, df: pd.DataFrame):
     nest_utils_for_choice = df.copy()
     nest_utils_for_choice += state.get_rn_generator().gumbel_for_df(nest_utils_for_choice, n=df.shape[1])
@@ -289,7 +289,7 @@ def choose_from_tree(nest_utils, all_alternatives, logit_nest_groups, nest_alter
     raise ValueError("This should never happen - no alternative found")
 
 
-# TODO [janzill Jun2022]: make everything in nested and here numpy from beginning to make choices consistent with
+# TODO-EET [janzill Jun2022]: make everything in nested and here numpy from beginning to make choices consistent with
 #  previous impl (want column index and not alternative name)
 # Note: this is relatively slow due to the apply.
 # It could *maybe* be sped up by using the fact that the nesting structure is the same for all rows: Add ev1(0,1) to
@@ -322,7 +322,7 @@ def make_choices_explicit_error_term_nl(state, nested_utilities, alt_order_array
 def make_choices_explicit_error_term_mnl(state, utilities):
     utilities_incl_unobs = add_ev1_random(state, utilities)
     choices = np.argmax(utilities_incl_unobs.to_numpy(), axis=1)
-    # TODO: reporting like for zero probs
+    # TODO-EET: reporting like for zero probs
     assert not np.isnan(choices).any(), "No choice for XXX - implement reporting"
     choices = pd.Series(choices, index=utilities_incl_unobs.index)
     return choices
@@ -337,7 +337,7 @@ def make_choices_explicit_error_term(state, utilities, alt_order_array, nest_spe
     return choices
 
 
-# TODO: memory usage
+# TODO-EET: memory usage
 def make_choices_utility_based(
         state: workflow.State,
         utilities: pd.DataFrame,
@@ -351,10 +351,10 @@ def make_choices_utility_based(
 ) -> tuple[pd.Series, pd.Series]:
     trace_label = tracing.extend_trace_label(trace_label, 'make_choices_utility_based')
 
-    # TODO: index of choices for nested utilities is different than unnested - this needs to be consistent for
+    # TODO-EET: index of choices for nested utilities is different than unnested - this needs to be consistent for
     #  turning indexes into alternative names to keep code changes to minimum for now
     choices = make_choices_explicit_error_term(state, utilities, name_mapping, nest_spec, trace_label)
-    # TODO: rands - log all zeros for now
+    # TODO-EET: rands - log all zeros for now
     rands = pd.Series(np.zeros_like(utilities.index.values), index=utilities.index)
     return choices, rands
 
@@ -663,7 +663,7 @@ def each_nest(nest_spec: dict | LogitNestSpec, type=None, post_order=False):
             yield nest
 
 
-# TODO: do I need to implement this for LogitNestSpec?
+# TODO-EET: do I need to implement this for LogitNestSpec?
 def count_nests(nest_spec):
     """
     count the nests in nest_spec, return 0 if nest_spec is none

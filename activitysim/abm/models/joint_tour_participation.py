@@ -207,7 +207,7 @@ def participants_chooser(
             )
             print(unsatisfied_candidates.head(20))
 
-            # TODO: explicit error term impl of force participation
+            # TODO-EET: explicit error term impl of force participation
             if model_settings.FORCE_PARTICIPATION and not state.settings.use_explicit_error_terms:
                 logger.warning(
                     f"Forcing joint tour participation for {num_tours_remaining} tours."

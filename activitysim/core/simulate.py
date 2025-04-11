@@ -1436,12 +1436,12 @@ def eval_nl(
         )
 
     if state.settings.use_explicit_error_terms:
-        # TODO [janzill Jun2022]: combine with nested_exp_utilities?
+        # TODO-EET [janzill Jun2022]: combine with nested_exp_utilities?
         # utilities of leaves and nests
         nested_utilities = compute_nested_utilities(raw_utilities, nest_spec)
         chunk_sizer.log_df(trace_label, "nested_utilities", nested_utilities)
 
-        # TODO [janzill Jun2022]: this can be done from utils directly, but use existing methodology for prototype
+        # TODO-EET [janzill Jun2022]: this can be done from utils directly, but use existing methodology for prototype
         if want_logsums:
             # logsum of nest root
             # exponentiated utilities of leaves and nests
@@ -1450,7 +1450,7 @@ def eval_nl(
             logsums = pd.Series(np.log(nested_exp_utilities.root), index=choosers.index)
             chunk_sizer.log_df(trace_label, "logsums", logsums)
 
-        # TODO: index of choices for nested utilities is different than unnested - this needs to be consistent for
+        # TODO-EET: index of choices for nested utilities is different than unnested - this needs to be consistent for
         #  turning indexes into alternative names to keep code changes to minimum for now
         name_mapping = raw_utilities.columns.values
 

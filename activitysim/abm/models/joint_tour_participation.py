@@ -424,10 +424,6 @@ def joint_tour_participation(
         if i not in model_settings.compute_settings.protect_columns:
             model_settings.compute_settings.protect_columns.append(i)
 
-    # TODO: loads of code duplication, could make this implicit and get rid of it
-    # if state.settings.use_explicit_error_terms:
-    #     custom_chooser = participants_chooser_utility_based
-    # else:
     custom_chooser = participants_chooser
 
     choices = simulate.simple_simulate_by_chunk_id(

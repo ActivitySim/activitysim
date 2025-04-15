@@ -11,6 +11,8 @@ from activitysim.core import estimation, los, tracing, workflow
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.util import assign_in_place
 
+from .util import annotate
+
 logger = logging.getLogger(__name__)
 
 

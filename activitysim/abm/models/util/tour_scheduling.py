@@ -11,6 +11,8 @@ from activitysim.core import config, estimation, expressions, simulate, workflow
 
 from .vectorize_tour_scheduling import TourModeComponentSettings, TourSchedulingSettings
 
+import annotate
+
 logger = logging.getLogger(__name__)
 
 
@@ -194,5 +196,14 @@ def run_tour_scheduling(
     choices = pd.merge(
         choices.to_frame("tdd"), tdd_alts, left_on=["tdd"], right_index=True, how="left"
     )
+
+    if model_settings.annotate_households:
+        annotate.annotate_households(state, model_settings, trace_label)
+    
+    if model_settings.annotate_persons:
+        annotate.annotate_persons(state, model_settings, trace_label)
+    
+    if model_settings.annotate_tours:
+        annotate.annotate_tours(state, model_settings, trace_label)
 
     return choices

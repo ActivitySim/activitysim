@@ -18,6 +18,8 @@ from activitysim.core import (
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.configuration.logit import LogitComponentSettings
 
+from .util import annotate
+
 logger = logging.getLogger("activitysim")
 
 
@@ -28,6 +30,10 @@ class WorkFromHomeSettings(LogitComponentSettings, extra="forbid"):
 
     preprocessor: PreprocessorSettings | None = None
     """Setting for the preprocessor."""
+
+    annotate_households: PreprocessorSettings | None = None
+
+    annotate_persons: PreprocessorSettings | None = None
 
     WORK_FROM_HOME_ALT: int
     """Value that specify if the person is working from home"""  # TODO
@@ -221,3 +227,9 @@ def work_from_home(
 
     if state.settings.trace_hh_id:
         state.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)
+
+    if model_settings.annotate_households:
+        annotate.annotate_households(state, model_settings, trace_label)
+
+    if model_settings.annotate_persons:
+        annotate.annotate_persons(state, model_settings, trace_label)

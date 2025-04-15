@@ -18,6 +18,8 @@ from activitysim.core import (
 from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 
+from .util import annotate
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,6 +41,11 @@ class JointTourCompositionSettings(LogitComponentSettings, extra="forbid"):
     preprocessor: PreprocessorSettings | None = None
     """Setting for the preprocessor."""
 
+    annotate_households: PreprocessorSettings | None = None
+
+    annotate_persons: PreprocessorSettings | None = None
+
+    annotate_tours: PreprocessorSettings | None = None
 
 @workflow.step
 def joint_tour_composition(
@@ -156,3 +163,12 @@ def joint_tour_composition(
             label="joint_tour_composition.joint_tours",
             slicer="household_id",
         )
+
+    if model_settings.annotate_tours:
+        annotate.annotate_tours(state, model_settings, trace_label)
+    
+    if model_settings.annotate_households:
+        annotate.annotate_households(state, model_settings, trace_label)
+
+    if model_settings.annotate_persons:
+        annotate.annotate_persons(state, model_settings, trace_label)

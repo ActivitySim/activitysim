@@ -9,11 +9,13 @@ import pandas as pd
 
 from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
-from activitysim.core import config, los, simulate, tracing, workflow
+from activitysim.core import config, los, simulate, tracing, workflow, expressions
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
+
+import annotate
 
 logger = logging.getLogger(__name__)
 DUMP = False
@@ -761,6 +763,16 @@ def run_destination_simulate(
     if constants is not None:
         locals_d.update(constants)
 
+    preprocessor_settings = model_settings.get('preprocessor', None)
+    if preprocessor_settings:
+        expressions.assign_columns(
+            state,
+            df=choosers,
+            model_settings=preprocessor_settings,
+            locals_dict=locals_d,
+            trace_label=trace_label,
+        )
+
     state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
     log_alt_losers = state.settings.log_alt_losers
@@ -788,6 +800,15 @@ def run_destination_simulate(
         # for consistency, always return a dataframe with canonical column name
         assert isinstance(choices, pd.Series)
         choices = choices.to_frame("choice")
+
+    if model_settings.annotate_households:
+        annotate.annotate_households(state, model_settings, trace_label)
+    
+    if model_settings.annotate_persons:
+        annotate.annotate_persons(state, model_settings, trace_label)
+
+    if model_settings.annotate_tours:
+        annotate.annotate_tours(state, model_settings, trace_label)
 
     return choices
 

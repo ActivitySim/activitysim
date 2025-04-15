@@ -22,6 +22,8 @@ from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.util import assign_in_place, reindex
 
+from .util import annotate
+
 logger = logging.getLogger(__name__)
 
 
@@ -172,3 +174,12 @@ def joint_tour_scheduling(
         state.tracing.trace_df(
             joint_tours, label="joint_tour_scheduling", slicer="household_id"
         )
+
+    if model_settings.annotate_households:
+        annotate.annotate_households(state, model_settings, trace_label)
+
+    if model_settings.annotate_persons:
+        annotate.annotate_persons(state, model_settings, trace_label)
+
+    if model_settings.annotate_tours:
+        annotate.annotate_tours(state, model_settings, trace_label)

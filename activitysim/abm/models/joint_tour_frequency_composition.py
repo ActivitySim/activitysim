@@ -22,6 +22,8 @@ from activitysim.core import (
 )
 from activitysim.core.interaction_simulate import interaction_simulate
 
+from .util import annotate
+
 logger = logging.getLogger(__name__)
 
 
@@ -221,3 +223,12 @@ def joint_tour_frequency_composition(
             label="joint_tour_frequency_composition.joint_tours",
             slicer="household_id",
         )
+
+    if model_settings.annotate_tours:
+        annotate.annotate_tours(state, model_settings, trace_label)
+    
+    if model_settings.annotate_households:
+        annotate.annotate_households(state, model_settings, trace_label)
+
+    if model_settings.annotate_persons:
+        annotate.annotate_persons(state, model_settings, trace_label)

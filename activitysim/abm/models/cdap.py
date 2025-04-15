@@ -24,6 +24,8 @@ from activitysim.core.configuration.base import (
 )
 from activitysim.core.util import reindex
 
+from .util import annotate
+
 logger = logging.getLogger(__name__)
 
 
@@ -141,6 +143,21 @@ def cdap_simulate(
         cdap_interaction_coefficients
     )
 
+    # - preprocessor
+    preprocessor_settings = model_settings.preprocessor
+    if preprocessor_settings:
+        locals_d = {}
+        if constants is not None:
+            locals_d.update(constants)
+
+        expressions.assign_columns(
+            state,
+            df=persons_merged,
+            model_settings=preprocessor_settings,
+            locals_dict=locals_d,
+            trace_label=trace_label,
+        )
+
     # specs are built just-in-time on demand and cached as injectables
     # prebuilding here allows us to write them to the output directory
     # (also when multiprocessing locutor might not see all household sizes)
@@ -242,12 +259,13 @@ def cdap_simulate(
     choices = choices.astype(cap_cat_type)
     persons["cdap_activity"] = choices
 
-    expressions.assign_columns(
-        state,
-        df=persons,
-        model_settings=model_settings.annotate_persons,
-        trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
-    )
+    if model_settings.annotate_persons:
+        expressions.assign_columns(
+            state,
+            df=persons,
+            model_settings=model_settings.annotate_persons,
+            trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
+        )
 
     state.add_table("persons", persons)
 
@@ -256,12 +274,14 @@ def cdap_simulate(
         hh_joint = hh_joint.reindex(households.index)
         households["has_joint_tour"] = hh_joint
 
-    expressions.assign_columns(
-        state,
-        df=households,
-        model_settings=model_settings.annotate_households,
-        trace_label=tracing.extend_trace_label(trace_label, "annotate_households"),
-    )
+    if model_settings.annotate_households:
+        expressions.assign_columns(
+            state,
+            df=households,
+            model_settings=model_settings.annotate_households,
+            trace_label=tracing.extend_trace_label(trace_label, "annotate_households"),
+        )
+
     state.add_table("households", households)
 
     tracing.print_summary("cdap_activity", persons.cdap_activity, value_counts=True)

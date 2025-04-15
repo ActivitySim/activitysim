@@ -71,3 +71,12 @@ def non_mandatory_tour_scheduling(
             columns=None,
             warn_if_empty=True,
         )
+
+    if model_settings.annotate_households:
+        annotate.annotate_households(state, model_settings, trace_label)
+    
+    if model_settings.annotate_persons:
+        annotate.annotate_persons(state, model_settings, trace_label)
+    
+    if model_settings.annotate_tours:
+        annotate.annotate_tours(state, model_settings, trace_label)

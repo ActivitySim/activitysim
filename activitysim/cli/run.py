@@ -328,6 +328,10 @@ def run(args):
     config.filter_warnings(state)
     logging.captureWarnings(capture=True)
 
+
+    activitysim_version = importlib.metadata.version("activitysim")
+    logger.info(f"ActivitySim Version: {activitysim_version}")
+
     # directories
     for k in ["configs_dir", "settings_file_name", "data_dir", "output_dir"]:
         logger.info("SETTING %s: %s" % (k, getattr(state.filesystem, k, None)))

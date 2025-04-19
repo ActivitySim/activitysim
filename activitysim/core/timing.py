@@ -3,7 +3,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from pathlib import Path
 from time import time_ns
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import pandas as pd
 
@@ -142,6 +142,24 @@ class EvalTiming(NoTiming):
                 f.write(f"{t: 11d}\t{expression}\n")
 
 
+def write_sortable_table(df: pd.DataFrame, filename: str | Path) -> None:
+    html_table = df.to_html(classes="sortable", index=False)
+    html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tablesort/5.3.1/tablesort.min.css">
+        </head>
+        <body>
+        {html_table}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tablesort/5.3.1/tablesort.min.js"></script>
+        </body>
+        </html>
+        """
+    with open(filename, "w") as f:
+        f.write(html_content)
+
+
 class AnalyzeEvalTiming:
     """
     Class to analyze the timing of expressions.
@@ -162,11 +180,18 @@ class AnalyzeEvalTiming:
                 df.iloc[:, 0] = df.iloc[:, 0].astype(int)
             raw_data[str(f.stem)] = df
         d = pd.concat(raw_data, names=["Component"]).reset_index()
-        self.data = d[["Time (µsec)", "Component", "Expression"]]
+
+        # break trace labels into components and subcomponents
+        d["Subcomponent"] = d["Component"].str.split(".", 1).str[1]
+        d["Component"] = d["Component"].str.split(".", 1).str[0]
+        self.data = d[["Time (µsec)", "Component", "Subcomponent", "Expression"]]
+
         self.data.sort_values(by=["Time (µsec)"], ascending=[False], inplace=True)
 
-    def to_html(
-        self, filename: str | Path = "expression-timing.html", cutoff_secs=0.1
+    def subcomponent_report(
+        self,
+        filename: str | Path = "expression-timing-subcomponents.html",
+        cutoff_secs=0.1,
     ) -> None:
         """Write the data to an HTML file.
 
@@ -180,6 +205,124 @@ class AnalyzeEvalTiming:
             this will be included in the HTML file. This is used to avoid writing a
             huge report full of expressions that run plenty fast.
         """
-        self.data[self.data["Time (µsec)"] >= cutoff_secs * 1e6].to_html(
-            self.log_dir.joinpath(filename), index=False
+
+        # include only expressions that took longer than cutoff_secs
+        df = self.data[self.data["Time (µsec)"] >= cutoff_secs * 1e6]
+
+        # convert the time to seconds
+        df["Time (µsec)"] /= 1e6
+        df.rename(columns={"Time (µsec)": "Time (sec)"}, inplace=True)
+
+        # format and write the report to HTML
+        df = (
+            df.style.format(
+                {
+                    "Time (sec)": lambda x: f"{x:.3f}",
+                }
+            )
+            .background_gradient(
+                axis=0, gmap=df["Time (sec)"], cmap="YlOrRd", subset=["Time (sec)"]
+            )
+            .hide(axis="index")
+            .set_table_styles([{"selector": "th", "props": [("text-align", "left")]}])
+            .set_properties(**{"padding": "0 5px"}, subset=["Time (sec)"])
         )
+        df.to_html(self.log_dir.joinpath(filename), index=False)
+
+    def component_report_data(self, cutoff_secs: float = 0.1):
+        """
+        Return the data for the component report.
+        """
+        df = (
+            self.data.groupby(["Component", "Expression"])
+            .agg({"Time (µsec)": "sum"})
+            .reset_index()[["Time (µsec)", "Component", "Expression"]]
+            .sort_values(by=["Time (µsec)"], ascending=[False])
+        )
+
+        # include only expressions that took longer than cutoff_secs
+        df = df[df["Time (µsec)"] >= cutoff_secs * 1e6]
+
+        # convert the time to seconds
+        df["Time (µsec)"] /= 1e6
+        df.rename(columns={"Time (µsec)": "Time (sec)"}, inplace=True)
+        return df
+
+    def component_report(
+        self,
+        filename: str | Path = "expression-timing-components.html",
+        cutoff_secs=0.1,
+        style: Literal["simple", "grid"] = "simple",
+    ) -> None:
+        """Write component-level aggregations to an HTML file.
+
+        This will aggregate the expression timings by component, which may better
+        reveal expressions that are more problematic because they are evaluated
+        multiple times.
+
+        Parameters
+        ----------
+        filename : str | Path
+            The name of the file to write the HTML to. If a relative path is given,
+            it will be written in the log directory.
+        cutoff_secs : float
+            The cutoff time in seconds. Only expressions with a runtime greater than
+            this will be included in the HTML file. This is used to avoid writing a
+            huge report full of expressions that run plenty fast.
+        style : "simple" | "grid", default "simple"
+            The style of the report. Either "simple" or "grid". "simple" is a
+            simple HTML table, "grid" is a JavaScript data grid.
+        """
+
+        df = self.component_report_data(cutoff_secs=cutoff_secs)
+
+        if style == "simple":
+            # format and write the report to HTML in a simple table
+            df = (
+                df.style.format(
+                    {
+                        "Time (sec)": lambda x: f"{x:.3f}",
+                    }
+                )
+                .background_gradient(
+                    axis=0, gmap=df["Time (sec)"], cmap="YlOrRd", subset=["Time (sec)"]
+                )
+                .hide(axis="index")
+                .set_table_styles(
+                    [{"selector": "th", "props": [("text-align", "left")]}]
+                )
+                .set_properties(**{"padding": "0 5px"}, subset=["Time (sec)"])
+            )
+            df.to_html(self.log_dir.joinpath(filename), index=False)
+        elif style == "grid":
+            template = """<html lang="en">
+            <head>
+                <!-- Includes all JS & CSS for the JavaScript Data Grid -->
+                <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+            </head>
+            <body>
+                <!-- Data Grid container -->
+                <div id="myGrid" ></div>
+                <script>
+                // Grid Options: Contains all of the Data Grid configurations
+                const gridOptions = {
+                    // Row Data: The data to be displayed.
+                    rowData: <<ROWDATA>>,
+                    // Column Definitions: Defines the columns to be displayed.
+                    columnDefs: [
+                        { field: "Time (sec)", flex: 1, sort: "desc" },
+                        { field: "Component", flex: 2, filter: true },
+                        { field: "Expression", flex: 7, filter: true, sortable: false, wrapText: true, autoHeight: true }
+                    ]
+                };
+                // Your Javascript code to create the Data Grid
+                const myGridElement = document.querySelector('#myGrid');
+                agGrid.createGrid(myGridElement, gridOptions);
+                </script>
+            </body>
+            </html>
+            """
+            with open(self.log_dir.joinpath(filename), "w") as f:
+                f.write(template.replace("<<ROWDATA>>", df.to_json(orient="records")))
+        else:
+            raise ValueError(f"Unknown style {style}. Must be 'simple' or 'grid'.")

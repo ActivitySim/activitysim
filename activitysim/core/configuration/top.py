@@ -537,6 +537,26 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     own that pollutes the collected data.
     """
 
+    expression_profile: bool | None = None
+    """
+    Track the runtime of each individual expression in each spec file.
+
+    .. versionadded:: 1.4
+
+    The default value of this setting is `None`, which sets no global control
+    of expression profiling, and allows this feature to be turned on or off
+    for individual components.  If set to `True`, all components will have
+    expression profiling enabled, and the outputs will be written to files named
+    based on the trace label unless explicitly set in the `compute_settings` for
+    individual components.  If set to `False`, all components will have expression
+    profiling disabled.
+
+    This is generally a developer-only feature and not needed for regular usage.
+    It will add some overhead to the model run, which is only valuable if you
+    expect the review the expression runtimes with an eye towards improving them.
+    Production model users should typically have this set explicitly to `False`.
+    """
+
     benchmarking: bool = False
     """
     Flag this model run as a benchmarking run.

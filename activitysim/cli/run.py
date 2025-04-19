@@ -11,7 +11,7 @@ import warnings
 
 import numpy as np
 
-from activitysim.core import chunk, config, mem, tracing, workflow
+from activitysim.core import chunk, config, mem, timing, tracing, workflow
 from activitysim.core.configuration import FileSystem, Settings
 
 logger = logging.getLogger(__name__)
@@ -422,6 +422,11 @@ def run(args):
 
     if memory_sidecar_process:
         memory_sidecar_process.stop()
+
+    if state.settings.expression_profile:
+        # generate a summary of slower expression evaluation times
+        # across all models and write to a file
+        timing.AnalyzeEvalTiming(state).to_html()
 
     return 0
 

@@ -165,29 +165,53 @@ class AnalyzeEvalTiming:
     Class to analyze the timing of expressions.
     """
 
-    def __init__(self, state: State):
+    def _read_log(self, log_file: Path) -> pd.DataFrame:
+        """Read the log file and return a DataFrame."""
+        df = pd.read_csv(log_file, sep="\t")
+        if "(msec)" in df.columns[0]:
+            df.columns = ["Time (µsec)"] + df.columns[1:].tolist()
+            df.iloc[:, 0] = df.iloc[:, 0].astype(int) * 1_000
+        elif "(sec)" in df.columns[0]:
+            df.columns = ["Time (µsec)"] + df.columns[1:].tolist()
+            df.iloc[:, 0] = df.iloc[:, 0].astype(int) * 1_000_000
+        else:
+            df.iloc[:, 0] = df.iloc[:, 0].astype(int)
+        return df
+
+    def __init__(self, state: State, collect_mp: bool = True) -> None:
         self.log_dir = state.get_log_file_path(str(Path("expr-performance")))
         self.default_cutoff = state.settings.expression_profile_cutoff
         raw_data = {}
         for f in self.log_dir.glob("*.log"):
-            df = pd.read_csv(f, sep="\t")
-            if "(msec)" in df.columns[0]:
-                df.columns = ["Time (µsec)"] + df.columns[1:].tolist()
-                df.iloc[:, 0] = df.iloc[:, 0].astype(int) * 1_000
-            elif "(sec)" in df.columns[0]:
-                df.columns = ["Time (µsec)"] + df.columns[1:].tolist()
-                df.iloc[:, 0] = df.iloc[:, 0].astype(int) * 1_000_000
-            else:
-                df.iloc[:, 0] = df.iloc[:, 0].astype(int)
-            raw_data[str(f.stem)] = df
-        d = pd.concat(raw_data, names=["Component"]).reset_index()
+            raw_data[str(f.stem)] = self._read_log(f)
+
+        if raw_data:
+            d = pd.concat(raw_data, names=["Component"]).reset_index()
+            d["Proc"] = "main"
+        else:
+            d = None
+
+        if collect_mp:
+            raw_data = {}
+            mp_log_dirs = state.get_log_file_path(".").glob("*-expr-performance")
+            for mp_log_dir in mp_log_dirs:
+                subproc_name = "-".join(mp_log_dir.stem.split("-")[:-2])
+                for f in mp_log_dir.glob("*.log"):
+                    raw_data[subproc_name, str(f.stem)] = self._read_log(f)
+            if raw_data:
+                d_mp = pd.concat(raw_data, names=["Proc", "Component"]).reset_index()
+                if d is None:
+                    d = d_mp
+                else:
+                    d = pd.concat([d, d_mp])
 
         # break trace labels into components and subcomponents
         d["Subcomponent"] = d["Component"].str.split(".", 1).str[1]
         d["Component"] = d["Component"].str.split(".", 1).str[0]
-        self.data = d[["Time (µsec)", "Component", "Subcomponent", "Expression"]]
-
-        self.data.sort_values(by=["Time (µsec)"], ascending=[False], inplace=True)
+        self.data = d[
+            ["Time (µsec)", "Proc", "Component", "Subcomponent", "Expression"]
+        ]
+        self.data = self.data.sort_values(by=["Time (µsec)"], ascending=[False])
 
     def subcomponent_report(
         self,
@@ -215,11 +239,11 @@ class AnalyzeEvalTiming:
             cutoff_secs = self.default_cutoff
 
         # include only expressions that took longer than cutoff_secs
-        df = self.data[self.data["Time (µsec)"] >= cutoff_secs * 1e6]
+        df = self.data[self.data["Time (µsec)"] >= cutoff_secs * 1e6].copy()
 
         # convert the time to seconds
         df["Time (µsec)"] /= 1e6
-        df.rename(columns={"Time (µsec)": "Time (sec)"}, inplace=True)
+        df = df.rename(columns={"Time (µsec)": "Time (sec)"})
 
         if style == "simple":
             # format and write the report to HTML
@@ -258,6 +282,7 @@ class AnalyzeEvalTiming:
             {dat}
             <script>{SORTABLE_JS}</script>
             """
+            self.log_dir.joinpath(filename).parent.mkdir(parents=True, exist_ok=True)
             with open(self.log_dir.joinpath(filename), "w") as f:
                 f.write(template)
         elif style == "grid":
@@ -289,6 +314,7 @@ class AnalyzeEvalTiming:
             </body>
             </html>
             """
+            self.log_dir.joinpath(filename).parent.mkdir(parents=True, exist_ok=True)
             with open(self.log_dir.joinpath(filename), "w") as f:
                 f.write(template.replace("<<ROWDATA>>", df.to_json(orient="records")))
 
@@ -387,6 +413,7 @@ class AnalyzeEvalTiming:
             {dat}
             <script>{SORTABLE_JS}</script>
             """
+            self.log_dir.joinpath(filename).parent.mkdir(parents=True, exist_ok=True)
             with open(self.log_dir.joinpath(filename), "w") as f:
                 f.write(template)
         elif style == "grid":
@@ -417,6 +444,7 @@ class AnalyzeEvalTiming:
             </body>
             </html>
             """
+            self.log_dir.joinpath(filename).parent.mkdir(parents=True, exist_ok=True)
             with open(self.log_dir.joinpath(filename), "w") as f:
                 f.write(template.replace("<<ROWDATA>>", df.to_json(orient="records")))
         else:

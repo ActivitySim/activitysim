@@ -557,6 +557,21 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     Production model users should typically have this set explicitly to `False`.
     """
 
+    expression_profile_cutoff: float = 0.1
+    """
+    Minimum runtime for an expression to be included in the expression profile.
+
+    .. versionadded:: 1.4
+
+    Expressions that take less than this amount of time to evaluate will not be
+    included in the summary report of expression profiling generated at the end
+    of a model run. For large scale models, this value can be increased to make
+    the report file smaller, as only the largest values will typically be of
+    interest.
+
+    This setting has no effect if :py:attr:`expression_profile` is not `True`.
+    """
+
     benchmarking: bool = False
     """
     Flag this model run as a benchmarking run.

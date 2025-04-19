@@ -167,6 +167,7 @@ class AnalyzeEvalTiming:
 
     def __init__(self, state: State):
         self.log_dir = state.get_log_file_path(str(Path("expr-performance")))
+        self.default_cutoff = state.settings.expression_profile_cutoff
         raw_data = {}
         for f in self.log_dir.glob("*.log"):
             df = pd.read_csv(f, sep="\t")
@@ -191,7 +192,7 @@ class AnalyzeEvalTiming:
     def subcomponent_report(
         self,
         filename: str | Path = "expression-timing-subcomponents.html",
-        cutoff_secs=0.1,
+        cutoff_secs: float | None = None,
         style: Literal["grid", "simple"] = "grid",
     ) -> None:
         """Write the data to an HTML file.
@@ -201,14 +202,17 @@ class AnalyzeEvalTiming:
         filename : str | Path
             The name of the file to write the HTML to. If a relative path is given,
             it will be written in the log directory.
-        cutoff_secs : float
+        cutoff_secs : float, optional
             The cutoff time in seconds. Only expressions with a runtime greater than
             this will be included in the HTML file. This is used to avoid writing a
-            huge report full of expressions that run plenty fast.
+            huge report full of expressions that run plenty fast. If not provided,
+            the default cutoff time from the settings is used.
         style : "simple" | "grid", default "simple"
             The style of the report. Either "simple" or "grid". "simple" is a
             simple HTML table, "grid" is a JavaScript data grid.
         """
+        if cutoff_secs is None:
+            cutoff_secs = self.default_cutoff
 
         # include only expressions that took longer than cutoff_secs
         df = self.data[self.data["Time (µsec)"] >= cutoff_secs * 1e6]
@@ -288,10 +292,21 @@ class AnalyzeEvalTiming:
             with open(self.log_dir.joinpath(filename), "w") as f:
                 f.write(template.replace("<<ROWDATA>>", df.to_json(orient="records")))
 
-    def component_report_data(self, cutoff_secs: float = 0.1):
+    def component_report_data(self, cutoff_secs: float | None = None):
         """
         Return the data for the component report.
+
+        Parameters
+        ----------
+        cutoff_secs : float, optional
+            The cutoff time in seconds. Only expressions with a runtime greater than
+            this will be included in the report. This is used to avoid writing a
+            huge report full of expressions that run plenty fast. If not provided,
+            the default cutoff time from the settings is used.
         """
+        if cutoff_secs is None:
+            cutoff_secs = self.default_cutoff
+
         df = (
             self.data.groupby(["Component", "Expression"])
             .agg({"Time (µsec)": "sum"})
@@ -310,7 +325,7 @@ class AnalyzeEvalTiming:
     def component_report(
         self,
         filename: str | Path = "expression-timing-components.html",
-        cutoff_secs=0.1,
+        cutoff_secs: float | None = None,
         style: Literal["grid", "simple"] = "grid",
     ) -> None:
         """Write component-level aggregations to an HTML file.

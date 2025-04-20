@@ -23,6 +23,7 @@ These techniques are the focus of this section.
    Chunking to Reduce Peak Memory Usage <chunking>
    Compiling with Sharrow <sharrow>
    Skim Data Format <skim-data-format>
+   Expression Profiling <expr-profiling>
 ```
 
 ## Checklist for Performance Tuning

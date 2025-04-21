@@ -203,7 +203,7 @@ def choose_parking_location(
     )
 
     destination_sample = logit.interaction_dataset(
-        state, trips, alternatives, alt_index_id=alt_dest_col_name
+        state, trips[[]], alternatives, alt_index_id=alt_dest_col_name
     )
     destination_sample.index = np.repeat(trips.index.values, len(alternatives))
     destination_sample.index.name = trips.index.name

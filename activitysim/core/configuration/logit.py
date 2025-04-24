@@ -187,7 +187,7 @@ class LocationComponentSettings(BaseLogitComponentSettings):
     SAMPLE_SIZE: int
     """This many candidate alternatives will be sampled for each choice."""
 
-    LOGSUM_SETTINGS: Path
+    LOGSUM_SETTINGS: Path | None = None
     """Settings for the logsum computation."""
 
     explicit_chunk: float = 0

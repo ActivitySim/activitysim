@@ -852,17 +852,21 @@ def run_tour_destination(
         )
 
         # - destination_logsums
-        tour_purpose = segment_name  # tour_purpose is segment_name
-        location_sample_df = run_destination_logsums(
-            state,
-            tour_purpose,
-            persons_merged,
-            location_sample_df,
-            model_settings,
-            network_los,
-            chunk_size=state.settings.chunk_size,
-            trace_label=tracing.extend_trace_label(segment_trace_label, "logsums"),
-        )
+        # if LOGSUM_SETTINGS is set to 'None', we skip this step
+        if model_settings.LOGSUM_SETTINGS:
+            tour_purpose = segment_name  # tour_purpose is segment_name
+            location_sample_df = run_destination_logsums(
+                state,
+                tour_purpose,
+                persons_merged,
+                location_sample_df,
+                model_settings,
+                network_los,
+                chunk_size=state.settings.chunk_size,
+                trace_label=tracing.extend_trace_label(segment_trace_label, "logsums"),
+            )
+        else:
+            location_sample_df["mode_choice_logsum"] = 0
 
         # - destination_simulate
         spec_segment_name = segment_name  # spec_segment_name is segment_name

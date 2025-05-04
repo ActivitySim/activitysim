@@ -19,6 +19,7 @@ from activitysim.abm.models.free_parking import FreeParkingSettings
 from activitysim.abm.models.initialize import InitializeTableSettings
 from activitysim.abm.models.joint_tour_composition import JointTourCompositionSettings
 from activitysim.abm.models.joint_tour_frequency_composition import JointTourFreqCompSettings
+from activitysim.abm.models.joint_tour_frequency import JointTourFrequencySettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -87,6 +88,11 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": JointTourFreqCompSettings,
         "settings_file": "joint_tour_frequency_composition.yaml"
     },
+    "joint_tour_frequency": {
+        "settings_cls": JointTourFrequencySettings,
+        "settings_file": "joint_tour_frequency.yaml"
+    },
+
 }
 
 

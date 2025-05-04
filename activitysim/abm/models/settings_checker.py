@@ -22,6 +22,7 @@ from activitysim.abm.models.joint_tour_frequency_composition import JointTourFre
 from activitysim.abm.models.joint_tour_frequency import JointTourFrequencySettings
 from activitysim.abm.models.joint_tour_participation import JointTourParticipationSettings
 from activitysim.abm.models.mandatory_tour_frequency import MandatoryTourFrequencySettings
+from activitysim.abm.models.parking_location_choice import ParkingLocationSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -117,6 +118,10 @@ COMPONENTS_TO_SETTINGS = {
     "non_mandatory_tour_destination": {
         "settings_cls": TourLocationComponentSettings,
         "settings_file": "non_mandatory_tour_destination.yaml"
+    },
+    "parking_location_choice": {
+        "settings_cls": ParkingLocationSettings,
+        "settings_file": "parking_location_choice.yaml"
     },
 }
 

@@ -17,6 +17,7 @@ from activitysim.abm.models.disaggregate_accessibility import (
 )
 from activitysim.abm.models.free_parking import FreeParkingSettings
 from activitysim.abm.models.joint_tour_composition import JointTourCompositionSettings
+from activitysim.abm.models.initialize import InitializeTableSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -72,8 +73,11 @@ COMPONENTS_TO_SETTINGS = {
     "joint_tour_composition": {
         "settings_cls": JointTourCompositionSettings,
         "settings_file": "joint_tour_composition.yaml"
-    }
-
+    },
+    "initialize_landuse": {
+        "settings_cls": InitializeTableSettings,
+        "settings_file": "initialize_landuse.yaml"
+    },
 }
 
 
@@ -202,3 +206,5 @@ def check_model_settings(state: State) -> None:
             model_settings_file=settings_file,
             state=state,
         )
+
+    print("Settings Checker Complete")

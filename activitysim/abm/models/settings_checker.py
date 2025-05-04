@@ -23,6 +23,7 @@ from activitysim.abm.models.joint_tour_frequency import JointTourFrequencySettin
 from activitysim.abm.models.joint_tour_participation import JointTourParticipationSettings
 from activitysim.abm.models.mandatory_tour_frequency import MandatoryTourFrequencySettings
 from activitysim.abm.models.parking_location_choice import ParkingLocationSettings
+from activitysim.abm.models.school_escorting import SchoolEscortSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -122,6 +123,10 @@ COMPONENTS_TO_SETTINGS = {
     "parking_location_choice": {
         "settings_cls": ParkingLocationSettings,
         "settings_file": "parking_location_choice.yaml"
+    },
+    "school_escorting": {
+        "settings_cls": SchoolEscortSettings,
+        "settings_file": "school_escorting.yaml"
     },
 }
 

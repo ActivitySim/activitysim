@@ -97,6 +97,10 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": JointTourParticipationSettings,
         "settings_file": "joint_tour_participation.yaml"
     },
+    "joint_tour_scheduling": {
+        "settings_cls": TourSchedulingSettings,
+        "settings_file": "joint_tour_scheduling.yaml"
+    },
 }
 
 

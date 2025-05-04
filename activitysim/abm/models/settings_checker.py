@@ -20,6 +20,7 @@ from activitysim.abm.models.initialize import InitializeTableSettings
 from activitysim.abm.models.joint_tour_composition import JointTourCompositionSettings
 from activitysim.abm.models.joint_tour_frequency_composition import JointTourFreqCompSettings
 from activitysim.abm.models.joint_tour_frequency import JointTourFrequencySettings
+from activitysim.abm.models.joint_tour_participation import JointTourParticipationSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -92,7 +93,10 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": JointTourFrequencySettings,
         "settings_file": "joint_tour_frequency.yaml"
     },
-
+     "joint_tour_participation": {
+        "settings_cls": JointTourParticipationSettings,
+        "settings_file": "joint_tour_participation.yaml"
+    },
 }
 
 

@@ -21,6 +21,7 @@ from activitysim.abm.models.joint_tour_composition import JointTourCompositionSe
 from activitysim.abm.models.joint_tour_frequency_composition import JointTourFreqCompSettings
 from activitysim.abm.models.joint_tour_frequency import JointTourFrequencySettings
 from activitysim.abm.models.joint_tour_participation import JointTourParticipationSettings
+from activitysim.abm.models.mandatory_tour_frequency import MandatoryTourFrequencySettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -108,6 +109,10 @@ COMPONENTS_TO_SETTINGS = {
     "school_location": {
         "settings_cls": TourLocationComponentSettings,
         "settings_file": "school_location.yaml"
+    },
+    "mandatory_tour_frequency": {
+        "settings_cls": MandatoryTourFrequencySettings,
+        "settings_file": "mandatory_tour_frequency.yaml"
     },
 }
 

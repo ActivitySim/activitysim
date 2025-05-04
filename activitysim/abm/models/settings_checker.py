@@ -101,6 +101,14 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": TourSchedulingSettings,
         "settings_file": "joint_tour_scheduling.yaml"
     },
+    "workplace_location": {
+        "settings_cls": TourLocationComponentSettings,
+        "settings_file": "workplace_location.yaml"
+    },
+    "school_location": {
+        "settings_cls": TourLocationComponentSettings,
+        "settings_file": "school_location.yaml"
+    },
 }
 
 

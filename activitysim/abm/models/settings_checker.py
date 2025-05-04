@@ -18,6 +18,7 @@ from activitysim.abm.models.disaggregate_accessibility import (
 from activitysim.abm.models.free_parking import FreeParkingSettings
 from activitysim.abm.models.initialize import InitializeTableSettings
 from activitysim.abm.models.joint_tour_composition import JointTourCompositionSettings
+from activitysim.abm.models.joint_tour_frequency_composition import JointTourFreqCompSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -81,6 +82,10 @@ COMPONENTS_TO_SETTINGS = {
     "joint_tour_destination": {
         "settings_cls": TourLocationComponentSettings,
         "settings_file": "joint_tour_destination.yaml"
+    },
+    "joint_tour_frequency_composition": {
+        "settings_cls": JointTourFreqCompSettings,
+        "settings_file": "joint_tour_frequency_composition.yaml"
     },
 }
 

@@ -16,8 +16,8 @@ from activitysim.abm.models.disaggregate_accessibility import (
     read_disaggregate_accessibility_yaml,
 )
 from activitysim.abm.models.free_parking import FreeParkingSettings
-from activitysim.abm.models.joint_tour_composition import JointTourCompositionSettings
 from activitysim.abm.models.initialize import InitializeTableSettings
+from activitysim.abm.models.joint_tour_composition import JointTourCompositionSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -70,13 +70,13 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": FreeParkingSettings,
         "settings_file": "free_parking.yaml"
     },
-    "joint_tour_composition": {
-        "settings_cls": JointTourCompositionSettings,
-        "settings_file": "joint_tour_composition.yaml"
-    },
     "initialize_landuse": {
         "settings_cls": InitializeTableSettings,
         "settings_file": "initialize_landuse.yaml"
+    },
+    "join_tour_composition": {
+        "settings_cls": JointTourCompositionSettings,
+        "settings_file": "joint_tour_composition.yaml"
     },
 }
 

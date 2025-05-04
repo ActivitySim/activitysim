@@ -114,6 +114,10 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": MandatoryTourFrequencySettings,
         "settings_file": "mandatory_tour_frequency.yaml"
     },
+    "non_mandatory_tour_destination": {
+        "settings_cls": TourLocationComponentSettings,
+        "settings_file": "non_mandatory_tour_destination.yaml"
+    },
 }
 
 

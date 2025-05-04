@@ -74,9 +74,13 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": InitializeTableSettings,
         "settings_file": "initialize_landuse.yaml"
     },
-    "join_tour_composition": {
+    "joint_tour_composition": {
         "settings_cls": JointTourCompositionSettings,
         "settings_file": "joint_tour_composition.yaml"
+    },
+    "joint_tour_destination": {
+        "settings_cls": TourLocationComponentSettings,
+        "settings_file": "joint_tour_destination.yaml"
     },
 }
 

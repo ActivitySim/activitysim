@@ -143,6 +143,10 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": TelecommuteFrequencySettings,
         "settings_file": "telecommute_frequency.yaml"
     },
+    "tour_mode_choice_simulate": {
+        "settings_cls": TourModeComponentSettings,
+        "settings_file": "tour_mode_choice.yaml"
+    },
 }
 
 

@@ -27,6 +27,7 @@ from activitysim.abm.models.school_escorting import SchoolEscortSettings
 from activitysim.abm.models.stop_frequency import StopFrequencySettings
 from activitysim.abm.models.summarize import SummarizeSettings
 from activitysim.abm.models.telecommute_frequency import TelecommuteFrequencySettings
+from activitysim.abm.models.tour_scheduling_probabilistic import TourSchedulingProbabilisticSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -154,6 +155,10 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": TourODSettings,
         "settings_file": "tour_od_choice.yaml"
     },
+    "tour_scheduling_probabilistic": {
+        "settings_cls": TourSchedulingProbabilisticSettings,
+        "settings_file": "tour_scheduling_probabilistic.yaml"
+    },
 }
 
 
@@ -266,10 +271,6 @@ def check_model_settings(state: State) -> None:
     components = state.settings.models  # _RUNNABLE_STEPS.keys() may be better?
 
     for c in components:
-
-        # # TODO: DELETE ME only checks the last model
-        # if c != list(COMPONENTS_TO_SETTINGS.keys())[-1]:
-        #     continue
 
         # TODO: this check allows incremental development, but should be deleted.
         if not c in COMPONENTS_TO_SETTINGS:

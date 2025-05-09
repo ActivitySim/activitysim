@@ -34,6 +34,7 @@ from activitysim.abm.models.trip_departure_choice import TripDepartureChoiceSett
 from activitysim.abm.models.trip_destination import TripDestinationSettings
 from activitysim.abm.models.trip_matrices import WriteTripMatricesSettings
 from activitysim.abm.models.trip_mode_choice import TripModeChoiceSettings
+from activitysim.abm.models.trip_purpose_and_destination import TripPurposeAndDestinationSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -188,6 +189,10 @@ COMPONENTS_TO_SETTINGS = {
     "trip_mode_choice": {
         "settings_cls": TripModeChoiceSettings,
         "settings_file": "trip_mode_choice.yaml"
+    },
+    "trip_purpose_and_destination": {
+        "settings_cls": TripPurposeAndDestinationSettings,
+        "settings_file": "trip_purpose_and_destination.yaml"
     },
 }
 

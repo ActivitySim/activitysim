@@ -30,6 +30,7 @@ from activitysim.abm.models.telecommute_frequency import TelecommuteFrequencySet
 from activitysim.abm.models.tour_scheduling_probabilistic import TourSchedulingProbabilisticSettings
 from activitysim.abm.models.transit_pass_ownership import TransitPassOwnershipSettings
 from activitysim.abm.models.transit_pass_subsidy import TransitPassSubsidySettings
+from activitysim.abm.models.trip_departure_choice import TripDepartureChoiceSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -168,6 +169,10 @@ COMPONENTS_TO_SETTINGS = {
     "transit_pass_subsidy": {
         "settings_cls": TransitPassSubsidySettings,
         "settings_file": "transit_pass_subsidy.yaml"
+    },
+    "trip_departure_choice": {
+        "settings_cls": TripDepartureChoiceSettings,
+        "settings_file": "trip_departure_choice.yaml"
     },
 }
 

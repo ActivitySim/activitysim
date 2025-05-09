@@ -38,6 +38,7 @@ from activitysim.abm.models.trip_purpose_and_destination import TripPurposeAndDe
 from activitysim.abm.models.trip_purpose import TripPurposeSettings
 from activitysim.abm.models.vehicle_allocation import VehicleAllocationSettings
 from activitysim.abm.models.vehicle_type_choice import VehicleTypeChoiceSettings
+from activitysim.abm.models.work_from_home import WorkFromHomeSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -212,6 +213,10 @@ COMPONENTS_TO_SETTINGS = {
     "vehicle_type_choice": {
         "settings_cls": VehicleTypeChoiceSettings,
         "settings_file": "vehicle_type_choice.yaml"
+    },
+    "work_from_home": {
+        "settings_cls": WorkFromHomeSettings,
+        "settings_file": "work_from_home.yaml"
     },
 }
 

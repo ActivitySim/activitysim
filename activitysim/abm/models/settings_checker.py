@@ -24,6 +24,7 @@ from activitysim.abm.models.joint_tour_participation import JointTourParticipati
 from activitysim.abm.models.mandatory_tour_frequency import MandatoryTourFrequencySettings
 from activitysim.abm.models.parking_location_choice import ParkingLocationSettings
 from activitysim.abm.models.school_escorting import SchoolEscortSettings
+from activitysim.abm.models.stop_frequency import StopFrequencySettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -128,6 +129,10 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": SchoolEscortSettings,
         "settings_file": "school_escorting.yaml"
     },
+    "stop_frequency": {
+        "settings_cls": StopFrequencySettings,
+        "settings_file": "stop_frequency.yaml"
+    }, # NOTE: Stop Frequency requires a separate check (Not Implemented) because of NESTED_SPEC
 }
 
 
@@ -179,13 +184,14 @@ def try_load_and_eval_coefs(
     logger.info(
         f"Attempting to load coefficients for {model_name} via {model_settings.__class__.__name__}"
     )
-    if hasattr(model_settings, "COEFFICIENTS"):
+    # Assumes that if COEFFICIENTS is required, will be validated by Pydantic
+    if model_settings.model_dump().get("COEFFICIENTS"):
         coefs_file = model_settings.COEFFICIENTS
         coefs = state.filesystem.read_model_coefficients(model_settings)
         # check whether coefficients should be evaluated as NESTS or not
         if model_settings.model_dump().get("NESTS"):
-            # TODO: determine appropriate value of trace_label?
-            # FIXME: is this the correct way to invoke this?
+            # Proper Trace label is probably unneeded here
+            # NOTE: is this the correct way to invoke this?
             eval_coefs = eval_nest_coefficients(
                 model_settings.NESTS, coefs, trace_label=None
             )
@@ -239,6 +245,10 @@ def check_model_settings(state: State) -> None:
     components = state.settings.models  # _RUNNABLE_STEPS.keys() may be better?
 
     for c in components:
+
+        # TODO: DELETE ME only checks the last model
+        if c != list(COMPONENTS_TO_SETTINGS.keys())[-1]:
+            continue
 
         # TODO: this check allows incremental development, but should be deleted.
         if not c in COMPONENTS_TO_SETTINGS:

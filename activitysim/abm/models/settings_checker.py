@@ -36,6 +36,7 @@ from activitysim.abm.models.trip_matrices import WriteTripMatricesSettings
 from activitysim.abm.models.trip_mode_choice import TripModeChoiceSettings
 from activitysim.abm.models.trip_purpose_and_destination import TripPurposeAndDestinationSettings
 from activitysim.abm.models.trip_purpose import TripPurposeSettings
+from activitysim.abm.models.vehicle_allocation import VehicleAllocationSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -198,6 +199,10 @@ COMPONENTS_TO_SETTINGS = {
     "trip_purpose": {
         "settings_cls": TripPurposeSettings,
         "settings_file": "trip_purpose.yaml"
+    },
+    "vehicle_allocation": {
+        "settings_cls": VehicleAllocationSettings,
+        "settings_file": "vehicle_allocation.yaml"
     },
 }
 

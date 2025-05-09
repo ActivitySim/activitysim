@@ -31,6 +31,7 @@ from activitysim.abm.models.tour_scheduling_probabilistic import TourSchedulingP
 from activitysim.abm.models.transit_pass_ownership import TransitPassOwnershipSettings
 from activitysim.abm.models.transit_pass_subsidy import TransitPassSubsidySettings
 from activitysim.abm.models.trip_departure_choice import TripDepartureChoiceSettings
+from activitysim.abm.models.trip_destination import TripDestinationSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -173,6 +174,10 @@ COMPONENTS_TO_SETTINGS = {
     "trip_departure_choice": {
         "settings_cls": TripDepartureChoiceSettings,
         "settings_file": "trip_departure_choice.yaml"
+    },
+    "trip_destination": {
+        "settings_cls": TripDestinationSettings,
+        "settings_file": "trip_destination.yaml"
     },
 }
 

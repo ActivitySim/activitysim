@@ -25,6 +25,7 @@ from activitysim.abm.models.mandatory_tour_frequency import MandatoryTourFrequen
 from activitysim.abm.models.parking_location_choice import ParkingLocationSettings
 from activitysim.abm.models.school_escorting import SchoolEscortSettings
 from activitysim.abm.models.stop_frequency import StopFrequencySettings
+from activitysim.abm.models.summarize import SummarizeSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -133,6 +134,10 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": StopFrequencySettings,
         "settings_file": "stop_frequency.yaml"
     }, # NOTE: Stop Frequency requires a separate check (Not Implemented) because of NESTED_SPEC
+    "summarize": {
+        "settings_cls": SummarizeSettings,
+        "settings_file": "summarize.yaml"
+    },
 }
 
 

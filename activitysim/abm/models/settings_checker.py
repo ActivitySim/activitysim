@@ -32,6 +32,7 @@ from activitysim.abm.models.transit_pass_ownership import TransitPassOwnershipSe
 from activitysim.abm.models.transit_pass_subsidy import TransitPassSubsidySettings
 from activitysim.abm.models.trip_departure_choice import TripDepartureChoiceSettings
 from activitysim.abm.models.trip_destination import TripDestinationSettings
+from activitysim.abm.models.trip_matrices import WriteTripMatricesSettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -178,6 +179,10 @@ COMPONENTS_TO_SETTINGS = {
     "trip_destination": {
         "settings_cls": TripDestinationSettings,
         "settings_file": "trip_destination.yaml"
+    },
+    "write_trip_matrices": {
+        "settings_cls": WriteTripMatricesSettings,
+        "settings_file": "write_trip_matrices.yaml"
     },
 }
 

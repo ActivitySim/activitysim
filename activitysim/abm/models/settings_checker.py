@@ -30,7 +30,10 @@ from activitysim.abm.models.telecommute_frequency import TelecommuteFrequencySet
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
-    TourSchedulingSettings,
+    TourSchedulingSettings, 
+)
+from activitysim.abm.models.util.tour_od import (
+    TourODSettings
 )
 
 # import logit model settings
@@ -123,7 +126,7 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": TourLocationComponentSettings,
         "settings_file": "non_mandatory_tour_destination.yaml"
     },
-    "parking_location_choice": {
+    "parking_location": {
         "settings_cls": ParkingLocationSettings,
         "settings_file": "parking_location_choice.yaml"
     },
@@ -146,6 +149,10 @@ COMPONENTS_TO_SETTINGS = {
     "tour_mode_choice_simulate": {
         "settings_cls": TourModeComponentSettings,
         "settings_file": "tour_mode_choice.yaml"
+    },
+    "tour_od_choice": {
+        "settings_cls": TourODSettings,
+        "settings_file": "tour_od_choice.yaml"
     },
 }
 

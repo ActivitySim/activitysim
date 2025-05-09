@@ -26,6 +26,7 @@ from activitysim.abm.models.parking_location_choice import ParkingLocationSettin
 from activitysim.abm.models.school_escorting import SchoolEscortSettings
 from activitysim.abm.models.stop_frequency import StopFrequencySettings
 from activitysim.abm.models.summarize import SummarizeSettings
+from activitysim.abm.models.telecommute_frequency import TelecommuteFrequencySettings
 
 # import util settings
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
@@ -137,6 +138,10 @@ COMPONENTS_TO_SETTINGS = {
     "summarize": {
         "settings_cls": SummarizeSettings,
         "settings_file": "summarize.yaml"
+    },
+    "telecommute_frequency": {
+        "settings_cls": TelecommuteFrequencySettings,
+        "settings_file": "telecommute_frequency.yaml"
     },
 }
 
@@ -251,9 +256,9 @@ def check_model_settings(state: State) -> None:
 
     for c in components:
 
-        # TODO: DELETE ME only checks the last model
-        if c != list(COMPONENTS_TO_SETTINGS.keys())[-1]:
-            continue
+        # # TODO: DELETE ME only checks the last model
+        # if c != list(COMPONENTS_TO_SETTINGS.keys())[-1]:
+        #     continue
 
         # TODO: this check allows incremental development, but should be deleted.
         if not c in COMPONENTS_TO_SETTINGS:

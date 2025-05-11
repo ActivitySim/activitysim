@@ -331,7 +331,6 @@ def check_model_settings(state: State) -> None:
 
     for c in components:
 
-        # TODO: this check allows incremental development, but should be deleted.
         if not c in COMPONENTS_TO_SETTINGS:
             logger.info(
                 f"Cannot pre-check settings for model component {c}: mapping to a Pydantic data model is undefined in the checker."

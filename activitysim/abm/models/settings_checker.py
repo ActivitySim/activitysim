@@ -243,10 +243,6 @@ def try_load_model_settings(
 def try_load_spec(
     model_name: str, model_settings: PydanticBase, state: State
 ) -> DataFrame:
-    
-    if isinstance(model_settings, CdapSettings):
-        # debug
-        pass
 
     logger.info(
         f"Attempting to load SPEC for {model_name} via {model_settings.__class__.__name__}"

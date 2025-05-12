@@ -145,9 +145,17 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": MandatoryTourFrequencySettings,
         "settings_file": "mandatory_tour_frequency.yaml"
     },
+    "mandatory_tour_scheduling": {
+        "settings_cls": TourSchedulingSettings,
+        "settings_file": "mandatory_tour_scheduling.yaml"
+    },
     "non_mandatory_tour_destination": {
         "settings_cls": TourLocationComponentSettings,
         "settings_file": "non_mandatory_tour_destination.yaml"
+    },
+    "non_mandatory_tour_scheduling": {
+        "settings_cls": TourSchedulingSettings,
+        "settings_file": "non_mandatory_tour_scheduling.yaml"
     },
     "parking_location": {
         "settings_cls": ParkingLocationSettings,

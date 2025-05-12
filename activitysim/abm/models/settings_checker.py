@@ -23,6 +23,7 @@ from activitysim.abm.models.joint_tour_frequency_composition import JointTourFre
 from activitysim.abm.models.joint_tour_frequency import JointTourFrequencySettings
 from activitysim.abm.models.joint_tour_participation import JointTourParticipationSettings
 from activitysim.abm.models.mandatory_tour_frequency import MandatoryTourFrequencySettings
+from activitysim.abm.models.non_mandatory_tour_frequency import NonMandatoryTourFrequencySettings
 from activitysim.abm.models.parking_location_choice import ParkingLocationSettings
 from activitysim.abm.models.school_escorting import SchoolEscortSettings
 from activitysim.abm.models.stop_frequency import StopFrequencySettings
@@ -144,7 +145,7 @@ COMPONENTS_TO_SETTINGS = {
     "mandatory_tour_frequency": {
         "settings_cls": MandatoryTourFrequencySettings,
         "settings_file": "mandatory_tour_frequency.yaml"
-    },
+    }, # NOTE: Mandatory Frequency requires a separate check (Not Implemented) because of NESTED_SPEC
     "mandatory_tour_scheduling": {
         "settings_cls": TourSchedulingSettings,
         "settings_file": "mandatory_tour_scheduling.yaml"
@@ -153,6 +154,10 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": TourLocationComponentSettings,
         "settings_file": "non_mandatory_tour_destination.yaml"
     },
+    "non_mandatory_tour_frequency": {
+        "settings_cls": NonMandatoryTourFrequencySettings,
+        "settings_file": "non_mandatory_tour_frequency.yaml"
+    }, # NOTE: Non-mandatory Frequency requires a separate check (Not Implemented) because of NESTED_SPEC
     "non_mandatory_tour_scheduling": {
         "settings_cls": TourSchedulingSettings,
         "settings_file": "non_mandatory_tour_scheduling.yaml"

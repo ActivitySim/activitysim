@@ -21,21 +21,21 @@ file and the ``configs\network_los.yaml`` file.
 
 The following tables are currently implemented:
 
-  * households - household attributes for each household being simulated.  Index: ``household_id`` (see ``activitysim.abm.tables.households.py``)
-  * landuse - zonal land use (such as population and employment) attributes. Index: ``zone_id`` (see ``activitysim.abm.tables.landuse.py``)
-  * persons - person attributes for each person being simulated.  Index: ``person_id`` (see ``activitysim.abm.tables.persons.py``)
-  * time windows - manages person time windows throughout the simulation.  See :ref:`time_windows`.  Index:  ``person_id`` (see the person_windows table create decorator in ``activitysim.abm.tables.time_windows.py``)
-  * tours - tour attributes for each tour (mandatory, non-mandatory, joint, and atwork-subtour) being simulated.  Index:  ``tour_id`` (see ``activitysim.abm.models.util.tour_frequency.py``)
-  * trips - trip attributes for each trip being simulated.  Index: ``trip_id`` (see ``activitysim.abm.models.stop_frequency.py``)
+* households - household attributes for each household being simulated.  Index: ``household_id`` (see ``activitysim.abm.tables.households.py``)
+* landuse - zonal land use (such as population and employment) attributes. Index: ``zone_id`` (see ``activitysim.abm.tables.landuse.py``)
+* persons - person attributes for each person being simulated.  Index: ``person_id`` (see ``activitysim.abm.tables.persons.py``)
+* time windows - manages person time windows throughout the simulation.  See :ref:`time_windows`.  Index:  ``person_id`` (see the person_windows table create decorator in ``activitysim.abm.tables.time_windows.py``)
+* tours - tour attributes for each tour (mandatory, non-mandatory, joint, and atwork-subtour) being simulated.  Index:  ``tour_id`` (see ``activitysim.abm.models.util.tour_frequency.py``)
+* trips - trip attributes for each trip being simulated.  Index: ``trip_id`` (see ``activitysim.abm.models.stop_frequency.py``)
 
 A few additional tables are also used, which are not really tables, but classes:
 
-  * input store - reads input data tables from the input data store
-  * constants - various constants used throughout the model system, such as person type codes
-  * shadow pricing - shadow price calculator and associated utility methods, see :ref:`shadow_pricing`
-  * size terms - created by reading the ``destination_choice_size_terms.csv`` input file.  Index - ``segment`` (see ``activitysim.abm.tables.size_terms.py``)
-  * skims - each model runs requires skims, but how the skims are defined can vary significantly depending on the ActivitySim implementation. The skims class defines Inject injectables to access the skim matrices. The skims class reads the skims from the omx_file on disk.
-  * table dictionary - stores which tables should be registered as random number generator channels for restartability of the pipeline
+* input store - reads input data tables from the input data store
+* constants - various constants used throughout the model system, such as person type codes
+* shadow pricing - shadow price calculator and associated utility methods, see :ref:`shadow_pricing`
+* size terms - created by reading the ``destination_choice_size_terms.csv`` input file.  Index - ``segment`` (see ``activitysim.abm.tables.size_terms.py``)
+* skims - each model runs requires skims, but how the skims are defined can vary significantly depending on the ActivitySim implementation. The skims class defines Inject injectables to access the skim matrices. The skims class reads the skims from the omx_file on disk.
+* table dictionary - stores which tables should be registered as random number generator channels for restartability of the pipeline
 
 
 
@@ -54,10 +54,10 @@ system for non-motorized travel, and optionally a transit access points (TAPs) z
 
 The three versions of multiple zone systems are one-zone, two-zone, and three-zone.
 
-  * **One-zone**: This version is based on TM1 and supports only TAZs. All origins and
+*   **One-zone**: This version is based on TM1 and supports only TAZs. All origins and
     destinations are represented at the TAZ level, and all skims including auto, transit,
     and non-motorized times and costs are also represented at the TAZ level.
-  * **Two-zone**: This version is similar to many DaySim models. It uses microzones (MAZs)
+*   **Two-zone**: This version is similar to many DaySim models. It uses microzones (MAZs)
     for origins and destinations, and TAZs for specification of auto and transit times and
     costs. Impedance for walk or bike all-the-way from the origin to the destination can
     be specified at the MAZ level for close together origins and destinations, and at
@@ -65,7 +65,7 @@ The three versions of multiple zone systems are one-zone, two-zone, and three-zo
     walk access and egress times with times specified in the MAZ file by transit mode.
     Careful pre-calculation of the assumed transit walk access and egress time by MAZ
     and transit mode is required depending on the network scenario.
-  * **Three-zone**: This version is based on the SANDAG generation of CT-RAMP models.
+*   **Three-zone**: This version is based on the SANDAG generation of CT-RAMP models.
     Origins and destinations are represented at the MAZ level. Impedance for walk or
     bike all-the-way from the origin to the destination can be specified at the MAZ
     level for close together origins and destinations, and at the TAZ level for further
@@ -84,8 +84,15 @@ The three versions of multiple zone systems are one-zone, two-zone, and three-zo
     combinations of nearby boarding and alighting TAPs for each origin destination MAZ
     pair.
 
-Regions that have an interest in more precise transit forecasts may wish to adopt the
-three-zone approach, while other regions may adopt the one or two-zone approach.  The
+..  caution::
+    The ActivitySim consortium is moving away from the three-zone approach, in favor of
+    to the one- or two-zone approaches.  The code for the three-zone approach remains
+    available for users who have already implemented it, but it is recommended that
+    users consider the one- or two-zone approaches for new implementations.
+    The three-zone system may be formally deprecated and removed in the future.
+
+Regions that have an interest in more precise transit and non-motorized forecasts
+may wish to adopt the two-zone approach, while other regions may adopt the one or two-zone approach.  The
 microzone version requires coding households and land use at the microzone level.
 Typically an all-streets network is used for representation of non-motorized impedances.
 This requires a routable all-streets network, with centroids and connectors for
@@ -103,10 +110,38 @@ transit modeling.
    initial development, these examples were insufficient for validation and performance testing of the new software. As a result,
    the :ref:`prototype_marin` example was created.
 
-Example simple test configurations and inputs for two and three-zone system models are described below.
+
+.. _omx_skims :
+
+Skims
+~~~~~
+
+The basic level-of-service data that represents the tranportation system is
+made available to ActivitySim via one or more sets of "skims".  Skims are
+essentially matrices of travel times, costs, and other level of service attributes,
+calculated between various zones in the system.  This skim data is made available
+to ActivitySim using files in the`openmatrix <http://github.com/osPlanning/omx>`__
+(OMX) format.  All of the skim data can be provided in a single OMX file, or
+multiple OMX files can be used (this is typical for larger models, to keep file
+sizes manageable).  If multiple files are used, the content of those files is
+simply concatenated together into a single notional bucket of skim data when
+the model is run.  Within that bucket, each skim variable is identified by a unique name.
+For skim variables that vary across model time periods, the time period is
+appended to the skim name, separated by a double underscore (e.g. ``BUS_IVT__AM``).
+
+..  caution::
+    When using "legacy" mode for ActivitySim, it is possible (but not recommended)
+    to have a skim variable that has both a time period agnostic value as well as
+    a set of time period dependent values, e.g. "WALK_TIME" and "WALK_TIME__AM".
+    This is not supported when using "sharrow" mode, and will result in an error.
+    Instead, each variable should have a unique name, which can be easily achieved by
+    changing the name on the time period agnostic value, i.e. instead of "WALK_TIME"
+    use ""WALK_TIME_BASE".
+
 
 Examples
 ~~~~~~~~
+Example simple test configurations and inputs for two and three-zone system models are described below.
 
 To run the two zone and three zone system examples, do the following:
 

@@ -56,6 +56,7 @@ from activitysim.core.configuration.logit import (
     TourModeComponentSettings
 )
 
+# setup logging
 logger = logging.getLogger(__name__)
 file_logger = logger.getChild("logfile")
 
@@ -326,29 +327,13 @@ def try_eval_spec_coefs(
             raise e
         return result
 
-def try_load_and_check(
+def try_load_and_check_spec_coefs(
     model_name: str,
-    model_settings_class: Type[PydanticBase],
-    model_settings_file: str,
+    model_settings: Type[PydanticBase],
     state: State
 ) -> list[Exception]:
     # collect all errors
     errors = []
-    # first, attempt to load settings
-    model_settings, model_settings_error = try_load_model_settings(
-        model_name=model_name,
-        model_settings_class=model_settings_class,
-        model_settings_file=model_settings_file,
-        state=state,
-    )
-
-    if model_name == "stop_frequency":
-        print("DEBUG")
-
-    if model_settings_error is not None:
-        errors.append(model_settings_error)
-        # without valid model settings, cannot 
-        return
 
     # then, attempt to read SPEC file
     # only checks against the SPEC attr at top level of model.
@@ -421,7 +406,10 @@ def try_load_and_check(
 
 def check_model_settings(state: State) -> None:
 
-    # setup logging
+    # Collect all errors
+    all_errors = []
+
+    # additional logging set up
     formatter = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(message)s", 
         datefmt="%Y-%m-%d %H:%M:%S"
@@ -435,30 +423,45 @@ def check_model_settings(state: State) -> None:
     file_logger.propagate = False
 
     # extract all model components
-    components = state.settings.models
+    all_models = state.settings.models
 
-    for c in components:
+    for model_name in all_models:
 
-        if not c in COMPONENTS_TO_SETTINGS:
-            msg = f"Cannot pre-check settings for model component {c}: mapping to a Pydantic data model is undefined in the checker."
+        if not model_name in COMPONENTS_TO_SETTINGS:
+            msg = f"Cannot pre-check settings for model component {model_name}: mapping to a Pydantic data model is undefined in the checker."
             logger.info(msg)
             file_logger.info(msg)
             continue
 
-        settings_cls = COMPONENTS_TO_SETTINGS[c]["settings_cls"]
-        settings_file = COMPONENTS_TO_SETTINGS[c]["settings_file"]
-        errors = try_load_and_check(
-            model_name=c,
-            model_settings_class=settings_cls,
-            model_settings_file=settings_file,
+        model_settings_class = COMPONENTS_TO_SETTINGS[model_name]["settings_cls"]
+        model_settings_file = COMPONENTS_TO_SETTINGS[model_name]["settings_file"]
+
+        # first, attempt to load settings
+        # continue if any errorr
+        model_settings, model_settings_error = try_load_model_settings(
+            model_name=model_name,
+            model_settings_class=model_settings_class,
+            model_settings_file=model_settings_file,
             state=state,
         )
+        if model_name == "stop_frequency":
+            print("DEBUG")
+        if model_settings_error is not None:
+            errors.append(model_settings_error)
+            continue
 
-        if len(errors) > 0:
+        errors = try_load_and_check_spec_coefs(
+            model_name=model_name,
+            model_settings=model_settings,
+            state=state,
+        )
+        all_errors.extend(errors)
+
+        if len(all_errors) > 0:
             msg = "Settings Checker Failed with the following errors:"
             logger.error(msg)
             file_logger.error(msg)
-            for e in errors:
+            for e in all_errors:
                 logger.error(f"\t{e}")
                 file_logger.error(f"\t{e}")
             raise RuntimeError("Encountered error in settings checker. See settings_checker.log for details.")

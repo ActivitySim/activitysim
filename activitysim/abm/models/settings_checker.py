@@ -105,6 +105,10 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": InitializeTableSettings,
         "settings_file": "initialize_landuse.yaml"
     },
+    "initialize_households": {
+        "settings_cls": InitializeTableSettings,
+        "settings_file": "initialize_households.yaml"
+    },
     "joint_tour_composition": {
         "settings_cls": JointTourCompositionSettings,
         "settings_file": "joint_tour_composition.yaml"

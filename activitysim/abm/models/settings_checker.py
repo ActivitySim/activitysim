@@ -59,12 +59,6 @@ from activitysim.core.configuration.logit import (
 logger = logging.getLogger(__name__)
 file_logger = logger.getChild("logfile")
 
-class SettingsFileError(Exception):
-    """Only used to raise descriptive error, not convey error details."""
-    def __init__(self):
-        super().__init__(self)
-
-
 COMPONENTS_TO_SETTINGS = {
     "compute_accessibility": {
         "settings_cls": AccessibilitySettings,
@@ -418,7 +412,7 @@ def try_load_and_check(
 
 def check_model_settings(state: State) -> None:
 
-    components = state.settings.models  # _RUNNABLE_STEPS.keys() may be better?
+    components = state.settings.models
 
     for c in components:
 
@@ -442,6 +436,6 @@ def check_model_settings(state: State) -> None:
             logger.warning("Settings Checker Failed with the following errors")
             for e in errors:
                 logger.error(f"\t{e}")
-            raise SettingsFileError
+            raise RuntimeError("Encountered error in settings checker.")
 
     logging.info("Settings Checker Complete!")

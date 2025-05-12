@@ -806,6 +806,8 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
                 "modify the skim data in the source files to remove the naming conflicts, which\n"
                 "is typically done upstream of ActivitySim in whatever tool you are using to create"
                 "the skims in the first place.\n"
+                "\n"
+                "See [https://activitysim.github.io/?q=skims] for more information.\n"
             )
             # raise an error to stop the run
             raise ValueError(

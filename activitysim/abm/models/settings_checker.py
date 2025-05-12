@@ -286,12 +286,15 @@ def try_load_coefs(
     coefs_file: str, 
     state: State
 ) -> tuple[DataFrame, Optional[Exception]]:
-    logger.info(
-        f"Attempting to load COEFFICIENTS for {model_name} via {model_settings.__class__.__name__}"
-    )
+    msg = f"Attempting to load COEFFICIENTS for {model_name} via {model_settings.__class__.__name__}"
+    logger.info(msg)
+    file_logger.info(msg)
+
     try:
         result = state.filesystem.read_model_coefficients(model_settings), None
-        logger.info(f"Successfully loaded model Coefficients from {coefs_file}")
+        msg = f"Successfully loaded model Coefficients from {coefs_file}"
+        logger.info(msg)
+        file_logger.info(msg)
     except Exception as e:
         result = DataFrame(), e
         raise e
@@ -315,7 +318,9 @@ def try_eval_spec_coefs(
                 ), None
             else:
                 result = eval_coefficients(state, spec, coefs, estimator=None), None
-            logger.info(f"Successfully evaluated coefficients")
+            msg = (f"Successfully evaluated coefficients for {model_name}")
+            logger.info(msg)
+            file_logger.info(msg)
         except Exception as e:
             result = DataFrame(), e
             raise e
@@ -356,13 +361,12 @@ def try_load_and_check(
         )
     else:
         spec, spec_error = DataFrame(), None
-        logger.info(
-            f"No SPEC file is associated with {model_settings.__class__.__name__}"
-        )
+        msg = f"No SPEC file is associated with {model_settings.__class__.__name__}"
+        logger.info(msg)
+        file_logger.info(msg)
     
     if spec_error is not None:
         errors.append(spec_error)
-
 
     # then attempt to read coefficients
     coefs_file = model_settings.model_dump().get("COEFFICIENTS")
@@ -375,7 +379,9 @@ def try_load_and_check(
         )
     else:
         coefs, coefs_error = DataFrame(), None
-        logger.info(f"No coefficients file is associated with {model_settings.__class__.__name__}")
+        msg = f"No coefficients file is associated with {model_settings.__class__.__name__}"
+        logger.info(msg)
+        file_logger.info(msg)
 
     if coefs_error is not None:
         errors.append(coefs_error)
@@ -412,14 +418,28 @@ def try_load_and_check(
 
 def check_model_settings(state: State) -> None:
 
+    # setup logging
+    formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(message)s", 
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+    out_log_file = state.get_log_file_path("settings_checker.log")
+    if os.path.exists(out_log_file):
+        os.remove(out_log_file)
+    module_handler = logging.FileHandler(out_log_file)
+    module_handler.setFormatter(formatter)
+    file_logger.addHandler(module_handler)
+    file_logger.propagate = False
+
+    # extract all model components
     components = state.settings.models
 
     for c in components:
 
         if not c in COMPONENTS_TO_SETTINGS:
-            logger.info(
-                f"Cannot pre-check settings for model component {c}: mapping to a Pydantic data model is undefined in the checker."
-            )
+            msg = f"Cannot pre-check settings for model component {c}: mapping to a Pydantic data model is undefined in the checker."
+            logger.info(msg)
+            file_logger.info(msg)
             continue
 
         # first, attempt to load the model settings
@@ -433,9 +453,13 @@ def check_model_settings(state: State) -> None:
         )
 
         if len(errors) > 0:
-            logger.warning("Settings Checker Failed with the following errors")
+            msg = "Settings Checker Failed with the following errors:"
+            logger.error(msg)
+            file_logger.error(msg)
             for e in errors:
                 logger.error(f"\t{e}")
-            raise RuntimeError("Encountered error in settings checker.")
-
-    logging.info("Settings Checker Complete!")
+                file_logger.error(f"\t{e}")
+            raise RuntimeError("Encountered error in settings checker. See settings_checker.log for details.")
+    msg = "Setting Checker Complete! No Errors Found"
+    logger.info(msg)
+    file_logger.info(msg)

@@ -786,7 +786,7 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
             solution_1 = "__.+'\n  - '^".join(problems)
             solution_2 = "$'\n  - '^".join(problems)
             # we have a problem, raise an error
-            logger.error(
+            error_message = (
                 f"skims {problems} are present in both time-dependent and time-agnostic formats.\n"
                 "Please add ignore rules to the omx_ignore_patterns setting to resolve this issue.\n"
                 "To ignore the time dependent skims, add the following to your settings file:\n"
@@ -802,17 +802,17 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
                 "You can also do some variation or combination of the two, as long as you resolve\n"
                 "the conflict(s). In addition, note that minor edits to model spec files may be\n"
                 "needed to accommodate these changes in how skim data is represented (e.g. changing\n"
-                "`odt_skims` to `od_skims`, or similar modifications).  Alternatively, you can\n"
-                "modify the skim data in the source files to remove the naming conflicts, which\n"
-                "is typically done upstream of ActivitySim in whatever tool you are using to create"
-                "the skims in the first place.\n"
+                "`odt_skims` to `od_skims`, or similar modifications wherever the offending variable\n"
+                "names are used).  Alternatively, you can modify the skim data in the source files to\n"
+                "remove the naming conflicts, which is typically done upstream of ActivitySim in\n"
+                "whatever tool you are using to create the skims in the first place.\n"
                 "\n"
                 "See [https://activitysim.github.io/?q=skims] for more information.\n"
             )
-            # raise an error to stop the run
-            raise ValueError(
-                f"skims {problems} are present in both time-dependent and time-agnostic formats"
-            )
+            # write the error message to the log
+            logger.error(error_message)
+            # raise an error to stop the run, put the entire error message there also
+            raise ValueError(error_message)
 
     if d is None:
         time_periods = _dedupe_time_periods(network_los_preload)

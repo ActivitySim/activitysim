@@ -442,7 +442,6 @@ def check_model_settings(state: State) -> None:
             file_logger.info(msg)
             continue
 
-        # first, attempt to load the model settings
         settings_cls = COMPONENTS_TO_SETTINGS[c]["settings_cls"]
         settings_file = COMPONENTS_TO_SETTINGS[c]["settings_file"]
         errors = try_load_and_check(

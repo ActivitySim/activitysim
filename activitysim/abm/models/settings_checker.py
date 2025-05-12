@@ -244,7 +244,7 @@ def try_load_model_settings(
     model_settings_class: Type[PydanticBase],
     model_settings_file: str,
     state: State,
-) -> tuple:
+) -> tuple[Optional[PydanticBase], Optional[Exception]]:
     logger.info(
         f"Attempting to load model settings for {model_name} via {model_settings_class.__name__} and {model_settings_file}"
     )
@@ -330,7 +330,7 @@ def try_load_and_check(
     model_name: str,
     model_settings_class: Type[PydanticBase],
     model_settings_file: str,
-    state: State,
+    state: State
 ) -> list[Exception]:
     # collect all errors
     errors = []
@@ -341,6 +341,9 @@ def try_load_and_check(
         model_settings_file=model_settings_file,
         state=state,
     )
+
+    if model_name == "stop_frequency":
+        print("DEBUG")
 
     if model_settings_error is not None:
         errors.append(model_settings_error)

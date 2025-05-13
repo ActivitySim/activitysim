@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=5b73772b"></script>
+    <script src="../../_static/documentation_options.js?v=72750f9e"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,11 +55,11 @@
         </script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Initialize" href="initialize.html" />
+    <link rel="next" title="Input Checker" href="input_checker.html" />
     <link rel="prev" title="LogitNestSpec" href="../_generated/activitysim.core.configuration.logit.LogitNestSpec.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Apr 03, 2025"/>
+    <meta name="docbuild:last-update" content="May 13, 2025"/>
   </head>
   
   
@@ -351,6 +351,7 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="../../development.html">Software Development</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../component-configs.html">Component Configuration</a></li>
 <li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Components</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="input_checker.html">Input Checker</a></li>
 <li class="toctree-l2"><a class="reference internal" href="initialize.html">Initialize</a></li>
 <li class="toctree-l2"><a class="reference internal" href="initialize_los.html">Initialize LOS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="initialize_tours.html">Initialize Tours</a></li>
@@ -458,6 +459,17 @@ document.write(`
 <span id="dev-components"></span><h1>Components<a class="headerlink" href="#components" title="Link to this heading">#</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="input_checker.html">Input Checker</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="input_checker.html#module-activitysim.abm.models.input_checker">Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="input_checker.html#activitysim.abm.models.input_checker.add_child_to_parent_list"><code class="docutils literal notranslate"><span class="pre">add_child_to_parent_list()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_checker.html#activitysim.abm.models.input_checker.create_table_store"><code class="docutils literal notranslate"><span class="pre">create_table_store()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_checker.html#activitysim.abm.models.input_checker.input_checker"><code class="docutils literal notranslate"><span class="pre">input_checker()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_checker.html#activitysim.abm.models.input_checker.validate_with_pandera"><code class="docutils literal notranslate"><span class="pre">validate_with_pandera()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_checker.html#activitysim.abm.models.input_checker.validate_with_pydantic"><code class="docutils literal notranslate"><span class="pre">validate_with_pydantic()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="initialize.html">Initialize</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="initialize.html#implementation">Implementation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="initialize.html#activitysim.abm.models.initialize.initialize_landuse"><code class="docutils literal notranslate"><span class="pre">initialize_landuse()</span></code></a></li>
@@ -1584,11 +1596,11 @@ section. See <a class="reference internal" href="../../development.html#models">
       </div>
     </a>
     <a class="right-next"
-       href="initialize.html"
+       href="input_checker.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Initialize</p>
+        <p class="prev-next-title">Input Checker</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1634,7 +1646,7 @@ section. See <a class="reference internal" href="../../development.html#models">
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.5.dev4+gde6d0ef2, documentation last updated Apr 03, 2025.<br/>
+ActivitySim 1.3.5.dev5+gae89183c, documentation last updated May 13, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

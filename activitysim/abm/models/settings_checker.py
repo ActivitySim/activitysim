@@ -279,7 +279,6 @@ def try_load_spec(
     except Exception as e:
         # always return a dataframe
         result = DataFrame(), e
-        # raise e
     return result
 
 def try_load_coefs(
@@ -299,7 +298,6 @@ def try_load_coefs(
         file_logger.info(msg)
     except Exception as e:
         result = DataFrame(), e
-        # raise e
     return result
     
 def try_eval_spec_coefs(
@@ -338,7 +336,6 @@ def try_eval_spec_coefs(
             file_logger.info(msg)
         except Exception as e:
             result = DataFrame(), e
-            # raise e
         return result
 
 def try_load_and_check_spec_coefs(

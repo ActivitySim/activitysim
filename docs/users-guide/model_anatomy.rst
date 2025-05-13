@@ -116,7 +116,7 @@ transit modeling.
 Skims
 ~~~~~
 
-The basic level-of-service data that represents the tranportation system is
+The basic level-of-service data that represents the transportation system is
 made available to ActivitySim via one or more sets of "skims".  Skims are
 essentially matrices of travel times, costs, and other level of service attributes,
 calculated between various zones in the system.  This skim data is made available
@@ -133,10 +133,44 @@ appended to the skim name, separated by a double underscore (e.g. ``BUS_IVT__AM`
     When using "legacy" mode for ActivitySim, it is possible (but not recommended)
     to have a skim variable that has both a time period agnostic value as well as
     a set of time period dependent values, e.g. "WALK_TIME" and "WALK_TIME__AM".
-    This is not supported when using "sharrow" mode, and will result in an error.
-    Instead, each variable should have a unique name, which can be easily achieved by
-    changing the name on the time period agnostic value, i.e. instead of "WALK_TIME"
-    use ""WALK_TIME_BASE".
+    If you have conflicting names like this, a warning message will be issued, which
+    will look like this in an ActivitySim log file:
+
+        WARNING: activitysim/core/skim_dict_factory.py:212:
+        UserWarning: some skims have both time-dependent and time-agnostic versions:
+        - BIKE_LOGSUM
+        - BIKE_TIME
+
+    This is a warning, not an error, and the model will run if not using sharrow.
+    However, if "sharrow" mode is activated, this will result in an error once the
+    skims are actually loaded, unless instructions are included in the settings file
+    to resolve the conflict.  The error message will look like this:
+
+        ERROR: skims ['BIKE_TIME'] are present in both time-dependent and time-agnostic formats.
+        Please add ignore rules to the omx_ignore_patterns setting to resolve this issue.
+        To ignore the time dependent skims, add the following to your settings file:
+
+        omx_ignore_patterns:
+          - '^BIKE_TIME__.+'
+
+        To ignore the time agnostic skims, add the following to your settings file:
+
+        omx_ignore_patterns:
+          - '^BIKE_TIME$'
+
+        You can also do some variation or combination of the two, as long as you resolve
+        the conflict(s). In addition, note that minor edits to model spec files may be
+        needed to accommodate these changes in how skim data is represented (e.g. changing
+        `odt_skims` to `od_skims`, or similar modifications wherever the offending variable
+        names are used).  Alternatively, you can modify the skim data in the source files to
+        remove the naming conflicts, which is typically done upstream of ActivitySim in
+        whatever tool you are using to create the skims in the first place.
+
+    It should be relatively simple to resolve the conflict by following the instructions
+    in the error message. The cleaner and more reliable solution is to ensure each skim
+    variable has a unique name, e.g. by changing the name on the time period agnostic
+    value, so that instead of "BIKE_TIME" it is "BIKE_TIME_BASE". This may also require
+    minor edits to the model spec files to accommodate the new skim name.
 
 
 Examples

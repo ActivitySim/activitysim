@@ -52,8 +52,9 @@ from activitysim.abm.models.util.tour_od import (
 
 # import logit model settings
 from activitysim.core.configuration.logit import (
+    LogitNestSpec,
     TourLocationComponentSettings,
-    TourModeComponentSettings
+    TourModeComponentSettings,
 )
 
 # setup logging
@@ -278,7 +279,7 @@ def try_load_spec(
     except Exception as e:
         # always return a dataframe
         result = DataFrame(), None
-        raise e
+        # raise e
     return result
 
 def try_load_coefs(
@@ -298,7 +299,7 @@ def try_load_coefs(
         file_logger.info(msg)
     except Exception as e:
         result = DataFrame(), e
-        raise e
+        # raise e
     return result
     
 def try_eval_spec_coefs(
@@ -308,23 +309,36 @@ def try_eval_spec_coefs(
     coefs: DataFrame,
     state: State
 ) -> tuple[DataFrame, Optional[Exception]]:
-        result = dict()
+        if model_name == "non_mandatory_tour_frequency":
+            breakpoint
+        
         try:
             # check whether coefficients should be evaluated as NESTS or not
             if model_settings.model_dump().get("NESTS"):
+                if isinstance(model_settings.NESTS, LogitNestSpec):
+                    nests = model_settings.NESTS
+            else:
+                nests = None
+            if nests is not None:
                 # Proper Trace label is probably unneeded here
                 # TODO: Verify that this method is correct
                 result = eval_nest_coefficients(
                     model_settings.NESTS, coefs, trace_label=None
                 ), None
             else:
+                if spec.empty:
+                    msg = f"No SPEC available for {model_name}. " \
+                          "Attempting to resolve coefficients against empty DataFrame, " \
+                          "but errors may not be fully caught"
+                    logger.warning(msg)
+                    file_logger.warning(msg)
                 result = eval_coefficients(state, spec, coefs, estimator=None), None
             msg = (f"Successfully evaluated coefficients for {model_name}")
             logger.info(msg)
             file_logger.info(msg)
         except Exception as e:
             result = DataFrame(), e
-            raise e
+            # raise e
         return result
 
 def try_load_and_check_spec_coefs(
@@ -428,7 +442,8 @@ def check_model_settings(state: State) -> None:
     for model_name in all_models:
 
         if not model_name in COMPONENTS_TO_SETTINGS:
-            msg = f"Cannot pre-check settings for model component {model_name}: mapping to a Pydantic data model is undefined in the checker."
+            msg = f"Cannot pre-check settings for model component {model_name}: " \
+                  "mapping to a Pydantic data model is undefined in the checker."
             logger.info(msg)
             file_logger.info(msg)
             continue
@@ -444,12 +459,12 @@ def check_model_settings(state: State) -> None:
             model_settings_file=model_settings_file,
             state=state,
         )
-        if model_name == "stop_frequency":
-            print("DEBUG")
-        if model_settings_error is not None:
-            errors.append(model_settings_error)
-            continue
 
+        if model_settings_error is not None:
+            all_errors.append(model_settings_error)
+            continue
+        
+        # then attempt to load and resolve spec/coef files
         errors = try_load_and_check_spec_coefs(
             model_name=model_name,
             model_settings=model_settings,
@@ -457,14 +472,37 @@ def check_model_settings(state: State) -> None:
         )
         all_errors.extend(errors)
 
-        if len(all_errors) > 0:
-            msg = "Settings Checker Failed with the following errors:"
-            logger.error(msg)
-            file_logger.error(msg)
-            for e in all_errors:
-                logger.error(f"\t{e}")
-                file_logger.error(f"\t{e}")
-            raise RuntimeError("Encountered error in settings checker. See settings_checker.log for details.")
+        # finally, if model has nested SPEC_SEGMENTS, check each of these.
+        # TODO: There are two main methods of using SPEC_SEGMENTS:
+        #  - Individual SPEC files keyed to the SPEC field of the segment
+        #  - Via PTYPE columns in the top level SPEC, which can be 
+        #    evaluated against individual coefficient files
+        # Only the the first is fully supported - 
+        seg_num = 1
+        if model_settings.model_dump().get("SPEC_SEGMENTS"):
+            spec_segments = model_settings.SPEC_SEGMENTS
+            # SPEC_SEGMENTS can be of type list or dict. If dict, unpack into list
+            if isinstance(spec_segments, dict):
+                spec_segments = [v for _, v in spec_segments.items()]
+            
+            # Skip empty lists in case SPEC_SEGMENT field is optional
+            if len(spec_segments) > 0:
+                for segment_settings in spec_segments:
+                    errors = try_load_and_check_spec_coefs(
+                        model_name=model_name,
+                        model_settings=segment_settings,
+                        state=state
+                    )
+                all_errors.extend(errors)
+
+    if len(all_errors) > 0:
+        msg = "Settings Checker Failed with the following errors:"
+        logger.error(msg)
+        file_logger.error(msg)
+        for e in all_errors:
+            logger.error(f"\t{e}")
+            file_logger.error(f"\t{e}")
+        raise RuntimeError("Encountered error in settings checker. See settings_checker.log for details.")
     msg = "Setting Checker Complete! No Errors Found"
     logger.info(msg)
     file_logger.info(msg)

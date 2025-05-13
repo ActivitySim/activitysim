@@ -270,9 +270,10 @@ def try_load_spec(
     spec_file: str, 
     state: State
 ) -> tuple[DataFrame, Optional[Exception]]:
-    logger.info(
-        f"Attempting to load SPEC for {model_name} via {model_settings.__class__.__name__}"
-    )
+    msg = f"Attempting to load SPEC for {model_name} via {model_settings.__class__.__name__}"
+    logger.info(msg)
+    file_logger.info(msg)
+    
     try:
         result = state.filesystem.read_model_spec(spec_file), None
         logger.info(f"Successfully loaded model SPEC from {spec_file}")
@@ -478,7 +479,6 @@ def check_model_settings(state: State) -> None:
         #  - Via PTYPE columns in the top level SPEC, which can be 
         #    evaluated against individual coefficient files
         # Only the the first is fully supported - 
-        seg_num = 1
         if model_settings.model_dump().get("SPEC_SEGMENTS"):
             spec_segments = model_settings.SPEC_SEGMENTS
             # SPEC_SEGMENTS can be of type list or dict. If dict, unpack into list

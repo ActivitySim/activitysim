@@ -7,7 +7,7 @@ on:
 
 jobs:
   docbuild:
-    if: "contains(github.event.head_commit.message, '[makedocs]') && (github.repository_owner != 'ActivitySim') && (github.ref_name != 'develop')"
+    if: "github.event_name == 'workflow_dispatch' || (contains(github.event.head_commit.message, '[makedocs]') && (github.repository_owner != 'ActivitySim') && (github.ref_name != 'develop'))"
     # develop branch docs are built at the end of the core test workflow, regardless of repository owner or commit message flags
     name: ubuntu-latest py3.10
     runs-on: ubuntu-latest

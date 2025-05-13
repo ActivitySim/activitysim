@@ -273,13 +273,12 @@ def try_load_spec(
     msg = f"Attempting to load SPEC for {model_name} via {model_settings.__class__.__name__}"
     logger.info(msg)
     file_logger.info(msg)
-    
     try:
         result = state.filesystem.read_model_spec(spec_file), None
         logger.info(f"Successfully loaded model SPEC from {spec_file}")
     except Exception as e:
         # always return a dataframe
-        result = DataFrame(), None
+        result = DataFrame(), e
         # raise e
     return result
 
@@ -351,7 +350,7 @@ def try_load_and_check_spec_coefs(
     errors = []
 
     # then, attempt to read SPEC file
-    # only checks against the SPEC attr at top level of model.
+    # TODO: only checks against the SPEC attr at top level of model.
     # checking specification files keyed against arbtrary attrs
     # is not currently supported - e.g. SchoolEscortingSettings: INBOUND_SPEC
     spec_file = model_settings.model_dump().get("SPEC")

@@ -136,6 +136,8 @@ appended to the skim name, separated by a double underscore (e.g. ``BUS_IVT__AM`
     If you have conflicting names like this, a warning message will be issued, which
     will look like this in an ActivitySim log file:
 
+    .. code-block:: text
+
         WARNING: activitysim/core/skim_dict_factory.py:212:
         UserWarning: some skims have both time-dependent and time-agnostic versions:
         - BIKE_LOGSUM
@@ -145,6 +147,8 @@ appended to the skim name, separated by a double underscore (e.g. ``BUS_IVT__AM`
     However, if "sharrow" mode is activated, this will result in an error once the
     skims are actually loaded, unless instructions are included in the settings file
     to resolve the conflict.  The error message will look like this:
+
+    .. code-block:: text
 
         ERROR: skims ['BIKE_TIME'] are present in both time-dependent and time-agnostic formats.
         Please add ignore rules to the omx_ignore_patterns setting to resolve this issue.

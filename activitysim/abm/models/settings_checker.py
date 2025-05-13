@@ -280,7 +280,9 @@ def try_load_spec(
     file_logger.info(msg)
     try:
         result = state.filesystem.read_model_spec(spec_file), None
-        logger.info(f"Successfully loaded model SPEC from {spec_file}")
+        msg = f"Successfully loaded model SPEC from {spec_file}"
+        logger.info(msg)
+        file_logger.info(msg)
     except Exception as e:
         # always return a dataframe
         result = DataFrame(), e
@@ -311,8 +313,15 @@ def try_eval_spec_coefs(
     coefs: DataFrame,
     state: State,
 ) -> tuple[DataFrame, Optional[Exception]]:
-    if model_name == "non_mandatory_tour_frequency":
-        breakpoint
+    
+    if spec.empty or coefs.empty:
+        msg_prefix = f"Skipping Evalation Check for {model_settings.__class__}"
+        spec_msg = "No SPEC available" if spec.empty else ""
+        coefs_msg = "No COEFFICENTS available" if coefs.empty else ""
+        msg = ". ".join([msg_prefix, spec_msg, coefs_msg])
+        logger.warning(msg)
+        file_logger.warning(msg)
+        return DataFrame(), None
 
     try:
         # check whether coefficients should be evaluated as NESTS or not
@@ -329,14 +338,6 @@ def try_eval_spec_coefs(
                 None,
             )
         else:
-            if spec.empty:
-                msg = (
-                    f"No SPEC available for {model_name}. "
-                    "Attempting to resolve coefficients against empty DataFrame, "
-                    "but errors may not be fully caught"
-                )
-                logger.warning(msg)
-                file_logger.warning(msg)
             result = eval_coefficients(state, spec, coefs, estimator=None), None
         msg = f"Successfully evaluated coefficients for {model_name}"
         logger.info(msg)
@@ -392,16 +393,13 @@ def try_load_and_check_spec_coefs(
         errors.append(coefs_error)
 
     # then attempt to evaluate coefficients against spec
-    if not coefs.empty:
-        eval_coefs, eval_coefs_error = try_eval_spec_coefs(
+    eval_coefs, eval_coefs_error = try_eval_spec_coefs(
             model_name=model_name,
             model_settings=model_settings,
             spec=spec,
             coefs=coefs,
             state=state,
         )
-    else:
-        eval_coefs, eval_coefs_error = DataFrame(), None
 
     if eval_coefs_error is not None:
         errors.append(eval_coefs_error)

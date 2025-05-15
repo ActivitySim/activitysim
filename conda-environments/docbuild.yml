@@ -23,7 +23,6 @@ dependencies:
 - git
 - jupyter-book
 - jupyterlab
-- larch >=5.5.3
 - matplotlib
 - multimethod <2.0
 - myst-nb
@@ -59,4 +58,5 @@ dependencies:
 
 - pip:
   - autodoc_pydantic
+  - larch >= 6.0.34
   - -e ..

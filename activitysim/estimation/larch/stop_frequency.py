@@ -6,8 +6,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
-from larch import Dataset, Model
-from larch.util import Dict
 
 from .general import (
     apply_coefficients,
@@ -211,9 +209,9 @@ def stop_frequency_model(
 
         if settings.get("LOGIT_TYPE") == "NL":
             tree = construct_nesting_tree(data.alt_names[n], settings["NESTS"])
-            m = Model(graph=tree, compute_engine="numba")
+            m = lx.Model(graph=tree, compute_engine="numba")
         else:
-            m = Model(compute_engine="numba")
+            m = lx.Model(compute_engine="numba")
 
         m.utility_co = dict_of_linear_utility_from_spec(
             spec,
@@ -225,7 +223,7 @@ def stop_frequency_model(
 
         avail = True
 
-        d = Dataset.construct.from_idco(
+        d = lx.Dataset.construct.from_idco(
             chooser_data, alts=dict(zip(alt_codes, alt_names))
         )
 

@@ -470,6 +470,9 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-version: latest
+          mamba-version: "2.0.5"
+          conda-solver: classic
+          conda-remove-defaults: true
           activate-environment: asim-test
           python-version: ${{ env.python-version }}
 

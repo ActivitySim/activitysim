@@ -350,6 +350,10 @@ def location_choice_model(
             total_size_segment += (
                 landuse[land_use_field] * size_spec.loc[segment, land_use_field]
             )
+        if -1 in x_co["override_choice"].values:
+            print("Warning: override_choice contains -1, adding 0 to total_size")
+            print("You should probably remove data containing -1 from your data")
+            total_size_segment.loc[-1] = 0
         x_co["total_size_" + segment] = total_size_segment.loc[
             x_co["override_choice"]
         ].to_numpy()

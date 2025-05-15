@@ -164,6 +164,8 @@ def unavail_data_cols(model):
 
 def unavail(model, x_ca):
     lock_data = unavail_data_cols(model)
+    # intialize unavail to False array of same length as x_ca
+    unav = pd.Series(False, index=x_ca.index)
     if len(lock_data):
         unav = x_ca[lock_data[0]] > 0
         for j in lock_data[1:]:

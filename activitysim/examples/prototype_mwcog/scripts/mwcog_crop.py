@@ -1,11 +1,14 @@
 # crop marin tvpb example data processing to one county
 # Ben Stabler, ben.stabler@rsginc.com, 09/17/20
 
-import os
-import pandas as pd
-import openmatrix as omx
+from __future__ import annotations
+
 import argparse
+import os
+
 import numpy as np
+import openmatrix as omx
+import pandas as pd
 
 MAZ_OFFSET = 0
 
@@ -259,7 +262,6 @@ SUBZONE = "subzoneData.csv"
 
 
 if check_geography:
-
     # ######## check for orphan_households not in any maz in land_use
     land_use = read_csv(LAND_USE)
     land_use = land_use[["maz", "taz"]]

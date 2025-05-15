@@ -25,7 +25,6 @@ def update_settings(settings_file, key, value):
 
 
 def run_test_random_seed():
-
     steps_to_run = [
         "initialize_landuse",
         "initialize_households",
@@ -86,7 +85,6 @@ def run_test_random_seed():
     # running prototype mtc model through workplace_location with 3 random seed settings, 0, 1, None, and undefined.
     # final_persons.csv is compared to ensure the same setting returns the same variables and a different setting returns something different.
     for name, seed in runs:
-
         run_args = [
             "-c",
             test_path("configs_random_seed__{}".format(seed)),

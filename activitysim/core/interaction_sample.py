@@ -251,7 +251,6 @@ def _interaction_sample(
     # check if tracing is enabled and if we have trace targets
     # if not estimation mode, drop unused columns
     if (not have_trace_targets) and (compute_settings.drop_unused_columns):
-
         choosers = util.drop_unused_columns(
             choosers,
             spec,

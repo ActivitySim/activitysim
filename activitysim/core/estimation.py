@@ -118,7 +118,19 @@ class EstimationConfig(PydanticReadable):
     This is useful for saving disk space and decreasing runtime
     if you do not care about the estimation output for all models.
     """
+
     EDB_FILETYPE: Literal["csv", "parquet", "pkl"] = "parquet"
+    """File type for dataframes written to the estimation data bundles.
+
+    Options are 'csv', 'parquet', or 'pkl'.  When set to 'parquet', if file
+    writing fails for any reason, it will fall back to 'pkl'.  This typically
+    will happen when the data types in the dataframe are not compatible with
+    parquet (e.g. Python 'object' dtype with mixed format content).
+
+    Legacy ActivitySim used 'csv' to maximize compatibility with other software.
+    As of version 1.4, the default changed to 'parquet', which is more efficient
+    and better preserves data types.
+    """
 
     DELETE_MP_SUBDIRS: bool = True
     """Flag to delete the multiprocessing subdirectories after coalescing the results.
@@ -144,7 +156,7 @@ class EstimationConfig(PydanticReadable):
 
     estimation_table_recipes: dict[str, EstimationTableRecipeConfig] = None
     """This option has been removed from the user-facing configuration file.
-    
+
     Mapping of estimation table recipe names to their configurations.
 
     The keys of this mapping are the names of the estimation table recipes.
@@ -165,6 +177,10 @@ class EstimationConfig(PydanticReadable):
         return values
 
     survey_tables: dict[str, SurveyTableConfig] = {}
+    """Mapping of survey table names to their configurations.
+
+    Each survey table should have a file name and an index column.  These files
+    are where the survey data is read from while running in estimation mode."""
 
     # pydantic class validator to ensure that the estimation_table_types
     # dictionary is a valid dictionary with string keys and string values, and

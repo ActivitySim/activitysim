@@ -8,8 +8,6 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import yaml
-from larch import Dataset, Model, P, X
-from larch.util import Dict
 
 from .general import (
     apply_coefficients,
@@ -20,6 +18,15 @@ from .general import (
     remove_apostrophes,
 )
 from .simple_simulate import construct_availability, simple_simulate_data
+
+try:
+    # Larch is an optional dependency, and we don't want to fail when importing
+    # this module simply because larch is not installed.
+    import larch as lx
+except ImportError:
+    lx = None
+else:
+    from larch.util import Dict
 
 
 def mode_choice_model(
@@ -58,7 +65,7 @@ def mode_choice_model(
 
     # Setup purpose specific models
     m = {
-        purpose: Model(graph=tree, title=purpose, compute_engine="numba")
+        purpose: lx.Model(graph=tree, title=purpose, compute_engine="numba")
         for purpose in purposes
     }
     for alt_code, alt_name in tree.elemental_names().items():
@@ -72,7 +79,7 @@ def mode_choice_model(
         for purpose in purposes:
             # Modify utility function based on template for purpose
             u_purp = sum(
-                (P(coef_template[purpose].get(i.param, i.param)) * i.data * i.scale)
+                (lx.P(coef_template[purpose].get(i.param, i.param)) * i.data * i.scale)
                 for i in u
             )
             m[purpose].utility_co[alt_code] = u_purp
@@ -86,7 +93,7 @@ def mode_choice_model(
         m[purposes[0]], chooser_data, data.alt_codes_to_names
     )
 
-    d = Dataset.construct.from_idco(
+    d = lx.Dataset.construct.from_idco(
         chooser_data, alts=dict(zip(data.alt_codes, data.alt_names))
     )
     d["_avail_"] = xr.DataArray(avail, dims=(d.dc.CASEID, d.dc.ALTID))
@@ -100,9 +107,7 @@ def mode_choice_model(
             model.datatree = d
             model.choice_co_code = "override_choice_code"
 
-    from larch.model.model_group import ModelGroup
-
-    mg = ModelGroup(m.values())
+    mg = lx.ModelGroup(m.values())
     explicit_value_parameters(mg)
     apply_coefficients(coefficients, mg)
 

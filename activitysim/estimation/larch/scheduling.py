@@ -7,8 +7,6 @@ from typing import Collection
 import numpy as np
 import pandas as pd
 import yaml
-from larch import Dataset, Model, P, X
-from larch.util import Dict
 
 from .general import (
     apply_coefficients,
@@ -19,6 +17,16 @@ from .general import (
     remove_apostrophes,
     str_repr,
 )
+
+try:
+    # Larch is an optional dependency, and we don't want to fail when importing
+    # this module simply because larch is not installed.
+    import larch as lx
+except ImportError:
+    lx = None
+else:
+    from larch import P, X
+    from larch.util import Dict
 
 
 def schedule_choice_model(
@@ -102,7 +110,7 @@ def schedule_choice_model(
     else:
         raise ValueError("cannot find Label or Expression in spec file")
 
-    m = Model(compute_engine="numba")
+    m = lx.Model(compute_engine="numba")
     if len(spec.columns) == 4 and (
         [c.lower() for c in spec.columns]
         == ["label", "description", "expression", "coefficient"]
@@ -174,12 +182,12 @@ def schedule_choice_model(
         joint_avail = None
 
     # d = DataFrames(co=x_co, ca=x_ca, av=joint_avail)  # larch 5.7
-    d_ca = Dataset.construct.from_idca(x_ca)
+    d_ca = lx.Dataset.construct.from_idca(x_ca)
     if joint_avail == "~(mode_choice_logsum_missing)":
         tmp = np.isnan(d_ca["mode_choice_logsum"])
         tmp = tmp.drop_vars(tmp.coords)
         d_ca = d_ca.assign(mode_choice_logsum_missing=tmp)
-    d_co = Dataset.construct.from_idco(x_co)
+    d_co = lx.Dataset.construct.from_idco(x_co)
     d = d_ca.merge(d_co)
     # if joint_avail is not None:
     #     d["_avail_"] = joint_avail

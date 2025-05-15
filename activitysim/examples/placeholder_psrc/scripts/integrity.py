@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import os
 
@@ -60,7 +62,6 @@ def to_csv(df, file_name):
 
 
 def report_baddies(df, tag, fatal=False):
-
     if len(df) > 0:
         print(f"\n### OOPS ### {len(df)} {tag}\n")
 

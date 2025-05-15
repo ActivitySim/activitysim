@@ -69,7 +69,6 @@ def trip_purpose_and_destination(
     model_settings_file_name: str = "trip_purpose_and_destination.yaml",
     trace_label: str = "trip_purpose_and_destination",
 ) -> None:
-
     if model_settings is None:
         model_settings = TripPurposeAndDestinationSettings.read_settings_file(
             state.filesystem,

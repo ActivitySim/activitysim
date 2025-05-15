@@ -44,7 +44,6 @@ def run_test(zone, multiprocess=False):
         return os.path.join(os.path.dirname(__file__), dirname)
 
     def regress(zone):
-
         # regress tours
         regress_tours_df = pd.read_csv(
             test_path(f"regress/final_tours_{zone}_zone.csv")
@@ -157,7 +156,6 @@ EXPECTED_MODELS = [
 
 @test.run_if_exists("reference_pipeline_2_zone.zip")
 def test_multizone_progressive(zone="2"):
-
     zone = str(zone)
 
     import activitysim.abm  # register components
@@ -205,7 +203,6 @@ def test_multizone_progressive(zone="2"):
 
 
 if __name__ == "__main__":
-
     build_data()
     run_test(zone="2", multiprocess=False)
     run_test(zone="2", multiprocess=True)

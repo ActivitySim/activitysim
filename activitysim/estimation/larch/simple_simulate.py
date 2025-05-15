@@ -4,12 +4,9 @@ import collections
 import os
 from pathlib import Path
 
-import larch
 import numpy as np
 import pandas as pd
 import yaml
-from larch import Model
-from larch.util import Dict
 
 from .general import (
     apply_coefficients,
@@ -17,6 +14,15 @@ from .general import (
     dict_of_linear_utility_from_spec,
     remove_apostrophes,
 )
+
+try:
+    # Larch is an optional dependency, and we don't want to fail when importing
+    # this module simply because larch is not installed.
+    import larch as lx
+except ImportError:
+    lx = None
+else:
+    from larch.util import Dict
 
 
 def construct_availability(model, chooser_data, alt_codes_to_names):
@@ -193,7 +199,7 @@ def simple_simulate_model(
     else:
         tree = construct_nesting_tree(data.alt_names_to_codes, {})
 
-    m = Model(compute_engine="numba")
+    m = lx.Model(compute_engine="numba")
     m.utility_co = dict_of_linear_utility_from_spec(
         spec,
         "Label",
@@ -206,13 +212,13 @@ def simple_simulate_model(
 
     if construct_avail:
         avail = construct_availability(m, chooser_data, data.alt_codes_to_names)
-        d = larch.Dataset.construct.from_idco(
+        d = lx.Dataset.construct.from_idco(
             pd.concat([chooser_data, avail], axis=1),
             alts=dict(zip(alt_codes, alt_names, strict=False)),
         )
     else:
         avail = True
-        d = larch.Dataset.construct.from_idco(
+        d = lx.Dataset.construct.from_idco(
             chooser_data, alts=dict(zip(alt_codes, alt_names, strict=False))
         )
 

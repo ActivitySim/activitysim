@@ -7,17 +7,23 @@ import os
 import re
 from pathlib import Path
 
-import larch
 import numpy as np
 import pandas as pd
 import xarray as xr
 import yaml
-from larch import Dataset, Model, P, X
-from larch.model.model_group import ModelGroup
-from larch.util import Dict
 
 from ...abm.models.util import cdap
 from .general import apply_coefficients, explicit_value_parameters
+
+try:
+    import larch as lx
+except ImportError:
+    lx = None
+    logger_name = "larch"
+else:
+    from larch import P, X
+    from larch.util import Dict
+
 
 _logger = logging.getLogger("larch")
 
@@ -151,7 +157,6 @@ def interact_pattern(n_persons, select_persons, tag):
 
 
 def cdap_interaction_utility(model, n_persons, alts, interaction_coef, coefficients):
-
     person_numbers = list(range(1, n_persons + 1))
 
     matcher = re.compile("coef_[HMN]_.*")
@@ -329,12 +334,12 @@ def cdap_split_data(households, values, add_joint):
     return cdap_data
 
 
-def cdap_dataframes(households, values, add_joint) -> dict[int, Dataset]:
+def cdap_dataframes(households, values, add_joint) -> dict[int, lx.Dataset]:
     data = cdap_split_data(households, values, add_joint)
     dfs = {}
     for hhsize in data.keys():
         alts = generate_alternatives(hhsize, add_joint)
-        dfs[hhsize] = Dataset.construct.from_idco(
+        dfs[hhsize] = lx.Dataset.construct.from_idco(
             data[hhsize],
             alts=dict(zip(alts.values(), alts.keys())),
         )
@@ -353,33 +358,6 @@ def cdap_dataframes(households, values, add_joint) -> dict[int, Dataset]:
         #     ch=data[hhsize].override_choice.map(alts),
         # )
     return dfs
-
-
-# def _cdap_model(households, values, spec1, interaction_coef, coefficients):
-#     cdap_data = cdap_dataframes(households, values)
-#     m = {}
-#     _logger.info(f"building for model 1")
-#     m[1] = Model(dataservice=cdap_data[1])
-#     cdap_base_utility_by_person(m[1], n_persons=1, spec=spec1)
-#     m[1].choice_any = True
-#     m[1].availability_any = True
-#
-#     # Add cardinality into interaction_coef if not present
-#     if 'cardinality' not in interaction_coef:
-#         interaction_coef['cardinality'] = interaction_coef['interaction_ptypes'].str.len()
-#     for s in [2, 3, 4, 5]:
-#         _logger.info(f"building for model {s}")
-#         m[s] = Model(dataservice=cdap_data[s])
-#         alts = generate_alternatives(s)
-#         cdap_base_utility_by_person(m[s], s, spec1, alts, values.columns)
-#         cdap_interaction_utility(m[s], s, alts, interaction_coef, coefficients)
-#         m[s].choice_any = True
-#         m[s].availability_any = True
-#
-#     result = ModelGroup(m.values())
-#     explicit_value_parameters(result)
-#     apply_coefficients(coefficients, result)
-#     return result
 
 
 def cdap_data(
@@ -515,7 +493,7 @@ def cdap_model(
     cdap_dfs = cdap_dataframes(households, values, add_joint)
     m = {}
     _logger.info(f"building for model 1")
-    m[1] = Model(datatree=cdap_dfs[1], compute_engine="numba")
+    m[1] = lx.Model(datatree=cdap_dfs[1], compute_engine="numba")
     cdap_base_utility_by_person(m[1], n_persons=1, spec=spec1)
     m[1].choice_co_code = "override_choice"
     m[1].availability_any = True
@@ -528,7 +506,7 @@ def cdap_model(
     for s in range(2, MAX_HHSIZE + 1):
         # for s in [2, 3, 4, 5]:
         _logger.info(f"building for model {s}")
-        m[s] = Model(datatree=cdap_dfs[s])
+        m[s] = lx.Model(datatree=cdap_dfs[s])
         alts = generate_alternatives(s, add_joint)
         cdap_base_utility_by_person(m[s], s, spec1, alts, values.columns)
         cdap_interaction_utility(m[s], s, alts, interaction_coef, coefficients)
@@ -537,7 +515,7 @@ def cdap_model(
         m[s].choice_co_code = "override_choice"
         m[s].availability_any = True
 
-    model = ModelGroup(m.values())
+    model = lx.ModelGroup(m.values())
     explicit_value_parameters(model)
     apply_coefficients(coefficients, model)
     if return_data:

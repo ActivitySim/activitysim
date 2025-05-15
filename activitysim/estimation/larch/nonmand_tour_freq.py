@@ -9,8 +9,6 @@ from pathlib import Path
 
 import pandas as pd
 import yaml
-from larch import Dataset, Model
-from larch.util import Dict
 
 from .general import (
     apply_coefficients,
@@ -18,6 +16,16 @@ from .general import (
     linear_utility_from_spec,
     remove_apostrophes,
 )
+
+try:
+    # Larch is an optional dependency, and we don't want to fail when importing
+    # this module simply because larch is not installed.
+    import larch as lx
+except ImportError:
+    lx = None
+else:
+    from larch.util import Dict
+
 
 _logger = logging.getLogger("larch")
 
@@ -160,6 +168,9 @@ def unavail(model, x_ca):
         unav = x_ca[lock_data[0]] > 0
         for j in lock_data[1:]:
             unav |= x_ca[j] > 0
+    else:
+        # no unavailability parameters are included
+        return pd.DataFrame(0, index=x_ca.index, columns=["_avail_"])
     return unav
 
 
@@ -284,7 +295,7 @@ def nonmand_tour_freq_model(
     m = {}
     for segment_name in segment_names:
         print(f"Creating larch model for {segment_name}")
-        segment_model = m[segment_name] = Model(compute_engine="numba")
+        segment_model = m[segment_name] = lx.Model(compute_engine="numba")
         # One of the alternatives is coded as 0, so
         # we need to explicitly initialize the MNL nesting graph
         # and set to root_id to a value other than zero.
@@ -318,13 +329,13 @@ def nonmand_tour_freq_model(
         else:
             x_ca = alt_values[segment_name].set_index(["person_id", "alt_id"])
 
-        d_co = Dataset.construct.from_idco(
+        d_co = lx.Dataset.construct.from_idco(
             x_co,
             alts=alt_def.index.rename("alt_id"),
         )
         x_ca["_avail_"] = ~unavail(segment_model, x_ca)
         # we set crack to False here so that we do not dissolve zero variance IDCAs
-        d_ca = Dataset.construct.from_idca(x_ca, crack=False)
+        d_ca = lx.Dataset.construct.from_idca(x_ca, crack=False)
         d = d_ca.merge(d_co)
         m[segment_name].datatree = d
         m[segment_name].availability_ca_var = "_avail_"

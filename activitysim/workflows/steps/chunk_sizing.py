@@ -28,7 +28,6 @@ def chunk_sizing(
 
     # if chunk size is set explicitly, use it without regard to other settings
     if chunk_size is None:
-
         if chunk_size_pct_of_available is not None:
             if chunk_size_pct_of_available > 1:
                 chunk_size_pct_of_available /= 100

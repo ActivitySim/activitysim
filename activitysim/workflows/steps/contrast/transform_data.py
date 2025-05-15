@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -22,7 +24,6 @@ def transform_data(
     censor=None,
     eval=None,
 ) -> dict:
-
     if qcut is None and cut is None and clip is None and censor is None:
         raise ValueError("must give at least one of {cut, qcut, clip, censor}")
 

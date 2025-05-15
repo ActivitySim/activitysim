@@ -91,7 +91,7 @@ def test_simple_simulate(est_data, num_regression, dataframe_regression, name, m
         ("non_mandatory_tour_destination", "SLSQP", None),
         ("atwork_subtour_destination", "BHHH", None),
         ("trip_destination", "BHHH", None),
-        # ("trip_destination", "SLSQP", 0.12),
+        ("trip_destination", "SLSQP", None),
         # trip_destination model has unusual parameter variance on a couple
         # parameters when switching platforms, possibly related to default data
         # types and high standard errors.  Most parameters and the overall
@@ -105,6 +105,13 @@ def test_location_model(
     from activitysim.estimation.larch import component_model, update_size_spec
 
     m, data = component_model(name, return_data=True)
+
+    if name == "trip_destination":
+        # this model is overspecified in the example, so we need to lock a
+        # parameter to make it identifiable.
+        m.lock_value("coef_prox_dest_outbound_work", 0.0)
+        m.set_cap(25.0)
+
     m.doctor(repair_av_zq="-", repair_nan_utility=True)
     loglike_prior = m.loglike()
     r = m.maximize_loglike(method=method, options={"maxiter": 1000, "ftol": 1.0e-8})

@@ -16,6 +16,15 @@ from .general import (
     remove_apostrophes,
 )
 
+try:
+    # Larch is an optional dependency, and we don't want to fail when importing
+    # this module simply because larch is not installed.
+    import larch as lx
+except ImportError:
+    lx = None
+else:
+    from larch.util import Dict
+
 
 def stop_frequency_data(
     edb_directory="output/estimation_data_bundle/{name}/",
@@ -183,7 +192,6 @@ def stop_frequency_model(
     models = []
 
     for n in range(len(data.spec)):
-
         coefficients = data.coefficients
         # coef_template = data.coef_template # not used
         spec = data.spec[n]
@@ -220,12 +228,6 @@ def stop_frequency_model(
         d = Dataset.construct.from_idco(
             chooser_data, alts=dict(zip(alt_codes, alt_names))
         )
-        # d = DataFrames(
-        #     co=chooser_data,
-        #     av=avail,
-        #     alt_codes=alt_codes,
-        #     alt_names=alt_names,
-        # )
 
         m.datatree = d
         m.choice_co_code = "override_choice_code"

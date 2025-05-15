@@ -13,6 +13,7 @@ dependencies:
 - dask = 2023.3.2
 - isort = 5.12.0
 - matplotlib = 3.9.*
+- multimethod < 2.0
 - nbmake = 1.4.6
 - numba = 0.60.*
 - numpy = 1.23.5

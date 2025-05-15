@@ -11,8 +11,6 @@ from typing import Collection
 import numpy as np
 import pandas as pd
 import yaml
-from larch import Dataset, Model, P, X
-from larch.util import Dict
 
 from .general import (
     apply_coefficients,
@@ -23,6 +21,15 @@ from .general import (
     remove_apostrophes,
     str_repr,
 )
+
+try:
+    # Larch is an optional dependency, and we don't want to fail when importing
+    # this module simply because larch is not installed.
+    import larch as lx
+except ImportError:
+    lx = None
+else:
+    from larch.util import Dict
 
 
 def size_coefficients_from_spec(size_spec):
@@ -71,7 +78,58 @@ def location_choice_model(
     chunking_size=None,
     *,
     alts_in_cv_format=False,
-) -> Model | tuple[Model, LocationChoiceData]:
+    availability_expression=None,
+) -> lx.Model | tuple[lx.Model, LocationChoiceData]:
+    """
+    Construct a location choice model from the estimation data bundle.
+
+    Parameters
+    ----------
+    name : str, optional
+        The name of the location choice model. The default is "workplace_location".
+    edb_directory : str, optional
+        The directory containing the estimation data bundle. The default is
+        "output/estimation_data_bundle/{name}/", where "{name}" is the name of
+        the model (see above).
+    coefficients_file : str, optional
+        The name of the coefficients file. The default is "{name}_coefficients.csv",
+        where "{name}" is the name of the model (see above).
+    spec_file : str, optional
+        The name of the spec file. The default is "{name}_SPEC.csv", where "{name}"
+        is the name of the model (see above).
+    size_spec_file : str, optional
+        The name of the size spec file. The default is "{name}_size_terms.csv", where
+        "{name}" is the name of the model (see above).
+    alt_values_file : str, optional
+        The name of the alternative values file. The default is
+        "{name}_alternatives_combined.csv", where "{name}" is the name of the model
+        (see above).
+    chooser_file : str, optional
+        The name of the chooser file. The default is "{name}_choosers_combined.csv",
+        where "{name}" is the name of the model (see above).
+    settings_file : str, optional
+        The name of the settings file. The default is "{name}_model_settings.yaml",
+        where "{name}" is the name of the model (see above).
+    landuse_file : str, optional
+        The name of the land use file. The default is "{name}_landuse.csv", where
+        "{name}" is the name of the model (see above).
+    return_data : bool, optional
+        If True, return a tuple containing the model and the location choice data.
+        The default is False, which returns only the model.
+    alt_values_to_feather : bool, default False
+        If True, convert the alternative values to a feather file.
+    chunking_size : int, optional
+        The number of rows per chunk for processing the alternative values. The default
+        is None, which processes all rows at once.
+    alts_in_cv_format : bool, default False
+        If True, the alternatives are in CV format. The default is False.
+    availability_expression : str, optional
+        The name of the availability expression. This is the "Label" from the
+        spec file that identifies an expression that evaluates truthy (non-zero)
+        if the alternative is available, and falsey otherwise.  If not provided,
+        the code will attempt to infer the availability expression from the
+        expressions, but this is not reliable. The default is None.
+    """
     model_selector = name.replace("_location", "")
     model_selector = model_selector.replace("_destination", "")
     model_selector = model_selector.replace("_subtour", "")
@@ -340,7 +398,14 @@ def location_choice_model(
     choice_def = {"choice_ca_var": "override_choice == _original_zone_id"}
 
     # Availability of choice zones
-    if "util_no_attractions" in x_ca_1:
+    if availability_expression is not None and availability_expression in x_ca_1:
+        av = (
+            x_ca_1[availability_expression]
+            .apply(lambda x: False if x == 1 else True)
+            .astype(np.int8)
+            .to_xarray()
+        )
+    elif "util_no_attractions" in x_ca_1:
         av = (
             x_ca_1["util_no_attractions"]
             .apply(lambda x: False if x == 1 else True)
@@ -367,13 +432,13 @@ def location_choice_model(
     assert len(x_co) > 0, "Empty chooser dataframe"
     assert len(x_ca_1) > 0, "Empty alternatives dataframe"
 
-    d_ca = Dataset.construct.from_idca(x_ca_1)
-    d_co = Dataset.construct.from_idco(x_co)
+    d_ca = lx.Dataset.construct.from_idca(x_ca_1)
+    d_co = lx.Dataset.construct.from_idco(x_co)
     d = d_ca.merge(d_co)
     if av is not None:
         d["_avail_"] = av
 
-    m = Model(datatree=d, compute_engine="numba")
+    m = lx.Model(datatree=d, compute_engine="numba")
 
     # One of the alternatives might be coded as 0, so
     # we need to explicitly initialize the MNL nesting graph
@@ -422,16 +487,16 @@ def location_choice_model(
     if CHOOSER_SEGMENT_COLUMN_NAME is None:
         assert len(size_spec) == 1
         m.quantity_ca = sum(
-            P(f"{i}_{q}") * X(q)
+            lx.P(f"{i}_{q}") * lx.X(q)
             for i in size_spec.index
             for q in size_spec.columns
             if size_spec.loc[i, q] != 0
         )
     else:
         m.quantity_ca = sum(
-            P(f"{i}_{q}")
-            * X(q)
-            * X(f"{CHOOSER_SEGMENT_COLUMN_NAME}=={str_repr(SEGMENT_IDS[i])}")
+            lx.P(f"{i}_{q}")
+            * lx.X(q)
+            * lx.X(f"{CHOOSER_SEGMENT_COLUMN_NAME}=={str_repr(SEGMENT_IDS[i])}")
             for i in size_spec.index
             for q in size_spec.columns
             if size_spec.loc[i, q] != 0

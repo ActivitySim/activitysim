@@ -28,6 +28,7 @@ dependencies:
 - isort
 - jupyterlab
 - matplotlib
+- multimethod <2.0
 - myst-parser  # allows markdown in sphinx
 - nbconvert
 - nbformat
@@ -74,5 +75,5 @@ dependencies:
 
 - pip:
   - autodoc_pydantic
-  - larch6 >= 6.0.34
+  - larch >= 6.0.34
   - -e ..

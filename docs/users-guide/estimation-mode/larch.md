@@ -269,6 +269,16 @@ for all other size-based models.  When copying the revised size term specificati
 to the model configuration, the user should be careful that re-estimation updates
 from multiple models are not inadvertently overwriting each other.
 
+As an alternative, users can choose to *not* re-estimate the size terms, by
+providing exogenous size terms in the model specification, and instructing Larch
+not to re-estimate these parameters.  This is done via the `Model.lock_value`
+command, which will fix any given named parameter to a specific value.  This command
+takes two arguments: the name of the parameter to be fixed, and the value to
+fix it to.  The `lock_value` command can be used to fix the size term parameters
+to the values in the size term specification file, and then the model will be
+estimated without re-estimating the size terms. If no re-estimation is desired,
+users can also safely ignore the `update_size_spec` function.
+
 ## Example Notebooks
 
 ActivitySim includes a collection of Jupyter notebooks with

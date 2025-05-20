@@ -158,7 +158,7 @@ class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
     """
     Disaggreate accessibility table is grouped by the "by" cols above and the KEEP_COLS are averaged
     across the group.  Initializing the below as NA if not in the auto ownership level, they are skipped
-    in the groupby mean and the values are correct. 
+    in the groupby mean and the values are correct.
     (It's a way to avoid having to update code to reshape the table and introduce new functionality there.)
     If none, will keep all of the columns with "accessibility" in the name.
     """
@@ -581,7 +581,7 @@ class ProtoPop:
         _expanded = pd.DataFrame(util.named_product(**index_params)).set_index("index")
 
         # Use result to join template onto expanded table of zones
-        ex_table = _expanded.join(master_template).reset_index()
+        ex_table = _expanded.join(master_template).sort_index().reset_index()
 
         # Concatenate a new unique set of ids
         cols = ["home_zone_id", "proto_household_id", "proto_person_id"]
@@ -654,7 +654,9 @@ class ProtoPop:
                 .set_index("index")
                 .rename(columns={"hhid": hhid})
             )
-            persons = rep.join(persons).sort_values(hhid).reset_index(drop=True)
+            persons = (
+                rep.join(persons, sort=True).sort_values(hhid).reset_index(drop=True)
+            )
             persons[perid] = persons.index + 1
 
             # Assign persons to tours
@@ -730,6 +732,7 @@ class ProtoPop:
 
         perid = self.params["proto_persons"]["index_col"]
         persons_merged.set_index(perid, inplace=True, drop=True)
+        persons_merged = persons_merged.sort_index()
         self.proto_pop["proto_persons_merged"] = persons_merged
 
         # Store in pipeline

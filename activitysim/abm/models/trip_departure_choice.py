@@ -404,7 +404,7 @@ def apply_stage_two_model(
     trace_label: str,
     compute_settings: ComputeSettings | None = None,
 ):
-    if not trips.index.is_monotonic:
+    if not trips.index.is_monotonic_increasing:
         trips = trips.sort_index()
 
     # Assign the duration of the appropriate leg to the trip

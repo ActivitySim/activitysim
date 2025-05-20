@@ -33,6 +33,7 @@ from activitysim.core.configuration.logit import (
     TemplatedLogitComponentSettings,
 )
 from activitysim.core.estimation import Estimator
+from activitysim.core.fast_eval import fast_eval
 from activitysim.core.simulate_consts import (
     ALT_LOSER_UTIL,
     SPEC_DESCRIPTION_NAME,
@@ -671,7 +672,7 @@ def eval_utilities(
                                     expr[1:], globals_dict, locals_dict
                                 )
                             else:
-                                expression_value = choosers.eval(expr)
+                                expression_value = fast_eval(choosers, expr)
 
                         if len(w) > 0:
                             for wrn in w:
@@ -941,7 +942,7 @@ def eval_variables(
                 if expr.startswith("@"):
                     expr_values = to_array(eval(expr[1:], globals_dict, locals_dict))
                 else:
-                    expr_values = to_array(df.eval(expr))
+                    expr_values = to_array(fast_eval(df, expr))
             # read model spec should ensure uniqueness, otherwise we should uniquify
             assert expr not in values
             values[expr] = expr_values

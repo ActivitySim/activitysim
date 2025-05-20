@@ -10,23 +10,23 @@ dependencies:
 - black = 22.12.0
 - coveralls = 3.3.1
 - cytoolz = 0.12.2
-- dask = 2023.3.2
+- dask = 2023.11.*
 - isort = 5.12.0
 - matplotlib = 3.9.*
 - multimethod < 2.0
 - nbmake = 1.4.6
 - numba = 0.60.*
-- numpy = 1.23.5
+- numpy = 1.24.*
 - openmatrix = 0.3.5.0
 - orca = 1.8
 - pandera >= 0.15, <0.18.1
-- pandas = 1.5.*
+- pandas = 2.2.*
 - platformdirs = 3.2.*
 - psutil = 5.9.*
 - pyarrow = 11.*
 - pydantic = 2.6.*
 - pypyr = 5.8.*
-- pytables >= 3.7
+- pytables >= 3.9
 - pytest = 7.2.*
 - pytest-cov
 - pytest-regressions
@@ -37,7 +37,7 @@ dependencies:
 - sharrow >= 2.9.1
 - simwrapper > 1.7
 - sparse
-- xarray = 2023.2.*
+- xarray = 2025.01.*
 - xlsxwriter = 3.2.*
-- zarr = 2.14.*
+- zarr>=2,<3
 - zstandard

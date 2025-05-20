@@ -61,6 +61,14 @@ def fast_eval(df: pd.DataFrame, expr: str, **kwargs) -> Any | None:
     `eval` to run arbitrary code, which can make you vulnerable to code
     injection if you pass user input to this function.
 
+    This function is a wrapper that replaces :meth:`~pandas.DataFrame.eval`
+    with a more efficient version than in the default pandas library (as
+    of pandas 2.2.3). It is recommended to use this function instead of
+    :meth:`~pandas.DataFrame.eval` for better performance. However, if you
+    encounter issues with this function, you can switch back to the default
+    pandas eval by changing the function call from `fast_eval(df, ...)` to
+    `df.eval(...)`.
+
     Parameters
     ----------
     expr : str

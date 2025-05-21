@@ -328,7 +328,6 @@ def run(args):
     config.filter_warnings(state)
     logging.captureWarnings(capture=True)
 
-
     activitysim_version = importlib.metadata.version("activitysim")
     logger.info(f"ActivitySim Version: {activitysim_version}")
 

@@ -188,7 +188,10 @@ class LocationComponentSettings(BaseLogitComponentSettings):
     """This many candidate alternatives will be sampled for each choice."""
 
     LOGSUM_SETTINGS: Path | None = None
-    """Settings for the logsum computation."""
+    """
+    Settings for the logsum computation.
+    If None, no logsum is computed and logsum field is populated with zeros.
+    """
 
     explicit_chunk: float = 0
     """

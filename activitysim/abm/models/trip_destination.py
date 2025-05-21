@@ -1052,16 +1052,21 @@ def choose_trip_destination(
         return pd.Series(index=trips.index).to_frame("choice"), None
 
     # - compute logsums
-    destination_sample = compute_logsums(
-        state,
-        primary_purpose=primary_purpose,
-        trips=trips,
-        destination_sample=destination_sample,
-        tours_merged=tours_merged,
-        model_settings=model_settings,
-        skim_hotel=skim_hotel,
-        trace_label=trace_label,
-    )
+    # If LOGSUM_SETTINGS is set to None, we don't want to compute logsums
+    if model_settings.LOGSUM_SETTINGS:
+        destination_sample = compute_logsums(
+            state,
+            primary_purpose=primary_purpose,
+            trips=trips,
+            destination_sample=destination_sample,
+            tours_merged=tours_merged,
+            model_settings=model_settings,
+            skim_hotel=skim_hotel,
+            trace_label=trace_label,
+        )
+    else:
+        destination_sample["od_logsum"] = 0.0
+        destination_sample["dp_logsum"] = 0.0
 
     t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0)
 

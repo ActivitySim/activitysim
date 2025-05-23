@@ -1276,9 +1276,14 @@ def run_trip_destination(
             state.filesystem, model_settings_file_name
         )
     preprocessor_settings = model_settings.preprocessor
-    logsum_settings = state.filesystem.read_model_settings(
-        model_settings.LOGSUM_SETTINGS
-    )
+
+    # read in logsum settings if they exist, otherwise logsum calculations are skipped
+    if model_settings.LOGSUM_SETTINGS:
+        logsum_settings = state.filesystem.read_model_settings(
+            model_settings.LOGSUM_SETTINGS
+        )
+    else:
+        logsum_settings = None
 
     logsum_column_name = model_settings.DEST_CHOICE_LOGSUM_COLUMN_NAME
     want_logsums = logsum_column_name is not None
@@ -1346,7 +1351,7 @@ def run_trip_destination(
 
     # - filter tours_merged (AFTER copying destination and origin columns to trips)
     # tours_merged is used for logsums, we filter it here upfront to save space and time
-    tours_merged_cols = logsum_settings["TOURS_MERGED_CHOOSER_COLUMNS"]
+    tours_merged_cols = logsum_settings["TOURS_MERGED_CHOOSER_COLUMNS"] if logsum_settings else []
     redundant_cols = model_settings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS or []
     if redundant_cols:
         tours_merged_cols = [c for c in tours_merged_cols if c not in redundant_cols]

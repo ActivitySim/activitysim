@@ -317,6 +317,7 @@ def make_choices_explicit_error_term_nl(
         ),
         axis=1,
     )
+    # TODO-EET: reporting like for zero probs
     assert not choices.isnull().any(), "No choice for XXX - implement reporting"
     choices = pd.Series(choices, index=nest_utils_for_choice.index)
 
@@ -349,12 +350,10 @@ def make_choices_explicit_error_term(
     return choices
 
 
-# TODO-EET: memory usage
+# TODO-EET: memory logging
 def make_choices_utility_based(
     state: workflow.State,
     utilities: pd.DataFrame,
-    # for nested: need mapping of index to alternative name to "fake" indexes if I want to keep with current
-    #  structure, OR need to make returning names optional. sharrow impl will make our life so much easier
     name_mapping=None,
     nest_spec=None,
     trace_label: str = None,
@@ -677,7 +676,6 @@ def each_nest(nest_spec: dict | LogitNestSpec, type=None, post_order=False):
             yield nest
 
 
-# TODO-EET: do I need to implement this for LogitNestSpec?
 def count_nests(nest_spec):
     """
     count the nests in nest_spec, return 0 if nest_spec is none

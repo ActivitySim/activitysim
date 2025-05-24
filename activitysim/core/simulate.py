@@ -1060,7 +1060,6 @@ def compute_nested_utilities(raw_utilities, nest_spec):
     for nest in logit.each_nest(nest_spec, post_order=True):
         name = nest.name
         if nest.is_leaf:
-            # do not scale here, do afterwards so recursive structure works
             nested_utilities[name] = (
                 raw_utilities[name].astype(float) / nest.product_of_coefficients
             )
@@ -1427,12 +1426,11 @@ def eval_nl(
         )
 
     if state.settings.use_explicit_error_terms:
-        # TODO-EET [janzill Jun2022]: combine with nested_exp_utilities?
         # utilities of leaves and nests
         nested_utilities = compute_nested_utilities(raw_utilities, nest_spec)
         chunk_sizer.log_df(trace_label, "nested_utilities", nested_utilities)
 
-        # TODO-EET [janzill Jun2022]: this can be done from utils directly, but use existing methodology for prototype
+        # TODO-EET: use nested_utiltites directly to compute logsums?
         if want_logsums:
             # logsum of nest root
             # exponentiated utilities of leaves and nests

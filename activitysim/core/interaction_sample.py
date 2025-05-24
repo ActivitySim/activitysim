@@ -43,7 +43,7 @@ def make_sample_choices_utility_based(
     assert isinstance(alternatives, pd.DataFrame)
     assert len(alternatives) == alternative_count
 
-    # Note [janzill Jun2022]: this needs for loop for memory like previous method, an array of dimension
+    # TODO-EET [janzill Jun2022]: this needs for loop for memory like previous method, an array of dimension
     #   (len(choosers), alternative_count, sample_size) can get very large
     # choices = np.zeros_like(utilities, dtype=np.uint32)
     # zero_dim_index = np.arange(utilities.shape[0])
@@ -540,6 +540,7 @@ def _interaction_sample(
         use_eet = state.settings.use_explicit_error_terms
 
     # sample_size == 0 is for estimation mode, see below
+    # TODO-EET: add sample_size == 0 to EET, this needs to be an option not just for estimation mode
     if (sample_size != 0) and use_eet:
         choices_df = make_sample_choices_utility_based(
             state,

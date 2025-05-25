@@ -123,7 +123,7 @@ def get_tour_satisfaction(candidates, participate):
 
 def participants_chooser(
     state: workflow.State,
-    probs: pd.DataFrame,
+    probs_or_utils: pd.DataFrame,
     choosers: pd.DataFrame,
     spec: pd.DataFrame,
     trace_label: str,
@@ -143,11 +143,11 @@ def participants_chooser(
 
     Parameters
     ----------
-    probs : pandas.DataFrame
+    probs_or_utils : pandas.DataFrame
         Rows for choosers and columns for the alternatives from which they
-        are choosing. Values are expected to be valid probabilities across
-        each row, e.g. they should sum to 1, unless using explicit error terms,
-        in which case values are utilities.
+        are choosing. If running with explicit_error_terms, these are utilities.
+        Otherwise, values are expected to be valid probabilities across
+        each row, e.g. they should sum to 1.
     choosers : pandas.dataframe
         simple_simulate choosers df
     spec : pandas.DataFrame
@@ -163,7 +163,7 @@ def participants_chooser(
 
     """
 
-    assert probs.index.equals(choosers.index)
+    assert probs_or_utils.index.equals(choosers.index)
 
     # choice is boolean (participate or not)
     model_settings = JointTourParticipationSettings.read_settings_file(
@@ -199,7 +199,7 @@ def participants_chooser(
                 "%s max iterations exceeded (%s).", trace_label, MAX_ITERATIONS
             )
             diagnostic_cols = ["tour_id", "household_id", "composition", "adult"]
-            unsatisfied_candidates = candidates[diagnostic_cols].join(probs)
+            unsatisfied_candidates = candidates[diagnostic_cols].join(probs_or_utils)
             state.tracing.write_csv(
                 unsatisfied_candidates,
                 file_name="%s.UNSATISFIED" % trace_label,
@@ -207,18 +207,25 @@ def participants_chooser(
             )
             print(unsatisfied_candidates.head(20))
 
-            # TODO-EET: explicit error term impl of force participation
-            if (
-                model_settings.FORCE_PARTICIPATION
-                and not state.settings.use_explicit_error_terms
-            ):
+            if model_settings.FORCE_PARTICIPATION:
                 logger.warning(
                     f"Forcing joint tour participation for {num_tours_remaining} tours."
                 )
                 # anybody with probability > 0 is forced to join the joint tour
-                probs[choice_col] = np.where(probs[choice_col] > 0, 1, 0)
-                non_choice_col = [col for col in probs.columns if col != choice_col][0]
-                probs[non_choice_col] = 1 - probs[choice_col]
+                if state.settings.use_explicit_error_terms:
+                    # need "is valid choice", which requires minimum probability. This depends
+                    # on all other utilities, and we need to make sure that we set values such that we
+                    # certainly choose those with non-zero values, and do not choose other ones. Let's
+                    # use -999 as zero prob choice and 10 as definitive choice (based on diff and std gumbel).
+                    probs_from_utils = logit.utils_to_probs(state, probs_or_utils)
+                    probs_or_utils[choice_col] = np.where(probs_from_utils[choice_col] > 0, 10, -999)
+                    non_choice_col = [col for col in probs_or_utils.columns if col != choice_col][0]
+                    probs_or_utils[non_choice_col] = np.where(probs_or_utils[choice_col] == -999, 10, -999)
+                else:
+                    probs_or_utils[choice_col] = np.where(probs_or_utils[choice_col] > 0, 1, 0)
+                    non_choice_col = [col for col in probs_or_utils.columns if col != choice_col][0]
+                    probs_or_utils[non_choice_col] = 1 - probs_or_utils[choice_col]
+
                 if iter > MAX_ITERATIONS + 1:
                     raise RuntimeError(
                         f"{num_tours_remaining} tours could not be satisfied even with forcing participation"
@@ -228,14 +235,10 @@ def participants_chooser(
                     f"{num_tours_remaining} tours could not be satisfied after {iter} iterations"
                 )
 
-        if state.settings.use_explicit_error_terms:
-            choices, rands = logit.make_choices_utility_based(
-                state, probs, trace_label=trace_label, trace_choosers=choosers
-            )
-        else:
-            choices, rands = logit.make_choices(
-                state, probs, trace_label=trace_label, trace_choosers=choosers
-            )
+        choice_function = (
+            logit.make_choices_utility_based if state.settings.use_explicit_error_terms else logit.make_choices
+        )
+        choices, rands = choice_function(state, probs_or_utils, trace_label=trace_label, trace_choosers=choosers)
         participate = choices == PARTICIPATE_CHOICE
 
         # satisfaction indexed by tour_id
@@ -258,7 +261,7 @@ def participants_chooser(
             rands_list.append(rands[satisfied])
 
             # remove candidates of satisfied tours
-            probs = probs[~satisfied]
+            probs_or_utils = probs_or_utils[~satisfied]
             candidates = candidates[~satisfied]
 
         logger.debug(
@@ -426,6 +429,14 @@ def joint_tour_participation(
     for i in ["person_is_preschool", "composition", "adult"]:
         if i not in model_settings.compute_settings.protect_columns:
             model_settings.compute_settings.protect_columns.append(i)
+
+    # TODO EET: this is related to the difference in nested logit and logit choice as per comment in
+    # make_choices_utility_based. As soon as alt_order_array is removed from arguments to 
+    # make_choices_explicit_error_term_nl this guard can be removed
+    if state.settings.use_explicit_error_terms:
+        assert nest_spec is not None, (
+            "Nested logit model custom chooser for EET requires name_mapping, currently not implemented in jtp"
+        )
 
     custom_chooser = participants_chooser
 

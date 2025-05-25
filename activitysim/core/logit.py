@@ -293,14 +293,6 @@ def choose_from_tree(
     raise ValueError("This should never happen - no alternative found")
 
 
-# TODO-EET [janzill Jun2022]: make everything in nested and here numpy from beginning to make choices consistent with
-#  previous impl (want column index and not alternative name)
-# Note: this is relatively slow due to the apply.
-# It could *maybe* be sped up by using the fact that the nesting structure is the same for all rows: Add ev1(0,1) to
-# all entries (as is currently being done). Then, at each level, pick the maximum of the available composite
-# alternatives and set the corresponding entry to 1 for each row, set all other alternatives at this level to zero.
-# Once the tree is walked (all alternatives have been processed), take the product of the alternatives in each
-# leaf's alternative list. Then pick the only alternative with entry 1, all others must be 0.
 def make_choices_explicit_error_term_nl(
     state, nested_utilities, alt_order_array, nest_spec
 ):
@@ -311,6 +303,11 @@ def make_choices_explicit_error_term_nl(
     logit_nest_groups = group_nest_names_by_level(nest_spec)
     nest_alternatives_by_name = {n.name: n.alternatives for n in each_nest(nest_spec)}
 
+    # Apply is slow. It could *maybe* be sped up by using the fact that the nesting structure is the same for all rows:
+    # Add ev1(0,1) to all entries (as is currently being done). Then, at each level, pick the maximum of the available
+    # composite alternatives and set the corresponding entry to 1 for each row, set all other alternatives at this level
+    # to zero. Once the tree is walked (all alternatives have been processed), take the product of the alternatives in
+    # each leaf's alternative list. Then pick the only alternative with entry 1, all others must be 0.
     choices = nest_utils_for_choice.apply(
         lambda x: choose_from_tree(
             x, all_alternatives, logit_nest_groups, nest_alternatives_by_name

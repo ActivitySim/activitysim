@@ -539,6 +539,45 @@ def _interaction_sample(
     else:
         use_eet = state.settings.use_explicit_error_terms
 
+    if sample_size == 0:
+        # FIXME return full alternative set rather than sample
+        logger.info(
+            "Estimation mode for %s using unsampled alternatives" % (trace_label,)
+        )
+        probs = logit.utils_to_probs(
+            state,
+            utilities,
+            allow_zero_probs=allow_zero_probs,
+            trace_label=trace_label,
+            trace_choosers=choosers,
+            overflow_protection=not allow_zero_probs,
+        )
+        chunk_sizer.log_df(trace_label, "probs", probs)
+
+        del utilities
+        chunk_sizer.log_df(trace_label, "utilities", None)
+
+        index_name = probs.index.name
+        choices_df = (
+            pd.melt(probs.reset_index(), id_vars=[index_name])
+            .sort_values(by=index_name, kind="mergesort")
+            .set_index(index_name)
+            .rename(columns={"value": "prob"})
+            .drop(columns="variable")
+        )
+        chunk_sizer.log_df(trace_label, "choices_df", choices_df)
+
+        del probs
+        chunk_sizer.log_df(trace_label, "probs", None)
+
+        choices_df["pick_count"] = 1
+        choices_df.insert(
+            0, alt_col_name, np.tile(alternatives.index.values, len(choosers.index))
+        )
+        chunk_sizer.log_df(trace_label, "choices_df", choices_df)
+
+        return choices_df
+
     # sample_size == 0 is for estimation mode, see below
     # TODO-EET: add sample_size == 0 to EET, this needs to be an option not just for estimation mode
     if (sample_size != 0) and use_eet:
@@ -579,40 +618,18 @@ def _interaction_sample(
                 column_labels=["alternative", "probability"],
             )
 
-        if sample_size == 0:
-            # FIXME return full alternative set rather than sample
-            logger.info(
-                "Estimation mode for %s using unsampled alternatives" % (trace_label,)
-            )
-
-            index_name = probs.index.name
-            choices_df = (
-                pd.melt(probs.reset_index(), id_vars=[index_name])
-                .sort_values(by=index_name, kind="mergesort")
-                .set_index(index_name)
-                .rename(columns={"value": "prob"})
-                .drop(columns="variable")
-            )
-
-            choices_df["pick_count"] = 1
-            choices_df.insert(
-                0, alt_col_name, np.tile(alternatives.index.values, len(choosers.index))
-            )
-
-            return choices_df
-        else:
-            choices_df = make_sample_choices(
-                state,
-                choosers,
-                probs,
-                alternatives,
-                sample_size,
-                alternative_count,
-                alt_col_name,
-                allow_zero_probs=allow_zero_probs,
-                trace_label=trace_label,
-                chunk_sizer=chunk_sizer,
-            )
+        choices_df = make_sample_choices(
+            state,
+            choosers,
+            probs,
+            alternatives,
+            sample_size,
+            alternative_count,
+            alt_col_name,
+            allow_zero_probs=allow_zero_probs,
+            trace_label=trace_label,
+            chunk_sizer=chunk_sizer,
+        )
 
         del probs
         chunk_sizer.log_df(trace_label, "probs", None)

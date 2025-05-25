@@ -279,12 +279,12 @@ def _interaction_sample(
     choices_df : pandas.DataFrame
 
         A DataFrame where index should match the index of the choosers DataFrame
-        and columns alt_col_name, prob, rand, pick_count
+        and columns alt_col_name, prob, pick_count
 
+        alt_col_name: int
+            the identifier of the alternatives
         prob: float
             the probability of the chosen alternative
-        rand: float
-            the rand that did the choosing
         pick_count : int
             number of duplicate picks for chooser, alt
     """

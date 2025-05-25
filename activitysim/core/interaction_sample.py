@@ -545,11 +545,16 @@ def _interaction_sample(
 
         index_name = utilities.index.name
         choices_df = (
-            pd.melt(utilities.reset_index(), id_vars=[index_name], value_name='prob', var_name=alt_col_name)
+            pd.melt(
+                utilities.reset_index(),
+                id_vars=[index_name],
+                value_name="prob",
+                var_name=alt_col_name,
+            )
             .sort_values(by=index_name, kind="mergesort")
             .set_index(index_name)
-            .assign(prob = 1)
-            .assign(pick_count = 1)
+            .assign(prob=1)
+            .assign(pick_count=1)
         )
         chunk_sizer.log_df(trace_label, "choices_df", choices_df)
 

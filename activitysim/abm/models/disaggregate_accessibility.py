@@ -15,7 +15,7 @@ from activitysim.abm.models import initialize, location_choice
 from activitysim.abm.models.util import tour_destination
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core import estimation, los, tracing, util, workflow
-from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable, ComputeSettings
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.expressions import assign_columns
 
@@ -75,8 +75,7 @@ class DisaggregateAccessibilityAnnotateSettings(PydanticReadable, extra="forbid"
     annotate: PreprocessorSettings
 
 
-# TODO-EET: add eet override for SOA MC sampling
-class DisaggregateAccessibilitySettings(PydanticReadable):  # , extra="forbid")
+class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
     suffixes: DisaggregateAccessibilitySuffixes = DisaggregateAccessibilitySuffixes()
     ORIGIN_SAMPLE_SIZE: float | int = 0
     """
@@ -184,6 +183,8 @@ class DisaggregateAccessibilitySettings(PydanticReadable):  # , extra="forbid")
     If less than 1, use this fraction of the total number of rows.
     If not supplied or None, will default to the chunk size in the location choice model settings.
     """
+
+    compute_settings: ComputeSettings | None = None
 
 
 def read_disaggregate_accessibility_yaml(
@@ -769,6 +770,11 @@ def get_disaggregate_logsums(
         # Otherwise the explict_chunk will be set to whatever is in the location model settings
         if disagg_model_settings.explicit_chunk is not None:
             model_settings.explicit_chunk = disagg_model_settings.explicit_chunk
+
+        # Can set compute settings for disaggregate accessibility
+        # Otherwise this will be set to whatever is in the location model settings
+        if disagg_model_settings.compute_settings is not None:
+            model_settings.compute_settings = disagg_model_settings.compute_settings
 
         # Include the suffix tags to pass onto downstream logsum models (e.g., tour mode choice)
         if model_settings.LOGSUM_SETTINGS:

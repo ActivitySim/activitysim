@@ -578,9 +578,7 @@ def _interaction_sample(
 
         return choices_df
 
-    # sample_size == 0 is for estimation mode, see below
-    # TODO-EET: add sample_size == 0 to EET, this needs to be an option not just for estimation mode
-    if (sample_size != 0) and use_eet:
+    if use_eet:
         choices_df = make_sample_choices_utility_based(
             state,
             choosers,

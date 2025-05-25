@@ -540,41 +540,25 @@ def _interaction_sample(
         use_eet = state.settings.use_explicit_error_terms
 
     if sample_size == 0:
-        # FIXME return full alternative set rather than sample
-        logger.info(
-            "Estimation mode for %s using unsampled alternatives" % (trace_label,)
+        # Return full alternative set rather than sample
+        logger.info("Using unsampled alternatives for %s" % (trace_label,))
+
+        index_name = utilities.index.name
+        choices_df = (
+            pd.melt(utilities.reset_index(), id_vars=[index_name], value_name='prob', var_name=alt_col_name)
+            .sort_values(by=index_name, kind="mergesort")
+            .set_index(index_name)
+            .assign(prob = 1)
+            .assign(pick_count = 1)
         )
-        probs = logit.utils_to_probs(
-            state,
-            utilities,
-            allow_zero_probs=allow_zero_probs,
-            trace_label=trace_label,
-            trace_choosers=choosers,
-            overflow_protection=not allow_zero_probs,
-        )
-        chunk_sizer.log_df(trace_label, "probs", probs)
+        chunk_sizer.log_df(trace_label, "choices_df", choices_df)
+
+        # utilities are numbered 0..n-1 so we need to map back to alt ids
+        alternative_map = pd.Series(alternatives.index).to_dict()
+        choices_df[alt_col_name] = choices_df[alt_col_name].map(alternative_map)
 
         del utilities
         chunk_sizer.log_df(trace_label, "utilities", None)
-
-        index_name = probs.index.name
-        choices_df = (
-            pd.melt(probs.reset_index(), id_vars=[index_name])
-            .sort_values(by=index_name, kind="mergesort")
-            .set_index(index_name)
-            .rename(columns={"value": "prob"})
-            .drop(columns="variable")
-        )
-        chunk_sizer.log_df(trace_label, "choices_df", choices_df)
-
-        del probs
-        chunk_sizer.log_df(trace_label, "probs", None)
-
-        choices_df["pick_count"] = 1
-        choices_df.insert(
-            0, alt_col_name, np.tile(alternatives.index.values, len(choosers.index))
-        )
-        chunk_sizer.log_df(trace_label, "choices_df", choices_df)
 
         return choices_df
 

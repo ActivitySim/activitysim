@@ -227,7 +227,7 @@ class ComputeSettings(PydanticBase):
         if isinstance(self.use_explicit_error_terms, dict):
             return self.use_explicit_error_terms.get(subcomponent, None)
         else:
-            return bool(self.use_explicit_error_terms)
+            return self.use_explicit_error_terms
 
     @contextmanager
     def pandas_option_context(self):

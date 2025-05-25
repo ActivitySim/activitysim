@@ -218,12 +218,22 @@ def participants_chooser(
                     # certainly choose those with non-zero values, and do not choose other ones. Let's
                     # use -999 as zero prob choice and 10 as definitive choice (based on diff and std gumbel).
                     probs_from_utils = logit.utils_to_probs(state, probs_or_utils)
-                    probs_or_utils[choice_col] = np.where(probs_from_utils[choice_col] > 0, 10, -999)
-                    non_choice_col = [col for col in probs_or_utils.columns if col != choice_col][0]
-                    probs_or_utils[non_choice_col] = np.where(probs_or_utils[choice_col] == -999, 10, -999)
+                    probs_or_utils[choice_col] = np.where(
+                        probs_from_utils[choice_col] > 0, 10, -999
+                    )
+                    non_choice_col = [
+                        col for col in probs_or_utils.columns if col != choice_col
+                    ][0]
+                    probs_or_utils[non_choice_col] = np.where(
+                        probs_or_utils[choice_col] == -999, 10, -999
+                    )
                 else:
-                    probs_or_utils[choice_col] = np.where(probs_or_utils[choice_col] > 0, 1, 0)
-                    non_choice_col = [col for col in probs_or_utils.columns if col != choice_col][0]
+                    probs_or_utils[choice_col] = np.where(
+                        probs_or_utils[choice_col] > 0, 1, 0
+                    )
+                    non_choice_col = [
+                        col for col in probs_or_utils.columns if col != choice_col
+                    ][0]
                     probs_or_utils[non_choice_col] = 1 - probs_or_utils[choice_col]
 
                 if iter > MAX_ITERATIONS + 1:
@@ -236,9 +246,13 @@ def participants_chooser(
                 )
 
         choice_function = (
-            logit.make_choices_utility_based if state.settings.use_explicit_error_terms else logit.make_choices
+            logit.make_choices_utility_based
+            if state.settings.use_explicit_error_terms
+            else logit.make_choices
         )
-        choices, rands = choice_function(state, probs_or_utils, trace_label=trace_label, trace_choosers=choosers)
+        choices, rands = choice_function(
+            state, probs_or_utils, trace_label=trace_label, trace_choosers=choosers
+        )
         participate = choices == PARTICIPATE_CHOICE
 
         # satisfaction indexed by tour_id
@@ -431,12 +445,12 @@ def joint_tour_participation(
             model_settings.compute_settings.protect_columns.append(i)
 
     # TODO EET: this is related to the difference in nested logit and logit choice as per comment in
-    # make_choices_utility_based. As soon as alt_order_array is removed from arguments to 
+    # make_choices_utility_based. As soon as alt_order_array is removed from arguments to
     # make_choices_explicit_error_term_nl this guard can be removed
     if state.settings.use_explicit_error_terms:
-        assert nest_spec is not None, (
-            "Nested logit model custom chooser for EET requires name_mapping, currently not implemented in jtp"
-        )
+        assert (
+            nest_spec is not None
+        ), "Nested logit model custom chooser for EET requires name_mapping, currently not implemented in jtp"
 
     custom_chooser = participants_chooser
 

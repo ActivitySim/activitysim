@@ -43,10 +43,6 @@ def make_sample_choices_utility_based(
     assert isinstance(alternatives, pd.DataFrame)
     assert len(alternatives) == alternative_count
 
-    # TODO-EET [janzill Jun2022]: this needs for loop for memory like previous method, an array of dimension
-    #   (len(choosers), alternative_count, sample_size) can get very large
-    # choices = np.zeros_like(utilities, dtype=np.uint32)
-    # zero_dim_index = np.arange(utilities.shape[0])
     utils_array = utilities.to_numpy()
     chunk_sizer.log_df(trace_label, "utils_array", utils_array)
     chosen_destinations = []
@@ -54,13 +50,10 @@ def make_sample_choices_utility_based(
     rands = state.get_rn_generator().gumbel_for_df(utilities, n=alternative_count)
     chunk_sizer.log_df(trace_label, "rands", rands)
 
+    # TODO-EET [janzill Jun2022]: using for-loop to keep memory usage low, an array of dimension
+    #  (len(choosers), alternative_count, sample_size) can get very large. Probably better to
+    #  use chunking for this.
     for i in range(sample_size):
-        # rands = pipeline.get_rn_generator().random_for_df(utilities, n=alternative_count)
-        # choices[zero_dim_index, np.argmax(inverse_ev1_cdf(rands) + utils_array, axis=1)] += 1
-        # choices[
-        #    zero_dim_index,
-        #    np.argmax(pipeline.get_rn_generator().gumbel_for_df(utilities, n=alternative_count) + utils_array, axis=1)
-        # ] += 1
         # created this once for memory logging
         if i > 0:
             rands = state.get_rn_generator().gumbel_for_df(
@@ -77,10 +70,6 @@ def make_sample_choices_utility_based(
     chunk_sizer.log_df(trace_label, "rands", None)
 
     chooser_idx = np.tile(np.arange(utilities.shape[0]), sample_size)
-    # chunk.log_df(trace_label, 'choices_array', choices_array)
-    # choices array has same dim as utilities, with values indicating number of counts per chooser and alternative
-    # let's turn the nonzero values into a dataframe
-    # i, j = np.nonzero(choices_array)
     chunk_sizer.log_df(trace_label, "chooser_idx", chooser_idx)
 
     probs = logit.utils_to_probs(
@@ -95,7 +84,6 @@ def make_sample_choices_utility_based(
     choices_df = pd.DataFrame(
         {
             alt_col_name: alternatives.index.values[chosen_destinations],
-            # "pick_count": choices_array[i, j],
             "prob": probs.to_numpy()[chooser_idx, chosen_destinations],
             choosers.index.name: choosers.index.values[chooser_idx],
         }

@@ -449,7 +449,7 @@ def joint_tour_participation(
     # make_choices_explicit_error_term_nl this guard can be removed
     if state.settings.use_explicit_error_terms:
         assert (
-            nest_spec is not None
+            nest_spec is None
         ), "Nested logit model custom chooser for EET requires name_mapping, currently not implemented in jtp"
 
     custom_chooser = participants_chooser

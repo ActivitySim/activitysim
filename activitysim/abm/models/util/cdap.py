@@ -1035,7 +1035,7 @@ def household_activity_choices(
             "%s.hhsize%d_activity_choices" % (trace_label, hhsize),
             column_labels=["expression", "household"],
         )
-        # TODO-EET: check if different num rands matters here
+
         state.tracing.trace_df(
             rands, "%s.hhsize%d_rands" % (trace_label, hhsize), columns=[None, "rand"]
         )

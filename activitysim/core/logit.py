@@ -270,11 +270,11 @@ def utils_to_probs(
     return probs
 
 
-# TODO-EET: check state, add type annotations, check new-world tracing, etc.
+# TODO-EET: add doc string, tracing
 def add_ev1_random(state: workflow.State, df: pd.DataFrame):
     nest_utils_for_choice = df.copy()
     nest_utils_for_choice += state.get_rn_generator().gumbel_for_df(
-        nest_utils_for_choice, n=df.shape[1]
+        nest_utils_for_choice, n=nest_utils_for_choice.shape[1]
     )
     return nest_utils_for_choice
 
@@ -293,8 +293,9 @@ def choose_from_tree(
     raise ValueError("This should never happen - no alternative found")
 
 
+# TODO-EET: add doc string, tracing
 def make_choices_explicit_error_term_nl(
-    state, nested_utilities, alt_order_array, nest_spec
+    state, nested_utilities, alt_order_array, nest_spec, trace_label
 ):
     """walk down the nesting tree and make choice at each level, which is the root of the next level choice."""
     nest_utils_for_choice = add_ev1_random(state, nested_utilities)
@@ -315,7 +316,7 @@ def make_choices_explicit_error_term_nl(
         axis=1,
     )
     # TODO-EET: reporting like for zero probs
-    assert not choices.isnull().any(), "No choice for XXX - implement reporting"
+    assert not choices.isnull().any(), f"No choice for {trace_label}"
     choices = pd.Series(choices, index=nest_utils_for_choice.index)
 
     # In order for choice indexing to be consistent with MNL and cumsum MC choices, we need to index in the order
@@ -325,11 +326,12 @@ def make_choices_explicit_error_term_nl(
     return choices
 
 
-def make_choices_explicit_error_term_mnl(state, utilities):
+# TODO-EET: add doc string, tracing
+def make_choices_explicit_error_term_mnl(state, utilities, trace_label):
     utilities_incl_unobs = add_ev1_random(state, utilities)
     choices = np.argmax(utilities_incl_unobs.to_numpy(), axis=1)
     # TODO-EET: reporting like for zero probs
-    assert not np.isnan(choices).any(), "No choice for XXX - implement reporting"
+    assert not np.isnan(choices).any(), f"No choice for {trace_label}"
     choices = pd.Series(choices, index=utilities_incl_unobs.index)
     return choices
 
@@ -337,17 +339,16 @@ def make_choices_explicit_error_term_mnl(state, utilities):
 def make_choices_explicit_error_term(
     state, utilities, alt_order_array, nest_spec=None, trace_label=None
 ):
-    trace_label = tracing.extend_trace_label(trace_label, "make_choices_ru_frozen")
+    trace_label = tracing.extend_trace_label(trace_label, "make_choices_eet")
     if nest_spec is None:
-        choices = make_choices_explicit_error_term_mnl(state, utilities)
+        choices = make_choices_explicit_error_term_mnl(state, utilities, trace_label)
     else:
         choices = make_choices_explicit_error_term_nl(
-            state, utilities, alt_order_array, nest_spec
+            state, utilities, alt_order_array, nest_spec, trace_label
         )
     return choices
 
 
-# TODO-EET: memory logging
 def make_choices_utility_based(
     state: workflow.State,
     utilities: pd.DataFrame,

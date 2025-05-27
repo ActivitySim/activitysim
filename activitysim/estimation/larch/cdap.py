@@ -111,11 +111,17 @@ def cdap_base_utility_by_person(
     if n_persons == 1:
         for i in spec.index:
             if not pd.isna(spec.loc[i, "M"]):
-                model.utility_co[1] += X(spec.Expression[i]) * P(spec.loc[i, "M"])
+                model.utility_co[1] += X(spec.Expression[i].lstrip("@")) * P(
+                    spec.loc[i, "M"]
+                )
             if not pd.isna(spec.loc[i, "N"]):
-                model.utility_co[2] += X(spec.Expression[i]) * P(spec.loc[i, "N"])
+                model.utility_co[2] += X(spec.Expression[i].lstrip("@")) * P(
+                    spec.loc[i, "N"]
+                )
             if not pd.isna(spec.loc[i, "H"]):
-                model.utility_co[3] += X(spec.Expression[i]) * P(spec.loc[i, "H"])
+                model.utility_co[3] += X(spec.Expression[i].lstrip("@")) * P(
+                    spec.loc[i, "H"]
+                )
     else:
         if alts is None:
             alts = generate_alternatives(n_persons, add_joint)
@@ -128,7 +134,9 @@ def cdap_base_utility_by_person(
                         x = apply_replacements(
                             spec.Expression[i], f"p{pnum}", value_tokens
                         )
-                        model.utility_co[anum] += X(x) * P(spec.loc[i, aname[z]])
+                        model.utility_co[anum] += X(x.lstrip("@")) * P(
+                            spec.loc[i, aname[z]]
+                        )
 
 
 def interact_pattern(n_persons, select_persons, tag):
@@ -350,13 +358,6 @@ def cdap_dataframes(households, values, add_joint) -> dict[int, lx.Dataset]:
             dims=dfs[hhsize].override_choice.dims,
             name="override_choice",
         )
-        # dfs[hhsize] = DataFrames(
-        #     co=data[hhsize],
-        #     alt_names=alts.keys(),
-        #     alt_codes=alts.values(),
-        #     av=1,
-        #     ch=data[hhsize].override_choice.map(alts),
-        # )
     return dfs
 
 
@@ -489,11 +490,15 @@ def cdap_model(
     interaction_coef = d.interaction_coef
     coefficients = d.coefficients
     add_joint = d.add_joint
+    extra_vars = d.settings.get("CONSTANTS", {})
 
     cdap_dfs = cdap_dataframes(households, values, add_joint)
     m = {}
     _logger.info(f"building for model 1")
-    m[1] = lx.Model(datatree=cdap_dfs[1], compute_engine="numba")
+    m[1] = lx.Model(
+        datatree=cdap_dfs[1].dc.as_tree("df", extra_vars=extra_vars),
+        compute_engine="numba",
+    )
     cdap_base_utility_by_person(m[1], n_persons=1, spec=spec1)
     m[1].choice_co_code = "override_choice"
     m[1].availability_any = True
@@ -506,7 +511,7 @@ def cdap_model(
     for s in range(2, MAX_HHSIZE + 1):
         # for s in [2, 3, 4, 5]:
         _logger.info(f"building for model {s}")
-        m[s] = lx.Model(datatree=cdap_dfs[s])
+        m[s] = lx.Model(datatree=cdap_dfs[s].dc.as_tree("df", extra_vars=extra_vars))
         alts = generate_alternatives(s, add_joint)
         cdap_base_utility_by_person(m[s], s, spec1, alts, values.columns)
         cdap_interaction_utility(m[s], s, alts, interaction_coef, coefficients)

@@ -58,5 +58,5 @@ dependencies:
 
 - pip:
   - autodoc_pydantic
-  - larch >= 6.0.34
+  - larch >= 6.0.39
   - -e ..

@@ -314,7 +314,7 @@ def choose_tour_leg_pattern(
     chunk_sizer.log_df(trace_label, "sample_counts", None)
 
     # insert the zero-prob utilities to pad each alternative set to same size
-    padded_utilities = np.insert(interaction_utilities.utility.values, inserts, -999)
+    padded_utilities = np.insert(interaction_utilities.utility.values, inserts, -999999)
     del inserts
 
     del interaction_utilities

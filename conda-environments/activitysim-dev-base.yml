@@ -73,6 +73,7 @@ dependencies:
 - sphinx_rtd_theme = 1.2.*
 - sphinx-argparse = 0.4.*
 - xarray = 2025.01.*
+- xlsxwriter
 - xmle
 - zarr>=2,<3
 - zstandard

@@ -17,6 +17,11 @@ logger = logging.getLogger(__name__)
 EXP_UTIL_MIN = 1e-300
 EXP_UTIL_MAX = np.inf
 
+# TODO-EET: Figure out what type we want UTIL_MIN to be, currently np.float64
+UTIL_MIN = np.log(EXP_UTIL_MIN, dtype=np.float64)
+UTIL_UNAVAILABLE = 1000.0 * (UTIL_MIN - 1.0)
+
+
 PROB_MIN = 0.0
 PROB_MAX = 1.0
 
@@ -121,6 +126,70 @@ def utils_to_logsums(utils, exponentiated=False, allow_zero_probs=False):
     logsums = pd.Series(logsums, index=utils.index)
 
     return logsums
+
+
+def validate_utils(
+    state: workflow.State,
+    utils,
+    trace_label=None,
+    allow_zero_probs=False,
+    trace_choosers=None,
+):
+    """
+    Validate utilities to ensure non-available choices are treated the same in EET and MC.
+    For EET decisions, no conversion to probabilities is required because choices
+    are made on the basis of comparing utilities (only differences matter).
+    However, large negative utility values are used in practice to make choices
+    unavailable based on probability calculations, which boils down to evaluating
+    exp(utility). We here use this to define a minimum utility that corresponds
+    to an unavailable choice.
+
+    Parameters
+    ----------
+    utils : pandas.DataFrame
+        Rows should be choosers and columns should be alternatives.
+
+    trace_label : str, optional
+        label for tracing bad utility or probability values
+
+    allow_zero_probs : bool
+        if True value rows in which all utility alts are UTIL_MIN will be set to
+        UTIL_UNAVAILABLE.
+
+    trace_choosers : pandas.dataframe
+        the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+        by report_bad_choices because it can't deduce hh_id from the interaction_dataset
+        which is indexed on index values from alternatives df
+
+    Returns
+    -------
+    utils : pandas.DataFrame
+        utils with values that would lead to zero probability replaced by UTIL_UNAVAILABLE
+
+    """
+    trace_label = tracing.extend_trace_label(trace_label, "validate_utils")
+
+    utils_arr = utils.values
+
+    np.putmask(utils_arr, utils_arr <= UTIL_MIN, UTIL_UNAVAILABLE)
+
+    arr_sum = utils_arr.sum(axis=1)
+
+    if not allow_zero_probs:
+        zero_probs = arr_sum <= utils_arr.shape[1] * UTIL_UNAVAILABLE
+        if zero_probs.any():
+            report_bad_choices(
+                state,
+                zero_probs,
+                utils,
+                trace_label=tracing.extend_trace_label(trace_label, "zero_prob_utils"),
+                msg="all probabilities are zero",
+                trace_choosers=trace_choosers,
+            )
+
+    utils = pd.DataFrame(utils_arr, columns=utils.columns, index=utils.index)
+
+    return utils
 
 
 def utils_to_probs(

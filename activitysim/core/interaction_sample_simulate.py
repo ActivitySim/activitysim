@@ -303,11 +303,32 @@ def _interaction_sample_simulate(
         if skip_choice:
             return choosers.join(logsums.to_frame("logsums"))
 
+        utilities_df = logit.validate_utils(
+            state,
+            utilities_df,
+            allow_zero_probs=allow_zero_probs,
+            trace_label=trace_label,
+            trace_choosers=choosers,
+        )
+
+        if allow_zero_probs:
+            zero_probs = (
+                utilities_df.sum(axis=1)
+                <= utilities_df.shape[1] * logit.UTIL_UNAVAILABLE
+            )
+            if zero_probs.any():
+                # copied from proabability below, fix when that gets fixed
+                # FIXME this is kind of gnarly, but we force choice of first alt
+                utilities_df.loc[
+                    zero_probs, 0
+                ] = 3.0  # arbitrary value much larger than UTIL_UNAVAILABLE
+
         # positions is series with the chosen alternative represented as a column index in utilities_df
         # which is an integer between zero and num alternatives in the alternative sample
         positions, rands = logit.make_choices_utility_based(
             state, utilities_df, trace_label=trace_label, trace_choosers=choosers
         )
+
         del utilities_df
         chunk_sizer.log_df(trace_label, "utilities_df", None)
     else:
@@ -382,13 +403,7 @@ def _interaction_sample_simulate(
 
     chunk_sizer.log_df(trace_label, "choices", choices)
 
-    # order is important for short circuiting - no explicit error terms => no zero_probs
-    if (
-        allow_zero_probs
-        and not state.settings.use_explicit_error_terms
-        and zero_probs.any()
-        and zero_prob_choice_val is not None
-    ):
+    if allow_zero_probs and zero_probs.any() and zero_prob_choice_val is not None:
         # FIXME this is kind of gnarly, patch choice for zero_probs
         choices.loc[zero_probs] = zero_prob_choice_val
 

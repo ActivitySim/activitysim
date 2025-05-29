@@ -261,6 +261,7 @@ def vehicle_allocation(
             ]
 
         # set choice for non-household vehicle option
+        choices["choice"] = choices["choice"].astype(veh_choice_dtype)
         choices.loc[
             choices["alt_choice"] == alts_from_spec[-1], "choice"
         ] = alts_from_spec[-1]

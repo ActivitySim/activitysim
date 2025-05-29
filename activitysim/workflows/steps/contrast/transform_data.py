@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 from pypyr.context import Context
 
+from activitysim.core.fast_eval import fast_eval
+
 from ..progression import reset_progress_step
 from ..wrapping import workstep
 
@@ -32,7 +34,7 @@ def transform_data(
     if eval is not None:
         for key, tableset in tablesets.items():
             for target, expr in eval.items():
-                tableset[tablename][target] = tableset[tablename].eval(expr)
+                tableset[tablename][target] = fast_eval(tableset[tablename], expr)
         return dict(tablesets=tablesets)
 
     # collect all series into a common vector, so bins are common

@@ -14,6 +14,7 @@ import pandas as pd
 
 from activitysim.core import chunk, logit, simulate, tracing, util, workflow
 from activitysim.core.configuration.base import ComputeSettings
+from activitysim.core.fast_eval import fast_eval
 
 logger = logging.getLogger(__name__)
 
@@ -287,7 +288,7 @@ def eval_interaction_utilities(
                         if expr.startswith("@"):
                             v = to_series(eval(expr[1:], globals(), locals_d))
                         else:
-                            v = df.eval(expr, resolvers=[locals_d])
+                            v = fast_eval(df, expr, resolvers=[locals_d])
 
                         if check_for_variability and v.std() == 0:
                             logger.info(
@@ -556,7 +557,7 @@ def eval_interaction_utilities(
                             if expr.startswith("@"):
                                 v = to_series(eval(expr[1:], globals(), locals_d))
                             else:
-                                v = df.eval(expr, resolvers=[locals_d])
+                                v = fast_eval(df, expr, resolvers=[locals_d])
                             if check_for_variability and v.std() == 0:
                                 logger.info(
                                     "%s: no variability (%s) in: %s"

@@ -45,8 +45,7 @@ def make_sample_choices_utility_based(
 
     if allow_zero_probs:
         zero_probs = (
-            utilities.sum(axis=1)
-            <= utilities.shape[1] * logit.UTIL_UNAVAILABLE
+            utilities.sum(axis=1) <= utilities.shape[1] * logit.UTIL_UNAVAILABLE
         )
         if zero_probs.all():
             return pd.DataFrame(

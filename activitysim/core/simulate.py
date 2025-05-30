@@ -1290,7 +1290,9 @@ def eval_mnl(
         )
 
     if state.settings.use_explicit_error_terms:
-        utilities = logit.validate_utils(state, utilities, trace_label=trace_label, trace_choosers=choosers)
+        utilities = logit.validate_utils(
+            state, utilities, trace_label=trace_label, trace_choosers=choosers
+        )
 
         if custom_chooser:
             choices, rands = custom_chooser(

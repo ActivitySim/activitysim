@@ -1013,7 +1013,10 @@ class TransitVirtualPathBuilder:
                     else:
                         if self.network_los.state.settings.use_explicit_error_terms:
                             utilities_df = logit.validate_utils(
-                                self.network_los.state, utilities_df, allow_zero_probs=True, trace_label=trace_label
+                                self.network_los.state,
+                                utilities_df,
+                                allow_zero_probs=True,
+                                trace_label=trace_label,
                             )
                             choices, rands = logit.make_choices_utility_based(
                                 self.network_los.state,
@@ -1042,7 +1045,6 @@ class TransitVirtualPathBuilder:
                         chunk_sizer.log_df(trace_label, "rands", rands)
                         del rands
                         chunk_sizer.log_df(trace_label, "rands", None)
-
 
                 # we need to get path_set, btap, atap from path_df row with same seq and path_num
                 # drop seq join column, but keep path_num of choice to override_choices when tracing

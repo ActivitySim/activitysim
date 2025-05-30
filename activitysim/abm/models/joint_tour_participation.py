@@ -216,13 +216,17 @@ def participants_chooser(
                     # need "is valid choice" such that we certainly choose those with non-zero values,
                     # and do not choose others. Let's use 3.0 as large value here.
                     probs_or_utils[choice_col] = np.where(
-                        probs_or_utils[choice_col] > logit.UTIL_MIN, 3.0, logit.UTIL_UNAVAILABLE
+                        probs_or_utils[choice_col] > logit.UTIL_MIN,
+                        3.0,
+                        logit.UTIL_UNAVAILABLE,
                     )
                     non_choice_col = [
                         col for col in probs_or_utils.columns if col != choice_col
                     ][0]
                     probs_or_utils[non_choice_col] = np.where(
-                        probs_or_utils[choice_col] <= logit.UTIL_MIN, 3.0, logit.UTIL_UNAVAILABLE
+                        probs_or_utils[choice_col] <= logit.UTIL_MIN,
+                        3.0,
+                        logit.UTIL_UNAVAILABLE,
                     )
                 else:
                     probs_or_utils[choice_col] = np.where(

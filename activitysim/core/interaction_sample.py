@@ -90,6 +90,7 @@ def make_sample_choices_utility_based(
         utilities,
         allow_zero_probs=allow_zero_probs,
         trace_label=trace_label,
+        overflow_protection=not allow_zero_probs,
         trace_choosers=choosers,
     )
     chunk_sizer.log_df(trace_label, "probs", probs)

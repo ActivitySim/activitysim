@@ -883,6 +883,9 @@ def _interaction_simulate(
     state.tracing.dump_df(DUMP, utilities, trace_label, "utilities")
 
     if state.settings.use_explicit_error_terms:
+        utilities = logit.validate_utils(
+            state, utilities, trace_label=trace_label, trace_choosers=choosers
+        )
         positions, rands = logit.make_choices_utility_based(
             state, utilities, trace_label=trace_label, trace_choosers=choosers
         )

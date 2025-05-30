@@ -43,6 +43,20 @@ def make_sample_choices_utility_based(
     assert isinstance(alternatives, pd.DataFrame)
     assert len(alternatives) == alternative_count
 
+    if allow_zero_probs:
+        zero_probs = (
+            utilities.sum(axis=1)
+            <= utilities.shape[1] * logit.UTIL_UNAVAILABLE
+        )
+        if zero_probs.all():
+            return pd.DataFrame(
+                columns=[alt_col_name, "rand", "prob", choosers.index.name]
+            )
+        if zero_probs.any():
+            # remove from sample
+            utilities = utilities[~zero_probs]
+            choosers = choosers[~zero_probs]
+
     utils_array = utilities.to_numpy()
     chunk_sizer.log_df(trace_label, "utils_array", utils_array)
     chosen_destinations = []
@@ -556,6 +570,14 @@ def _interaction_sample(
         return choices_df
 
     if use_eet:
+        utilities = logit.validate_utils(
+            state,
+            utilities,
+            allow_zero_probs=allow_zero_probs,
+            trace_label=trace_label,
+            trace_choosers=choosers,
+        )
+
         choices_df = make_sample_choices_utility_based(
             state,
             choosers,

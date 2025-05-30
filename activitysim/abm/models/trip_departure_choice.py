@@ -314,7 +314,7 @@ def choose_tour_leg_pattern(
     chunk_sizer.log_df(trace_label, "sample_counts", None)
 
     # insert the zero-prob utilities to pad each alternative set to same size
-    padded_utilities = np.insert(interaction_utilities.utility.values, inserts, -999999)
+    padded_utilities = np.insert(interaction_utilities.utility.values, inserts, -999)
     del inserts
 
     del interaction_utilities
@@ -339,6 +339,9 @@ def choose_tour_leg_pattern(
         )
 
     if state.settings.use_explicit_error_terms:
+        utilities_df = logit.validate_utils(
+            state, utilities_df, trace_label=trace_label, trace_choosers=trip_segment
+        )
         # make choices
         # positions is series with the chosen alternative represented as a column index in probs
         # which is an integer between zero and num alternatives in the alternative sample

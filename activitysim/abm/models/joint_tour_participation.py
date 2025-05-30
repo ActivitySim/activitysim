@@ -213,19 +213,16 @@ def participants_chooser(
                 )
                 # anybody with probability > 0 is forced to join the joint tour
                 if state.settings.use_explicit_error_terms:
-                    # need "is valid choice", which requires minimum probability. This depends
-                    # on all other utilities, and we need to make sure that we set values such that we
-                    # certainly choose those with non-zero values, and do not choose other ones. Let's
-                    # use -999 as zero prob choice and 10 as definitive choice (based on diff and std gumbel).
-                    probs_from_utils = logit.utils_to_probs(state, probs_or_utils)
+                    # need "is valid choice" such that we certainly choose those with non-zero values,
+                    # and do not choose others. Let's use 3.0 as large value here.
                     probs_or_utils[choice_col] = np.where(
-                        probs_from_utils[choice_col] > 0, 10, -999
+                        probs_or_utils[choice_col] > logit.UTIL_MIN, 3.0, logit.UTIL_UNAVAILABLE
                     )
                     non_choice_col = [
                         col for col in probs_or_utils.columns if col != choice_col
                     ][0]
                     probs_or_utils[non_choice_col] = np.where(
-                        probs_or_utils[choice_col] == -999, 10, -999
+                        probs_or_utils[choice_col] <= logit.UTIL_MIN, 3.0, logit.UTIL_UNAVAILABLE
                     )
                 else:
                     probs_or_utils[choice_col] = np.where(

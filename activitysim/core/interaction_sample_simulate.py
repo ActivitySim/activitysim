@@ -262,14 +262,7 @@ def _interaction_sample_simulate(
     chunk_sizer.log_df(trace_label, "sample_counts", None)
 
     # insert the zero-prob utilities to pad each alternative set to same size
-    # -999 is not small enough for EET, there are edge cases where alternatives
-    # corresponding to padded utilities are chosen. TODO: proper zero-prob handling.
-    zero_probability_util = (
-        -999999
-    )  # min(interaction_utilities.utility.min().min() - 100, -999)
-    padded_utilities = np.insert(
-        interaction_utilities.utility.values, inserts, zero_probability_util
-    )
+    padded_utilities = np.insert(interaction_utilities.utility.values, inserts, -999)
     chunk_sizer.log_df(trace_label, "padded_utilities", padded_utilities)
     del inserts
 

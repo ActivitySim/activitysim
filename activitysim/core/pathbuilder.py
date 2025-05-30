@@ -991,16 +991,16 @@ class TransitVirtualPathBuilder:
                 utilities_df.index = orig.index
 
                 with memo("#TVPB build_virtual_path make_choices"):
-                    probs = logit.utils_to_probs(
-                        self.network_los.state,
-                        utilities_df,
-                        allow_zero_probs=True,
-                        trace_label=trace_label,
-                        overflow_protection=False,
-                    )
-                    chunk_sizer.log_df(trace_label, "probs", probs)
-
                     if trace:
+                        probs = logit.utils_to_probs(
+                            self.network_los.state,
+                            utilities_df,
+                            allow_zero_probs=True,
+                            trace_label=trace_label,
+                            overflow_protection=False,
+                        )
+                        chunk_sizer.log_df(trace_label, "probs", probs)
+
                         choices = override_choices
 
                         utilities_df["choices"] = choices
@@ -1008,28 +1008,41 @@ class TransitVirtualPathBuilder:
 
                         probs["choices"] = choices
                         self.trace_df(probs, trace_label, "probs")
+                        del probs
+                        chunk_sizer.log_df(trace_label, "probs", None)
                     else:
                         if self.network_los.state.settings.use_explicit_error_terms:
+                            utilities_df = logit.validate_utils(
+                                self.network_los.state, utilities_df, allow_zero_probs=True, trace_label=trace_label
+                            )
                             choices, rands = logit.make_choices_utility_based(
                                 self.network_los.state,
                                 utilities_df,
-                                allow_bad_probs=True,
                                 trace_label=trace_label,
                             )
                         else:
+                            probs = logit.utils_to_probs(
+                                self.network_los.state,
+                                utilities_df,
+                                allow_zero_probs=True,
+                                trace_label=trace_label,
+                                overflow_protection=False,
+                            )
+                            chunk_sizer.log_df(trace_label, "probs", probs)
+
                             choices, rands = logit.make_choices(
                                 self.network_los.state,
                                 probs,
                                 allow_bad_probs=True,
                                 trace_label=trace_label,
                             )
+                            del probs
+                            chunk_sizer.log_df(trace_label, "probs", None)
 
                         chunk_sizer.log_df(trace_label, "rands", rands)
                         del rands
                         chunk_sizer.log_df(trace_label, "rands", None)
 
-                    del probs
-                    chunk_sizer.log_df(trace_label, "probs", None)
 
                 # we need to get path_set, btap, atap from path_df row with same seq and path_num
                 # drop seq join column, but keep path_num of choice to override_choices when tracing

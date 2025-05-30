@@ -1290,6 +1290,8 @@ def eval_mnl(
         )
 
     if state.settings.use_explicit_error_terms:
+        utilities = logit.validate_utils(state, utilities, trace_label=trace_label, trace_choosers=choosers)
+
         if custom_chooser:
             choices, rands = custom_chooser(
                 state, utilities, choosers, spec, trace_label
@@ -1427,6 +1429,11 @@ def eval_nl(
         )
 
     if state.settings.use_explicit_error_terms:
+        # TODO-EET: Nested utility zero choice probability
+        raw_utilities = logit.validate_utils(
+            state, raw_utilities, allow_zero_probs=True, trace_label=trace_label
+        )
+
         # utilities of leaves and nests
         nested_utilities = compute_nested_utilities(raw_utilities, nest_spec)
         chunk_sizer.log_df(trace_label, "nested_utilities", nested_utilities)

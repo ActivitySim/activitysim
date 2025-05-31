@@ -31,7 +31,7 @@ dependencies:
 - ipykernel  # so this env will appear in jupyter as a selection
 - isort
 - jupyterlab
-- larch >= 6.0.40
+- larch >= 6.0.41
 - matplotlib
 - multimethod <2.0
 - myst-parser  # allows markdown in sphinx

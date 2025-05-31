@@ -1,9 +1,16 @@
 Traceback (most recent call last):
+  File "/home/runner/miniconda3/envs/docbuild/lib/python3.10/site-packages/jupyter_core/utils/__init__.py", line 154, in wrapped
+    asyncio.get_running_loop()
+RuntimeError: no running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
   File "/home/runner/miniconda3/envs/docbuild/lib/python3.10/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
     executenb(
   File "/home/runner/miniconda3/envs/docbuild/lib/python3.10/site-packages/nbclient/client.py", line 1319, in execute
     return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
-  File "/home/runner/miniconda3/envs/docbuild/lib/python3.10/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
+  File "/home/runner/miniconda3/envs/docbuild/lib/python3.10/site-packages/jupyter_core/utils/__init__.py", line 158, in wrapped
     return loop.run_until_complete(inner)
   File "/home/runner/miniconda3/envs/docbuild/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
     return future.result()
@@ -26,12 +33,12 @@ Cell [0;32mIn[6], line 1[0m
 [0;32m----> 1[0m [43mstate[49m[38;5;241;43m.[39;49m[43msettings[49m[38;5;241;43m.[39;49m[43mhouseholds_sample_size[49m [38;5;241m=[39m [38;5;241m3500.8[39m
 [1;32m      2[0m state[38;5;241m.[39msettings[38;5;241m.[39mhouseholds_sample_size
 
-File [0;32m~/miniconda3/envs/docbuild/lib/python3.10/site-packages/pydantic/main.py:993[0m, in [0;36mBaseModel.__setattr__[0;34m(self, name, value)[0m
-[1;32m    991[0m [38;5;28;01mdef[39;00m[38;5;250m [39m[38;5;21m__setattr__[39m([38;5;28mself[39m, name: [38;5;28mstr[39m, value: Any) [38;5;241m-[39m[38;5;241m>[39m [38;5;28;01mNone[39;00m:
-[1;32m    992[0m     [38;5;28;01mif[39;00m (setattr_handler [38;5;241m:=[39m [38;5;28mself[39m[38;5;241m.[39m__pydantic_setattr_handlers__[38;5;241m.[39mget(name)) [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
-[0;32m--> 993[0m         [43msetattr_handler[49m[43m([49m[38;5;28;43mself[39;49m[43m,[49m[43m [49m[43mname[49m[43m,[49m[43m [49m[43mvalue[49m[43m)[49m
-[1;32m    994[0m     [38;5;66;03m# if None is returned from _setattr_handler, the attribute was set directly[39;00m
-[1;32m    995[0m     [38;5;28;01melif[39;00m (setattr_handler [38;5;241m:=[39m [38;5;28mself[39m[38;5;241m.[39m_setattr_handler(name, value)) [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
+File [0;32m~/miniconda3/envs/docbuild/lib/python3.10/site-packages/pydantic/main.py:995[0m, in [0;36mBaseModel.__setattr__[0;34m(self, name, value)[0m
+[1;32m    993[0m [38;5;28;01mdef[39;00m[38;5;250m [39m[38;5;21m__setattr__[39m([38;5;28mself[39m, name: [38;5;28mstr[39m, value: Any) [38;5;241m-[39m[38;5;241m>[39m [38;5;28;01mNone[39;00m:
+[1;32m    994[0m     [38;5;28;01mif[39;00m (setattr_handler [38;5;241m:=[39m [38;5;28mself[39m[38;5;241m.[39m__pydantic_setattr_handlers__[38;5;241m.[39mget(name)) [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
+[0;32m--> 995[0m         [43msetattr_handler[49m[43m([49m[38;5;28;43mself[39;49m[43m,[49m[43m [49m[43mname[49m[43m,[49m[43m [49m[43mvalue[49m[43m)[49m
+[1;32m    996[0m     [38;5;66;03m# if None is returned from _setattr_handler, the attribute was set directly[39;00m
+[1;32m    997[0m     [38;5;28;01melif[39;00m (setattr_handler [38;5;241m:=[39m [38;5;28mself[39m[38;5;241m.[39m_setattr_handler(name, value)) [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
 
 File [0;32m~/miniconda3/envs/docbuild/lib/python3.10/site-packages/pydantic/main.py:114[0m, in [0;36m<lambda>[0;34m(model, name, val)[0m
 [1;32m    108[0m         [38;5;28mobject[39m[38;5;241m.[39m[38;5;21m__setattr__[39m(model, [38;5;124m'[39m[38;5;124m__pydantic_private__[39m[38;5;124m'[39m, {})

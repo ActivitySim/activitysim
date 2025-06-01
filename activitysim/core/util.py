@@ -353,10 +353,11 @@ def assign_in_place(df, df2, downcast_int=False, downcast_float=False):
 
                 # when df and df2 column are both categorical, union categories
                 from pandas.api.types import union_categoricals
+
                 uc = union_categoricals([df[c], df2[c]])
                 df[c] = pd.Categorical(df[c], categories=uc.categories)
                 df2[c] = pd.Categorical(df2[c], categories=uc.categories)
-                
+
         df.update(df2)
 
         # avoid needlessly changing int columns to float

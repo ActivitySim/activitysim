@@ -29,7 +29,7 @@ def vehicles(state: workflow.State, households: pd.DataFrame):
     """
 
     # initialize vehicles table
-    if 'auto_ownership' not in households.columns:
+    if "auto_ownership" not in households.columns:
         # grab the proto_households table instead
         # this is called when running disaggregate accessibilities and the vehicles table is used in the logsum calculation
         households = state.get_table("proto_households")

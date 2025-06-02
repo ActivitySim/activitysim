@@ -151,8 +151,7 @@ def joint_tour_frequency_composition(
     # - so we arbitrarily choose the first person in the household
     # - to be point person for the purpose of generating an index and setting origin
     temp_point_persons = (
-        persons
-        .sort_index()  # ensure stable ordering
+        persons.sort_index()  # ensure stable ordering
         .groupby("household_id", as_index=False)
         .first()
     )

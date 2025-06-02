@@ -150,8 +150,12 @@ def joint_tour_frequency_composition(
     # - but we don't know the tour participants yet
     # - so we arbitrarily choose the first person in the household
     # - to be point person for the purpose of generating an index and setting origin
-    # FIXME: not all models are guaranteed to have PNUM
-    temp_point_persons = persons.loc[persons.PNUM == 1]
+    temp_point_persons = (
+        persons
+        .sort_index()  # ensure stable ordering
+        .groupby("household_id", as_index=False)
+        .first()
+    )
     temp_point_persons["person_id"] = temp_point_persons.index
     temp_point_persons = temp_point_persons.set_index("household_id")
     temp_point_persons = temp_point_persons[["person_id", "home_zone_id"]]

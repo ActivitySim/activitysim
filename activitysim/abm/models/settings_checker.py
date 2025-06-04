@@ -159,7 +159,7 @@ COMPONENTS_TO_SETTINGS = {
     "mandatory_tour_frequency": {
         "settings_cls": MandatoryTourFrequencySettings,
         "settings_file": "mandatory_tour_frequency.yaml",
-    },  # NOTE: Mandatory Frequency requires a separate check (Not Implemented) because of NESTED_SPEC
+    },
     "mandatory_tour_scheduling": {
         "settings_cls": TourSchedulingSettings,
         "settings_file": "mandatory_tour_scheduling.yaml",
@@ -171,7 +171,7 @@ COMPONENTS_TO_SETTINGS = {
     "non_mandatory_tour_frequency": {
         "settings_cls": NonMandatoryTourFrequencySettings,
         "settings_file": "non_mandatory_tour_frequency.yaml",
-    },  # NOTE: Non-mandatory Frequency requires a separate check (Not Implemented) because of NESTED_SPEC
+    },
     "non_mandatory_tour_scheduling": {
         "settings_cls": TourSchedulingSettings,
         "settings_file": "non_mandatory_tour_scheduling.yaml",
@@ -191,7 +191,7 @@ COMPONENTS_TO_SETTINGS = {
     "stop_frequency": {
         "settings_cls": StopFrequencySettings,
         "settings_file": "stop_frequency.yaml",
-    },  # NOTE: Stop Frequency requires a separate check (Not Implemented) because of NESTED_SPEC
+    },
     "summarize": {"settings_cls": SummarizeSettings, "settings_file": "summarize.yaml"},
     "telecommute_frequency": {
         "settings_cls": TelecommuteFrequencySettings,

@@ -4,6 +4,15 @@ from pandas import DataFrame
 from pydantic import BaseModel as PydanticBase
 from typing import Type, Optional
 
+from activitysim.core.configuration.base import PydanticReadable
+
+# import logit model settings
+from activitysim.core.configuration.logit import (
+    LogitNestSpec,
+    TourLocationComponentSettings,
+    TourModeComponentSettings,
+)
+
 from activitysim.core.workflow import State
 from activitysim.core.simulate import eval_coefficients, eval_nest_coefficients
 
@@ -62,15 +71,8 @@ from activitysim.abm.models.util.vectorize_tour_scheduling import (
 )
 from activitysim.abm.models.util.tour_od import TourODSettings
 
-# import logit model settings
-from activitysim.core.configuration.logit import (
-    LogitNestSpec,
-    TourLocationComponentSettings,
-    TourModeComponentSettings,
-)
-from activitysim.core.configuration.base import PydanticReadable
-
-
+# import table settings
+from activitysim.abm.tables.shadow_pricing import ShadowPriceSettings
 
 # setup logging
 logger = logging.getLogger(__name__)
@@ -181,6 +183,10 @@ COMPONENTS_TO_SETTINGS = {
     "school_escorting": {
         "settings_cls": SchoolEscortSettings,
         "settings_file": "school_escorting.yaml",
+    },
+    "shadow_pricing": {
+        "settings_cls": ShadowPriceSettings,
+        "settings_file": "shadow_pricing.yaml",
     },
     "stop_frequency": {
         "settings_cls": StopFrequencySettings,
@@ -457,6 +463,10 @@ def check_model_settings(state: State) -> None:
 
     # extract all model components
     all_models = state.settings.models
+
+    # add shadow pricing
+    if state.settings.use_shadow_pricing == True:
+        all_models.append("shadow_pricing")
 
     for model_name in all_models:
 

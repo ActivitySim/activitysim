@@ -6,13 +6,13 @@ from typing import Type, Optional
 
 from activitysim.core.configuration.base import PydanticReadable
 
-# import logit model settings
+# import core settings
 from activitysim.core.configuration.logit import (
     LogitNestSpec,
     TourLocationComponentSettings,
     TourModeComponentSettings,
 )
-
+from activitysim.core.configuration.network import NetworkSettings
 from activitysim.core.workflow import State
 from activitysim.core.simulate import eval_coefficients, eval_nest_coefficients
 
@@ -112,13 +112,17 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": FreeParkingSettings,
         "settings_file": "free_parking.yaml",
     },
+    "initialize_households": {
+        "settings_cls": InitializeTableSettings,
+        "settings_file": "initialize_households.yaml",
+    },
     "initialize_landuse": {
         "settings_cls": InitializeTableSettings,
         "settings_file": "initialize_landuse.yaml",
     },
-    "initialize_households": {
-        "settings_cls": InitializeTableSettings,
-        "settings_file": "initialize_households.yaml",
+    "initialize_los": {
+        "settings_cls": NetworkSettings,
+        "settings_file": "network_los.yaml",
     },
     "input_checker": {
         "settings_cls": PydanticReadable, # input checker uses state.filesystem.read_model_settings directly
@@ -277,8 +281,8 @@ def try_load_model_settings(
                 state, model_settings_file
             )
         elif model_name == "input_checker":
-            # input checker does not define a pydantic data model, but reads directly to dictionary.
-            # wrapping in BaseModel provides required interfaces downstream
+            # HACK: input checker does not define a pydantic data model, but reads directly to dictionary. Wrapping in BaseModel 
+            # provides the required model_dump interface downstream without adding additional branching logic.
             class InputCheckerSettings(PydanticBase):
                 input_check_settings: dict
             input_check_settings = state.filesystem.read_model_settings(
@@ -464,9 +468,11 @@ def check_model_settings(state: State) -> None:
     # extract all model components
     all_models = state.settings.models
 
-    # add shadow pricing
+    # add shadow pricing and initalize los (not in state.settings.models)
     if state.settings.use_shadow_pricing == True:
         all_models.append("shadow_pricing")
+    if 'initialize_los' in state._RUNNABLE_STEPS:
+        all_models.append('initialize_los')
 
     for model_name in all_models:
 

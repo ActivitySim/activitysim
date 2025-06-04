@@ -720,6 +720,13 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     .. versionadded:: 1.3
     """
 
+    check_model_settings: bool = True
+    """
+    run checks to validate that YAML settings files are loadable and spec and coefficent csv can be resolved.
+
+    should catch many common errors early, including missing required configurations or specified coefficient labels without defined values.  
+    """
+
     other_settings: dict[str, Any] = None
 
     def _get_attr(self, attr):

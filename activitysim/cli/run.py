@@ -372,9 +372,9 @@ def run(args):
 
     t0 = tracing.print_elapsed_time()
 
-    # TODO: Move this into the state.run function
     logger.info("Checking Settings Files")
-    check_model_settings(state)
+    if state.settings.check_model_settings == True:
+        check_model_settings(state)
 
     try:
         if state.settings.multiprocess:

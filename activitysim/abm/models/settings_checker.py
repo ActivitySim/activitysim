@@ -118,6 +118,10 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": InitializeTableSettings,
         "settings_file": "initialize_households.yaml",
     },
+    "input_checker": {
+        "settings_cls": PydanticReadable, # input checker uses state.filesystem.read_model_settings directly
+        "settings_file": "input_checker.yaml",
+    },
     "joint_tour_composition": {
         "settings_cls": JointTourCompositionSettings,
         "settings_file": "joint_tour_composition.yaml",
@@ -266,6 +270,15 @@ def try_load_model_settings(
             model_settings = read_disaggregate_accessibility_yaml(
                 state, model_settings_file
             )
+        elif model_name == "input_checker":
+            # input checker does not define a pydantic data model, but reads directly to dictionary.
+            # wrapping in BaseModel provides required interfaces downstream
+            class InputCheckerSettings(PydanticBase):
+                input_check_settings: dict
+            input_check_settings = state.filesystem.read_model_settings(
+                model_settings_file, mandatory=True
+            )
+            model_settings = InputCheckerSettings(input_check_settings=input_check_settings)
         else:
             model_settings = model_settings_class.read_settings_file(
                 state.filesystem, model_settings_file
@@ -321,7 +334,7 @@ def try_eval_spec_coefs(
 ) -> tuple[DataFrame, Optional[Exception]]:
     
     if spec.empty or coefs.empty:
-        msg_prefix = f"Skipping Evalation Check for {model_settings.__class__}"
+        msg_prefix = f"Skipping Evalation Check for {model_settings.__class__.__name__}"
         spec_msg = "No SPEC available" if spec.empty else ""
         coefs_msg = "No COEFFICENTS available" if coefs.empty else ""
         msg = ". ".join([msg_prefix, spec_msg, coefs_msg])

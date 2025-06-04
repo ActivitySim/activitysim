@@ -234,6 +234,15 @@ class ComputeSettings(PydanticBase):
         else:
             yield
 
+    performance_log: Path | None = None
+    """Log runtime performance to this file.
+
+    The runtime performance log shows the time taken to evaluate each
+    expression in the specification files.  It is useful for debugging
+    performance issues with complex expressions.
+
+    If set to None (the default), no performance logging will be done."""
+
     def subcomponent_settings(self, subcomponent: str) -> ComputeSettings:
         """Get the sharrow settings for a particular subcomponent."""
         return ComputeSettings(

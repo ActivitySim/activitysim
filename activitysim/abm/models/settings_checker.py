@@ -269,7 +269,7 @@ def try_load_model_settings(
     model_settings_class: Type[PydanticBase],
     model_settings_file: str,
     state: State,
-) -> tuple[Optional[PydanticBase], Optional[Exception]]:
+) -> tuple[PydanticBase | None, Exception | None]:
     
     msg = f"Attempting to load model settings for {model_name} via {model_settings_class.__name__} and {model_settings_file}"
     logger.info(msg)
@@ -303,7 +303,7 @@ def try_load_model_settings(
 
 def try_load_spec(
     model_name: str, model_settings: PydanticBase, spec_file: str, state: State
-) -> tuple[DataFrame, Optional[Exception]]:
+) -> tuple[DataFrame | None, Exception | None]:
     msg = f"Attempting to load SPEC for {model_name} via {model_settings.__class__.__name__}"
     logger.info(msg)
     file_logger.info(msg)
@@ -314,7 +314,7 @@ def try_load_spec(
         file_logger.info(msg)
     except Exception as e:
         # always return a dataframe
-        result = DataFrame(), e
+        result = None, e
     return result
 
 
@@ -331,26 +331,26 @@ def try_load_coefs(
         logger.info(msg)
         file_logger.info(msg)
     except Exception as e:
-        result = DataFrame(), e
+        result = None, e
     return result
 
 
 def try_eval_spec_coefs(
     model_name: str,
     model_settings: PydanticBase,
-    spec: DataFrame,
-    coefs: DataFrame,
+    spec: DataFrame | None,
+    coefs: DataFrame | None,
     state: State,
-) -> tuple[DataFrame, Optional[Exception]]:
+) -> tuple[DataFrame | None, Exception | None]:
     
-    if spec.empty or coefs.empty:
+    if spec is None or coefs is None:
         msg_prefix = f"Skipping Evalation Check for {model_settings.__class__.__name__}"
-        spec_msg = "No SPEC available" if spec.empty else ""
-        coefs_msg = "No COEFFICENTS available" if coefs.empty else ""
+        spec_msg = "No SPEC available" if spec is None else ""
+        coefs_msg = "No COEFFICENTS available" if coefs is None else ""
         msg = ". ".join([msg_prefix, spec_msg, coefs_msg])
         logger.warning(msg)
         file_logger.warning(msg)
-        return DataFrame(), None
+        return None, None
 
     try:
         # check whether coefficients should be evaluated as NESTS or not
@@ -372,7 +372,7 @@ def try_eval_spec_coefs(
         logger.info(msg)
         file_logger.info(msg)
     except Exception as e:
-        result = DataFrame(), e
+        result = None, e
     return result
 
 
@@ -395,7 +395,7 @@ def try_load_and_check_spec_coefs(
             state=state,
         )
     else:
-        spec, spec_error = DataFrame(), None
+        spec, spec_error = None, None
         msg = f"No SPEC file is associated with {model_settings.__class__.__name__}"
         logger.info(msg)
         file_logger.info(msg)
@@ -413,7 +413,7 @@ def try_load_and_check_spec_coefs(
             state=state,
         )
     else:
-        coefs, coefs_error = DataFrame(), None
+        coefs, coefs_error = None, None
         msg = f"No coefficients file is associated with {model_settings.__class__.__name__}"
         logger.info(msg)
         file_logger.info(msg)

@@ -68,6 +68,9 @@ from activitysim.core.configuration.logit import (
     TourLocationComponentSettings,
     TourModeComponentSettings,
 )
+from activitysim.core.configuration.base import PydanticReadable
+
+
 
 # setup logging
 logger = logging.getLogger(__name__)
@@ -253,9 +256,11 @@ def try_load_model_settings(
     model_settings_file: str,
     state: State,
 ) -> tuple[Optional[PydanticBase], Optional[Exception]]:
-    logger.info(
-        f"Attempting to load model settings for {model_name} via {model_settings_class.__name__} and {model_settings_file}"
-    )
+    
+    msg = f"Attempting to load model settings for {model_name} via {model_settings_class.__name__} and {model_settings_file}"
+    logger.info(msg)
+    file_logger.info(msg)
+
     try:
         if isinstance(model_settings_class, DisaggregateAccessibilitySettings):
             model_settings = read_disaggregate_accessibility_yaml(
@@ -266,7 +271,8 @@ def try_load_model_settings(
                 state.filesystem, model_settings_file
             )
         result = model_settings, None
-        logger.info(f"Successfully loaded model settings from {model_settings_file}")
+        msg = f"Successfully loaded model settings from {model_settings_file}"
+        logger.info(msg)
     except Exception as e:
         result = None, e
     return result

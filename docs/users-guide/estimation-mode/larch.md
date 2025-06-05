@@ -301,13 +301,15 @@ statistical tests to determine if the changes made are statistically significant
 
 The following notebooks include examples of modifying the model specification:
 
--   `03_work_location.ipynb`: This notebook includes a demonstration of
+-   [`03_work_location.ipynb`](https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples/example_estimation/notebooks/03_work_location.ipynb):
+    This notebook includes a demonstration of
     modification to the SPEC file for a destination choice model, using the
     "interact-sample-simulate" type model.
--   `04_auto_ownership.ipynb`: This notebook includes a demonstration of
-    modification to the SPEC file for the
+-   [`04_auto_ownership.ipynb`](https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples/example_estimation/notebooks/04_auto_ownership.ipynb):
+    This notebook includes a demonstration of modification to the SPEC file for the
     auto ownership model. It shows an example of an edit in the utility function
     for a "simple simulate" type model.
--   `06_cdap.ipynb`: This notebook includes a demonstration of modification to
+-   [`06_cdap.ipynb`](https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples/example_estimation/notebooks/06_cdap.ipynb):
+    This notebook includes a demonstration of modification to
     the SPEC file for the CDAP model. This model has a complex structure that is
     unique among the ActivitySim component models.

@@ -23,7 +23,7 @@ dependencies:
 - git
 - jupyter-book
 - jupyterlab
-- larch >=5.5.3,<6
+- larch >=6.0.41
 - matplotlib
 - multimethod <2.0
 - myst-nb
@@ -55,6 +55,7 @@ dependencies:
 - sphinx-remove-toctrees
 - sphinx_rtd_theme
 - xarray = 2025.01.*
+- xlsxwriter
 - zarr>=2,<3
 
 - pip:

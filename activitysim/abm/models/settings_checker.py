@@ -11,10 +11,16 @@ from activitysim.core.configuration.logit import (
     LogitNestSpec,
     TourLocationComponentSettings,
     TourModeComponentSettings,
+    TemplatedLogitComponentSettings,
 )
+from activitysim.core import config
 from activitysim.core.configuration.network import NetworkSettings
 from activitysim.core.workflow import State
-from activitysim.core.simulate import eval_coefficients, eval_nest_coefficients
+from activitysim.core.simulate import (
+    eval_coefficients, 
+    eval_nest_coefficients,
+    read_model_coefficient_template
+)
 
 # import model settings
 from activitysim.abm.models.accessibility import AccessibilitySettings
@@ -340,7 +346,7 @@ def try_eval_spec_coefs(
     model_settings: PydanticBase,
     spec: DataFrame | None,
     coefs: DataFrame | None,
-    state: State,
+    state: State
 ) -> tuple[DataFrame | None, Exception | None]:
     
     if spec is None or coefs is None:
@@ -351,7 +357,7 @@ def try_eval_spec_coefs(
         logger.warning(msg)
         file_logger.warning(msg)
         return None, None
-
+    
     try:
         # check whether coefficients should be evaluated as NESTS or not
         if model_settings.model_dump().get("NESTS"):
@@ -361,7 +367,6 @@ def try_eval_spec_coefs(
             nests = None
         if nests is not None:
             # Proper Trace label is probably unneeded here
-            # TODO: Verify that this method is correct
             result = (
                 eval_nest_coefficients(model_settings.NESTS, coefs, trace_label=None),
                 None,
@@ -374,7 +379,36 @@ def try_eval_spec_coefs(
     except Exception as e:
         result = None, e
     return result
+   
+def try_check_spec_coefs_templated(
+        model_name: str, model_settings: Type[PydanticReadable], state: State
+) -> list[Exception]:
+    """Alternative function for checking mode choice settings using a templated coefficients files"""
+    
+    errors = []
+    inner_errors = []
 
+    try:
+        coefs_template = read_model_coefficient_template(state.filesystem, model_settings)
+        coefs_segments = list(coefs_template.columns)
+
+        for segment_name in coefs_segments:
+            try:
+                nest_spec = config.get_logit_model_settings(model_settings)
+                coefs = state.filesystem.get_segment_coefficients(model_settings, segment_name)
+                # Proper trace label probably unneeded here
+                nest_spec = eval_nest_coefficients(nest_spec, coefs, trace_label=None)
+            except Exception as e:
+                inner_errors.append(e)
+                continue
+    except Exception as e:
+        msg = f"{model_name}: Could not evaluate templated coefficients. Check that SPEC, Coefficients, and Template files exist and have compatible labels."
+        logger.warning(msg)
+        file_logger.warning(msg)
+    
+    errors.extend(inner_errors)
+
+    return errors
 
 def try_load_and_check_spec_coefs(
     model_name: str, model_settings: Type[PydanticBase], state: State
@@ -382,7 +416,7 @@ def try_load_and_check_spec_coefs(
     # collect all errors
     errors = []
 
-    # then, attempt to read SPEC file
+    # attempt to read SPEC file
     # TODO: only checks against the SPEC attr at top level of model.
     # checking specification files keyed against arbtrary attrs
     # is not currently supported - e.g. SchoolEscortingSettings: INBOUND_SPEC
@@ -427,7 +461,7 @@ def try_load_and_check_spec_coefs(
             model_settings=model_settings,
             spec=spec,
             coefs=coefs,
-            state=state,
+            state=state
         )
 
     if eval_coefs_error is not None:
@@ -446,7 +480,6 @@ def try_load_and_check_spec_coefs(
         )
 
     return errors
-
 
 def check_model_settings(state: State) -> None:
 
@@ -502,11 +535,18 @@ def check_model_settings(state: State) -> None:
             continue
 
         # then attempt to load and resolve spec/coef files
-        errors = try_load_and_check_spec_coefs(
-            model_name=model_name,
-            model_settings=model_settings,
-            state=state,
-        )
+        if isinstance(model_settings, TemplatedLogitComponentSettings):
+            errors = try_check_spec_coefs_templated(
+                model_name=model_name,
+                model_settings=model_settings,
+                state=state
+            )
+        else:
+            errors = try_load_and_check_spec_coefs(
+                model_name=model_name,
+                model_settings=model_settings,
+                state=state,
+            )
         all_errors.extend(errors)
 
         # finally, if model has nested SPEC_SEGMENTS, check each of these.
@@ -536,8 +576,8 @@ def check_model_settings(state: State) -> None:
         logger.error(msg)
         file_logger.error(msg)
         for e in all_errors:
-            logger.error(f"\t{e}")
-            file_logger.error(f"\t{e}")
+            logger.error(f"\t{str(e)}")
+            file_logger.error(f"\t{str(e)}")
         raise RuntimeError(
             "Encountered error in settings checker. See settings_checker.log for details."
         )

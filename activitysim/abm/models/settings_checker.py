@@ -17,9 +17,9 @@ from activitysim.core import config
 from activitysim.core.configuration.network import NetworkSettings
 from activitysim.core.workflow import State
 from activitysim.core.simulate import (
-    eval_coefficients, 
+    eval_coefficients,
     eval_nest_coefficients,
-    read_model_coefficient_template
+    read_model_coefficient_template,
 )
 
 # import model settings
@@ -131,7 +131,7 @@ COMPONENTS_TO_SETTINGS = {
         "settings_file": "network_los.yaml",
     },
     "input_checker": {
-        "settings_cls": PydanticReadable, # input checker uses state.filesystem.read_model_settings directly
+        "settings_cls": PydanticReadable,  # input checker uses state.filesystem.read_model_settings directly
         "settings_file": "input_checker.yaml",
     },
     "joint_tour_composition": {
@@ -276,7 +276,7 @@ def try_load_model_settings(
     model_settings_file: str,
     state: State,
 ) -> tuple[PydanticBase | None, Exception | None]:
-    
+
     msg = f"Attempting to load model settings for {model_name} via {model_settings_class.__name__} and {model_settings_file}"
     logger.info(msg)
     file_logger.info(msg)
@@ -287,14 +287,17 @@ def try_load_model_settings(
                 state, model_settings_file
             )
         elif model_name == "input_checker":
-            # HACK: input checker does not define a pydantic data model, but reads directly to dictionary. Wrapping in BaseModel 
+            # HACK: input checker does not define a pydantic data model, but reads directly to dictionary. Wrapping in BaseModel
             # provides the required model_dump interface downstream without adding additional branching logic.
             class InputCheckerSettings(PydanticBase):
                 input_check_settings: dict
+
             input_check_settings = state.filesystem.read_model_settings(
                 model_settings_file, mandatory=True
             )
-            model_settings = InputCheckerSettings(input_check_settings=input_check_settings)
+            model_settings = InputCheckerSettings(
+                input_check_settings=input_check_settings
+            )
         else:
             model_settings = model_settings_class.read_settings_file(
                 state.filesystem, model_settings_file
@@ -346,9 +349,9 @@ def try_eval_spec_coefs(
     model_settings: PydanticBase,
     spec: DataFrame | None,
     coefs: DataFrame | None,
-    state: State
+    state: State,
 ) -> tuple[DataFrame | None, Exception | None]:
-    
+
     if spec is None or coefs is None:
         msg_prefix = f"Skipping Evalation Check for {model_settings.__class__.__name__}"
         spec_msg = "No SPEC available" if spec is None else ""
@@ -357,7 +360,7 @@ def try_eval_spec_coefs(
         logger.warning(msg)
         file_logger.warning(msg)
         return None, None
-    
+
     try:
         # check whether coefficients should be evaluated as NESTS or not
         if model_settings.model_dump().get("NESTS"):
@@ -379,23 +382,28 @@ def try_eval_spec_coefs(
     except Exception as e:
         result = None, e
     return result
-   
+
+
 def try_check_spec_coefs_templated(
-        model_name: str, model_settings: Type[PydanticReadable], state: State
+    model_name: str, model_settings: Type[PydanticReadable], state: State
 ) -> list[Exception]:
     """Alternative function for checking mode choice settings using a templated coefficients files"""
-    
+
     errors = []
     inner_errors = []
 
     try:
-        coefs_template = read_model_coefficient_template(state.filesystem, model_settings)
+        coefs_template = read_model_coefficient_template(
+            state.filesystem, model_settings
+        )
         coefs_segments = list(coefs_template.columns)
 
         for segment_name in coefs_segments:
             try:
                 nest_spec = config.get_logit_model_settings(model_settings)
-                coefs = state.filesystem.get_segment_coefficients(model_settings, segment_name)
+                coefs = state.filesystem.get_segment_coefficients(
+                    model_settings, segment_name
+                )
                 # Proper trace label probably unneeded here
                 nest_spec = eval_nest_coefficients(nest_spec, coefs, trace_label=None)
             except Exception as e:
@@ -405,10 +413,11 @@ def try_check_spec_coefs_templated(
         msg = f"{model_name}: Could not evaluate templated coefficients. Check that SPEC, Coefficients, and Template files exist and have compatible labels."
         logger.warning(msg)
         file_logger.warning(msg)
-    
+
     errors.extend(inner_errors)
 
     return errors
+
 
 def try_load_and_check_spec_coefs(
     model_name: str, model_settings: Type[PydanticBase], state: State
@@ -457,12 +466,12 @@ def try_load_and_check_spec_coefs(
 
     # then attempt to evaluate coefficients against spec
     eval_coefs, eval_coefs_error = try_eval_spec_coefs(
-            model_name=model_name,
-            model_settings=model_settings,
-            spec=spec,
-            coefs=coefs,
-            state=state
-        )
+        model_name=model_name,
+        model_settings=model_settings,
+        spec=spec,
+        coefs=coefs,
+        state=state,
+    )
 
     if eval_coefs_error is not None:
         errors.append(eval_coefs_error)
@@ -480,6 +489,7 @@ def try_load_and_check_spec_coefs(
         )
 
     return errors
+
 
 def check_model_settings(state: State) -> None:
 
@@ -504,8 +514,8 @@ def check_model_settings(state: State) -> None:
     # add shadow pricing and initalize los (not in state.settings.models)
     if state.settings.use_shadow_pricing == True:
         all_models.append("shadow_pricing")
-    if 'initialize_los' in state._RUNNABLE_STEPS:
-        all_models.append('initialize_los')
+    if "initialize_los" in state._RUNNABLE_STEPS:
+        all_models.append("initialize_los")
 
     for model_name in all_models:
 
@@ -537,9 +547,7 @@ def check_model_settings(state: State) -> None:
         # then attempt to load and resolve spec/coef files
         if isinstance(model_settings, TemplatedLogitComponentSettings):
             errors = try_check_spec_coefs_templated(
-                model_name=model_name,
-                model_settings=model_settings,
-                state=state
+                model_name=model_name, model_settings=model_settings, state=state
             )
         else:
             errors = try_load_and_check_spec_coefs(

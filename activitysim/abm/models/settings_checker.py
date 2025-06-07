@@ -109,11 +109,14 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": AutoOwnershipSettings,
         "settings_file": "auto_ownership.yaml",
     },
-    "cdap_simulate": {"settings_cls": CdapSettings, "settings_file": "cdap.yaml"},
+    "cdap_simulate": {
+        "settings_cls": CdapSettings, 
+        "settings_file": "cdap.yaml"
+    },
     "compute_disaggregate_accessibility": {
         "settings_cls": DisaggregateAccessibilitySettings,
         "settings_file": "disaggregate_accessibility.yaml",
-    },  # TODO: needs testing with further models
+    },
     "free_parking": {
         "settings_cls": FreeParkingSettings,
         "settings_file": "free_parking.yaml",
@@ -158,14 +161,6 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": TourSchedulingSettings,
         "settings_file": "joint_tour_scheduling.yaml",
     },
-    "workplace_location": {
-        "settings_cls": TourLocationComponentSettings,
-        "settings_file": "workplace_location.yaml",
-    },
-    "school_location": {
-        "settings_cls": TourLocationComponentSettings,
-        "settings_file": "school_location.yaml",
-    },
     "mandatory_tour_frequency": {
         "settings_cls": MandatoryTourFrequencySettings,
         "settings_file": "mandatory_tour_frequency.yaml",
@@ -194,6 +189,10 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": SchoolEscortSettings,
         "settings_file": "school_escorting.yaml",
     },
+    "school_location": {
+        "settings_cls": TourLocationComponentSettings,
+        "settings_file": "school_location.yaml",
+    },
     "shadow_pricing": {
         "settings_cls": ShadowPriceSettings,
         "settings_file": "shadow_pricing.yaml",
@@ -202,7 +201,10 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": StopFrequencySettings,
         "settings_file": "stop_frequency.yaml",
     },
-    "summarize": {"settings_cls": SummarizeSettings, "settings_file": "summarize.yaml"},
+    "summarize": {
+        "settings_cls": SummarizeSettings, 
+        "settings_file": "summarize.yaml"}
+    ,
     "telecommute_frequency": {
         "settings_cls": TelecommuteFrequencySettings,
         "settings_file": "telecommute_frequency.yaml",
@@ -235,21 +237,17 @@ COMPONENTS_TO_SETTINGS = {
         "settings_cls": TripDestinationSettings,
         "settings_file": "trip_destination.yaml",
     },
-    "write_trip_matrices": {
-        "settings_cls": WriteTripMatricesSettings,
-        "settings_file": "write_trip_matrices.yaml",
-    },
     "trip_mode_choice": {
         "settings_cls": TripModeChoiceSettings,
         "settings_file": "trip_mode_choice.yaml",
     },
-    "trip_purpose_and_destination": {
-        "settings_cls": TripPurposeAndDestinationSettings,
-        "settings_file": "trip_purpose_and_destination.yaml",
-    },
     "trip_purpose": {
         "settings_cls": TripPurposeSettings,
         "settings_file": "trip_purpose.yaml",
+    },
+    "trip_purpose_and_destination": {
+        "settings_cls": TripPurposeAndDestinationSettings,
+        "settings_file": "trip_purpose_and_destination.yaml",
     },
     "vehicle_allocation": {
         "settings_cls": VehicleAllocationSettings,
@@ -266,6 +264,14 @@ COMPONENTS_TO_SETTINGS = {
     "work_from_home": {
         "settings_cls": WorkFromHomeSettings,
         "settings_file": "work_from_home.yaml",
+    },
+    "workplace_location": {
+        "settings_cls": TourLocationComponentSettings,
+        "settings_file": "workplace_location.yaml",
+    },
+    "write_trip_matrices": {
+        "settings_cls": WriteTripMatricesSettings,
+        "settings_file": "write_trip_matrices.yaml",
     },
 }
 
@@ -353,7 +359,7 @@ def try_eval_spec_coefs(
 ) -> tuple[DataFrame | None, Exception | None]:
 
     if spec is None or coefs is None:
-        msg_prefix = f"Skipping Evalation Check for {model_settings.__class__.__name__}"
+        msg_prefix = f"Skipping Evaluation Check for {model_settings.__class__.__name__}"
         spec_msg = "No SPEC available" if spec is None else ""
         coefs_msg = "No COEFFICENTS available" if coefs is None else ""
         msg = ". ".join([msg_prefix, spec_msg, coefs_msg])

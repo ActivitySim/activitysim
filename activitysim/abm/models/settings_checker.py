@@ -510,18 +510,20 @@ def try_load_and_check_spec_coefs(
     if eval_coefs_error is not None:
         errors.append(eval_coefs_error)
 
-    # then, check preprocessors if any
+    # then, check any other subsettings that may have a SPEC
+    # this includes preprocessors and annotators, etc.
     # for now, check is limited to check that the SPEC file is loadable
-    if model_settings.model_dump().get("preprocessor"):
-        preprocessor_settings = model_settings.preprocessor
-        spec_file = preprocessor_settings.SPEC
-        spec = try_load_spec(
-            model_name=model_name + ": preprocessor",
-            model_settings=preprocessor_settings,
-            spec_file=spec_file,
-            state=state,
-        )
-
+    for _, setting in model_settings:
+        if isinstance(setting, PydanticBase) and setting.model_dump().get("SPEC") is not None:
+            addl_spec_file = setting.SPEC
+            addl_spec, addl_spec_error = try_load_spec(
+                model_name=model_name + f": {setting.__class__.__name__}",
+                model_settings= setting,
+                spec_file=addl_spec_file,
+                state=state,
+            )
+            if addl_spec_error:
+                errors.append(addl_spec_error)
     return errors
 
 
@@ -591,7 +593,7 @@ def check_model_settings(state: State) -> None:
             )
         all_errors.extend(errors)
 
-        # finally, if model has nested SPEC_SEGMENTS, check each of these.
+        # if model has nested SPEC_SEGMENTS, check each of these.
         # there are two ways of segmenting specs, which are handled differently: 
         #   1) Settings using define separate pairs of spec/coefficient files.
         #   2) Others define segments within the main model spec file, keyed by PTYPE.

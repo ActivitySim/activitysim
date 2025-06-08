@@ -428,6 +428,30 @@ def try_check_spec_coefs_templated(
 
     return errors
 
+def try_check_spec_coefs_ptype_spec_segments(
+    model_name: str, model_settings: Type[PydanticBase], state: State
+) -> list[Exception]:
+    """Alternative function for checking settings that are segmented by PTYPE within the main model spec"""
+    errors = []
+
+    try:
+        spec_segments = model_settings.SPEC_SEGMENTS
+        model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
+
+        # pick the spec column for the segment
+        for segment_settings in spec_segments:
+            segment_name = segment_settings.NAME
+            segment_spec = model_spec[[segment_name]]
+
+            coefficients_df = state.filesystem.read_model_coefficients(segment_settings)
+            segment_spec = eval_coefficients(
+                state, segment_spec, coefficients_df, estimator=None
+            )
+    except Exception as e:
+        errors.append(e)
+        raise e
+    return errors
+
 
 def try_load_and_check_spec_coefs(
     model_name: str, model_settings: Type[PydanticBase], state: State
@@ -568,26 +592,34 @@ def check_model_settings(state: State) -> None:
         all_errors.extend(errors)
 
         # finally, if model has nested SPEC_SEGMENTS, check each of these.
-        # TODO: There are two main methods of using SPEC_SEGMENTS:
-        #  - Individual SPEC files keyed to the SPEC field of the segment
-        #  - Via PTYPE columns in the top level SPEC, which can be
-        #    evaluated against individual coefficient files
-        # Only the the first is fully supported -
+        # there are two ways of segmenting specs, which are handled differently: 
+        #   1) Settings using define separate pairs of spec/coefficient files.
+        #   2) Others define segments within the main model spec file, keyed by PTYPE.
         if model_settings.model_dump().get("SPEC_SEGMENTS"):
-            spec_segments = model_settings.SPEC_SEGMENTS
-            # SPEC_SEGMENTS can be of type list or dict. If dict, unpack into list
-            if isinstance(spec_segments, dict):
-                spec_segments = [v for _, v in spec_segments.items()]
 
-            # Skip empty lists in case SPEC_SEGMENT field is optional
-            if len(spec_segments) > 0:
-                for segment_settings in spec_segments:
-                    errors = try_load_and_check_spec_coefs(
+                spec_segments = model_settings.SPEC_SEGMENTS
+
+                if isinstance(spec_segments, dict):
+                    spec_segments = [segment for segment_name, segment in spec_segments.items()]
+
+                # check the first segment to see if PTYPE should be defined
+                # this avoids needing to hardcode branching logic to determine evaluation method
+                if "PTYPE" in spec_segments[0].model_fields:
+                    errors = try_check_spec_coefs_ptype_spec_segments(
                         model_name=model_name,
-                        model_settings=segment_settings,
+                        model_settings=model_settings,
                         state=state,
                     )
-                all_errors.extend(errors)
+                    all_errors.extend(errors)
+                else:
+                    for segment_settings in spec_segments:
+                        errors = try_load_and_check_spec_coefs(
+                            model_name=model_name,
+                            model_settings=segment_settings,
+                            state=state,
+                    )
+                    all_errors.extend(errors)
+
 
     if len(all_errors) > 0:
         msg = "Settings Checker Failed with the following errors:"

@@ -188,6 +188,11 @@ COMPONENTS_TO_SETTINGS = {
     "school_escorting": {
         "settings_cls": SchoolEscortSettings,
         "settings_file": "school_escorting.yaml",
+        "spec_coefficient_keys": [
+            {"spec": "OUTBOUND_SPEC", "coefs": "OUTBOUND_COEFFICIENTS"},
+            {"spec": "INBOUND_SPEC", "coefs": "INBOUND_COEFFICIENTS"},
+            {"spec": "OUTBOUND_COND_SPEC", "coefs": "OUTBOUND_COND_COEFFICIENTS"},
+        ]
     },
     "school_location": {
         "settings_cls": TourLocationComponentSettings,
@@ -345,7 +350,7 @@ def try_load_coefs(
     file_logger.info(msg)
 
     try:
-        result = state.filesystem.read_model_coefficients(model_settings), None
+        result = state.filesystem.read_model_coefficients(file_name=coefs_file), None
         msg = f"Successfully loaded model Coefficients from {coefs_file}"
         logger.info(msg)
         file_logger.info(msg)
@@ -454,61 +459,71 @@ def try_check_spec_coefs_ptype_spec_segments(
 
 
 def try_load_and_check_spec_coefs(
-    model_name: str, model_settings: Type[PydanticBase], state: State
+    model_name: str, 
+    model_settings: Type[PydanticBase], 
+    state: State, 
+    spec_coefficient_keys: list[dict]=None
 ) -> list[Exception]:
+    """Attempt to load and evaluate SPEC and COEFFICIENTS.
+    By default, will look for SPEC and COEFFICIENTS at the top level of the settings.
+    This can be overriden by providing an alternative set of spec/coefs keys 
+    in the settings checker register.
+    """
     # collect all errors
     errors = []
 
-    # attempt to read SPEC file
-    # TODO: only checks against the SPEC attr at top level of model.
-    # checking specification files keyed against arbtrary attrs
-    # is not currently supported - e.g. SchoolEscortingSettings: INBOUND_SPEC
-    spec_file = model_settings.model_dump().get("SPEC")
-    if spec_file:
-        spec, spec_error = try_load_spec(
+    if spec_coefficient_keys is None:
+        spec_coefficient_keys = [{"spec": "SPEC", "coefs": "COEFFICIENTS"}]
+
+    for key_pair in spec_coefficient_keys:
+
+        # attempt to read SPEC file
+        spec_file = model_settings.model_dump().get(key_pair["spec"])
+        if spec_file:
+            spec, spec_error = try_load_spec(
+                model_name=model_name,
+                model_settings=model_settings,
+                spec_file=spec_file,
+                state=state,
+            )
+        else:
+            spec, spec_error = None, None
+            msg = f"No SPEC file is associated with {model_settings.__class__.__name__}"
+            logger.info(msg)
+            file_logger.info(msg)
+
+        if spec_error is not None:
+            errors.append(spec_error)
+
+        # then attempt to read coefficients
+        coefs_file = model_settings.model_dump().get(key_pair["coefs"])
+        if coefs_file:
+            coefs, coefs_error = try_load_coefs(
+                model_name=model_name,
+                model_settings=model_settings,
+                coefs_file=coefs_file,
+                state=state,
+            )
+        else:
+            coefs, coefs_error = None, None
+            msg = f"No coefficients file is associated with {model_settings.__class__.__name__}"
+            logger.info(msg)
+            file_logger.info(msg)
+
+        if coefs_error is not None:
+            errors.append(coefs_error)
+
+        # then attempt to evaluate coefficients against spec
+        eval_coefs, eval_coefs_error = try_eval_spec_coefs(
             model_name=model_name,
             model_settings=model_settings,
-            spec_file=spec_file,
+            spec=spec,
+            coefs=coefs,
             state=state,
         )
-    else:
-        spec, spec_error = None, None
-        msg = f"No SPEC file is associated with {model_settings.__class__.__name__}"
-        logger.info(msg)
-        file_logger.info(msg)
 
-    if spec_error is not None:
-        errors.append(spec_error)
-
-    # then attempt to read coefficients
-    coefs_file = model_settings.model_dump().get("COEFFICIENTS")
-    if coefs_file:
-        coefs, coefs_error = try_load_coefs(
-            model_name=model_name,
-            model_settings=model_settings,
-            coefs_file=coefs_file,
-            state=state,
-        )
-    else:
-        coefs, coefs_error = None, None
-        msg = f"No coefficients file is associated with {model_settings.__class__.__name__}"
-        logger.info(msg)
-        file_logger.info(msg)
-
-    if coefs_error is not None:
-        errors.append(coefs_error)
-
-    # then attempt to evaluate coefficients against spec
-    eval_coefs, eval_coefs_error = try_eval_spec_coefs(
-        model_name=model_name,
-        model_settings=model_settings,
-        spec=spec,
-        coefs=coefs,
-        state=state,
-    )
-
-    if eval_coefs_error is not None:
-        errors.append(eval_coefs_error)
+        if eval_coefs_error is not None:
+            errors.append(eval_coefs_error)
 
     # then, check any other subsettings that may have a SPEC
     # this includes preprocessors and annotators, etc.
@@ -566,6 +581,7 @@ def check_model_settings(state: State) -> None:
 
         model_settings_class = COMPONENTS_TO_SETTINGS[model_name]["settings_cls"]
         model_settings_file = COMPONENTS_TO_SETTINGS[model_name]["settings_file"]
+        spec_coefficient_keys = COMPONENTS_TO_SETTINGS[model_name].get("spec_coefficient_keys")
 
         # first, attempt to load settings
         # continue if any errorr
@@ -590,6 +606,7 @@ def check_model_settings(state: State) -> None:
                 model_name=model_name,
                 model_settings=model_settings,
                 state=state,
+                spec_coefficient_keys=spec_coefficient_keys
             )
         all_errors.extend(errors)
 

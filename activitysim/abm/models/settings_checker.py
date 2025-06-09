@@ -397,8 +397,8 @@ def try_eval_spec_coefs(
         spec_msg = "No SPEC available" if spec is None else ""
         coefs_msg = "No COEFFICENTS available" if coefs is None else ""
         msg = ". ".join([msg_prefix, spec_msg, coefs_msg])
-        logger.warning(msg)
-        file_logger.warning(msg)
+        logger.debug(msg)
+        file_logger.debug(msg)
         return None, None
 
     try:
@@ -523,37 +523,54 @@ def try_load_and_check_spec_coefs(
     for key_pair in spec_coefficient_keys:
 
         # attempt to read SPEC file
-        spec_file = model_settings.model_dump().get(key_pair["spec"])
-        if spec_file:
-            spec, spec_error = try_load_spec(
-                model_name=model_name,
-                model_settings=model_settings,
-                spec_file=spec_file,
-                state=state,
+        if hasattr(model_settings, key_pair["spec"]):            
+            spec_file = model_settings.model_dump().get(key_pair["spec"])
+
+            # HACK: some models may use older "SPECIFICATION" field name instead of "SPEC"
+            if spec_file is None and hasattr(model_settings, "SPECIFICATION"):
+                spec_file = model_settings.SPECIFICATION
+
+            if spec_file is not None:
+                spec, spec_error = try_load_spec(
+                    model_name=model_name,
+                    model_settings=model_settings,
+                    spec_file=spec_file,
+                    state=state,
             )
+            else:
+                spec, spec_error = None, None
+                msg = f"{model_name}: Field {key_pair['spec']} is None in {model_settings.__class__.__name__}. Ensure that a filepath is defined YAML settings if required"
+                logger.warning(msg)
+                file_logger.warning(msg)
         else:
             spec, spec_error = None, None
-            msg = f"No SPEC file is associated with {model_settings.__class__.__name__}"
-            logger.info(msg)
-            file_logger.info(msg)
+            # msg = f"No SPEC file is associated with {model_settings.__class__.__name__}"
+            # logger.info(msg)
+            # file_logger.info(msg)
 
         if spec_error is not None:
             errors.append(spec_error)
 
         # then attempt to read coefficients
-        coefs_file = model_settings.model_dump().get(key_pair["coefs"])
-        if coefs_file:
-            coefs, coefs_error = try_load_coefs(
-                model_name=model_name,
-                model_settings=model_settings,
-                coefs_file=coefs_file,
-                state=state,
-            )
+        if hasattr(model_settings, key_pair["coefs"]):
+            coefs_file = model_settings.model_dump().get(key_pair["coefs"])
+            if coefs_file is not None:
+                coefs, coefs_error = try_load_coefs(
+                    model_name=model_name,
+                    model_settings=model_settings,
+                    coefs_file=coefs_file,
+                    state=state,
+                )
+            else:
+                coefs, coefs_error = None, None
+                msg = f"{model_name}: Field {key_pair['coefs']} is None in {model_settings.__class__.__name__}. Ensure that a filepath is defined YAML settings if required"
+                logger.warning(msg)
+                file_logger.warning(msg)
         else:
             coefs, coefs_error = None, None
-            msg = f"No coefficients file is associated with {model_settings.__class__.__name__}"
-            logger.info(msg)
-            file_logger.info(msg)
+            # msg = f"No coefficients file is associated with {model_settings.__class__.__name__}"
+            # logger.info(msg)
+            # file_logger.info(msg)
 
         if coefs_error is not None:
             errors.append(
@@ -703,6 +720,6 @@ def check_model_settings(state: State) -> None:
         raise RuntimeError(
             "Encountered error in settings checker. See settings_checker.log for details."
         )
-    msg = "Setting Checker Complete! No Errors Found"
+    msg = "Setting Checker Complete. No runtime errors were raised. Check settings_checker.log for warnings. These may prevent model from succesffully running."
     logger.info(msg)
     file_logger.info(msg)

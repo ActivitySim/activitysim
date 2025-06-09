@@ -720,6 +720,6 @@ def check_model_settings(state: State) -> None:
         raise RuntimeError(
             "Encountered error in settings checker. See settings_checker.log for details."
         )
-    msg = "Setting Checker Complete. No runtime errors were raised. Check settings_checker.log for warnings. These may prevent model from succesffully running."
+    msg = "Setting Checker Complete. No runtime errors were raised. Check settings_checker.log for warnings. These may prevent model from successfully running."
     logger.info(msg)
     file_logger.info(msg)

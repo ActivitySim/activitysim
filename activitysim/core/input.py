@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 
+import numpy as np
 import pandas as pd
 
 from activitysim.core import util, workflow
@@ -194,7 +195,7 @@ def read_from_table_info(table_info: InputTable, state):
                 assert (
                     df[index_col] == df[index_col].astype(int)
                 ).all(), f"Index col '{index_col}' has non-integer values"
-                df[index_col] = df[index_col].astype(int)
+                df[index_col] = df[index_col].astype(np.int64)
             df.set_index(index_col, inplace=True)
         else:
             # FIXME not sure we want to do this. More likely they omitted index col than that they want to name it?

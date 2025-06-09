@@ -74,7 +74,6 @@ dev = [
     { name = "nbmake" },
     { name = "numexpr" },
     { name = "numpydoc" },
-    { name = "orca" },
     { name = "pip" },
     { name = "pre-commit" },
     { name = "pycodestyle" },
@@ -111,7 +110,6 @@ github-action = [
     { name = "dask" },
     { name = "isort" },
     { name = "nbmake" },
-    { name = "orca" },
     { name = "pip" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -164,7 +162,6 @@ dev = [
     { name = "gh" },
     { name = "ipykernel" },
     { name = "isort" },
-    { name = "isort", specifier = "==5.12.0" },
     { name = "jupyter-book" },
     { name = "jupyterlab" },
     { name = "larch", specifier = ">=5.7" },
@@ -176,7 +173,6 @@ dev = [
     { name = "nbmake", specifier = "==1.4.6" },
     { name = "numexpr" },
     { name = "numpydoc" },
-    { name = "orca", specifier = "==1.8" },
     { name = "pip" },
     { name = "pre-commit" },
     { name = "pycodestyle" },
@@ -212,7 +208,6 @@ github-action = [
     { name = "dask", specifier = "==2023.11" },
     { name = "isort", specifier = "==5.12.0" },
     { name = "nbmake", specifier = "==1.4.6" },
-    { name = "orca", specifier = "==1.8" },
     { name = "pip" },
     { name = "pytest", specifier = "==7.2" },
     { name = "pytest-cov" },
@@ -2602,22 +2597,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/39/a4/c890e3af726ab91e496017fb108f6335663d6936cf6a26b17e66776e1b4c/OpenMatrix-0.3.5.0.tar.gz", hash = "sha256:1c10155bbe65eb4f542c388813d8dad8f317dfe642fb4f616276c95e6654bdee", size = 11626, upload-time = "2019-12-21T17:52:58.945Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/05/e8/6a8227e97127a2a1db98f5a22ca565bfe942e89de0644837627920101213/OpenMatrix-0.3.5.0-py3-none-any.whl", hash = "sha256:eeeb1a628b5eeefb572361537df5ad6e4d12c3cda1233023c4c367815cab6b5f", size = 13003, upload-time = "2019-12-21T17:52:57.777Z" },
-]
-
-[[package]]
-name = "orca"
-version = "1.8"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pandas", version = "2.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "pandas", version = "2.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
-    { name = "tables", version = "3.10.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "tables", version = "3.10.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "toolz" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/76/b8/a95bd1ee18700ef6781f288dac3bce26f8b7ec30ad160342d5c83f6a1e82/orca-1.8.tar.gz", hash = "sha256:b3ca9e651cefe2f25a0ff9842191d661594731cfde00a12d22216900a9445bd8", size = 19753, upload-time = "2022-10-11T00:16:28.869Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/8b/2b/39bd6ed24898df4c7e38de520ae8544878e2457451d93ec8fa17f8c46ba7/orca-1.8-py2.py3-none-any.whl", hash = "sha256:7ed742914507d0bb21563016ce3947f99c3122a37459111f745f261b93273a40", size = 19528, upload-time = "2022-10-11T00:16:26.512Z" },
 ]
 
 [[package]]

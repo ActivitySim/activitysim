@@ -98,3 +98,79 @@ convention = "numpy"
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["E402", "F401"]  # Ignore import violations in all `__init__.py` files
+
+[dependency-groups]
+dev = [
+    "altair",
+    "asv",  # for benchmarking
+    "black==22.12.0,<23",
+    "bump2version",  # for making a release
+    "coveralls==3.3.1",
+    "dask==2023.11",
+    "descartes",
+    "filelock",
+    "fsspec",
+    "geopandas",
+    "gh",
+    "ipykernel",  # so this env will appear in jupyter as a selection
+    "isort",
+    "jupyter-book",
+    "jupyterlab",
+    "larch>=5.7",
+    "matplotlib",
+    "myst-nb",
+    "myst-parser",  # allows markdown in sphinx
+    "nbconvert",
+    "nbformat",
+    "nbmake==1.4.6",
+    "numexpr",
+    "numpydoc",
+    "orca==1.8",
+    "pip",
+    "pre-commit",
+    "pycodestyle",
+    "pydantic==2.6.0",
+    "pydata-sphinx-theme",
+    "pyinstrument==4.4",
+    "pytest==7.2",
+    "pytest-cov",
+    "pytest-regressions",
+    "rich==13.3",
+    "ruby",  # for benchmarking pre-commit hooks
+    "ruff",
+    "setuptools_scm",
+    "scikit-learn==1.2",
+    "simwrapper > 1.7",
+    "snakeviz",  # for profiling
+    "sparse",
+    "sphinx==6.1",
+    "sphinx-argparse",
+    "sphinx-autosummary-accessors",
+    "sphinx-copybutton",
+    "sphinx-remove-toctrees",
+    "sphinx_rtd_theme==1.2",
+    "sphinx-argparse==0.4",
+    "tables>=3.9",  # pytables is tables in pypi
+    "xmle",
+    "zarr>=2,<3",
+    "zstandard"
+]
+github-action = [
+    "black==22.12.0",
+    "coveralls==3.3.1",
+    "dask==2023.11",
+    "isort==5.12.0",
+    "nbmake==1.4.6",
+    "orca==1.8",
+    "pip",
+    "pytest==7.2",
+    "pytest-cov",
+    "pytest-regressions",
+    "ruff",
+    "tables>=3.9",  # pytables is tables in pypi
+    "zarr>=2,<3",
+    "zstandard"
+]
+
+[tool.uv]
+default-groups = ["dev"]

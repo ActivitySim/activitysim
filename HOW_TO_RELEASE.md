@@ -15,7 +15,7 @@
     gh auth login   # <--- (only needed if gh is not logged in)
     gh repo clone ActivitySim/activitysim
     cd activitysim
-    uv sync --no-default-groups
+    uv sync
     ```
 
 3.  Run `black` to ensure that the codebase passes all style checks.

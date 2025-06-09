@@ -80,6 +80,31 @@ from activitysim.abm.models.util.tour_od import TourODSettings
 # import table settings
 from activitysim.abm.tables.shadow_pricing import ShadowPriceSettings
 
+class SettingsCheckerError(Exception):
+    """Custom exception for settings checker errors."""
+    def __init__(self, model_name: str, exception: Exception, error_files: None = None, additional_info: str = None):
+        self.model_name = model_name
+        self.exception = exception
+        self.error_files = error_files
+        self.additional_info = additional_info
+        self.message = self._construct_message()
+
+        super().__init__(self.message)
+
+    def _construct_message(self) -> str:
+        message = f"Error checking settings for {self.model_name}"
+        if self.error_files is not None:
+            # cast all files from path to strings if required and wrap into list
+            if not isinstance(self.error_files, list):
+                message_files = [self.error_files]
+            else:
+                message_files = self.error_files         
+            message += f" using files {', '.join([str(f) for f in message_files])}"
+        message += f": {str(self.exception)}"
+        if self.additional_info is not None:
+            message += f". {self.additional_info}"
+        return message
+
 # setup logging
 logger = logging.getLogger(__name__)
 file_logger = logger.getChild("logfile")
@@ -400,7 +425,7 @@ def try_eval_spec_coefs(
 
 
 def try_check_spec_coefs_templated(
-    model_name: str, model_settings: Type[PydanticReadable], state: State
+    model_name: str, model_settings: TemplatedLogitComponentSettings, state: State
 ) -> list[Exception]:
     """Alternative function for checking mode choice settings using a templated coefficients files"""
 
@@ -422,19 +447,38 @@ def try_check_spec_coefs_templated(
                 # Proper trace label probably unneeded here
                 nest_spec = eval_nest_coefficients(nest_spec, coefs, trace_label=None)
             except Exception as e:
-                inner_errors.append(e)
+                additional_info = f"Could not evaluate templated coefficients for segment {segment_name}. Check that SPEC, Coefficients, and Template files exist and have compatible labels."
+                inner_errors.append(
+                    SettingsCheckerError(
+                        model_name,
+                        e,
+                        [model_settings.SPEC, model_settings.COEFFICIENTS, model_settings.COEFFICIENT_TEMPLATE],
+                        additional_info
+                    )
+                )
                 continue
     except Exception as e:
         msg = f"{model_name}: Could not evaluate templated coefficients. Check that SPEC, Coefficients, and Template files exist and have compatible labels."
         logger.warning(msg)
         file_logger.warning(msg)
 
+        additional_info = "Could not evaluated templated coefficients. Check that SPEC, Coefficients, and Template files exist and have compatible labels."
+                
+        errors.append(
+            SettingsCheckerError(
+                model_name,
+                e,
+                [model_settings.SPEC, model_settings.COEFFICIENTS, model_settings.COEFFICIENT_TEMPLATE],
+                additional_info
+            )
+        )
+
     errors.extend(inner_errors)
 
     return errors
 
 def try_check_spec_coefs_ptype_spec_segments(
-    model_name: str, model_settings: Type[PydanticBase], state: State
+    model_name: str, model_settings: PydanticBase, state: State
 ) -> list[Exception]:
     """Alternative function for checking settings that are segmented by PTYPE within the main model spec"""
     errors = []
@@ -453,8 +497,9 @@ def try_check_spec_coefs_ptype_spec_segments(
                 state, segment_spec, coefficients_df, estimator=None
             )
     except Exception as e:
-        errors.append(e)
-        raise e
+        errors.append(
+            SettingsCheckerError(model_name, e, [model_settings.SPEC, model_settings.COEFFICIENTS])
+        )
     return errors
 
 
@@ -511,7 +556,9 @@ def try_load_and_check_spec_coefs(
             file_logger.info(msg)
 
         if coefs_error is not None:
-            errors.append(coefs_error)
+            errors.append(
+                SettingsCheckerError(model_name, coefs_error, coefs_file)
+            )
 
         # then attempt to evaluate coefficients against spec
         eval_coefs, eval_coefs_error = try_eval_spec_coefs(
@@ -523,7 +570,9 @@ def try_load_and_check_spec_coefs(
         )
 
         if eval_coefs_error is not None:
-            errors.append(eval_coefs_error)
+            errors.append(
+                SettingsCheckerError(model_name, eval_coefs_error, [spec_file, coefs_file])
+            )
 
     # then, check any other subsettings that may have a SPEC
     # this includes preprocessors and annotators, etc.
@@ -538,7 +587,9 @@ def try_load_and_check_spec_coefs(
                 state=state,
             )
             if addl_spec_error:
-                errors.append(addl_spec_error)
+                errors.append(
+                    SettingsCheckerError(model_name, addl_spec_error, addl_spec_file)
+                )
     return errors
 
 
@@ -593,7 +644,9 @@ def check_model_settings(state: State) -> None:
         )
 
         if model_settings_error is not None:
-            all_errors.append(model_settings_error)
+            all_errors.append(
+                SettingsCheckerError(model_name, model_settings_error, model_settings_file)
+            )
             continue
 
         # then attempt to load and resolve spec/coef files

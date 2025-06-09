@@ -109,7 +109,7 @@ class SettingsCheckerError(Exception):
 logger = logging.getLogger(__name__)
 file_logger = logger.getChild("logfile")
 
-COMPONENTS_TO_SETTINGS = {
+CHECKER_SETTINGS = {
     "compute_accessibility": {
         "settings_cls": AccessibilitySettings,
         "settings_file": "accessibility.yaml",
@@ -610,7 +610,7 @@ def try_load_and_check_spec_coefs(
     return errors
 
 
-def check_model_settings(state: State) -> None:
+def check_model_settings(state: State, checker_settings=CHECKER_SETTINGS) -> None:
 
     # Collect all errors
     all_errors = []
@@ -638,7 +638,7 @@ def check_model_settings(state: State) -> None:
 
     for model_name in all_models:
 
-        if not model_name in COMPONENTS_TO_SETTINGS:
+        if not model_name in checker_settings:
             msg = (
                 f"Cannot pre-check settings for model component {model_name}: "
                 "mapping to a Pydantic data model is undefined in the checker."
@@ -647,9 +647,9 @@ def check_model_settings(state: State) -> None:
             file_logger.info(msg)
             continue
 
-        model_settings_class = COMPONENTS_TO_SETTINGS[model_name]["settings_cls"]
-        model_settings_file = COMPONENTS_TO_SETTINGS[model_name]["settings_file"]
-        spec_coefficient_keys = COMPONENTS_TO_SETTINGS[model_name].get("spec_coefficient_keys")
+        model_settings_class = checker_settings[model_name]["settings_cls"]
+        model_settings_file = checker_settings[model_name]["settings_file"]
+        spec_coefficient_keys = checker_settings[model_name].get("spec_coefficient_keys")
 
         # first, attempt to load settings
         # continue if any errorr

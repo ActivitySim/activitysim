@@ -80,9 +80,17 @@ from activitysim.abm.models.util.tour_od import TourODSettings
 # import table settings
 from activitysim.abm.tables.shadow_pricing import ShadowPriceSettings
 
+
 class SettingsCheckerError(Exception):
     """Custom exception for settings checker errors."""
-    def __init__(self, model_name: str, exception: Exception, error_files: None = None, additional_info: str = None):
+
+    def __init__(
+        self,
+        model_name: str,
+        exception: Exception,
+        error_files: None = None,
+        additional_info: str = None,
+    ):
         self.model_name = model_name
         self.exception = exception
         self.error_files = error_files
@@ -98,12 +106,13 @@ class SettingsCheckerError(Exception):
             if not isinstance(self.error_files, list):
                 message_files = [self.error_files]
             else:
-                message_files = self.error_files         
+                message_files = self.error_files
             message += f" using files {', '.join([str(f) for f in message_files])}"
         message += f": {str(self.exception)}"
         if self.additional_info is not None:
             message += f". {self.additional_info}"
         return message
+
 
 # setup logging
 logger = logging.getLogger(__name__)
@@ -134,10 +143,7 @@ CHECKER_SETTINGS = {
         "settings_cls": AutoOwnershipSettings,
         "settings_file": "auto_ownership.yaml",
     },
-    "cdap_simulate": {
-        "settings_cls": CdapSettings, 
-        "settings_file": "cdap.yaml"
-    },
+    "cdap_simulate": {"settings_cls": CdapSettings, "settings_file": "cdap.yaml"},
     "compute_disaggregate_accessibility": {
         "settings_cls": DisaggregateAccessibilitySettings,
         "settings_file": "disaggregate_accessibility.yaml",
@@ -217,7 +223,7 @@ CHECKER_SETTINGS = {
             {"spec": "OUTBOUND_SPEC", "coefs": "OUTBOUND_COEFFICIENTS"},
             {"spec": "INBOUND_SPEC", "coefs": "INBOUND_COEFFICIENTS"},
             {"spec": "OUTBOUND_COND_SPEC", "coefs": "OUTBOUND_COND_COEFFICIENTS"},
-        ]
+        ],
     },
     "school_location": {
         "settings_cls": TourLocationComponentSettings,
@@ -231,10 +237,7 @@ CHECKER_SETTINGS = {
         "settings_cls": StopFrequencySettings,
         "settings_file": "stop_frequency.yaml",
     },
-    "summarize": {
-        "settings_cls": SummarizeSettings, 
-        "settings_file": "summarize.yaml"}
-    ,
+    "summarize": {"settings_cls": SummarizeSettings, "settings_file": "summarize.yaml"},
     "telecommute_frequency": {
         "settings_cls": TelecommuteFrequencySettings,
         "settings_file": "telecommute_frequency.yaml",
@@ -300,7 +303,7 @@ CHECKER_SETTINGS = {
         "settings_file": "workplace_location.yaml",
     },
     "write_data_dictionary": {
-        "settings_cls": PydanticReadable, # write data dictionary uses state.filesystem.read_model_settings directly
+        "settings_cls": PydanticReadable,  # write data dictionary uses state.filesystem.read_model_settings directly
         "settings_file": "write_data_dictionary.yaml",
     },
     "write_trip_matrices": {
@@ -393,7 +396,9 @@ def try_eval_spec_coefs(
 ) -> tuple[DataFrame | None, Exception | None]:
 
     if spec is None or coefs is None:
-        msg_prefix = f"Skipping Evaluation Check for {model_settings.__class__.__name__}"
+        msg_prefix = (
+            f"Skipping Evaluation Check for {model_settings.__class__.__name__}"
+        )
         spec_msg = "No SPEC available" if spec is None else ""
         coefs_msg = "No COEFFICENTS available" if coefs is None else ""
         msg = ". ".join([msg_prefix, spec_msg, coefs_msg])
@@ -452,8 +457,12 @@ def try_check_spec_coefs_templated(
                     SettingsCheckerError(
                         model_name,
                         e,
-                        [model_settings.SPEC, model_settings.COEFFICIENTS, model_settings.COEFFICIENT_TEMPLATE],
-                        additional_info
+                        [
+                            model_settings.SPEC,
+                            model_settings.COEFFICIENTS,
+                            model_settings.COEFFICIENT_TEMPLATE,
+                        ],
+                        additional_info,
                     )
                 )
                 continue
@@ -463,19 +472,24 @@ def try_check_spec_coefs_templated(
         file_logger.warning(msg)
 
         additional_info = "Could not evaluated templated coefficients. Check that SPEC, Coefficients, and Template files exist and have compatible labels."
-                
+
         errors.append(
             SettingsCheckerError(
                 model_name,
                 e,
-                [model_settings.SPEC, model_settings.COEFFICIENTS, model_settings.COEFFICIENT_TEMPLATE],
-                additional_info
+                [
+                    model_settings.SPEC,
+                    model_settings.COEFFICIENTS,
+                    model_settings.COEFFICIENT_TEMPLATE,
+                ],
+                additional_info,
             )
         )
 
     errors.extend(inner_errors)
 
     return errors
+
 
 def try_check_spec_coefs_ptype_spec_segments(
     model_name: str, model_settings: PydanticBase, state: State
@@ -498,20 +512,22 @@ def try_check_spec_coefs_ptype_spec_segments(
             )
     except Exception as e:
         errors.append(
-            SettingsCheckerError(model_name, e, [model_settings.SPEC, model_settings.COEFFICIENTS])
+            SettingsCheckerError(
+                model_name, e, [model_settings.SPEC, model_settings.COEFFICIENTS]
+            )
         )
     return errors
 
 
 def try_load_and_check_spec_coefs(
-    model_name: str, 
-    model_settings: Type[PydanticBase], 
-    state: State, 
-    spec_coefficient_keys: list[dict]=None
+    model_name: str,
+    model_settings: Type[PydanticBase],
+    state: State,
+    spec_coefficient_keys: list[dict] = None,
 ) -> list[Exception]:
     """Attempt to load and evaluate SPEC and COEFFICIENTS.
     By default, will look for SPEC and COEFFICIENTS at the top level of the settings.
-    This can be overriden by providing an alternative set of spec/coefs keys 
+    This can be overriden by providing an alternative set of spec/coefs keys
     in the settings checker register.
     """
     # collect all errors
@@ -523,7 +539,7 @@ def try_load_and_check_spec_coefs(
     for key_pair in spec_coefficient_keys:
 
         # attempt to read SPEC file
-        if hasattr(model_settings, key_pair["spec"]):            
+        if hasattr(model_settings, key_pair["spec"]):
             spec_file = model_settings.model_dump().get(key_pair["spec"])
 
             # HACK: some models may use older "SPECIFICATION" field name instead of "SPEC"
@@ -536,7 +552,7 @@ def try_load_and_check_spec_coefs(
                     model_settings=model_settings,
                     spec_file=spec_file,
                     state=state,
-            )
+                )
             else:
                 spec, spec_error = None, None
                 msg = f"{model_name}: Field {key_pair['spec']} is None in {model_settings.__class__.__name__}. Ensure that a filepath is defined YAML settings if required"
@@ -573,9 +589,7 @@ def try_load_and_check_spec_coefs(
             # file_logger.info(msg)
 
         if coefs_error is not None:
-            errors.append(
-                SettingsCheckerError(model_name, coefs_error, coefs_file)
-            )
+            errors.append(SettingsCheckerError(model_name, coefs_error, coefs_file))
 
         # then attempt to evaluate coefficients against spec
         eval_coefs, eval_coefs_error = try_eval_spec_coefs(
@@ -588,18 +602,23 @@ def try_load_and_check_spec_coefs(
 
         if eval_coefs_error is not None:
             errors.append(
-                SettingsCheckerError(model_name, eval_coefs_error, [spec_file, coefs_file])
+                SettingsCheckerError(
+                    model_name, eval_coefs_error, [spec_file, coefs_file]
+                )
             )
 
     # then, check any other subsettings that may have a SPEC
     # this includes preprocessors and annotators, etc.
     # for now, check is limited to check that the SPEC file is loadable
     for _, setting in model_settings:
-        if isinstance(setting, PydanticBase) and setting.model_dump().get("SPEC") is not None:
+        if (
+            isinstance(setting, PydanticBase)
+            and setting.model_dump().get("SPEC") is not None
+        ):
             addl_spec_file = setting.SPEC
             addl_spec, addl_spec_error = try_load_spec(
                 model_name=model_name + f": {setting.__class__.__name__}",
-                model_settings= setting,
+                model_settings=setting,
                 spec_file=addl_spec_file,
                 state=state,
             )
@@ -611,10 +630,10 @@ def try_load_and_check_spec_coefs(
 
 
 def check_model_settings(
-        state: State, 
-        checker_settings: dict = CHECKER_SETTINGS, 
-        extension_settings: dict = {}, 
-        log_file: str ="settings_checker.log"
+    state: State,
+    checker_settings: dict = CHECKER_SETTINGS,
+    extension_settings: dict = {},
+    log_file: str = "settings_checker.log",
 ) -> None:
 
     # Collect all errors
@@ -635,7 +654,7 @@ def check_model_settings(
     # add extension settings to checker settings
     if extension_settings is not None:
         checker_settings.update(extension_settings)
-    
+
     # extract all model components
     all_models = state.settings.models
 
@@ -658,7 +677,9 @@ def check_model_settings(
 
         model_settings_class = checker_settings[model_name]["settings_cls"]
         model_settings_file = checker_settings[model_name]["settings_file"]
-        spec_coefficient_keys = checker_settings[model_name].get("spec_coefficient_keys")
+        spec_coefficient_keys = checker_settings[model_name].get(
+            "spec_coefficient_keys"
+        )
 
         # first, attempt to load settings
         # continue if any errorr
@@ -671,7 +692,9 @@ def check_model_settings(
 
         if model_settings_error is not None:
             all_errors.append(
-                SettingsCheckerError(model_name, model_settings_error, model_settings_file)
+                SettingsCheckerError(
+                    model_name, model_settings_error, model_settings_file
+                )
             )
             continue
 
@@ -685,39 +708,40 @@ def check_model_settings(
                 model_name=model_name,
                 model_settings=model_settings,
                 state=state,
-                spec_coefficient_keys=spec_coefficient_keys
+                spec_coefficient_keys=spec_coefficient_keys,
             )
         all_errors.extend(errors)
 
         # if model has nested SPEC_SEGMENTS, check each of these.
-        # there are two ways of segmenting specs, which are handled differently: 
+        # there are two ways of segmenting specs, which are handled differently:
         #   1) Settings using define separate pairs of spec/coefficient files.
         #   2) Others define segments within the main model spec file, keyed by PTYPE.
         if model_settings.model_dump().get("SPEC_SEGMENTS"):
 
-                spec_segments = model_settings.SPEC_SEGMENTS
+            spec_segments = model_settings.SPEC_SEGMENTS
 
-                if isinstance(spec_segments, dict):
-                    spec_segments = [segment for segment_name, segment in spec_segments.items()]
+            if isinstance(spec_segments, dict):
+                spec_segments = [
+                    segment for segment_name, segment in spec_segments.items()
+                ]
 
-                # check the first segment to see if PTYPE should be defined
-                # this avoids needing to hardcode branching logic to determine evaluation method
-                if "PTYPE" in spec_segments[0].model_fields:
-                    errors = try_check_spec_coefs_ptype_spec_segments(
+            # check the first segment to see if PTYPE should be defined
+            # this avoids needing to hardcode branching logic to determine evaluation method
+            if "PTYPE" in spec_segments[0].model_fields:
+                errors = try_check_spec_coefs_ptype_spec_segments(
+                    model_name=model_name,
+                    model_settings=model_settings,
+                    state=state,
+                )
+                all_errors.extend(errors)
+            else:
+                for segment_settings in spec_segments:
+                    errors = try_load_and_check_spec_coefs(
                         model_name=model_name,
-                        model_settings=model_settings,
+                        model_settings=segment_settings,
                         state=state,
                     )
-                    all_errors.extend(errors)
-                else:
-                    for segment_settings in spec_segments:
-                        errors = try_load_and_check_spec_coefs(
-                            model_name=model_name,
-                            model_settings=segment_settings,
-                            state=state,
-                    )
-                    all_errors.extend(errors)
-
+                all_errors.extend(errors)
 
     if len(all_errors) > 0:
         msg = "Settings Checker Failed with the following errors:"

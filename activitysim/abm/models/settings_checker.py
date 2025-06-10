@@ -305,6 +305,7 @@ CHECKER_SETTINGS = {
     "write_data_dictionary": {
         "settings_cls": PydanticReadable,  # write data dictionary uses state.filesystem.read_model_settings directly
         "settings_file": "write_data_dictionary.yaml",
+        "warn_only": True
     },
     "write_trip_matrices": {
         "settings_cls": WriteTripMatricesSettings,
@@ -680,9 +681,12 @@ def check_model_settings(
         spec_coefficient_keys = checker_settings[model_name].get(
             "spec_coefficient_keys"
         )
+        # do not raise errors if YAML file cannot be loaded
+        # this is used for write_data_dictionary
+        warn_only = checker_settings[model_name].get("warn_only", False)
 
         # first, attempt to load settings
-        # continue if any errorr
+        # continue if any error
         model_settings, model_settings_error = try_load_model_settings(
             model_name=model_name,
             model_settings_class=model_settings_class,
@@ -691,12 +695,18 @@ def check_model_settings(
         )
 
         if model_settings_error is not None:
-            all_errors.append(
-                SettingsCheckerError(
-                    model_name, model_settings_error, model_settings_file
+            if warn_only:
+                msg = f"{model_name} settings file {model_settings_file} could not be loaded. Ensure inclusion of this configuration file is optional."
+                logger.warning(msg)
+                file_logger.warning(msg)
+                continue
+            else:
+                all_errors.append(
+                    SettingsCheckerError(
+                        model_name, model_settings_error, model_settings_file
+                    )
                 )
-            )
-            continue
+                continue
 
         # then attempt to load and resolve spec/coef files
         if isinstance(model_settings, TemplatedLogitComponentSettings):

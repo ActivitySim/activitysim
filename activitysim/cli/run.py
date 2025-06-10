@@ -174,7 +174,7 @@ def handle_standard_args(state: workflow.State, args, multiprocess=True):
                 logger.exception(f"Error {err}")
                 raise
             finally:
-                del sys.path[0]
+               del sys.path[0]
         inject_arg("imported_extensions", args.ext)
     else:
         inject_arg("imported_extensions", ())
@@ -285,7 +285,7 @@ def run(args):
         # Memory sidecar is only useful for single process runs
         # multiprocess runs log memory usage without blocking in the controlling process.
         mem_prof_log = state.get_log_file_path("memory_profile.csv")
-        from ..core.memory_sidecar import MemorySidecar
+        from activitysim.core.memory_sidecar import MemorySidecar
 
         memory_sidecar_process = MemorySidecar(mem_prof_log)
     else:
@@ -372,9 +372,23 @@ def run(args):
 
     t0 = tracing.print_elapsed_time()
 
-    logger.info("Checking Settings Files")
+    
     if state.settings.check_model_settings == True:
-        check_model_settings(state)
+        logger.info("Settings checker will check core settings files. See settings_checker.log for details.")
+        # get any additional settings definitions from extensions
+        extension_checker_settings = {}
+        extension_names = state.get_injectable("imported_extensions")
+        if extension_names:
+            for ext in extension_names:
+                try:
+                    settings_checker_ext = importlib.import_module(ext + ".settings_checker")
+                    extension_checker_settings.update(settings_checker_ext.EXTENSION_CHECKER_SETTINGS)
+                    # settings_checker_ext.check_extension_model_settings(state, log_file="settings_checker_extensions.log")
+                except ImportError:
+                    logger.warning(
+                        f"Extension {ext} does not have a settings_checker module or it cannot be imported."
+                    )
+        check_model_settings(state, extension_settings=extension_checker_settings)
 
     try:
         if state.settings.multiprocess:

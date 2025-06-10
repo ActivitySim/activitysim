@@ -610,7 +610,12 @@ def try_load_and_check_spec_coefs(
     return errors
 
 
-def check_model_settings(state: State, checker_settings=CHECKER_SETTINGS) -> None:
+def check_model_settings(
+        state: State, 
+        checker_settings: dict = CHECKER_SETTINGS, 
+        extension_settings: dict = {}, 
+        log_file: str ="settings_checker.log"
+) -> None:
 
     # Collect all errors
     all_errors = []
@@ -619,7 +624,7 @@ def check_model_settings(state: State, checker_settings=CHECKER_SETTINGS) -> Non
     formatter = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
-    out_log_file = state.get_log_file_path("settings_checker.log")
+    out_log_file = state.get_log_file_path(log_file)
     if os.path.exists(out_log_file):
         os.remove(out_log_file)
     module_handler = logging.FileHandler(out_log_file)
@@ -627,6 +632,10 @@ def check_model_settings(state: State, checker_settings=CHECKER_SETTINGS) -> Non
     file_logger.addHandler(module_handler)
     file_logger.propagate = False
 
+    # add extension settings to checker settings
+    if extension_settings is not None:
+        checker_settings.update(extension_settings)
+    
     # extract all model components
     all_models = state.settings.models
 
@@ -718,8 +727,8 @@ def check_model_settings(state: State, checker_settings=CHECKER_SETTINGS) -> Non
             logger.error(f"\t{str(e)}")
             file_logger.error(f"\t{str(e)}")
         raise RuntimeError(
-            "Encountered error in settings checker. See settings_checker.log for details."
+            f"Encountered one or more errors in settings checker. See f{log_file} for details."
         )
-    msg = "Setting Checker Complete. No runtime errors were raised. Check settings_checker.log for warnings. These may prevent model from successfully running."
+    msg = f"Setting Checker Complete. No runtime errors were raised. Check f{log_file} for warnings. These *may* prevent model from successfully running."
     logger.info(msg)
     file_logger.info(msg)

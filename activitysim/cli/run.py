@@ -388,7 +388,6 @@ def run(args):
                     extension_checker_settings.update(
                         settings_checker_ext.EXTENSION_CHECKER_SETTINGS
                     )
-                    # settings_checker_ext.check_extension_model_settings(state, log_file="settings_checker_extensions.log")
                 except ImportError:
                     logger.warning(
                         f"Extension {ext} does not have a settings_checker module or it cannot be imported."

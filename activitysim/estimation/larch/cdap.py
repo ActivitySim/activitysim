@@ -383,7 +383,11 @@ def cdap_data(
             if "comment" in kwargs:
                 del kwargs["comment"]
             print(f"Reading {filename.with_suffix('.parquet')}")
-            return pd.read_parquet(filename.with_suffix(".parquet"), **kwargs)
+            df = pd.read_parquet(filename.with_suffix(".parquet"), **kwargs)
+            if df.index.name is not None:
+                # want the data to be read in the same as csv format -- without the index
+                df = df.reset_index(drop=False)
+            return df
         print(f"Reading {filename}")
         return pd.read_csv(filename, **kwargs)
 

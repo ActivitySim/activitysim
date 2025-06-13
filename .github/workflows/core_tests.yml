@@ -110,7 +110,7 @@ jobs:
       - name: Lint with Black
         run: |
           # stop the build if there are problems
-          ev run black --check --diff .
+          uv run black --check --diff .
 
       - name: Test activitysim.core
         run: |
@@ -196,7 +196,7 @@ jobs:
 
       - name: Test ${{ matrix.region }}
         run: |
-          uv run python -m pytest activitysim/examples/${{ matrix.region }}/test --durations=0
+          uv run pytest activitysim/examples/${{ matrix.region }}/test --durations=0
 
   external_regional_models:
     needs: foundation

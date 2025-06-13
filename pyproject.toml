@@ -26,7 +26,7 @@ dependencies = [
     "requests >= 2.7",
     "scikit-learn >= 1.1",
     "setuptools>=80.9.0",
-    "sharrow >= 2.9.1",
+    "sharrow >= 2.9.1, < 2.14",
     "simwrapper > 1.7",
     "sparse",
     "tables >= 3.9",

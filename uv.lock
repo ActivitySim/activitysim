@@ -140,7 +140,7 @@ requires-dist = [
     { name = "requests", specifier = ">=2.7" },
     { name = "scikit-learn", specifier = ">=1.1" },
     { name = "setuptools", specifier = ">=80.9.0" },
-    { name = "sharrow", specifier = ">=2.9.1" },
+    { name = "sharrow", specifier = ">=2.9.1,<2.14" },
     { name = "simwrapper", specifier = ">1.7" },
     { name = "sparse" },
     { name = "tables", specifier = ">=3.9" },
@@ -4027,7 +4027,7 @@ wheels = [
 
 [[package]]
 name = "sharrow"
-version = "2.14.0"
+version = "2.13.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dask" },
@@ -4042,9 +4042,9 @@ dependencies = [
     { name = "pyarrow" },
     { name = "xarray" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3d/ad/9fb609c6cfdd39fb976024fccd2dfa663a5310a4df1a392a80d21605b4cb/sharrow-2.14.0.tar.gz", hash = "sha256:d0d2afadd0b6a9f6c0b3ef6e602262c5f6c31bf33090865db555bae566217df4", size = 2138901, upload-time = "2025-05-29T14:17:12.878Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d1/a0/12798d0c8b618343dcf0578741f9ca148ba4175f13cc6bb565a74366aede/sharrow-2.13.0.tar.gz", hash = "sha256:c43e34faf95ec66a180ea40fa417bcf15e6ff80d47ff6471e7c0444a91092649", size = 2137505, upload-time = "2024-12-04T03:45:27.791Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/75/b9/b460fbaf2213f1406d1b5537f50852671e203e1ad92b06d5048f5a132471/sharrow-2.14.0-py3-none-any.whl", hash = "sha256:5879481139297708234f796158b9c81333d01d024aab078452ccd8753de88167", size = 2224745, upload-time = "2025-05-29T14:17:11.543Z" },
+    { url = "https://files.pythonhosted.org/packages/0a/6d/d6356dd63b6b8943850cd53f93b0e29e2780fcf685ad6fee47c06a67978d/sharrow-2.13.0-py3-none-any.whl", hash = "sha256:667358ac8937e6628235d3dea8a5a74a1a93b70ee4e2a5dae349d42f366619f3", size = 2224276, upload-time = "2024-12-04T03:45:26.369Z" },
 ]
 
 [[package]]

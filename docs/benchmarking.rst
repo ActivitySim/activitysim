@@ -34,13 +34,13 @@ common repository to which you have write-access.
 If this isn't already set up on your performance benchmarking machine, you can
 do all of this setup by following these steps::
 
-    conda create -n ASIM-BENCH mamba git gh -c conda-forge --override-channels
+    conda create -n ASIM-BENCH git gh -c conda-forge --override-channels
     conda activate ASIM-BENCH
     gh auth login  # <--- (only needed if gh is not logged in)
     gh repo clone ActivitySim/activitysim          # TEMPORARY: use jpn--/activitysim
     cd activitysim
     git switch develop                             # TEMPORARY: use performance1 branch
-    mamba env update --file=conda-environments/activitysim-dev.yml
+    conda env update --file=conda-environments/activitysim-dev.yml
     cd ..
     gh repo fork ActivitySim/asim-benchmarks --remote      
     cd asim-benchmarks
@@ -61,7 +61,7 @@ consider updating the environment like this::
     conda activate ASIM-BENCH
     cd activitysim
     git switch develop                             # TEMPORARY: use performance1 branch
-    mamba env update --file=conda-environments/activitysim-dev.yml
+    conda env update --file=conda-environments/activitysim-dev.yml
     cd ..
     cd asim-benchmarks
     git pull

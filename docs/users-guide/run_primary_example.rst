@@ -3,12 +3,12 @@ Run the Primary Example
 
 To setup and run the primary example (see :ref:`examples`) from the command line interface, do the following:
 
-* Open the mamba or conda command prompt
+* Open the conda command prompt
 * If you installed ActivitySim using conda environments, activate the conda
   environment with ActivitySim installed (i.e. ``conda activate asim``)
 
 .. note::
-  Most ``conda`` and ``mamba`` commands can be used interchangeably in the **mamba command prompt**. In the above step, you could instead use ``mamba activate asim`` in the mamba command prompt.
+  You can use ``conda activate asim`` to activate your environment.
 * Or, if you used the :ref:`pre-packaged installer<Pre-packaged Installer>`,
   replace all the commands below that call ``activitysim ...`` with the complete
   path to your installed location, which is probably something

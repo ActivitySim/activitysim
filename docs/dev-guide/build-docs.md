@@ -22,7 +22,7 @@ main repository (i.e. you should see subdirectories including `activitysim`,
 
 ```bash
 mkdir -p ../.env
-mamba env update -p ../.env/DOCBUILD -f conda-environments/docbuild.yml
+conda env update -p ../.env/DOCBUILD -f conda-environments/docbuild.yml
 conda activate ../.env/DOCBUILD
 cd docs
 make clean

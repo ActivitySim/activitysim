@@ -83,9 +83,9 @@ ________
 Activitysim is implemented in the Python programming language. It also uses several open source Python packages such as pandas, numpy, pytables, openmatrix etc. Hence it is recommended that you install and use a *conda* package manager for your system.
 One easy way to do so is by using
 `Mambaforge <https://github.com/conda-forge/miniforge#mambaforge>`__.
-Mamba is a free open source cross-platform package manager that runs on
-Windows, OS X and Linux and is fully compatible with conda packages.  It is
-also usually substantially faster than conda itself. Instructions to install mambaforge can be found `here <https://mamba.readthedocs.io/en/latest/mamba-installation.html#mamba-install>`__. Installers for different Operating Systems can be found `here <https://github.com/conda-forge/miniforge#miniforge3>`__.
+Conda is a free open source cross-platform package manager that runs on
+Windows, OS X and Linux. Modern versions of conda have significantly improved
+performance compared to older versions. Instructions to install mambaforge can be found `here <https://mamba.readthedocs.io/en/latest/mamba-installation.html#mamba-install>`__. Installers for different Operating Systems can be found `here <https://github.com/conda-forge/miniforge#miniforge3>`__.
 
 Alternatively, if you prefer a package installer backed by corporate tech
 support available (for a fee) as necessary, you can install
@@ -93,9 +93,8 @@ support available (for a fee) as necessary, you can install
 although you should consult the `terms of service <https://www.anaconda.com/terms-of-service>`__
 for this product and ensure you qualify since businesses and
 governments with over 200 employees do not qualify for free usage.
-If you're using `conda` instead of `mamba`, just replace every call to
-`mamba` below with `conda`, as they share the same user interface and most
-command formats.
+You can use `conda` for all the commands below, as it now has the same
+performance and capabilities that were previously only available in mamba.
 
 If you access the internet from behind a firewall, then you may need to
 configure your proxy server. To do so, create a `.condarc` file in your
@@ -117,7 +116,7 @@ There are multiple ways to install the ActivitySim codebase:
 
 1. Using a :ref:`Pre-packaged Installer` (recommended for users who do not need to change the Python code)
 
-2. Using a :ref:`Python package manager like mamba <Using *mamba* package manager>` (recommended for users who need to change/customize the Python code)
+2. Using a :ref:`Python package manager like conda <Using *conda* package manager>` (recommended for users who need to change/customize the Python code)
 
 3. Using :ref:`pip - Python's standard package manager <Using *pip* - Python's standard package manager>`
 
@@ -146,17 +145,17 @@ Once the install is complete, ActivitySim can be run directly from any command
 prompt by running `<install_location>/Scripts/ActivitySim.exe`.
 
 
-Using *mamba* package manager
+Using *conda* package manager
 _____________________________
 
 This method is recommended for ActivitySim users who also wish to customize the Python code to run their models. The steps involved are described as follows:
 
-1. Install the *mamba* package manager as described in the :ref:`Software Requirements <Software>` subsection.
+1. Install the *conda* package manager as described in the :ref:`Software Requirements <Software>` subsection.
 
 2. Create a conda environment (basically a Python install just for this project)
-using mambaforge prompt or conda prompt depending on the package manager you use (on Windows) or the terminal (macOS or Linux)::
+using conda prompt (on Windows) or the terminal (macOS or Linux)::
 
-  mamba create -n asim python=3.10 activitysim -c conda-forge --override-channels
+  conda create -n asim python=3.10 activitysim -c conda-forge --override-channels
 
 This command will create the environment and install all the dependencies
 required for running ActivitySim.  It is only necessary to create the environment
@@ -164,35 +163,35 @@ once per machine, you do not need to (re)create the environment for each session
 If you would also like to install other tools or optional dependencies, it is
 possible to do so by adding additional libraries to this command.  For example::
 
-  mamba create -n asim python=3.10 activitysim jupyterlab larch -c conda-forge --override-channels
+  conda create -n asim python=3.10 activitysim jupyterlab larch -c conda-forge --override-channels
 
 This example installs a specific version of Python, version 3.9.  A similar
 approach can be used to install specific versions of other libraries as well,
 including ActivitySim, itself. For example::
 
-  mamba create -n asim python=3.9 activitysim=1.0.2 -c conda-forge --override-channels
+  conda create -n asim python=3.9 activitysim=1.0.2 -c conda-forge --override-channels
 
 Additional libraries can also be installed later.  You may want to consider these
 tools for certain development tasks::
 
   # packages for testing
-  mamba install pytest pytest-cov coveralls black flake8 pytest-regressions -c conda-forge --override-channels -n asim
+  conda install pytest pytest-cov coveralls black flake8 pytest-regressions -c conda-forge --override-channels -n asim
 
   # packages for building documentation
-  mamba install sphinx numpydoc sphinx_rtd_theme==0.5.2 -c conda-forge --override-channels -n asim
+  conda install sphinx numpydoc sphinx_rtd_theme==0.5.2 -c conda-forge --override-channels -n asim
 
   # packages for estimation integration
-  mamba install larch -c conda-forge --override-channels -n asim
+  conda install larch -c conda-forge --override-channels -n asim
 
   # packages for example notebooks
-  mamba install jupyterlab matplotlib geopandas descartes -c conda-forge --override-channels -n asim
+  conda install jupyterlab matplotlib geopandas descartes -c conda-forge --override-channels -n asim
 
 To create an environment containing all these optional dependencies at once, you
 can run the shortcut command
 
 ::
 
-  mamba env create activitysim/ASIM -n asim
+  conda env create activitysim/ASIM -n asim
 
 3. To use the **asim** environment, you need to activate it
 
@@ -205,19 +204,19 @@ start a new session (e.g. opening a new conda Prompt window).
 .. note::
 
   The *activate* and *deactivate* commands to start and stop using environments
-  are called as `conda` even if you are otherwise using `mamba`. mamba is a drop-in replacement and uses the same commands and configuration options as conda.
-  You can swap almost all commands between conda & mamba. For more details, refer to `the mamba user guide <https://mamba.readthedocs.io/en/latest/user_guide/mamba.html>`__.
+  are always called as `conda`. Modern conda has the same performance and configuration options as mamba.
+  For more details, refer to `the conda user guide <https://docs.conda.io/projects/conda/en/latest/user-guide/>`__.
 
 Using *pip* - Python's standard package manager
 _______________________________________________
 
-If you prefer to install ActivitySim without a package manager like *mamba* or *conda*, it is possible to
+If you prefer to install ActivitySim without a package manager like *conda*, it is possible to
 do so with pip, although you may find it more difficult to get all of the
 required dependencies installed correctly.  If you can use conda for
 the dependencies, you can get most of the libraries you need from there::
 
   # required packages for running ActivitySim
-  mamba install cytoolz numpy pandas psutil pyarrow numba pytables pyyaml openmatrix requests -c conda-forge
+  conda install cytoolz numpy pandas psutil pyarrow numba pytables pyyaml openmatrix requests -c conda-forge
 
   # required for ActivitySim version 1.0.1 and earlier
   pip install zbox
@@ -242,7 +241,7 @@ Installing from source is easier if you have all the necessary dependencies alre
 installed in a development conda environment.  Developers can create an
 environment that has all the optional dependencies preinstalled by running::
 
-  mamba env create activitysim/ASIM-DEV
+  conda env create activitysim/ASIM-DEV
 
 If you prefer to use a different environment name than `ASIM-DEV`, just
 append `--name OTHERNAME` to the command. Then all that's left to do is install

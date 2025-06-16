@@ -133,7 +133,7 @@ jobs:
     needs: foundation
     env:
       python-version: "3.10"
-      label: linux-64
+      label: win-64
     strategy:
       matrix:
         region:
@@ -202,7 +202,7 @@ jobs:
     needs: foundation
     env:
       python-version: "3.10"
-      label: linux-64
+      label: win-64
     strategy:
       matrix:
         include:
@@ -217,9 +217,9 @@ jobs:
       fail-fast: false
     defaults:
       run:
-        shell: bash -l {0}
+        shell: pwsh
     name: ${{ matrix.region }}
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout ActivitySim
         uses: actions/checkout@v4
@@ -256,12 +256,12 @@ jobs:
     needs: foundation
     env:
       python-version: "3.10"
-      label: linux-64
+      label: win-64
     defaults:
       run:
-        shell: bash -l {0}
+        shell: pwsh
     name: random_seed_generation_test
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -290,12 +290,12 @@ jobs:
     needs: foundation
     env:
       python-version: "3.10"
-      label: linux-64
+      label: win-64
     defaults:
       run:
-        shell: bash -l {0}
+        shell: pwsh
     name: Estimation Mode Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 

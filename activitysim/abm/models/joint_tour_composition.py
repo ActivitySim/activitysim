@@ -89,6 +89,7 @@ def joint_tour_composition(
     constants = config.get_model_constants(model_settings)
 
     locals_dict = {
+        "persons": persons,
         "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
     }
     locals_dict.update(constants)

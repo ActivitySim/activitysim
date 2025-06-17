@@ -7,7 +7,7 @@ import logging
 import pandas as pd
 
 from activitysim.abm.models.util import probabilistic_scheduling as ps
-from activitysim.core import chunk, estimation, workflow
+from activitysim.core import chunk, estimation, workflow, expressions
 from activitysim.core.configuration.base import PydanticReadable
 
 logger = logging.getLogger(__name__)
@@ -178,7 +178,7 @@ def tour_scheduling_probabilistic(
 
     expressions.annotate_tables(
         state,
-        locals_dict=constants,
+        locals_dict={},
         skims=None,
         model_settings=model_settings,
         trace_label=trace_label,

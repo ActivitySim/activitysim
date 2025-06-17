@@ -115,7 +115,7 @@ def run_tour_scheduling(
         assert not model_settings.TOUR_SPEC_SEGMENTS
         assert tour_segment_col is None
 
-        estimator = estimation.manager.begin_estimation(state, model_name)
+        estimator = estimation.manager.begin_estimation(state, trace_label)
 
         spec_file_name = model_settings.SPEC
         model_spec = state.filesystem.read_model_spec(file_name=spec_file_name)

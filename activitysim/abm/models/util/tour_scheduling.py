@@ -11,27 +11,18 @@ from activitysim.core import config, estimation, expressions, simulate, workflow
 
 from .vectorize_tour_scheduling import TourModeComponentSettings, TourSchedulingSettings
 
-import annotate
-
 logger = logging.getLogger(__name__)
 
 
 def run_tour_scheduling(
     state: workflow.State,
-    model_name: str,
+    model_settings: TourSchedulingSettings,
     chooser_tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     tdd_alts: pd.DataFrame,
     tour_segment_col: str,
+    trace_label: str,
 ):
-    trace_label = model_name
-    model_settings_file_name = f"{model_name}.yaml"
-
-    model_settings = TourSchedulingSettings.read_settings_file(
-        state.filesystem,
-        model_settings_file_name,
-        mandatory=False,
-    )
 
     if model_settings.LOGSUM_SETTINGS:
         logsum_settings = TourModeComponentSettings.read_settings_file(
@@ -54,18 +45,19 @@ def run_tour_scheduling(
     timetable = state.get_injectable("timetable")
 
     # - run preprocessor to annotate choosers
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        locals_d = {"tt": timetable.attach_state(state)}
-        locals_d.update(config.get_model_constants(model_settings))
+    locals_d = {"tt": timetable.attach_state(state)}
+    locals_d.update(config.get_model_constants(model_settings))
 
-        expressions.assign_columns(
-            state,
-            df=chooser_tours,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_d,
-            trace_label=trace_label,
-        )
+    # preprocess choosers
+    expressions.annotate_preprocessors(
+        state,
+        df=chooser_tours,
+        locals_dict=locals_d,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+    # alts preprocessed in vectorize_tour_scheduling
 
     estimators = {}
     if model_settings.TOUR_SPEC_SEGMENTS:
@@ -74,7 +66,7 @@ def run_tour_scheduling(
         specs = {}
         compute_settings = {}
         for spec_segment_name, spec_settings in spec_segment_settings.items():
-            bundle_name = f"{model_name}_{spec_segment_name}"
+            bundle_name = f"{trace_label}_{spec_segment_name}"
 
             # estimator for this tour_segment
             estimator = estimation.manager.begin_estimation(
@@ -93,7 +85,7 @@ def run_tour_scheduling(
 
             if estimator:
                 estimators[spec_segment_name] = estimator  # add to local list
-                estimator.write_model_settings(model_settings, model_settings_file_name)
+                estimator.write_model_settings(model_settings, f"{trace_label}.yaml")
                 estimator.write_spec(spec_settings)
                 estimator.write_coefficients(coefficients_df, spec_settings)
 
@@ -148,7 +140,7 @@ def run_tour_scheduling(
     if estimators:
         timetable.begin_transaction(list(estimators.values()))
 
-    logger.info(f"Running {model_name} with %d tours", len(chooser_tours))
+    logger.info(f"Running {trace_label} with %d tours", len(chooser_tours))
     choices = vts.vectorize_tour_scheduling(
         state,
         chooser_tours,
@@ -196,14 +188,5 @@ def run_tour_scheduling(
     choices = pd.merge(
         choices.to_frame("tdd"), tdd_alts, left_on=["tdd"], right_index=True, how="left"
     )
-
-    if model_settings.annotate_households:
-        annotate.annotate_households(state, model_settings, trace_label)
-    
-    if model_settings.annotate_persons:
-        annotate.annotate_persons(state, model_settings, trace_label)
-    
-    if model_settings.annotate_tours:
-        annotate.annotate_tours(state, model_settings, trace_label)
 
     return choices

@@ -95,19 +95,6 @@ def mandatory_tour_frequency(
         add_null_results(state, trace_label, model_settings)
         return
 
-    # - preprocessor
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        locals_dict = {}
-
-        expressions.assign_columns(
-            state,
-            df=choosers,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label,
-        )
-
     estimator = estimation.manager.begin_estimation(state, "mandatory_tour_frequency")
 
     model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
@@ -118,6 +105,16 @@ def mandatory_tour_frequency(
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
+
+    # - preprocessor
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     if estimator:
         estimator.write_spec(model_settings)
@@ -183,13 +180,6 @@ def mandatory_tour_frequency(
     # need to reindex as we only handled persons with cdap_activity == 'M'
     persons["mandatory_tour_frequency"] = choices.reindex(persons.index).fillna("")
 
-    expressions.assign_columns(
-        state,
-        df=persons,
-        model_settings=model_settings.annotate_persons,
-        trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
-    )
-
     state.add_table("persons", persons)
 
     tracing.print_summary(
@@ -206,3 +196,11 @@ def mandatory_tour_frequency(
         state.tracing.trace_df(
             persons, label="mandatory_tour_frequency.persons", warn_if_empty=True
         )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

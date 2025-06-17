@@ -22,7 +22,6 @@ from activitysim.core import (
 )
 from activitysim.core.interaction_simulate import interaction_simulate
 
-from .util import annotate
 
 logger = logging.getLogger(__name__)
 
@@ -60,37 +59,6 @@ def joint_tour_frequency_composition(
 
     logger.info("Running %s with %d households", trace_label, len(choosers))
 
-    # alt preprocessor
-    alt_preprocessor_settings = model_settings.ALTS_PREPROCESSOR
-    if alt_preprocessor_settings:
-        locals_dict = {}
-
-        alts = alts.copy()
-
-        expressions.assign_columns(
-            state,
-            df=alts,
-            model_settings=alt_preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label,
-        )
-
-    # - preprocessor
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        locals_dict = {
-            "persons": persons,
-            "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
-        }
-
-        expressions.assign_columns(
-            state,
-            df=choosers,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label,
-        )
-
     estimator = estimation.manager.begin_estimation(
         state, "joint_tour_frequency_composition"
     )
@@ -102,6 +70,32 @@ def joint_tour_frequency_composition(
     )
 
     constants = config.get_model_constants(model_settings)
+
+    # preprocess choosers table
+    locals_dict = {
+        "persons": persons,
+        "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
+    }
+    locals_dict.update(constants)
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
+    # preprocess alternatives table
+    expressions.annotate_preprocessors(
+        state,
+        df=alts,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="ALTS_PREPROCESSOR",
+    )
 
     if estimator:
         estimator.write_spec(model_settings)
@@ -224,11 +218,10 @@ def joint_tour_frequency_composition(
             slicer="household_id",
         )
 
-    if model_settings.annotate_tours:
-        annotate.annotate_tours(state, model_settings, trace_label)
-    
-    if model_settings.annotate_households:
-        annotate.annotate_households(state, model_settings, trace_label)
-
-    if model_settings.annotate_persons:
-        annotate.annotate_persons(state, model_settings, trace_label)
+    expressions.annotate_tables(
+        state,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

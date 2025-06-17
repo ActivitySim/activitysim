@@ -15,8 +15,6 @@ from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
 
-import annotate
-
 logger = logging.getLogger(__name__)
 DUMP = False
 
@@ -110,6 +108,27 @@ def _destination_sample(
         locals_d.update(constants)
 
     log_alt_losers = state.settings.log_alt_losers
+
+    # preprocess choosers table
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=locals_d,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
+    # preprocess alternatives table
+    expressions.annotate_preprocessors(
+        state,
+        df=destination_size_terms,
+        locals_dict=locals_d,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_sample",
+    )
 
     choices = interaction_sample(
         state,
@@ -763,15 +782,26 @@ def run_destination_simulate(
     if constants is not None:
         locals_d.update(constants)
 
-    preprocessor_settings = model_settings.get('preprocessor', None)
-    if preprocessor_settings:
-        expressions.assign_columns(
-            state,
-            df=choosers,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_d,
-            trace_label=trace_label,
-        )
+    # preprocess choosers table
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=locals_d,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
+    # preprocess alternatives table
+    expressions.annotate_preprocessors(
+        state,
+        df=destination_sample,
+        locals_dict=locals_d,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_simulate",
+    )
 
     state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
@@ -800,15 +830,6 @@ def run_destination_simulate(
         # for consistency, always return a dataframe with canonical column name
         assert isinstance(choices, pd.Series)
         choices = choices.to_frame("choice")
-
-    if model_settings.annotate_households:
-        annotate.annotate_households(state, model_settings, trace_label)
-    
-    if model_settings.annotate_persons:
-        annotate.annotate_persons(state, model_settings, trace_label)
-
-    if model_settings.annotate_tours:
-        annotate.annotate_tours(state, model_settings, trace_label)
 
     return choices
 

@@ -175,3 +175,11 @@ def tour_scheduling_probabilistic(
     assert not tours_df["duration"].isnull().any()
 
     state.add_table("tours", tours_df)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

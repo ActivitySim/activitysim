@@ -6,8 +6,8 @@ import logging
 
 import pandas as pd
 
-from activitysim.abm.models.util import annotate, tour_destination
-from activitysim.core import estimation, los, tracing, workflow
+from activitysim.abm.models.util import tour_destination
+from activitysim.core import estimation, los, tracing, workflow, expressions
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.util import assign_in_place
 
@@ -129,9 +129,6 @@ def non_mandatory_tour_destination(
 
     state.add_table("tours", tours)
 
-    if model_settings.annotate_tours:
-        annotate.annotate_tours(state, model_settings, trace_label)
-
     if want_sample_table:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
         # save_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
@@ -146,3 +143,11 @@ def non_mandatory_tour_destination(
             columns=None,
             warn_if_empty=True,
         )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

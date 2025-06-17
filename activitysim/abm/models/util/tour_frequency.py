@@ -643,8 +643,7 @@ class JointTourFreqCompSettings(LogitComponentSettings, extra="forbid"):
     """
 
     ALTS_TABLE_STRUCTURE: JointTourFreqCompAlts = JointTourFreqCompAlts()
-    preprocessor: PreprocessorSettings | None = None
-    ALTS_PREPROCESSOR: PreprocessorSettings | None = None
+    ALTS_PREPROCESSOR: PreprocessorSettings | list[PreprocessorSettings] | None = None
 
 
 def create_joint_tours(

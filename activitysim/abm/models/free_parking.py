@@ -18,8 +18,6 @@ from activitysim.core import (
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.configuration.logit import LogitComponentSettings
 
-from .util import annotate
-
 logger = logging.getLogger(__name__)
 
 
@@ -27,13 +25,6 @@ class FreeParkingSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `free_parking` component.
     """
-
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
-
-    annotate_households: PreprocessorSettings | None = None
-
-    annotate_persons: PreprocessorSettings | None = None
 
     FREE_PARKING_ALT: int
     """The code for free parking."""
@@ -84,21 +75,6 @@ def free_parking(
 
     constants = model_settings.CONSTANTS or {}
 
-    # - preprocessor
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        locals_d = {}
-        if constants is not None:
-            locals_d.update(constants)
-
-        expressions.assign_columns(
-            state,
-            df=choosers,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_d,
-            trace_label=trace_label,
-        )
-
     model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
@@ -106,6 +82,15 @@ def free_parking(
     )
 
     nest_spec = config.get_logit_model_settings(model_settings)
+
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
@@ -151,8 +136,10 @@ def free_parking(
     if state.settings.trace_hh_id:
         state.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)
 
-    if model_settings.annotate_households:
-        annotate.annotate_households(state, model_settings, trace_label)
-
-    if model_settings.annotate_persons:
-        annotate.annotate_persons(state, model_settings, trace_label)
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

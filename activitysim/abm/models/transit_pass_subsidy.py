@@ -17,7 +17,6 @@ from activitysim.core import (
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.configuration.logit import LogitComponentSettings
 
-from .util import annotate
 
 logger = logging.getLogger("activitysim")
 
@@ -26,13 +25,6 @@ class TransitPassSubsidySettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `transit_pass_subsidy` component.
     """
-
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
-
-    annotate_households: PreprocessorSettings | None = None
-
-    annotate_persons: PreprocessorSettings | None = None
 
     CHOOSER_FILTER_COLUMN_NAME: str | None = None
     """Column name which selects choosers. If None, all persons are choosers."""
@@ -62,20 +54,15 @@ def transit_pass_subsidy(
 
     constants = config.get_model_constants(model_settings)
 
-    # - preprocessor
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        locals_d = {}
-        if constants is not None:
-            locals_d.update(constants)
-
-        expressions.assign_columns(
-            state,
-            df=choosers,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_d,
-            trace_label=trace_label,
-        )
+    # - preprocessor, running before choosers are filtered so column can be created
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     filter_col = model_settings.CHOOSER_FILTER_COLUMN_NAME
     if filter_col is not None:
@@ -129,8 +116,10 @@ def transit_pass_subsidy(
     if state.settings.trace_hh_id:
         state.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)
 
-    if model_settings.annotate_households:
-        annotate.annotate_households(state, model_settings, trace_label)
-
-    if model_settings.annotate_persons:
-        annotate.annotate_persons(state, model_settings, trace_label)
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

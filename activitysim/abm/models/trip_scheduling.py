@@ -224,7 +224,6 @@ def schedule_trips_in_leg(
     failfix = model_settings.FAILFIX
     depart_alt_base = model_settings.DEPART_ALT_BASE
     scheduling_mode = model_settings.scheduling_mode
-    preprocessor_settings = model_settings.preprocessor
 
     probs_join_cols = model_settings.probs_join_cols
     if probs_join_cols is None:
@@ -286,14 +285,14 @@ def schedule_trips_in_leg(
         nth_trace_label = tracing.extend_trace_label(trace_label, "num_%s" % i)
 
         # - annotate trips
-        if preprocessor_settings:
-            expressions.assign_columns(
-                state,
-                df=trips,
-                model_settings=preprocessor_settings,
-                locals_dict=locals_dict,
-                trace_label=nth_trace_label,
-            )
+        expressions.annotate_preprocessors(
+            state,
+            df=trips,
+            locals_dict=locals_dict,
+            skims=None,
+            model_settings=model_settings,
+            trace_label=trace_label,
+        )
 
         if (
             outbound
@@ -682,3 +681,11 @@ def trip_scheduling(
     assert not trips_df.depart.isnull().any()
 
     state.add_table("trips", trips_df)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

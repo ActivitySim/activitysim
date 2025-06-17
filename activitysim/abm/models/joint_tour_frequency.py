@@ -83,6 +83,7 @@ def joint_tour_frequency(
 
     # - preprocess choosers table
     locals_dict = {
+        "persons": persons,
         "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
     }
     locals_dict.update(constants)

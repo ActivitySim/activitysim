@@ -18,6 +18,7 @@ from activitysim.core import (
 from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -36,8 +37,7 @@ class JointTourCompositionSettings(LogitComponentSettings, extra="forbid"):
     Settings for the `joint_tour_composition` component.
     """
 
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
+    pass
 
 
 @workflow.step
@@ -78,26 +78,6 @@ def joint_tour_composition(
         "Running joint_tour_composition with %d joint tours" % joint_tours.shape[0]
     )
 
-    # - run preprocessor
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        locals_dict = {
-            "persons": persons,
-            "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
-        }
-
-        expressions.assign_columns(
-            state,
-            df=households,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label,
-        )
-
-    joint_tours_merged = pd.merge(
-        joint_tours, households, left_on="household_id", right_index=True, how="left"
-    )
-
     # - simple_simulate
     model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
@@ -107,6 +87,25 @@ def joint_tour_composition(
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
+
+    locals_dict = {
+        "persons": persons,
+        "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
+    }
+    locals_dict.update(constants)
+
+    expressions.annotate_preprocessors(
+        state,
+        df=households,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
+    joint_tours_merged = pd.merge(
+        joint_tours, households, left_on="household_id", right_index=True, how="left"
+    )
 
     if estimator:
         estimator.write_spec(model_settings)
@@ -156,3 +155,11 @@ def joint_tour_composition(
             label="joint_tour_composition.joint_tours",
             slicer="household_id",
         )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

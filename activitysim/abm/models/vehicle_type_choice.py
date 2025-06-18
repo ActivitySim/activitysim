@@ -407,15 +407,16 @@ def iterate_vehicle_type_choice(
         )
 
     # alts preprocessor
-    alts_preprocessor_settings = model_settings.alts_preprocessor
-    if alts_preprocessor_settings:
-        expressions.assign_columns(
-            state,
-            df=alts_wide,
-            model_settings=alts_preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label,
-        )
+    # preprocessing alternatives
+    expressions.annotate_preprocessors(
+        state,
+        df=alts_wide,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor",
+    )
 
     # - preparing choosers for iterating
     vehicles_merged["already_owned_veh"] = ""
@@ -434,15 +435,15 @@ def iterate_vehicle_type_choice(
         # running preprocessor on entire vehicle table to enumerate vehicle types
         # already owned by the household
         choosers = vehicles_merged
-        preprocessor_settings = model_settings.preprocessor
-        if preprocessor_settings:
-            expressions.assign_columns(
-                state,
-                df=choosers,
-                model_settings=preprocessor_settings,
-                locals_dict=locals_dict,
-                trace_label=trace_label,
-            )
+        # preprocessing choosers
+        expressions.annotate_preprocessors(
+            state,
+            df=choosers,
+            locals_dict=locals_dict,
+            skims=None,
+            model_settings=model_settings,
+            trace_label=trace_label,
+        )
 
         # only make choices for vehicles that have not been selected yet
         choosers = choosers[choosers["vehicle_num"] == veh_num]
@@ -564,7 +565,6 @@ class VehicleTypeChoiceSettings(LogitComponentSettings, extra="forbid"):
     VEHICLE_TYPE_DATA_FILE: str | None = None
     PROBS_SPEC: str | None = None
     combinatorial_alts: dict | None = None
-    preprocessor: PreprocessorSettings | None = None
     alts_preprocessor: PreprocessorSettings | None = None
     SIMULATION_TYPE: Literal[
         "simple_simulate", "interaction_simulate"
@@ -575,10 +575,6 @@ class VehicleTypeChoiceSettings(LogitComponentSettings, extra="forbid"):
     """Columns to include in the chooser table for use in utility calculations."""
     COLS_TO_INCLUDE_IN_ALTS_TABLE: list[str] = []
     """Columns to include in the alternatives table for use in utility calculations."""
-
-    annotate_households: PreprocessorSettings | None = None
-    annotate_persons: PreprocessorSettings | None = None
-    annotate_vehicles: PreprocessorSettings | None = None
 
     REQUIRE_DATA_FOR_ALL_ALTS: bool = False
     WRITE_OUT_ALTS_FILE: bool = False
@@ -708,14 +704,6 @@ def vehicle_type_choice(
     vehicles = pd.concat([vehicles, choices], axis=1)
     state.add_table("vehicles", vehicles)
 
-    # - annotate tables
-    if model_settings.annotate_households:
-        annotate_vehicle_type_choice_households(state, model_settings, trace_label)
-    if model_settings.annotate_persons:
-        annotate_vehicle_type_choice_persons(state, model_settings, trace_label)
-    if model_settings.annotate_vehicles:
-        annotate_vehicle_type_choice_vehicles(state, model_settings, trace_label)
-
     tracing.print_summary(
         "vehicle_type_choice", vehicles.vehicle_type, value_counts=True
     )
@@ -724,3 +712,11 @@ def vehicle_type_choice(
         state.tracing.trace_df(
             vehicles, label="vehicle_type_choice", warn_if_empty=True
         )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

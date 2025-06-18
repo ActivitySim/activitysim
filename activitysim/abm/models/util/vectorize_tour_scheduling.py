@@ -43,8 +43,6 @@ class TourSchedulingSettings(LogitComponentSettings, extra="forbid"):
     give the segements.
     """
     SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
 
     SPEC_SEGMENTS: dict[str, LogitComponentSettings] = {}
 

@@ -280,6 +280,17 @@ def run_trip_scheduling_choice(
             choosers = choosers.sort_index()
             schedules = generate_schedule_alternatives(choosers).sort_index()
 
+            # preprocessing alternatives
+            expressions.annotate_preprocessors(
+                state,
+                df=schedules,
+                locals_dict=locals_dict,
+                skims=None,
+                model_settings=model_settings,
+                trace_label=trace_label,
+                preprocessor_setting_name="alts_preprocessor",
+            )
+
             # Assuming we did the max_alt_size calculation correctly,
             # we should get the same sizes here.
             assert choosers[NUM_ALTERNATIVES].sum() == schedules.shape[0]
@@ -340,6 +351,8 @@ class TripSchedulingChoiceSettings(PydanticReadable, extra="forbid"):
 
     PREPROCESSOR: PreprocessorSettings | None = None
     """Setting for the preprocessor."""
+    alts_preprocessor: PreprocessorSettings | None = None
+    """Setting for the alternatives preprocessor."""
 
     SPECIFICATION: str
     """file name of specification file"""
@@ -396,34 +409,32 @@ def trip_scheduling_choice(
         .reindex(tours.index)
     )
 
-    preprocessor_settings = model_settings.PREPROCESSOR
-
     # hack: preprocessor adds origin column in place if it does not exist already
     od_skim_stack_wrapper = skim_dict.wrap("origin", "destination")
     do_skim_stack_wrapper = skim_dict.wrap("destination", "origin")
     obib_skim_stack_wrapper = skim_dict.wrap(LAST_OB_STOP, FIRST_IB_STOP)
 
-    skims = [od_skim_stack_wrapper, do_skim_stack_wrapper, obib_skim_stack_wrapper]
-
-    locals_dict = {
+    skims = {
         "od_skims": od_skim_stack_wrapper,
         "do_skims": do_skim_stack_wrapper,
         "obib_skims": obib_skim_stack_wrapper,
+    }
+    locals_dict = {
         "orig_col_name": "origin",
         "dest_col_name": "destination",
         "timeframe": "timeless_directional",
     }
+    locals_dict.update(skims)
 
-    if preprocessor_settings:
-        simulate.set_skim_wrapper_targets(tours_df, skims)
-
-        expressions.assign_columns(
-            state,
-            df=tours_df,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label,
-        )
+    # preprocess choosers
+    expressions.annotate_preprocessors(
+        state,
+        df=tours_df,
+        locals_dict=locals_dict,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     tours_df = run_trip_scheduling_choice(
         state,
@@ -436,3 +447,11 @@ def trip_scheduling_choice(
     )
 
     state.add_table("tours", tours_df)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=locals_dict,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

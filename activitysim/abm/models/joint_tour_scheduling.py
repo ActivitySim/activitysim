@@ -22,20 +22,8 @@ from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.util import assign_in_place, reindex
 
+
 logger = logging.getLogger(__name__)
-
-
-# class JointTourSchedulingSettings(LogitComponentSettings, extra="forbid"):
-#     """
-#     Settings for the `joint_tour_scheduling` component.
-#     """
-#
-#     preprocessor: PreprocessorSettings | None = None
-#     """Setting for the preprocessor."""
-#
-#     sharrow_skip: bool = False
-#     """Setting to skip sharrow"""
-#
 
 
 @workflow.step
@@ -85,21 +73,18 @@ def joint_tour_scheduling(
     constants = config.get_model_constants(model_settings)
 
     # - run preprocessor to annotate choosers
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        locals_d = {}
-        if constants is not None:
-            locals_d.update(constants)
-
-        expressions.assign_columns(
-            state,
-            df=joint_tours,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_d,
-            trace_label=trace_label,
-        )
-
     timetable = state.get_injectable("timetable")
+    locals_d = {"timetable": timetable}
+    locals_d.update(constants)
+
+    expressions.annotate_preprocessors(
+        state,
+        df=joint_tours,
+        locals_dict=locals_d,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     estimator = estimation.manager.begin_estimation(state, "joint_tour_scheduling")
 
@@ -172,3 +157,11 @@ def joint_tour_scheduling(
         state.tracing.trace_df(
             joint_tours, label="joint_tour_scheduling", slicer="household_id"
         )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=locals_d,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

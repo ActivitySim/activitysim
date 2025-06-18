@@ -141,3 +141,11 @@ def atwork_subtour_scheduling(
             trace_label,
             "tour_map",
         )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

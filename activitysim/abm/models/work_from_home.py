@@ -18,6 +18,7 @@ from activitysim.core import (
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.configuration.logit import LogitComponentSettings
 
+
 logger = logging.getLogger("activitysim")
 
 
@@ -25,9 +26,6 @@ class WorkFromHomeSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `work_from_home` component.
     """
-
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
 
     WORK_FROM_HOME_ALT: int
     """Value that specify if the person is working from home"""  # TODO
@@ -88,20 +86,14 @@ def work_from_home(
     constants = config.get_model_constants(model_settings)
     work_from_home_alt = model_settings.WORK_FROM_HOME_ALT
 
-    # - preprocessor
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        locals_d = {}
-        if constants is not None:
-            locals_d.update(constants)
-
-        expressions.assign_columns(
-            state,
-            df=choosers,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_d,
-            trace_label=trace_label,
-        )
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
@@ -221,3 +213,11 @@ def work_from_home(
 
     if state.settings.trace_hh_id:
         state.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

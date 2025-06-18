@@ -12,7 +12,7 @@ from activitysim.abm.models.util.trip import (
     cleanup_failed_trips,
     flag_failed_trip_leg_mates,
 )
-from activitysim.core import estimation, tracing, workflow
+from activitysim.core import estimation, tracing, workflow, expressions
 from activitysim.core.configuration.base import PydanticReadable
 from activitysim.core.util import assign_in_place
 
@@ -261,3 +261,11 @@ def trip_purpose_and_destination(
             index_label="trip_id",
             warn_if_empty=True,
         )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

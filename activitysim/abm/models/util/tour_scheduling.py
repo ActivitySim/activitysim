@@ -126,7 +126,7 @@ def run_tour_scheduling(
 
         if estimator:
             estimators[None] = estimator  # add to local list
-            estimator.write_model_settings(model_settings, model_settings_file_name)
+            estimator.write_model_settings(model_settings, f"{trace_label}.yaml")
             estimator.write_spec(model_settings)
             estimator.write_coefficients(coefficients_df, model_settings)
 

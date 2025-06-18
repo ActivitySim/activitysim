@@ -293,7 +293,15 @@ def annotate_tables(
     tables = ["trips", "tours", "vehicles", "persons", "households"]
 
     for table_name in tables:
-        annotate_settings = getattr(model_settings, f"annotate_{table_name}", None)
+        if isinstance(model_settings, PydanticBase):
+            annotate_settings = getattr(model_settings, f"annotate_{table_name}", None)
+        elif isinstance(model_settings, dict):
+            annotate_settings = model_settings.get(f"annotate_{table_name}", None)
+        else:
+            raise ValueError(
+                f"Expected model_settings to be PydanticBase or dict, got {type(model_settings)}"
+            )
+
         if annotate_settings is None:
             continue
         assert isinstance(

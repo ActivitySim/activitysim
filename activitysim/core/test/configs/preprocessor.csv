@@ -1,0 +1,8 @@
+Description,Target,Expression
+income from households table,_hh_income,"reindex(households.income, df.household_id)"
+income test,is_high_income,_hh_income > 50000
+count persons test,num_persons,persons.groupby('household_id').size().reindex(df.household_id)
+skim dict test,od_distance,"skim_dict.lookup(df.origin, df.destination, 'DIST')"
+skim wrapper test,od_distance_wrapper,skims2d['DIST']
+sov time,od_sov_time,skims3d['SOV_TIME']
+testing constant from locals_dict,constant_test,test_constant / 2

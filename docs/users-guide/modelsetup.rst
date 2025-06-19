@@ -141,7 +141,8 @@ environment management including installation and management of Python versions 
 
   uv run ...
 
-For example, run the ActivitySim commandline using the following, which makes sure the code is run within the correct (locked) Python environment.
+For example, run the ActivitySim commandline using the following, which makes sure the code is run within the correct (locked) Python environment. More information about the commandline interface is available in 
+the :ref:`Ways to Run the Model` section.
 
   uv run activitysim run -c configs -o output -d data
 

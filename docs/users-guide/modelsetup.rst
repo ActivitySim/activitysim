@@ -80,51 +80,23 @@ Steps for enabling/disabling these options are included in the :ref:`Advanced Co
 Software
 ________
 
-Activitysim is implemented in the Python programming language. It also uses several open source Python packages such as pandas, numpy, pytables, openmatrix etc. Hence it is recommended that you install and use a *conda* package manager for your system.
-One easy way to do so is by using
-`Mambaforge <https://github.com/conda-forge/miniforge#mambaforge>`__.
-Mamba is a free open source cross-platform package manager that runs on
-Windows, OS X and Linux and is fully compatible with conda packages.  It is
-also usually substantially faster than conda itself. Instructions to install mambaforge can be found `here <https://mamba.readthedocs.io/en/latest/mamba-installation.html#mamba-install>`__. Installers for different Operating Systems can be found `here <https://github.com/conda-forge/miniforge#miniforge3>`__.
-
-Alternatively, if you prefer a package installer backed by corporate tech
-support available (for a fee) as necessary, you can install
-`Anaconda 64bit Python 3 <https://www.anaconda.com/distribution/>`__,
-although you should consult the `terms of service <https://www.anaconda.com/terms-of-service>`__
-for this product and ensure you qualify since businesses and
-governments with over 200 employees do not qualify for free usage.
-If you're using `conda` instead of `mamba`, just replace every call to
-`mamba` below with `conda`, as they share the same user interface and most
-command formats.
-
-If you access the internet from behind a firewall, then you may need to
-configure your proxy server. To do so, create a `.condarc` file in your
-home installation folder, such as:
-
-::
-
-  proxy_servers:
-    http: http://myproxy.org:8080
-    https: https://myproxy.org:8080
-  ssl_verify: false
-
+Activitysim is implemented in the Python programming language. It uses several open source Python packages such as pandas, numpy, pytables, openmatrix etc.
 
 
 Installing ActivitySim
 ----------------------
 
-There are multiple ways to install the ActivitySim codebase:
+There are two recommended ways to install ActivitySim:
 
 1. Using a :ref:`Pre-packaged Installer` (recommended for users who do not need to change the Python code)
 
-2. Using a :ref:`Python package manager like mamba <Using *mamba* package manager>` (recommended for users who need to change/customize the Python code)
+2. Using a :ref:`Python the uv package and project manager` (recommended for users who need to change/customize the Python code)
 
-3. Using :ref:`pip - Python's standard package manager <Using *pip* - Python's standard package manager>`
 
 Pre-packaged Installer
 ______________________
 
-Begining with version 1.2, ActivitySim is now available for Windows via a
+Beginning with version 1.2, ActivitySim is now available for Windows via a
 pre-packaged installer.  This installer provides everything you need to run
 ActivitySim, including Python, all the necessary supporting packages, and
 ActivitySim itself.  You should only choose this installation process if you
@@ -146,127 +118,38 @@ Once the install is complete, ActivitySim can be run directly from any command
 prompt by running `<install_location>/Scripts/ActivitySim.exe`.
 
 
-Using *mamba* package manager
-_____________________________
+Using *uv* package and project manager
+______________________________________
 
-This method is recommended for ActivitySim users who also wish to customize the Python code to run their models. The steps involved are described as follows:
+This method is recommended for ActivitySim users who are familiar with Python and optionally wish to customize the Python code to run their models.
+UV is a free open source cross-platform package and project manager that runs on
+Windows, OS X, and Linux. It is 10-100x faster than pip itself, which is the standard Python package manager. The uv features include automatic 
+environment management including installation and management of Python versions and dependency locking. The steps involved are described as follows:
 
-1. Install the *mamba* package manager as described in the :ref:`Software Requirements <Software>` subsection.
+1. Install *uv*. Instructions can be found `here <https://docs.astral.sh/uv/getting-started/installation/>`.
 
-2. Create a conda environment (basically a Python install just for this project)
-using mambaforge prompt or conda prompt depending on the package manager you use (on Windows) or the terminal (macOS or Linux)::
+2. Clone the ActivitySim project using Git. (If Git is not installed, instructions can be found `here <https://git-scm.com/downloads>`.)
 
-  mamba create -n asim python=3.10 activitysim -c conda-forge --override-channels
+  git clone https://github.com/ActivitySim/activitysim.git
+  cd activitysim
 
-This command will create the environment and install all the dependencies
-required for running ActivitySim.  It is only necessary to create the environment
-once per machine, you do not need to (re)create the environment for each session.
-If you would also like to install other tools or optional dependencies, it is
-possible to do so by adding additional libraries to this command.  For example::
+3. Optionally create the virtual environment. This is created automatically when running code in the next step, but manually syncing is an option too. This step creates a hidden folder within the current directory called `.venv` and operates the same way as Python's classic *venv*.
 
-  mamba create -n asim python=3.10 activitysim jupyterlab larch -c conda-forge --override-channels
+  uv sync
 
-This example installs a specific version of Python, version 3.9.  A similar
-approach can be used to install specific versions of other libraries as well,
-including ActivitySim, itself. For example::
+4. Run an ActivitySim command using the following. (This will automatically create a virtual environment from the lockfile, if it does not already exist.)
 
-  mamba create -n asim python=3.9 activitysim=1.0.2 -c conda-forge --override-channels
+  uv run ...
 
-Additional libraries can also be installed later.  You may want to consider these
-tools for certain development tasks::
+For example, run the ActivitySim commandline using the following, which makes sure the code is run within the correct (locked) Python environment.
 
-  # packages for testing
-  mamba install pytest pytest-cov coveralls black flake8 pytest-regressions -c conda-forge --override-channels -n asim
+  uv run activitysim run -c configs -o output -d data
 
-  # packages for building documentation
-  mamba install sphinx numpydoc sphinx_rtd_theme==0.5.2 -c conda-forge --override-channels -n asim
+If you want to run ActivitySim from a directory different than where the code lives, use the `project` option to point *uv* to this project using relative paths:
 
-  # packages for estimation integration
-  mamba install larch -c conda-forge --override-channels -n asim
+  uv run --project relative/path/to/activitysim/code activitysim run -c configs -o output -d data
 
-  # packages for example notebooks
-  mamba install jupyterlab matplotlib geopandas descartes -c conda-forge --override-channels -n asim
 
-To create an environment containing all these optional dependencies at once, you
-can run the shortcut command
+For more on *uv*, visit https://docs.astral.sh/uv/.
 
-::
 
-  mamba env create activitysim/ASIM -n asim
-
-3. To use the **asim** environment, you need to activate it
-
-::
-  conda activate asim
-
-The activation of the correct environment needs to be done every time you
-start a new session (e.g. opening a new conda Prompt window).
-
-.. note::
-
-  The *activate* and *deactivate* commands to start and stop using environments
-  are called as `conda` even if you are otherwise using `mamba`. mamba is a drop-in replacement and uses the same commands and configuration options as conda.
-  You can swap almost all commands between conda & mamba. For more details, refer to `the mamba user guide <https://mamba.readthedocs.io/en/latest/user_guide/mamba.html>`__.
-
-Using *pip* - Python's standard package manager
-_______________________________________________
-
-If you prefer to install ActivitySim without a package manager like *mamba* or *conda*, it is possible to
-do so with pip, although you may find it more difficult to get all of the
-required dependencies installed correctly.  If you can use conda for
-the dependencies, you can get most of the libraries you need from there::
-
-  # required packages for running ActivitySim
-  mamba install cytoolz numpy pandas psutil pyarrow numba pytables pyyaml openmatrix requests -c conda-forge
-
-  # required for ActivitySim version 1.0.1 and earlier
-  pip install zbox
-
-And then simply install activitysim with pip.
-
-::
-
-  python -m pip install activitysim
-
-If you are using a firewall you may need to add ``--trusted-host pypi.python.org --proxy=myproxy.org:8080`` to this command.
-
-For development work, can also install ActivitySim directly from source. Clone
-the ActivitySim repository, and then from within that directory run::
-
-  python -m pip install . -e
-
-The "-e" will install in editable mode, so any changes you make to the ActivitySim
-code will also be reflected in your installation.
-
-Installing from source is easier if you have all the necessary dependencies already
-installed in a development conda environment.  Developers can create an
-environment that has all the optional dependencies preinstalled by running::
-
-  mamba env create activitysim/ASIM-DEV
-
-If you prefer to use a different environment name than `ASIM-DEV`, just
-append `--name OTHERNAME` to the command. Then all that's left to do is install
-ActivitySim itself in editable mode as described above.
-
-.. note::
-
-  ActivitySim is a 64bit Python 3 library that uses a number of packages from the
-  scientific Python ecosystem, most notably `pandas <http://pandas.pydata.org>`__
-  and `numpy <http://numpy.org>`__.
-
-  As mentioned above, the recommended way to get your own scientific Python installation is to
-  install 64 bit Anaconda, which contains many of the libraries upon which
-  ActivitySim depends + some handy Python installation management tools.
-
-  Anaconda includes the ``conda`` command line tool, which does a number of useful
-  things, including creating `environments <http://conda.pydata.org/docs/using/envs.html>`__
-  (i.e. stand-alone Python installations/instances/sandboxes) that are the recommended
-  way to work with multiple versions of Python on one machine.  Using conda
-  environments keeps multiple Python setups from conflicting with one another.
-
-  You need to activate the activitysim environment each time you start a new command
-  session.  You can remove an environment with ``conda remove -n asim --all`` and
-  check the current active environment with ``conda info -e``.
-
-  For more information on Anaconda, see Anaconda's `getting started
-  <https://docs.anaconda.com/anaconda/user-guide/getting-started>`__ guide.

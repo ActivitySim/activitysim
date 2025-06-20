@@ -24,12 +24,11 @@ dependencies = [
     "pypyr >= 5.3",
     "pyyaml >= 5.1",
     "requests >= 2.7",
-    "scikit-learn >= 1.1",
+    "scikit-learn >= 1.2",
     "setuptools>=80.9.0",
     "sharrow >= 2.9.1",
-    "simwrapper > 1.7",
     "sparse",
-    "tables >= 3.9",
+    "tables >= 3.9",  # pytables is tables in pypi
     "xarray >= 2024.05",
 ]
 readme = "README.md"
@@ -128,7 +127,6 @@ dev = [
     "pip",
     "pre-commit",
     "pycodestyle",
-    "pydantic==2.6.0",
     "pydata-sphinx-theme",
     "pyinstrument==4.4",
     "pytest==7.2",
@@ -138,10 +136,8 @@ dev = [
     "ruby",  # for benchmarking pre-commit hooks
     "ruff",
     "setuptools_scm",
-    "scikit-learn==1.2",
     "simwrapper > 1.7",
     "snakeviz",  # for profiling
-    "sparse",
     "sphinx==6.1",
     "sphinx-argparse",
     "sphinx-autosummary-accessors",
@@ -149,7 +145,6 @@ dev = [
     "sphinx-remove-toctrees",
     "sphinx_rtd_theme==1.2",
     "sphinx-argparse==0.4",
-    "tables>=3.9",  # pytables is tables in pypi
     "xmle",
     "zarr>=2,<3",
     "zstandard"

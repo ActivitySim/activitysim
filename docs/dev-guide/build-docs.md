@@ -15,21 +15,16 @@ them into html as well.  ActivitySim's docstrings are written in
 ## Building the Documentation
 
 Developers who want to test a build of the ActivitySim documentation locally can
-do so using `sphinx`.  A pre-packaged conda environment is available to simplify this
-process. On the command line, starting from the `activitysim` directory that constitutes the
-main repository (i.e. you should see subdirectories including `activitysim`,
-`conda-environments`, `docs`, and a few others) run these commands:
+do so using `sphinx`. The *uv* `dev` environment includes the required dependencies. On the command line, starting from the `activitysim` directory that constitutes the
+main repository (i.e. you should see subdirectories including `activitysim`, `docs`, and a few others) run these commands:
 
 ```bash
-mkdir -p ../.env
-mamba env update -p ../.env/DOCBUILD -f conda-environments/docbuild.yml
-conda activate ../.env/DOCBUILD
 cd docs
 make clean
 make html
 ```
 
-This will build the docs in the `docs/_build/html` directory.  They can be viewed
+This will build the docs in the `docs/_build/html` directory. They can be viewed
 in a web browser using the `file:///` protocol, or by double-clicking on the
 `index.html` file (or any other .html file in that directory).
 

@@ -121,36 +121,66 @@ prompt by running `<install_location>/Scripts/ActivitySim.exe`.
 Using *uv* package and project manager
 ______________________________________
 
-This method is recommended for ActivitySim users who are familiar with Python and optionally wish to customize the Python code to run their models.
-UV is a free open source cross-platform package and project manager that runs on
-Windows, OS X, and Linux. It is 10-100x faster than pip itself, which is the standard Python package manager. The uv features include automatic 
-environment management including installation and management of Python versions and dependency locking. The steps involved are described as follows:
+This method is recommended for ActivitySim users who are familiar with 
+Python and optionally wish to customize the Python code to run their models.
+UV is a free open source cross-platform package and project manager that runs 
+on Windows, OS X, and Linux. It is 10-100x faster than pip itself, which is 
+the standard Python package manager. The uv features include automatic 
+environment management including installation and management of Python 
+versions and dependency locking. The steps involved are described as follows:
 
-1. Install *uv*. Instructions can be found `here <https://docs.astral.sh/uv/getting-started/installation/>`.
+1. Install *uv*. Instructions can be found 
+`here <https://docs.astral.sh/uv/getting-started/installation/>`.
 
-2. Clone the ActivitySim project using Git. (If Git is not installed, instructions can be found `here <https://git-scm.com/downloads>`.)
+2. Clone the ActivitySim project using Git. (If Git is not installed, 
+instructions can be found `here <https://git-scm.com/downloads>`.)
 
   git clone https://github.com/ActivitySim/activitysim.git
   cd activitysim
 
-3. Optionally create the virtual environment. This is created automatically when running code in the next step, but manually syncing is an option too. This step creates a hidden folder within the current directory called `.venv` and operates the same way as Python's classic *venv*.
+3. Optionally create the virtual environment. This is created automatically 
+when running code in the next step, but manually syncing is an option too. 
+This step creates a hidden folder within the current directory called 
+`.venv` and operates the same way as Python's classic *venv*. (If you 
+want to install the project in a non-editable mode so that users on
+your machine cannot accidentally change the source code, use the 
+`--no-editable` option.) 
 
-  uv sync
+  uv sync --no-editable
 
-4. Run an ActivitySim command using the following. (This will automatically create a virtual environment from the lockfile, if it does not already exist.)
+4. Run an ActivitySim command using the following. (This will automatically 
+create a virtual environment from the lockfile, if it does not already 
+exist.)
 
   uv run ...
 
-For example, run the ActivitySim commandline using the following, which makes sure the code is run within the correct (locked) Python environment. More information about the commandline interface is available in 
+For example, run the ActivitySim commandline using the following, which 
+makes sure the code is run within the correct (locked) Python environment. 
+More information about the commandline interface is available in 
 the :ref:`Ways to Run the Model` section.
 
   uv run activitysim run -c configs -o output -d data
 
-If you want to run ActivitySim from a directory different than where the code lives, use the `project` option to point *uv* to this project using relative paths:
+If you want to run ActivitySim from a directory different than where the 
+code lives, use the `project` option to point *uv* to this project using 
+relative paths:
 
   uv run --project relative/path/to/activitysim/code activitysim run -c configs -o output -d data
-
 
 For more on *uv*, visit https://docs.astral.sh/uv/.
 
 
+Additional notes on *uv sync*
+_____________________________
+
+By default, *uv* installs projects in editable mode, such that changes to the 
+source code are immediately reflected in the environment. `uv sync` and 
+`uv run` both accept a `--no-editable` flag, which instructs *uv* to install 
+the project in non-editable mode, removing any dependency on the source code.
+
+Also, `uv run` automatically installs the dependencies listed in `pyproject.toml`
+under `dependencies` under `[project]`, and it also installs those listed 
+under `dev` under `[dependency-groups]` (not `github-action`). If you want to 
+skip the dependency groups entirely with a *uv* install (and only install those
+that would install via `pip` from 'pypi`), use the `--no-default-groups` flag 
+with `uv sync`.

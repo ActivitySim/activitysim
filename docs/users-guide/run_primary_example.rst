@@ -3,22 +3,18 @@ Run the Primary Example
 
 To setup and run the primary example (see :ref:`examples`) from the command line interface, do the following:
 
-* Open the mamba or conda command prompt
-* If you installed ActivitySim using conda environments, activate the conda
-  environment with ActivitySim installed (i.e. ``conda activate asim``)
+* Type ``uv run activitysim create -e prototype_mtc -d test_prototype_mtc`` to copy
+  the very small prototype_mtc example to a new test_prototype_mtc directory
+* Change to the test_prototype_mtc directory ``cd test_prototype_mtc``
+* Type ``uv run activitysim run -c configs -o output -d data`` to run the example
+* Review the outputs in the output directory
+* ActivitySim will log progress and write outputs to the output folder.
 
 .. note::
-  Most ``conda`` and ``mamba`` commands can be used interchangeably in the **mamba command prompt**. In the above step, you could instead use ``mamba activate asim`` in the mamba command prompt.
-* Or, if you used the :ref:`pre-packaged installer<Pre-packaged Installer>`,
+  Or, if you used the :ref:`pre-packaged installer<Pre-packaged Installer>`,
   replace all the commands below that call ``activitysim ...`` with the complete
   path to your installed location, which is probably something
   like ``c:\programdata\activitysim\scripts\activitysim.exe``.
-* Type ``activitysim create -e prototype_mtc -d test_prototype_mtc`` to copy
-  the very small prototype_mtc example to a new test_prototype_mtc directory
-* Change to the test_prototype_mtc directory ``cd test_prototype_mtc``
-* Type ``activitysim run -c configs -o output -d data`` to run the example
-* Review the outputs in the output directory
-* ActivitySim will log progress and write outputs to the output folder.
 
 The example should run in a few minutes since it runs a small sample of households.
 

@@ -110,16 +110,15 @@ Examples
 
 To run the two zone and three zone system examples, do the following:
 
-* Activate the correct conda environment if needed
 * Create a local copy of the example
 
 ::
 
   # simple two zone example
-  activitysim create -e placeholder_2_zone -d test_placeholder_2_zone
+  uv run activitysim create -e placeholder_2_zone -d test_placeholder_2_zone
 
   # simple three zone example
-  activitysim create -e placeholder_3_zone -d test_placeholder_3_zone
+  uv run activitysim create -e placeholder_3_zone -d test_placeholder_3_zone
 
 
 * Change to the example directory
@@ -128,11 +127,11 @@ To run the two zone and three zone system examples, do the following:
 ::
 
   # simple two zone example
-  activitysim run -c configs_2_zone -c configs -d data_2 -o output_2
+  uv run activitysim run -c configs_2_zone -c configs -d data_2 -o output_2
 
   # simple three zone example, single process and multiprocess (and makes use of settings file inheritance for running)
-  activitysim run -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_static.yaml
-  activitysim run -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_mp.yaml
+  uv run activitysim run -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_static.yaml
+  uv run activitysim run -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_mp.yaml
 
 Settings
 ~~~~~~~~
@@ -421,7 +420,7 @@ alternatives, coefficients, constants and other settings for each model. For mor
 Outputs
 -------
 
-The key output of ActivitySIm is the HDF5 data pipeline file ``output\pipeline.h5``. This datastore by default contains
+The key output of ActivitySim is the HDF5 data pipeline file ``output\pipeline.h5``. This datastore by default contains
 a copy of each data table after each model step in which the table was modified. The exact fields for each set of outputs will be different for various implementations of ActivitySim.
 
 

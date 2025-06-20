@@ -238,7 +238,7 @@ jobs:
     
       - name: Install activitysim
         run: |
-          uv sync --locked --all-extras --dev
+          uv sync --locked --only-group github-action
 
       - name: Checkout Example
         uses: actions/checkout@v4

@@ -112,7 +112,7 @@ dev = [
     "geopandas",
     "gh",
     "ipykernel",  # so this env will appear in jupyter as a selection
-    "isort",
+    "isort==5.12.0",
     "jupyter-book",
     "jupyterlab",
     "larch>=5.7",
@@ -124,7 +124,6 @@ dev = [
     "nbmake==1.4.6",
     "numexpr",
     "numpydoc",
-    "pip",
     "pre-commit",
     "pycodestyle",
     "pydata-sphinx-theme",
@@ -155,12 +154,10 @@ github-action = [
     "dask==2023.11",
     "isort==5.12.0",
     "nbmake==1.4.6",
-    "pip",
     "pytest==7.2",
     "pytest-cov",
     "pytest-regressions",
     "ruff",
-    "tables>=3.9",  # pytables is tables in pypi
     "zarr>=2,<3",
     "zstandard"
 ]

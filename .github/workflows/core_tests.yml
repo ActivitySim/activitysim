@@ -39,7 +39,7 @@ jobs:
     
       - name: Install activitysim
         run: |
-          uv sync --locked --all-extras --dev
+          uv sync --locked --only-group github-action
 
       - name: Lint with Black
         run: |
@@ -105,7 +105,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --all-extras --dev
+          uv sync --locked --only-group github-action
 
       - name: Lint with Black
         run: |
@@ -169,7 +169,7 @@ jobs:
     
       - name: Install activitysim
         run: |
-          uv sync --locked --all-extras --dev
+          uv sync --locked --only-group github-action
 
       # TODO: Cache sharrow compiled flows?  The contents of __pycache__ appear to
       #       be ignored, so this is not working as expected right now
@@ -280,7 +280,7 @@ jobs:
     
       - name: Install activitysim
         run: |
-          uv sync --locked --all-extras --dev
+          uv sync --locked --only-group github-action
 
       - name: Test Random Seed Generation
         run: |
@@ -313,7 +313,7 @@ jobs:
     
       - name: Install activitysim
         run: |
-          uv sync --locked --all-extras --dev
+          uv sync --locked --only-group github-action
 
       - name: Test Estimation Mode
         run: |
@@ -345,7 +345,7 @@ jobs:
           python-version-file: ".python-version"
       - name: Install activitysim
         run: |
-          uv sync --locked --all-extras --dev
+          uv sync --locked --only-group github-action
       - name: localize version switcher
         run: |
           python .github/workflows/localize-base-urls.py docs/_static/switcher.json

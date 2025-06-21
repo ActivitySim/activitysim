@@ -57,19 +57,18 @@ Example
 
 To run the estimation example, do the following:
 
-* Activate the correct conda environment if needed
 * Create a local copy of the estimation example folder
 
 ::
 
-  activitysim create -e example_estimation_sf -d test_example_estimation_sf
+  uv run activitysim create -e example_estimation_sf -d test_example_estimation_sf
 
 * Run the example
 
 ::
 
   cd test_example_estimation_sf
-  activitysim run -c configs_estimation/configs -c configs -o output -d data_sf
+  uv run activitysim run -c configs_estimation/configs -c configs -o output -d data_sf
 
 
 * ActivitySim should log some information and write outputs to the output folder, including EDBs for each submodel.  The estimation example runs for about 15 minutes and writes EDBs for 2000 households.
@@ -92,13 +91,11 @@ Additional settings for running ActivitySim in estimation mode are specified in 
 Estimation Notebooks
 ~~~~~~~~~~~~~~~~~~~~
 
-ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book with interactive re-estimation examples for each estimatable submodel.  To run a Jupyter notebook, do the following:
+ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book with interactive examples. 
 
-* Open a conda prompt and activate the conda environment with ActivitySim installed
-* If needed, ``conda install jupyterlab`` so you can run jupyter notebooks
-* Type ``jupyter notebook`` to launch the web-based notebook manager
-* Navigate to the ``examples/examples_estimaton/notebooks`` folder and select a notebook from the table below
-* Save the updated coefficient file(s) to the configs folder and run the model in simulation mode
+* To start JupyterLab, from the ActivitySim project directory run ``uv run jupyter lab``. This will start the JupyterLab server and pop up a browser window with the interactive development environment.
+* Navigate to the ``examples/examples_estimaton/notebooks`` folder and select a notebook from the table below.
+* Save the updated coefficient file(s) to the configs folder and run the model in simulation mode.
 
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Example                             | Notebook                                                                                                                                                                            |

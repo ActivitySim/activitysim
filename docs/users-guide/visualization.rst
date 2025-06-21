@@ -129,8 +129,12 @@ Trip-level skim data are also made available in the preprocessing stage by attac
 
 Install and Run Simwrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-The SimWrapper Python package, which contains convenience functions for initiating the SimWrapper app in the browser and a local file server for accessing summary tables from this app, is automatically installed as a dependency of ActivitySim. However, you can also use SimWrapper independent of ActivitySim to, for example, visualize summaries on a different workstation. SimWrapper is available on both conda-forge and pip:
+The SimWrapper Python package, which contains convenience functions for initiating the SimWrapper app in the browser and a local file server for accessing summary tables from this app, is automatically installed as a dependency of ActivitySim. However, you can also use SimWrapper independent of ActivitySim to, for example, visualize summaries on a different workstation. SimWrapper is available on both conda-forge and pypi:
 ::
+
+  > uv add simwrapper
+
+or
 
   > conda install -c conda-forge simwrapper
 

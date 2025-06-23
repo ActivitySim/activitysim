@@ -101,7 +101,7 @@
 
     The process of creating and tagging a release will automatically
     trigger various GitHub Actions scripts to build, test, and publish the
-    new release to PyPI and conda forge, assuming there are no errors.
+    new release to PyPI, assuming there are no errors.
 
 10. Build the ActivitySim Standalone Windows Installer.  This is done using 
     GitHub Actions, but it is not done automatically when a release is created, 

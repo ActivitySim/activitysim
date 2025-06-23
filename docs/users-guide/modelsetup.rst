@@ -16,7 +16,7 @@ assumes the user is more experienced in running travel demand models and profici
 used ActivitySim or has not used recent versions of ActivitySim. More detailed instructions for installing
 and running ActivitySim are also available in this Users Guide.
 
-* Use the :ref:`Pre-packaged Installer`
+* Use the :ref:`pre-packaged installer`
 * :ref:`Run the Primary Example`
 * Placeholder (Edit model input files, configs, as needed)
 
@@ -88,9 +88,12 @@ Installing ActivitySim
 
 There are two recommended ways to install ActivitySim:
 
-1. Using a :ref:`Pre-packaged Installer` (recommended for users who do not need to change the Python code)
+1. Using a :ref:`pre-packaged installer`
 
-2. Using a :ref:`Python the uv package and project manager` (recommended for users who need to change/customize the Python code)
+2. Using a :ref:`Python the uv package and project manager`
+
+The first is recommended for users who do not need to change the Python code and are on Windows, 
+and the second is recommended for users who need to change/customize the Python code.
 
 
 Pre-packaged Installer
@@ -130,12 +133,14 @@ environment management including installation and management of Python
 versions and dependency locking. The steps involved are described as follows:
 
 1. Install *uv*. Instructions can be found 
-`here <https://docs.astral.sh/uv/getting-started/installation/>`.
+`here <https://docs.astral.sh/uv/getting-started/installation/>`_.
 
 2. Clone the ActivitySim project using Git. (If Git is not installed, 
-instructions can be found `here <https://git-scm.com/downloads>`.)
+instructions can be found `here <https://git-scm.com/downloads>`_.)
 
-  git clone https://github.com/ActivitySim/activitysim.git
+::
+
+  git clone https://github.com/ActivitySim/activitysim.git  
   cd activitysim
 
 3. Optionally create the virtual environment. This is created automatically 
@@ -146,11 +151,15 @@ want to install the project in a non-editable mode so that users on
 your machine cannot accidentally change the source code, use the 
 `--no-editable` option.) 
 
+::
+
   uv sync --no-editable
 
 4. Run an ActivitySim command using the following. (This will automatically 
 create a virtual environment from the lockfile, if it does not already 
 exist.)
+
+::
 
   uv run ...
 
@@ -159,11 +168,15 @@ makes sure the code is run within the correct (locked) Python environment.
 More information about the commandline interface is available in 
 the :ref:`Ways to Run the Model` section.
 
+::
+
   uv run activitysim run -c configs -o output -d data
 
 If you want to run ActivitySim from a directory different than where the 
 code lives, use the `project` option to point *uv* to this project using 
 relative paths:
+
+::
 
   uv run --project relative/path/to/activitysim/code activitysim run -c configs -o output -d data
 

@@ -316,3 +316,6 @@ The following notebooks include examples of modifying the model specification:
   This notebook includes a demonstration of modification to the SPEC file for the
   CDAP model. This model has a complex structure that is unique among the
   ActivitySim component models.
+- [`17_tour_mode_choice.ipynb`](https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples/example_estimation/notebooks/17_tour_mode_choice.ipynb):
+  This notebook includes a demonstration of modification to the spec, coefficients,
+  and coefficients template file for the tour mode choice model.

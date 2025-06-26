@@ -75,6 +75,8 @@ def mode_choice_model(
             x_col="Label",
             p_col=alt_name,
             ignore_x=("#",),
+            x_validator=chooser_data.columns,
+            expr_col="Expression",
         )
         for purpose in purposes:
             # Modify utility function based on template for purpose

@@ -308,6 +308,9 @@ def nonmand_tour_freq_model(
             spec,
             x_col="Label",
             p_col=segment_name,
+            x_validator=set(chooser_data[segment_name].columns)
+            + set(alt_values[segment_name].columns),
+            expr_col="Expression",
         )
         apply_coefficients(coefficients[segment_name], segment_model)
         segment_model.choice_co_code = "override_choice"

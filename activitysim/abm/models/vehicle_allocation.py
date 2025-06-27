@@ -87,7 +87,7 @@ def get_skim_dict(network_los: los.Network_LOS, choosers: pd.DataFrame):
 
 class VehicleAllocationSettings(LogitComponentSettings, extra="forbid"):
     """
-    Settings for the `joint_tour_scheduling` component.
+    Settings for the `vehicle_allocation` component.
     """
 
     preprocessor: PreprocessorSettings | None = None

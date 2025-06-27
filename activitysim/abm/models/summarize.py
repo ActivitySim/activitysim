@@ -235,7 +235,7 @@ def summarize(
     trace_label: str = "summarize",
 ) -> None:
     """
-    A standard model that uses expression files to summarize pipeline tables for vizualization.
+    A standard model that uses expression files to summarize pipeline tables for visualization.
 
     Summaries are configured in `summarize.yaml`, including specification of the
     expression file (`summarize.csv` by default).
@@ -243,7 +243,7 @@ def summarize(
     Columns in pipeline tables can also be sliced and aggregated prior to summarization.
     This preprocessing is configured in `summarize.yaml`.
 
-    Outputs a seperate csv summary file for each expression;
+    Outputs a separate csv summary file for each expression;
     outputs starting with '_' are saved as temporary local variables.
     """
 

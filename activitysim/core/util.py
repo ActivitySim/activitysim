@@ -74,7 +74,9 @@ def delete_files(file_list, trace_label):
                 logger.debug(f"{trace_label} deleting {file_path}")
                 os.unlink(file_path)
         except Exception as e:
-            logger.warning(f"{trace_label} exception (e) trying to delete {file_path}")
+            logger.warning(
+                f"{trace_label} exception ({e}) trying to delete {file_path}"
+            )
 
 
 def df_size(df):

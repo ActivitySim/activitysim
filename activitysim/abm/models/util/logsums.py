@@ -12,8 +12,136 @@ from activitysim.core.configuration.logit import (
     TourLocationComponentSettings,
     TourModeComponentSettings,
 )
+from activitysim.abm.models.park_and_ride_lot_choice import run_park_and_ride_lot_choice
 
 logger = logging.getLogger(__name__)
+
+
+def setup_skims(
+    network_los: los.Network_LOS,
+    choosers: pd.DataFrame,
+    add_periods: bool = True,
+    include_pnr_skims: bool = False,
+    orig_col_name: str = "home_zone_id",
+    dest_col_name: str = "destination",
+    pnr_lot_dest_col_name: str = "pnr_zone_id",
+):
+    """
+    Setup skims for the park-and-ride lot choice model.
+
+    o = tour origin
+    d = tour destination
+    l = parking lot location
+    t = tour start time
+    r = tour return time
+
+    building skims from origin to lot and lot to destination
+    also building skims in reverse direction during return time.
+    """
+    skim_dict = network_los.get_default_skim_dict()
+
+    # setup skim keys
+    out_time_col_name = "start"
+    in_time_col_name = "end"
+
+    # creating skim wrappers
+    odt_skim_stack_wrapper = skim_dict.wrap_3d(
+        orig_key=orig_col_name, dest_key=dest_col_name, dim3_key="out_period"
+    )
+
+    dot_skim_stack_wrapper = skim_dict.wrap_3d(
+        orig_key=dest_col_name, dest_key=orig_col_name, dim3_key="in_period"
+    )
+    odr_skim_stack_wrapper = skim_dict.wrap_3d(
+        orig_key=orig_col_name, dest_key=dest_col_name, dim3_key="in_period"
+    )
+    dor_skim_stack_wrapper = skim_dict.wrap_3d(
+        orig_key=dest_col_name, dest_key=orig_col_name, dim3_key="out_period"
+    )
+    od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
+    do_skim_stack_wrapper = skim_dict.wrap(dest_col_name, orig_col_name)
+
+    skims = {
+        "odt_skims": odt_skim_stack_wrapper,
+        "dot_skims": dot_skim_stack_wrapper,
+        "odr_skims": odr_skim_stack_wrapper,  # dot return skims for e.g. TNC bridge return fare
+        "dor_skims": dor_skim_stack_wrapper,  # odt return skims for e.g. TNC bridge return fare
+        "od_skims": od_skim_stack_wrapper,
+        "do_skims": do_skim_stack_wrapper,
+        "orig_col_name": orig_col_name,
+        "dest_col_name": dest_col_name,
+        "out_time_col_name": out_time_col_name,
+        "in_time_col_name": in_time_col_name,
+    }
+
+    # add pnr skims if pnr lot choice model is being run
+    if include_pnr_skims:
+        olt_skim_stack_wrapper = skim_dict.wrap_3d(
+            orig_key=orig_col_name,
+            dest_key=pnr_lot_dest_col_name,
+            dim3_key="out_period",
+        )
+        ldt_skim_stack_wrapper = skim_dict.wrap_3d(
+            orig_key=pnr_lot_dest_col_name,
+            dest_key=dest_col_name,
+            dim3_key="out_period",
+        )
+        dlt_skim_stack_wrapper = skim_dict.wrap_3d(
+            orig_key=dest_col_name, dest_key=pnr_lot_dest_col_name, dim3_key="in_period"
+        )
+        lot_skim_stack_wrapper = skim_dict.wrap_3d(
+            orig_key=pnr_lot_dest_col_name, dest_key=orig_col_name, dim3_key="in_period"
+        )
+        ol_skim_stack_wrapper = skim_dict.wrap(orig_col_name, pnr_lot_dest_col_name)
+        ld_skim_stack_wrapper = skim_dict.wrap(pnr_lot_dest_col_name, dest_col_name)
+
+        skims.update(
+            {
+                "olt_skims": olt_skim_stack_wrapper,
+                "ldt_skims": ldt_skim_stack_wrapper,
+                "dlt_skims": dlt_skim_stack_wrapper,
+                "lot_skims": lot_skim_stack_wrapper,
+                "ol_skims": ol_skim_stack_wrapper,
+                "ld_skims": ld_skim_stack_wrapper,
+                "pnr_lot_dest_col_name": pnr_lot_dest_col_name,
+            }
+        )
+
+    if network_los.zone_system == los.THREE_ZONE:
+        # fixme - is this a lightweight object?
+        tvpb = network_los.tvpb
+
+        tvpb_logsum_odt = tvpb.wrap_logsum(
+            orig_key=orig_col_name,
+            dest_key=dest_col_name,
+            tod_key="out_period",
+            segment_key="demographic_segment",
+            trace_label=None,
+            tag="tvpb_logsum_odt",
+        )
+        tvpb_logsum_dot = tvpb.wrap_logsum(
+            orig_key=dest_col_name,
+            dest_key=orig_col_name,
+            tod_key="in_period",
+            segment_key="demographic_segment",
+            trace_label=None,
+            tag="tvpb_logsum_dot",
+        )
+
+        skims.update(
+            {"tvpb_logsum_odt": tvpb_logsum_odt, "tvpb_logsum_dot": tvpb_logsum_dot}
+        )
+
+    # add time periods to skims if requested
+    if add_periods:
+        choosers["out_period"] = network_los.skim_time_period_label(
+            choosers[out_time_col_name]
+        )
+        choosers["in_period"] = network_los.skim_time_period_label(
+            choosers[in_time_col_name]
+        )
+
+    return skims
 
 
 def filter_chooser_columns(
@@ -157,6 +285,20 @@ def compute_location_choice_logsums(
     else:
         logger.error("Choosers table already has column 'duration'.")
 
+    if logsum_settings.include_pnr_for_logsums:
+        # if the logsum settings include explicit PNR, then we need to add the
+        # PNR lot destination column to the choosers table by running PnR lot choice
+        choosers["pnr_zone_id"] = run_park_and_ride_lot_choice(
+            state,
+            choosers=choosers,
+            land_use=state.get_dataframe("land_use"),
+            network_los=network_los,
+            model_settings=None,
+            choosers_dest_col_name="alt_dest",
+            estimator=None,
+            trace_label=tracing.extend_trace_label(trace_label, "pnr_lot_choice"),
+        )
+
     logsum_spec = state.filesystem.read_model_spec(file_name=logsum_settings.SPEC)
     coefficients = state.filesystem.get_segment_coefficients(
         logsum_settings, tour_purpose
@@ -178,65 +320,22 @@ def compute_location_choice_logsums(
     # constrained coefficients can appear in expressions
     locals_dict.update(coefficients)
 
-    # setup skim keys
-    skim_dict = network_los.get_default_skim_dict()
-
-    odt_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=orig_col_name, dest_key=dest_col_name, dim3_key="out_period"
+    skims = setup_skims(
+        network_los,
+        choosers,
+        add_periods=False,  # already added periods to choosers above
+        orig_col_name=orig_col_name,
+        dest_col_name=dest_col_name,
+        pnr_lot_dest_col_name="pnr_zone_id",
+        include_pnr_skims=logsum_settings.include_pnr_for_logsums,
     )
-    dot_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=dest_col_name, dest_key=orig_col_name, dim3_key="in_period"
-    )
-    odr_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=orig_col_name, dest_key=dest_col_name, dim3_key="in_period"
-    )
-    dor_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=dest_col_name, dest_key=orig_col_name, dim3_key="out_period"
-    )
-    od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
-
-    skims = {
-        "odt_skims": odt_skim_stack_wrapper,
-        "dot_skims": dot_skim_stack_wrapper,
-        "odr_skims": odr_skim_stack_wrapper,
-        "dor_skims": dor_skim_stack_wrapper,
-        "od_skims": od_skim_stack_wrapper,
-        "orig_col_name": orig_col_name,
-        "dest_col_name": dest_col_name,
-    }
-
-    if network_los.zone_system == los.THREE_ZONE:
-        # fixme - is this a lightweight object?
-        tvpb = network_los.tvpb
-
-        tvpb_logsum_odt = tvpb.wrap_logsum(
-            orig_key=orig_col_name,
-            dest_key=dest_col_name,
-            tod_key="out_period",
-            segment_key="demographic_segment",
-            trace_label=trace_label,
-            tag="tvpb_logsum_odt",
-        )
-        tvpb_logsum_dot = tvpb.wrap_logsum(
-            orig_key=dest_col_name,
-            dest_key=orig_col_name,
-            tod_key="in_period",
-            segment_key="demographic_segment",
-            trace_label=trace_label,
-            tag="tvpb_logsum_dot",
-        )
-
-        skims.update(
-            {"tvpb_logsum_odt": tvpb_logsum_odt, "tvpb_logsum_dot": tvpb_logsum_dot}
-        )
-
-        # TVPB constants can appear in expressions
-        if logsum_settings.use_TVPB_constants:
-            locals_dict.update(
-                network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
-            )
-
     locals_dict.update(skims)
+
+    # TVPB constants can appear in expressions
+    if (network_los.zone_system == los.THREE_ZONE) & logsum_settings.use_TVPB_constants:
+        locals_dict.update(
+            network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
+        )
 
     # - run preprocessor to annotate choosers
     # allow specification of alternate preprocessor for nontour choosers

@@ -7,7 +7,12 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util import annotate, school_escort_tours_trips, trip
+from activitysim.abm.models.util import (
+    annotate,
+    school_escort_tours_trips,
+    trip,
+    logsums,
+)
 from activitysim.abm.models.util.mode import run_tour_mode_choice_simulate
 from activitysim.core import config, estimation, logit, los, simulate, tracing, workflow
 from activitysim.core.configuration.logit import TourModeComponentSettings
@@ -232,75 +237,19 @@ def tour_mode_choice_simulate(
     # model_constants can appear in expressions
     constants.update(model_settings.CONSTANTS)
 
-    skim_dict = network_los.get_default_skim_dict()
-
     # setup skim keys
-    orig_col_name = "home_zone_id"
-    dest_col_name = "destination"
-
-    out_time_col_name = "start"
-    in_time_col_name = "end"
-    odt_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=orig_col_name, dest_key=dest_col_name, dim3_key="out_period"
+    skims = logsums.setup_skims(
+        network_los,
+        primary_tours_merged,
+        add_periods=False,
+        include_pnr_skims=("pnr_zone_id" in primary_tours_merged.columns),
     )
-    dot_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=dest_col_name, dest_key=orig_col_name, dim3_key="in_period"
-    )
-    odr_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=orig_col_name, dest_key=dest_col_name, dim3_key="in_period"
-    )
-    dor_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=dest_col_name, dest_key=orig_col_name, dim3_key="out_period"
-    )
-    od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
-    do_skim_stack_wrapper = skim_dict.wrap(dest_col_name, orig_col_name)
 
-    skims = {
-        "odt_skims": odt_skim_stack_wrapper,
-        "dot_skims": dot_skim_stack_wrapper,
-        "odr_skims": odr_skim_stack_wrapper,  # dot return skims for e.g. TNC bridge return fare
-        "dor_skims": dor_skim_stack_wrapper,  # odt return skims for e.g. TNC bridge return fare
-        "od_skims": od_skim_stack_wrapper,
-        "do_skims": do_skim_stack_wrapper,
-        "orig_col_name": orig_col_name,
-        "dest_col_name": dest_col_name,
-        "out_time_col_name": out_time_col_name,
-        "in_time_col_name": in_time_col_name,
-    }
-
-    if network_los.zone_system == los.THREE_ZONE:
-        # fixme - is this a lightweight object?
-
-        tvpb = network_los.tvpb
-
-        tvpb_logsum_odt = tvpb.wrap_logsum(
-            orig_key=orig_col_name,
-            dest_key=dest_col_name,
-            tod_key="out_period",
-            segment_key="demographic_segment",
-            cache_choices=True,
-            trace_label=trace_label,
-            tag="tvpb_logsum_odt",
+    # TVPB constants can appear in expressions
+    if (network_los.zone_system == los.THREE_ZONE) & model_settings.use_TVPB_constants:
+        constants.update(
+            network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
         )
-        tvpb_logsum_dot = tvpb.wrap_logsum(
-            orig_key=dest_col_name,
-            dest_key=orig_col_name,
-            tod_key="in_period",
-            segment_key="demographic_segment",
-            cache_choices=True,
-            trace_label=trace_label,
-            tag="tvpb_logsum_dot",
-        )
-
-        skims.update(
-            {"tvpb_logsum_odt": tvpb_logsum_odt, "tvpb_logsum_dot": tvpb_logsum_dot}
-        )
-
-        # TVPB constants can appear in expressions
-        if model_settings.use_TVPB_constants:
-            constants.update(
-                network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
-            )
 
     # don't create estimation data bundle if trip mode choice is being called
     # from another model step (i.e. tour mode choice logsum creation)
@@ -350,8 +299,8 @@ def tour_mode_choice_simulate(
         )
 
         if network_los.zone_system == los.THREE_ZONE:
-            tvpb_logsum_odt.extend_trace_label(tour_purpose)
-            tvpb_logsum_dot.extend_trace_label(tour_purpose)
+            skims["tvpb_logsum_odt"].extend_trace_label(tour_purpose)
+            skims["tvpb_logsum_dot"].extend_trace_label(tour_purpose)
 
         # name index so tracing knows how to slice
         assert tours_segment.index.name == "tour_id"
@@ -387,7 +336,7 @@ def tour_mode_choice_simulate(
         if tvpb_mode_path_types is not None:
             for mode, path_types in tvpb_mode_path_types.items():
                 for direction, skim in zip(
-                    ["od", "do"], [tvpb_logsum_odt, tvpb_logsum_dot]
+                    ["od", "do"], [skims["tvpb_logsum_odt"], skims["tvpb_logsum_dot"]]
                 ):
                     path_type = path_types[direction]
                     skim_cache = skim.cache[path_type]

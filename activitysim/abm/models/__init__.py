@@ -29,6 +29,7 @@ from . import (
     non_mandatory_scheduling,
     non_mandatory_tour_frequency,
     parking_location_choice,
+    park_and_ride_lot_choice,
     school_escorting,
     stop_frequency,
     summarize,

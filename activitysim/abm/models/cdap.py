@@ -43,8 +43,9 @@ class CdapSettings(PydanticReadable, extra="forbid"):
     preprocessor: PreprocessorSettings | None = None
     """Preprocess choosers tables before running the model."""
     annotate_persons: PreprocessorSettings | None = None
+    """Postprocess persons table after model completion."""
     annotate_households: PreprocessorSettings | None = None
-    """Postprocess tables after model completion."""
+    """Postprocess households table after model completion."""
 
 
 @workflow.step

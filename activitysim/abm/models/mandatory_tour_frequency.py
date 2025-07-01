@@ -58,10 +58,8 @@ class MandatoryTourFrequencySettings(LogitComponentSettings, extra="forbid"):
     Settings for the `mandatory_tour_frequency` component.
     """
 
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
-
-    annotate_persons: PreprocessorSettings | None = None
+    # no additional fields are required for this component
+    pass
 
 
 @workflow.step

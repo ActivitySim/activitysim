@@ -704,9 +704,9 @@ def drop_unused_columns(
         custom_chooser_lines = inspect.getsource(custom_chooser)
         unique_variables_in_spec.update(re.findall(pattern, custom_chooser_lines))
 
-    logger.debug("Dropping unused variables in chooser table")
+    logger.info("Dropping unused variables in chooser table")
 
-    logger.debug(
+    logger.info(
         "before dropping, the choosers table has {} columns: {}".format(
             len(choosers.columns), choosers.columns
         )
@@ -715,7 +715,7 @@ def drop_unused_columns(
     # keep only variables needed for spec
     choosers = choosers[[c for c in choosers.columns if c in unique_variables_in_spec]]
 
-    logger.debug(
+    logger.info(
         "after dropping, the choosers table has {} columns: {}".format(
             len(choosers.columns), choosers.columns
         )

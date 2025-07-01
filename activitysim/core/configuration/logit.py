@@ -87,16 +87,20 @@ class BaseLogitComponentSettings(PydanticCompute):
     """
 
     annotate_households: PreprocessorSettings | None = None
-    annotate_persons: PreprocessorSettings | None = None
-    annotate_tours: PreprocessorSettings | None = None
-    annotate_trips: PreprocessorSettings | None = None
-    annotate_vehicles: PreprocessorSettings | None = None
-    """Annotate output tables with additional columns.
+    """Annotate households output tables with additional columns.
 
     These settings are used to add additional columns to the output tables
     after the logit model is run. They are typically used to add
     additional attributes that are derived from the model results.
     """
+    annotate_persons: PreprocessorSettings | None = None
+    """Annotate persons output tables with additional columns."""
+    annotate_tours: PreprocessorSettings | None = None
+    """Annotate tours output tables with additional columns."""
+    annotate_trips: PreprocessorSettings | None = None
+    """Annotate trips output tables with additional columns."""
+    annotate_vehicles: PreprocessorSettings | None = None
+    """Annotate vehicles output tables with additional columns."""
 
     # sharrow_skip is deprecated in factor of compute_settings.sharrow_skip
     @model_validator(mode="before")

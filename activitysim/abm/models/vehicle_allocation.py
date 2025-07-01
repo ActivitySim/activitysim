@@ -90,13 +90,12 @@ class VehicleAllocationSettings(LogitComponentSettings, extra="forbid"):
     Settings for the `vehicle_allocation` component.
     """
 
-    OCCUPANCY_LEVELS: list = [1, 2, 3.5]
+    OCCUPANCY_LEVELS: list = [1]  # TODO check this
     """Occupancy level
 
     It will create columns in the tour table selecting a vehicle for each of the
     occupancy levels. They are named vehicle_occup_1, vehicle_occup_2,... etc.
-    if not supplied, will default to only one occupancy level of 1, 2, and 3.5
-    representing sov, hov2, and hov3+ respectively.
+    if not supplied, will default to only one occupancy level of 1
     """
 
 

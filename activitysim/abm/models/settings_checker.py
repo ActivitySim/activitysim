@@ -305,7 +305,7 @@ CHECKER_SETTINGS = {
     "write_data_dictionary": {
         "settings_cls": PydanticReadable,  # write data dictionary uses state.filesystem.read_model_settings directly
         "settings_file": "write_data_dictionary.yaml",
-        "warn_only": True
+        "warn_only": True,
     },
     "write_trip_matrices": {
         "settings_cls": WriteTripMatricesSettings,

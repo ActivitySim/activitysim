@@ -128,12 +128,53 @@ This method is recommended for ActivitySim users who are familiar with
 Python and optionally wish to customize the Python code to run their models.
 UV is a free open source cross-platform package and project manager that runs 
 on Windows, OS X, and Linux. It is 10-100x faster than pip itself, which is 
-the standard Python package manager. The uv features include automatic 
+the standard Python package manager. The *uv* features include automatic 
 environment management including installation and management of Python 
 versions and dependency locking. The steps involved are described as follows:
 
 1. Install *uv*. Instructions can be found 
 `here <https://docs.astral.sh/uv/getting-started/installation/>`_.
+
+2. Create a new project to work from and add ActivitySim. (Warning: This approach is quickest
+for getting started but does not rely on the lockfile to install dependencies so you may
+end up with different versions.)
+
+::
+
+  uv init new_project
+  uv add activitysim
+
+3. Run an ActivitySim command using the following.
+
+::
+
+  uv run ...
+
+For example, run the ActivitySim commandline using the following. 
+More information about the commandline interface is available in 
+the :ref:`Ways to Run the Model` section.
+
+::
+
+  uv run activitysim run -c configs -o output -d data
+
+If you want to run ActivitySim from a directory different than where the 
+code lives, use the `project` option to point *uv* to this project using 
+relative paths:
+
+::
+
+  uv run --project relative/path/to/activitysim/code activitysim run -c configs -o output -d data
+
+For more on *uv*, visit https://docs.astral.sh/uv/.
+
+To install dependencies from the lockfile and run ActivitySim exactly how
+its developers tested it, after installing *uv* clone the code repository
+and then run code.
+
+1. Install *uv*. Instructions can be found 
+`here <https://docs.astral.sh/uv/getting-started/installation/>`_. (Skip
+if already installed above. It only needs to be installed once per machine.)
 
 2. Clone the ActivitySim project using Git. (If Git is not installed, 
 instructions can be found `here <https://git-scm.com/downloads>`_.)
@@ -163,33 +204,12 @@ exist.)
 
   uv run ...
 
-For example, run the ActivitySim commandline using the following, which 
-makes sure the code is run within the correct (locked) Python environment. 
-More information about the commandline interface is available in 
-the :ref:`Ways to Run the Model` section.
 
-::
-
-  uv run activitysim run -c configs -o output -d data
-
-If you want to run ActivitySim from a directory different than where the 
-code lives, use the `project` option to point *uv* to this project using 
-relative paths:
-
-::
-
-  uv run --project relative/path/to/activitysim/code activitysim run -c configs -o output -d data
-
-For more on *uv*, visit https://docs.astral.sh/uv/.
-
-
-Additional notes on *uv sync*
-_____________________________
-
-By default, *uv* installs projects in editable mode, such that changes to the 
-source code are immediately reflected in the environment. `uv sync` and 
-`uv run` both accept a `--no-editable` flag, which instructs *uv* to install 
-the project in non-editable mode, removing any dependency on the source code.
+It is worth pointing out that by default, *uv* installs projects in 
+editable mode, such that changes to the source code are immediately reflected 
+in the environment. `uv sync` and `uv run` both accept a `--no-editable` 
+flag, which instructs *uv* to install the project in non-editable mode, 
+removing any dependency on the source code.
 
 Also, `uv run` automatically installs the dependencies listed in `pyproject.toml`
 under `dependencies` under `[project]`, and it also installs those listed 

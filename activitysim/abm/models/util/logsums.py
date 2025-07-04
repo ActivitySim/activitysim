@@ -27,16 +27,38 @@ def setup_skims(
     pnr_lot_dest_col_name: str = "pnr_zone_id",
 ):
     """
-    Setup skims for the park-and-ride lot choice model.
+    Setup skims wrappers for use in utility calculations.
 
+    skim wrapper labels represent the following:
     o = tour origin
     d = tour destination
     l = parking lot location
     t = tour start time
     r = tour return time
 
-    building skims from origin to lot and lot to destination
-    also building skims in reverse direction during return time.
+    Parameters
+    ----------
+    network_los : los.Network_LOS
+    choosers : pd.DataFrame
+        DataFrame of choosers with columns for origin and destination zone ids.
+    add_periods : bool
+        If True, adds 'out_period' and 'in_period' columns to choosers
+    include_pnr_skims : bool
+        If True, adds skims for PNR lots to the skims dictionary.
+    orig_col_name : str
+        Name of the column in choosers representing the origin zone id.
+    dest_col_name : str
+        Name of the column in choosers representing the destination zone id.
+    pnr_lot_dest_col_name : str
+        Name of the column in choosers representing the PNR lot destination zone id.
+
+    Returns
+    -------
+    skims : dict
+        Dictionary of skim wrappers and related information.
+        Contains keys for origin and destination columns, time period columns,
+        and various skim wrappers for different combinations of origin, destination,
+        and time periods.
     """
     skim_dict = network_los.get_default_skim_dict()
 
@@ -294,7 +316,8 @@ def compute_location_choice_logsums(
             land_use=state.get_dataframe("land_use"),
             network_los=network_los,
             model_settings=None,
-            choosers_dest_col_name="alt_dest",
+            choosers_dest_col_name=dest_col_name,
+            choosers_origin_col_name=orig_col_name,
             estimator=None,
             trace_label=tracing.extend_trace_label(trace_label, "pnr_lot_choice"),
         )

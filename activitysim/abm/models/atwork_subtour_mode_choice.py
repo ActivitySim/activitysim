@@ -74,6 +74,7 @@ def atwork_subtour_mode_choice(
             network_los=network_los,
             model_settings=None,
             choosers_dest_col_name="destination",
+            choosers_origin_col_name="workplace_zone_id",
             estimator=None,
             trace_label=tracing.extend_trace_label(trace_label, "pnr_lot_choice"),
         )

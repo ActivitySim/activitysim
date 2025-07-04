@@ -43,10 +43,8 @@ class ParkAndRideLotChoiceSettings(LogitComponentSettings, extra="forbid"):
     If less than 1, use this fraction of the total number of rows.
     """
 
-    preprocessor: PreprocessorSettings | None = None
-    """FIXME preprocessor can be removed once preprocessor / annotator work is pulled in."""
-
-    # FIXME need to add alts preprocessor as well
+    alts_preprocessor: PreprocessorSettings | None = None
+    """Preprocessor settings for park-and-ride lot alternatives."""
 
 
 def filter_chooser_to_transit_accessible_destinations(
@@ -120,6 +118,7 @@ def run_park_and_ride_lot_choice(
     network_los: los.Network_LOS,
     model_settings: ParkAndRideLotChoiceSettings | None = None,
     choosers_dest_col_name: str = "destination",
+    choosers_origin_col_name: str = "home_zone_id",
     estimator=None,
     model_settings_file_name: str = "park_and_ride_lot_choice.yaml",
     trace_label: str = "park_and_ride_lot_choice",
@@ -144,6 +143,31 @@ def run_park_and_ride_lot_choice(
     pnr_alts = land_use[land_use[model_settings.LANDUSE_PNR_SPACES_COLUMN] > 0]
     pnr_alts["pnr_zone_id"] = pnr_alts.index.values
 
+    original_index = None
+    if not choosers.index.is_unique:
+        # non-unique index will crash interaction_simulate
+        # so we need to reset the index and add it to ActivitySim's rng
+        # this happens while the disaggregate accessibility model is running pnr lot choice
+        original_index = choosers.index
+        oi_name = original_index.name
+        oi_name = oi_name if oi_name else "index"
+        choosers = choosers.reset_index(drop=False)
+        idx_multiplier = choosers.groupby(oi_name).size().max()
+        # round to the nearest 10's place
+        idx_multiplier = int(np.ceil(idx_multiplier / 10.0) * 10)
+        choosers.index = (
+            original_index * idx_multiplier + choosers.groupby(oi_name).cumcount()
+        )
+        choosers.index.name = oi_name + "_pnr_lot_choice"
+        state.get_rn_generator().add_channel("pnr_lot_choice", choosers)
+        assert (
+            choosers.index.is_unique
+        ), "The index of the choosers DataFrame must be unique after resetting the index."
+        assert len(choosers.index) == len(original_index), (
+            f"The length of the choosers DataFrame must be equal to the original index length:"
+            f" {len(choosers.index)} != {len(original_index)}"
+        )
+
     trn_accessible_choosers = filter_chooser_to_transit_accessible_destinations(
         state,
         choosers,
@@ -159,25 +183,48 @@ def run_park_and_ride_lot_choice(
         trn_accessible_choosers,
         add_periods=add_periods,
         include_pnr_skims=True,
+        orig_col_name=choosers_origin_col_name,
         dest_col_name=choosers_dest_col_name,
     )
     locals_dict.update(skims)
 
-    if trn_accessible_choosers.index.name == "proto_person_id":
-        # if the choosers are indexed by proto_person_id, we need to reset the index
-        # so that interaction_simulate has a unique index to work with
-        trn_accessible_choosers = trn_accessible_choosers.reset_index()
+    if model_settings.preprocessor:
+        # Need to check whether the table exists in the state.
+        # This can happen if you have preprocessor settings that reference tours
+        # but the tours table doesn't exist yet because you are calculating logsums.
+        # Expressions using these tables need to be written with short-circuiting conditionals
+        # to avoid errors when the table is not present.
+        tables = model_settings.preprocessor.TABLES.copy()
+        for table_name in model_settings.preprocessor.TABLES:
+            if table_name not in state.existing_table_names:
+                logger.debug(
+                    f"Table '{table_name}' not found in state. "
+                    "Removing table from preprocessor list."
+                )
+                tables.remove(table_name)
+        model_settings.preprocessor.TABLES = tables
 
-    # FIXME: add alts preprocessors
+    # preprocess choosers
     expressions.annotate_preprocessors(
         state,
         df=trn_accessible_choosers,
         locals_dict=locals_dict,
         # not including skims because lot alt destination not in chooser table
         # they are included through the locals_dict instead
-        skims={},
+        skims=None,
         model_settings=model_settings,
         trace_label=trace_label,
+    )
+
+    # preprocess alternatives
+    expressions.annotate_preprocessors(
+        state,
+        df=pnr_alts,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor",
     )
 
     if estimator:
@@ -208,9 +255,10 @@ def run_park_and_ride_lot_choice(
 
     choices = choices.reindex(choosers.index, fill_value=-1)
 
-    if "proto_person_id" in trn_accessible_choosers.columns:
-        # if the choosers are indexed by proto_person_id, we need to set the index to the original index
-        choices.index = trn_accessible_choosers["proto_person_id"]
+    if original_index is not None:
+        # set the choices index back to the original index
+        choices.index = original_index
+        state.get_rn_generator().drop_channel("pnr_lot_choice")
 
     if estimator:
         # careful -- there could be some tours in estimation data that are not transit accessible
@@ -254,6 +302,7 @@ def park_and_ride_lot_choice(
         network_los=network_los,
         model_settings=model_settings,
         choosers_dest_col_name="destination",
+        choosers_origin_col_name="home_zone_id",
         estimator=estimator,
         trace_label=trace_label,
     )

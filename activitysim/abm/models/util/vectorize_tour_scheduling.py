@@ -73,7 +73,6 @@ def _compute_logsums(
     tour_purpose,
     model_settings: TourSchedulingSettings,
     network_los,
-    skims,
     trace_label,
 ):
     """
@@ -91,6 +90,41 @@ def _compute_logsums(
         choosers = alt_tdd.join(tours_merged, how="left", rsuffix="_chooser")
         logger.info(
             f"{trace_label} compute_logsums for {choosers.shape[0]} choosers {alt_tdd.shape[0]} alts"
+        )
+
+        if logsum_settings.include_pnr_for_logsums:
+            # if the logsum settings include explicit PNR, then we need to add the
+            # PNR lot destination column to the choosers table by running PnR lot choice
+            choosers["pnr_zone_id"] = run_park_and_ride_lot_choice(
+                state,
+                choosers=choosers,
+                land_use=state.get_dataframe("land_use"),
+                network_los=state.get_injectable("network_los"),
+                model_settings=None,
+                choosers_dest_col_name="destination",
+                choosers_origin_col_name="home_zone_id",
+                estimator=None,
+                trace_label=tracing.extend_trace_label(trace_label, "pnr_lot_choice"),
+            )
+
+        # set destination column name for skims used in logsums
+        destination_for_tour_purpose = model_settings.DESTINATION_FOR_TOUR_PURPOSE
+        if isinstance(destination_for_tour_purpose, str):
+            dest_col_name = destination_for_tour_purpose
+        elif isinstance(destination_for_tour_purpose, dict):
+            dest_col_name = destination_for_tour_purpose.get(tour_purpose)
+        else:
+            raise RuntimeError(
+                f"expected string or dict DESTINATION_FOR_TOUR_PURPOSE model_setting for {tour_purpose}"
+            )
+
+        skims = setup_skims(
+            state.get_injectable("network_los"),
+            choosers,
+            add_periods=False,
+            include_pnr_skims=logsum_settings.include_pnr_for_logsums,
+            orig_col_name="home_zone_id",
+            dest_col_name=dest_col_name,
         )
 
         # - locals_dict
@@ -297,7 +331,6 @@ def compute_tour_scheduling_logsums(
     tours_merged,
     tour_purpose,
     model_settings: TourSchedulingSettings,
-    skims,
     trace_label,
     *,
     chunk_sizer: chunk.ChunkSizer,
@@ -343,7 +376,6 @@ def compute_tour_scheduling_logsums(
                 tour_purpose,
                 model_settings,
                 network_los,
-                skims,
                 trace_label,
             )
             return logsums
@@ -371,7 +403,6 @@ def compute_tour_scheduling_logsums(
             tour_purpose,
             model_settings,
             network_los,
-            skims,
             trace_label,
         )
 
@@ -415,7 +446,6 @@ def compute_tour_scheduling_logsums(
                 tour_purpose,
                 model_settings,
                 network_los,
-                skims,
                 trace_label,
             )
             state.tracing.trace_df(
@@ -631,7 +661,6 @@ def _schedule_tours(
     spec,
     logsum_tour_purpose,
     model_settings: TourSchedulingSettings,
-    skims,
     timetable,
     window_id_col,
     previous_tour,
@@ -730,7 +759,6 @@ def _schedule_tours(
             tours,
             logsum_tour_purpose,
             model_settings,
-            skims,
             tour_trace_label,
             chunk_sizer=chunk_sizer,
         )
@@ -846,51 +874,6 @@ def schedule_tours(
     else:
         assert not tours[timetable_window_id_col].duplicated().any()
 
-    if model_settings.LOGSUM_SETTINGS:
-        logsum_settings = TourModeComponentSettings.read_settings_file(
-            state.filesystem,
-            str(model_settings.LOGSUM_SETTINGS),
-            mandatory=False,
-        )
-
-        # set destination column name for skims used in logsums
-        destination_for_tour_purpose = model_settings.DESTINATION_FOR_TOUR_PURPOSE
-        if isinstance(destination_for_tour_purpose, str):
-            dest_col_name = destination_for_tour_purpose
-        elif isinstance(destination_for_tour_purpose, dict):
-            dest_col_name = destination_for_tour_purpose.get(logsum_tour_purpose)
-        else:
-            raise RuntimeError(
-                f"expected string or dict DESTINATION_FOR_TOUR_PURPOSE model_setting for {logsum_tour_purpose}"
-            )
-
-        if logsum_settings.include_pnr_for_logsums:
-            # if the logsum settings include explicit PNR, then we need to add the
-            # PNR lot destination column to the choosers table by running PnR lot choice
-            tours["pnr_zone_id"] = run_park_and_ride_lot_choice(
-                state,
-                choosers=tours,
-                land_use=state.get_dataframe("land_use"),
-                network_los=state.get_injectable("network_los"),
-                model_settings=None,
-                choosers_dest_col_name=dest_col_name,
-                estimator=None,
-                trace_label=tracing.extend_trace_label(
-                    tour_trace_label, "pnr_lot_choice"
-                ),
-            )
-
-        skims = setup_skims(
-            state.get_injectable("network_los"),
-            tours,
-            add_periods=False,
-            include_pnr_skims=logsum_settings.include_pnr_for_logsums,
-            orig_col_name="home_zone_id",
-            dest_col_name=dest_col_name,
-        )
-    else:
-        skims = None
-
     result_list = []
     for (
         _i,
@@ -912,7 +895,6 @@ def schedule_tours(
             spec,
             logsum_tour_purpose,
             model_settings,
-            skims,
             timetable,
             timetable_window_id_col,
             previous_tour,

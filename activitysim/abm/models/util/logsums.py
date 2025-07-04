@@ -25,6 +25,7 @@ def setup_skims(
     orig_col_name: str = "home_zone_id",
     dest_col_name: str = "destination",
     pnr_lot_dest_col_name: str = "pnr_zone_id",
+    trace_label: str | None = None,
 ):
     """
     Setup skims wrappers for use in utility calculations.
@@ -51,6 +52,8 @@ def setup_skims(
         Name of the column in choosers representing the destination zone id.
     pnr_lot_dest_col_name : str
         Name of the column in choosers representing the PNR lot destination zone id.
+    trace_label : str | None
+        Optional label for tracing when creating tvpb skim wrappers for 3-zone models.
 
     Returns
     -------
@@ -351,6 +354,7 @@ def compute_location_choice_logsums(
         dest_col_name=dest_col_name,
         pnr_lot_dest_col_name="pnr_zone_id",
         include_pnr_skims=logsum_settings.include_pnr_for_logsums,
+        trace_label=trace_label,
     )
     locals_dict.update(skims)
 

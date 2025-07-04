@@ -87,6 +87,7 @@ def atwork_subtour_mode_choice(
         include_pnr_skims=model_settings.include_explicit_pnr,
         orig_col_name="workplace_zone_id",
         dest_col_name="destination",
+        trace_label=trace_label,
     )
 
     if network_los.zone_system == los.THREE_ZONE:

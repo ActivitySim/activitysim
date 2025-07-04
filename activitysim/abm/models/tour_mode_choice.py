@@ -251,6 +251,7 @@ def tour_mode_choice_simulate(
         primary_tours_merged,
         add_periods=False,
         include_pnr_skims=("pnr_zone_id" in primary_tours_merged.columns),
+        trace_label=trace_label,
     )
 
     # TVPB constants can appear in expressions

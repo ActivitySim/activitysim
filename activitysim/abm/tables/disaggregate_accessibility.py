@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def find_nearest_accessibility_zone(
-    state: workflow.State, choosers, accessibility_df, method="skims"
+    state: workflow.State, model_settings, choosers, accessibility_df, method="skims"
 ):
     """
     Matches choosers zone to the nearest accessibility zones.
@@ -30,9 +30,16 @@ def find_nearest_accessibility_zone(
     def nearest_skim(oz, zones):
         # need to pass equal # of origins and destinations to skim_dict
         orig_zones = np.full(shape=len(zones), fill_value=oz, dtype=int)
+
+        skim_name = model_settings.NEAREST_ZONE_SKIM
+        if "__" in skim_name:
+            # If the skim name contains '__', it is a 3D skim
+            # we need to pass the skim name as a tuple to the lookup method, e.g. ('WALK_TRANSIT_IVTT', 'MD')
+            skim_name = tuple(skim_name.split("__"))
+
         return (
             oz,
-            zones[np.argmin(skim_dict.lookup(orig_zones, zones, "DIST"))],
+            zones[np.argmin(skim_dict.lookup(orig_zones, zones, skim_name))],
         )
 
     def nearest_node(oz, zones_df):
@@ -186,7 +193,11 @@ def disaggregate_accessibility(state: workflow.State) -> pd.DataFrame:
     # Note that from here on the 'home_zone_id' is the matched name
     if "nearest_accessibility_zone_id" not in persons_merged_df.columns:
         persons_merged_df = find_nearest_accessibility_zone(
-            state, persons_merged_df, proto_accessibility_df, nearest_method
+            state,
+            model_settings,
+            persons_merged_df,
+            proto_accessibility_df,
+            nearest_method,
         )
 
     # Copy home_zone_id in proto-table to match the temporary 'nearest_zone_id'

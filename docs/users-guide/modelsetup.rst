@@ -132,14 +132,17 @@ the standard Python package manager. The *uv* features include automatic
 environment management including installation and management of Python 
 versions and dependency locking. 
 
-There are two options for using *uv* to install ActivitySim. 
+.. note::
+  There are two options for using *uv* to install ActivitySim. 
 
 The first is to use *uv* to install an official ActivitySim release from the Python Package Index (PyPI). 
 The second is to use *uv* to install ActivitySim from a local directory, which should be the cloned ActivitySim repository.
 
-The first option is recommended for users who want to install ActivitySim from an official release and do not wish to change the Python code. 
-The second option is recommended for users who want to customize the Python code, and who want to run ActivitySim 
-exactly as it was tested by the developers using the dependency lockfile which results in the exact same deep dependencies.
+.. note::
+  The first *uv* option is recommended for users who want to install ActivitySim from an official release and do not wish to change the Python code. 
+  However, they may end up using different deep dependencies than those tested by the developers. 
+  The second *uv* option is recommended for users who may want to customize the Python code, and who want to run ActivitySim 
+  exactly as it was tested by the developers using the dependency lockfile which results in the exact same deep dependencies.
 
 The steps involved are described as follows.
 

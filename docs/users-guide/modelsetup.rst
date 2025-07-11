@@ -63,9 +63,9 @@ ActivitySim has features that makes it possible to customize model runs or impro
 * :ref:`Sharrow <sharrow_ways_to_run>` is a Python library designed to decrease run-time for ActivitySim models by creating an optimized compiled version of the model. This can also be turned on/off.
 * :ref:`Tracing <tracing_ways_to_run>` allows the user to access information throughout the model run for a specified number of households/persons/zones. Enabling this feature will increase run-time and memory usage. It is recommended that this feature be turned off for typical model application.
 * Optimization of data types including:
-   + Converting string variables to pandas categoricals. ActivitySim releases *<placeholder for version number>* and higher have this capability.
-   + Converting higher byte integer variables to lower byte integer variables (such as reducing ‘num tours’ from int64 to int8).
-   + Converting higher byte float variables to lower bytes. ActivitySim releases X.X.X and higher have this capability as a switch and defaults to turning this feature off.
+   + Converting string variables to pandas categoricals. ActivitySim releases 1.3.0 and higher have this capability.
+   + Converting higher byte integer variables to lower byte integer variables (such as reducing ‘num tours’ from int64 to int8). ActivitySim releases 1.3.0 and higher have this capability as a switch and defaults to turning this feature off.
+   + Converting higher byte float variables to lower bytes. ActivitySim releases 1.3.0 and higher have this capability as a switch and defaults to turning this feature off.
 
 Steps for enabling/disabling these options are included in the :ref:`Advanced Configuration` sub-section, under :ref:`Ways to Run the Model` page of this Users’ Guide.
 
@@ -90,7 +90,7 @@ There are two recommended ways to install ActivitySim:
 
 1. Using a :ref:`pre-packaged installer`
 
-2. Using a :ref:`Python the uv package and project manager`
+2. Using :ref:`Python the uv package and project manager`
 
 The first is recommended for users who do not need to change the Python code and are on Windows, 
 and the second is recommended for users who need to change/customize the Python code.
@@ -127,22 +127,49 @@ ______________________________________
 This method is recommended for ActivitySim users who are familiar with 
 Python and optionally wish to customize the Python code to run their models.
 UV is a free open source cross-platform package and project manager that runs 
-on Windows, OS X, and Linux. It is 10-100x faster than pip itself, which is 
+on Windows, OS X, and Linux. It is 10-100x faster than conda, and pip itself, which is 
 the standard Python package manager. The *uv* features include automatic 
 environment management including installation and management of Python 
-versions and dependency locking. The steps involved are described as follows:
+versions and dependency locking. 
+
+There are two options for using *uv* to install ActivitySim. 
+
+The first is to use *uv* to install an official ActivitySim release from the Python Package Index (PyPI). 
+The second is to use *uv* to install ActivitySim from a local directory, which should be the cloned ActivitySim repository.
+
+The first option is recommended for users who want to install ActivitySim from an official release and do not wish to change the Python code. 
+The second option is recommended for users who want to customize the Python code, and who want to run ActivitySim 
+exactly as it was tested by the developers using the dependency lockfile which results in the exact same deep dependencies.
+
+The steps involved are described as follows.
+
+Option 1: Install ActivitySim from PyPI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(Note: This step may fail at the moment because the ActivitySim version available on PyPI has dependency conflicts.
+This step should work when ActivitySim release *<placeholder for version number>* which is built with *uv* is available on PyPI.
+In the meantime, use Option 2 below to install ActivitySim from the lockfile.)
 
 1. Install *uv*. Instructions can be found 
 `here <https://docs.astral.sh/uv/getting-started/installation/>`_.
 
-2. Create a new project to work from and add ActivitySim. (Warning: This approach is quickest
+2. Create a new project and virtual environment to work from and add ActivitySim. (Warning: This approach is quickest
 for getting started but does not rely on the lockfile to install dependencies so you may
-end up with different versions.)
+end up with different versions. If you want to use the lockfile, see Option 2 below.)
+
+Open a terminal, such as Command Prompt (note: not Anaconda Prompt), and run the following commands.
 
 ::
 
-  uv init new_project
+  mkdir asim_project
+  cd asim_project
+  echo 3.10 > .python-version # This sets the Python version to 3.10, which is currently used for ActivitySim development.
+  uv init
   uv add activitysim
+
+*uv* will create a new virtual environment within the `asim_project` project folder 
+and install ActivitySim and its dependencies. The virtual environment is a hidden folder 
+within the `asim_project` directory called `.venv` and operates the same way as Python's classic *venv*.
 
 3. Run an ActivitySim command using the following.
 
@@ -158,15 +185,29 @@ the :ref:`Ways to Run the Model` section.
 
   uv run activitysim run -c configs -o output -d data
 
-If you want to run ActivitySim from a directory different than where the 
-code lives, use the `project` option to point *uv* to this project using 
-relative paths:
+
+Run ActivitySim from a Different Directory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+If you want to run ActivitySim from a directory different than where the code lives, 
+use the `project` option to point *uv* to this project using relative paths:
 
 ::
 
-  uv run --project relative/path/to/activitysim/code activitysim run -c configs -o output -d data
+  uv run --project relative/path/to/asim_project activitysim run -c configs -o output -d data
+
+
+You could also activate the virtual environment created by *uv* and run ActivitySim from any directory. 
+
+::
+
+  .venv\Scripts\activate
+
+With this command, you have activated the virtual environment created by *uv* and can run ActivitySim commands from any directory.
 
 For more on *uv*, visit https://docs.astral.sh/uv/.
+
+Option 2: Install ActivitySim from the lockfile
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To install dependencies from the lockfile and run ActivitySim exactly how
 its developers tested it, after installing *uv* clone the code repository
@@ -217,3 +258,23 @@ under `dev` under `[dependency-groups]` (not `github-action`). If you want to
 skip the dependency groups entirely with a *uv* install (and only install those
 that would install via `pip` from 'pypi`), use the `--no-default-groups` flag 
 with `uv sync`.
+
+Run ActivitySim from a Different Directory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+If you want to run ActivitySim from a directory different than where the code lives, 
+use the `project` option to point *uv* to this project using relative paths:
+
+::
+
+  uv run --project relative/path/to/asim_project activitysim run -c configs -o output -d data
+
+
+You could also activate the virtual environment created by *uv* and run ActivitySim from any directory. 
+
+::
+
+  .venv\Scripts\activate
+
+With this command, you have activated the virtual environment created by *uv* and can run ActivitySim commands from any directory.
+
+For more on *uv*, visit https://docs.astral.sh/uv/.

@@ -77,6 +77,31 @@ class BaseLogitComponentSettings(PydanticCompute):
     CONSTANTS: dict[str, Any] = {}
     """Named constants usable in the utility expressions."""
 
+    preprocessor: PreprocessorSettings | list[PreprocessorSettings] | None = None
+    """Chooser preprocessor settings.
+
+    This is a set of expressions to be evaluated on the choosers
+    before the logit model is run. It is used to prepare the choosers
+    for the logit model by adding columns that are used in the
+    utility expressions.
+    """
+
+    annotate_households: PreprocessorSettings | None = None
+    """Annotate households output tables with additional columns.
+
+    These settings are used to add additional columns to the output tables
+    after the logit model is run. They are typically used to add
+    additional attributes that are derived from the model results.
+    """
+    annotate_persons: PreprocessorSettings | None = None
+    """Annotate persons output tables with additional columns."""
+    annotate_tours: PreprocessorSettings | None = None
+    """Annotate tours output tables with additional columns."""
+    annotate_trips: PreprocessorSettings | None = None
+    """Annotate trips output tables with additional columns."""
+    annotate_vehicles: PreprocessorSettings | None = None
+    """Annotate vehicles output tables with additional columns."""
+
     # sharrow_skip is deprecated in factor of compute_settings.sharrow_skip
     @model_validator(mode="before")
     @classmethod
@@ -196,6 +221,11 @@ class LocationComponentSettings(BaseLogitComponentSettings):
     If less than 1, use this fraction of the total number of rows.
     """
 
+    alts_preprocessor_sample: PreprocessorSettings | None = None
+    """Alternatives preprocessor settings to use when sampling alternatives."""
+    alts_preprocessor_simulate: PreprocessorSettings | None = None
+    """Alternatives preprocessor settings to use when simulating choices."""
+
 
 class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     # Logsum-related settings
@@ -207,7 +237,6 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
 
     SEGMENTS: list[str] | None = None
     SIZE_TERM_SELECTOR: str | None = None
-    annotate_tours: PreprocessorSettings | None = None
 
     CHOOSER_FILTER_COLUMN_NAME: str | None = None
     DEST_CHOICE_COLUMN_NAME: str | None = None
@@ -221,8 +250,6 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     SEGMENT_IDS: dict[str, int] | dict[str, str] | dict[str, bool] | None = None
     SHADOW_PRICE_TABLE: str | None = None
     MODELED_SIZE_TABLE: str | None = None
-    annotate_persons: PreprocessorSettings | None = None
-    annotate_households: PreprocessorSettings | None = None
     SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
     ALT_DEST_COL_NAME: str
     LOGSUM_TOUR_PURPOSE: str | dict[str, str] | None = None
@@ -249,8 +276,6 @@ class TourModeComponentSettings(TemplatedLogitComponentSettings, extra="forbid")
     COMPUTE_TRIP_MODE_CHOICE_LOGSUMS: bool = False
     tvpb_mode_path_types: dict[str, Any] | None = None
     FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH: bool = True
-    annotate_tours: PreprocessorSettings | None = None
-    preprocessor: PreprocessorSettings | list[PreprocessorSettings] | None = None
     nontour_preprocessor: PreprocessorSettings | list[
         PreprocessorSettings
     ] | None = None

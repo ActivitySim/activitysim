@@ -9,7 +9,7 @@ import pandas as pd
 
 from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
-from activitysim.core import config, estimation, los, simulate, tracing, workflow
+from activitysim.core import config, estimation, los, simulate, tracing, workflow, expressions
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
@@ -110,6 +110,27 @@ def _destination_sample(
         locals_d.update(constants)
 
     log_alt_losers = state.settings.log_alt_losers
+
+    # preprocess choosers table
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=locals_d,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
+    # preprocess alternatives table
+    expressions.annotate_preprocessors(
+        state,
+        df=destination_size_terms,
+        locals_dict=locals_d,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_sample",
+    )
 
     choices = interaction_sample(
         state,
@@ -819,6 +840,27 @@ def run_destination_simulate(
     }
     if constants is not None:
         locals_d.update(constants)
+
+    # preprocess choosers table
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=locals_d,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
+    # preprocess alternatives table
+    expressions.annotate_preprocessors(
+        state,
+        df=destination_sample,
+        locals_dict=locals_d,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_simulate",
+    )
 
     state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 

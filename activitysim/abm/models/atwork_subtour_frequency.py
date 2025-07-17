@@ -37,8 +37,8 @@ class AtworkSubtourFrequencySettings(LogitComponentSettings, extra="forbid"):
     Settings for the `atwork_subtour_frequency` component.
     """
 
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
+    # no additional fields are required for this component
+    pass
 
 
 @workflow.step
@@ -92,15 +92,15 @@ def atwork_subtour_frequency(
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
 
-    # - preprocessor
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        expressions.assign_columns(
-            state,
-            df=work_tours,
-            model_settings=preprocessor_settings,
-            trace_label=trace_label,
-        )
+    # preprocess choosers
+    expressions.annotate_preprocessors(
+        state,
+        df=work_tours,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     if estimator:
         estimator.write_spec(model_settings)
@@ -164,3 +164,11 @@ def atwork_subtour_frequency(
 
     if trace_hh_id:
         state.tracing.trace_df(tours, label="atwork_subtour_frequency.tours")
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

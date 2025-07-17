@@ -134,19 +134,13 @@ def stop_frequency(
         simulate.set_skim_wrapper_targets(tours_merged, skims)
 
         # this should be pre-slice as some expressions may count tours by type
-        annotations = expressions.compute_columns(
+        expressions.annotate_preprocessors(
             state,
             df=tours_merged,
-            model_settings=preprocessor_settings,
             locals_dict=locals_dict,
+            skims=None,  # skims are already set on tours_merged above
+            model_settings=model_settings,
             trace_label=trace_label,
-        )
-
-        assign_in_place(
-            tours_merged,
-            annotations,
-            state.settings.downcast_int,
-            state.settings.downcast_float,
         )
 
     tracing.print_summary(
@@ -315,10 +309,6 @@ def stop_frequency(
         )
 
         state.tracing.trace_df(
-            annotations, label="stop_frequency.annotations", columns=None
-        )
-
-        state.tracing.trace_df(
             tours_merged,
             label="stop_frequency.tours_merged",
             slicer="person_id",
@@ -327,3 +317,11 @@ def stop_frequency(
 
     if state.is_table("school_escort_trips"):
         school_escort_tours_trips.merge_school_escort_trips_into_pipeline(state)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

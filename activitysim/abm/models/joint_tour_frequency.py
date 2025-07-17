@@ -25,11 +25,11 @@ logger = logging.getLogger(__name__)
 
 class JointTourFrequencySettings(LogitComponentSettings, extra="forbid"):
     """
-    Settings for the `free_parking` component.
+    Settings for the `joint_tour_frequency` component.
     """
 
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
+    # no additional settings are required for this model
+    pass
 
 
 @workflow.step
@@ -72,22 +72,6 @@ def joint_tour_frequency(
         % multi_person_households.shape[0]
     )
 
-    # - preprocessor
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        locals_dict = {
-            "persons": persons,
-            "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
-        }
-
-        expressions.assign_columns(
-            state,
-            df=multi_person_households,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label,
-        )
-
     model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
@@ -96,6 +80,22 @@ def joint_tour_frequency(
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
+
+    # - preprocess choosers table
+    locals_dict = {
+        "persons": persons,
+        "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
+    }
+    locals_dict.update(constants)
+
+    expressions.annotate_preprocessors(
+        state,
+        df=multi_person_households,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     if estimator:
         estimator.write_spec(model_settings)
@@ -208,3 +208,11 @@ def joint_tour_frequency(
             print(f"tours_not_in_survey_tours\n{tours_not_in_survey_tours}")
             different = True
         assert not different
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

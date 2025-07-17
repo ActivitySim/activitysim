@@ -162,6 +162,27 @@ def _location_sample(
     }
     locals_d.update(model_settings.CONSTANTS or {})
 
+    # preprocess choosers table
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=locals_d,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
+    # preprocess alternatives table
+    expressions.annotate_preprocessors(
+        state,
+        df=alternatives,
+        locals_dict=locals_d,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_sample",
+    )
+
     spec = simulate.spec_for_segment(
         state,
         None,
@@ -631,6 +652,27 @@ def run_location_simulate(
     }
     locals_d.update(model_settings.CONSTANTS or {})
 
+    # preprocess choosers table
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=locals_d,
+        skims=None,  # skims included in locals_d
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
+    # preprocess alternatives table
+    expressions.annotate_preprocessors(
+        state,
+        df=alternatives,
+        locals_dict=locals_d,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_sample",
+    )
+
     if estimator:
         # write choosers after annotation
         estimator.write_choosers(choosers)
@@ -1084,33 +1126,18 @@ def iterate_location_choice(
             )
         state.extend_table(sample_table_name, save_sample_df)
 
-    # - annotate persons table
-    if model_settings.annotate_persons:
-        expressions.assign_columns(
-            state,
-            df=persons_df,
-            model_settings=model_settings.annotate_persons,
-            trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
-        )
+    state.add_table("persons", persons_df)
 
-        state.add_table("persons", persons_df)
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(persons_df, label=trace_label, warn_if_empty=True)
 
-        if state.settings.trace_hh_id:
-            state.tracing.trace_df(persons_df, label=trace_label, warn_if_empty=True)
-
-    # - annotate households table
-    if model_settings.annotate_households:
-        households_df = households
-        expressions.assign_columns(
-            state,
-            df=households_df,
-            model_settings=model_settings.annotate_households,
-            trace_label=tracing.extend_trace_label(trace_label, "annotate_households"),
-        )
-        state.add_table("households", households_df)
-
-        if state.settings.trace_hh_id:
-            state.tracing.trace_df(households_df, label=trace_label, warn_if_empty=True)
+    expressions.annotate_tables(
+        state,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     if dc_logsum_column_name:
         tracing.print_summary(

@@ -9,7 +9,7 @@ ActivitySim telecommute representation consists of two long term submodels -
 a person [work_from_home](work_from_home) model and 
 a person [telecommute_frequency](telecommute_frequency) model. 
 The work from home model predicts if a worker works exclusively from home, 
-whereas the telecommute frequency model predicts number of days in a week a worker telecommuters, 
+whereas the telecommute frequency model predicts number of days in a week a worker telecommutes, 
 if they do not exclusively work from home. 
 However, neither of them predicts whether a worker telecommutes or not on the simulation day. 
 This telecommute status model extends the previous two models to predict for all workers whether 

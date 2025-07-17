@@ -24,7 +24,7 @@ There have been discussions on exactly where the telecommute status model should
 in the model sequence. Some suggest it should be applied to all workers before the CDAP model; 
 some suggest it should be applied after the CDAP model only to workers who have work activities 
 during the day regardless of in-home or out-of-home (which requires change in CDAP definition). 
-The Consortium is currently engaged in an explicit telecommute design task as part pf Phase 9B,
+The Consortium is currently engaged in an explicit telecommute design task as part of Phase 9B,
 out of which more guidance on the model sequence will be established.
 
 The main interface to the telecommute status model is the

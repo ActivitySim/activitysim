@@ -354,7 +354,7 @@ def assign_in_place(df, df2, downcast_int=False, downcast_float=False):
                 # when df and df2 column are both categorical, union categories
                 from pandas.api.types import union_categoricals
 
-                uc = union_categoricals([df[c], df2[c]])
+                uc = union_categoricals([df[c], df2[c]], sort_categories=True)
                 df[c] = pd.Categorical(df[c], categories=uc.categories)
                 df2[c] = pd.Categorical(df2[c], categories=uc.categories)
 
@@ -444,7 +444,7 @@ def auto_opt_pd_dtypes(
                 else:
                     df[col] = pd.to_numeric(df[col], downcast="float")
         # Skip if the column is already categorical
-        if pd.api.types.is_categorical_dtype(dtype):
+        if isinstance(dtype, pd.CategoricalDtype):
             continue
         # Handle integer types
         if pd.api.types.is_integer_dtype(dtype):

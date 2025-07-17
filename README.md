@@ -15,7 +15,7 @@ and benefit from contributions of other agency partners.
 
 :fire: The `main` branch of this repository contains the Consortium's latest
 in-development codebase.  It is not necessarily what you'll get if you install released
-code from conda-forge or by downloading one of the "release" versions here on GitHub,
+code from PyPI or by downloading one of the "release" versions here on GitHub,
 but it is generally expected that code in the `main` branch should be usable.
 
 ## Helpful Links

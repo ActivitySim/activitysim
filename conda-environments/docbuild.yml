@@ -23,7 +23,7 @@ dependencies:
 - git
 - jupyter-book
 - jupyterlab
-- larch >=5.5.3
+- larch >=5.5.3,<6
 - matplotlib
 - multimethod <2.0
 - myst-nb

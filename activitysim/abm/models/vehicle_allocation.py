@@ -87,22 +87,16 @@ def get_skim_dict(network_los: los.Network_LOS, choosers: pd.DataFrame):
 
 class VehicleAllocationSettings(LogitComponentSettings, extra="forbid"):
     """
-    Settings for the `joint_tour_scheduling` component.
+    Settings for the `vehicle_allocation` component.
     """
 
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
-
-    OCCUPANCY_LEVELS: list = [1]  # TODO Check this
+    OCCUPANCY_LEVELS: list = [1]  # TODO check this
     """Occupancy level
 
     It will create columns in the tour table selecting a vehicle for each of the
     occupancy levels. They are named vehicle_occup_1, vehicle_occup_2,... etc.
     if not supplied, will default to only one occupancy level of 1
     """
-
-    annotate_tours: PreprocessorSettings | None = None
-    """Preprocessor settings to annotate tours"""
 
 
 @workflow.step
@@ -212,15 +206,14 @@ def vehicle_allocation(
     locals_dict.update(skims)
 
     # ------ preprocessor
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        expressions.assign_columns(
-            state,
-            df=choosers,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label,
-        )
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=locals_dict,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     logger.info("Running %s with %d tours", trace_label, len(choosers))
 
@@ -286,9 +279,13 @@ def vehicle_allocation(
         "vehicle_allocation", tours[tours_veh_occup_cols], value_counts=True
     )
 
-    annotate_settings = model_settings.annotate_tours
-    if annotate_settings:
-        annotate_vehicle_allocation(state, model_settings, trace_label)
-
     if state.settings.trace_hh_id:
         state.tracing.trace_df(tours, label="vehicle_allocation", warn_if_empty=True)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=locals_dict,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

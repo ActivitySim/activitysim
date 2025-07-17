@@ -195,17 +195,6 @@ def atwork_subtour_mode_choice(
     )
     state.add_table("tours", tours)
 
-    # - annotate tours table
-    if model_settings.annotate_tours:
-        tours = state.get_dataframe("tours")
-        expressions.assign_columns(
-            state,
-            df=tours,
-            model_settings=model_settings.annotate_tours,
-            trace_label=tracing.extend_trace_label(trace_label, "annotate_tours"),
-        )
-        state.add_table("tours", tours)
-
     if trace_hh_id:
         state.tracing.trace_df(
             tours[tours.tour_category == "atwork"],
@@ -213,3 +202,11 @@ def atwork_subtour_mode_choice(
             slicer="tour_id",
             index_label="tour_id",
         )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

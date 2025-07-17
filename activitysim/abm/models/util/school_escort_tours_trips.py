@@ -767,7 +767,9 @@ def merge_school_escort_trips_into_pipeline(state: workflow.State):
             if isinstance(school_escort_trips[c].dtype, pd.api.types.CategoricalDtype):
                 from pandas.api.types import union_categoricals
 
-                uc = union_categoricals([trips[c], school_escort_trips[c]])
+                uc = union_categoricals(
+                    [trips[c], school_escort_trips[c]], sort_categories=True
+                )
                 trips[c] = pd.Categorical(trips[c], categories=uc.categories)
                 school_escort_trips[c] = pd.Categorical(
                     school_escort_trips[c], categories=uc.categories

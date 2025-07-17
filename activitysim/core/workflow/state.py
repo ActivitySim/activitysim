@@ -1099,7 +1099,9 @@ class State:
                         if isinstance(df[c].dtype, pd.api.types.CategoricalDtype):
                             from pandas.api.types import union_categoricals
 
-                            uc = union_categoricals([table_df[c], df[c]])
+                            uc = union_categoricals(
+                                [table_df[c], df[c]], sort_categories=True
+                            )
                             table_df[c] = pd.Categorical(
                                 table_df[c], categories=uc.categories
                             )

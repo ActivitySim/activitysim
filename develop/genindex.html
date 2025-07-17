@@ -28,7 +28,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
@@ -39,7 +39,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=1e849452"></script>
+    <script src="_static/documentation_options.js?v=d0f1e1f7"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -49,14 +49,14 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.4.1';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jun 02, 2025"/>
+    <meta name="docbuild:last-update" content="Jul 17, 2025"/>
   </head>
   
   
@@ -650,8 +650,6 @@ document.write(`
 </li>
       <li><a href="dev-guide/components/input_checker.html#activitysim.abm.models.input_checker.add_child_to_parent_list">add_child_to_parent_list() (in module activitysim.abm.models.input_checker)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cli.html#activitysim.cli.create.add_create_args">add_create_args() (in module activitysim.cli.create)</a>, <a href="users-guide/ways_to_run.html#activitysim.cli.create.add_create_args">[1]</a>
 </li>
       <li><a href="dev-guide/_generated/activitysim.core.workflow.State.add_injectable.html#activitysim.core.workflow.State.add_injectable">add_injectable() (activitysim.core.workflow.State method)</a>
@@ -720,34 +718,116 @@ document.write(`
         <li><a href="dev-guide/components/joint_tour_scheduling.html#activitysim.abm.models.joint_tour_scheduling.TourSchedulingSettings.ALTS_PREPROCESSOR">(activitysim.abm.models.joint_tour_scheduling.TourSchedulingSettings attribute)</a>
 </li>
       </ul></li>
-      <li><a href="dev-guide/components/vehicle_type_choice.html#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.alts_preprocessor">alts_preprocessor (activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings attribute)</a>
+      <li><a href="dev-guide/components/non_mandatory_tour_frequency.html#activitysim.abm.models.non_mandatory_tour_frequency.NonMandatoryTourFrequencySettings.alts_preprocessor">alts_preprocessor (activitysim.abm.models.non_mandatory_tour_frequency.NonMandatoryTourFrequencySettings attribute)</a>
+
+      <ul>
+        <li><a href="dev-guide/components/parking_location_choice.html#activitysim.abm.models.parking_location_choice.ParkingLocationSettings.alts_preprocessor">(activitysim.abm.models.parking_location_choice.ParkingLocationSettings attribute)</a>
 </li>
-      <li><a href="dev-guide/components/trip_destination.html#activitysim.abm.models.trip_destination.TripDestinationSettings.alts_preprocessor_sample">alts_preprocessor_sample (activitysim.abm.models.trip_destination.TripDestinationSettings attribute)</a>
+        <li><a href="dev-guide/components/school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.alts_preprocessor">(activitysim.abm.models.school_escorting.SchoolEscortSettings attribute)</a>
 </li>
-      <li><a href="dev-guide/components/trip_destination.html#activitysim.abm.models.trip_destination.TripDestinationSettings.alts_preprocessor_simulate">alts_preprocessor_simulate (activitysim.abm.models.trip_destination.TripDestinationSettings attribute)</a>
+        <li><a href="dev-guide/components/trip_departure_choice.html#activitysim.abm.models.trip_departure_choice.TripDepartureChoiceSettings.alts_preprocessor">(activitysim.abm.models.trip_departure_choice.TripDepartureChoiceSettings attribute)</a>
 </li>
+        <li><a href="dev-guide/components/trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.alts_preprocessor">(activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/vehicle_type_choice.html#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.alts_preprocessor">(activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="dev-guide/components/atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.alts_preprocessor_sample">alts_preprocessor_sample (activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings attribute)</a>
+
+      <ul>
+        <li><a href="dev-guide/components/joint_tour_destination.html#activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings.alts_preprocessor_sample">(activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/non_mandatory_destination.html#activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings.alts_preprocessor_sample">(activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="dev-guide/components/atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.alts_preprocessor_simulate">alts_preprocessor_simulate (activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings attribute)</a>
+
+      <ul>
+        <li><a href="dev-guide/components/joint_tour_destination.html#activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings.alts_preprocessor_simulate">(activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/non_mandatory_destination.html#activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings.alts_preprocessor_simulate">(activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings attribute)</a>
+</li>
+      </ul></li>
       <li><a href="dev-guide/components/atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.annotate_households">annotate_households (activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings attribute)</a>
 
       <ul>
+        <li><a href="dev-guide/components/atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.annotate_households">(activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.annotate_households">(activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.annotate_households">(activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings attribute)</a>
+</li>
         <li><a href="dev-guide/components/auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.annotate_households">(activitysim.abm.models.auto_ownership.AutoOwnershipSettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/cdap.html#activitysim.abm.models.cdap.CdapSettings.annotate_households">(activitysim.abm.models.cdap.CdapSettings attribute)</a>
 </li>
+        <li><a href="dev-guide/components/free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.annotate_households">(activitysim.abm.models.free_parking.FreeParkingSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_composition.html#activitysim.abm.models.joint_tour_composition.JointTourCompositionSettings.annotate_households">(activitysim.abm.models.joint_tour_composition.JointTourCompositionSettings attribute)</a>
+</li>
         <li><a href="dev-guide/components/joint_tour_destination.html#activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings.annotate_households">(activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_participation.html#activitysim.abm.models.joint_tour_participation.JointTourParticipationSettings.annotate_households">(activitysim.abm.models.joint_tour_participation.JointTourParticipationSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_scheduling.html#activitysim.abm.models.joint_tour_scheduling.TourSchedulingSettings.annotate_households">(activitysim.abm.models.joint_tour_scheduling.TourSchedulingSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/mandatory_tour_frequency.html#activitysim.abm.models.mandatory_tour_frequency.MandatoryTourFrequencySettings.annotate_households">(activitysim.abm.models.mandatory_tour_frequency.MandatoryTourFrequencySettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/non_mandatory_destination.html#activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings.annotate_households">(activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings attribute)</a>
 </li>
+        <li><a href="dev-guide/components/non_mandatory_tour_frequency.html#activitysim.abm.models.non_mandatory_tour_frequency.NonMandatoryTourFrequencySettings.annotate_households">(activitysim.abm.models.non_mandatory_tour_frequency.NonMandatoryTourFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/parking_location_choice.html#activitysim.abm.models.parking_location_choice.ParkingLocationSettings.annotate_households">(activitysim.abm.models.parking_location_choice.ParkingLocationSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.annotate_households">(activitysim.abm.models.school_escorting.SchoolEscortSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/stop_frequency.html#activitysim.abm.models.stop_frequency.StopFrequencySettings.annotate_households">(activitysim.abm.models.stop_frequency.StopFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/telecommute_frequency.html#activitysim.abm.models.telecommute_frequency.TelecommuteFrequencySettings.annotate_households">(activitysim.abm.models.telecommute_frequency.TelecommuteFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.annotate_households">(activitysim.abm.models.tour_mode_choice.TourModeComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/transit_pass_ownership.html#activitysim.abm.models.transit_pass_ownership.TransitPassOwnershipSettings.annotate_households">(activitysim.abm.models.transit_pass_ownership.TransitPassOwnershipSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/transit_pass_subsidy.html#activitysim.abm.models.transit_pass_subsidy.TransitPassSubsidySettings.annotate_households">(activitysim.abm.models.transit_pass_subsidy.TransitPassSubsidySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_households">(activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/vehicle_allocation.html#activitysim.abm.models.vehicle_allocation.VehicleAllocationSettings.annotate_households">(activitysim.abm.models.vehicle_allocation.VehicleAllocationSettings attribute)</a>
+</li>
         <li><a href="dev-guide/components/vehicle_type_choice.html#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_households">(activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings attribute)</a>
 </li>
+        <li><a href="dev-guide/components/work_from_home.html#activitysim.abm.models.work_from_home.WorkFromHomeSettings.annotate_households">(activitysim.abm.models.work_from_home.WorkFromHomeSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/_generated/activitysim.core.configuration.logit.LogitComponentSettings.html#activitysim.core.configuration.logit.LogitComponentSettings.annotate_households">(activitysim.core.configuration.logit.LogitComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/_generated/activitysim.core.configuration.logit.TemplatedLogitComponentSettings.html#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.annotate_households">(activitysim.core.configuration.logit.TemplatedLogitComponentSettings attribute)</a>
+</li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dev-guide/components/atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.annotate_persons">annotate_persons (activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings attribute)</a>
 
       <ul>
+        <li><a href="dev-guide/components/atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.annotate_persons">(activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.annotate_persons">(activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.annotate_persons">(activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.annotate_persons">(activitysim.abm.models.auto_ownership.AutoOwnershipSettings attribute)</a>
+</li>
         <li><a href="dev-guide/components/cdap.html#activitysim.abm.models.cdap.CdapSettings.annotate_persons">(activitysim.abm.models.cdap.CdapSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.annotate_persons">(activitysim.abm.models.free_parking.FreeParkingSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_composition.html#activitysim.abm.models.joint_tour_composition.JointTourCompositionSettings.annotate_persons">(activitysim.abm.models.joint_tour_composition.JointTourCompositionSettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/joint_tour_destination.html#activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings.annotate_persons">(activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/joint_tour_participation.html#activitysim.abm.models.joint_tour_participation.JointTourParticipationSettings.annotate_persons">(activitysim.abm.models.joint_tour_participation.JointTourParticipationSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_scheduling.html#activitysim.abm.models.joint_tour_scheduling.TourSchedulingSettings.annotate_persons">(activitysim.abm.models.joint_tour_scheduling.TourSchedulingSettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/mandatory_tour_frequency.html#activitysim.abm.models.mandatory_tour_frequency.MandatoryTourFrequencySettings.annotate_persons">(activitysim.abm.models.mandatory_tour_frequency.MandatoryTourFrequencySettings attribute)</a>
 </li>
@@ -755,29 +835,147 @@ document.write(`
 </li>
         <li><a href="dev-guide/components/non_mandatory_tour_frequency.html#activitysim.abm.models.non_mandatory_tour_frequency.NonMandatoryTourFrequencySettings.annotate_persons">(activitysim.abm.models.non_mandatory_tour_frequency.NonMandatoryTourFrequencySettings attribute)</a>
 </li>
+        <li><a href="dev-guide/components/parking_location_choice.html#activitysim.abm.models.parking_location_choice.ParkingLocationSettings.annotate_persons">(activitysim.abm.models.parking_location_choice.ParkingLocationSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.annotate_persons">(activitysim.abm.models.school_escorting.SchoolEscortSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/stop_frequency.html#activitysim.abm.models.stop_frequency.StopFrequencySettings.annotate_persons">(activitysim.abm.models.stop_frequency.StopFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/telecommute_frequency.html#activitysim.abm.models.telecommute_frequency.TelecommuteFrequencySettings.annotate_persons">(activitysim.abm.models.telecommute_frequency.TelecommuteFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.annotate_persons">(activitysim.abm.models.tour_mode_choice.TourModeComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/transit_pass_ownership.html#activitysim.abm.models.transit_pass_ownership.TransitPassOwnershipSettings.annotate_persons">(activitysim.abm.models.transit_pass_ownership.TransitPassOwnershipSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/transit_pass_subsidy.html#activitysim.abm.models.transit_pass_subsidy.TransitPassSubsidySettings.annotate_persons">(activitysim.abm.models.transit_pass_subsidy.TransitPassSubsidySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_persons">(activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/vehicle_allocation.html#activitysim.abm.models.vehicle_allocation.VehicleAllocationSettings.annotate_persons">(activitysim.abm.models.vehicle_allocation.VehicleAllocationSettings attribute)</a>
+</li>
         <li><a href="dev-guide/components/vehicle_type_choice.html#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_persons">(activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings attribute)</a>
 </li>
+        <li><a href="dev-guide/components/work_from_home.html#activitysim.abm.models.work_from_home.WorkFromHomeSettings.annotate_persons">(activitysim.abm.models.work_from_home.WorkFromHomeSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/_generated/activitysim.core.configuration.logit.LogitComponentSettings.html#activitysim.core.configuration.logit.LogitComponentSettings.annotate_persons">(activitysim.core.configuration.logit.LogitComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/_generated/activitysim.core.configuration.logit.TemplatedLogitComponentSettings.html#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.annotate_persons">(activitysim.core.configuration.logit.TemplatedLogitComponentSettings attribute)</a>
+</li>
       </ul></li>
+      <li><a href="core.html#activitysim.core.expressions.annotate_preprocessors">annotate_preprocessors() (in module activitysim.core.expressions)</a>
+</li>
       <li><a href="dev-guide/components/disaggregate_accessibility.html#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.annotate_proto_tables">annotate_proto_tables (activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings attribute)</a>
+</li>
+      <li><a href="core.html#activitysim.core.expressions.annotate_tables">annotate_tables() (in module activitysim.core.expressions)</a>
 </li>
       <li><a href="dev-guide/components/atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.annotate_tours">annotate_tours (activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings attribute)</a>
 
       <ul>
+        <li><a href="dev-guide/components/atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.annotate_tours">(activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings attribute)</a>
+</li>
         <li><a href="dev-guide/components/atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.annotate_tours">(activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings attribute)</a>
 </li>
+        <li><a href="dev-guide/components/atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.annotate_tours">(activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.annotate_tours">(activitysim.abm.models.auto_ownership.AutoOwnershipSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.annotate_tours">(activitysim.abm.models.free_parking.FreeParkingSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_composition.html#activitysim.abm.models.joint_tour_composition.JointTourCompositionSettings.annotate_tours">(activitysim.abm.models.joint_tour_composition.JointTourCompositionSettings attribute)</a>
+</li>
         <li><a href="dev-guide/components/joint_tour_destination.html#activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings.annotate_tours">(activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_participation.html#activitysim.abm.models.joint_tour_participation.JointTourParticipationSettings.annotate_tours">(activitysim.abm.models.joint_tour_participation.JointTourParticipationSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_scheduling.html#activitysim.abm.models.joint_tour_scheduling.TourSchedulingSettings.annotate_tours">(activitysim.abm.models.joint_tour_scheduling.TourSchedulingSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/mandatory_tour_frequency.html#activitysim.abm.models.mandatory_tour_frequency.MandatoryTourFrequencySettings.annotate_tours">(activitysim.abm.models.mandatory_tour_frequency.MandatoryTourFrequencySettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/non_mandatory_destination.html#activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings.annotate_tours">(activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/non_mandatory_tour_frequency.html#activitysim.abm.models.non_mandatory_tour_frequency.NonMandatoryTourFrequencySettings.annotate_tours">(activitysim.abm.models.non_mandatory_tour_frequency.NonMandatoryTourFrequencySettings attribute)</a>
 </li>
+        <li><a href="dev-guide/components/parking_location_choice.html#activitysim.abm.models.parking_location_choice.ParkingLocationSettings.annotate_tours">(activitysim.abm.models.parking_location_choice.ParkingLocationSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.annotate_tours">(activitysim.abm.models.school_escorting.SchoolEscortSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/stop_frequency.html#activitysim.abm.models.stop_frequency.StopFrequencySettings.annotate_tours">(activitysim.abm.models.stop_frequency.StopFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/telecommute_frequency.html#activitysim.abm.models.telecommute_frequency.TelecommuteFrequencySettings.annotate_tours">(activitysim.abm.models.telecommute_frequency.TelecommuteFrequencySettings attribute)</a>
+</li>
         <li><a href="dev-guide/components/tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.annotate_tours">(activitysim.abm.models.tour_mode_choice.TourModeComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/transit_pass_ownership.html#activitysim.abm.models.transit_pass_ownership.TransitPassOwnershipSettings.annotate_tours">(activitysim.abm.models.transit_pass_ownership.TransitPassOwnershipSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/transit_pass_subsidy.html#activitysim.abm.models.transit_pass_subsidy.TransitPassSubsidySettings.annotate_tours">(activitysim.abm.models.transit_pass_subsidy.TransitPassSubsidySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_tours">(activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/vehicle_allocation.html#activitysim.abm.models.vehicle_allocation.VehicleAllocationSettings.annotate_tours">(activitysim.abm.models.vehicle_allocation.VehicleAllocationSettings attribute)</a>
 </li>
-      </ul></li>
-      <li><a href="dev-guide/components/trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_trips">annotate_trips (activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings attribute)</a>
+        <li><a href="dev-guide/components/vehicle_type_choice.html#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_tours">(activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings attribute)</a>
 </li>
+        <li><a href="dev-guide/components/work_from_home.html#activitysim.abm.models.work_from_home.WorkFromHomeSettings.annotate_tours">(activitysim.abm.models.work_from_home.WorkFromHomeSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/_generated/activitysim.core.configuration.logit.LogitComponentSettings.html#activitysim.core.configuration.logit.LogitComponentSettings.annotate_tours">(activitysim.core.configuration.logit.LogitComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/_generated/activitysim.core.configuration.logit.TemplatedLogitComponentSettings.html#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.annotate_tours">(activitysim.core.configuration.logit.TemplatedLogitComponentSettings attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="dev-guide/components/atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.annotate_trips">annotate_trips (activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings attribute)</a>
+
+      <ul>
+        <li><a href="dev-guide/components/atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.annotate_trips">(activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.annotate_trips">(activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.annotate_trips">(activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.annotate_trips">(activitysim.abm.models.auto_ownership.AutoOwnershipSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.annotate_trips">(activitysim.abm.models.free_parking.FreeParkingSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_composition.html#activitysim.abm.models.joint_tour_composition.JointTourCompositionSettings.annotate_trips">(activitysim.abm.models.joint_tour_composition.JointTourCompositionSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_destination.html#activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings.annotate_trips">(activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_participation.html#activitysim.abm.models.joint_tour_participation.JointTourParticipationSettings.annotate_trips">(activitysim.abm.models.joint_tour_participation.JointTourParticipationSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_scheduling.html#activitysim.abm.models.joint_tour_scheduling.TourSchedulingSettings.annotate_trips">(activitysim.abm.models.joint_tour_scheduling.TourSchedulingSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/mandatory_tour_frequency.html#activitysim.abm.models.mandatory_tour_frequency.MandatoryTourFrequencySettings.annotate_trips">(activitysim.abm.models.mandatory_tour_frequency.MandatoryTourFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/non_mandatory_destination.html#activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings.annotate_trips">(activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/non_mandatory_tour_frequency.html#activitysim.abm.models.non_mandatory_tour_frequency.NonMandatoryTourFrequencySettings.annotate_trips">(activitysim.abm.models.non_mandatory_tour_frequency.NonMandatoryTourFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/parking_location_choice.html#activitysim.abm.models.parking_location_choice.ParkingLocationSettings.annotate_trips">(activitysim.abm.models.parking_location_choice.ParkingLocationSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.annotate_trips">(activitysim.abm.models.school_escorting.SchoolEscortSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/stop_frequency.html#activitysim.abm.models.stop_frequency.StopFrequencySettings.annotate_trips">(activitysim.abm.models.stop_frequency.StopFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/telecommute_frequency.html#activitysim.abm.models.telecommute_frequency.TelecommuteFrequencySettings.annotate_trips">(activitysim.abm.models.telecommute_frequency.TelecommuteFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.annotate_trips">(activitysim.abm.models.tour_mode_choice.TourModeComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/transit_pass_ownership.html#activitysim.abm.models.transit_pass_ownership.TransitPassOwnershipSettings.annotate_trips">(activitysim.abm.models.transit_pass_ownership.TransitPassOwnershipSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/transit_pass_subsidy.html#activitysim.abm.models.transit_pass_subsidy.TransitPassSubsidySettings.annotate_trips">(activitysim.abm.models.transit_pass_subsidy.TransitPassSubsidySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_trips">(activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/vehicle_allocation.html#activitysim.abm.models.vehicle_allocation.VehicleAllocationSettings.annotate_trips">(activitysim.abm.models.vehicle_allocation.VehicleAllocationSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/vehicle_type_choice.html#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_trips">(activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/work_from_home.html#activitysim.abm.models.work_from_home.WorkFromHomeSettings.annotate_trips">(activitysim.abm.models.work_from_home.WorkFromHomeSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/_generated/activitysim.core.configuration.logit.LogitComponentSettings.html#activitysim.core.configuration.logit.LogitComponentSettings.annotate_trips">(activitysim.core.configuration.logit.LogitComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/_generated/activitysim.core.configuration.logit.TemplatedLogitComponentSettings.html#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.annotate_trips">(activitysim.core.configuration.logit.TemplatedLogitComponentSettings attribute)</a>
+</li>
+      </ul></li>
       <li><a href="dev-guide/components/vehicle_allocation.html#activitysim.abm.models.vehicle_allocation.annotate_vehicle_allocation">annotate_vehicle_allocation() (in module activitysim.abm.models.vehicle_allocation)</a>
 </li>
       <li><a href="dev-guide/components/vehicle_type_choice.html#activitysim.abm.models.vehicle_type_choice.annotate_vehicle_type_choice_households">annotate_vehicle_type_choice_households() (in module activitysim.abm.models.vehicle_type_choice)</a>
@@ -786,8 +984,60 @@ document.write(`
 </li>
       <li><a href="dev-guide/components/vehicle_type_choice.html#activitysim.abm.models.vehicle_type_choice.annotate_vehicle_type_choice_vehicles">annotate_vehicle_type_choice_vehicles() (in module activitysim.abm.models.vehicle_type_choice)</a>
 </li>
-      <li><a href="dev-guide/components/vehicle_type_choice.html#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_vehicles">annotate_vehicles (activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings attribute)</a>
+      <li><a href="dev-guide/components/atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.annotate_vehicles">annotate_vehicles (activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings attribute)</a>
+
+      <ul>
+        <li><a href="dev-guide/components/atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.annotate_vehicles">(activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings attribute)</a>
 </li>
+        <li><a href="dev-guide/components/atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.annotate_vehicles">(activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.annotate_vehicles">(activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.annotate_vehicles">(activitysim.abm.models.auto_ownership.AutoOwnershipSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.annotate_vehicles">(activitysim.abm.models.free_parking.FreeParkingSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_composition.html#activitysim.abm.models.joint_tour_composition.JointTourCompositionSettings.annotate_vehicles">(activitysim.abm.models.joint_tour_composition.JointTourCompositionSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_destination.html#activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings.annotate_vehicles">(activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_participation.html#activitysim.abm.models.joint_tour_participation.JointTourParticipationSettings.annotate_vehicles">(activitysim.abm.models.joint_tour_participation.JointTourParticipationSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_scheduling.html#activitysim.abm.models.joint_tour_scheduling.TourSchedulingSettings.annotate_vehicles">(activitysim.abm.models.joint_tour_scheduling.TourSchedulingSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/mandatory_tour_frequency.html#activitysim.abm.models.mandatory_tour_frequency.MandatoryTourFrequencySettings.annotate_vehicles">(activitysim.abm.models.mandatory_tour_frequency.MandatoryTourFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/non_mandatory_destination.html#activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings.annotate_vehicles">(activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/non_mandatory_tour_frequency.html#activitysim.abm.models.non_mandatory_tour_frequency.NonMandatoryTourFrequencySettings.annotate_vehicles">(activitysim.abm.models.non_mandatory_tour_frequency.NonMandatoryTourFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/parking_location_choice.html#activitysim.abm.models.parking_location_choice.ParkingLocationSettings.annotate_vehicles">(activitysim.abm.models.parking_location_choice.ParkingLocationSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.annotate_vehicles">(activitysim.abm.models.school_escorting.SchoolEscortSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/stop_frequency.html#activitysim.abm.models.stop_frequency.StopFrequencySettings.annotate_vehicles">(activitysim.abm.models.stop_frequency.StopFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/telecommute_frequency.html#activitysim.abm.models.telecommute_frequency.TelecommuteFrequencySettings.annotate_vehicles">(activitysim.abm.models.telecommute_frequency.TelecommuteFrequencySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.annotate_vehicles">(activitysim.abm.models.tour_mode_choice.TourModeComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/transit_pass_ownership.html#activitysim.abm.models.transit_pass_ownership.TransitPassOwnershipSettings.annotate_vehicles">(activitysim.abm.models.transit_pass_ownership.TransitPassOwnershipSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/transit_pass_subsidy.html#activitysim.abm.models.transit_pass_subsidy.TransitPassSubsidySettings.annotate_vehicles">(activitysim.abm.models.transit_pass_subsidy.TransitPassSubsidySettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_vehicles">(activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/vehicle_allocation.html#activitysim.abm.models.vehicle_allocation.VehicleAllocationSettings.annotate_vehicles">(activitysim.abm.models.vehicle_allocation.VehicleAllocationSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/vehicle_type_choice.html#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_vehicles">(activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/work_from_home.html#activitysim.abm.models.work_from_home.WorkFromHomeSettings.annotate_vehicles">(activitysim.abm.models.work_from_home.WorkFromHomeSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/_generated/activitysim.core.configuration.logit.LogitComponentSettings.html#activitysim.core.configuration.logit.LogitComponentSettings.annotate_vehicles">(activitysim.core.configuration.logit.LogitComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/_generated/activitysim.core.configuration.logit.TemplatedLogitComponentSettings.html#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.annotate_vehicles">(activitysim.core.configuration.logit.TemplatedLogitComponentSettings attribute)</a>
+</li>
+      </ul></li>
       <li><a href="dev-guide/components/vehicle_type_choice.html#activitysim.abm.models.vehicle_type_choice.append_probabilistic_vehtype_type_choices">append_probabilistic_vehtype_type_choices() (in module activitysim.abm.models.vehicle_type_choice)</a>
 </li>
       <li><a href="dev-guide/components/tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.append_tour_leg_trip_mode_choice_logsums">append_tour_leg_trip_mode_choice_logsums() (in module activitysim.abm.models.tour_mode_choice)</a>
@@ -2549,18 +2799,24 @@ document.write(`
 </li>
       <li><a href="users-guide/_generated/activitysim.core.configuration.OutputTables.html#activitysim.core.configuration.OutputTables.prefix">prefix (activitysim.core.configuration.OutputTables attribute)</a>
 </li>
-      <li><a href="dev-guide/components/atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.preprocessor">preprocessor (activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings attribute)</a>
+      <li><a href="dev-guide/components/atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.preprocessor">preprocessor (activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings attribute)</a>
 
       <ul>
+        <li><a href="dev-guide/components/atwork_subtour_frequency.html#activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings.preprocessor">(activitysim.abm.models.atwork_subtour_frequency.AtworkSubtourFrequencySettings attribute)</a>
+</li>
         <li><a href="dev-guide/components/atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.preprocessor">(activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/atwork_subtour_scheduling.html#activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings.preprocessor">(activitysim.abm.models.atwork_subtour_scheduling.TourSchedulingSettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/auto_ownership.html#activitysim.abm.models.auto_ownership.AutoOwnershipSettings.preprocessor">(activitysim.abm.models.auto_ownership.AutoOwnershipSettings attribute)</a>
 </li>
+        <li><a href="dev-guide/components/cdap.html#activitysim.abm.models.cdap.CdapSettings.preprocessor">(activitysim.abm.models.cdap.CdapSettings attribute)</a>
+</li>
         <li><a href="dev-guide/components/free_parking.html#activitysim.abm.models.free_parking.FreeParkingSettings.preprocessor">(activitysim.abm.models.free_parking.FreeParkingSettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/joint_tour_composition.html#activitysim.abm.models.joint_tour_composition.JointTourCompositionSettings.preprocessor">(activitysim.abm.models.joint_tour_composition.JointTourCompositionSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/components/joint_tour_destination.html#activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings.preprocessor">(activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/joint_tour_participation.html#activitysim.abm.models.joint_tour_participation.JointTourParticipationSettings.preprocessor">(activitysim.abm.models.joint_tour_participation.JointTourParticipationSettings attribute)</a>
 </li>
@@ -2568,16 +2824,20 @@ document.write(`
 </li>
         <li><a href="dev-guide/components/mandatory_tour_frequency.html#activitysim.abm.models.mandatory_tour_frequency.MandatoryTourFrequencySettings.preprocessor">(activitysim.abm.models.mandatory_tour_frequency.MandatoryTourFrequencySettings attribute)</a>
 </li>
+        <li><a href="dev-guide/components/non_mandatory_destination.html#activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings.preprocessor">(activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings attribute)</a>
+</li>
         <li><a href="dev-guide/components/non_mandatory_tour_frequency.html#activitysim.abm.models.non_mandatory_tour_frequency.NonMandatoryTourFrequencySettings.preprocessor">(activitysim.abm.models.non_mandatory_tour_frequency.NonMandatoryTourFrequencySettings attribute)</a>
 </li>
       </ul></li>
-      <li><a href="dev-guide/components/parking_location_choice.html#activitysim.abm.models.parking_location_choice.ParkingLocationSettings.PREPROCESSOR">PREPROCESSOR (activitysim.abm.models.parking_location_choice.ParkingLocationSettings attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="dev-guide/components/school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor">preprocessor (activitysim.abm.models.school_escorting.SchoolEscortSettings attribute)</a>
+      <li><a href="dev-guide/components/parking_location_choice.html#activitysim.abm.models.parking_location_choice.ParkingLocationSettings.PREPROCESSOR">PREPROCESSOR (activitysim.abm.models.parking_location_choice.ParkingLocationSettings attribute)</a>
+</li>
+      <li><a href="dev-guide/components/parking_location_choice.html#activitysim.abm.models.parking_location_choice.ParkingLocationSettings.preprocessor">preprocessor (activitysim.abm.models.parking_location_choice.ParkingLocationSettings attribute)</a>
 
       <ul>
+        <li><a href="dev-guide/components/school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor">(activitysim.abm.models.school_escorting.SchoolEscortSettings attribute)</a>
+</li>
         <li><a href="dev-guide/components/stop_frequency.html#activitysim.abm.models.stop_frequency.StopFrequencySettings.preprocessor">(activitysim.abm.models.stop_frequency.StopFrequencySettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/telecommute_frequency.html#activitysim.abm.models.telecommute_frequency.TelecommuteFrequencySettings.preprocessor">(activitysim.abm.models.telecommute_frequency.TelecommuteFrequencySettings attribute)</a>
@@ -2591,11 +2851,9 @@ document.write(`
       </ul></li>
       <li><a href="dev-guide/components/trip_departure_choice.html#activitysim.abm.models.trip_departure_choice.TripDepartureChoiceSettings.PREPROCESSOR">PREPROCESSOR (activitysim.abm.models.trip_departure_choice.TripDepartureChoiceSettings attribute)</a>
 </li>
-      <li><a href="dev-guide/components/trip_destination.html#activitysim.abm.models.trip_destination.TripDestinationSettings.preprocessor">preprocessor (activitysim.abm.models.trip_destination.TripDestinationSettings attribute)</a>
+      <li><a href="dev-guide/components/write_trip_matrices.html#activitysim.abm.models.trip_matrices.WriteTripMatricesSettings.preprocessor">preprocessor (activitysim.abm.models.trip_matrices.WriteTripMatricesSettings attribute)</a>
 
       <ul>
-        <li><a href="dev-guide/components/write_trip_matrices.html#activitysim.abm.models.trip_matrices.WriteTripMatricesSettings.preprocessor">(activitysim.abm.models.trip_matrices.WriteTripMatricesSettings attribute)</a>
-</li>
         <li><a href="dev-guide/components/trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.preprocessor">(activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/trip_scheduling_probabilistic.html#activitysim.abm.models.trip_scheduling.TripSchedulingSettings.preprocessor">(activitysim.abm.models.trip_scheduling.TripSchedulingSettings attribute)</a>
@@ -2609,6 +2867,10 @@ document.write(`
         <li><a href="dev-guide/components/vehicle_type_choice.html#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.preprocessor">(activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings attribute)</a>
 </li>
         <li><a href="dev-guide/components/work_from_home.html#activitysim.abm.models.work_from_home.WorkFromHomeSettings.preprocessor">(activitysim.abm.models.work_from_home.WorkFromHomeSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/_generated/activitysim.core.configuration.logit.LogitComponentSettings.html#activitysim.core.configuration.logit.LogitComponentSettings.preprocessor">(activitysim.core.configuration.logit.LogitComponentSettings attribute)</a>
+</li>
+        <li><a href="dev-guide/_generated/activitysim.core.configuration.logit.TemplatedLogitComponentSettings.html#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.preprocessor">(activitysim.core.configuration.logit.TemplatedLogitComponentSettings attribute)</a>
 </li>
       </ul></li>
       <li><a href="dev-guide/components/school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_inbound">preprocessor_inbound (activitysim.abm.models.school_escorting.SchoolEscortSettings attribute)</a>
@@ -3541,7 +3803,7 @@ document.write(`
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.3.5.dev10+g022775be, documentation last updated Jun 02, 2025.<br/>
+ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

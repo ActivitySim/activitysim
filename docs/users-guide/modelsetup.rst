@@ -90,7 +90,7 @@ There are two recommended ways to install ActivitySim:
 
 1. Using a :ref:`pre-packaged installer`
 
-2. Using :ref:`Python the uv package and project manager`
+2. Using the :ref:`UV Package and Project Manager`
 
 The first is recommended for users who do not need to change the Python code and are on Windows, 
 and the second is recommended for users who need to change/customize the Python code.
@@ -121,7 +121,7 @@ Once the install is complete, ActivitySim can be run directly from any command
 prompt by running `<install_location>/Scripts/ActivitySim.exe`.
 
 
-Using *uv* package and project manager
+UV Package and Project Manager
 ______________________________________
 
 This method is recommended for ActivitySim users who are familiar with 
@@ -220,7 +220,21 @@ and then run code.
 `here <https://docs.astral.sh/uv/getting-started/installation/>`_. (Skip
 if already installed above. It only needs to be installed once per machine.)
 
-2. Clone the ActivitySim project using Git. (If Git is not installed, 
+.. note::
+  If you already have *uv* installed from an older project and you encounter errors
+  such as 
+  ::
+
+    error: Failed to parse uv.lock... missing field version...
+  
+  later in the process, you may need to update *uv* to the latest version by reinstalling it via the official
+  installation script: https://docs.astral.sh/uv/getting-started/installation/#standalone-installer.
+  You can check the version of *uv* you have installed by running
+  ::
+
+    uv --version
+
+1. Clone the ActivitySim project using Git. (If Git is not installed, 
 instructions can be found `here <https://git-scm.com/downloads>`_.)
 
 ::

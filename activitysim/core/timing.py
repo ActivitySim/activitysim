@@ -206,8 +206,8 @@ class AnalyzeEvalTiming:
                     d = pd.concat([d, d_mp])
 
         # break trace labels into components and subcomponents
-        d["Subcomponent"] = d["Component"].str.split(".", 1).str[1]
-        d["Component"] = d["Component"].str.split(".", 1).str[0]
+        d["Subcomponent"] = d["Component"].str.split(".", n=1).str[1]
+        d["Component"] = d["Component"].str.split(".", n=1).str[0]
         self.data = d[
             ["Time (µsec)", "Proc", "Component", "Subcomponent", "Expression"]
         ]

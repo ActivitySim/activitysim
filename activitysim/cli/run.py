@@ -427,8 +427,8 @@ def run(args):
         # generate a summary of slower expression evaluation times
         # across all models and write to a file
         analyze = timing.AnalyzeEvalTiming(state)
-        analyze.component_report()
-        analyze.subcomponent_report()
+        analyze.component_report(style=state.settings.expression_profile_style)
+        analyze.subcomponent_report(style=state.settings.expression_profile_style)
 
     return 0
 

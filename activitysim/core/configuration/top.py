@@ -557,6 +557,25 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     Production model users should typically have this set explicitly to `False`.
     """
 
+    expression_profile_style: Literal["simple", "grid"] = "grid"
+    """
+    The style of the expression profiling report.
+
+    .. versionadded:: 1.4
+
+    This setting controls the style of the expression profiling report that is
+    generated at the end of a model run when :py:attr:`expression_profile` is
+    `True`. The report summarizes the runtime of each expression in each spec
+    file, and can be used to identify slow or inefficient expressions.
+
+    The "simple" style generates a simple HTML table with the expression names,
+    runtimes, and other relevant information. This may be easier to import into
+    other tools (e.g. Excel) for further analysis if desired. The "grid" style
+    generates a JavaScript data grid that allows for sorting and filtering of the
+    expression runtimes, making it easier to analyze large sets of expressions
+    directly in a web browser with no other outside analysis tools.
+    """
+
     expression_profile_cutoff: float = 0.1
     """
     Minimum runtime for an expression to be included in the expression profile.

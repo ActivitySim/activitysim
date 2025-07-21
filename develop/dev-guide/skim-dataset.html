@@ -1,12 +1,13 @@
 
+
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="../" >
+<html lang="en" data-content_root="" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Using Skim Dataset &#8212; ActivitySim</title>
   
@@ -16,42 +17,46 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=86d88d25" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=d0f1e1f7"></script>
-    <script src="../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/design-tabs.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/skim-dataset';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.4.1';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -59,7 +64,8 @@
     <link rel="prev" title="Using Sharrow" href="using-sharrow.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jul 17, 2025"/>
+  <meta name="docsearch:version" content="1.4.1" />
+    <meta name="docbuild:last-update" content="Jul 21, 2025"/>
   </head>
   
   
@@ -75,19 +81,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../search.html"
       method="get">
@@ -95,7 +90,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -103,8 +97,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -171,41 +165,33 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
       
     </div>
     
@@ -214,15 +200,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -241,7 +223,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -280,28 +263,24 @@ document.write(`
       <div class="sidebar-header-items__end">
         
           <div class="navbar-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-3"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-3"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-3"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-3">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         
       </div>
     
@@ -405,9 +384,14 @@ document.write(`
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -425,8 +409,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -438,7 +420,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Developers</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Using Skim Dataset</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Using Skim Dataset</span></li>
   </ul>
 </nav>
 </div>
@@ -456,7 +438,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="using-skim-dataset">
-<span id="skim-datasets"></span><h1>Using Skim Dataset<a class="headerlink" href="#using-skim-dataset" title="Link to this heading">#</a></h1>
+<span id="skim-datasets"></span><h1>Using Skim Dataset<a class="headerlink" href="#using-skim-dataset" title="Permalink to this heading">#</a></h1>
 <p>ActivitySim 1.2 offers two internal frameworks for managing skim data.</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="../core.html#activitysim.core.skim_dictionary.SkimDict" title="activitysim.core.skim_dictionary.SkimDict"><span class="xref myst py py-class"><code class="docutils literal notranslate"><span class="pre">SkimDict</span></code></span></a>, the legacy
@@ -470,7 +452,7 @@ This framework is automatically used when sharrow is enabled, and there
 is no user configuration to enable it separately.</p></li>
 </ul>
 <section id="skims-in-shared-memory">
-<h2>Skims in Shared Memory<a class="headerlink" href="#skims-in-shared-memory" title="Link to this heading">#</a></h2>
+<h2>Skims in Shared Memory<a class="headerlink" href="#skims-in-shared-memory" title="Permalink to this heading">#</a></h2>
 <p>These two internal frameworks manage shared memory differently when running
 ActivitySim in multiprocessing mode.</p>
 <p>For <a class="reference internal" href="../core.html#activitysim.core.skim_dictionary.SkimDict" title="activitysim.core.skim_dictionary.SkimDict"><span class="xref myst py py-class"><code class="docutils literal notranslate"><span class="pre">SkimDict</span></code></span></a>, shared memory is
@@ -485,10 +467,10 @@ of the <a class="reference internal" href="#activitysim.core.skim_dataset.load_s
 function.</p>
 </section>
 <section id="module-activitysim.core.skim_dataset">
-<span id="skim-dataset-api"></span><h2>Skim Dataset API<a class="headerlink" href="#module-activitysim.core.skim_dataset" title="Link to this heading">#</a></h2>
+<span id="skim-dataset-api"></span><h2>Skim Dataset API<a class="headerlink" href="#module-activitysim.core.skim_dataset" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.skim_dataset.DatasetWrapper">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dataset.</span></span><span class="sig-name descname"><span class="pre">DatasetWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dataset.</span></span><span class="sig-name descname"><span class="pre">DatasetWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper" title="Permalink to this definition">#</a></dt>
 <dd><p>Mimics the SkimWrapper interface to allow legacy code to access data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -506,7 +488,7 @@ period names.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.skim_dataset.DatasetWrapper.lookup">
-<span class="sig-name descname"><span class="pre">lookup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper.lookup" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">lookup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper.lookup" title="Permalink to this definition">#</a></dt>
 <dd><p>Generally not called by the user - use __getitem__ instead</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -530,19 +512,19 @@ with the same index as df</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.skim_dataset.DatasetWrapper.max">
-<span class="sig-name descname"><span class="pre">max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper.max" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper.max" title="Permalink to this definition">#</a></dt>
 <dd><p>return max skim value in either o-d or d-o direction</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.skim_dataset.DatasetWrapper.reverse">
-<span class="sig-name descname"><span class="pre">reverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper.reverse" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">reverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper.reverse" title="Permalink to this definition">#</a></dt>
 <dd><p>return skim value in reverse (d-o) direction</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.skim_dataset.DatasetWrapper.set_df">
-<span class="sig-name descname"><span class="pre">set_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper.set_df" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">set_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.DatasetWrapper.set_df" title="Permalink to this definition">#</a></dt>
 <dd><p>Set the dataframe</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -563,11 +545,11 @@ with the same index as df</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.skim_dataset.SkimDataset">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dataset.</span></span><span class="sig-name descname"><span class="pre">SkimDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dataset.</span></span><span class="sig-name descname"><span class="pre">SkimDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset" title="Permalink to this definition">#</a></dt>
 <dd><p>A wrapper around xarray.Dataset containing skim data, with time period management.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.skim_dataset.SkimDataset.get_skim_usage">
-<span class="sig-name descname"><span class="pre">get_skim_usage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset.get_skim_usage" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_skim_usage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset.get_skim_usage" title="Permalink to this definition">#</a></dt>
 <dd><p>return set of keys of skims looked up. e.g. {‘DIST’, ‘SOV’}</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -580,7 +562,7 @@ with the same index as df</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.skim_dataset.SkimDataset.lookup">
-<span class="sig-name descname"><span class="pre">lookup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset.lookup" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">lookup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset.lookup" title="Permalink to this definition">#</a></dt>
 <dd><p>Return list of skim values of skims(s) at orig/dest in skim with the specified key (e.g. ‘DIST’)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -600,7 +582,7 @@ with the same index as df</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.skim_dataset.SkimDataset.wrap">
-<span class="sig-name descname"><span class="pre">wrap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset.wrap" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">wrap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset.wrap" title="Permalink to this definition">#</a></dt>
 <dd><p>Get a wrapper for the given keys.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -618,7 +600,7 @@ with the same index as df</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.skim_dataset.SkimDataset.wrap_3d">
-<span class="sig-name descname"><span class="pre">wrap_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim3_key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset.wrap_3d" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">wrap_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim3_key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.SkimDataset.wrap_3d" title="Permalink to this definition">#</a></dt>
 <dd><p>Get a 3d wrapper for the given keys.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -638,7 +620,7 @@ with the same index as df</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.skim_dataset.load_skim_dataset_to_shared_memory">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dataset.</span></span><span class="sig-name descname"><span class="pre">load_skim_dataset_to_shared_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'taz'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.2)"><span class="pre">Dataset</span></a></span></span><a class="headerlink" href="#activitysim.core.skim_dataset.load_skim_dataset_to_shared_memory" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dataset.</span></span><span class="sig-name descname"><span class="pre">load_skim_dataset_to_shared_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'taz'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.2)"><span class="pre">Dataset</span></a></span></span><a class="headerlink" href="#activitysim.core.skim_dataset.load_skim_dataset_to_shared_memory" title="Permalink to this definition">#</a></dt>
 <dd><p>Load skims from disk into shared memory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -657,7 +639,7 @@ with the same index as df</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.skim_dataset.load_sparse_maz_skims">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dataset.</span></span><span class="sig-name descname"><span class="pre">load_sparse_maz_skims</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">land_use_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remapper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zone_system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maz2taz_file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maz_to_maz_tables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_blend_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_file_resolver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.load_sparse_maz_skims" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dataset.</span></span><span class="sig-name descname"><span class="pre">load_sparse_maz_skims</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">land_use_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remapper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zone_system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maz2taz_file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maz_to_maz_tables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_blend_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_file_resolver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dataset.load_sparse_maz_skims" title="Permalink to this definition">#</a></dt>
 <dd><p>Load sparse MAZ data on top of TAZ skim data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -725,7 +707,8 @@ zone id’s.  Recoding improves runtime efficiency.</p>
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -760,13 +743,13 @@ zone id’s.  Recoding improves runtime efficiency.</p>
   </nav></div>
 
   <div class="sidebar-secondary-item">
-
-  <div class="tocsection sourcelink">
-    <a href="../_sources/dev-guide/skim-dataset.md.txt">
-      <i class="fa-solid fa-file-lines"></i> Show Source
-    </a>
-  </div>
-</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/dev-guide/skim-dataset.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
 
 </div></div>
               
@@ -781,8 +764,8 @@ zone id’s.  Recoding improves runtime efficiency.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -791,13 +774,13 @@ zone id’s.  Recoding improves runtime efficiency.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
+ActivitySim 1.4.1.dev2+g2e5f7327, documentation last updated Jul 21, 2025.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
     <br/>
   </p>
 </div>
@@ -810,7 +793,8 @@ ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

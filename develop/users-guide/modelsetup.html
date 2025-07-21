@@ -1,12 +1,13 @@
 
+
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="../" >
+<html lang="en" data-content_root="" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Model Setup &#8212; ActivitySim</title>
   
@@ -16,42 +17,46 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=86d88d25" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=d0f1e1f7"></script>
-    <script src="../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/design-tabs.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'users-guide/modelsetup';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.4.1';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -59,7 +64,8 @@
     <link rel="prev" title="Users Guide" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jul 17, 2025"/>
+  <meta name="docsearch:version" content="1.4.1" />
+    <meta name="docbuild:last-update" content="Jul 21, 2025"/>
   </head>
   
   
@@ -75,19 +81,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../search.html"
       method="get">
@@ -95,7 +90,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -103,8 +97,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -171,41 +165,33 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
       
     </div>
     
@@ -214,15 +200,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -241,7 +223,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -280,28 +263,24 @@ document.write(`
       <div class="sidebar-header-items__end">
         
           <div class="navbar-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-3"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-3"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-3"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-3">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         
       </div>
     
@@ -338,9 +317,14 @@ document.write(`
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -358,8 +342,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -371,7 +353,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Users Guide</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Model Setup</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Model Setup</span></li>
   </ul>
 </nav>
 </div>
@@ -389,14 +371,14 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="model-setup">
-<h1>Model Setup<a class="headerlink" href="#model-setup" title="Link to this heading">#</a></h1>
+<h1>Model Setup<a class="headerlink" href="#model-setup" title="Permalink to this heading">#</a></h1>
 <p>This page describes the system requirements and installation procedures to set up ActivitySim.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>ActivitySim is under active development</p>
 </div>
 <section id="quick-reference">
-<h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Link to this heading">#</a></h2>
+<h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Permalink to this heading">#</a></h2>
 <p>This section briefly describes the quickest way to install and start running ActivitySim. This section
 assumes the user is more experienced in running travel demand models and proficient in Python, but has not
 used ActivitySim or has not used recent versions of ActivitySim. More detailed instructions for installing
@@ -408,10 +390,10 @@ and running ActivitySim are also available in this Users Guide.</p>
 </ul>
 </section>
 <section id="system-requirements">
-<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Link to this heading">#</a></h2>
+<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Permalink to this heading">#</a></h2>
 <p>This section highlights the software requirements for any implementation, as well as hardware recommendations.</p>
 <section id="hardware">
-<h3>Hardware<a class="headerlink" href="#hardware" title="Link to this heading">#</a></h3>
+<h3>Hardware<a class="headerlink" href="#hardware" title="Permalink to this heading">#</a></h3>
 <p>The computing hardware required to run a model implemented in the ActivitySim framework generally depends on:</p>
 <ul class="simple">
 <li><dl class="simple">
@@ -460,9 +442,9 @@ data access time in order to minimize runtime.</p>
 <li><p><a class="reference internal" href="ways_to_run.html#tracing-ways-to-run"><span class="std std-ref">Tracing</span></a> allows the user to access information throughout the model run for a specified number of households/persons/zones. Enabling this feature will increase run-time and memory usage. It is recommended that this feature be turned off for typical model application.</p></li>
 <li><dl class="simple">
 <dt>Optimization of data types including:</dt><dd><ul>
-<li><p>Converting string variables to pandas categoricals. ActivitySim releases <em>&lt;placeholder for version number&gt;</em> and higher have this capability.</p></li>
-<li><p>Converting higher byte integer variables to lower byte integer variables (such as reducing ‘num tours’ from int64 to int8).</p></li>
-<li><p>Converting higher byte float variables to lower bytes. ActivitySim releases X.X.X and higher have this capability as a switch and defaults to turning this feature off.</p></li>
+<li><p>Converting string variables to pandas categoricals. ActivitySim releases 1.3.0 and higher have this capability.</p></li>
+<li><p>Converting higher byte integer variables to lower byte integer variables (such as reducing ‘num tours’ from int64 to int8). ActivitySim releases 1.3.0 and higher have this capability as a switch and defaults to turning this feature off.</p></li>
+<li><p>Converting higher byte float variables to lower bytes. ActivitySim releases 1.3.0 and higher have this capability as a switch and defaults to turning this feature off.</p></li>
 </ul>
 </dd>
 </dl>
@@ -478,44 +460,22 @@ scripts, and runtimes are in the &lt;todo: cross-ref&gt; <code class="docutils l
 </div>
 </section>
 <section id="software">
-<h3>Software<a class="headerlink" href="#software" title="Link to this heading">#</a></h3>
-<p>Activitysim is implemented in the Python programming language. It also uses several open source Python packages such as pandas, numpy, pytables, openmatrix etc. Hence it is recommended that you install and use a <em>conda</em> package manager for your system.
-One easy way to do so is by using
-<a class="reference external" href="https://github.com/conda-forge/miniforge#mambaforge">Mambaforge</a>.
-Mamba is a free open source cross-platform package manager that runs on
-Windows, OS X and Linux and is fully compatible with conda packages.  It is
-also usually substantially faster than conda itself. Instructions to install mambaforge can be found <a class="reference external" href="https://mamba.readthedocs.io/en/latest/mamba-installation.html#mamba-install">here</a>. Installers for different Operating Systems can be found <a class="reference external" href="https://github.com/conda-forge/miniforge#miniforge3">here</a>.</p>
-<p>Alternatively, if you prefer a package installer backed by corporate tech
-support available (for a fee) as necessary, you can install
-<a class="reference external" href="https://www.anaconda.com/distribution/">Anaconda 64bit Python 3</a>,
-although you should consult the <a class="reference external" href="https://www.anaconda.com/terms-of-service">terms of service</a>
-for this product and ensure you qualify since businesses and
-governments with over 200 employees do not qualify for free usage.
-If you’re using <cite>conda</cite> instead of <cite>mamba</cite>, just replace every call to
-<cite>mamba</cite> below with <cite>conda</cite>, as they share the same user interface and most
-command formats.</p>
-<p>If you access the internet from behind a firewall, then you may need to
-configure your proxy server. To do so, create a <cite>.condarc</cite> file in your
-home installation folder, such as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proxy_servers</span><span class="p">:</span>
-  <span class="n">http</span><span class="p">:</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>
-  <span class="n">https</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>
-<span class="n">ssl_verify</span><span class="p">:</span> <span class="n">false</span>
-</pre></div>
-</div>
+<h3>Software<a class="headerlink" href="#software" title="Permalink to this heading">#</a></h3>
+<p>Activitysim is implemented in the Python programming language. It uses several open source Python packages such as pandas, numpy, pytables, openmatrix etc.</p>
 </section>
 </section>
 <section id="installing-activitysim">
-<h2>Installing ActivitySim<a class="headerlink" href="#installing-activitysim" title="Link to this heading">#</a></h2>
-<p>There are multiple ways to install the ActivitySim codebase:</p>
+<h2>Installing ActivitySim<a class="headerlink" href="#installing-activitysim" title="Permalink to this heading">#</a></h2>
+<p>There are two recommended ways to install ActivitySim:</p>
 <ol class="arabic simple">
-<li><p>Using a <a class="reference internal" href="#pre-packaged-installer"><span class="std std-ref">Pre-packaged Installer</span></a> (recommended for users who do not need to change the Python code)</p></li>
-<li><p>Using a <a class="reference internal" href="#using-mamba-package-manager"><span class="std std-ref">Python package manager like mamba</span></a> (recommended for users who need to change/customize the Python code)</p></li>
-<li><p>Using <a class="reference internal" href="#using-pip-python-s-standard-package-manager"><span class="std std-ref">pip - Python’s standard package manager</span></a></p></li>
+<li><p>Using a <a class="reference internal" href="#pre-packaged-installer"><span class="std std-ref">Pre-packaged Installer</span></a></p></li>
+<li><p>Using the <a class="reference internal" href="#uv-package-and-project-manager"><span class="std std-ref">UV Package and Project Manager</span></a></p></li>
 </ol>
+<p>The first is recommended for users who do not need to change the Python code and are on Windows,
+and the second is recommended for users who need to change/customize the Python code.</p>
 <section id="pre-packaged-installer">
-<h3>Pre-packaged Installer<a class="headerlink" href="#pre-packaged-installer" title="Link to this heading">#</a></h3>
-<p>Begining with version 1.2, ActivitySim is now available for Windows via a
+<h3>Pre-packaged Installer<a class="headerlink" href="#pre-packaged-installer" title="Permalink to this heading">#</a></h3>
+<p>Beginning with version 1.2, ActivitySim is now available for Windows via a
 pre-packaged installer.  This installer provides everything you need to run
 ActivitySim, including Python, all the necessary supporting packages, and
 ActivitySim itself.  You should only choose this installation process if you
@@ -534,119 +494,147 @@ be available without knowing the path to where the install has happened.</p>
 <p>Once the install is complete, ActivitySim can be run directly from any command
 prompt by running <cite>&lt;install_location&gt;/Scripts/ActivitySim.exe</cite>.</p>
 </section>
-<section id="using-mamba-package-manager">
-<h3>Using <em>mamba</em> package manager<a class="headerlink" href="#using-mamba-package-manager" title="Link to this heading">#</a></h3>
-<p>This method is recommended for ActivitySim users who also wish to customize the Python code to run their models. The steps involved are described as follows:</p>
-<ol class="arabic simple">
-<li><p>Install the <em>mamba</em> package manager as described in the <a class="reference internal" href="#software"><span class="std std-ref">Software Requirements</span></a> subsection.</p></li>
-</ol>
-<p>2. Create a conda environment (basically a Python install just for this project)
-using mambaforge prompt or conda prompt depending on the package manager you use (on Windows) or the terminal (macOS or Linux):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mamba</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.10</span> <span class="n">activitysim</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span>
+<section id="uv-package-and-project-manager">
+<h3>UV Package and Project Manager<a class="headerlink" href="#uv-package-and-project-manager" title="Permalink to this heading">#</a></h3>
+<p>This method is recommended for ActivitySim users who are familiar with
+Python and optionally wish to customize the Python code to run their models.
+UV is a free open source cross-platform package and project manager that runs
+on Windows, OS X, and Linux. It is 10-100x faster than conda, and pip itself, which is
+the standard Python package manager. The <em>uv</em> features include automatic
+environment management including installation and management of Python
+versions and dependency locking.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There are two options for using <em>uv</em> to install ActivitySim.</p>
+</div>
+<p>The first is to use <em>uv</em> to install an official ActivitySim release from the Python Package Index (PyPI).
+The second is to use <em>uv</em> to install ActivitySim from a local directory, which should be the cloned ActivitySim repository.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The first <em>uv</em> option is recommended for users who want to install ActivitySim from an official release and do not wish to change the Python code.
+However, they may end up using different deep dependencies than those tested by the developers.
+The second <em>uv</em> option is recommended for users who may want to customize the Python code, and who want to run ActivitySim
+exactly as it was tested by the developers using the dependency lockfile which results in the exact same deep dependencies.</p>
+</div>
+<p>The steps involved are described as follows.</p>
+<section id="option-1-install-activitysim-from-pypi">
+<h4>Option 1: Install ActivitySim from PyPI<a class="headerlink" href="#option-1-install-activitysim-from-pypi" title="Permalink to this heading">#</a></h4>
+<p>(Note: This step may fail at the moment because the ActivitySim version available on PyPI has dependency conflicts.
+This step should work when ActivitySim release <em>&lt;placeholder for version number&gt;</em> which is built with <em>uv</em> is available on PyPI.
+In the meantime, use Option 2 below to install ActivitySim from the lockfile.)</p>
+<p>1. Install <em>uv</em>. Instructions can be found
+<a class="reference external" href="https://docs.astral.sh/uv/getting-started/installation/">here</a>.</p>
+<p>2. Create a new project and virtual environment to work from and add ActivitySim. (Warning: This approach is quickest
+for getting started but does not rely on the lockfile to install dependencies so you may
+end up with different versions. If you want to use the lockfile, see Option 2 below.)</p>
+<p>Open a terminal, such as Command Prompt (note: not Anaconda Prompt), and run the following commands.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mkdir</span> <span class="n">asim_project</span>
+<span class="n">cd</span> <span class="n">asim_project</span>
+<span class="n">echo</span> <span class="mf">3.10</span> <span class="o">&gt;</span> <span class="o">.</span><span class="n">python</span><span class="o">-</span><span class="n">version</span> <span class="c1"># This sets the Python version to 3.10, which is currently used for ActivitySim development.</span>
+<span class="n">uv</span> <span class="n">init</span>
+<span class="n">uv</span> <span class="n">add</span> <span class="n">activitysim</span>
 </pre></div>
 </div>
-<p>This command will create the environment and install all the dependencies
-required for running ActivitySim.  It is only necessary to create the environment
-once per machine, you do not need to (re)create the environment for each session.
-If you would also like to install other tools or optional dependencies, it is
-possible to do so by adding additional libraries to this command.  For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mamba</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.10</span> <span class="n">activitysim</span> <span class="n">jupyterlab</span> <span class="n">larch</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span>
-</pre></div>
-</div>
-<p>This example installs a specific version of Python, version 3.9.  A similar
-approach can be used to install specific versions of other libraries as well,
-including ActivitySim, itself. For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mamba</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span> <span class="n">activitysim</span><span class="o">=</span><span class="mf">1.0.2</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span>
-</pre></div>
-</div>
-<p>Additional libraries can also be installed later.  You may want to consider these
-tools for certain development tasks:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># packages for testing</span>
-<span class="n">mamba</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">black</span> <span class="n">flake8</span> <span class="n">pytest</span><span class="o">-</span><span class="n">regressions</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span>
-
-<span class="c1"># packages for building documentation</span>
-<span class="n">mamba</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span><span class="o">==</span><span class="mf">0.5.2</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span>
-
-<span class="c1"># packages for estimation integration</span>
-<span class="n">mamba</span> <span class="n">install</span> <span class="n">larch</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span>
-
-<span class="c1"># packages for example notebooks</span>
-<span class="n">mamba</span> <span class="n">install</span> <span class="n">jupyterlab</span> <span class="n">matplotlib</span> <span class="n">geopandas</span> <span class="n">descartes</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span>
-</pre></div>
-</div>
-<p>To create an environment containing all these optional dependencies at once, you
-can run the shortcut command</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mamba</span> <span class="n">env</span> <span class="n">create</span> <span class="n">activitysim</span><span class="o">/</span><span class="n">ASIM</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span>
-</pre></div>
-</div>
+<p><em>uv</em> will create a new virtual environment within the <cite>asim_project</cite> project folder
+and install ActivitySim and its dependencies. The virtual environment is a hidden folder
+within the <cite>asim_project</cite> directory called <cite>.venv</cite> and operates the same way as Python’s classic <em>venv</em>.</p>
 <ol class="arabic simple" start="3">
-<li><p>To use the <strong>asim</strong> environment, you need to activate it</p></li>
+<li><p>Run an ActivitySim command using the following.</p></li>
 </ol>
-<dl class="simple">
-<dt>::</dt><dd><p>conda activate asim</p>
-</dd>
-</dl>
-<p>The activation of the correct environment needs to be done every time you
-start a new session (e.g. opening a new conda Prompt window).</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The <em>activate</em> and <em>deactivate</em> commands to start and stop using environments
-are called as <cite>conda</cite> even if you are otherwise using <cite>mamba</cite>. mamba is a drop-in replacement and uses the same commands and configuration options as conda.
-You can swap almost all commands between conda &amp; mamba. For more details, refer to <a class="reference external" href="https://mamba.readthedocs.io/en/latest/user_guide/mamba.html">the mamba user guide</a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="o">...</span>
+</pre></div>
 </div>
+<p>For example, run the ActivitySim commandline using the following.
+More information about the commandline interface is available in
+the <a class="reference internal" href="ways_to_run.html#ways-to-run-the-model"><span class="std std-ref">Ways to Run the Model</span></a> section.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span> <span class="o">-</span><span class="n">d</span> <span class="n">data</span>
+</pre></div>
+</div>
+<section id="run-activitysim-from-a-different-directory">
+<h5>Run ActivitySim from a Different Directory<a class="headerlink" href="#run-activitysim-from-a-different-directory" title="Permalink to this heading">#</a></h5>
+<p>If you want to run ActivitySim from a directory different than where the code lives,
+use the <cite>project</cite> option to point <em>uv</em> to this project using relative paths:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="o">--</span><span class="n">project</span> <span class="n">relative</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">asim_project</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span> <span class="o">-</span><span class="n">d</span> <span class="n">data</span>
+</pre></div>
+</div>
+<p>You could also activate the virtual environment created by <em>uv</em> and run ActivitySim from any directory.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">.</span><span class="n">venv</span>\<span class="n">Scripts</span>\<span class="n">activate</span>
+</pre></div>
+</div>
+<p>With this command, you have activated the virtual environment created by <em>uv</em> and can run ActivitySim commands from any directory.</p>
+<p>For more on <em>uv</em>, visit <a class="reference external" href="https://docs.astral.sh/uv/">https://docs.astral.sh/uv/</a>.</p>
 </section>
-<section id="using-pip-python-s-standard-package-manager">
-<h3>Using <em>pip</em> - Python’s standard package manager<a class="headerlink" href="#using-pip-python-s-standard-package-manager" title="Link to this heading">#</a></h3>
-<p>If you prefer to install ActivitySim without a package manager like <em>mamba</em> or <em>conda</em>, it is possible to
-do so with pip, although you may find it more difficult to get all of the
-required dependencies installed correctly.  If you can use conda for
-the dependencies, you can get most of the libraries you need from there:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># required packages for running ActivitySim</span>
-<span class="n">mamba</span> <span class="n">install</span> <span class="n">cytoolz</span> <span class="n">numpy</span> <span class="n">pandas</span> <span class="n">psutil</span> <span class="n">pyarrow</span> <span class="n">numba</span> <span class="n">pytables</span> <span class="n">pyyaml</span> <span class="n">openmatrix</span> <span class="n">requests</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
-
-<span class="c1"># required for ActivitySim version 1.0.1 and earlier</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">zbox</span>
-</pre></div>
-</div>
-<p>And then simply install activitysim with pip.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">activitysim</span>
-</pre></div>
-</div>
-<p>If you are using a firewall you may need to add <code class="docutils literal notranslate"><span class="pre">--trusted-host</span> <span class="pre">pypi.python.org</span> <span class="pre">--proxy=myproxy.org:8080</span></code> to this command.</p>
-<p>For development work, can also install ActivitySim directly from source. Clone
-the ActivitySim repository, and then from within that directory run:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">.</span> <span class="o">-</span><span class="n">e</span>
-</pre></div>
-</div>
-<p>The “-e” will install in editable mode, so any changes you make to the ActivitySim
-code will also be reflected in your installation.</p>
-<p>Installing from source is easier if you have all the necessary dependencies already
-installed in a development conda environment.  Developers can create an
-environment that has all the optional dependencies preinstalled by running:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mamba</span> <span class="n">env</span> <span class="n">create</span> <span class="n">activitysim</span><span class="o">/</span><span class="n">ASIM</span><span class="o">-</span><span class="n">DEV</span>
-</pre></div>
-</div>
-<p>If you prefer to use a different environment name than <cite>ASIM-DEV</cite>, just
-append <cite>–name OTHERNAME</cite> to the command. Then all that’s left to do is install
-ActivitySim itself in editable mode as described above.</p>
+</section>
+<section id="option-2-install-activitysim-from-the-lockfile">
+<h4>Option 2: Install ActivitySim from the lockfile<a class="headerlink" href="#option-2-install-activitysim-from-the-lockfile" title="Permalink to this heading">#</a></h4>
+<p>To install dependencies from the lockfile and run ActivitySim exactly how
+its developers tested it, after installing <em>uv</em> clone the code repository
+and then run code.</p>
+<p>1. Install <em>uv</em>. Instructions can be found
+<a class="reference external" href="https://docs.astral.sh/uv/getting-started/installation/">here</a>. (Skip
+if already installed above. It only needs to be installed once per machine.)</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>ActivitySim is a 64bit Python 3 library that uses a number of packages from the
-scientific Python ecosystem, most notably <a class="reference external" href="http://pandas.pydata.org">pandas</a>
-and <a class="reference external" href="http://numpy.org">numpy</a>.</p>
-<p>As mentioned above, the recommended way to get your own scientific Python installation is to
-install 64 bit Anaconda, which contains many of the libraries upon which
-ActivitySim depends + some handy Python installation management tools.</p>
-<p>Anaconda includes the <code class="docutils literal notranslate"><span class="pre">conda</span></code> command line tool, which does a number of useful
-things, including creating <a class="reference external" href="http://conda.pydata.org/docs/using/envs.html">environments</a>
-(i.e. stand-alone Python installations/instances/sandboxes) that are the recommended
-way to work with multiple versions of Python on one machine.  Using conda
-environments keeps multiple Python setups from conflicting with one another.</p>
-<p>You need to activate the activitysim environment each time you start a new command
-session.  You can remove an environment with <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">-n</span> <span class="pre">asim</span> <span class="pre">--all</span></code> and
-check the current active environment with <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">info</span> <span class="pre">-e</span></code>.</p>
-<p>For more information on Anaconda, see Anaconda’s <a class="reference external" href="https://docs.anaconda.com/anaconda/user-guide/getting-started">getting started</a> guide.</p>
+<p>If you already have <em>uv</em> installed from an older project and you encounter errors
+such as</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">error</span><span class="p">:</span> <span class="n">Failed</span> <span class="n">to</span> <span class="n">parse</span> <span class="n">uv</span><span class="o">.</span><span class="n">lock</span><span class="o">...</span> <span class="n">missing</span> <span class="n">field</span> <span class="n">version</span><span class="o">...</span>
+</pre></div>
 </div>
+<p>later in the process, you may need to update <em>uv</em> to the latest version by reinstalling it via the official
+installation script: <a class="reference external" href="https://docs.astral.sh/uv/getting-started/installation/#standalone-installer">https://docs.astral.sh/uv/getting-started/installation/#standalone-installer</a>.
+You can check the version of <em>uv</em> you have installed by running</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="o">--</span><span class="n">version</span>
+</pre></div>
+</div>
+</div>
+<p>1. Clone the ActivitySim project using Git. (If Git is not installed,
+instructions can be found <a class="reference external" href="https://git-scm.com/downloads">here</a>.)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ActivitySim</span><span class="o">/</span><span class="n">activitysim</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">activitysim</span>
+</pre></div>
+</div>
+<p>3. Optionally create the virtual environment. This is created automatically
+when running code in the next step, but manually syncing is an option too.
+This step creates a hidden folder within the current directory called
+<cite>.venv</cite> and operates the same way as Python’s classic <em>venv</em>. (If you
+want to install the project in a non-editable mode so that users on
+your machine cannot accidentally change the source code, use the
+<cite>–no-editable</cite> option.)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">sync</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">editable</span>
+</pre></div>
+</div>
+<p>4. Run an ActivitySim command using the following. (This will automatically
+create a virtual environment from the lockfile, if it does not already
+exist.)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>It is worth pointing out that by default, <em>uv</em> installs projects in
+editable mode, such that changes to the source code are immediately reflected
+in the environment. <cite>uv sync</cite> and <cite>uv run</cite> both accept a <cite>–no-editable</cite>
+flag, which instructs <em>uv</em> to install the project in non-editable mode,
+removing any dependency on the source code.</p>
+<p>Also, <cite>uv run</cite> automatically installs the dependencies listed in <cite>pyproject.toml</cite>
+under <cite>dependencies</cite> under <cite>[project]</cite>, and it also installs those listed
+under <cite>dev</cite> under <cite>[dependency-groups]</cite> (not <cite>github-action</cite>). If you want to
+skip the dependency groups entirely with a <em>uv</em> install (and only install those
+that would install via <cite>pip</cite> from ‘pypi`), use the <cite>–no-default-groups</cite> flag
+with <cite>uv sync</cite>.</p>
+<section id="id4">
+<h5>Run ActivitySim from a Different Directory<a class="headerlink" href="#id4" title="Permalink to this heading">#</a></h5>
+<p>If you want to run ActivitySim from a directory different than where the code lives,
+use the <cite>project</cite> option to point <em>uv</em> to this project using relative paths:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="o">--</span><span class="n">project</span> <span class="n">relative</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">asim_project</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span> <span class="o">-</span><span class="n">d</span> <span class="n">data</span>
+</pre></div>
+</div>
+<p>You could also activate the virtual environment created by <em>uv</em> and run ActivitySim from any directory.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">.</span><span class="n">venv</span>\<span class="n">Scripts</span>\<span class="n">activate</span>
+</pre></div>
+</div>
+<p>With this command, you have activated the virtual environment created by <em>uv</em> and can run ActivitySim commands from any directory.</p>
+<p>For more on <em>uv</em>, visit <a class="reference external" href="https://docs.astral.sh/uv/">https://docs.astral.sh/uv/</a>.</p>
+</section>
+</section>
 </section>
 </section>
 </section>
@@ -686,7 +674,8 @@ check the current active environment with <code class="docutils literal notransl
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -705,21 +694,30 @@ check the current active environment with <code class="docutils literal notransl
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installing-activitysim">Installing ActivitySim</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pre-packaged-installer">Pre-packaged Installer</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-mamba-package-manager">Using <em>mamba</em> package manager</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-pip-python-s-standard-package-manager">Using <em>pip</em> - Python’s standard package manager</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#uv-package-and-project-manager">UV Package and Project Manager</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#option-1-install-activitysim-from-pypi">Option 1: Install ActivitySim from PyPI</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#run-activitysim-from-a-different-directory">Run ActivitySim from a Different Directory</a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#option-2-install-activitysim-from-the-lockfile">Option 2: Install ActivitySim from the lockfile</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">Run ActivitySim from a Different Directory</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
   </nav></div>
 
   <div class="sidebar-secondary-item">
-
-  <div class="tocsection sourcelink">
-    <a href="../_sources/users-guide/modelsetup.rst.txt">
-      <i class="fa-solid fa-file-lines"></i> Show Source
-    </a>
-  </div>
-</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/users-guide/modelsetup.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
 
 </div></div>
               
@@ -734,8 +732,8 @@ check the current active environment with <code class="docutils literal notransl
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -744,13 +742,13 @@ check the current active environment with <code class="docutils literal notransl
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
+ActivitySim 1.4.1.dev2+g2e5f7327, documentation last updated Jul 21, 2025.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
     <br/>
   </p>
 </div>
@@ -763,7 +761,8 @@ ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

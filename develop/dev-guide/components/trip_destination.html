@@ -1,12 +1,13 @@
 
+
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="../../" >
+<html lang="en" data-content_root="" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Trip Destination &#8212; ActivitySim</title>
   
@@ -16,42 +17,46 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css?v=86d88d25" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=d0f1e1f7"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/clipboard.min.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <script src="../../_static/design-tabs.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/components/trip_destination';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.4.1';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -59,7 +64,8 @@
     <link rel="prev" title="Transit Pass Subsidy" href="transit_pass_subsidy.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jul 17, 2025"/>
+  <meta name="docsearch:version" content="1.4.1" />
+    <meta name="docbuild:last-update" content="Jul 21, 2025"/>
   </head>
   
   
@@ -75,19 +81,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../search.html"
       method="get">
@@ -95,7 +90,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -103,8 +97,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -171,41 +165,33 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
       
     </div>
     
@@ -214,15 +200,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -241,7 +223,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -280,28 +263,24 @@ document.write(`
       <div class="sidebar-header-items__end">
         
           <div class="navbar-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-3"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-3"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-3"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-3">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         
       </div>
     
@@ -405,9 +384,14 @@ document.write(`
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -425,8 +409,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -441,7 +423,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Components</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Trip Destination</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Trip Destination</span></li>
   </ul>
 </nav>
 </div>
@@ -459,13 +441,13 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="trip-destination">
-<span id="component-trip-destination"></span><h1>Trip Destination<a class="headerlink" href="#trip-destination" title="Link to this heading">#</a></h1>
+<span id="component-trip-destination"></span><h1>Trip Destination<a class="headerlink" href="#trip-destination" title="Permalink to this heading">#</a></h1>
 <p>The trip location choice model predicts the location of trips (or stops) made
 along the tour other than the primary destination. Final trips already have a
 destination (the primary tour destination for outbound trips, and home for
 inbound trips) so no choice is needed in those cases.</p>
 <section id="structure">
-<h2>Structure<a class="headerlink" href="#structure" title="Link to this heading">#</a></h2>
+<h2>Structure<a class="headerlink" href="#structure" title="Permalink to this heading">#</a></h2>
 <ul class="simple">
 <li><p><em>Configuration File</em>: <code class="docutils literal notranslate"><span class="pre">trip_destination.yaml</span></code></p></li>
 <li><p><em>Core Table</em>: <code class="docutils literal notranslate"><span class="pre">trips</span></code></p></li>
@@ -506,13 +488,13 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 </div>
 </section>
 <section id="configuration">
-<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">#</a></h2>
 <dl class="py class pydantic_model">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings">
-<em class="property"><span class="pre">settings</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">TripDestinationSettings</span></span><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">settings</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">TripDestinationSettings</span></span><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings" title="Permalink to this definition">#</a></dt>
 <dd><p>Settings for the trip_destination component.</p>
 <div class="versionadded">
-<p><span class="versionmodified added">Added in version 1.2.</span></p>
+<p><span class="versionmodified added">New in version 1.2.</span></p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Config<span class="colon">:</span></dt>
@@ -538,7 +520,7 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 </dl>
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.ALT_DEST_COL_NAME">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ALT_DEST_COL_NAME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'dest_taz'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.ALT_DEST_COL_NAME" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ALT_DEST_COL_NAME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'dest_taz'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.ALT_DEST_COL_NAME" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -550,7 +532,7 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.CLEANUP">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CLEANUP</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.CLEANUP" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CLEANUP</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.CLEANUP" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -562,7 +544,7 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.DEST_CHOICE_LOGSUM_COLUMN_NAME">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DEST_CHOICE_LOGSUM_COLUMN_NAME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DEST_CHOICE_LOGSUM_COLUMN_NAME" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DEST_CHOICE_LOGSUM_COLUMN_NAME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DEST_CHOICE_LOGSUM_COLUMN_NAME" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -574,7 +556,7 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.DEST_CHOICE_SAMPLE_TABLE_NAME">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DEST_CHOICE_SAMPLE_TABLE_NAME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DEST_CHOICE_SAMPLE_TABLE_NAME" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DEST_CHOICE_SAMPLE_TABLE_NAME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DEST_CHOICE_SAMPLE_TABLE_NAME" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -586,7 +568,7 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.PRIMARY_DEST">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PRIMARY_DEST</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'tour_leg_dest'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.PRIMARY_DEST" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PRIMARY_DEST</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'tour_leg_dest'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.PRIMARY_DEST" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -598,7 +580,7 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.PRIMARY_ORIGIN">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PRIMARY_ORIGIN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'origin'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.PRIMARY_ORIGIN" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PRIMARY_ORIGIN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'origin'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.PRIMARY_ORIGIN" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -610,7 +592,7 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -622,7 +604,7 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.TRIP_ORIGIN">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TRIP_ORIGIN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'origin'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.TRIP_ORIGIN" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TRIP_ORIGIN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'origin'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.TRIP_ORIGIN" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -634,7 +616,7 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.fail_some_trips_for_testing">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fail_some_trips_for_testing</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.fail_some_trips_for_testing" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fail_some_trips_for_testing</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.fail_some_trips_for_testing" title="Permalink to this definition">#</a></dt>
 <dd><p>This setting is used by testing code to force failed trip_destination.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
@@ -647,12 +629,12 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.deprecated_destination_prefix">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">deprecated_destination_prefix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.deprecated_destination_prefix" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">deprecated_destination_prefix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.deprecated_destination_prefix" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.DESTINATION_SAMPLE_SPEC">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DESTINATION_SAMPLE_SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DESTINATION_SAMPLE_SPEC" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DESTINATION_SAMPLE_SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DESTINATION_SAMPLE_SPEC" title="Permalink to this definition">#</a></dt>
 <dd><p>Alias for <cite>SAMPLE_SPEC</cite>.</p>
 <div class="deprecated">
 <p><span class="versionmodified deprecated">Deprecated since version 1.3.</span></p>
@@ -661,7 +643,7 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 
 <dl class="py property">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.TripDestinationSettings.DESTINATION_SPEC">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DESTINATION_SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DESTINATION_SPEC" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DESTINATION_SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></em><a class="headerlink" href="#activitysim.abm.models.trip_destination.TripDestinationSettings.DESTINATION_SPEC" title="Permalink to this definition">#</a></dt>
 <dd><p>Alias for <cite>SPEC</cite>.</p>
 <div class="deprecated">
 <p><span class="versionmodified deprecated">Deprecated since version 1.3.</span></p>
@@ -671,7 +653,7 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 </dd></dl>
 
 <section id="examples">
-<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h3>
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/configs/trip_destination.yaml">Prototype MTC</a></p></li>
 <li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_arc/configs/trip_destination.yaml">Prototype ARC</a></p></li>
@@ -679,10 +661,10 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 </section>
 </section>
 <section id="implementation">
-<h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading">#</a></h2>
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.trip_destination">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">trip_destination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.1)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">tours_merged</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.1)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings" title="activitysim.abm.models.trip_destination.TripDestinationSettings"><span class="pre">TripDestinationSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings_file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'trip_destination.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'trip_destination'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#activitysim.abm.models.trip_destination.trip_destination" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">trip_destination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.1)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">tours_merged</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.1)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings" title="activitysim.abm.models.trip_destination.TripDestinationSettings"><span class="pre">TripDestinationSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings_file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'trip_destination.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'trip_destination'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#activitysim.abm.models.trip_destination.trip_destination" title="Permalink to this definition">#</a></dt>
 <dd><p>Choose a destination for all intermediate trips based on trip purpose.</p>
 <p>The trip (or stop) location choice model predicts the location of trips
 (or stops) along the tour other than the primary destination. This model is
@@ -718,7 +700,7 @@ the estimation data bundle in estimation mode.</p>
 
 </section>
 <section id="context-variables">
-<h2>Context Variables<a class="headerlink" href="#context-variables" title="Link to this heading">#</a></h2>
+<h2>Context Variables<a class="headerlink" href="#context-variables" title="Permalink to this heading">#</a></h2>
 <p>The following variables are made available for use in this component’s utility
 specifications:</p>
 <ul class="simple">
@@ -771,10 +753,10 @@ only for 3-zone models:</p>
 </ul>
 </section>
 <section id="additional-related-functions">
-<h2>Additional Related Functions<a class="headerlink" href="#additional-related-functions" title="Link to this heading">#</a></h2>
+<h2>Additional Related Functions<a class="headerlink" href="#additional-related-functions" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.trip_destination_sample">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">trip_destination_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_purpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_term_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_hotel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.trip_destination_sample" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">trip_destination_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_purpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_term_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_hotel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.trip_destination_sample" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
@@ -797,7 +779,7 @@ and columns dest_zone_id, prob, and pick_count</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.compute_logsums">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">compute_logsums</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_purpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.1)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tours_merged</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.1)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings" title="activitysim.abm.models.trip_destination.TripDestinationSettings"><span class="pre">TripDestinationSettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_hotel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.compute_logsums" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">compute_logsums</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_purpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.1)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tours_merged</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.1)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings" title="activitysim.abm.models.trip_destination.TripDestinationSettings"><span class="pre">TripDestinationSettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_hotel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.compute_logsums" title="Permalink to this definition">#</a></dt>
 <dd><p>Calculate mode choice logsums using the same recipe as for trip_mode_choice, but do it twice
 for each alternative since we need out-of-direction logsum
 (i.e . origin to alt_dest, and alt_dest to half-tour destination)</p>
@@ -812,12 +794,12 @@ for each alternative since we need out-of-direction logsum
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.compute_ood_logsums">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">compute_ood_logsums</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.compute_ood_logsums" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">compute_ood_logsums</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.compute_ood_logsums" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_destination.trip_destination_simulate">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">trip_destination_simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_purpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings" title="activitysim.abm.models.trip_destination.TripDestinationSettings"><span class="pre">TripDestinationSettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_term_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_hotel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.trip_destination_simulate" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_destination.</span></span><span class="sig-name descname"><span class="pre">trip_destination_simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_purpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trips</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.trip_destination.TripDestinationSettings" title="activitysim.abm.models.trip_destination.TripDestinationSettings"><span class="pre">TripDestinationSettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_term_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_hotel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_destination.trip_destination_simulate" title="Permalink to this definition">#</a></dt>
 <dd><p>Chose destination from destination_sample (with od_logsum and dp_logsum columns added)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -867,7 +849,8 @@ for each alternative since we need out-of-direction logsum
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -914,13 +897,13 @@ for each alternative since we need out-of-direction logsum
   </nav></div>
 
   <div class="sidebar-secondary-item">
-
-  <div class="tocsection sourcelink">
-    <a href="../../_sources/dev-guide/components/trip_destination.md.txt">
-      <i class="fa-solid fa-file-lines"></i> Show Source
-    </a>
-  </div>
-</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/dev-guide/components/trip_destination.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
 
 </div></div>
               
@@ -935,8 +918,8 @@ for each alternative since we need out-of-direction logsum
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -945,13 +928,13 @@ for each alternative since we need out-of-direction logsum
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
+ActivitySim 1.4.1.dev2+g2e5f7327, documentation last updated Jul 21, 2025.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
     <br/>
   </p>
 </div>
@@ -964,7 +947,8 @@ ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

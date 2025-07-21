@@ -1,12 +1,13 @@
 
+
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="../../" >
+<html lang="en" data-content_root="" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Shadow Pricing &#8212; ActivitySim</title>
   
@@ -16,48 +17,53 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css?v=86d88d25" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=d0f1e1f7"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/clipboard.min.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <script src="../../_static/design-tabs.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/components/shadow_pricing';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.4.1';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jul 17, 2025"/>
+  <meta name="docsearch:version" content="1.4.1" />
+    <meta name="docbuild:last-update" content="Jul 21, 2025"/>
   </head>
   
   
@@ -73,19 +79,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../search.html"
       method="get">
@@ -93,7 +88,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -101,8 +95,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -169,41 +163,33 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
       
     </div>
     
@@ -212,15 +198,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -241,7 +223,8 @@ document.write(`
       
         
       
-      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
         
 
   
@@ -280,28 +263,24 @@ document.write(`
       <div class="sidebar-header-items__end">
         
           <div class="navbar-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-3"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-3"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-3"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-3">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         
       </div>
     
@@ -309,9 +288,14 @@ document.write(`
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -329,8 +313,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -339,7 +321,7 @@ document.write(`
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    <li class="breadcrumb-item active" aria-current="page">Shadow Pricing</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Shadow Pricing</span></li>
   </ul>
 </nav>
 </div>
@@ -357,15 +339,15 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="shadow-pricing">
-<span id="component-shadow-pricing"></span><h1>Shadow Pricing<a class="headerlink" href="#shadow-pricing" title="Link to this heading">#</a></h1>
+<span id="component-shadow-pricing"></span><h1>Shadow Pricing<a class="headerlink" href="#shadow-pricing" title="Permalink to this heading">#</a></h1>
 <p>The shadow pricing calculator used by work and school location choice.</p>
 <section id="structure">
-<h2>Structure<a class="headerlink" href="#structure" title="Link to this heading">#</a></h2>
+<h2>Structure<a class="headerlink" href="#structure" title="Permalink to this heading">#</a></h2>
 <ul class="simple">
 <li><p><em>Configuration File</em>: <code class="docutils literal notranslate"><span class="pre">shadow_pricing.yaml</span></code></p></li>
 </ul>
 <section id="turning-on-and-saving-shadow-prices">
-<h3>Turning on and saving shadow prices<a class="headerlink" href="#turning-on-and-saving-shadow-prices" title="Link to this heading">#</a></h3>
+<h3>Turning on and saving shadow prices<a class="headerlink" href="#turning-on-and-saving-shadow-prices" title="Permalink to this heading">#</a></h3>
 <p>Shadow pricing is activated by setting the <code class="docutils literal notranslate"><span class="pre">use_shadow_pricing</span></code> to True in the settings.yaml file.
 Once this setting has been activated, ActivitySim will search for shadow pricing configuration in
 the shadow_pricing.yaml file. When shadow pricing is activated, the shadow pricing outputs will be
@@ -405,10 +387,10 @@ re-simulate all workers and students at each iteration.</p>
 </section>
 </section>
 <section id="configuration">
-<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">#</a></h2>
 <dl class="py class pydantic_model">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings">
-<em class="property"><span class="pre">settings</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">ShadowPriceSettings</span></span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">settings</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">ShadowPriceSettings</span></span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../_generated/activitysim.core.configuration.base.PydanticReadable.html#activitysim.core.configuration.base.PydanticReadable" title="activitysim.core.configuration.base.PydanticReadable"><code class="xref py py-class docutils literal notranslate"><span class="pre">PydanticReadable</span></code></a></p>
 <p>Settings used for shadow pricing.</p>
 <dl class="field-list simple">
@@ -442,93 +424,93 @@ re-simulate all workers and students at each iteration.</p>
 </dl>
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAMPING_FACTOR">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DAMPING_FACTOR</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAMPING_FACTOR" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DAMPING_FACTOR</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAMPING_FACTOR" title="Permalink to this definition">#</a></dt>
 <dd><p>ctramp-style damping factor</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAYSIM_ABSOLUTE_TOLERANCE">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DAYSIM_ABSOLUTE_TOLERANCE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAYSIM_ABSOLUTE_TOLERANCE" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DAYSIM_ABSOLUTE_TOLERANCE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAYSIM_ABSOLUTE_TOLERANCE" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAYSIM_PERCENT_TOLERANCE">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DAYSIM_PERCENT_TOLERANCE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAYSIM_PERCENT_TOLERANCE" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DAYSIM_PERCENT_TOLERANCE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAYSIM_PERCENT_TOLERANCE" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.FAIL_THRESHOLD">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FAIL_THRESHOLD</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.FAIL_THRESHOLD" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FAIL_THRESHOLD</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.FAIL_THRESHOLD" title="Permalink to this definition">#</a></dt>
 <dd><p>max percentage of zones allowed to fail</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.LOAD_SAVED_SHADOW_PRICES">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LOAD_SAVED_SHADOW_PRICES</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.LOAD_SAVED_SHADOW_PRICES" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LOAD_SAVED_SHADOW_PRICES</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.LOAD_SAVED_SHADOW_PRICES" title="Permalink to this definition">#</a></dt>
 <dd><p>Global switch to enable/disable loading of saved shadow prices.</p>
 <p>This is ignored if global use_shadow_pricing switch is False</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.MAX_ITERATIONS">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MAX_ITERATIONS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.MAX_ITERATIONS" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MAX_ITERATIONS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.MAX_ITERATIONS" title="Permalink to this definition">#</a></dt>
 <dd><p>Number of shadow price iterations for cold start.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.MAX_ITERATIONS_SAVED">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MAX_ITERATIONS_SAVED</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.MAX_ITERATIONS_SAVED" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MAX_ITERATIONS_SAVED</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.MAX_ITERATIONS_SAVED" title="Permalink to this definition">#</a></dt>
 <dd><p>Number of shadow price iterations for warm start.</p>
 <p>A warm start means saved shadow_prices were found in a file and loaded.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.PERCENT_TOLERANCE">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PERCENT_TOLERANCE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.PERCENT_TOLERANCE" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PERCENT_TOLERANCE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.PERCENT_TOLERANCE" title="Permalink to this definition">#</a></dt>
 <dd><p>zone passes if modeled is within percent_tolerance of  predicted_size</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SCALE_SIZE_TABLE">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SCALE_SIZE_TABLE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SCALE_SIZE_TABLE" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SCALE_SIZE_TABLE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SCALE_SIZE_TABLE" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SEGMENT_TO_NAME">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SEGMENT_TO_NAME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'school':</span> <span class="pre">'school_segment',</span> <span class="pre">'workplace':</span> <span class="pre">'income_segment'}</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SEGMENT_TO_NAME" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SEGMENT_TO_NAME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'school':</span> <span class="pre">'school_segment',</span> <span class="pre">'workplace':</span> <span class="pre">'income_segment'}</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SEGMENT_TO_NAME" title="Permalink to this definition">#</a></dt>
 <dd><p>Mapping from model_selector to persons_segment_name.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SHADOW_PRICE_METHOD">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SHADOW_PRICE_METHOD</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'ctramp'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'daysim'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'simulation'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ctramp'</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SHADOW_PRICE_METHOD" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SHADOW_PRICE_METHOD</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'ctramp'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'daysim'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'simulation'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ctramp'</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SHADOW_PRICE_METHOD" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SIZE_THRESHOLD">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SIZE_THRESHOLD</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SIZE_THRESHOLD" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SIZE_THRESHOLD</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SIZE_THRESHOLD" title="Permalink to this definition">#</a></dt>
 <dd><p>ignore criteria for zones smaller than size_threshold</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.TARGET_THRESHOLD">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TARGET_THRESHOLD</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.TARGET_THRESHOLD" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TARGET_THRESHOLD</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.TARGET_THRESHOLD" title="Permalink to this definition">#</a></dt>
 <dd><p>ignore criteria for zones smaller than target_threshold (total employmnet or enrollment)</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.WRITE_ITERATION_CHOICES">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">WRITE_ITERATION_CHOICES</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.WRITE_ITERATION_CHOICES" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">WRITE_ITERATION_CHOICES</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.WRITE_ITERATION_CHOICES" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.school_segmentation_targets">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">school_segmentation_targets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.school_segmentation_targets" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">school_segmentation_targets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.school_segmentation_targets" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.shadow_pricing_models">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shadow_pricing_models</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.shadow_pricing_models" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shadow_pricing_models</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.shadow_pricing_models" title="Permalink to this definition">#</a></dt>
 <dd><p>List model_selectors and model_names of models that use shadow pricing.
 This list identifies which size_terms to preload which must be done in single process mode, so
 predicted_size tables can be scaled to population</p>
@@ -536,13 +518,13 @@ predicted_size tables can be scaled to population</p>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.workplace_segmentation_targets">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">workplace_segmentation_targets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.workplace_segmentation_targets" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">workplace_segmentation_targets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.workplace_segmentation_targets" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <section id="examples">
-<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h3>
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/configs/free_parking.yaml">Prototype MTC</a></p></li>
 <li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_arc/configs/free_parking.yaml">Prototype ARC</a></p></li>
@@ -550,15 +532,15 @@ predicted_size tables can be scaled to population</p>
 </section>
 </section>
 <section id="implementation">
-<h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading">#</a></h2>
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceCalculator">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">ShadowPriceCalculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings" title="activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings"><span class="pre">TourLocationComponentSettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_processes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_data_lock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_data_choice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_data_choice_lock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_sp_choice_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceCalculator" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">ShadowPriceCalculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings" title="activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings"><span class="pre">TourLocationComponentSettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_processes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_data_lock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_data_choice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_data_choice_lock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_sp_choice_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceCalculator" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.buffers_for_shadow_pricing">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">buffers_for_shadow_pricing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shadow_pricing_info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.buffers_for_shadow_pricing" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">buffers_for_shadow_pricing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shadow_pricing_info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.buffers_for_shadow_pricing" title="Permalink to this definition">#</a></dt>
 <dd><p>Allocate shared_data buffers for multiprocess shadow pricing</p>
 <p>Allocates one buffer per model_selector.
 Buffer datatype and shape specified by shadow_pricing_info</p>
@@ -584,7 +566,7 @@ the numpy-wrapped RawArray.)</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.buffers_for_shadow_pricing_choice">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">buffers_for_shadow_pricing_choice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadow_pricing_choice_info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.buffers_for_shadow_pricing_choice" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">buffers_for_shadow_pricing_choice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadow_pricing_choice_info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.buffers_for_shadow_pricing_choice" title="Permalink to this definition">#</a></dt>
 <dd><p>Same as above buffers_for_shadow_price function except now we need to store
 the actual choices for the simulation based shadow pricing method</p>
 <p>This allocates a multiprocessing.Array that can store the choice for each person
@@ -606,7 +588,7 @@ dict of multiprocessing.Array keyed by model_selector</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.shadow_price_data_from_buffers_choice">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">shadow_price_data_from_buffers_choice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_buffers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadow_pricing_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_selector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.shadow_price_data_from_buffers_choice" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">shadow_price_data_from_buffers_choice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_buffers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadow_pricing_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_selector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.shadow_price_data_from_buffers_choice" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -639,7 +621,7 @@ shared_data_lock : numpy array wrapping multiprocessing.RawArray or None (if sin
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.shadow_price_data_from_buffers">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">shadow_price_data_from_buffers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_buffers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadow_pricing_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_selector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.shadow_price_data_from_buffers" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">shadow_price_data_from_buffers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_buffers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadow_pricing_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_selector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.shadow_price_data_from_buffers" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -672,7 +654,7 @@ shared_data_lock : numpy array wrapping multiprocessing.RawArray or None (if sin
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.load_shadow_price_calculator">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">load_shadow_price_calculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="non_mandatory_destination.html#activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings" title="activitysim.core.configuration.logit.TourLocationComponentSettings"><span class="pre">TourLocationComponentSettings</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.load_shadow_price_calculator" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">load_shadow_price_calculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="non_mandatory_destination.html#activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings" title="activitysim.core.configuration.logit.TourLocationComponentSettings"><span class="pre">TourLocationComponentSettings</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.load_shadow_price_calculator" title="Permalink to this definition">#</a></dt>
 <dd><p>Initialize ShadowPriceCalculator for model_selector (e.g. school or workplace)</p>
 <p>If multiprocessing, get the shared_data buffer to coordinate global_desired_size
 calculation across sub-processes</p>
@@ -693,7 +675,7 @@ calculation across sub-processes</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.add_size_tables">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">add_size_tables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">disaggregate_suffixes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.add_size_tables" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">add_size_tables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">disaggregate_suffixes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.add_size_tables" title="Permalink to this definition">#</a></dt>
 <dd><p>inject tour_destination_size_terms tables for each model_selector (e.g. school, workplace)</p>
 <p>Size tables are pandas dataframes with locations counts for model_selector by zone and segment
 tour_destination_size_terms</p>
@@ -710,7 +692,7 @@ shadow prices can be adjusted iteratively to bring modelled counts into line wit
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.get_shadow_pricing_info">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">get_shadow_pricing_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.get_shadow_pricing_info" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">get_shadow_pricing_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.get_shadow_pricing_info" title="Permalink to this definition">#</a></dt>
 <dd><p>return dict with info about dtype and shapes of desired and modeled size tables</p>
 <p>block shape is (num_zones, num_segments + 1)</p>
 <dl class="field-list simple">
@@ -726,7 +708,7 @@ block_shapes: dict {&lt;model_selector&gt;: &lt;block_shape&gt;}</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.get_shadow_pricing_choice_info">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">get_shadow_pricing_choice_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.get_shadow_pricing_choice_info" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">get_shadow_pricing_choice_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.get_shadow_pricing_choice_info" title="Permalink to this definition">#</a></dt>
 <dd><p>return dict with info about dtype and shapes of desired and modeled size tables</p>
 <p>block shape is (num_zones, num_segments + 1)</p>
 <dl class="field-list simple">
@@ -760,7 +742,8 @@ block_shapes: dict {&lt;model_selector&gt;: &lt;block_shape&gt;}</p>
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -815,13 +798,13 @@ block_shapes: dict {&lt;model_selector&gt;: &lt;block_shape&gt;}</p>
   </nav></div>
 
   <div class="sidebar-secondary-item">
-
-  <div class="tocsection sourcelink">
-    <a href="../../_sources/dev-guide/components/shadow_pricing.md.txt">
-      <i class="fa-solid fa-file-lines"></i> Show Source
-    </a>
-  </div>
-</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/dev-guide/components/shadow_pricing.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
 
 </div></div>
               
@@ -836,8 +819,8 @@ block_shapes: dict {&lt;model_selector&gt;: &lt;block_shape&gt;}</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -846,13 +829,13 @@ block_shapes: dict {&lt;model_selector&gt;: &lt;block_shape&gt;}</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
+ActivitySim 1.4.1.dev2+g2e5f7327, documentation last updated Jul 21, 2025.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
     <br/>
   </p>
 </div>
@@ -865,7 +848,8 @@ ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

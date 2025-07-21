@@ -1,12 +1,13 @@
 
+
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="../" >
+<html lang="en" data-content_root="" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Using Sharrow &#8212; ActivitySim</title>
   
@@ -16,42 +17,46 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=86d88d25" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=d0f1e1f7"></script>
-    <script src="../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/design-tabs.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/using-sharrow';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.4.1';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -59,7 +64,8 @@
     <link rel="prev" title="cached_object" href="_generated/activitysim.core.workflow.cached_object.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jul 17, 2025"/>
+  <meta name="docsearch:version" content="1.4.1" />
+    <meta name="docbuild:last-update" content="Jul 21, 2025"/>
   </head>
   
   
@@ -75,19 +81,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../search.html"
       method="get">
@@ -95,7 +90,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -103,8 +97,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -171,41 +165,33 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
       
     </div>
     
@@ -214,15 +200,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -241,7 +223,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -280,28 +263,24 @@ document.write(`
       <div class="sidebar-header-items__end">
         
           <div class="navbar-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-3"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-3"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-3"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-3">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         
       </div>
     
@@ -405,9 +384,14 @@ document.write(`
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -425,8 +409,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -438,7 +420,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Developers</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Using Sharrow</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Using Sharrow</span></li>
   </ul>
 </nav>
 </div>
@@ -456,10 +438,10 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="using-sharrow">
-<h1>Using Sharrow<a class="headerlink" href="#using-sharrow" title="Link to this heading">#</a></h1>
+<h1>Using Sharrow<a class="headerlink" href="#using-sharrow" title="Permalink to this heading">#</a></h1>
 <p>This page will walk through an exercise of running a model with <code class="docutils literal notranslate"><span class="pre">sharrow</span></code>.</p>
 <section id="how-it-works">
-<h2>How it Works<a class="headerlink" href="#how-it-works" title="Link to this heading">#</a></h2>
+<h2>How it Works<a class="headerlink" href="#how-it-works" title="Permalink to this heading">#</a></h2>
 <p>Sharrow accelerates ActivitySim in part by using numba to create optimized and
 pre-compiled versions of utility specification files, and caching those bits
 of code to disk.</p>
@@ -472,7 +454,7 @@ multiprocessing mode after all the compilation for all model components is
 complete.</p>
 </div>
 <section id="top-level-activation-options">
-<h3>Top-Level Activation Options<a class="headerlink" href="#top-level-activation-options" title="Link to this heading">#</a></h3>
+<h3>Top-Level Activation Options<a class="headerlink" href="#top-level-activation-options" title="Permalink to this heading">#</a></h3>
 <p>Activating sharrow is done at the top level of the model settings file, typically
 <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>, by setting the <code class="docutils literal notranslate"><span class="pre">sharrow</span></code> configuration setting to <code class="docutils literal notranslate"><span class="pre">True</span></code>:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">sharrow</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
@@ -497,7 +479,7 @@ using arithmatic on logical values
 (see <a class="reference internal" href="#arithmetic-on-logical-values">Arithmetic on Logical Values</a>).</p>
 </section>
 <section id="caching-of-precompiled-functions">
-<h3>Caching of Precompiled Functions<a class="headerlink" href="#caching-of-precompiled-functions" title="Link to this heading">#</a></h3>
+<h3>Caching of Precompiled Functions<a class="headerlink" href="#caching-of-precompiled-functions" title="Permalink to this heading">#</a></h3>
 <p>The first time you run a model with sharrow enabled, the compiler will run
 and create a cache of compiled functions.  This can take a long time, especially
 for models with many components or complex utility specifications.  However,
@@ -519,13 +501,13 @@ by the user.</p>
 </section>
 </section>
 <section id="model-design-requirements">
-<h2>Model Design Requirements<a class="headerlink" href="#model-design-requirements" title="Link to this heading">#</a></h2>
+<h2>Model Design Requirements<a class="headerlink" href="#model-design-requirements" title="Permalink to this heading">#</a></h2>
 <p>Activating the <code class="docutils literal notranslate"><span class="pre">sharrow</span></code> optimizations also requires using the new
 <a class="reference internal" href="skim-dataset.html#skim-datasets"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">SkimDataset</span></code></span></a> interface for skims instead of the legacy
 <a class="reference internal" href="../core.html#activitysim.core.skim_dictionary.SkimDict" title="activitysim.core.skim_dictionary.SkimDict"><span class="xref myst py py-class"><code class="docutils literal notranslate"><span class="pre">SkimDict</span></code></span></a>, and internally
 recoding zones into a zero-based contiguous indexing scheme.</p>
 <section id="zero-based-recoding-of-zones">
-<h3>Zero-based Recoding of Zones<a class="headerlink" href="#zero-based-recoding-of-zones" title="Link to this heading">#</a></h3>
+<h3>Zero-based Recoding of Zones<a class="headerlink" href="#zero-based-recoding-of-zones" title="Permalink to this heading">#</a></h3>
 <p>Using sharrow requires recoding zone id’s to be zero-based contiguous index
 values, at least for internal usage.  This recoding needs to be written into
 the input table list explicitly.  For example, the following snippet of a
@@ -586,7 +568,7 @@ values, the “nonnegative” filter is prepended to the instruction.</p>
 </section>
 </section>
 <section id="measuring-performance">
-<h2>Measuring Performance<a class="headerlink" href="#measuring-performance" title="Link to this heading">#</a></h2>
+<h2>Measuring Performance<a class="headerlink" href="#measuring-performance" title="Permalink to this heading">#</a></h2>
 <p>Testing with sharrow requires two steps: test mode and production mode.</p>
 <p>In test mode, the code is run to compile all the spec files and
 ascertain whether the functions are working correctly.  Test mode is expected
@@ -607,7 +589,7 @@ well as automatic report generation from the results.  For more details on the
 use of this tool, see <a class="reference internal" href="workflows.html#workflows"><span class="std std-ref">workflows</span></a>.</p>
 </section>
 <section id="sharrow-compatability-and-limitations">
-<h2>Sharrow Compatability and Limitations<a class="headerlink" href="#sharrow-compatability-and-limitations" title="Link to this heading">#</a></h2>
+<h2>Sharrow Compatability and Limitations<a class="headerlink" href="#sharrow-compatability-and-limitations" title="Permalink to this heading">#</a></h2>
 <p>In general, utility specification files contain a sequence of :ref:<code class="docutils literal notranslate"><span class="pre">expressions</span></code> that
 are evaluated for each row in a main DataFrame.  In legacy ActivitySim,
 there are two fundamental evaluation modes:</p>
@@ -653,7 +635,7 @@ specification files that look very similar to utility specifications.  These
 functions do <em>not</em> run through sharrow, and are a great place to relocate expressions
 that need to run arbitrary code or join data from other tables.</p>
 <section id="temporary-variables">
-<h3>Temporary Variables<a class="headerlink" href="#temporary-variables" title="Link to this heading">#</a></h3>
+<h3>Temporary Variables<a class="headerlink" href="#temporary-variables" title="Permalink to this heading">#</a></h3>
 <p>Temporary variables can be created from <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> mode expressions by adding a variable
 name beginning with an underscore before the <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">_stops_on_leg&#64;df.trip_count-1</span></code>.</p>
 <p>In legacy mode, temporary variables are useful but they can consume substantial
@@ -662,7 +644,7 @@ before it can be used in other expressions.  In sharrow, temporary variables are
 allocated, used, and freed for each row separately, so no extra memory is required.</p>
 </section>
 <section id="pandas-only-expressions">
-<h3>Pandas-only Expressions<a class="headerlink" href="#pandas-only-expressions" title="Link to this heading">#</a></h3>
+<h3>Pandas-only Expressions<a class="headerlink" href="#pandas-only-expressions" title="Permalink to this heading">#</a></h3>
 <p>In legacy mode, expressions can be evaluated using expressions that tap into the
 full pandas library, including the ability to call pandas functions and methods
 directly.  This is not possible in sharrow, as the expressions are compiled into
@@ -672,7 +654,7 @@ can be replaced with numpy functions, which are available in numba.  For example
 <code class="docutils literal notranslate"><span class="pre">df.income.fillna(0)</span></code> can be replaced with <code class="docutils literal notranslate"><span class="pre">np.nan_to_num(df.income)</span></code>.</p>
 </section>
 <section id="switchable-expressions">
-<h3>Switchable Expressions<a class="headerlink" href="#switchable-expressions" title="Link to this heading">#</a></h3>
+<h3>Switchable Expressions<a class="headerlink" href="#switchable-expressions" title="Permalink to this heading">#</a></h3>
 <p>As a general rule, it is best to write each utility expression in a manner that
 is cross-compatible between sharrow and legacy evaluation modes, even if that
 means transitioning a few expressions or parts of expressions into preprocessors.</p>
@@ -696,7 +678,7 @@ different expressions. The switching expression is used to handle the DataFrameM
 on the left (before “# sharrow:”) and the DataArray on the right.</p>
 </section>
 <section id="optional-variables">
-<h3>Optional Variables<a class="headerlink" href="#optional-variables" title="Link to this heading">#</a></h3>
+<h3>Optional Variables<a class="headerlink" href="#optional-variables" title="Permalink to this heading">#</a></h3>
 <p>In some cases, a variable may be used where it is available, but is not strictly
 necessary for the model to run.  For example, a model may have a reference to
 mode choice logsums, but the model can still run without them, if it is being used
@@ -707,7 +689,7 @@ using the <code class="docutils literal notranslate"><span class="pre">get</span
 </div>
 </section>
 <section id="performance-considerations">
-<h3>Performance Considerations<a class="headerlink" href="#performance-considerations" title="Link to this heading">#</a></h3>
+<h3>Performance Considerations<a class="headerlink" href="#performance-considerations" title="Permalink to this heading">#</a></h3>
 <p>Sharrow is usually expected to bring significant performance gains to ActivitySim.
 However, the numba engine beneath sharrow has a few known performance limitations,
 most notably when using <a class="reference external" href="https://numba.readthedocs.io/en/stable/reference/pysupported.html#str">strings</a>.
@@ -763,7 +745,7 @@ values, the <code class="docutils literal notranslate"><span class="pre">fastmat
 </div>
 </section>
 <section id="multiprocessing-performance">
-<h3>Multiprocessing Performance<a class="headerlink" href="#multiprocessing-performance" title="Link to this heading">#</a></h3>
+<h3>Multiprocessing Performance<a class="headerlink" href="#multiprocessing-performance" title="Permalink to this heading">#</a></h3>
 <p>Sharrow leverages a number of performance enhancing techniques, including
 parallelization of various computations. This multi-threading can provide significant
 benefits within a single-process, but if enabled alongside ActivitySim’s multiprocessing
@@ -784,7 +766,7 @@ is loaded:</p>
 </div>
 </section>
 <section id="limited-tracing-and-estimation-mode-capabilities">
-<h3>Limited Tracing and Estimation Mode Capabilities<a class="headerlink" href="#limited-tracing-and-estimation-mode-capabilities" title="Link to this heading">#</a></h3>
+<h3>Limited Tracing and Estimation Mode Capabilities<a class="headerlink" href="#limited-tracing-and-estimation-mode-capabilities" title="Permalink to this heading">#</a></h3>
 <p>When running sharrow-optimized code, large parts of certain calculations are routed
 through numba to enhance speed and reduce memory footprint.  Many intermediate arrays
 are not created, or are allocated and released by numba in a manner not visible to the
@@ -801,7 +783,7 @@ capabilities are not yet integrated with the sharrow engine.  Estimation mode re
 fully available when running with sharrow disabled.</p>
 </section>
 <section id="arithmetic-on-logical-values">
-<h3>Arithmetic on Logical Values<a class="headerlink" href="#arithmetic-on-logical-values" title="Link to this heading">#</a></h3>
+<h3>Arithmetic on Logical Values<a class="headerlink" href="#arithmetic-on-logical-values" title="Permalink to this heading">#</a></h3>
 <p>In expressions written in specification files, boolean values must be treated with
 care.  When an expression is evaluated in the legacy implementation, the addition
 of two boolean values will be processed according to numpy logic, such that:</p>
@@ -834,7 +816,7 @@ term in an extra logic gate, which will evaluate the same in both environments:<
 </section>
 </section>
 <section id="digital-encoding">
-<span id="id1"></span><h2>Digital Encoding<a class="headerlink" href="#digital-encoding" title="Link to this heading">#</a></h2>
+<span id="id1"></span><h2>Digital Encoding<a class="headerlink" href="#digital-encoding" title="Permalink to this heading">#</a></h2>
 <p>Sharrow is compatible with and able to efficiently use
 <a class="reference external" href="https://activitysim.github.io/sharrow/walkthrough/encoding.html">digital encoding</a>.
 These encodings are applied to data either prospectively (i.e. before ActivitySim
@@ -854,7 +836,7 @@ needed to store a standard 32-bit floating point representation.  There are
 two simple ways to reduce the memory footprint for data: fixed point
 encoding, or dictionary encoding.</p>
 <section id="fixed-point-encoding">
-<h3>Fixed Point Encoding<a class="headerlink" href="#fixed-point-encoding" title="Link to this heading">#</a></h3>
+<h3>Fixed Point Encoding<a class="headerlink" href="#fixed-point-encoding" title="Permalink to this heading">#</a></h3>
 <p>In fixed point encoding, which is also sometimes called scaled integers,
 data is multiplied by some factor, then rounded to the nearest integer.
 The integer is stored in memory instead of a floating point value, but the
@@ -915,7 +897,7 @@ giving each name.  For example:</p>
 </div>
 </section>
 <section id="dictionary-encoding">
-<h3>Dictionary Encoding<a class="headerlink" href="#dictionary-encoding" title="Link to this heading">#</a></h3>
+<h3>Dictionary Encoding<a class="headerlink" href="#dictionary-encoding" title="Permalink to this heading">#</a></h3>
 <p>For dictionary encoding, a limited number of unique values are stored in a
 lookup array, and then each encoded value is stored as the position of the
 value (or its closest approximation) in the lookup array.  If there are fewer
@@ -970,7 +952,7 @@ few specific names by joining them with the pipe operator (|).</p>
 </section>
 </section>
 <section id="troubleshooting">
-<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">#</a></h2>
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this heading">#</a></h2>
 <p>If you encounter errors when running the model with sharrow enabled, it is
 important to address them before using the model for analysis.  This is
 especially important when errors are found running in “test” mode (activated
@@ -978,7 +960,7 @@ by <code class="docutils literal notranslate"><span class="pre">sharrow:</span> 
 indicate that either sharrow or the legacy evaluator is not correctly processing
 the mathematical expressions in the utility specifications.</p>
 <section id="utility-not-aligned-error">
-<h3>“utility not aligned” Error<a class="headerlink" href="#utility-not-aligned-error" title="Link to this heading">#</a></h3>
+<h3>“utility not aligned” Error<a class="headerlink" href="#utility-not-aligned-error" title="Permalink to this heading">#</a></h3>
 <p>One common error that can occur when running the model with sharrow in “test”
 mode is the “utility not aligned” error.  This error occurs when a sharrow
 compiled utility calculation does not sufficiently match the legacy utility
@@ -1005,7 +987,7 @@ disable <code class="docutils literal notranslate"><span class="pre">fastmath</s
 </ul>
 </section>
 <section id="insufficient-system-resources">
-<h3>Insufficient system resources<a class="headerlink" href="#insufficient-system-resources" title="Link to this heading">#</a></h3>
+<h3>Insufficient system resources<a class="headerlink" href="#insufficient-system-resources" title="Permalink to this heading">#</a></h3>
 <p>For large models run on large servers, it is possible to overwhelm the system
 with too many processes and threads, which can result in the following error:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">OSError</span><span class="p">:</span> <span class="n">Insufficient</span> <span class="n">system</span> <span class="n">resources</span> <span class="n">exist</span> <span class="n">to</span> <span class="n">complete</span> <span class="n">the</span> <span class="n">requested</span> <span class="n">service</span>
@@ -1017,7 +999,7 @@ process.  See <a class="reference internal" href="../users-guide/performance/mul
 for more information on how to adjust these settings.</p>
 </section>
 <section id="permission-error">
-<h3>Permission Error<a class="headerlink" href="#permission-error" title="Link to this heading">#</a></h3>
+<h3>Permission Error<a class="headerlink" href="#permission-error" title="Permalink to this heading">#</a></h3>
 <p>If running a model using multiprocessing with sharrow enabled, it is necessary
 to have pre-compiled all the utility specifications to prevent the multiple
 processes from competing to write to the same cache location on disk.  Failure
@@ -1074,7 +1056,8 @@ see <a class="reference internal" href="#performance-considerations">Performance
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -1121,13 +1104,13 @@ see <a class="reference internal" href="#performance-considerations">Performance
   </nav></div>
 
   <div class="sidebar-secondary-item">
-
-  <div class="tocsection sourcelink">
-    <a href="../_sources/dev-guide/using-sharrow.md.txt">
-      <i class="fa-solid fa-file-lines"></i> Show Source
-    </a>
-  </div>
-</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/dev-guide/using-sharrow.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
 
 </div></div>
               
@@ -1142,8 +1125,8 @@ see <a class="reference internal" href="#performance-considerations">Performance
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1152,13 +1135,13 @@ see <a class="reference internal" href="#performance-considerations">Performance
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
+ActivitySim 1.4.1.dev2+g2e5f7327, documentation last updated Jul 21, 2025.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
     <br/>
   </p>
 </div>
@@ -1171,7 +1154,8 @@ ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

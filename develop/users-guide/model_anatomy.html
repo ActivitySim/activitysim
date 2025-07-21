@@ -1,12 +1,13 @@
 
+
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="../" >
+<html lang="en" data-content_root="" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Anatomy of a Model &#8212; ActivitySim</title>
   
@@ -16,42 +17,46 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=86d88d25" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=d0f1e1f7"></script>
-    <script src="../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/design-tabs.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'users-guide/model_anatomy';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.4.1';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -59,7 +64,8 @@
     <link rel="prev" title="Run the Primary Example" href="run_primary_example.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jul 17, 2025"/>
+  <meta name="docsearch:version" content="1.4.1" />
+    <meta name="docbuild:last-update" content="Jul 21, 2025"/>
   </head>
   
   
@@ -75,19 +81,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../search.html"
       method="get">
@@ -95,7 +90,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -103,8 +97,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -171,41 +165,33 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
       
     </div>
     
@@ -214,15 +200,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -241,7 +223,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -280,28 +263,24 @@ document.write(`
       <div class="sidebar-header-items__end">
         
           <div class="navbar-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-3"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-3"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-3"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-3">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         
       </div>
     
@@ -338,9 +317,14 @@ document.write(`
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -358,8 +342,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -371,7 +353,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Users Guide</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Anatomy of a Model</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Anatomy of a Model</span></li>
   </ul>
 </nav>
 </div>
@@ -389,9 +371,9 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="anatomy-of-a-model">
-<h1>Anatomy of a Model<a class="headerlink" href="#anatomy-of-a-model" title="Link to this heading">#</a></h1>
-<section id="input-data">
-<span id="index-8"></span><span id="index-7"></span><span id="index-6"></span><span id="index-5"></span><span id="index-4"></span><span id="index-3"></span><span id="index-2"></span><span id="index-1"></span><span id="index-0"></span><h2>Input Data<a class="headerlink" href="#input-data" title="Link to this heading">#</a></h2>
+<h1>Anatomy of a Model<a class="headerlink" href="#anatomy-of-a-model" title="Permalink to this heading">#</a></h1>
+<span class="target" id="index-0"></span><span class="target" id="index-1"></span><span class="target" id="index-2"></span><span class="target" id="index-3"></span><span class="target" id="index-4"></span><span class="target" id="index-5"></span><span class="target" id="index-6"></span><span class="target" id="index-7"></span><section id="input-data">
+<span id="index-8"></span><h2>Input Data<a class="headerlink" href="#input-data" title="Permalink to this heading">#</a></h2>
 <p>In order to run any model, the user needs the input files in the <code class="docutils literal notranslate"><span class="pre">data</span></code> folder as identified in the <code class="docutils literal notranslate"><span class="pre">configs\settings.yaml</span></code>
 file and the <code class="docutils literal notranslate"><span class="pre">configs\network_los.yaml</span></code> file.</p>
 <p>The following tables are currently implemented:</p>
@@ -418,7 +400,7 @@ file and the <code class="docutils literal notranslate"><span class="pre">config
 </div></blockquote>
 </section>
 <section id="zone-system">
-<span id="zone-systems"></span><h2>Zone System<a class="headerlink" href="#zone-system" title="Link to this heading">#</a></h2>
+<span id="zone-systems"></span><h2>Zone System<a class="headerlink" href="#zone-system" title="Permalink to this heading">#</a></h2>
 <p>ActivitySim supports models with multiple zone systems.</p>
 <p>In a multiple zone system approach, households, land use, and trips are modeled at the microzone (MAZ) level.  MAZs are smaller
 than traditional TAZs and therefore make for a more precise system.  However, when considering network level-of-service (LOS)
@@ -480,17 +462,16 @@ the <span class="xref std std-ref">prototype_marin</span> example was created.</
 </div>
 <p>Example simple test configurations and inputs for two and three-zone system models are described below.</p>
 <section id="examples">
-<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h3>
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">#</a></h3>
 <p>To run the two zone and three zone system examples, do the following:</p>
 <ul class="simple">
-<li><p>Activate the correct conda environment if needed</p></li>
 <li><p>Create a local copy of the example</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># simple two zone example</span>
-<span class="n">activitysim</span> <span class="n">create</span> <span class="o">-</span><span class="n">e</span> <span class="n">placeholder_2_zone</span> <span class="o">-</span><span class="n">d</span> <span class="n">test_placeholder_2_zone</span>
+<span class="n">uv</span> <span class="n">run</span> <span class="n">activitysim</span> <span class="n">create</span> <span class="o">-</span><span class="n">e</span> <span class="n">placeholder_2_zone</span> <span class="o">-</span><span class="n">d</span> <span class="n">test_placeholder_2_zone</span>
 
 <span class="c1"># simple three zone example</span>
-<span class="n">activitysim</span> <span class="n">create</span> <span class="o">-</span><span class="n">e</span> <span class="n">placeholder_3_zone</span> <span class="o">-</span><span class="n">d</span> <span class="n">test_placeholder_3_zone</span>
+<span class="n">uv</span> <span class="n">run</span> <span class="n">activitysim</span> <span class="n">create</span> <span class="o">-</span><span class="n">e</span> <span class="n">placeholder_3_zone</span> <span class="o">-</span><span class="n">d</span> <span class="n">test_placeholder_3_zone</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -498,20 +479,20 @@ the <span class="xref std std-ref">prototype_marin</span> example was created.</
 <li><p>Run the example</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># simple two zone example</span>
-<span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_2_zone</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_2</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_2</span>
+<span class="n">uv</span> <span class="n">run</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_2_zone</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_2</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_2</span>
 
 <span class="c1"># simple three zone example, single process and multiprocess (and makes use of settings file inheritance for running)</span>
-<span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_3_zone</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_3</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_3</span> <span class="o">-</span><span class="n">s</span> <span class="n">settings_static</span><span class="o">.</span><span class="n">yaml</span>
-<span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_3_zone</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_3</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_3</span> <span class="o">-</span><span class="n">s</span> <span class="n">settings_mp</span><span class="o">.</span><span class="n">yaml</span>
+<span class="n">uv</span> <span class="n">run</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_3_zone</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_3</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_3</span> <span class="o">-</span><span class="n">s</span> <span class="n">settings_static</span><span class="o">.</span><span class="n">yaml</span>
+<span class="n">uv</span> <span class="n">run</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_3_zone</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_3</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_3</span> <span class="o">-</span><span class="n">s</span> <span class="n">settings_mp</span><span class="o">.</span><span class="n">yaml</span>
 </pre></div>
 </div>
 </section>
 <section id="settings">
-<h3>Settings<a class="headerlink" href="#settings" title="Link to this heading">#</a></h3>
+<h3>Settings<a class="headerlink" href="#settings" title="Permalink to this heading">#</a></h3>
 <p>Additional settings for running ActivitySim with two or three zone systems are specified in the <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code> and
 <code class="docutils literal notranslate"><span class="pre">network_los.yaml</span></code> files.  The settings are:</p>
 <section id="two-zone">
-<h4>Two Zone<a class="headerlink" href="#two-zone" title="Link to this heading">#</a></h4>
+<h4>Two Zone<a class="headerlink" href="#two-zone" title="Permalink to this heading">#</a></h4>
 <p>In <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">want_dest_choice_presampling</span></code> - enable presampling for multizone systems, which
@@ -560,7 +541,7 @@ same so the blending can happen on-the-fly or else a value of 0 is returned.</p>
 </div>
 </section>
 <section id="three-zone">
-<h4>Three Zone<a class="headerlink" href="#three-zone" title="Link to this heading">#</a></h4>
+<h4>Three Zone<a class="headerlink" href="#three-zone" title="Permalink to this heading">#</a></h4>
 <p>In addition to the extra two zone system settings and inputs above, the following additional settings and inputs are required for a three zone system model.  Examples values are illustrated below.</p>
 <p>In <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>:</p>
 <ul class="simple">
@@ -698,7 +679,7 @@ same so the blending can happen on-the-fly or else a value of 0 is returned.</p>
 </section>
 </section>
 <section id="outputs">
-<h3>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h3>
+<h3>Outputs<a class="headerlink" href="#outputs" title="Permalink to this heading">#</a></h3>
 <p>Essentially the same set of outputs is created for a two or three zone system
 model as for a one zone system model.  However, the one key additional bit of
 information for a three zone system model is the boarding TAP, alighting TAP, and
@@ -708,7 +689,7 @@ including tracing of the TVPB calculations. The <span class="xref std std-ref">w
 both TAZ and TAP level matrices depending on the configured number of zone systems.</p>
 </section>
 <section id="presampling">
-<span id="id1"></span><h3>Presampling<a class="headerlink" href="#presampling" title="Link to this heading">#</a></h3>
+<span id="id1"></span><h3>Presampling<a class="headerlink" href="#presampling" title="Permalink to this heading">#</a></h3>
 <p>In multiple zone systems models, destination choice presampling is activated by default.  Destination
 choice presampling first aggregates microzone size terms to the TAZ level and then runs destination
 choice sampling at the TAZ level using the destination choice sampling models.  After sampling X
@@ -718,14 +699,14 @@ similar results.</p>
 </section>
 </section>
 <section id="configuration">
-<span id="user-configuration"></span><h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
+<span id="user-configuration"></span><h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">#</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder for a model implementation contains settings, expressions
 files, and other files required for specifying model utilities and form.  Each
 component will have one or more files that control the operation of that
 component. More information about individual configuration files can be found in the <a class="reference internal" href="../dev-guide/components/index.html#dev-components"><span class="std std-ref">Components</span></a> section of the Developers Guide.</p>
 </section>
 <section id="top-level-settings">
-<h2>Top Level Settings<a class="headerlink" href="#top-level-settings" title="Link to this heading">#</a></h2>
+<h2>Top Level Settings<a class="headerlink" href="#top-level-settings" title="Permalink to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.Settings.html#activitysim.core.configuration.Settings" title="activitysim.core.configuration.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p></td>
@@ -751,7 +732,7 @@ component. More information about individual configuration files can be found in
 </div>
 </section>
 <section id="file-system">
-<h2>File System<a class="headerlink" href="#file-system" title="Link to this heading">#</a></h2>
+<h2>File System<a class="headerlink" href="#file-system" title="Permalink to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.FileSystem.html#activitysim.core.configuration.FileSystem" title="activitysim.core.configuration.FileSystem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FileSystem</span></code></a></p></td>
@@ -762,7 +743,7 @@ component. More information about individual configuration files can be found in
 </div>
 </section>
 <section id="network-level-of-service">
-<h2>Network Level of Service<a class="headerlink" href="#network-level-of-service" title="Link to this heading">#</a></h2>
+<h2>Network Level of Service<a class="headerlink" href="#network-level-of-service" title="Permalink to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.NetworkSettings.html#activitysim.core.configuration.NetworkSettings" title="activitysim.core.configuration.NetworkSettings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NetworkSettings</span></code></a></p></td>
@@ -779,17 +760,17 @@ component. More information about individual configuration files can be found in
 </div>
 </section>
 <section id="utility-specifications">
-<h2>Utility Specifications<a class="headerlink" href="#utility-specifications" title="Link to this heading">#</a></h2>
+<h2>Utility Specifications<a class="headerlink" href="#utility-specifications" title="Permalink to this heading">#</a></h2>
 <p>The model specifications files are typically included in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder. These files store python/pandas/numpy expressions,
 alternatives, coefficients, constants and other settings for each model. For more information, see the <a class="reference internal" href="../core.html#util-expressions"><span class="std std-ref">Utility Expressions</span></a> section of the Developers Guide.</p>
 </section>
 <section id="id2">
-<h2>Outputs<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>The key output of ActivitySIm is the HDF5 data pipeline file <code class="docutils literal notranslate"><span class="pre">output\pipeline.h5</span></code>. This datastore by default contains
+<h2>Outputs<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h2>
+<p>The key output of ActivitySim is the HDF5 data pipeline file <code class="docutils literal notranslate"><span class="pre">output\pipeline.h5</span></code>. This datastore by default contains
 a copy of each data table after each model step in which the table was modified. The exact fields for each set of outputs will be different for various implementations of ActivitySim.</p>
 </section>
 <section id="logging">
-<h2>Logging<a class="headerlink" href="#logging" title="Link to this heading">#</a></h2>
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this heading">#</a></h2>
 <p>Included in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder is the <code class="docutils literal notranslate"><span class="pre">logging.yaml</span></code>, which configures Python logging
 library.  The following key log files are created with a model run:</p>
 <ul class="simple">
@@ -835,7 +816,8 @@ library.  The following key log files are created with a model run:</p>
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -869,13 +851,13 @@ library.  The following key log files are created with a model run:</p>
   </nav></div>
 
   <div class="sidebar-secondary-item">
-
-  <div class="tocsection sourcelink">
-    <a href="../_sources/users-guide/model_anatomy.rst.txt">
-      <i class="fa-solid fa-file-lines"></i> Show Source
-    </a>
-  </div>
-</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/users-guide/model_anatomy.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
 
 </div></div>
               
@@ -890,8 +872,8 @@ library.  The following key log files are created with a model run:</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -900,13 +882,13 @@ library.  The following key log files are created with a model run:</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
+ActivitySim 1.4.1.dev2+g2e5f7327, documentation last updated Jul 21, 2025.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
     <br/>
   </p>
 </div>
@@ -919,7 +901,8 @@ ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

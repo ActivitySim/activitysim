@@ -1,8 +1,9 @@
 
+
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="./" >
+<html lang="en" data-content_root="" >
 
   <head>
     <meta charset="utf-8" />
@@ -15,48 +16,53 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=86d88d25" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css" />
   
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=d0f1e1f7"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="_static/copybutton.js?v=f281be69"></script>
-    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script src="_static/design-tabs.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.4.1';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-    <meta name="docbuild:last-update" content="Jul 17, 2025"/>
+  <meta name="docsearch:version" content="1.4.1" />
+    <meta name="docbuild:last-update" content="Jul 21, 2025"/>
   </head>
   
   
@@ -72,19 +78,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -92,7 +87,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -100,8 +94,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -168,41 +162,33 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
       
     </div>
     
@@ -211,15 +197,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -236,7 +218,8 @@ document.write(`
       
         
       
-      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
         
 
   
@@ -275,28 +258,24 @@ document.write(`
       <div class="sidebar-header-items__end">
         
           <div class="navbar-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-3"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-3"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-3"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-3">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         
       </div>
     
@@ -304,9 +283,14 @@ document.write(`
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -565,76 +549,6 @@ document.write(`
 
       <ul>
         <li><a href="core.html#module-activitysim.core.util">module</a>
-</li>
-      </ul></li>
-      <li>
-    activitysim.estimation.larch.auto_ownership
-
-      <ul>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.auto_ownership">module</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.auto_ownership">[1]</a>
-</li>
-      </ul></li>
-      <li>
-    activitysim.estimation.larch.cdap
-
-      <ul>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.cdap">module</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.cdap">[1]</a>
-</li>
-      </ul></li>
-      <li>
-    activitysim.estimation.larch.data_maker
-
-      <ul>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.data_maker">module</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.data_maker">[1]</a>
-</li>
-      </ul></li>
-      <li>
-    activitysim.estimation.larch.general
-
-      <ul>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.general">module</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.general">[1]</a>
-</li>
-      </ul></li>
-      <li>
-    activitysim.estimation.larch.location_choice
-
-      <ul>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.location_choice">module</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.location_choice">[1]</a>
-</li>
-      </ul></li>
-      <li>
-    activitysim.estimation.larch.mode_choice
-
-      <ul>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.mode_choice">module</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.mode_choice">[1]</a>
-</li>
-      </ul></li>
-      <li>
-    activitysim.estimation.larch.nonmand_tour_freq
-
-      <ul>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.nonmand_tour_freq">module</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.nonmand_tour_freq">[1]</a>
-</li>
-      </ul></li>
-      <li>
-    activitysim.estimation.larch.scheduling
-
-      <ul>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.scheduling">module</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.scheduling">[1]</a>
-</li>
-      </ul></li>
-      <li>
-    activitysim.estimation.larch.simple_simulate
-
-      <ul>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.simple_simulate">module</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.simple_simulate">[1]</a>
-</li>
-      </ul></li>
-      <li>
-    activitysim.estimation.larch.stop_frequency
-
-      <ul>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.stop_frequency">module</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.stop_frequency">[1]</a>
 </li>
       </ul></li>
       <li>
@@ -1042,12 +956,6 @@ document.write(`
 </li>
       <li><a href="dev-guide/components/tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.append_tour_leg_trip_mode_choice_logsums">append_tour_leg_trip_mode_choice_logsums() (in module activitysim.abm.models.tour_mode_choice)</a>
 </li>
-      <li><a href="estimation.html#activitysim.estimation.larch.general.apply_coef_template">apply_coef_template() (in module activitysim.estimation.larch.general)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.general.apply_coef_template">[1]</a>
-</li>
-      <li><a href="estimation.html#activitysim.estimation.larch.general.apply_coefficients">apply_coefficients() (in module activitysim.estimation.larch.general)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.general.apply_coefficients">[1]</a>
-</li>
-      <li><a href="estimation.html#activitysim.estimation.larch.cdap.apply_replacements">apply_replacements() (in module activitysim.estimation.larch.cdap)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.cdap.apply_replacements">[1]</a>
-</li>
       <li><a href="core.html#activitysim.core.mp_tasks.apportion_pipeline">apportion_pipeline() (in module activitysim.core.mp_tasks)</a>
 </li>
       <li><a href="core.html#activitysim.core.timetable.TimeTable.assign">assign() (activitysim.core.timetable.TimeTable method)</a>
@@ -1115,10 +1023,6 @@ document.write(`
       <li><a href="users-guide/_generated/activitysim.core.configuration.FileSystem.html#activitysim.core.configuration.FileSystem.cache_dir">cache_dir (activitysim.core.configuration.FileSystem attribute)</a>
 </li>
       <li><a href="dev-guide/_generated/activitysim.core.workflow.cached_object.html#activitysim.core.workflow.cached_object">cached_object (class in activitysim.core.workflow)</a>
-</li>
-      <li><a href="estimation.html#activitysim.estimation.larch.cdap.cdap_base_utility_by_person">cdap_base_utility_by_person() (in module activitysim.estimation.larch.cdap)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.cdap.cdap_base_utility_by_person">[1]</a>
-</li>
-      <li><a href="estimation.html#activitysim.estimation.larch.cdap.cdap_joint_tour_utility">cdap_joint_tour_utility() (in module activitysim.estimation.larch.cdap)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.cdap.cdap_joint_tour_utility">[1]</a>
 </li>
       <li><a href="dev-guide/components/cdap.html#activitysim.abm.models.cdap.cdap_simulate">cdap_simulate() (in module activitysim.abm.models.cdap)</a>
 </li>
@@ -1211,8 +1115,6 @@ document.write(`
       <li><a href="users-guide/_generated/activitysim.core.configuration.Settings.html#activitysim.core.configuration.Settings.chunk_training_mode">chunk_training_mode (activitysim.core.configuration.Settings attribute)</a>
 </li>
       <li><a href="core.html#activitysim.core.chunk.ChunkHistorian">ChunkHistorian (class in activitysim.core.chunk)</a>
-</li>
-      <li><a href="estimation.html#activitysim.estimation.larch.general.clean_values">clean_values() (in module activitysim.estimation.larch.general)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.general.clean_values">[1]</a>
 </li>
       <li><a href="dev-guide/components/trip_destination.html#activitysim.abm.models.trip_destination.TripDestinationSettings.CLEANUP">CLEANUP (activitysim.abm.models.trip_destination.TripDestinationSettings attribute)</a>
 </li>
@@ -1488,13 +1390,7 @@ document.write(`
         <li><a href="dev-guide/_generated/activitysim.core.configuration.logit.TemplatedLogitComponentSettings.html#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.CONSTANTS">(activitysim.core.configuration.logit.TemplatedLogitComponentSettings attribute)</a>
 </li>
       </ul></li>
-      <li><a href="estimation.html#activitysim.estimation.larch.simple_simulate.construct_availability">construct_availability() (in module activitysim.estimation.larch.simple_simulate)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.simple_simulate.construct_availability">[1]</a>
-</li>
-      <li><a href="estimation.html#activitysim.estimation.larch.scheduling.construct_availability_ca">construct_availability_ca() (in module activitysim.estimation.larch.scheduling)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.scheduling.construct_availability_ca">[1]</a>
-</li>
       <li><a href="dev-guide/components/vehicle_type_choice.html#activitysim.abm.models.vehicle_type_choice.construct_model_alternatives">construct_model_alternatives() (in module activitysim.abm.models.vehicle_type_choice)</a>
-</li>
-      <li><a href="estimation.html#activitysim.estimation.larch.general.construct_nesting_tree">construct_nesting_tree() (in module activitysim.estimation.larch.general)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.general.construct_nesting_tree">[1]</a>
 </li>
       <li><a href="dev-guide/_generated/activitysim.core.workflow.State.copy.html#activitysim.core.workflow.State.copy">copy() (activitysim.core.workflow.State method)</a>
 </li>
@@ -1517,8 +1413,6 @@ document.write(`
       <li><a href="core.html#activitysim.core.timetable.create_timetable_windows">create_timetable_windows() (in module activitysim.core.timetable)</a>
 </li>
       <li><a href="dev-guide/_generated/activitysim.core.workflow.State.current_model_name.html#activitysim.core.workflow.State.current_model_name">current_model_name (activitysim.core.workflow.State property)</a>
-</li>
-      <li><a href="estimation.html#activitysim.estimation.larch.general.cv_to_ca">cv_to_ca() (in module activitysim.estimation.larch.general)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.general.cv_to_ca">[1]</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1634,8 +1528,6 @@ document.write(`
 </li>
       <li><a href="dev-guide/_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings.DF">DF (activitysim.core.configuration.base.PreprocessorSettings attribute)</a>
 </li>
-      <li><a href="estimation.html#activitysim.estimation.larch.general.dict_of_linear_utility_from_spec">dict_of_linear_utility_from_spec() (in module activitysim.estimation.larch.general)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.general.dict_of_linear_utility_from_spec">[1]</a>
-</li>
       <li><a href="users-guide/_generated/activitysim.core.configuration.Settings.html#activitysim.core.configuration.Settings.disable_destination_sampling">disable_destination_sampling (activitysim.core.configuration.Settings attribute)</a>
 </li>
       <li><a href="users-guide/_generated/activitysim.core.configuration.Settings.html#activitysim.core.configuration.Settings.disable_zarr">disable_zarr (activitysim.core.configuration.Settings attribute)</a>
@@ -1710,10 +1602,10 @@ document.write(`
 </li>
       <li><a href="dev-guide/_generated/activitysim.core.workflow.State.existing_table_names.html#activitysim.core.workflow.State.existing_table_names">existing_table_names (activitysim.core.workflow.State property)</a>
 </li>
-      <li><a href="dev-guide/_generated/activitysim.core.workflow.State.existing_table_status.html#activitysim.core.workflow.State.existing_table_status">existing_table_status (activitysim.core.workflow.State property)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dev-guide/_generated/activitysim.core.workflow.State.existing_table_status.html#activitysim.core.workflow.State.existing_table_status">existing_table_status (activitysim.core.workflow.State property)</a>
+</li>
       <li><a href="users-guide/_generated/activitysim.core.configuration.FileSystem.html#activitysim.core.configuration.FileSystem.expand_input_file_list">expand_input_file_list() (activitysim.core.configuration.FileSystem method)</a>
 </li>
       <li><a href="dev-guide/components/accessibility.html#activitysim.abm.models.accessibility.AccessibilitySettings.explicit_chunk">explicit_chunk (activitysim.abm.models.accessibility.AccessibilitySettings attribute)</a>
@@ -1740,10 +1632,6 @@ document.write(`
         <li><a href="dev-guide/components/vehicle_type_choice.html#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.explicit_chunk">(activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings attribute)</a>
 </li>
       </ul></li>
-      <li><a href="estimation.html#activitysim.estimation.larch.general.explicit_value_parameters">explicit_value_parameters() (in module activitysim.estimation.larch.general)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.general.explicit_value_parameters">[1]</a>
-</li>
-      <li><a href="estimation.html#activitysim.estimation.larch.general.explicit_value_parameters_from_spec">explicit_value_parameters_from_spec() (in module activitysim.estimation.larch.general)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.general.explicit_value_parameters_from_spec">[1]</a>
-</li>
       <li><a href="dev-guide/_generated/activitysim.core.workflow.State.extend.html#activitysim.core.workflow.State.extend">extend (activitysim.core.workflow.State attribute)</a>
 </li>
       <li><a href="dev-guide/_generated2/activitysim.core.workflow.State.extend.html#activitysim.core.workflow.State.extend">extend() (activitysim.core.workflow.State method)</a>
@@ -1834,8 +1722,6 @@ document.write(`
 </li>
       <li><a href="dev-guide/components/school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.GENDER_WEIGHT">GENDER_WEIGHT (activitysim.abm.models.school_escorting.SchoolEscortSettings attribute)</a>
 </li>
-      <li><a href="estimation.html#activitysim.estimation.larch.cdap.generate_alternatives">generate_alternatives() (in module activitysim.estimation.larch.cdap)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.cdap.generate_alternatives">[1]</a>
-</li>
       <li><a href="dev-guide/components/trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.generate_schedule_alternatives">generate_schedule_alternatives() (in module activitysim.abm.models.trip_scheduling_choice)</a>
 </li>
       <li><a href="dev-guide/_generated/activitysim.core.workflow.checkpoint.GenericCheckpointStore.html#activitysim.core.workflow.checkpoint.GenericCheckpointStore">GenericCheckpointStore (class in activitysim.core.workflow.checkpoint)</a>
@@ -1900,10 +1786,10 @@ document.write(`
 </li>
       <li><a href="core.html#activitysim.core.los.Network_LOS.get_mazpairs">get_mazpairs() (activitysim.core.los.Network_LOS method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.html#activitysim.core.config.get_model_constants">get_model_constants() (in module activitysim.core.config)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.html#activitysim.core.pathbuilder_cache.TapTapUidCalculator.get_od_dataframe">get_od_dataframe() (activitysim.core.pathbuilder_cache.TapTapUidCalculator method)</a>
 </li>
       <li><a href="users-guide/_generated/activitysim.core.configuration.FileSystem.html#activitysim.core.configuration.FileSystem.get_output_dir">get_output_dir() (activitysim.core.configuration.FileSystem method)</a>
@@ -2054,10 +1940,10 @@ document.write(`
 </li>
       <li><a href="users-guide/model_anatomy.html#index-2">input store</a>
 </li>
-      <li><a href="dev-guide/components/input_checker.html#activitysim.abm.models.input_checker.input_checker">input_checker() (in module activitysim.abm.models.input_checker)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dev-guide/components/input_checker.html#activitysim.abm.models.input_checker.input_checker">input_checker() (in module activitysim.abm.models.input_checker)</a>
+</li>
       <li><a href="users-guide/_generated/activitysim.core.configuration.Settings.html#activitysim.core.configuration.Settings.input_store">input_store (activitysim.core.configuration.Settings attribute)</a>
 </li>
       <li><a href="users-guide/_generated/activitysim.core.configuration.Settings.html#activitysim.core.configuration.Settings.input_table_list">input_table_list (activitysim.core.configuration.Settings attribute)</a>
@@ -2065,8 +1951,6 @@ document.write(`
       <li><a href="gettingstarted.html#index-0">installation</a>
 </li>
       <li><a href="users-guide/_generated/activitysim.core.configuration.Settings.html#activitysim.core.configuration.Settings.instrument">instrument (activitysim.core.configuration.Settings attribute)</a>
-</li>
-      <li><a href="estimation.html#activitysim.estimation.larch.cdap.interact_pattern">interact_pattern() (in module activitysim.estimation.larch.cdap)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.cdap.interact_pattern">[1]</a>
 </li>
       <li><a href="dev-guide/components/cdap.html#activitysim.abm.models.cdap.CdapSettings.INTERACTION_COEFFICIENTS">INTERACTION_COEFFICIENTS (activitysim.abm.models.cdap.CdapSettings attribute)</a>
 </li>
@@ -2165,8 +2049,6 @@ document.write(`
       <li><a href="core.html#activitysim.core.util.left_merge_on_index_and_col">left_merge_on_index_and_col() (in module activitysim.core.util)</a>
 </li>
       <li><a href="dev-guide/components/trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.LEGACY_COEFFICIENTS">LEGACY_COEFFICIENTS (activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings attribute)</a>
-</li>
-      <li><a href="estimation.html#activitysim.estimation.larch.general.linear_utility_from_spec">linear_utility_from_spec() (in module activitysim.estimation.larch.general)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.general.linear_utility_from_spec">[1]</a>
 </li>
       <li><a href="dev-guide/_generated/activitysim.core.workflow.checkpoint.GenericCheckpointStore.list_checkpoint_names.html#activitysim.core.workflow.checkpoint.GenericCheckpointStore.list_checkpoint_names">list_checkpoint_names() (activitysim.core.workflow.checkpoint.GenericCheckpointStore method)</a>
 
@@ -2416,6 +2298,8 @@ document.write(`
         <li><a href="dev-guide/components/non_mandatory_destination.html#activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings.MODEL_SELECTOR">(activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dev-guide/components/atwork_subtour_destination.html#activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings.MODELED_SIZE_TABLE">MODELED_SIZE_TABLE (activitysim.abm.models.atwork_subtour_destination.TourLocationComponentSettings attribute)</a>
 
       <ul>
@@ -2426,8 +2310,6 @@ document.write(`
       </ul></li>
       <li><a href="users-guide/_generated/activitysim.core.configuration.Settings.html#activitysim.core.configuration.Settings.models">models (activitysim.core.configuration.Settings attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     module
 
@@ -2483,26 +2365,6 @@ document.write(`
         <li><a href="core.html#module-activitysim.core.tracing">activitysim.core.tracing</a>
 </li>
         <li><a href="core.html#module-activitysim.core.util">activitysim.core.util</a>
-</li>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.auto_ownership">activitysim.estimation.larch.auto_ownership</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.auto_ownership">[1]</a>
-</li>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.cdap">activitysim.estimation.larch.cdap</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.cdap">[1]</a>
-</li>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.data_maker">activitysim.estimation.larch.data_maker</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.data_maker">[1]</a>
-</li>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.general">activitysim.estimation.larch.general</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.general">[1]</a>
-</li>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.location_choice">activitysim.estimation.larch.location_choice</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.location_choice">[1]</a>
-</li>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.mode_choice">activitysim.estimation.larch.mode_choice</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.mode_choice">[1]</a>
-</li>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.nonmand_tour_freq">activitysim.estimation.larch.nonmand_tour_freq</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.nonmand_tour_freq">[1]</a>
-</li>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.scheduling">activitysim.estimation.larch.scheduling</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.scheduling">[1]</a>
-</li>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.simple_simulate">activitysim.estimation.larch.simple_simulate</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.simple_simulate">[1]</a>
-</li>
-        <li><a href="estimation.html#module-activitysim.estimation.larch.stop_frequency">activitysim.estimation.larch.stop_frequency</a>, <a href="users-guide/model_dev.html#module-activitysim.estimation.larch.stop_frequency">[1]</a>
 </li>
         <li><a href="users-guide/external-examples.html#module-activitysim.examples.external">activitysim.examples.external</a>
 </li>
@@ -2652,8 +2514,6 @@ document.write(`
       <li><a href="dev-guide/components/non_mandatory_tour_frequency.html#activitysim.abm.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency">non_mandatory_tour_frequency() (in module activitysim.abm.models.non_mandatory_tour_frequency)</a>
 </li>
       <li><a href="dev-guide/components/non_mandatory_scheduling.html#activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling">non_mandatory_tour_scheduling() (in module activitysim.abm.models.non_mandatory_scheduling)</a>
-</li>
-      <li><a href="estimation.html#activitysim.estimation.larch.nonmand_tour_freq.nonmand_tour_freq_model">nonmand_tour_freq_model() (in module activitysim.estimation.larch.nonmand_tour_freq)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.nonmand_tour_freq.nonmand_tour_freq_model">[1]</a>
 </li>
       <li><a href="dev-guide/components/atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.nontour_preprocessor">nontour_preprocessor (activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings attribute)</a>
 
@@ -2879,8 +2739,6 @@ document.write(`
 </li>
       <li><a href="dev-guide/components/school_escorting.html#activitysim.abm.models.school_escorting.SchoolEscortSettings.preprocessor_outbound_cond">preprocessor_outbound_cond (activitysim.abm.models.school_escorting.SchoolEscortSettings attribute)</a>
 </li>
-      <li><a href="estimation.html#activitysim.estimation.larch.general.prevent_overlapping_column_names">prevent_overlapping_column_names() (in module activitysim.estimation.larch.general)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.general.prevent_overlapping_column_names">[1]</a>
-</li>
       <li><a href="core.html#activitysim.core.timetable.TimeTable.previous_tour_begins">previous_tour_begins() (activitysim.core.timetable.TimeTable method)</a>
 </li>
       <li><a href="core.html#activitysim.core.timetable.TimeTable.previous_tour_ends">previous_tour_ends() (activitysim.core.timetable.TimeTable method)</a>
@@ -3002,8 +2860,6 @@ document.write(`
       <li><a href="core.html#activitysim.core.util.reindex_i">reindex_i() (in module activitysim.core.util)</a>
 </li>
       <li><a href="core.html#activitysim.core.timetable.TimeTable.remaining_periods_available">remaining_periods_available() (activitysim.core.timetable.TimeTable method)</a>
-</li>
-      <li><a href="estimation.html#activitysim.estimation.larch.general.remove_apostrophes">remove_apostrophes() (in module activitysim.estimation.larch.general)</a>, <a href="users-guide/model_dev.html#activitysim.estimation.larch.general.remove_apostrophes">[1]</a>
 </li>
       <li><a href="users-guide/_generated/activitysim.core.configuration.InputTable.html#activitysim.core.configuration.InputTable.rename_columns">rename_columns (activitysim.core.configuration.InputTable attribute)</a>
 </li>
@@ -3793,8 +3649,8 @@ document.write(`
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -3803,13 +3659,13 @@ document.write(`
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
+ActivitySim 1.4.1.dev2+g2e5f7327, documentation last updated Jul 21, 2025.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
     <br/>
   </p>
 </div>
@@ -3822,7 +3678,8 @@ ActivitySim 1.4.1.dev1+gba4a12e8, documentation last updated Jul 17, 2025.<br/>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

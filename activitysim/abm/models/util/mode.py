@@ -88,7 +88,8 @@ def mode_choice_simulate(
     choices[mode_column_name] = choices[mode_column_name].map(
         dict(list(zip(list(range(len(alts))), alts)))
     )
-    cat_type = pd.api.types.CategoricalDtype([""] + alts.tolist(), ordered=True)
+    # note: do we want to order the mode categories?
+    cat_type = pd.api.types.CategoricalDtype([""] + alts.tolist())
     choices[mode_column_name] = choices[mode_column_name].astype(cat_type)
 
     return choices

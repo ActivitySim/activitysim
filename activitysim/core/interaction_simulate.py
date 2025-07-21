@@ -270,8 +270,13 @@ def eval_interaction_utilities(
                 and compute_settings.performance_log is None
             ):
                 perf_log_file = Path(trace_label + ".log")
-            elif state.settings.expression_profile is False:
+            elif (
+                state.settings.expression_profile is False
+                or compute_settings.performance_log is False
+            ):
                 perf_log_file = None
+            elif compute_settings.performance_log is True:
+                perf_log_file = Path(trace_label + ".log")
             else:
                 perf_log_file = compute_settings.performance_log
             performance_timer = timing.EvalTiming(perf_log_file)

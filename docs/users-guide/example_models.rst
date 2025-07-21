@@ -2985,25 +2985,24 @@ Running the model
 
 To run the example, do the following:
 
-* Activate the correct conda environment if needed
 * View the list of available examples
 
 ::
 
-  activitysim create --list
+  uv run activitysim create --list
 
 * Create a local copy of an example folder
 
 ::
 
-  activitysim create --example prototype_mtc --destination my_test_example
+  uv run activitysim create --example prototype_mtc --destination my_test_example
 
 * Run the example
 
 ::
 
   cd my_test_example
-  activitysim run -c configs -d data -o output
+  uv run activitysim run -c configs -d data -o output
 
 
 * ActivitySim will log progress and write outputs to the output folder.
@@ -3019,7 +3018,7 @@ The example should run in a few minutes since it runs a small sample of househol
 
   ::
 
-    python simulation.py
+    uv run simulation.py
 
 .. _multiprocess_example :
 
@@ -3032,7 +3031,7 @@ include the multiprocessing configuration settings via settings file inheritance
 
 ::
 
-  activitysim run -c configs_mp -c configs -d data -o output
+  uv run activitysim run -c configs_mp -c configs -d data -o output
 
 The multiprocessing example also writes outputs to the output folder.
 

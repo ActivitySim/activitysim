@@ -9,7 +9,15 @@ import pandas as pd
 
 from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
-from activitysim.core import config, estimation, los, simulate, tracing, workflow, expressions
+from activitysim.core import (
+    config,
+    estimation,
+    los,
+    simulate,
+    tracing,
+    workflow,
+    expressions,
+)
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate

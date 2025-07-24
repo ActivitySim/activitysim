@@ -29,6 +29,12 @@ def vehicles(state: workflow.State, households: pd.DataFrame):
     """
 
     # initialize vehicles table
+    if "auto_ownership" not in households.columns:
+        # grab the proto_households table instead
+        # this is called when running disaggregate accessibilities and the vehicles table is used in the logsum calculation
+        households = state.get_table("proto_households")
+        households.index.name = "household_id"
+
     vehicles = households.loc[households.index.repeat(households["auto_ownership"])]
     vehicles = vehicles.reset_index()[["household_id"]]
 

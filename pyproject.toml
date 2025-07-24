@@ -160,9 +160,10 @@ github-action = [
     "pytest==7.2",
     "pytest-cov",
     "pytest-regressions",
+    "requests>=2.32.3",
     "ruff",
     "zarr>=2,<3",
-    "zstandard"
+    "zstandard",
 ]
 
 [tool.uv]

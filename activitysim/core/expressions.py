@@ -139,6 +139,7 @@ def compute_columns(
         df,
         _locals_dict,
         trace_rows=state.tracing.trace_targets(df),
+        trace_label=trace_label,
     )
 
     if trace_results is not None:

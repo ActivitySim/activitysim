@@ -55,6 +55,8 @@ def test_expression_profiling_semcog():
         import sys
 
         sys.path.insert(0, ".")
+        import extensions  # noqa: F401
+
         sys.path.pop(0)
 
     state.run.all()

@@ -36,7 +36,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version-file: ".python-version"
-    
+
       - name: Install activitysim
         run: |
           uv sync --locked --only-group github-action
@@ -166,7 +166,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version-file: ".python-version"
-    
+
       - name: Install activitysim
         run: |
           uv sync --locked --only-group github-action
@@ -235,7 +235,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version-file: ".python-version"
-    
+
       - name: Install activitysim
         run: |
           uv sync --locked --only-group github-action
@@ -277,7 +277,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version-file: ".python-version"
-    
+
       - name: Install activitysim
         run: |
           uv sync --locked --only-group github-action
@@ -310,7 +310,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version-file: ".python-version"
-    
+
       - name: Install activitysim
         run: |
           uv sync --locked --only-group github-action
@@ -318,6 +318,39 @@ jobs:
       - name: Test Estimation Mode
         run: |
           uv run pytest activitysim/estimation/test/test_larch_estimation.py --durations=0
+
+  expression-profiling:
+    needs: foundation
+    env:
+      python-version: "3.10"
+      label: win-64
+    defaults:
+      run:
+        shell: pwsh
+    name: Expression Profiling Tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install activitysim
+        run: |
+          uv sync --locked --only-group github-action
+
+      - name: Test Expression Profiling
+        run: |
+          uv run pytest test/test_expression_profiling.py
 
   develop-docbuild:
     needs: foundation

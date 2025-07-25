@@ -18,8 +18,6 @@ from activitysim.core import (
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.configuration.logit import LogitComponentSettings
 
-from .util import annotate
-
 logger = logging.getLogger(__name__)
 
 
@@ -28,8 +26,8 @@ class AutoOwnershipSettings(LogitComponentSettings, extra="forbid"):
     Settings for the `auto_ownership` component.
     """
 
-    preprocessor: PreprocessorSettings | None = None
-    annotate_households: PreprocessorSettings | None = None
+    # no additional fields are required for this component
+    pass
 
 
 @workflow.step
@@ -69,20 +67,14 @@ def auto_ownership_simulate(
 
     logger.info("Running %s with %d households", trace_label, len(choosers))
 
-    # - preprocessor
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        locals_d = {}
-        if constants is not None:
-            locals_d.update(constants)
-
-        expressions.assign_columns(
-            state,
-            df=choosers,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_d,
-            trace_label=trace_label,
-        )
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
@@ -120,8 +112,13 @@ def auto_ownership_simulate(
         "auto_ownership", households.auto_ownership, value_counts=True
     )
 
-    if model_settings.annotate_households:
-        annotate.annotate_households(state, model_settings, trace_label)
-
     if trace_hh_id:
         state.tracing.trace_df(households, label="auto_ownership", warn_if_empty=True)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

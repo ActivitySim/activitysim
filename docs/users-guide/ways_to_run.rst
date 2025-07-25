@@ -80,11 +80,9 @@ Refer to the :ref:`Run the Primary Example` section to learn how to run the prim
 Using Jupyter Notebook
 ______________________
 
-ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book with interactive examples.  To run a Jupyter notebook, do the following:
+ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book with interactive examples. 
 
-* Open a conda prompt and activate the conda environment with ActivitySim installed
-* If needed, ``conda install jupyterlab`` so you can run jupyter notebooks
-* Type ``jupyter notebook`` to launch the web-based notebook manager
+* To start JupyterLab, from the ActivitySim project directory run ``uv run jupyter lab``. This will start the JupyterLab server and pop up a browser window with the interactive development environment.
 * Navigate to the ``examples/prototype_mtc/notebooks`` folder and select a notebook to learn more:
 
   * `Getting started <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/getting_started.ipynb/>`__

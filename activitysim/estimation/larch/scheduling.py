@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 import yaml
 
+from activitysim.core.fast_eval import fast_eval
+
 from .general import (
     apply_coefficients,
     construct_nesting_tree,
@@ -210,7 +212,7 @@ def construct_availability_ca(model, chooser_data, alt_codes_to_names):
             (
                 chooser_data[i.data]
                 if i.data in chooser_data
-                else chooser_data.eval(i.data)
+                else fast_eval(chooser_data, i.data)
             )
             for i in model.utility_co[acode]
             if (i.param == "-999" or i.param == "-999.0")

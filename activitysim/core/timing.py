@@ -135,11 +135,23 @@ class EvalTiming(NoTiming):
 
         # The timing log is written in a tab-separated format, with times in the
         # first column so they are easy to scan through for anomalies.
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write(f"{label:11}\tExpression\n")
-            for expression, elapsed_time in self.elapsed_times.items():
-                t = int(elapsed_time / scale)
-                f.write(f"{t: 11d}\t{expression}\n")
+        try:
+            with open(filename, "w", encoding="utf-8") as f:
+                f.write(f"{label:11}\tExpression\n")
+                for expression, elapsed_time in self.elapsed_times.items():
+                    t = int(elapsed_time / scale)
+                    f.write(f"{t: 11d}\t{expression}\n")
+        except FileNotFoundError as err:
+            if not filename.parent.exists():
+                raise FileNotFoundError(
+                    f"Could not write log file {filename!r}, parent directory does not exist."
+                ) from err
+            else:
+                raise FileNotFoundError(
+                    f"Could not write log file {filename!r}\n check permissions "
+                    f"or path length ({len(str(filename))} characters in relative path, "
+                    f"{len(str(filename.absolute()))} in absolute path)."
+                ) from err
 
 
 def write_sortable_table(df: pd.DataFrame, filename: str | Path) -> None:

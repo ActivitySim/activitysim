@@ -135,7 +135,7 @@ class EvalTiming(NoTiming):
 
         # The timing log is written in a tab-separated format, with times in the
         # first column so they are easy to scan through for anomalies.
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding="utf-8") as f:
             f.write(f"{label:11}\tExpression\n")
             for expression, elapsed_time in self.elapsed_times.items():
                 t = int(elapsed_time / scale)

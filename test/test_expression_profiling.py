@@ -76,5 +76,5 @@ def test_expression_profiling_semcog():
         "expr-performance/expression-timing-components.html"
     ).exists()
     assert outdir.joinpath(
-        "expr-performance/trip_destination.trip_num_1.atwork.compute_logsums.dp.preprocessor.trip_mode_choice_annotate_trips_preprocessor.csv"
+        "expr-performance/trip_destination.trip_num_1.atwork.compute_logsums.dp.preprocessor.trip_mode_choice_annotate_trips_preprocessor.log"
     ).exists()

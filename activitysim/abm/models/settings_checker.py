@@ -657,7 +657,7 @@ def check_model_settings(
         checker_settings.update(extension_settings)
 
     # extract all model components
-    all_models = state.settings.models
+    all_models = state.settings.models.copy()
 
     # add shadow pricing and initalize los (not in state.settings.models)
     if state.settings.use_shadow_pricing == True:

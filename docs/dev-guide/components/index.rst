@@ -6,6 +6,7 @@ Components
 
 .. toctree::
     :maxdepth: 1
+   input_checker
    initialize
    initialize_los
    initialize_tours

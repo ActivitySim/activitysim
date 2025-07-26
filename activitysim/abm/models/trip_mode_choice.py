@@ -8,7 +8,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util import annotate, school_escort_tours_trips
+from activitysim.abm.models.util import school_escort_tours_trips
 from activitysim.abm.models.util.mode import mode_choice_simulate
 from activitysim.core import (
     chunk,
@@ -32,9 +32,6 @@ class TripModeChoiceSettings(TemplatedLogitComponentSettings, extra="forbid"):
     Settings for the `trip_mode_choice` component.
     """
 
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
-
     MODE_CHOICE_LOGSUM_COLUMN_NAME: str = "mode_choice_logsum"
     """Column name of the mode choice logsum"""
 
@@ -49,8 +46,11 @@ class TripModeChoiceSettings(TemplatedLogitComponentSettings, extra="forbid"):
     use_TVPB_constants: bool = True
 
     FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH: bool = True
-
-    annotate_trips: PreprocessorSettings | None = None
+    """
+    If True, overwrite the trip mode of escortee trips to match the mode selected
+    by the chauffeur. This is useful for school escort tours where the escortee trip 
+    mode (e.g., "transit") should match the chauffeur trip mode.
+    """
 
     LEGACY_COEFFICIENTS: str | None = None
 
@@ -370,15 +370,6 @@ def trip_mode_choice(
 
     state.add_table("trips", trips_df)
 
-    if model_settings.annotate_trips:
-        # need to update locals_dict to access skims that are the same .shape as trips table
-        locals_dict = {}
-        locals_dict.update(constants)
-        simulate.set_skim_wrapper_targets(trips_merged, skims)
-        locals_dict.update(skims)
-        locals_dict["timeframe"] = "trip"
-        annotate.annotate_trips(state, model_settings, trace_label, locals_dict)
-
     if state.settings.trace_hh_id:
         state.tracing.trace_df(
             trips_df,
@@ -387,3 +378,17 @@ def trip_mode_choice(
             index_label="trip_id",
             warn_if_empty=True,
         )
+
+    # need to update locals_dict to access skims that are the same .shape as trips table
+    locals_dict = {}
+    locals_dict.update(constants)
+    simulate.set_skim_wrapper_targets(trips_merged, skims)
+    locals_dict.update(skims)
+    locals_dict["timeframe"] = "trip"
+    expressions.annotate_tables(
+        state,
+        locals_dict=locals_dict,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

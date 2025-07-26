@@ -74,7 +74,9 @@ def delete_files(file_list, trace_label):
                 logger.debug(f"{trace_label} deleting {file_path}")
                 os.unlink(file_path)
         except Exception as e:
-            logger.warning(f"{trace_label} exception (e) trying to delete {file_path}")
+            logger.warning(
+                f"{trace_label} exception ({e}) trying to delete {file_path}"
+            )
 
 
 def df_size(df):
@@ -289,7 +291,7 @@ def quick_loc_series(loc_list, target_series):
 
     left_on = "left"
 
-    if isinstance(loc_list, pd.Int64Index):
+    if isinstance(loc_list, pd.Index):
         left_df = pd.DataFrame({left_on: loc_list.values})
     elif isinstance(loc_list, pd.Series):
         left_df = loc_list.to_frame(name=left_on)

@@ -7,9 +7,10 @@ import logging
 import pandas as pd
 
 from activitysim.abm.models.util import tour_destination
-from activitysim.core import estimation, los, tracing, workflow
+from activitysim.core import estimation, los, tracing, workflow, expressions
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.util import assign_in_place
+
 
 logger = logging.getLogger(__name__)
 
@@ -113,3 +114,11 @@ def joint_tour_destination(
 
     if trace_hh_id:
         state.tracing.trace_df(joint_tours, label="joint_tour_destination.joint_tours")
+
+    expressions.annotate_tables(
+        state,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

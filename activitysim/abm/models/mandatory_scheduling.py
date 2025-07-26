@@ -8,8 +8,9 @@ import pandas as pd
 
 from activitysim.abm.models.util.tour_scheduling import run_tour_scheduling
 from activitysim.core import timetable as tt
-from activitysim.core import tracing, workflow
+from activitysim.core import tracing, workflow, expressions
 from activitysim.core.util import assign_in_place, reindex
+from activitysim.abm.models.util.vectorize_tour_scheduling import TourSchedulingSettings
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,12 @@ def mandatory_tour_scheduling(
 
     model_name = "mandatory_tour_scheduling"
     trace_label = model_name
+
+    model_settings = TourSchedulingSettings.read_settings_file(
+        state.filesystem,
+        f"{model_name}.yaml",
+        mandatory=False,
+    )
 
     mandatory_tours = tours[tours.tour_category == "mandatory"]
 
@@ -55,11 +62,12 @@ def mandatory_tour_scheduling(
 
     choices = run_tour_scheduling(
         state,
-        model_name,
+        model_settings,
         mandatory_tours,
         persons_merged,
         tdd_alts,
         tour_segment_col,
+        trace_label,
     )
 
     assign_in_place(
@@ -86,3 +94,11 @@ def mandatory_tour_scheduling(
             columns=None,
             warn_if_empty=True,
         )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

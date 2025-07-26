@@ -7,7 +7,7 @@ import logging
 import pandas as pd
 
 from activitysim.abm.models.util import tour_od
-from activitysim.core import estimation, los, workflow
+from activitysim.core import estimation, los, workflow, expressions
 
 logger = logging.getLogger(__name__)
 
@@ -147,3 +147,11 @@ def tour_od_choice(
             columns=None,
             warn_if_empty=True,
         )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

@@ -100,10 +100,8 @@ has essentially the same configuration as the simpler three zone example above.
 
 *Example*
 
-
 To run prototype_marin, do the following:
 
-* Activate the correct conda environment if needed
 * Create a local copy of the example
 
 ::
@@ -117,7 +115,7 @@ To run prototype_marin, do the following:
 ::
 
   # Marin TM2 work tour mode choice for the MTC region
-  activitysim run -c configs -d data -o output -s settings_mp.yaml
+  uv run activitysim run -c configs -d data -o output -s settings_mp.yaml
 
 * For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 

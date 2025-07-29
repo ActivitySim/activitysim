@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.4.1" />
-    <meta name="docbuild:last-update" content="Jul 21, 2025"/>
+    <meta name="docbuild:last-update" content="Jul 29, 2025"/>
   </head>
   
   
@@ -377,8 +377,7 @@
 <p>In order to run any model, the user needs the input files in the <code class="docutils literal notranslate"><span class="pre">data</span></code> folder as identified in the <code class="docutils literal notranslate"><span class="pre">configs\settings.yaml</span></code>
 file and the <code class="docutils literal notranslate"><span class="pre">configs\network_los.yaml</span></code> file.</p>
 <p>The following tables are currently implemented:</p>
-<blockquote>
-<div><ul class="simple">
+<ul class="simple">
 <li><p>households - household attributes for each household being simulated.  Index: <code class="docutils literal notranslate"><span class="pre">household_id</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.households.py</span></code>)</p></li>
 <li><p>landuse - zonal land use (such as population and employment) attributes. Index: <code class="docutils literal notranslate"><span class="pre">zone_id</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.landuse.py</span></code>)</p></li>
 <li><p>persons - person attributes for each person being simulated.  Index: <code class="docutils literal notranslate"><span class="pre">person_id</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.persons.py</span></code>)</p></li>
@@ -386,10 +385,8 @@ file and the <code class="docutils literal notranslate"><span class="pre">config
 <li><p>tours - tour attributes for each tour (mandatory, non-mandatory, joint, and atwork-subtour) being simulated.  Index:  <code class="docutils literal notranslate"><span class="pre">tour_id</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.models.util.tour_frequency.py</span></code>)</p></li>
 <li><p>trips - trip attributes for each trip being simulated.  Index: <code class="docutils literal notranslate"><span class="pre">trip_id</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.models.stop_frequency.py</span></code>)</p></li>
 </ul>
-</div></blockquote>
 <p>A few additional tables are also used, which are not really tables, but classes:</p>
-<blockquote>
-<div><ul class="simple">
+<ul class="simple">
 <li><p>input store - reads input data tables from the input data store</p></li>
 <li><p>constants - various constants used throughout the model system, such as person type codes</p></li>
 <li><p>shadow pricing - shadow price calculator and associated utility methods, see <span class="xref std std-ref">shadow_pricing</span></p></li>
@@ -397,7 +394,6 @@ file and the <code class="docutils literal notranslate"><span class="pre">config
 <li><p>skims - each model runs requires skims, but how the skims are defined can vary significantly depending on the ActivitySim implementation. The skims class defines Inject injectables to access the skim matrices. The skims class reads the skims from the omx_file on disk.</p></li>
 <li><p>table dictionary - stores which tables should be registered as random number generator channels for restartability of the pipeline</p></li>
 </ul>
-</div></blockquote>
 </section>
 <section id="zone-system">
 <span id="zone-systems"></span><h2>Zone System<a class="headerlink" href="#zone-system" title="Permalink to this heading">#</a></h2>
@@ -408,8 +404,7 @@ indicators (e.g. skims), the model uses different spatial resolutions for differ
 modeling burden and model runtimes.  The typical multiple zone system setup is a TAZ zone system for auto travel, a MAZ zone
 system for non-motorized travel, and optionally a transit access points (TAPs) zone system for transit.</p>
 <p>The three versions of multiple zone systems are one-zone, two-zone, and three-zone.</p>
-<blockquote>
-<div><ul class="simple">
+<ul class="simple">
 <li><p><strong>One-zone</strong>: This version is based on TM1 and supports only TAZs. All origins and
 destinations are represented at the TAZ level, and all skims including auto, transit,
 and non-motorized times and costs are also represented at the TAZ level.</p></li>
@@ -440,9 +435,16 @@ TAP to destination MAZ. This assembling is done via the
 combinations of nearby boarding and alighting TAPs for each origin destination MAZ
 pair.</p></li>
 </ul>
-</div></blockquote>
-<p>Regions that have an interest in more precise transit forecasts may wish to adopt the
-three-zone approach, while other regions may adopt the one or two-zone approach.  The
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>The ActivitySim consortium is moving away from the three-zone approach, in favor of
+to the one- or two-zone approaches.  The code for the three-zone approach remains
+available for users who have already implemented it, but it is recommended that
+users consider the one- or two-zone approaches for new implementations.
+The three-zone system may be formally deprecated and removed in the future.</p>
+</div>
+<p>Regions that have an interest in more precise transit and non-motorized forecasts
+may wish to adopt the two-zone approach, while other regions may adopt the one or two-zone approach.  The
 microzone version requires coding households and land use at the microzone level.
 Typically an all-streets network is used for representation of non-motorized impedances.
 This requires a routable all-streets network, with centroids and connectors for
@@ -460,9 +462,68 @@ so select TAZs also became TAPs and TAP to TAP skims and MAZ to TAP impedances f
 initial development, these examples were insufficient for validation and performance testing of the new software. As a result,
 the <span class="xref std std-ref">prototype_marin</span> example was created.</p>
 </div>
-<p>Example simple test configurations and inputs for two and three-zone system models are described below.</p>
+<section id="skims">
+<span id="omx-skims"></span><h3>Skims<a class="headerlink" href="#skims" title="Permalink to this heading">#</a></h3>
+<p>The basic level-of-service data that represents the transportation system is
+made available to ActivitySim via one or more sets of “skims”.  Skims are
+essentially matrices of travel times, costs, and other level of service attributes,
+calculated between various zones in the system.  This skim data is made available
+to ActivitySim using files in the`openmatrix &lt;<a class="github reference external" href="http://github.com/osPlanning/omx">osPlanning/omx</a>&gt;`__
+(OMX) format.  All of the skim data can be provided in a single OMX file, or
+multiple OMX files can be used (this is typical for larger models, to keep file
+sizes manageable).  If multiple files are used, the content of those files is
+simply concatenated together into a single notional bucket of skim data when
+the model is run.  Within that bucket, each skim variable is identified by a unique name.
+For skim variables that vary across model time periods, the time period is
+appended to the skim name, separated by a double underscore (e.g. <code class="docutils literal notranslate"><span class="pre">BUS_IVT__AM</span></code>).</p>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>When using “legacy” mode for ActivitySim, it is possible (but not recommended)
+to have a skim variable that has both a time period agnostic value as well as
+a set of time period dependent values, e.g. “WALK_TIME” and “WALK_TIME__AM”.
+If you have conflicting names like this, a warning message will be issued, which
+will look like this in an ActivitySim log file:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>WARNING: activitysim/core/skim_dict_factory.py:212:
+UserWarning: some skims have both time-dependent and time-agnostic versions:
+- BIKE_LOGSUM
+- BIKE_TIME
+</pre></div>
+</div>
+<p>This is a warning, not an error, and the model will run if not using sharrow.
+However, if “sharrow” mode is activated, this will result in an error once the
+skims are actually loaded, unless instructions are included in the settings file
+to resolve the conflict.  The error message will look like this:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>ERROR: skims [&#39;BIKE_TIME&#39;] are present in both time-dependent and time-agnostic formats.
+Please add ignore rules to the omx_ignore_patterns setting to resolve this issue.
+To ignore the time dependent skims, add the following to your settings file:
+
+omx_ignore_patterns:
+  - &#39;^BIKE_TIME__.+&#39;
+
+To ignore the time agnostic skims, add the following to your settings file:
+
+omx_ignore_patterns:
+  - &#39;^BIKE_TIME$&#39;
+
+You can also do some variation or combination of the two, as long as you resolve
+the conflict(s). In addition, note that minor edits to model spec files may be
+needed to accommodate these changes in how skim data is represented (e.g. changing
+`odt_skims` to `od_skims`, or similar modifications wherever the offending variable
+names are used).  Alternatively, you can modify the skim data in the source files to
+remove the naming conflicts, which is typically done upstream of ActivitySim in
+whatever tool you are using to create the skims in the first place.
+</pre></div>
+</div>
+<p>It should be relatively simple to resolve the conflict by following the instructions
+in the error message. The cleaner and more reliable solution is to ensure each skim
+variable has a unique name, e.g. by changing the name on the time period agnostic
+value, so that instead of “BIKE_TIME” it is “BIKE_TIME_BASE”. This may also require
+minor edits to the model spec files to accommodate the new skim name.</p>
+</div>
+</section>
 <section id="examples">
 <h3>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">#</a></h3>
+<p>Example simple test configurations and inputs for two and three-zone system models are described below.</p>
 <p>To run the two zone and three zone system examples, do the following:</p>
 <ul class="simple">
 <li><p>Create a local copy of the example</p></li>
@@ -830,6 +891,7 @@ library.  The following key log files are created with a model run:</p>
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#input-data">Input Data</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#zone-system">Zone System</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skims">Skims</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#settings">Settings</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#two-zone">Two Zone</a></li>
@@ -882,7 +944,7 @@ library.  The following key log files are created with a model run:</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev2+g2e5f7327, documentation last updated Jul 21, 2025.<br/>
+ActivitySim 1.4.1.dev3+g1027026c, documentation last updated Jul 29, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

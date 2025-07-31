@@ -60,6 +60,9 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
     # if this happens, participant_id may not be unique
     # channel random seeds will overlap at MAX_PARTICIPANT_PNUM (probably not a big deal)
     # and estimation infer will fail
+    if "PNUM" not in candidates.columns:
+        # create a PNUM column that just numbers the candidates for assignment of participant_id
+        candidates["PNUM"] = candidates.groupby("household_id").cumcount() + 1
     assert (
         candidates.PNUM.max() < MAX_PARTICIPANT_PNUM
     ), f"max persons.PNUM ({candidates.PNUM.max()}) > MAX_PARTICIPANT_PNUM ({MAX_PARTICIPANT_PNUM})"

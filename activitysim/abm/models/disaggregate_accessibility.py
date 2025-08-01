@@ -597,9 +597,11 @@ class ProtoPop:
         for col, fill in col_filler.items():
             df_ids[col] = df_ids[col].str.zfill(fill)
 
-        ex_table["proto_person_id"] = df_ids[cols].apply("".join, axis=1).astype(int)
+        ex_table["proto_person_id"] = (
+            df_ids[cols].apply("".join, axis=1).astype(np.int64)
+        )
         ex_table["proto_household_id"] = (
-            df_ids[cols[:-1]].apply("".join, axis=1).astype(int)
+            df_ids[cols[:-1]].apply("".join, axis=1).astype(np.int64)
         )
 
         # Separate out into households, persons, tours

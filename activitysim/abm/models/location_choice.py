@@ -838,19 +838,23 @@ def run_location_choice(
         )
 
         # - location_logsums
-        location_sample_df = run_location_logsums(
-            state,
-            segment_name,
-            choosers,
-            network_los,
-            location_sample_df,
-            model_settings,
-            chunk_size,
-            chunk_tag=f"{chunk_tag}.logsums",
-            trace_label=tracing.extend_trace_label(
-                trace_label, "logsums.%s" % segment_name
-            ),
-        )
+        # skip logsum calculations if LOGSUM_SETTINGS is None
+        if model_settings.LOGSUM_SETTINGS:
+            location_sample_df = run_location_logsums(
+                state,
+                segment_name,
+                choosers,
+                network_los,
+                location_sample_df,
+                model_settings,
+                chunk_size,
+                chunk_tag=f"{chunk_tag}.logsums",
+                trace_label=tracing.extend_trace_label(
+                    trace_label, "logsums.%s" % segment_name
+                ),
+            )
+        else:
+            location_sample_df[ALT_LOGSUM] = 0.0
 
         # - location_simulate
         choices_df = run_location_simulate(

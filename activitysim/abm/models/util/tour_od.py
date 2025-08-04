@@ -1132,20 +1132,24 @@ def run_tour_od(
             )
 
         # - destination_logsums
-        od_sample_df = run_od_logsums(
-            state,
-            spec_segment_name,
-            choosers,
-            od_sample_df,
-            model_settings,
-            network_los,
-            estimator,
-            chunk_size=chunk_size,
-            trace_hh_id=trace_hh_id,
-            trace_label=tracing.extend_trace_label(
-                trace_label, f"logsums.{segment_name}"
-            ),
-        )
+        # Skip logsum calculation step if LOGSUM_SETTINGS is None
+        if model_settings.LOGSUM_SETTINGS:
+            od_sample_df = run_od_logsums(
+                state,
+                spec_segment_name,
+                choosers,
+                od_sample_df,
+                model_settings,
+                network_los,
+                estimator,
+                chunk_size=chunk_size,
+                trace_hh_id=trace_hh_id,
+                trace_label=tracing.extend_trace_label(
+                    trace_label, f"logsums.{segment_name}"
+                ),
+            )
+        else:
+            od_sample_df["tour_mode_choice_logsum"] = 0.0
 
         # - od_simulate
         choices = run_od_simulate(

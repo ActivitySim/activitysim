@@ -203,8 +203,10 @@ def choose_parking_location(
         additional_columns=model_settings.compute_settings.protect_columns,
     )
 
+    # Passing only the index of the trips table to the interaction_dataset
+    # See ActivitySim issue #633
     destination_sample = logit.interaction_dataset(
-        state, trips, alternatives, alt_index_id=alt_dest_col_name
+        state, trips[[]], alternatives, alt_index_id=alt_dest_col_name
     )
     destination_sample.index = np.repeat(trips.index.values, len(alternatives))
     destination_sample.index.name = trips.index.name

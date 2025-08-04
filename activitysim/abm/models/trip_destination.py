@@ -1352,7 +1352,9 @@ def run_trip_destination(
 
     # - filter tours_merged (AFTER copying destination and origin columns to trips)
     # tours_merged is used for logsums, we filter it here upfront to save space and time
-    tours_merged_cols = logsum_settings["TOURS_MERGED_CHOOSER_COLUMNS"] if logsum_settings else []
+    tours_merged_cols = (
+        logsum_settings["TOURS_MERGED_CHOOSER_COLUMNS"] if logsum_settings else []
+    )
     redundant_cols = model_settings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS or []
     if redundant_cols:
         tours_merged_cols = [c for c in tours_merged_cols if c not in redundant_cols]

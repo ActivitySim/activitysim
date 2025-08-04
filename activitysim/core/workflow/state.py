@@ -8,6 +8,7 @@ import sys
 import textwrap
 import warnings
 from collections.abc import Iterable
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
@@ -1170,6 +1171,49 @@ class State:
         if prefix:
             file_name = f"{prefix}-{file_name}"
         return self.filesystem.get_log_file_path(file_name)
+
+    def get_expr_performance_log_file_path(
+        self, file_name: str, prefix: bool = True
+    ) -> Path:
+        """
+        Get the log file path for this process.
+
+        This method is not purely a pass-through to this state's `filesystem`,
+        as it also potentially adds a prefix to the filename based on the state.
+
+        Parameters
+        ----------
+        file_name : str
+            The name of the desired log file.
+        prefix : bool, default True
+            Whether to add a prefix to the desired log file name. This is
+            simply a boolean flag for whether to add the prefix, the actual
+            value of the prefix id drawn from the "log_file_prefix" key within
+            this state.  If that key is not set, no prefix is added regardless
+            of the value of this argument.
+        timestamped : bool, default False
+            Whether to add a timestamp to the log file name. If True, a
+            timestamp is added as a directory prefix to the log file name,
+            and the directory is created if it does not already exist.
+
+        Returns
+        -------
+        Path
+        """
+        prefix = prefix and self.get_injectable("log_file_prefix", None)
+        if prefix:
+            file_name = f"{prefix}-{file_name}"
+
+        timestamp = self.get("run_timestamp", None)
+        if timestamp is None:
+            # if no run timestamp, use current time, and store it so
+            # it can be used later in the same run
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            self.set("run_timestamp", timestamp)
+        perf_dir = os.path.join("expr-performance", timestamp, file_name)
+        result = self.filesystem.get_log_file_path(perf_dir)
+        result.parent.mkdir(parents=True, exist_ok=True)
+        return result
 
     def set_step_args(self, args=None):
         assert isinstance(args, dict) or args is None

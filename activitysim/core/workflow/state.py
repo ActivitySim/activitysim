@@ -1142,7 +1142,9 @@ class State:
             file_name = f"{prefix}-{file_name}"
         return self.filesystem.get_output_dir().joinpath(file_name)
 
-    def get_log_file_path(self, file_name: str, prefix: bool = True) -> Path:
+    def get_log_file_path(
+        self, file_name: str, prefix: bool = True, timestamped: bool = False
+    ) -> Path:
         """
         Get the log file path for this process.
 
@@ -1159,6 +1161,10 @@ class State:
             value of the prefix id drawn from the "log_file_prefix" key within
             this state.  If that key is not set, no prefix is added regardless
             of the value of this argument.
+        timestamped : bool, default False
+            Whether to add a timestamp to the log file name. If True, a
+            timestamp is added as a directory prefix to the log file name,
+            and the directory is created if it does not already exist.
 
         Returns
         -------
@@ -1167,6 +1173,19 @@ class State:
         prefix = prefix and self.get_injectable("log_file_prefix", None)
         if prefix:
             file_name = f"{prefix}-{file_name}"
+        if timestamped:
+            from datetime import datetime
+
+            timestamp = self.get("run_timestamp", None)
+            if timestamp is None:
+                # if no run timestamp, use current time, and store it so
+                # it can be used later in the same run
+                timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+                self.set("run_timestamp", timestamp)
+                self.filesystem.get_log_file_path(timestamp).mkdir(
+                    parents=True, exist_ok=True
+                )
+            file_name = os.path.join(timestamp, file_name)
         return self.filesystem.get_log_file_path(file_name)
 
     def set_step_args(self, args=None):

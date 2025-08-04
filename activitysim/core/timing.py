@@ -99,7 +99,7 @@ class EvalTiming(NoTiming):
             filename = self.log_file
         else:
             filename = state.get_log_file_path(
-                str(Path("expr-performance") / self.log_file)
+                str(Path("expr-performance") / self.log_file), timestamped=True
             )
 
         # if the log file already exists and overwrite is false, create a new file
@@ -191,7 +191,9 @@ class AnalyzeEvalTiming:
         return df
 
     def __init__(self, state: State, collect_mp: bool = True) -> None:
-        self.log_dir = state.get_log_file_path(str(Path("expr-performance")))
+        self.log_dir = state.get_log_file_path(
+            str(Path("expr-performance")), timestamped=True
+        )
         self.default_cutoff = state.settings.expression_profile_cutoff
         raw_data = {}
         for f in self.log_dir.glob("*.log"):
@@ -205,7 +207,9 @@ class AnalyzeEvalTiming:
 
         if collect_mp:
             raw_data = {}
-            mp_log_dirs = state.get_log_file_path(".").glob("*-expr-performance")
+            mp_log_dirs = state.get_log_file_path(".", timestamped=True).glob(
+                "*-expr-performance"
+            )
             for mp_log_dir in mp_log_dirs:
                 subproc_name = "-".join(mp_log_dir.stem.split("-")[:-2])
                 for f in mp_log_dir.glob("*.log"):

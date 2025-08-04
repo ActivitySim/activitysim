@@ -4,6 +4,7 @@ import logging
 
 import numpy as np
 import pandas as pd
+from typing import Literal
 
 from activitysim.core import (
     config,
@@ -46,6 +47,21 @@ class ParkAndRideLotChoiceSettings(LogitComponentSettings, extra="forbid"):
     alts_preprocessor: PreprocessorSettings | None = None
     """Preprocessor settings for park-and-ride lot alternatives."""
 
+    ITERATE_WITH_TOUR_MODE_CHOICE: bool = False
+    """If True, iterate with tour mode choice to find un-capacitated pnr lots. """
+
+    MAX_ITERATIONS: int = 5
+    """Maximum number of iterations to iterate park-and-ride choice with tour mode choice."""
+
+    ACCEPTED_TOLERANCE: float = 0.95
+    """Lot is considered full if the lot is at least this percentage full."""
+
+    RESAMPLE_STRATEGY: Literal["latest", "random"] = "latest"
+    """Strategy to use when selecting tours for resampling park-and-ride lot choices.
+    - latest: tours arriving the latest are selected for resampling.
+    - random: randomly resample from all tours at the over-capacitated lot.
+    """
+
 
 def filter_chooser_to_transit_accessible_destinations(
     state: workflow.State,
@@ -70,6 +86,9 @@ def filter_chooser_to_transit_accessible_destinations(
     skim_dict = network_los.get_default_skim_dict()
     unique_destinations = choosers[choosers_dest_col_name].unique()
     unique_lot_locations = pnr_alts.index.values
+    transit_accessible = np.full(
+        shape=len(unique_destinations), fill_value=False, dtype=bool
+    )
 
     for skim_name in model_settings.TRANSIT_SKIMS_FOR_ELIGIBILITY:
         if "__" in skim_name:
@@ -83,7 +102,7 @@ def filter_chooser_to_transit_accessible_destinations(
             )
         # Filter choosers to only those with destinations that have transit access
         # want to check whether ANY of the lot locations have transit access to EVERY destination
-        transit_accessible = [
+        transit_accessible_i = [
             (
                 skim_dict.lookup(
                     unique_lot_locations,
@@ -94,6 +113,7 @@ def filter_chooser_to_transit_accessible_destinations(
             ).any()
             for dest in unique_destinations
         ]
+        transit_accessible = np.logical_or(transit_accessible, transit_accessible_i)
 
     eligible_destinations = unique_destinations[transit_accessible]
     filtered_choosers = choosers[
@@ -176,6 +196,14 @@ def run_park_and_ride_lot_choice(
         model_settings,
         choosers_dest_col_name,
     )
+    
+    if trn_accessible_choosers.empty:
+        logger.debug(
+            "No choosers with transit accessible destinations found. Returning -1 as park-and-ride lot choice."
+        )
+        # need to drop rng channel that we created before trn_accessible_choosers
+        state.get_rn_generator().drop_channel("pnr_lot_choice")
+        return pd.Series(data=-1, index=choosers.index)
 
     add_periods = False if "in_period" in trn_accessible_choosers.columns else True
     skims = logsums.setup_skims(

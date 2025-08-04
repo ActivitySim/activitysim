@@ -33,14 +33,16 @@ def test_expression_profiling_mtc():
 
     workdir = state.filesystem.working_dir
     outdir = workdir.joinpath(state.filesystem.output_dir)
+    timestamp = state.get("run_timestamp", "unknown")
+    assert timestamp != "unknown", "Run timestamp should not be 'unknown'"
     assert outdir.joinpath(
-        "log/expr-performance/expression-timing-subcomponents.html"
+        f"log/expr-performance/{timestamp}/expression-timing-subcomponents.html"
     ).exists()
     assert outdir.joinpath(
-        "log/expr-performance/expression-timing-components.html"
+        f"log/expr-performance/{timestamp}/expression-timing-components.html"
     ).exists()
     assert outdir.joinpath(
-        "log/expr-performance/tour_mode_choice.work.simple_simulate.eval_nl.eval_utils.log"
+        f"log/expr-performance/{timestamp}/tour_mode_choice.work.simple_simulate.eval_nl.eval_utils.log"
     ).exists()
 
 
@@ -69,12 +71,16 @@ def test_expression_profiling_semcog():
 
     workdir = state.filesystem.working_dir
     outdir = workdir.joinpath(state.filesystem.output_dir)
+
+    timestamp = state.get("run_timestamp", "unknown")
+    assert timestamp != "unknown", "Run timestamp should not be 'unknown'"
+
     assert outdir.joinpath(
-        "expr-performance/expression-timing-subcomponents.html"
+        f"expr-performance/{timestamp}/expression-timing-subcomponents.html"
     ).exists()
     assert outdir.joinpath(
-        "expr-performance/expression-timing-components.html"
+        f"expr-performance/{timestamp}/expression-timing-components.html"
     ).exists()
     assert outdir.joinpath(
-        "expr-performance/trip_destination.trip_num_1.atwork.compute_logsums.dp.preprocessor.trip_mode_choice_annotate_trips_preprocessor.log"
+        f"expr-performance/{timestamp}/trip_destination.trip_num_1.atwork.compute_logsums.dp.preprocessor.trip_mode_choice_annotate_trips_preprocessor.log"
     ).exists()

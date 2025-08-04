@@ -98,9 +98,7 @@ class EvalTiming(NoTiming):
         if self.log_file.is_absolute():
             filename = self.log_file
         else:
-            filename = state.get_log_file_path(
-                str(Path("expr-performance") / self.log_file), timestamped=True
-            )
+            filename = state.get_expr_performance_log_file_path(str(self.log_file))
 
         # if the log file already exists and overwrite is false, create a new file
         proposed_filename = filename
@@ -191,9 +189,7 @@ class AnalyzeEvalTiming:
         return df
 
     def __init__(self, state: State, collect_mp: bool = True) -> None:
-        self.log_dir = state.get_log_file_path(
-            str(Path("expr-performance")), timestamped=True
-        )
+        self.log_dir = state.get_expr_performance_log_file_path(".")
         self.default_cutoff = state.settings.expression_profile_cutoff
         raw_data = {}
         for f in self.log_dir.glob("*.log"):
@@ -207,7 +203,7 @@ class AnalyzeEvalTiming:
 
         if collect_mp:
             raw_data = {}
-            mp_log_dirs = state.get_log_file_path(".", timestamped=True).glob(
+            mp_log_dirs = state.get_expr_performance_log_file_path(".").glob(
                 "*-expr-performance"
             )
             for mp_log_dir in mp_log_dirs:

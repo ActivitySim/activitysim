@@ -74,7 +74,9 @@ def delete_files(file_list, trace_label):
                 logger.debug(f"{trace_label} deleting {file_path}")
                 os.unlink(file_path)
         except Exception as e:
-            logger.warning(f"{trace_label} exception (e) trying to delete {file_path}")
+            logger.warning(
+                f"{trace_label} exception ({e}) trying to delete {file_path}"
+            )
 
 
 def df_size(df):
@@ -340,6 +342,24 @@ def assign_in_place(df, df2, downcast_int=False, downcast_float=False):
     common_columns = df2.columns.intersection(df.columns)
     if len(common_columns) > 0:
         old_dtypes = [df[c].dtype for c in common_columns]
+        # in pandas 2.x, update a categorical column with any new categories will cause TypeError
+        # so we need to add the new categories first
+        # this is a workaround for pandas 2.x, see discussion in
+        # https://github.com/ActivitySim/activitysim/discussions/946
+        for c in common_columns:
+            if isinstance(df[c].dtype, pd.CategoricalDtype):
+                if not isinstance(df2[c].dtype, pd.CategoricalDtype):
+                    # if df column is categorical, but df2 column is not
+                    # convert df2 column to categorical then union categories
+                    df2[c] = df2[c].astype("category")
+
+                # when df and df2 column are both categorical, union categories
+                from pandas.api.types import union_categoricals
+
+                uc = union_categoricals([df[c], df2[c]], sort_categories=True)
+                df[c] = pd.Categorical(df[c], categories=uc.categories)
+                df2[c] = pd.Categorical(df2[c], categories=uc.categories)
+
         df.update(df2)
 
         # avoid needlessly changing int columns to float
@@ -426,7 +446,7 @@ def auto_opt_pd_dtypes(
                 else:
                     df[col] = pd.to_numeric(df[col], downcast="float")
         # Skip if the column is already categorical
-        if pd.api.types.is_categorical_dtype(dtype):
+        if isinstance(dtype, pd.CategoricalDtype):
             continue
         # Handle integer types
         if pd.api.types.is_integer_dtype(dtype):

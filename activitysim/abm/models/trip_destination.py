@@ -59,9 +59,6 @@ class TripDestinationSettings(LocationComponentSettings, extra="forbid"):
     PRIMARY_ORIGIN: str = "origin"
     PRIMARY_DEST: str = "tour_leg_dest"  # must be created in preprocessor
     REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS: list[str] | None = None
-    preprocessor: PreprocessorSettings | None = None
-    alts_preprocessor_sample: PreprocessorSettings | None = None
-    alts_preprocessor_simulate: PreprocessorSettings | None = None
     CLEANUP: bool
     fail_some_trips_for_testing: bool = False
     """This setting is used by testing code to force failed trip_destination."""
@@ -203,14 +200,16 @@ def _destination_sample(
 
     log_alt_losers = state.settings.log_alt_losers
 
-    if model_settings.alts_preprocessor_sample:
-        expressions.assign_columns(
-            state,
-            df=alternatives,
-            model_settings=model_settings.alts_preprocessor_sample,
-            locals_dict=locals_dict,
-            trace_label=tracing.extend_trace_label(trace_label, "alts"),
-        )
+    # preprocessing alternatives
+    expressions.annotate_preprocessors(
+        state,
+        df=alternatives,
+        locals_dict=locals_dict,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_sample",
+    )
 
     choices = interaction_sample(
         state,
@@ -951,14 +950,16 @@ def trip_destination_simulate(
     )
     locals_dict.update(skims)
 
-    if model_settings.alts_preprocessor_simulate:
-        expressions.assign_columns(
-            state,
-            df=destination_sample,
-            model_settings=model_settings.alts_preprocessor_simulate,
-            locals_dict=locals_dict,
-            trace_label=tracing.extend_trace_label(trace_label, "alts"),
-        )
+    # preprocessing alternatives
+    expressions.annotate_preprocessors(
+        state,
+        df=destination_sample,
+        locals_dict=locals_dict,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_simulate",
+    )
 
     log_alt_losers = state.settings.log_alt_losers
     destinations = interaction_sample_simulate(
@@ -1393,15 +1394,15 @@ def run_trip_destination(
             }
             locals_dict.update(model_settings.CONSTANTS)
 
-            # - annotate nth_trips
-            if preprocessor_settings:
-                expressions.assign_columns(
-                    state,
-                    df=nth_trips,
-                    model_settings=preprocessor_settings,
-                    locals_dict=locals_dict,
-                    trace_label=nth_trace_label,
-                )
+            # preprocessing choosers
+            expressions.annotate_preprocessors(
+                state,
+                df=nth_trips,
+                locals_dict=locals_dict,
+                skims=None,
+                model_settings=model_settings,
+                trace_label=trace_label,
+            )
 
             if isinstance(
                 nth_trips["trip_period"].dtype, pd.api.types.CategoricalDtype
@@ -1687,3 +1688,11 @@ def trip_destination(
         if state.is_table(sample_table_name):
             raise RuntimeError("sample table %s already exists" % sample_table_name)
         state.extend_table(sample_table_name, save_sample_df)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

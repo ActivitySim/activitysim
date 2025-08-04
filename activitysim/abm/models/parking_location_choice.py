@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -327,7 +328,14 @@ class ParkingLocationSettings(LogitComponentSettings, extra="forbid"):
     """The school escort model does not use this setting, see `SPECIFICATION`."""
 
     PREPROCESSOR: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
+    """Setting for the preprocessor.
+    Runs before the choosers are filtered by the CHOOSER_FILTER_COLUMN_NAME.
+    Deprecated name -- use `preprocessor` instead.
+    """
+
+    alts_preprocessor: PreprocessorSettings | None = None
+    """Setting for the alternatives (aka landuse zones) preprocessor.
+    Runs before the alternatives are filtered by the ALTERNATIVE_FILTER_COLUMN_NAME."""
 
     ALT_DEST_COL_NAME: str = "parking_zone"
     """Parking destination column name."""
@@ -364,6 +372,19 @@ class ParkingLocationSettings(LogitComponentSettings, extra="forbid"):
     If less than 1, use this fraction of the total number of rows.
     """
 
+    def __init__(self, **data):
+        # Handle deprecated ALTS_PREPROCESSOR
+        if "PREPROCESSOR" in data:
+            warnings.warn(
+                "The 'PREPROCESSOR' setting is deprecated. Please use 'preprocessor' (lowercase) instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            # If both are provided, prefer the lowercase version
+            if "preprocessor" not in data:
+                data["preprocessor"] = data["PREPROCESSOR"]
+        super().__init__(**data)
+
 
 @workflow.step
 def parking_location(
@@ -389,8 +410,6 @@ def parking_location(
 
     trace_hh_id = state.settings.trace_hh_id
     alt_destination_col_name = model_settings.ALT_DEST_COL_NAME
-
-    preprocessor_settings = model_settings.PREPROCESSOR
 
     trips_df = trips
     trips_merged_df = trips_merged
@@ -418,14 +437,28 @@ def parking_location(
     if constants is not None:
         locals_dict.update(constants)
 
-    if preprocessor_settings:
-        expressions.assign_columns(
-            state,
-            df=trips_merged_df,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label,
-        )
+    # putting preprocessor and alts preprocessor here so that they are run before
+    # the filter columns are applied so the user can use the preprocessor to add filter
+    # preprocessing choosers
+    expressions.annotate_preprocessors(
+        state,
+        df=trips_merged_df,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
+    # preprocessing alternatives
+    expressions.annotate_preprocessors(
+        state,
+        df=land_use_df,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor",
+    )
 
     parking_locations, save_sample_df = run_parking_destination(
         state,
@@ -469,3 +502,11 @@ def parking_location(
         if state.is_table(sample_table_name):
             raise RuntimeError("sample table %s already exists" % sample_table_name)
         state.extend_table(sample_table_name, save_sample_df)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

@@ -157,11 +157,13 @@ github-action = [
     "dask==2023.11",
     "isort==5.12.0",
     "nbmake==1.4.6",
+    "pydot>=4.0.1",
     "pytest==7.2",
     "pytest-cov",
     "pytest-regressions",
     "requests>=2.32.3",
     "ruff",
+    "xlsxwriter==3.2.5",
     "zarr>=2,<3",
     "zstandard",
 ]

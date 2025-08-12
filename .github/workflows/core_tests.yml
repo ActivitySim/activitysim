@@ -332,6 +332,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
@@ -339,24 +344,24 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
-      - name: "Set up Python"
-        uses: actions/setup-python@v5
-        with:
-          python-version-file: ".python-version"
+      - name: setup graphviz
+        uses: ts-graphviz/setup-graphviz@v2
 
       - name: Install activitysim
         run: |
-          uv sync --locked --only-group github-action
+          uv sync --locked --group github-action
 
       - name: Create Estimation Data
-        run: |
-          .venv\Scripts\python activitysim/examples/example_estimation/notebooks/est_mode_setup.py --household_sample_size 5000
+        run: >
+          uv run --group github-action python activitysim/examples/example_estimation/notebooks/est_mode_setup.py 
+          --household_sample_size 5000
 
       - name: Test Estimation Notebooks
-        run: |
-          uv run pytest activitysim/examples/example_estimation/notebooks/*.ipynb \
-            --nbmake-timeout=3000 \
-            --ignore=activitysim/examples/example_estimation/notebooks/01_estimation_mode.ipynb
+        run: >
+          uv run --group github-action pytest activitysim/examples/example_estimation/notebooks 
+          --nbmake-timeout=3000 
+          --ignore=activitysim/examples/example_estimation/notebooks/01_estimation_mode.ipynb 
+          --ignore-glob=activitysim/examples/example_estimation/notebooks/test-estimation-data/**
 
   estimation_edb_creation:
     needs: foundation

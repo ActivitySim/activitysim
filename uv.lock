@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.12'",
@@ -104,11 +104,13 @@ github-action = [
     { name = "dask" },
     { name = "isort" },
     { name = "nbmake" },
+    { name = "pydot" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-regressions" },
     { name = "requests" },
     { name = "ruff" },
+    { name = "xlsxwriter" },
     { name = "zarr", version = "2.18.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "zarr", version = "2.18.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "zstandard" },
@@ -195,11 +197,13 @@ github-action = [
     { name = "dask", specifier = "==2023.11" },
     { name = "isort", specifier = "==5.12.0" },
     { name = "nbmake", specifier = "==1.4.6" },
+    { name = "pydot", specifier = ">=4.0.1" },
     { name = "pytest", specifier = "==7.2" },
     { name = "pytest-cov" },
     { name = "pytest-regressions" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "ruff" },
+    { name = "xlsxwriter", specifier = "==3.2.5" },
     { name = "zarr", specifier = ">=2,<3" },
     { name = "zstandard" },
 ]
@@ -3144,6 +3148,18 @@ wheels = [
 ]
 
 [[package]]
+name = "pydot"
+version = "4.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyparsing" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/50/35/b17cb89ff865484c6a20ef46bf9d95a5f07328292578de0b295f4a6beec2/pydot-4.0.1.tar.gz", hash = "sha256:c2148f681c4a33e08bf0e26a9e5f8e4099a82e0e2a068098f32ce86577364ad5", size = 162594, upload-time = "2025-06-17T20:09:56.454Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7e/32/a7125fb28c4261a627f999d5fb4afff25b523800faed2c30979949d6facd/pydot-4.0.1-py3-none-any.whl", hash = "sha256:869c0efadd2708c0be1f916eb669f3d664ca684bc57ffb7ecc08e70d5e93fee6", size = 37087, upload-time = "2025-06-17T20:09:55.25Z" },
+]
+
+[[package]]
 name = "pygments"
 version = "2.19.1"
 source = { registry = "https://pypi.org/simple" }
@@ -4903,6 +4919,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/9b/29/37761364e137db13898cf5a790574dd7883f7355d5dfb42b66ee7a9a6318/xarray-2025.4.0.tar.gz", hash = "sha256:2a89cd6a1dfd589aa90ac45f4e483246f31fc641836db45dd2790bb78bd333dc", size = 2974151, upload-time = "2025-04-29T23:27:59.238Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a4/1e/96fd96419fec1a37da998a1ca3d558f2cae2f6f3cd5015170371b05a2b6b/xarray-2025.4.0-py3-none-any.whl", hash = "sha256:b27defd082c5cb85d32c695708de6bb05c2838fb7caaf3f952982e602a35b9b8", size = 1290171, upload-time = "2025-04-29T23:27:57.059Z" },
+]
+
+[[package]]
+name = "xlsxwriter"
+version = "3.2.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a7/47/7704bac42ac6fe1710ae099b70e6a1e68ed173ef14792b647808c357da43/xlsxwriter-3.2.5.tar.gz", hash = "sha256:7e88469d607cdc920151c0ab3ce9cf1a83992d4b7bc730c5ffdd1a12115a7dbe", size = 213306, upload-time = "2025-06-17T08:59:14.619Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fa/34/a22e6664211f0c8879521328000bdcae9bf6dbafa94a923e531f6d5b3f73/xlsxwriter-3.2.5-py3-none-any.whl", hash = "sha256:4f4824234e1eaf9d95df9a8fe974585ff91d0f5e3d3f12ace5b71e443c1c6abd", size = 172347, upload-time = "2025-06-17T08:59:13.453Z" },
 ]
 
 [[package]]

@@ -128,6 +128,8 @@ jobs:
         run: |
           uv run pytest --pyargs activitysim.cli
 
+      - run: uv run pytest test/test_skim_name_conflicts.py
+      - run: uv run pytest test/random_seed/test_random_seed.py
 
   builtin_regional_models:
     needs: foundation

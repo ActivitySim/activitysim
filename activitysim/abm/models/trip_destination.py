@@ -1108,16 +1108,21 @@ def choose_trip_destination(
         return pd.Series(index=trips.index).to_frame("choice"), None
 
     # - compute logsums
-    destination_sample = compute_logsums(
-        state,
-        primary_purpose=primary_purpose,
-        trips=trips,
-        destination_sample=destination_sample,
-        tours_merged=tours_merged,
-        model_settings=model_settings,
-        skim_hotel=skim_hotel,
-        trace_label=trace_label,
-    )
+    # If LOGSUM_SETTINGS is set to None, we don't want to compute logsums
+    if model_settings.LOGSUM_SETTINGS:
+        destination_sample = compute_logsums(
+            state,
+            primary_purpose=primary_purpose,
+            trips=trips,
+            destination_sample=destination_sample,
+            tours_merged=tours_merged,
+            model_settings=model_settings,
+            skim_hotel=skim_hotel,
+            trace_label=trace_label,
+        )
+    else:
+        destination_sample["od_logsum"] = 0.0
+        destination_sample["dp_logsum"] = 0.0
 
     t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0)
 
@@ -1327,9 +1332,14 @@ def run_trip_destination(
             state.filesystem, model_settings_file_name
         )
     preprocessor_settings = model_settings.preprocessor
-    logsum_settings = state.filesystem.read_model_settings(
-        model_settings.LOGSUM_SETTINGS
-    )
+
+    # read in logsum settings if they exist, otherwise logsum calculations are skipped
+    if model_settings.LOGSUM_SETTINGS:
+        logsum_settings = state.filesystem.read_model_settings(
+            model_settings.LOGSUM_SETTINGS
+        )
+    else:
+        logsum_settings = None
 
     logsum_column_name = model_settings.DEST_CHOICE_LOGSUM_COLUMN_NAME
     want_logsums = logsum_column_name is not None
@@ -1399,7 +1409,9 @@ def run_trip_destination(
 
     # - filter tours_merged (AFTER copying destination and origin columns to trips)
     # tours_merged is used for logsums, we filter it here upfront to save space and time
-    tours_merged_cols = logsum_settings["TOURS_MERGED_CHOOSER_COLUMNS"]
+    tours_merged_cols = (
+        logsum_settings["TOURS_MERGED_CHOOSER_COLUMNS"] if logsum_settings else []
+    )
     redundant_cols = model_settings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS or []
     if redundant_cols:
         tours_merged_cols = [c for c in tours_merged_cols if c not in redundant_cols]

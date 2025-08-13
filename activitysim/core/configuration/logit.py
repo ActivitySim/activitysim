@@ -220,8 +220,11 @@ class LocationComponentSettings(BaseLogitComponentSettings):
     Truth alternative will be included in the sample.
     """
 
-    LOGSUM_SETTINGS: Path
-    """Settings for the logsum computation."""
+    LOGSUM_SETTINGS: Path | None = None
+    """
+    Settings for the logsum computation.
+    If None, no logsum is computed and logsum field is populated with zeros.
+    """
 
     explicit_chunk: float = 0
     """

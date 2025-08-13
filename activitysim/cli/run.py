@@ -8,6 +8,7 @@ import logging
 import os
 import sys
 import warnings
+from datetime import datetime
 
 import numpy as np
 
@@ -25,6 +26,7 @@ INJECTABLES = [
     "cache_dir",
     "settings_file_name",
     "imported_extensions",
+    "run_timestamp",
 ]
 
 
@@ -278,6 +280,14 @@ def run(args):
 
     if state.settings.rotate_logs:
         state.logging.rotate_log_directory()
+
+    # set a run timestamp
+    timestamp = state.get("run_timestamp", None)
+    if timestamp is None:
+        # if no run timestamp, use current time, and store it so
+        # it can be used later in the same run
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        state.set("run_timestamp", timestamp)
 
     if state.settings.memory_profile and not state.settings.multiprocess:
         # Memory sidecar is only useful for single process runs

@@ -218,8 +218,13 @@ class AnalyzeEvalTiming:
                     d = pd.concat([d, d_mp])
 
         # break trace labels into components and subcomponents
-        d["Subcomponent"] = d["Component"].str.split(".", n=1).str[1]
-        d["Component"] = d["Component"].str.split(".", n=1).str[0]
+        try:
+            d["Subcomponent"] = d["Component"].str.split(".", n=1).str[1]
+            d["Component"] = d["Component"].str.split(".", n=1).str[0]
+        except TypeError:
+            # if the component is not a string, we cannot split it
+            d["Subcomponent"] = ""
+            d["Component"] = d["Component"].astype(str)
         self.data = d[
             ["Time (µsec)", "Proc", "Component", "Subcomponent", "Expression"]
         ]

@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.4.1" />
-    <meta name="docbuild:last-update" content="Jul 31, 2025"/>
+    <meta name="docbuild:last-update" content="Aug 13, 2025"/>
   </head>
   
   
@@ -503,7 +503,7 @@ to write logsums for estimation.</p>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ESTIMATION_SAMPLE_SIZE</span> <span class="pre">(int)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">IN_PERIOD</span> <span class="pre">(int</span> <span class="pre">|</span> <span class="pre">dict[str,</span> <span class="pre">int]</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGSUM_PREPROCESSOR</span> <span class="pre">(str)</span></code></p></li>
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGSUM_SETTINGS</span> <span class="pre">(Path)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGSUM_SETTINGS</span> <span class="pre">(Path</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGSUM_TOUR_PURPOSE</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">dict[str,</span> <span class="pre">str]</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">MODELED_SIZE_TABLE</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">MODEL_SELECTOR</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
@@ -721,8 +721,9 @@ but this setting is still helpful for estimation mode runtime.</p>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings.LOGSUM_SETTINGS">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LOGSUM_SETTINGS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Path</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings.LOGSUM_SETTINGS" title="Permalink to this definition">#</a></dt>
-<dd><p>Settings for the logsum computation.</p>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LOGSUM_SETTINGS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.joint_tour_destination.TourLocationComponentSettings.LOGSUM_SETTINGS" title="Permalink to this definition">#</a></dt>
+<dd><p>Settings for the logsum computation.
+If None, no logsum is computed and logsum field is populated with zeros.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1239,7 +1240,7 @@ person that’s making the tour)</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev5+g6a553fc3, documentation last updated Jul 31, 2025.<br/>
+ActivitySim 1.4.1.dev6+g2529e60a, documentation last updated Aug 13, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

@@ -14,6 +14,8 @@ import numpy as np
 from activitysim.core import chunk, config, mem, tracing, workflow
 from activitysim.core.configuration import FileSystem, Settings
 
+from activitysim.abm.models.settings_checker import check_model_settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -283,7 +285,7 @@ def run(args):
         # Memory sidecar is only useful for single process runs
         # multiprocess runs log memory usage without blocking in the controlling process.
         mem_prof_log = state.get_log_file_path("memory_profile.csv")
-        from ..core.memory_sidecar import MemorySidecar
+        from activitysim.core.memory_sidecar import MemorySidecar
 
         memory_sidecar_process = MemorySidecar(mem_prof_log)
     else:
@@ -372,6 +374,28 @@ def run(args):
                     logger.info(f"NUMPY {cfg_key} {info_key}: {info[info_key]}")
 
     t0 = tracing.print_elapsed_time()
+
+    if state.settings.check_model_settings == True:
+        logger.info(
+            "Settings checker will check core settings files. See settings_checker.log for details."
+        )
+        # get any additional settings definitions from extensions
+        extension_checker_settings = {}
+        extension_names = state.get_injectable("imported_extensions")
+        if extension_names:
+            for ext in extension_names:
+                try:
+                    settings_checker_ext = importlib.import_module(
+                        ext + ".settings_checker"
+                    )
+                    extension_checker_settings.update(
+                        settings_checker_ext.EXTENSION_CHECKER_SETTINGS
+                    )
+                except ImportError:
+                    logger.warning(
+                        f"Extension {ext} does not have a settings_checker module or it cannot be imported."
+                    )
+        check_model_settings(state, extension_settings=extension_checker_settings)
 
     try:
         if state.settings.multiprocess:

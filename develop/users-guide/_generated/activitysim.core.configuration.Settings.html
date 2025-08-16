@@ -63,7 +63,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.4.1" />
-    <meta name="docbuild:last-update" content="Aug 13, 2025"/>
+    <meta name="docbuild:last-update" content="Aug 16, 2025"/>
   </head>
   
   
@@ -368,6 +368,7 @@ the model.</p>
 <dd class="field-even"><ul class="simple">
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">benchmarking</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_for_variability</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_model_settings</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">checkpoint_format</span> <span class="pre">(Literal['hdf',</span> <span class="pre">'parquet'])</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">checkpoints</span> <span class="pre">(bool</span> <span class="pre">|</span> <span class="pre">list)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">chunk_method</span> <span class="pre">(Literal['bytes',</span> <span class="pre">'uss',</span> <span class="pre">'hybrid_uss',</span> <span class="pre">'rss',</span> <span class="pre">'hybrid_rss'])</span></code></p></li>
@@ -467,6 +468,20 @@ neither integral to that component nor necessarily stable over replication.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.check_model_settings">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">check_model_settings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.check_model_settings" title="Permalink to this definition">#</a></dt>
+<dd><p>run checks to validate that YAML settings files are loadable and spec and coefficent csv can be resolved.</p>
+<p>should catch many common errors early, including missing required configurations or specified coefficient labels without defined values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_store_skims_in_shm</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.checkpoint_format">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkpoint_format</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'hdf'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'parquet'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'parquet'</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.checkpoint_format" title="Permalink to this definition">#</a></dt>
 <dd><p>Storage format to use when saving checkpoint files.</p>
@@ -537,8 +552,8 @@ memory occupied by a process that is held in RAM.</p>
 </dl>
 </li>
 </ul>
-<p>RSS is reported by <a class="reference external" href="https://psutil.readthedocs.io/en/latest/index.html#psutil.Process.memory_info" title="(in psutil v7.0.1)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">psutil.Process.memory_info()</span></code></a> and USS is reported by
-<a class="reference external" href="https://psutil.readthedocs.io/en/latest/index.html#psutil.Process.memory_full_info" title="(in psutil v7.0.1)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">psutil.Process.memory_full_info()</span></code></a>.  USS is the memory which is private to
+<p>RSS is reported by <a class="reference external" href="https://psutil.readthedocs.io/en/latest/index.html#psutil.Process.memory_info" title="(in psutil v7.1.0)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">psutil.Process.memory_info()</span></code></a> and USS is reported by
+<a class="reference external" href="https://psutil.readthedocs.io/en/latest/index.html#psutil.Process.memory_full_info" title="(in psutil v7.1.0)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">psutil.Process.memory_full_info()</span></code></a>.  USS is the memory which is private to
 a process and which would be freed if the process were terminated.  This is
 the metric that most closely matches the rather vague notion of memory
 “in use” (the meaning of which is difficult to pin down in operating systems
@@ -1405,6 +1420,7 @@ recoding).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings"><code class="docutils literal notranslate"><span class="pre">Settings</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.benchmarking"><code class="docutils literal notranslate"><span class="pre">Settings.benchmarking</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.check_for_variability"><code class="docutils literal notranslate"><span class="pre">Settings.check_for_variability</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.check_model_settings"><code class="docutils literal notranslate"><span class="pre">Settings.check_model_settings</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.checkpoint_format"><code class="docutils literal notranslate"><span class="pre">Settings.checkpoint_format</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.checkpoints"><code class="docutils literal notranslate"><span class="pre">Settings.checkpoints</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.chunk_method"><code class="docutils literal notranslate"><span class="pre">Settings.chunk_method</span></code></a></li>
@@ -1493,7 +1509,7 @@ recoding).</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev6+g2529e60a, documentation last updated Aug 13, 2025.<br/>
+ActivitySim 1.4.1.dev7+g1514a51a6, documentation last updated Aug 16, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

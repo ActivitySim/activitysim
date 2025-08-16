@@ -1,5 +1,8 @@
-SPEC: tour_scheduling_nonmandatory.csv
-COEFFICIENTS: tour_scheduling_nonmandatory_coeffs.csv
+# Should not specify both general SPEC and SPEC_SEGMENTS.SPEC 
+# SPEC: tour_scheduling_nonmandatory.csv
+
+# Should not specify both COEFFICENTS and SPEC_SEGMENTS
+# COEFFICIENTS: tour_scheduling_nonmandatory_coeffs.csv
 
 LOGIT_TYPE: MNL
 

@@ -84,7 +84,12 @@ the profiler will still show that the expression took 0.8 seconds to evaluate, e
 though the total wall clock time taken to evaluate the expression across all processes
 was only 0.1 seconds.
 
-Profiling expressions also adds some overhead to the model run, so users should
+Profiling expressions also adds some overhead to the model run, increasing the
+total runtime of the model by a modest but noticeable amount. In consortium
+[experiments](https://github.com/ActivitySim/activitysim/pull/936#issuecomment-3165410169)
+with this tool, runtime for the full-scale SANDAG model was found to
+increase by approximately 12.5% when the profiler was enabled, adding more than
+13 minutes to a model run that already took 105 minutes. Users should thus
 be careful about using the profiler in production runs.  It is recommended turn off
 the profiler in production runs, and only use it for debugging and development.
 

@@ -21,6 +21,7 @@ from activitysim.core import (
     configuration,
     logit,
     pathbuilder,
+    timing,
     tracing,
     util,
     workflow,
@@ -628,6 +629,22 @@ def eval_utilities(
     if utilities is None or estimator or sharrow_enabled == "test":
         trace_label = tracing.extend_trace_label(trace_label, "eval_utils")
 
+        if (
+            state.settings.expression_profile
+            and compute_settings.performance_log is None
+        ):
+            perf_log_file = Path(trace_label + ".log")
+        elif (
+            state.settings.expression_profile is False
+            or compute_settings.performance_log is False
+        ):
+            perf_log_file = None
+        elif compute_settings.performance_log is True:
+            perf_log_file = Path(trace_label + ".log")
+        else:
+            perf_log_file = compute_settings.performance_log
+        performance_timer = timing.EvalTiming(perf_log_file)
+
         # avoid altering caller's passed-in locals_d parameter (they may be looping)
         locals_dict = assign.local_utilities(state)
 
@@ -654,10 +671,13 @@ def eval_utilities(
                     with warnings.catch_warnings(record=True) as w:
                         # Cause all warnings to always be triggered.
                         warnings.simplefilter("always")
-                        if expr.startswith("@"):
-                            expression_value = eval(expr[1:], globals_dict, locals_dict)
-                        else:
-                            expression_value = fast_eval(choosers, expr)
+                        with performance_timer.time_expression(expr):
+                            if expr.startswith("@"):
+                                expression_value = eval(
+                                    expr[1:], globals_dict, locals_dict
+                                )
+                            else:
+                                expression_value = fast_eval(choosers, expr)
 
                         if len(w) > 0:
                             for wrn in w:
@@ -686,6 +706,7 @@ def eval_utilities(
                 expression_values[i] = expression_value
                 i += 1
 
+        performance_timer.write_log(state)
         chunk_sizer.log_df(trace_label, "expression_values", expression_values)
 
         if estimator:
@@ -847,7 +868,9 @@ def eval_utilities(
     return utilities
 
 
-def eval_variables(state: workflow.State, exprs, df, locals_d=None):
+def eval_variables(
+    state: workflow.State, exprs, df, locals_d=None, trace_label: str | None = None
+):
     """
     Evaluate a set of variable expressions from a spec in the context
     of a given data table.
@@ -874,6 +897,9 @@ def eval_variables(state: workflow.State, exprs, df, locals_d=None):
     locals_d : Dict
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
+    trace_label : str
+        The trace label to use for performance logging. If None, performance
+        logging is not activated.
 
     Returns
     -------
@@ -908,13 +934,20 @@ def eval_variables(state: workflow.State, exprs, df, locals_d=None):
 
         return a
 
+    if state.settings.expression_profile and trace_label:
+        perf_log_file = Path(trace_label + ".log")
+    else:
+        perf_log_file = None
+    performance_timer = timing.EvalTiming(perf_log_file)
+
     values = OrderedDict()
     for expr in exprs:
         try:
-            if expr.startswith("@"):
-                expr_values = to_array(eval(expr[1:], globals_dict, locals_dict))
-            else:
-                expr_values = to_array(fast_eval(df, expr))
+            with performance_timer.time_expression(expr):
+                if expr.startswith("@"):
+                    expr_values = to_array(eval(expr[1:], globals_dict, locals_dict))
+                else:
+                    expr_values = to_array(fast_eval(df, expr))
             # read model spec should ensure uniqueness, otherwise we should uniquify
             assert expr not in values
             values[expr] = expr_values

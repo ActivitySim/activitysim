@@ -234,6 +234,28 @@ class ComputeSettings(PydanticBase):
         else:
             yield
 
+    performance_log: Path | bool | None = None
+    """Log runtime performance to this file.
+
+    The runtime performance log shows the time taken to evaluate each
+    expression in the specification files.  It is useful for debugging
+    performance issues with complex expressions.
+
+    Giving a filename here will override the global performance logging
+    setting, and will log performance to the specified file, unless the
+    global performance logging setting is set to `False`, in which case
+    no performance logging will be done for any component.
+
+    If set to `True`, performance logging will be activated, and the filename
+    will be chosen based on the trace label for this component.
+
+    If this path is set to None (the default), performance logging will be
+    activated based on the global performance logging setting, and the filename
+    will be chosen based on the trace label for this component.  This is strongly
+    recommended for most use cases, unless the trace label causes the filename
+    to be too long or otherwise unsuitable for the filesystem.
+    """
+
     def subcomponent_settings(self, subcomponent: str) -> ComputeSettings:
         """Get the sharrow settings for a particular subcomponent."""
         return ComputeSettings(

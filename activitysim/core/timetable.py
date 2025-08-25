@@ -176,7 +176,6 @@ def _available_run_length_2(
     available[0] = 0
     available[-1] = 0
     for row in range(num_rows):
-
         row_ix = window_row_mapper[window_row_id_values[row]]
         window_row = windows[row_ix]
         for j in range(1, num_cols - 1):
@@ -205,7 +204,6 @@ def _available_run_length_2(
 
 
 def tour_map(persons, tours, tdd_alts, persons_id_col="person_id"):
-
     sigil = {
         "empty": "   ",
         "overlap": "+++",
@@ -251,7 +249,6 @@ def tour_map(persons, tours, tdd_alts, persons_id_col="person_id"):
     window_periods_df = pd.DataFrame(data=window_periods, index=tdd_alts.index)
 
     for keys, nth_tours in tours.groupby(["tour_type", "tour_type_num"], sort=True):
-
         tour_type = keys[0]
         tour_sigil = sigil[tour_type]
 
@@ -430,7 +427,6 @@ class TimeTable(object):
         return windows
 
     def slice_windows_by_row_id_and_period(self, window_row_ids, periods):
-
         # row ixs of tour_df group rows in windows
         row_ixs = self.window_row_ix.apply_to(window_row_ids)
 
@@ -442,7 +438,6 @@ class TimeTable(object):
         return windows
 
     def get_windows_df(self):
-
         # It appears that assignments into windows write through to underlying pandas table.
         # because we set windows = windows_df.values, and since all the columns are the same type
         # so no need to refresh pandas dataframe, but if we had to it would go here
@@ -611,14 +606,12 @@ class TimeTable(object):
         self.windows[row_ixs] = np.bitwise_or(self.windows[row_ixs], footprints)
 
     def pairwise_available(self, window1_row_ids, window2_row_ids):
-
         available1 = (self.slice_windows_by_row_id(window1_row_ids) != I_MIDDLE) * 1
         available2 = (self.slice_windows_by_row_id(window2_row_ids) != I_MIDDLE) * 1
 
         return available1 * available2
 
     def individually_available(self, window_row_ids):
-
         return (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE) * 1
 
     def adjacent_window_run_length(self, window_row_ids, periods, before):

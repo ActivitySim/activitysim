@@ -128,7 +128,6 @@ class Logging(StateAccessor):
             logger.log(basic, "Configured logging using basicConfig")
 
     def rotate_log_directory(self):
-
         output_dir = self._obj.filesystem.get_output_dir()
         log_dir = output_dir.joinpath("log")
         if not log_dir.exists():

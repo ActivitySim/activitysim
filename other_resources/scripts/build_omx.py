@@ -3,6 +3,8 @@
 # See full license in LICENSE.txt.
 # run from the mtc tm1 skims folder
 
+from __future__ import annotations
+
 import os
 
 import openmatrix as omx
@@ -10,7 +12,6 @@ import pandas as pd
 
 
 def read_manifest(manifest_file_name):
-
     column_map = {
         "Token": "skim_key1",
         "TimePeriod": "skim_key2",
@@ -29,9 +30,7 @@ def read_manifest(manifest_file_name):
 
 
 def omx_getMatrix(omx_file_name, omx_key):
-
     with omx.open_file(omx_file_name, "r") as omx_file:
-
         if omx_key not in omx_file.list_matrices():
             print(
                 "Source matrix with key '%s' not found in file '%s"
@@ -62,11 +61,9 @@ manifest_file_name = os.path.join(manifest_dir, "skim_manifest.csv")
 dest_file_name = os.path.join(dest_data_dir, "skims.omx")
 
 with omx.open_file(dest_file_name, "a") as dest_omx:
-
     manifest = read_manifest(manifest_file_name)
 
     for row in manifest.itertuples(index=True):
-
         source_file_name = os.path.join(source_data_dir, row.source_file_name)
 
         if row.skim_key2:
@@ -83,7 +80,6 @@ with omx.open_file(dest_file_name, "a") as dest_omx:
             )
         )
         with omx.open_file(source_file_name, "r") as source_omx:
-
             if row.source_key not in source_omx.list_matrices():
                 print(
                     "Source matrix with key '%s' not found in file '%s"

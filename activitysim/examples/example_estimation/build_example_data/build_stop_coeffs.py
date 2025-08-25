@@ -1,5 +1,7 @@
 #  python ~/work/activitysim/activitysim/examples/example_estimation/build_example_data/build_stop_coeffs.py
 
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 
@@ -18,7 +20,6 @@ for what in [
     "othmaint",
     "othdiscr",
 ]:
-
     if FIRST_RUN:
         df = pd.read_csv(f"stop_frequency_{what}.csv", comment="#")
         df.to_csv(f"stop_frequency_backup_{what}.csv", index=False)

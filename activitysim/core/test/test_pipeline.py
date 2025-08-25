@@ -18,7 +18,6 @@ HH_ID = 961042
 
 @pytest.fixture
 def state():
-
     configs_dir = os.path.join(os.path.dirname(__file__), "configs")
     output_dir = os.path.join(os.path.dirname(__file__), "output")
     data_dir = os.path.join(os.path.dirname(__file__), "data")
@@ -38,7 +37,6 @@ def state():
 
 
 def close_handlers():
-
     loggers = logging.Logger.manager.loggerDict
     for name in loggers:
         logger = logging.getLogger(name)
@@ -49,7 +47,6 @@ def close_handlers():
 
 # @pytest.mark.filterwarnings('ignore::tables.NaturalNameWarning')
 def test_pipeline_run(state):
-
     # workflow.step(steps.step1, step_name="step1")
     # workflow.step(steps.step2, step_name="step2")
     # workflow.step(steps.step3, step_name="step3")
@@ -93,7 +90,6 @@ def test_pipeline_run(state):
 
 
 def test_pipeline_checkpoint_drop(state):
-
     # workflow.step(steps.step1, step_name="step1")
     # workflow.step(steps.step2, step_name="step2")
     # workflow.step(steps.step3, step_name="step3")

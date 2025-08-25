@@ -34,7 +34,6 @@ def example_path(dirname):
 
 
 def setup_dirs(ancillary_configs_dir=None, data_dir=None):
-
     # ancillary_configs_dir is used by run_mp to test multiprocess
 
     test_pipeline_configs_dir = os.path.join(os.path.dirname(__file__), "configs")
@@ -66,7 +65,6 @@ def setup_dirs(ancillary_configs_dir=None, data_dir=None):
 
 
 def close_handlers():
-
     loggers = logging.Logger.manager.loggerDict
     for name in loggers:
         logger = logging.getLogger(name)
@@ -76,7 +74,6 @@ def close_handlers():
 
 
 def test_rng_access():
-
     state = setup_dirs()
     state.settings.rng_base_seed = 0
 
@@ -90,7 +87,6 @@ def test_rng_access():
 
 
 def regress_mini_auto(state: workflow.State):
-
     # regression test: these are among the middle households in households table
     # should be the same results as in run_mp (multiprocessing) test case
     hh_ids = [1099626, 1173905, 1196298, 1286259]
@@ -123,7 +119,6 @@ def regress_mini_auto(state: workflow.State):
 
 
 def regress_mini_mtf(state: workflow.State):
-
     mtf_choice = (
         state.checkpoint.load_dataframe("persons").sort_index().mandatory_tour_frequency
     )
@@ -156,7 +151,6 @@ def regress_mini_mtf(state: workflow.State):
 
 
 def regress_mini_location_choice_logsums(state: workflow.State):
-
     persons = state.checkpoint.load_dataframe("persons")
 
     # DEST_CHOICE_LOGSUM_COLUMN_NAME is specified in school_location.yaml and should be assigned
@@ -168,7 +162,6 @@ def regress_mini_location_choice_logsums(state: workflow.State):
 
 
 def test_mini_pipeline_run():
-
     from activitysim.abm.tables.skims import network_los_preload
 
     state = setup_dirs()
@@ -217,7 +210,6 @@ def test_mini_pipeline_run():
 
 
 def test_mini_pipeline_run2():
-
     # the important thing here is that we should get
     # exactly the same results as for test_mini_pipeline_run
     # when we restart pipeline
@@ -270,7 +262,6 @@ def test_mini_pipeline_run2():
 
 
 def test_mini_pipeline_run3():
-
     # test that hh_ids setting overrides household sampling
 
     state = setup_dirs()
@@ -300,7 +291,6 @@ def full_run(
     trace_od=None,
     check_for_variability=False,
 ):
-
     state = setup_dirs()
 
     state.settings.households_sample_size = households_sample_size
@@ -328,7 +318,6 @@ EXPECT_TOUR_COUNT = 121
 
 
 def regress_tour_modes(tours_df):
-
     mode_cols = ["tour_mode", "person_id", "tour_type", "tour_num", "tour_category"]
 
     tours_df = tours_df[tours_df.household_id == HH_ID]
@@ -376,7 +365,6 @@ def regress_tour_modes(tours_df):
 
 
 def regress(state: workflow.State):
-
     persons_df = state.checkpoint.load_dataframe("persons")
     persons_df = persons_df[persons_df.household_id == HH_ID]
     print("persons_df\n%s" % persons_df[["value_of_time", "distance_to_work"]])
@@ -443,7 +431,6 @@ def regress(state: workflow.State):
 
 
 def test_full_run1():
-
     if SKIP_FULL_RUN:
         return
 
@@ -465,7 +452,6 @@ def test_full_run1():
 
 
 def test_full_run2():
-
     # resume_after should successfully load tours table and replicate results
 
     if SKIP_FULL_RUN:
@@ -485,7 +471,6 @@ def test_full_run2():
 
 
 def test_full_run3_with_chunks():
-
     # should get the same result with different chunk size
 
     if SKIP_FULL_RUN:
@@ -507,7 +492,6 @@ def test_full_run3_with_chunks():
 
 
 def test_full_run4_stability():
-
     # hh should get the same result with different sample size
 
     if SKIP_FULL_RUN:
@@ -523,7 +507,6 @@ def test_full_run4_stability():
 
 
 def test_full_run5_singleton():
-
     # should work with only one hh
     # run with minimum chunk size to drive potential chunking errors in models
     # where choosers has multiple rows that all have to be included in the same chunk
@@ -541,7 +524,6 @@ def test_full_run5_singleton():
 
 
 if __name__ == "__main__":
-
     print("running test_full_run1")
     test_full_run1()
     # teardown_function(None)

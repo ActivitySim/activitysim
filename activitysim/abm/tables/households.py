@@ -127,7 +127,6 @@ def households_merged(
     land_use: pd.DataFrame,
     accessibility: pd.DataFrame,
 ) -> pd.DataFrame:
-
     households = simple_table_join(
         households,
         land_use,

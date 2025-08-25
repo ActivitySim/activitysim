@@ -158,7 +158,7 @@ class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
     """
     Disaggreate accessibility table is grouped by the "by" cols above and the KEEP_COLS are averaged
     across the group.  Initializing the below as NA if not in the auto ownership level, they are skipped
-    in the groupby mean and the values are correct. 
+    in the groupby mean and the values are correct.
     (It's a way to avoid having to update code to reshape the table and introduce new functionality there.)
     If none, will keep all of the columns with "accessibility" in the name.
     """
@@ -435,6 +435,12 @@ class ProtoPop:
                     maz_candidates = maz_candidates[
                         ~maz_candidates.MAZ.isin(maz_sample_idx)
                     ]
+
+                    # Need to make sure we sample from TAZs that still exist in the maz_candidates
+                    taz_candidates = taz_candidates[
+                        taz_candidates.index.isin(maz_candidates.TAZ)
+                    ]
+
                     # Calculate the remaining samples to collect
                     n_samples_remaining = n_samples - len(maz_sample_idx)
                     n_samples_remaining = (
@@ -575,7 +581,7 @@ class ProtoPop:
         _expanded = pd.DataFrame(util.named_product(**index_params)).set_index("index")
 
         # Use result to join template onto expanded table of zones
-        ex_table = _expanded.join(master_template).reset_index()
+        ex_table = _expanded.join(master_template).sort_index().reset_index()
 
         # Concatenate a new unique set of ids
         cols = ["home_zone_id", "proto_household_id", "proto_person_id"]
@@ -589,9 +595,11 @@ class ProtoPop:
         for col, fill in col_filler.items():
             df_ids[col] = df_ids[col].str.zfill(fill)
 
-        ex_table["proto_person_id"] = df_ids[cols].apply("".join, axis=1).astype(int)
+        ex_table["proto_person_id"] = (
+            df_ids[cols].apply("".join, axis=1).astype(np.int64)
+        )
         ex_table["proto_household_id"] = (
-            df_ids[cols[:-1]].apply("".join, axis=1).astype(int)
+            df_ids[cols[:-1]].apply("".join, axis=1).astype(np.int64)
         )
 
         # Separate out into households, persons, tours
@@ -648,7 +656,9 @@ class ProtoPop:
                 .set_index("index")
                 .rename(columns={"hhid": hhid})
             )
-            persons = rep.join(persons).sort_values(hhid).reset_index(drop=True)
+            persons = (
+                rep.join(persons, sort=True).sort_values(hhid).reset_index(drop=True)
+            )
             persons[perid] = persons.index + 1
 
             # Assign persons to tours
@@ -724,6 +734,7 @@ class ProtoPop:
 
         perid = self.params["proto_persons"]["index_col"]
         persons_merged.set_index(perid, inplace=True, drop=True)
+        persons_merged = persons_merged.sort_index()
         self.proto_pop["proto_persons_merged"] = persons_merged
 
         # Store in pipeline
@@ -922,10 +933,6 @@ def compute_disaggregate_accessibility(
     for ch in list(state.get_rn_generator().channels.keys()):
         state.get_rn_generator().drop_channel(ch)
 
-    # Drop any prematurely added traceables
-    for trace in [x for x in state.tracing.traceable_tables if "proto_" not in x]:
-        state.tracing.deregister_traceable_table(trace)
-
     # # need to clear any premature tables that were added during the previous run
     for name in list(state.existing_table_status):
         if name not in tables_prior:
@@ -953,5 +960,9 @@ def compute_disaggregate_accessibility(
             ),
         )
         state.add_table(tablename, df)
+
+    # drop all proto-related tables and make way for synthetic population
+    for trace in state.tracing.traceable_tables:
+        state.tracing.deregister_traceable_table(trace)
 
     return

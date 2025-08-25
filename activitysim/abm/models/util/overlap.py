@@ -138,7 +138,6 @@ def p2p_time_window_overlap(state: workflow.State, p1_ids, p2_ids):
 
 
 def person_pairs(persons):
-
     p = persons[["household_id", "adult"]].reset_index()
     p2p = pd.merge(p, p, left_on="household_id", right_on="household_id", how="outer")
 
@@ -166,7 +165,6 @@ def person_pairs(persons):
 
 
 def hh_time_window_overlap(state: workflow.State, households, persons):
-
     p2p = person_pairs(persons)
 
     p2p["max_overlap"] = p2p_time_window_overlap(state, p2p.person1, p2p.person2)
@@ -189,7 +187,6 @@ def hh_time_window_overlap(state: workflow.State, households, persons):
 
 
 def person_time_window_overlap(state: workflow.State, persons):
-
     p2p = person_pairs(persons)
 
     p2p["max_overlap"] = p2p_time_window_overlap(state, p2p.person1, p2p.person2)
@@ -224,7 +221,6 @@ def person_time_window_overlap(state: workflow.State, persons):
 
 
 def person_max_window(state: workflow.State, persons):
-
     timetable = state.get_injectable("timetable")
 
     # ndarray with one row per person and one column per time period

@@ -508,6 +508,7 @@
   include:
     - production_semcog/extensions
     - production_semcog/data
+    - production_semcog/data_model
     - production_semcog/configs
     - production_semcog/configs_mp
     - production_semcog/output

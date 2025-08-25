@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import os
 
@@ -37,7 +39,6 @@ for mapping_name in omx_in.listMappings():
 
 
 for mat_name in omx_in.list_matrices():
-
     # make sure we have a vanilla numpy array, not a CArray
     m = np.asanyarray(omx_in[mat_name])
     print(f"{mat_name} {m.shape} {type(m[0,0])}")

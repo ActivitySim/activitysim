@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import yaml
-from larch import DataFrames, Model
-from larch.util import Dict
 
 from .general import (
     apply_coefficients,
@@ -13,6 +13,14 @@ from .general import (
     dict_of_linear_utility_from_spec,
     remove_apostrophes,
 )
+
+try:
+    import larch
+except ImportError:
+    larch = None
+else:
+    from larch import DataFrames, Model
+    from larch.util import Dict
 
 
 def stop_frequency_data(
@@ -143,7 +151,6 @@ def stop_frequency_model(
     models = []
 
     for n in range(len(data.spec)):
-
         coefficients = data.coefficients
         # coef_template = data.coef_template # not used
         spec = data.spec[n]

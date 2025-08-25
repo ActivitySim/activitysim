@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
@@ -13,7 +15,6 @@ HOUSEHOLDS_SAMPLE_SIZE = 100
 
 
 def test_mp_run():
-
     configs_dir = [example_path("configs_3_zone"), example_path("configs")]
     data_dir = example_path("data_3")
 
@@ -34,5 +35,4 @@ def test_mp_run():
 
 
 if __name__ == "__main__":
-
     test_mp_run()

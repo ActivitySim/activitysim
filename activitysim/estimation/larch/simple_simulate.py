@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import yaml
-from larch import DataFrames, Model
-from larch.util import Dict
+
+from activitysim.core.fast_eval import fast_eval
 
 from .general import (
     apply_coefficients,
@@ -13,6 +15,14 @@ from .general import (
     dict_of_linear_utility_from_spec,
     remove_apostrophes,
 )
+
+try:
+    import larch
+except ImportError:
+    larch = None
+else:
+    from larch import DataFrames, Model
+    from larch.util import Dict
 
 
 def construct_availability(model, chooser_data, alt_codes_to_names):
@@ -35,7 +45,7 @@ def construct_availability(model, chooser_data, alt_codes_to_names):
             (
                 chooser_data[i.data]
                 if i.data in chooser_data
-                else chooser_data.eval(i.data)
+                else fast_eval(chooser_data, i.data)
             )
             for i in model.utility_co[acode]
             if i.param == "-999"

@@ -21,7 +21,6 @@ def get_pipeline_definition(pipeline_name, parent):
         with open(workflow_file) as yaml_file:
             return pypyr.yaml.get_pipeline_yaml(yaml_file)
     else:
-
         return get_pipeline_definition(pipeline_name, parent)
 
 
@@ -53,7 +52,6 @@ def main(args):
         os.environ["NO_RICH"] = "1"
 
     with get_progress():
-
         try:
             import pypyr.log.logger
             import pypyr.pipelinerunner

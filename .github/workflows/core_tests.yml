@@ -9,15 +9,14 @@ on:
     branches:
       - '*'
 
+  workflow_dispatch:
+
 env:
-  CACHE_NUMBER: 2  # increase to reset cache manually
+  CACHE_NUMBER: 0  # increase to reset cache manually
 
 jobs:
   foundation:
 
-    strategy:
-      matrix:
-        python-version: ["3.10"]
     defaults:
       run:
         shell: bash -l {0}
@@ -26,63 +25,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Miniforge
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-            miniforge-version: latest
-            activate-environment: asim-test
-            python-version: ${{ matrix.python-version }}
+          version: "0.7.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-      - name: Set cache date for year and month
-        run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
-
-      - uses: actions/cache@v4
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
         with:
-          path: /usr/share/miniconda3/envs/asim-test
-          key: linux-64-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
-        id: cache
-
-      - name: Update environment
-        run: |
-          conda env update -n asim-test -f conda-environments/github-actions-tests.yml
-        if: steps.cache.outputs.cache-hit != 'true'
+          python-version-file: ".python-version"
 
       - name: Install activitysim
-        # installing without dependencies is faster, we trust that all needed dependencies
-        # are in the conda environment defined above.  Also, this avoids pip getting
-        # confused and reinstalling tables (pytables).
         run: |
-          python -m pip install -e . --no-deps
-
-      - name: Conda checkup
-        run: |
-          conda info -a
-          conda list
+          uv sync --locked --only-group github-action
 
       - name: Lint with Black
         run: |
           # stop the build if there are problems
-          black --check --diff .
+          uv run black --check --diff .
 
       - name: Test activitysim.core
         run: |
-          python -m pytest --pyargs activitysim.core
+          uv run pytest --pyargs activitysim.core
 
       - name: Test activitysim.abm.models
         run: |
-          python -m pytest --pyargs activitysim.abm.models
+          uv run pytest --pyargs activitysim.abm.models
 
       - name: Test activitysim.abm.test
         run: |
-          python -m pytest --pyargs activitysim.abm.test
+          uv run pytest --pyargs activitysim.abm.test
 
       - name: Test activitysim.cli
         run: |
-          python -m pytest --pyargs activitysim.cli
+          uv run pytest --pyargs activitysim.cli
 
       - name: Test activitysim.examples.test
         run: |
-          python -m pytest --pyargs activitysim.examples.test
+          uv run pytest --pyargs activitysim.examples.test
 
 
   cross-platform:
@@ -109,66 +91,51 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Miniforge
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-            miniforge-version: latest
-            activate-environment: asim-test
-            python-version: ${{ matrix.python-version }}
+          version: "0.7.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-      - name: Set cache date for year and month
-        run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
-
-      - uses: actions/cache@v4
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
         with:
-          path: ${{ env.CONDA }}/envs
-          key: ${{ matrix.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
-        id: cache
-
-      - name: Update environment
-        run: |
-          conda env update -n asim-test -f conda-environments/github-actions-tests.yml
-        if: steps.cache.outputs.cache-hit != 'true'
+          python-version-file: ".python-version"
 
       - name: Install activitysim
-        # installing without dependencies is faster, we trust that all needed dependencies
-        # are in the conda environment defined above.  Also, this avoids pip getting
-        # confused and reinstalling tables (pytables).
         run: |
-          python -m pip install -e . --no-deps
-
-      - name: Conda checkup
-        run: |
-          conda info -a
-          conda list
+          uv sync --locked --only-group github-action
 
       - name: Lint with Black
         run: |
           # stop the build if there are problems
-          black --check --diff .
+          uv run black --check --diff .
 
       - name: Test activitysim.core
         run: |
-          python -m pytest --pyargs activitysim.core
+          uv run pytest --pyargs activitysim.core
 
       - name: Test activitysim.abm.models
         run: |
-          python -m pytest --pyargs activitysim.abm.models
+          uv run pytest --pyargs activitysim.abm.models
 
       - name: Test activitysim.abm.test
         run: |
-          python -m pytest --pyargs activitysim.abm.test
+          uv run pytest --pyargs activitysim.abm.test
 
       - name: Test activitysim.cli
         run: |
-          python -m pytest --pyargs activitysim.cli
+          uv run pytest --pyargs activitysim.cli
 
+      - run: uv run pytest test/test_skim_name_conflicts.py
+      - run: uv run pytest test/random_seed/test_random_seed.py
 
   builtin_regional_models:
     needs: foundation
     env:
       python-version: "3.10"
-      label: linux-64
+      label: win-64
     strategy:
       matrix:
         region:
@@ -184,44 +151,27 @@ jobs:
       fail-fast: false
     defaults:
       run:
-        shell: bash -l {0}
+        shell: pwsh
     name: ${{ matrix.region }}
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Miniforge
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          miniforge-version: latest
-          activate-environment: asim-test
-          python-version: ${{ env.python-version }}
+          version: "0.7.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-      - name: Set cache date for year and month
-        run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
-
-      - uses: actions/cache@v4
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
         with:
-          path: ${{ env.CONDA }}/envs
-          key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
-        id: cache
-
-      - name: Update environment
-        run: |
-          conda env update -n asim-test -f conda-environments/github-actions-tests.yml
-        if: steps.cache.outputs.cache-hit != 'true'
+          python-version-file: ".python-version"
 
       - name: Install activitysim
-        # installing without dependencies is faster, we trust that all needed dependencies
-        # are in the conda environment defined above.  Also, this avoids pip getting
-        # confused and reinstalling tables (pytables).
         run: |
-          python -m pip install -e . --no-deps
-
-      - name: Conda checkup
-        run: |
-          conda info -a
-          conda list
+          uv sync --locked --only-group github-action
 
       # TODO: Cache sharrow compiled flows?  The contents of __pycache__ appear to
       #       be ignored, so this is not working as expected right now
@@ -248,68 +198,49 @@ jobs:
 
       - name: Test ${{ matrix.region }}
         run: |
-          python -m pytest activitysim/examples/${{ matrix.region }}/test --durations=0
+          uv run pytest activitysim/examples/${{ matrix.region }}/test --durations=0
 
   external_regional_models:
     needs: foundation
     env:
       python-version: "3.10"
-      label: linux-64
+      label: win-64
     strategy:
       matrix:
         include:
           - region: Standard 1-Zone Example (MTC)
             region-org: ActivitySim
             region-repo: activitysim-prototype-mtc
-            region-branch: extended
+            region-branch: pandas2
           - region: Standard 2-Zone Example (SANDAG)
             region-org: ActivitySim
             region-repo: sandag-abm3-example
-            region-branch: main
+            region-branch: pandas2
       fail-fast: false
     defaults:
       run:
-        shell: bash -l {0}
+        shell: pwsh
     name: ${{ matrix.region }}
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout ActivitySim
         uses: actions/checkout@v4
 
-      - name: Setup Miniforge
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          miniforge-version: latest
-          activate-environment: asim-test
-          python-version: ${{ env.python-version }}
+          version: "0.7.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-      - name: Set cache date for year and month
-        run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
-
-      - uses: actions/cache@v4
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
         with:
-          path: |
-            ${{ env.CONDA }}/envs
-            ~/.cache/ActivitySim
-          key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
-        id: cache
-
-      - name: Update environment
-        run: |
-          conda env update -n asim-test -f conda-environments/github-actions-tests.yml
-        if: steps.cache.outputs.cache-hit != 'true'
+          python-version-file: ".python-version"
 
       - name: Install activitysim
-        # installing without dependencies is faster, we trust that all needed dependencies
-        # are in the conda environment defined above.  Also, this avoids pip getting
-        # confused and reinstalling tables (pytables).
         run: |
-          python -m pip install . --no-deps
-
-      - name: Conda checkup
-        run: |
-          conda info -a
-          conda list
+          uv sync --locked --only-group github-action
 
       - name: Checkout Example
         uses: actions/checkout@v4
@@ -321,117 +252,115 @@ jobs:
       - name: Test ${{ matrix.region }}
         run: |
           cd ${{ matrix.region-repo }}/test
-          python -m pytest .
+          uv run pytest .
 
   random_seed_generation:
     needs: foundation
     env:
       python-version: "3.10"
-      label: linux-64
+      label: win-64
     defaults:
       run:
-        shell: bash -l {0}
+        shell: pwsh
     name: random_seed_generation_test
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Miniforge
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          miniforge-version: latest
-          activate-environment: asim-test
-          python-version: ${{ env.python-version }}
+          version: "0.7.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-      - name: Set cache date for year and month
-        run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
-
-      - uses: actions/cache@v4
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
         with:
-          path: ${{ env.CONDA }}/envs
-          key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
-        id: cache
-
-      - name: Update environment
-        run: |
-          conda env update -n asim-test -f conda-environments/github-actions-tests.yml
-        if: steps.cache.outputs.cache-hit != 'true'
+          python-version-file: ".python-version"
 
       - name: Install activitysim
-        # installing without dependencies is faster, we trust that all needed dependencies
-        # are in the conda environment defined above.  Also, this avoids pip getting
-        # confused and reinstalling tables (pytables).
         run: |
-          python -m pip install -e . --no-deps
-
-      - name: Conda checkup
-        run: |
-          conda info -a
-          conda list
+          uv sync --locked --only-group github-action
 
       - name: Test Random Seed Generation
         run: |
-          python -m pytest test/random_seed/test_random_seed.py --durations=0
+          uv run pytest test/random_seed/test_random_seed.py --durations=0
 
   estimation_mode:
     needs: foundation
     env:
       python-version: "3.10"
-      label: linux-64
+      label: win-64
     defaults:
       run:
-        shell: bash -l {0}
+        shell: pwsh
     name: Estimation Mode Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Miniforge
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          miniforge-version: latest
-          activate-environment: asim-test
-          python-version: ${{ env.python-version }}
+          version: "0.7.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-      - name: Set cache date for year and month
-        run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
-
-      - uses: actions/cache@v4
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
         with:
-          path: ${{ env.CONDA }}/envs
-          key: ${{ env.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
-        id: cache
-
-      - name: Update environment
-        run: |
-          conda env update -n asim-test -f conda-environments/github-actions-tests.yml
-        if: steps.cache.outputs.cache-hit != 'true'
-
-      - name: Install Larch
-        run: mamba install "larch>=5.7.1"
+          python-version-file: ".python-version"
 
       - name: Install activitysim
-        # installing without dependencies is faster, we trust that all needed dependencies
-        # are in the conda environment defined above.  Also, this avoids pip getting
-        # confused and reinstalling tables (pytables).
         run: |
-          python -m pip install -e . --no-deps
-
-      - name: Conda checkup
-        run: |
-          conda info -a
-          conda list
+          uv sync --locked --only-group github-action
 
       - name: Test Estimation Mode
         run: |
-          python -m pytest activitysim/estimation/test/test_larch_estimation.py --durations=0
+          uv run pytest activitysim/estimation/test/test_larch_estimation.py --durations=0
+
+  expression-profiling:
+    needs: foundation
+    env:
+      python-version: "3.10"
+      label: win-64
+    defaults:
+      run:
+        shell: pwsh
+    name: Expression Profiling Tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install activitysim
+        run: |
+          uv sync --locked --only-group github-action
+
+      - name: Test Expression Profiling
+        run: |
+          uv run pytest test/test_expression_profiling.py
 
   develop-docbuild:
     needs: foundation
-    if: github.ref_name == 'main'
+    if: github.ref_name == 'main' || github.ref_name == 'docs-fix'
     name: develop-docbuild
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     defaults:
       run:
         shell: bash -l {0}
@@ -439,28 +368,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # get all tags, lets setuptools_scm do its thing
-      - name: Set up Python 3.10
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
-      - name: Install dependencies
-        uses: conda-incubator/setup-miniconda@v3
-        with:
-          miniforge-version: latest
-          environment-file: conda-environments/docbuild.yml
-          python-version: "3.10"
-          activate-environment: docbuild
-          auto-activate-base: false
-          auto-update-conda: false
+          python-version-file: ".python-version"
       - name: Install activitysim
         run: |
-          python -m pip install .
-      - name: Conda checkup
-        run: |
-          conda info -a
-          conda list
-          echo ${{ github.repository }}
-          echo ${{ github.ref_name }}
+          uv sync --locked --only-group github-action
       - name: localize version switcher
         run: |
           python .github/workflows/localize-base-urls.py docs/_static/switcher.json
@@ -472,7 +392,7 @@ jobs:
           make clean
           make html
       - name: Push to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3.8.0
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Token is created automatically by Github Actions, no other config needed

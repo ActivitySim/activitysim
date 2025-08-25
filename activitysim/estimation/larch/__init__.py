@@ -1,4 +1,7 @@
-import larch
+try:
+    import larch
+except ImportError:
+    larch = None
 
 from .cdap import *
 from .data_maker import *

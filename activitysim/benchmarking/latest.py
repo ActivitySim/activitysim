@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (
+    absolute_import,
+    annotations,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import logging
 import shlex
@@ -149,7 +155,7 @@ class Latest(Run):
             pull=not args.no_pull,
             interleave_processes=args.interleave_processes,
             launch_method=args.launch_method,
-            **kwargs
+            **kwargs,
         )
 
 

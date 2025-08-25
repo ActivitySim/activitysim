@@ -7,8 +7,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-
-from activitysim.core import chunk, interaction_simulate, logit, tracing, workflow, util
+from activitysim.core import chunk, interaction_simulate, logit, tracing, util, workflow
 from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.simulate import set_skim_wrapper_targets
 
@@ -151,7 +150,6 @@ def _interaction_sample_simulate(
         and (estimator is None)
         and (compute_settings.drop_unused_columns)
     ):
-
         choosers = util.drop_unused_columns(
             choosers,
             spec,

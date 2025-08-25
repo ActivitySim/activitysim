@@ -13,7 +13,6 @@ from activitysim.core import tracing, workflow
 
 
 def close_handlers():
-
     loggers = logging.Logger.manager.loggerDict
     for name in loggers:
         logger = logging.getLogger(name)
@@ -23,7 +22,6 @@ def close_handlers():
 
 
 def add_canonical_dirs():
-
     state = workflow.State()
 
     configs_dir = os.path.join(os.path.dirname(__file__), "configs")
@@ -42,7 +40,6 @@ def add_canonical_dirs():
 
 
 def test_config_logger(capsys):
-
     state = add_canonical_dirs()
 
     state.logging.config_logger()
@@ -81,7 +78,6 @@ def test_config_logger(capsys):
 
 
 def test_print_summary(capsys):
-
     state = add_canonical_dirs()
 
     state.logging.config_logger()
@@ -101,7 +97,6 @@ def test_print_summary(capsys):
 
 
 def test_register_households(capsys):
-
     state = add_canonical_dirs()
     state.load_settings()
 
@@ -130,7 +125,6 @@ def test_register_households(capsys):
 
 
 def test_register_tours(capsys):
-
     state = add_canonical_dirs().load_settings()
 
     state.logging.config_logger()
@@ -178,7 +172,6 @@ def test_register_tours(capsys):
 
 
 def test_write_csv(capsys):
-
     state = add_canonical_dirs()
 
     state.logging.config_logger()
@@ -196,7 +189,6 @@ def test_write_csv(capsys):
 
 
 def test_slice_ids():
-
     df = pd.DataFrame({"household_id": [1, 2, 3]}, index=[11, 12, 13])
 
     # slice by named column
@@ -214,7 +206,6 @@ def test_slice_ids():
 
 
 def test_basic(capsys):
-
     close_handlers()
 
     state = add_canonical_dirs()

@@ -7,11 +7,11 @@ import os.path
 
 import pandas as pd
 import pandas.testing as pdt
+import pandera as pa
 import pytest
 import yaml
-import pandera as pa
 
-from activitysim.abm.models.input_checker import validate_with_pandera, TABLE_STORE
+from activitysim.abm.models.input_checker import TABLE_STORE, validate_with_pandera
 
 
 @pytest.fixture(scope="class")
@@ -56,7 +56,6 @@ TABLE_STORE["households"] = pd.DataFrame(
 
 
 def test_passing_dataframe(households, v_errors, v_warnings, validation_settings):
-
     TABLE_STORE["households"] = households
 
     class input_checker:
@@ -83,7 +82,6 @@ def test_passing_dataframe(households, v_errors, v_warnings, validation_settings
 
 
 def test_error_dataframe(households, v_errors, v_warnings, validation_settings):
-
     TABLE_STORE["households"] = households
 
     class input_checker:
@@ -107,7 +105,6 @@ def test_error_dataframe(households, v_errors, v_warnings, validation_settings):
 
 
 def test_warning_dataframe(households, v_errors, v_warnings, validation_settings):
-
     TABLE_STORE["households"] = households
 
     class input_checker:
@@ -132,7 +129,6 @@ def test_warning_dataframe(households, v_errors, v_warnings, validation_settings
 def test_custom_check_failure_dataframe(
     households, v_errors, v_warnings, validation_settings
 ):
-
     TABLE_STORE["households"] = households
 
     class input_checker:

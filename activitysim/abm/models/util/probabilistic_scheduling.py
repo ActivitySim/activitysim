@@ -93,7 +93,6 @@ def _report_bad_choices(
     # log the indexes of the first MAX_PRINT offending rows
     MAX_PRINT = 0
     for idx in df.index[:MAX_PRINT].values:
-
         row_msg = "%s : failed %s = %s (hh_id = %s)" % (
             trace_label,
             df.index.name,
@@ -113,7 +112,6 @@ def _preprocess_departure_probs(
     depart_alt_base,
     first_trip_in_leg,
 ):
-
     # zero out probs outside earliest-latest window if one exists
     probs_cols = [c for c in probs_spec.columns if c not in probs_join_cols]
     if clip_earliest_latest:
@@ -129,7 +127,6 @@ def _preprocess_departure_probs(
 
 
 def _preprocess_stop_duration_probs(choosers):
-
     # convert wide to long. duration probs are stored in long format so that
     # inbound/outbound duration probs, which both have a 0 alternative, can be
     # stored in a single config file. open to better suggestions here.
@@ -203,7 +200,6 @@ def _preprocess_scheduling_probs(
 def _postprocess_scheduling_choices(
     scheduling_mode, depart_alt_base, choices, choice_cols, choosers
 ):
-
     """
     This method just converts the choice column indexes returned by the
     logit.make_choices() method into actual departure time values that are
@@ -222,7 +218,6 @@ def _postprocess_scheduling_choices(
     # get applied to trip-specific departure and arrival times, so depart_alt_base
     # is a column/series rather than a scalar.
     if scheduling_mode == "stop_duration":
-
         # for outbound trips, offsets get added to the departure time constraint
         if choosers.outbound.all():
             depart_alt_base = choosers["earliest"]

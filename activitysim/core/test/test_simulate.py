@@ -43,7 +43,6 @@ def data(data_dir):
 
 
 def test_read_model_spec(state, spec_name):
-
     spec = state.filesystem.read_model_spec(file_name=spec_name)
 
     assert len(spec) == 4
@@ -53,7 +52,6 @@ def test_read_model_spec(state, spec_name):
 
 
 def test_eval_variables(state, spec, data):
-
     result = simulate.eval_variables(state, spec.index, data)
 
     expected = pd.DataFrame(
@@ -72,7 +70,6 @@ def test_eval_variables(state, spec, data):
 
 
 def test_simple_simulate(state, data, spec):
-
     state.settings.check_for_variability = False
 
     choices = simulate.simple_simulate(state, choosers=data, spec=spec, nest_spec=None)
@@ -81,7 +78,6 @@ def test_simple_simulate(state, data, spec):
 
 
 def test_simple_simulate_chunked(state, data, spec):
-
     state.settings.check_for_variability = False
     state.settings.chunk_size = 2
     choices = simulate.simple_simulate(

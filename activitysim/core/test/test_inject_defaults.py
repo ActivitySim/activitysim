@@ -15,7 +15,6 @@ from activitysim.core.exceptions import StateAccessError
 
 
 def test_defaults():
-
     state = workflow.State()
     with pytest.raises(ValidationError):
         state.initialize_filesystem(working_dir=Path(__file__).parents[1])

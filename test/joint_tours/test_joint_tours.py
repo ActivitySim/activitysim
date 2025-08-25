@@ -16,6 +16,7 @@ from activitysim.core.util import read_csv, to_csv
 
 logger = logging.getLogger(__name__)
 
+
 # Used by conftest.py initialize_pipeline method
 @pytest.fixture(scope="module")
 def module() -> str:
@@ -81,7 +82,6 @@ def test_prepare_input_pipeline(initialize_pipeline: workflow.State, caplog):
 
 
 def test_joint_tours_frequency_composition(reconnect_pipeline: workflow.State, caplog):
-
     caplog.set_level(logging.INFO)
 
     state = reconnect_pipeline
@@ -96,7 +96,6 @@ def test_joint_tours_frequency_composition(reconnect_pipeline: workflow.State, c
 
 
 def test_joint_tours_participation(reconnect_pipeline: workflow.State, caplog):
-
     caplog.set_level(logging.INFO)
 
     state = reconnect_pipeline

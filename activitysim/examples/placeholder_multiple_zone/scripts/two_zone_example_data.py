@@ -9,6 +9,8 @@
 #
 # This script should work for the full TM1 example as well.
 
+from __future__ import annotations
+
 import os
 import sys
 
@@ -107,7 +109,6 @@ with omx.open_file(
 ) as skims_file, omx.open_file(
     os.path.join(output_data, "taz_skims.omx"), "w"
 ) as output_skims_file:
-
     skims = skims_file.list_matrices()
     num_zones = skims_file.shape()[0]
 
@@ -116,7 +117,6 @@ with omx.open_file(
     assert num_zones == len(land_use)
 
     for skim_name in skims_file.list_matrices():
-
         old_skim = skims_file[skim_name][:]
         new_skim = old_skim[new_zone_indexes, :][:, new_zone_indexes]
         output_skims_file[skim_name] = new_skim
@@ -133,7 +133,6 @@ max_distance_for_bike = 5.0
 
 
 with omx.open_file(os.path.join(input_data, "skims.omx")) as skims_file:
-
     # create df with DIST column
     maz_to_maz = pd.DataFrame(np.transpose(skims_file["DIST"])).unstack().reset_index()
     maz_to_maz.columns = ["OMAZ", "DMAZ", "DIST"]

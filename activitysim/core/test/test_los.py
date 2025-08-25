@@ -15,7 +15,6 @@ from activitysim.core import exceptions, los, workflow
 
 
 def add_canonical_dirs(configs_dir_name):
-
     state = workflow.State()
     configs_dir = os.path.join(os.path.dirname(__file__), f"los/{configs_dir_name}")
     data_dir = os.path.join(os.path.dirname(__file__), f"los/data")
@@ -30,7 +29,6 @@ def add_canonical_dirs(configs_dir_name):
 
 
 def test_legacy_configs():
-
     state = add_canonical_dirs("configs_legacy_settings").load_settings()
 
     with pytest.raises(exceptions.SettingsFileNotFoundError):
@@ -42,7 +40,6 @@ def test_legacy_configs():
 
 
 def test_one_zone():
-
     state = add_canonical_dirs("configs_1z").load_settings()
 
     network_los = los.Network_LOS(state)
@@ -88,7 +85,6 @@ def test_one_zone():
 
 
 def test_two_zone():
-
     state = add_canonical_dirs("configs_2z").load_settings()
 
     network_los = los.Network_LOS(state)
@@ -138,7 +134,6 @@ def test_two_zone():
 
 
 def test_three_zone():
-
     state = add_canonical_dirs("configs_3z").load_settings()
 
     network_los = los.Network_LOS(state)
@@ -163,7 +158,6 @@ def test_three_zone():
 
 
 def test_30_minute_windows():
-
     state = add_canonical_dirs("configs_test_misc").default_settings()
     network_los = los.Network_LOS(state, los_settings_file_name="settings_30_min.yaml")
 
@@ -180,7 +174,6 @@ def test_30_minute_windows():
 
 
 def test_60_minute_windows():
-
     state = add_canonical_dirs("configs_test_misc").default_settings()
     network_los = los.Network_LOS(state, los_settings_file_name="settings_60_min.yaml")
 
@@ -197,7 +190,6 @@ def test_60_minute_windows():
 
 
 def test_1_week_time_window():
-
     state = add_canonical_dirs("configs_test_misc").default_settings()
     network_los = los.Network_LOS(state, los_settings_file_name="settings_1_week.yaml")
 
@@ -228,7 +220,6 @@ def test_1_week_time_window():
 
 
 def test_skim_time_periods_future_warning():
-
     state = add_canonical_dirs("configs_test_misc").default_settings()
 
     with pytest.warns(FutureWarning) as warning_test:

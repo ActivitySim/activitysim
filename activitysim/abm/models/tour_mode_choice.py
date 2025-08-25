@@ -7,9 +7,18 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util import annotate, school_escort_tours_trips, trip
+from activitysim.abm.models.util import school_escort_tours_trips, trip
 from activitysim.abm.models.util.mode import run_tour_mode_choice_simulate
-from activitysim.core import config, estimation, logit, los, simulate, tracing, workflow
+from activitysim.core import (
+    config,
+    estimation,
+    logit,
+    los,
+    simulate,
+    tracing,
+    workflow,
+    expressions,
+)
 from activitysim.core.configuration.logit import TourModeComponentSettings
 from activitysim.core.util import assign_in_place, reindex
 
@@ -253,6 +262,7 @@ def tour_mode_choice_simulate(
         orig_key=dest_col_name, dest_key=orig_col_name, dim3_key="out_period"
     )
     od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
+    do_skim_stack_wrapper = skim_dict.wrap(dest_col_name, orig_col_name)
 
     skims = {
         "odt_skims": odt_skim_stack_wrapper,
@@ -260,6 +270,7 @@ def tour_mode_choice_simulate(
         "odr_skims": odr_skim_stack_wrapper,  # dot return skims for e.g. TNC bridge return fare
         "dor_skims": dor_skim_stack_wrapper,  # odt return skims for e.g. TNC bridge return fare
         "od_skims": od_skim_stack_wrapper,
+        "do_skims": do_skim_stack_wrapper,
         "orig_col_name": orig_col_name,
         "dest_col_name": dest_col_name,
         "out_time_col_name": out_time_col_name,
@@ -448,10 +459,6 @@ def tour_mode_choice_simulate(
 
     state.add_table("tours", all_tours)
 
-    # - annotate tours table
-    if model_settings.annotate_tours:
-        annotate.annotate_tours(state, model_settings, trace_label)
-
     if state.settings.trace_hh_id:
         state.tracing.trace_df(
             primary_tours,
@@ -460,3 +467,11 @@ def tour_mode_choice_simulate(
             index_label="tour_id",
             warn_if_empty=True,
         )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

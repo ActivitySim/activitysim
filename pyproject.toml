@@ -11,10 +11,11 @@ name = "activitysim"
 dynamic = ["version"]
 dependencies = [
     "cytoolz >= 0.8.1",
+    "multimethod <2.0",
     "numba >= 0.57",
-    "numpy >= 1.16.1, <2",
+    "numpy >= 1.16.1, <1.26",
     "openmatrix >= 0.3.4.1",
-    "pandas >= 1.4, <2",
+    "pandas >= 2",
     "pandera >=0.15, <0.18.1",
     "platformdirs",
     "psutil >= 4.1",
@@ -23,12 +24,12 @@ dependencies = [
     "pypyr >= 5.3",
     "pyyaml >= 5.1",
     "requests >= 2.7",
-    "scikit-learn >= 1.1",
+    "scikit-learn >= 1.2",
+    "setuptools>=80.9.0",
     "sharrow >= 2.9.1",
-    "simwrapper > 1.7",
     "sparse",
-    "tables >= 3.9",
-    "xarray >= 0.21"
+    "tables >= 3.9",  # pytables is tables in pypi
+    "xarray >= 2024.05",
 ]
 readme = "README.md"
 requires-python = ">=3.10"
@@ -96,3 +97,71 @@ convention = "numpy"
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["E402", "F401"]  # Ignore import violations in all `__init__.py` files
+
+[dependency-groups]
+dev = [
+    "altair",
+    "autodoc_pydantic",
+    "asv",  # for benchmarking
+    "black==22.12.0,<23",
+    "bump2version",  # for making a release
+    "coveralls==3.3.1",
+    "dask==2023.11",
+    "descartes",
+    "filelock",
+    "fsspec",
+    "geopandas",
+    "gh",
+    "ipykernel",  # so this env will appear in jupyter as a selection
+    "isort==5.12.0",
+    "jupyter-book",
+    "jupyterlab",
+    "larch>=5.7",
+    "matplotlib",
+    "myst-nb",
+    "myst-parser",  # allows markdown in sphinx
+    "nbconvert",
+    "nbformat",
+    "nbmake==1.4.6",
+    "numexpr",
+    "numpydoc",
+    "pre-commit",
+    "pycodestyle",
+    "pydata-sphinx-theme",
+    "pyinstrument==4.4",
+    "pytest==7.2",
+    "pytest-cov",
+    "pytest-regressions",
+    "rich==13.3",
+    "ruby",  # for benchmarking pre-commit hooks
+    "ruff",
+    "setuptools_scm",
+    "simwrapper > 1.7",
+    "snakeviz",  # for profiling
+    "sphinx==6.1",
+    "sphinx-argparse",
+    "sphinx-autosummary-accessors",
+    "sphinx-copybutton",
+    "sphinx-remove-toctrees",
+    "sphinx_rtd_theme==1.2",
+    "sphinx-argparse==0.4",
+    "xmle",
+    "zarr>=2,<3",
+    "zstandard"
+]
+github-action = [
+    "black==22.12.0",
+    "coveralls==3.3.1",
+    "dask==2023.11",
+    "isort==5.12.0",
+    "nbmake==1.4.6",
+    "pytest==7.2",
+    "pytest-cov",
+    "pytest-regressions",
+    "ruff",
+    "zarr>=2,<3",
+    "zstandard"
+]
+
+[tool.uv]
+default-groups = ["dev"]

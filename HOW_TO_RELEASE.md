@@ -1,54 +1,32 @@
 # How to issue an ActivitySim release
 
-> **WARNING: These instructions are incomplete.**
+1.  Check that the main branch is passing tests, especially the "core tests" on
+    [GitHub Actions](https://github.com/ActivitySim/activitysim/actions/workflows/core_tests.yml). 
+    It is generally the policy that the main branch should always be passing tests, 
+    because PRs must pass tests before they can be merged.  However, it is 
+    possible that tests may fail after a PR is merged, so it is important to
+    double-check that the main branch is passing tests before issuing a release.
 
-01. Check that the branch you intend to release is passing tests on Travis.
-    If it's not passing there you should not release it.
-
-00. Start from a completely clean conda environment
-    and git repository.  Assuming you have `conda` installed, you can do so
+2.  Start from a completely clean environment
+    and git repository.  Assuming you have `uv` installed, you can do so
     by starting where ActivitySim is not yet cloned (e.g. in an empty
     directory) and running:
     ```sh
-    conda create -n TEMP-ASIM-DEV python=3.10 git gh -c conda-forge --override-channels
-    conda activate TEMP-ASIM-DEV
     gh auth login   # <--- (only needed if gh is not logged in)
     gh repo clone ActivitySim/activitysim
     cd activitysim
+    uv sync
     ```
 
-00. Per project policy, code on the main branch should have been released,
-    but if you are *preparing* a release then the code should be on the `develop`
-    branch.  Switch to that branch now, and make sure it is synced to the
-    version on GitHub:
-    ```sh
-    git switch develop
-    git pull
-    ```
-
-00. Update your Conda environment for testing.  We do not want to use an
-    existing environment on your machine, as it may be out-of-date
-    and we want to make sure everything passes muster using the
-    most up-to-date dependencies available.  The following command
-    will update the active environment (we made this to be `TEMP-ASIM-DEV`
-    if you followed the directions above).
-    ```sh
-    conda env update --file=conda-environments/activitysim-dev.yml
-    ```
-    If you add to the ActivitySim dependencies, make sure to also update
-    the environments in `conda-environments`, which are used for testing
-    and development.  If they are not updated, these environments will end
-    up with dependencies loaded from *pip* instead of *conda-forge*.
-
-00. Run black to ensure that the codebase passes all style checks.
+3.  Run `black` to ensure that the codebase passes all style checks.
     This check should only take a few seconds.  These checks are also done on
     GitHub Actions and are platform independent, so they should not be necessary to
     replicate locally, but are listed here for completeness.
     ```sh
-    black --check --diff .
+    uv run black --check --diff .
     ```
 
-00. Run the regular test suite on Windows. Most GitHub Actions tests are done on Linux,
+4.  Run the regular test suite on Windows. Most GitHub Actions tests are done on
     Linux (it's faster to start up and run a new clean VM for testing) but most
     users are on Windows, and the test suite should also be run on Windows to
     ensure that it works on that platform as well.  If you
@@ -61,13 +39,13 @@
     regular test suite takes some time to run, between about half an hour and
     two hours depending on the specs of your machine.
     ```sh
-    python activitysim/examples/placeholder_multiple_zone/scripts/two_zone_example_data.py
-    python activitysim/examples/placeholder_multiple_zone/scripts/three_zone_example_data.py
-    pytest .
+    uv run activitysim/examples/placeholder_multiple_zone/scripts/two_zone_example_data.py
+    uv run activitysim/examples/placeholder_multiple_zone/scripts/three_zone_example_data.py
+    uv run pytest .
     ```
 
-00. Test the full-scale regional examples. These examples are big, too
-    large to run on Travis, and will take a lot of time (many hours) to
+5.  Test the full-scale regional examples. These examples are big, too
+    large to run on GitHub Actions, and will take a lot of time (many hours) to
     download and run.
     ```sh
     mkdir tmp-asim
@@ -84,79 +62,52 @@
     python ../activitysim/examples/scan_examples_for_errors.py .
     ```
 
-00. Test the notebooks in `activitysim/examples/prototype_mtc/notebooks`.
+6.  Test the notebooks in `activitysim/examples/prototype_mtc/notebooks`.
     There are also demo notebooks for estimation, but their functionality
     is completely tested in the unit tests run previously.
 
-00. Use bump2version to tag the release commit and update the
-    version number.  The following code will generate a "patch" release,
-    incrementing the third value in the version number (i.e. "1.2.3"
-    becomes "1.2.4").  Alternatively, make a "minor" or "major" release.
-    The `--list` command will generate output to your console to confirm
-    that the old and new version numbers are what you expect, before you
-    push the commit (with the changed version in the code) and tags to
-    GitHub.
+6.  (Optional) After ensuring the code on the branch is passing all tests, pull in the latest versions of all dependencies that still satisfy current constraints, and repeat all above tests again.
     ```sh
-    bump2version patch --list
+    uv lock --upgrade
+    ```
+    Make any adjustments using `uv add ...` with version constraints as needed to pass tests. If a version constraint is created, there should be a github issue created that identities the need in the future to debug and remove this constraint.
+
+7.  Tag the release commit with the new version number.  ActivitySim uses
+    dynamic versioning, so the version number is not stored in a file but
+    is instead read from the most recent git tag, so it is important to tag
+    the repository with the correct version.  The following command will 
+    generate a new tag with the version number "1.2.3" (for example):
+    ```sh
+    git -a v1.2.3 -m "Release v1.2.3"
     ```
 
-    It is also possible to make a development pre-release. To do so,
-    explicitly set the version number to the next patch plus a ".devN"
-    suffix:
-
-    ```sh
-    bump2version patch --new-version 1.2.3.dev0 --list
-    ```
-
-    Then, when ready to make a "final" release, set the version by
-    explicitly removing the suffix:
-    ```sh
-    bump2version patch --new-version 1.2.3 --list
-    ```
-
-00. Push the tagged commit to GitHub.
+8.  Push the tagged commit to GitHub.
     ```sh
     git push --tags
     ```
 
-00. For non-development releases, open a pull request to merge the proposed
-    release into main. The following command will open a web browser for
-    you to create the pull request.
-    ```sh
-    gh pr create --web
-    ```
-    After creating the PR, confirm with the ActivitySim PMC that the release
-    is ready before actually merging it.
-
-    Once final approval is granted, merge the PR into main.  The presence
-    of the git tags added earlier will trigger automated build steps to
-    prepare and deploy the release to pypi and conda-forge.
-
-00. Create a "release" on GitHub.
+9.  Create a "release" on GitHub.  You can do this from the command line using
+    the `gh` command line tool:
     ```sh
     gh release create v1.2.3
     ```
+    But it may be easier to do this through the 
+    [GitHub web interface](https://github.com/ActivitySim/activitysim/releases/new),
+    where you can select the tag you just created and add a title and description.
+    Both the interactive command line tool shown above and the web interface include
+    the ability to create release notes automatically from the commit messages of
+    all accepted PRs since the last release, but you may want to add additional
+    notes to the release to highlight important changes or new features.
+
     The process of creating and tagging a release will automatically
     trigger various GitHub Actions scripts to build, test, and publish the
-    new release to PyPI and conda forge, assuming there are no errors.
+    new release to PyPI, assuming there are no errors.
 
-    For a development pre-release, include the `--prerelease` argument.
-    As the project's policy is that only formally released code is merged
-    to the main branch, any pre-release should also be built against a
-    non-default branch.  For example, to pre-release from the `develop`
-    branch:
-    ```sh
-    gh release create v1.2.3.dev0 \
-        --prerelease \
-        --target develop \
-        --notes "this pre-release is for a cool new feature" \
-        --title "Development Pre-Release"
-    ```
+10. Build the ActivitySim Standalone Windows Installer.  This is done using 
+    GitHub Actions, but it is not done automatically when a release is created, 
+    instead it requires a manual workflow dispatch trigger.  You can do this by 
+    going to the [build_installer workflow page](https://github.com/ActivitySim/activitysim/actions/workflows/build_installer.yml)
+    and clicking on the "Run workflow" button.  You will need to provide the 
+    version number and choose to add the built installer to the release.
 
-00. Clean up your workspace, including removing the Conda environment used for
-    testing (which will prevent you from accidentally using an old
-    environment when you should have a fresh up-to-date one next time).
-    ```sh
-    conda deactivate
-    conda env remove -n TEMP-ASIM-DEV
-    ```
+11. Clean up your environment as is good practice by deleting `.venv` inside your workspace. However, `uv` will do this for you. Prior to every `uv run` invocation, `uv` will verify that the lockfile is up-to-date with the `pyproject.toml`, and that the environment is up-to-date with the lockfile, keeping your project in-sync without the need for manual intervention. `uv run` guarantees that your command is run in a consistent, locked environment. (Be sure to use `uv add` and `uv remove` to adjust dependencies always. Manually editing `pyproject.toml` dependencies *can* result in some problems with the environment that require `uv sync` before `uv run`.)

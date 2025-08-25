@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import shutil
@@ -22,7 +24,6 @@ def save_report(
     toc_color="forest",
     copy_filename=None,
 ):
-
     bootstrap_font_family = (
         'font-family: -apple-system, "system-ui", "Segoe UI",'
         ' "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",'

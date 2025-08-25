@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import logging
 import sys
 
@@ -13,7 +15,6 @@ logger = logging.getLogger("activitysim")
 
 
 def cleanup_output_files(state: workflow.State):
-
     active_log_files = [
         h.baseFilename
         for h in logger.root.handlers
@@ -30,7 +31,6 @@ def cleanup_output_files(state: workflow.State):
 
 
 def run(run_list, injectables=None):
-
     if run_list["multiprocess"]:
         logger.info("run multiprocess simulation")
         mp_tasks.run_multiprocess(run_list, injectables)
@@ -42,7 +42,6 @@ def run(run_list, injectables=None):
 
 
 def log_settings(injectables):
-
     settings = [
         "households_sample_size",
         "chunk_size",
@@ -59,7 +58,6 @@ def log_settings(injectables):
 
 
 if __name__ == "__main__":
-
     state.add_injectable("data_dir", "data")
     state.add_injectable("configs_dir", "configs")
 

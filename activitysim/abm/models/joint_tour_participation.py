@@ -60,6 +60,9 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
     # if this happens, participant_id may not be unique
     # channel random seeds will overlap at MAX_PARTICIPANT_PNUM (probably not a big deal)
     # and estimation infer will fail
+    if "PNUM" not in candidates.columns:
+        # create a PNUM column that just numbers the candidates for assignment of participant_id
+        candidates["PNUM"] = candidates.groupby("household_id").cumcount() + 1
     assert (
         candidates.PNUM.max() < MAX_PARTICIPANT_PNUM
     ), f"max persons.PNUM ({candidates.PNUM.max()}) > MAX_PARTICIPANT_PNUM ({MAX_PARTICIPANT_PNUM})"
@@ -274,22 +277,6 @@ def participants_chooser(
     return choices, rands
 
 
-def annotate_jtp(
-    state: workflow.State,
-    model_settings: JointTourParticipationSettings,
-    trace_label: str,
-):
-    # - annotate persons
-    persons = state.get_dataframe("persons")
-    expressions.assign_columns(
-        state,
-        df=persons,
-        model_settings=model_settings.annotate_persons,
-        trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
-    )
-    state.add_table("persons", persons)
-
-
 def add_null_results(
     state: workflow.State,
     model_settings: JointTourParticipationSettings,
@@ -305,19 +292,19 @@ def add_null_results(
     state.add_table("joint_tour_participants", participants)
 
     # - run annotations
-    annotate_jtp(state, model_settings, trace_label)
+    expressions.annotate_tables(
+        state,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
 
 class JointTourParticipationSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `joint_tour_participation` component.
     """
-
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
-
-    annotate_persons: PreprocessorSettings | None = None
-    """Instructions for annotating the persons table."""
 
     participation_choice: str = "participate"
 
@@ -362,25 +349,6 @@ def joint_tour_participation(
         "Running joint_tours_participation with %d potential participants (candidates)"
         % candidates.shape[0]
     )
-
-    # - preprocessor
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        locals_dict = {
-            "person_time_window_overlap": lambda x: person_time_window_overlap(
-                state, x
-            ),
-            "persons": persons_merged,
-        }
-
-        expressions.assign_columns(
-            state,
-            df=candidates,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label,
-        )
-
     # - simple_simulate
 
     estimator = estimation.manager.begin_estimation(state, "joint_tour_participation")
@@ -393,6 +361,21 @@ def joint_tour_participation(
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
+
+    # preprocess choosers table
+    locals_dict = {
+        "persons": persons_merged,
+        "person_time_window_overlap": lambda x: person_time_window_overlap(state, x),
+    }
+    locals_dict.update(constants)
+    expressions.annotate_preprocessors(
+        state,
+        df=candidates,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
@@ -498,9 +481,6 @@ def joint_tour_participation(
 
     state.add_table("tours", tours)
 
-    # - run annotations
-    annotate_jtp(state, model_settings, trace_label)
-
     if trace_hh_id:
         state.tracing.trace_df(
             participants, label="joint_tour_participation.participants"
@@ -509,3 +489,11 @@ def joint_tour_participation(
         state.tracing.trace_df(
             joint_tours, label="joint_tour_participation.joint_tours"
         )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

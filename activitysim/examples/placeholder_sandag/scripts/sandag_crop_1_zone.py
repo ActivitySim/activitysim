@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import os
 
@@ -84,7 +86,6 @@ def to_csv(df, file_name):
 
 
 if check_geography:
-
     # ######## check for orphan_households not in any taz in land_use
     land_use = read_csv("land_use.csv")
 
@@ -159,7 +160,6 @@ for omx_file in omx_out:
 
 iskim = 0
 for mat_name in omx_in.list_matrices():
-
     # make sure we have a vanilla numpy array, not a CArray
     m = np.asanyarray(omx_in[mat_name]).astype(skim_data_type)
     m = m[zone_indexes, :][:, zone_indexes]

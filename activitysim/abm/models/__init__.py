@@ -33,6 +33,7 @@ from . import (
     stop_frequency,
     summarize,
     telecommute_frequency,
+    telecommute_status,
     tour_mode_choice,
     tour_od_choice,
     tour_scheduling_probabilistic,
@@ -49,5 +50,4 @@ from . import (
     vehicle_allocation,
     vehicle_type_choice,
     work_from_home,
-    telecommute_status,
 )

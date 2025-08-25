@@ -20,12 +20,20 @@ For example, if a worker telecommutes 4 days a week, then there is a 80% probabi
 to telecommute on the simulation day. 
 The telecommute status model software can accommodate more complex model forms if needed.
 
-There have been discussions on exactly where the telecommute status model should be added
-in the model sequence. Some suggest it should be applied to all workers before the CDAP model; 
-some suggest it should be applied after the CDAP model only to workers who have work activities 
-during the day regardless of in-home or out-of-home (which requires change in CDAP definition). 
-The Consortium is currently engaged in an explicit telecommute design task as part of Phase 9B,
-out of which more guidance on the model sequence will be established.
+There have been discussions about where to place the telecommute status model within the model sequence,
+particularly regarding its interation with the Coordinated Daily Activity Pattern (CDAP) model.
+Some have proposed expanding the CDAP definition of the "Mandatory" day pattern to include commuting, telecommuting and working from home, 
+and then applying the telecommute status model to workers with a "Mandatory" day pattern.
+While this idea had merit, it would require re-defining and re-estimating CDAP for many regions, which presents practical challenges.
+
+During Phase 9B development, the Consortium collaboratively reached a consensus on a preferred design for explicitly modeling telecommuting. 
+It was decided that the existing CDAP definitions would remain unchanged. The new design introduces the ability 
+to model hybrid workers—those who work both in-home and out-of-home on the simulation day. To support this, 
+the Consortium recommended adding two new models: a Telecommute Arrangement model and an In-Home Work Activity Duration model.
+
+As of August 2025, these two models remain at the design stage and have not yet been implemented. Once deployed, 
+they will supersede the current telecommute status model, which will no longer be needed. In the interim, 
+the telecommute status model can be used to flag telecommuters in the simulation.
 
 The main interface to the telecommute status model is the
 [telecommute_status](activitysim.abm.models.telecommute_status) function. This

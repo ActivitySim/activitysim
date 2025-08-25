@@ -8,11 +8,14 @@ import logging
 import os
 import sys
 import warnings
+from datetime import datetime
 
 import numpy as np
 
-from activitysim.core import chunk, config, mem, tracing, workflow
+from activitysim.core import chunk, config, mem, timing, tracing, workflow
 from activitysim.core.configuration import FileSystem, Settings
+
+from activitysim.abm.models.settings_checker import check_model_settings
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +28,7 @@ INJECTABLES = [
     "cache_dir",
     "settings_file_name",
     "imported_extensions",
+    "run_timestamp",
 ]
 
 
@@ -279,11 +283,19 @@ def run(args):
     if state.settings.rotate_logs:
         state.logging.rotate_log_directory()
 
+    # set a run timestamp
+    timestamp = state.get("run_timestamp", None)
+    if timestamp is None:
+        # if no run timestamp, use current time, and store it so
+        # it can be used later in the same run
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        state.set("run_timestamp", timestamp)
+
     if state.settings.memory_profile and not state.settings.multiprocess:
         # Memory sidecar is only useful for single process runs
         # multiprocess runs log memory usage without blocking in the controlling process.
         mem_prof_log = state.get_log_file_path("memory_profile.csv")
-        from ..core.memory_sidecar import MemorySidecar
+        from activitysim.core.memory_sidecar import MemorySidecar
 
         memory_sidecar_process = MemorySidecar(mem_prof_log)
     else:
@@ -376,6 +388,28 @@ def run(args):
 
     t0 = tracing.print_elapsed_time()
 
+    if state.settings.check_model_settings == True:
+        logger.info(
+            "Settings checker will check core settings files. See settings_checker.log for details."
+        )
+        # get any additional settings definitions from extensions
+        extension_checker_settings = {}
+        extension_names = state.get_injectable("imported_extensions")
+        if extension_names:
+            for ext in extension_names:
+                try:
+                    settings_checker_ext = importlib.import_module(
+                        ext + ".settings_checker"
+                    )
+                    extension_checker_settings.update(
+                        settings_checker_ext.EXTENSION_CHECKER_SETTINGS
+                    )
+                except ImportError:
+                    logger.warning(
+                        f"Extension {ext} does not have a settings_checker module or it cannot be imported."
+                    )
+        check_model_settings(state, extension_settings=extension_checker_settings)
+
     try:
         if state.settings.multiprocess:
             logger.info("run multiprocess simulation")
@@ -428,6 +462,13 @@ def run(args):
 
     if memory_sidecar_process:
         memory_sidecar_process.stop()
+
+    if state.settings.expression_profile:
+        # generate a summary of slower expression evaluation times
+        # across all models and write to a file
+        analyze = timing.AnalyzeEvalTiming(state)
+        analyze.component_report(style=state.settings.expression_profile_style)
+        analyze.subcomponent_report(style=state.settings.expression_profile_style)
 
     return 0
 

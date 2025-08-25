@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.4.1" />
-    <meta name="docbuild:last-update" content="Aug 16, 2025"/>
+    <meta name="docbuild:last-update" content="Aug 25, 2025"/>
   </head>
   
   
@@ -506,73 +506,76 @@
 <tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_dataset.html#activitysim.core.workflow.State.get_dataset" title="activitysim.core.workflow.State.get_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_dataset</span></code></a>(table_name[, column_names, as_copy])</p></td>
 <td><p>Get a workflow table or dataset as a xarray.Dataset.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_global_constants.html#activitysim.core.workflow.State.get_global_constants" title="activitysim.core.workflow.State.get_global_constants"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_global_constants</span></code></a>()</p></td>
-<td><p>Read global constants from settings file</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_injectable.html#activitysim.core.workflow.State.get_injectable" title="activitysim.core.workflow.State.get_injectable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_injectable</span></code></a>(key[, default])</p></td>
-<td><p>Alias for <a class="reference internal" href="activitysim.core.workflow.State.get.html#activitysim.core.workflow.State.get" title="activitysim.core.workflow.State.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">State.get()</span></code></a>.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_log_file_path.html#activitysim.core.workflow.State.get_log_file_path" title="activitysim.core.workflow.State.get_log_file_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_log_file_path</span></code></a>(file_name[, prefix])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_expr_performance_log_file_path.html#activitysim.core.workflow.State.get_expr_performance_log_file_path" title="activitysim.core.workflow.State.get_expr_performance_log_file_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_expr_performance_log_file_path</span></code></a>(file_name)</p></td>
 <td><p>Get the log file path for this process.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_output_file_path.html#activitysim.core.workflow.State.get_output_file_path" title="activitysim.core.workflow.State.get_output_file_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_file_path</span></code></a>(file_name[, prefix])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_global_constants.html#activitysim.core.workflow.State.get_global_constants" title="activitysim.core.workflow.State.get_global_constants"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_global_constants</span></code></a>()</p></td>
+<td><p>Read global constants from settings file</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_injectable.html#activitysim.core.workflow.State.get_injectable" title="activitysim.core.workflow.State.get_injectable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_injectable</span></code></a>(key[, default])</p></td>
+<td><p>Alias for <a class="reference internal" href="activitysim.core.workflow.State.get.html#activitysim.core.workflow.State.get" title="activitysim.core.workflow.State.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">State.get()</span></code></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_log_file_path.html#activitysim.core.workflow.State.get_log_file_path" title="activitysim.core.workflow.State.get_log_file_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_log_file_path</span></code></a>(file_name[, prefix])</p></td>
+<td><p>Get the log file path for this process.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_output_file_path.html#activitysim.core.workflow.State.get_output_file_path" title="activitysim.core.workflow.State.get_output_file_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_file_path</span></code></a>(file_name[, prefix])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_pyarrow.html#activitysim.core.workflow.State.get_pyarrow" title="activitysim.core.workflow.State.get_pyarrow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pyarrow</span></code></a>(tablename[, columns])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_pyarrow.html#activitysim.core.workflow.State.get_pyarrow" title="activitysim.core.workflow.State.get_pyarrow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pyarrow</span></code></a>(tablename[, columns])</p></td>
 <td><p>Get a workflow table as a pyarrow.Table.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_rn_generator.html#activitysim.core.workflow.State.get_rn_generator" title="activitysim.core.workflow.State.get_rn_generator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_rn_generator</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_rn_generator.html#activitysim.core.workflow.State.get_rn_generator" title="activitysim.core.workflow.State.get_rn_generator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_rn_generator</span></code></a>()</p></td>
 <td><p>Return the singleton random number object</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_step_arg.html#activitysim.core.workflow.State.get_step_arg" title="activitysim.core.workflow.State.get_step_arg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_step_arg</span></code></a>(arg_name[, default])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_step_arg.html#activitysim.core.workflow.State.get_step_arg" title="activitysim.core.workflow.State.get_step_arg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_step_arg</span></code></a>(arg_name[, default])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_table.html#activitysim.core.workflow.State.get_table" title="activitysim.core.workflow.State.get_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_table</span></code></a>(table_name[, checkpoint_name])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.get_table.html#activitysim.core.workflow.State.get_table" title="activitysim.core.workflow.State.get_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_table</span></code></a>(table_name[, checkpoint_name])</p></td>
 <td><p>Return pandas dataframe corresponding to table_name</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.import_extensions.html#activitysim.core.workflow.State.import_extensions" title="activitysim.core.workflow.State.import_extensions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_extensions</span></code></a>([ext, append])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.import_extensions.html#activitysim.core.workflow.State.import_extensions" title="activitysim.core.workflow.State.import_extensions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_extensions</span></code></a>([ext, append])</p></td>
 <td><p>Import one or more extension modules for use with this model.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.init_state.html#activitysim.core.workflow.State.init_state" title="activitysim.core.workflow.State.init_state"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_state</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.init_state.html#activitysim.core.workflow.State.init_state" title="activitysim.core.workflow.State.init_state"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_state</span></code></a>()</p></td>
 <td><p>Initialize this state.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.initialize_filesystem.html#activitysim.core.workflow.State.initialize_filesystem" title="activitysim.core.workflow.State.initialize_filesystem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_filesystem</span></code></a>([working_dir, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.initialize_filesystem.html#activitysim.core.workflow.State.initialize_filesystem" title="activitysim.core.workflow.State.initialize_filesystem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_filesystem</span></code></a>([working_dir, ...])</p></td>
 <td><p>Initialize the state's filesystem.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.is_table.html#activitysim.core.workflow.State.is_table" title="activitysim.core.workflow.State.is_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_table</span></code></a>(name)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.is_table.html#activitysim.core.workflow.State.is_table" title="activitysim.core.workflow.State.is_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_table</span></code></a>(name)</p></td>
 <td><p>Check if a name corresponds to a table in this state's context.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.load_settings.html#activitysim.core.workflow.State.load_settings" title="activitysim.core.workflow.State.load_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_settings</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.load_settings.html#activitysim.core.workflow.State.load_settings" title="activitysim.core.workflow.State.load_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_settings</span></code></a>()</p></td>
 <td><p>Read and parse settings file(s) from config dirs.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.make_default.html#activitysim.core.workflow.State.make_default" title="activitysim.core.workflow.State.make_default"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_default</span></code></a>([working_dir, settings])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.make_default.html#activitysim.core.workflow.State.make_default" title="activitysim.core.workflow.State.make_default"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_default</span></code></a>([working_dir, settings])</p></td>
 <td><p>Convenience constructor for mostly default States.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.make_temp.html#activitysim.core.workflow.State.make_temp" title="activitysim.core.workflow.State.make_temp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_temp</span></code></a>([source, checkpoint_name])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.make_temp.html#activitysim.core.workflow.State.make_temp" title="activitysim.core.workflow.State.make_temp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_temp</span></code></a>([source, checkpoint_name])</p></td>
 <td><p>Initialize state with a temporary directory.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.pipeline_table_key.html#activitysim.core.workflow.State.pipeline_table_key" title="activitysim.core.workflow.State.pipeline_table_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline_table_key</span></code></a>(table_name, checkpoint_name)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.pipeline_table_key.html#activitysim.core.workflow.State.pipeline_table_key" title="activitysim.core.workflow.State.pipeline_table_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline_table_key</span></code></a>(table_name, checkpoint_name)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.registered_tables.html#activitysim.core.workflow.State.registered_tables" title="activitysim.core.workflow.State.registered_tables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registered_tables</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.registered_tables.html#activitysim.core.workflow.State.registered_tables" title="activitysim.core.workflow.State.registered_tables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registered_tables</span></code></a>()</p></td>
 <td><p>Return a list of the names of all currently registered dataframe tables</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.rng.html#activitysim.core.workflow.State.rng" title="activitysim.core.workflow.State.rng"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rng</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.rng.html#activitysim.core.workflow.State.rng" title="activitysim.core.workflow.State.rng"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rng</span></code></a>()</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.set.html#activitysim.core.workflow.State.set" title="activitysim.core.workflow.State.set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set</span></code></a>(key, value)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.set.html#activitysim.core.workflow.State.set" title="activitysim.core.workflow.State.set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set</span></code></a>(key, value)</p></td>
 <td><p>Set a new value for a key in the context.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.set_step_args.html#activitysim.core.workflow.State.set_step_args" title="activitysim.core.workflow.State.set_step_args"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_step_args</span></code></a>([args])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.set_step_args.html#activitysim.core.workflow.State.set_step_args" title="activitysim.core.workflow.State.set_step_args"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_step_args</span></code></a>([args])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.should_save_checkpoint.html#activitysim.core.workflow.State.should_save_checkpoint" title="activitysim.core.workflow.State.should_save_checkpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">should_save_checkpoint</span></code></a>([checkpoint_name])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.should_save_checkpoint.html#activitysim.core.workflow.State.should_save_checkpoint" title="activitysim.core.workflow.State.should_save_checkpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">should_save_checkpoint</span></code></a>([checkpoint_name])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.trace_memory_info.html#activitysim.core.workflow.State.trace_memory_info" title="activitysim.core.workflow.State.trace_memory_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_memory_info</span></code></a>(event[, trace_ticks])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.trace_memory_info.html#activitysim.core.workflow.State.trace_memory_info" title="activitysim.core.workflow.State.trace_memory_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_memory_info</span></code></a>(event[, trace_ticks])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="activitysim.core.workflow.State.uncheckpointed_table_names.html#activitysim.core.workflow.State.uncheckpointed_table_names" title="activitysim.core.workflow.State.uncheckpointed_table_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uncheckpointed_table_names</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="activitysim.core.workflow.State.uncheckpointed_table_names.html#activitysim.core.workflow.State.uncheckpointed_table_names" title="activitysim.core.workflow.State.uncheckpointed_table_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uncheckpointed_table_names</span></code></a>()</p></td>
 <td><p></p></td>
 </tr>
 </tbody>
@@ -722,7 +725,7 @@
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev7+g1514a51a6, documentation last updated Aug 16, 2025.<br/>
+ActivitySim 1.4.1.dev8+ge345f9774, documentation last updated Aug 25, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

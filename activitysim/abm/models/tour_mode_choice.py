@@ -11,6 +11,7 @@ from activitysim.abm.models.util import (
     school_escort_tours_trips,
     trip,
     logsums,
+    park_and_ride_capacity,
 )
 from activitysim.abm.models.util.mode import run_tour_mode_choice_simulate
 from activitysim.core import (
@@ -24,6 +25,10 @@ from activitysim.core import (
     expressions,
 )
 from activitysim.core.configuration.logit import TourModeComponentSettings
+from activitysim.abm.models.park_and_ride_lot_choice import (
+    ParkAndRideLotChoiceSettings,
+    run_park_and_ride_lot_choice,
+)
 from activitysim.core.util import assign_in_place, reindex
 
 logger = logging.getLogger(__name__)
@@ -295,49 +300,110 @@ def tour_mode_choice_simulate(
             trace_label,
         )
 
-    choices_list = []
-    for tour_purpose, tours_segment in primary_tours_merged.groupby(
-        segment_column_name, observed=True
-    ):
-        logger.info(
-            "tour_mode_choice_simulate tour_type '%s' (%s tours)"
-            % (
-                tour_purpose,
-                len(tours_segment.index),
+    iterations = 1  # default number of times to run tour mode choice if park-and-ride is not capacitated
+
+    # if park-and-ride is included, need to check whether we iterate and how many times
+    if "pnr_zone_id" in primary_tours_merged.columns:
+        # read the park-and-ride lot choice model settings
+        pnr_model_settings = ParkAndRideLotChoiceSettings.read_settings_file(
+            state.filesystem,
+            "park_and_ride_lot_choice.yaml",
+        )
+        # only iterate if enabled and not in estimation mode
+        if (
+            pnr_model_settings.ITERATE_WITH_TOUR_MODE_CHOICE
+            and (pnr_model_settings.MAX_ITERATIONS > 0)
+            and (estimator is None)
+        ):
+            max_iterations = pnr_model_settings.MAX_ITERATIONS
+
+            # create pnr capacity helper class
+            pnr_capacity_cls = park_and_ride_capacity.ParkAndRideCapacity(
+                state, pnr_model_settings
             )
-        )
 
-        if network_los.zone_system == los.THREE_ZONE:
-            skims["tvpb_logsum_odt"].extend_trace_label(tour_purpose)
-            skims["tvpb_logsum_dot"].extend_trace_label(tour_purpose)
+    choosers = primary_tours_merged
+    final_choices = None
 
-        # name index so tracing knows how to slice
-        assert tours_segment.index.name == "tour_id"
+    # iterating tour mode choice with park-and-ride lot choice
+    # the first iteration includes all tours
+    # subsequent iterations only includes tours that selected a capacitated park-and-ride lot
+    for i in range(max_iterations):
+        if max_iterations > 1:
+            trace_label = tracing.extend_trace_label(trace_label, f"i{i}")
 
-        choices_df = run_tour_mode_choice_simulate(
-            state,
-            tours_segment,
-            tour_purpose,
-            model_settings,
-            mode_column_name=mode_column_name,
-            logsum_column_name=logsum_column_name,
-            network_los=network_los,
-            skims=skims,
-            constants=constants,
-            estimator=estimator,
-            trace_label=tracing.extend_trace_label(trace_label, tour_purpose),
-            trace_choice_name="tour_mode_choice",
-        )
+        choices_list = []
+        for tour_purpose, tours_segment in choosers.groupby(
+            segment_column_name, observed=True
+        ):
+            logger.info(
+                "tour_mode_choice_simulate tour_type '%s' (%s tours)"
+                % (
+                    tour_purpose,
+                    len(tours_segment.index),
+                )
+            )
 
-        tracing.print_summary(
-            "tour_mode_choice_simulate %s choices_df" % tour_purpose,
-            choices_df.tour_mode,
-            value_counts=True,
-        )
+            if network_los.zone_system == los.THREE_ZONE:
+                skims["tvpb_logsum_odt"].extend_trace_label(tour_purpose)
+                skims["tvpb_logsum_dot"].extend_trace_label(tour_purpose)
 
-        choices_list.append(choices_df)
+            # name index so tracing knows how to slice
+            assert tours_segment.index.name == "tour_id"
 
-    choices_df = pd.concat(choices_list)
+            choices_df = run_tour_mode_choice_simulate(
+                state,
+                tours_segment,
+                tour_purpose,
+                model_settings,
+                mode_column_name=mode_column_name,
+                logsum_column_name=logsum_column_name,
+                network_los=network_los,
+                skims=skims,
+                constants=constants,
+                estimator=estimator,
+                trace_label=tracing.extend_trace_label(trace_label, tour_purpose),
+                trace_choice_name="tour_mode_choice",
+            )
+
+            tracing.print_summary(
+                "tour_mode_choice_simulate %s choices_df" % tour_purpose,
+                choices_df.tour_mode,
+                value_counts=True,
+            )
+
+            choices_list.append(choices_df)
+
+        choices_i = pd.concat(choices_list)
+        if final_choices is None:
+            final_choices = choices_i.copy()
+        else:
+            # need to just update the existing choices with the new ones decided during this iteration
+            final_choices.loc[choices_i.index] = choices_i
+
+        if (max_iterations > 1) and (i < max_iterations - 1):
+            # need to update the park-and-ride lot capacities and select new choosers
+            pnr_capacity_cls.iteration = i
+            choices_i["pnr_zone_id"] = choosers["pnr_zone_id"].reindex(choices_i.index)
+            pnr_capacity_cls.set_choices(choices_i)
+            choosers = pnr_capacity_cls.select_new_choosers(state, choosers)
+            if choosers.empty:
+                logger.info(
+                    f"finished tour mode choice iterations at iteration {i} because all park-and-ride demand was met"
+                )
+                break
+            choosers["pnr_zone_id"] = run_park_and_ride_lot_choice(
+                state,
+                choosers=choosers,
+                land_use=state.get_dataframe("land_use"),
+                network_los=network_los,
+                model_settings=pnr_capacity_cls.model_settings,
+                choosers_dest_col_name="destination",
+                choosers_origin_col_name="home_zone_id",
+                estimator=estimator,
+                pnr_capacity_cls=pnr_capacity_cls,
+                trace_label=trace_label,
+            )
 
     # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
     if network_los.zone_system == los.THREE_ZONE:
@@ -355,34 +421,34 @@ def tour_mode_choice_simulate(
                     for c in skim_cache:
                         dest_col = f"{direction}_{c}"
 
-                        if dest_col not in choices_df:
-                            choices_df[dest_col] = (
+                        if dest_col not in final_choices:
+                            final_choices[dest_col] = (
                                 np.nan
                                 if pd.api.types.is_numeric_dtype(skim_cache[c])
                                 else ""
                             )
-                        choices_df[dest_col].where(
-                            choices_df.tour_mode != mode, skim_cache[c], inplace=True
+                        final_choices[dest_col].where(
+                            final_choices.tour_mode != mode, skim_cache[c], inplace=True
                         )
 
     if estimator:
-        estimator.write_choices(choices_df.tour_mode)
-        choices_df.tour_mode = estimator.get_survey_values(
-            choices_df.tour_mode, "tours", "tour_mode"
+        estimator.write_choices(final_choices.tour_mode)
+        final_choices.tour_mode = estimator.get_survey_values(
+            final_choices.tour_mode, "tours", "tour_mode"
         )
-        estimator.write_override_choices(choices_df.tour_mode)
+        estimator.write_override_choices(final_choices.tour_mode)
         estimator.end_estimation()
 
     tracing.print_summary(
         "tour_mode_choice_simulate all tour type choices",
-        choices_df.tour_mode,
+        final_choices.tour_mode,
         value_counts=True,
     )
 
     # so we can trace with annotations
     assign_in_place(
         primary_tours,
-        choices_df,
+        final_choices,
         state.settings.downcast_int,
         state.settings.downcast_float,
     )
@@ -391,7 +457,7 @@ def tour_mode_choice_simulate(
     all_tours = tours
     assign_in_place(
         all_tours,
-        choices_df,
+        final_choices,
         state.settings.downcast_int,
         state.settings.downcast_float,
     )

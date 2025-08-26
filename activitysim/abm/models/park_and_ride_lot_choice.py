@@ -21,7 +21,7 @@ from activitysim.core.configuration.logit import (
 )
 from activitysim.core.interaction_simulate import interaction_simulate
 from activitysim.abm.models.util import logsums
-
+from activitysim.abm.models.util.park_and_ride_capacity import ParkAndRideCapacity
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +60,12 @@ class ParkAndRideLotChoiceSettings(LogitComponentSettings, extra="forbid"):
     """Strategy to use when selecting tours for resampling park-and-ride lot choices.
     - latest: tours arriving the latest are selected for resampling.
     - random: randomly resample from all tours at the over-capacitated lot.
+    """
+
+    PARK_AND_RIDE_MODES: list[str] | None = None
+    """List of modes that are considered park-and-ride modes.
+    Needed for filtering choices to calculate park-and-ride lot capacities.
+    Should correspond to the columns in the tour mode choice specification file.
     """
 
 
@@ -141,6 +147,7 @@ def run_park_and_ride_lot_choice(
     choosers_origin_col_name: str = "home_zone_id",
     estimator=None,
     model_settings_file_name: str = "park_and_ride_lot_choice.yaml",
+    pnr_capacity_cls: ParkAndRideCapacity | None = None,
     trace_label: str = "park_and_ride_lot_choice",
 ) -> None:
     """
@@ -162,6 +169,18 @@ def run_park_and_ride_lot_choice(
 
     pnr_alts = land_use[land_use[model_settings.LANDUSE_PNR_SPACES_COLUMN] > 0]
     pnr_alts["pnr_zone_id"] = pnr_alts.index.values
+
+    # if we are running with capacitated pnr lots, we need to flag the lots that are over-capacitated
+    if pnr_capacity_cls is not None:
+        pnr_alts["pnr_lot_full"] = pnr_capacity_cls.flag_capacitated_pnr_zones(pnr_alts)
+        # if there are no available pnr lots left, we return a series of -1
+        if (pnr_alts["pnr_lot_full"] == 1).all():
+            logger.info(
+                "All park-and-ride lots are full. Returning -1 as park-and-ride lot choice."
+            )
+            return pd.Series(data=-1, index=choosers.index)
+    else:
+        pnr_alts["pnr_lot_full"] = 0
 
     original_index = None
     if not choosers.index.is_unique:
@@ -196,7 +215,7 @@ def run_park_and_ride_lot_choice(
         model_settings,
         choosers_dest_col_name,
     )
-    
+
     if trn_accessible_choosers.empty:
         logger.debug(
             "No choosers with transit accessible destinations found. Returning -1 as park-and-ride lot choice."
@@ -332,6 +351,7 @@ def park_and_ride_lot_choice(
         choosers_dest_col_name="destination",
         choosers_origin_col_name="home_zone_id",
         estimator=estimator,
+        pnr_capacity_cls=None,
         trace_label=trace_label,
     )
 

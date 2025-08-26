@@ -322,6 +322,7 @@ def compute_location_choice_logsums(
             choosers_dest_col_name=dest_col_name,
             choosers_origin_col_name=orig_col_name,
             estimator=None,
+            pnr_capacity_cls=None,
             trace_label=tracing.extend_trace_label(trace_label, "pnr_lot_choice"),
         )
 

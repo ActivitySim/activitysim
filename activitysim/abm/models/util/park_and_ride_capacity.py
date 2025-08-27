@@ -9,6 +9,7 @@ from activitysim.core import util, logit
 
 logger = logging.getLogger(__name__)
 
+
 class ParkAndRideCapacity:
     """
     Class to handle park-and-ride lot capacity calculations.

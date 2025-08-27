@@ -2,16 +2,12 @@ import pandas as pd
 import numpy as np
 import ctypes
 import logging
-import multiprocessing
+import multiprocessing as mp
+import time
 
 from activitysim.core import util, logit
 
 logger = logging.getLogger(__name__)
-
-TALLY_CHECKIN = (0, -1)
-TALLY_CHECKOUT = (1, -1)
-TALLY_PENDING_PERSONS = (2, -1)
-
 
 class ParkAndRideCapacity:
     """
@@ -30,20 +26,25 @@ class ParkAndRideCapacity:
         self.iteration = 0
 
         if data_buffers is not None:
-            self.shared_pnr_occupancy_df = data_buffers["pnr_occupancy"]
-            self.shared_pnr_choice_df = data_buffers["pnr_choices"]
-            self.pnr_data_lock = data_buffers["pnr_data_lock"]
-
+            # grab shared data and locks created for multiprocessing
+            self.shared_pnr_choice = data_buffers["shared_pnr_choice"]
+            self.shared_pnr_choice_idx = data_buffers["shared_pnr_choice_idx"]
+            self.shared_pnr_choice_start = data_buffers["shared_pnr_choice_start"]
+            self.pnr_mp_tally = data_buffers["pnr_mp_tally"]
         else:
             assert (
                 self.num_processes == 1
             ), "data_buffers must be provided for multiprocessing"
-            self.shared_pnr_occupancy_df = pd.DataFrame(
-                columns=["pnr_occupancy"], index=state.get_dataframe("land_use").index
-            )
-            self.shared_pnr_occupancy_df["pnr_occupancy"] = 0
-            self.shared_pnr_choice_df = pd.DataFrame(columns=["tour_id", "pnr_zone_id"])
-            self.pnr_data_lock = None
+            self.shared_pnr_choice = None
+            self.shared_pnr_choice_idx = None
+            self.shared_pnr_choice_start = None
+            self.pnr_mp_tally = None
+
+        # occupancy counts for pnr zones is populated from choices synced across processes
+        self.shared_pnr_occupancy_df = pd.DataFrame(
+            columns=["pnr_occupancy"], index=state.get_dataframe("land_use").index
+        )
+        self.shared_pnr_occupancy_df["pnr_occupancy"] = 0
 
         self.scale_pnr_capacity(state)
 
@@ -71,22 +72,23 @@ class ParkAndRideCapacity:
 
         if self.num_processes == 1:
             # - not multiprocessing
-            self.choices_synced = choices.pnr_zone_id
-
-            # tally up the counts by zone
-            # index of shared_pnr_occupancy_df is zone_id in the landuse table across all processes
-            pnr_counts = self.choices_synced.value_counts().reindex(
-                self.shared_pnr_occupancy_df.index
-            )
-            pnr_counts = pnr_counts.fillna(0).astype(int)
-
-            # new occupancy is what was already at the lots after the last iteration + new pnr choices
-            # (those selected for resimulation are removed in the select_new_choosers function)
-            self.shared_pnr_occupancy_df["pnr_occupancy"].values[:] += pnr_counts.values
+            self.choices_synced = choices[["pnr_zone_id", "start"]]
 
         else:
             # - multiprocessing
             self.choices_synced = self.synchronize_choices(choices)
+
+        # tally up the counts by zone
+        # index of shared_pnr_occupancy_df is zone_id in the landuse table across all processes
+        # choices_synced object also now contains all choices across all processes
+        pnr_counts = self.choices_synced.pnr_zone_id.value_counts().reindex(
+            self.shared_pnr_occupancy_df.index
+        )
+        pnr_counts = pnr_counts.fillna(0).astype(int)
+
+        # new occupancy is what was already at the lots after the last iteration + new pnr choices
+        # (those selected for resimulation are removed in the select_new_choosers function)
+        self.shared_pnr_occupancy_df["pnr_occupancy"].values[:] += pnr_counts.values
 
     def synchronize_choices(self, choices):
         """
@@ -95,32 +97,133 @@ class ParkAndRideCapacity:
         Parameters
         ----------
         choices : pandas.Series
-            Series of choices indexed by person_id
+            Series of choices indexed by tour_id
 
         Returns
         -------
         pandas.Series
             Synchronized choices across all processes.
         """
-        # shouldn't be called if we are not multiprocessing
-        assert self.shared_data_choice is not None
-        assert self.num_processes > 1
+        assert self.shared_pnr_choice is not None, "shared_pnr_choice is not set"
+        assert (
+            self.shared_pnr_choice_idx is not None
+        ), "shared_pnr_choice_idx is not set"
+        assert self.num_processes > 1, "num_processes must be greater than 1"
 
-        def get_tally(t):
-            with self.shared_data_choice_lock:
-                return self.shared_data_choice[t]
+        # barrier implemented with arrival count (idx 0) and generation (idx 1)
+        def barrier(reset_callback=None):
+            while True:
+                with self.pnr_mp_tally.get_lock():
+                    gen = self.pnr_mp_tally[1]
+                    self.pnr_mp_tally[0] += 1  # arrived
+                    if self.pnr_mp_tally[0] == self.num_processes:
+                        # last to arrive
+                        if reset_callback is not None:
+                            reset_callback()
+                        # release all waiters by advancing generation and resetting arrival count
+                        self.pnr_mp_tally[0] = 0
+                        self.pnr_mp_tally[1] = gen + 1
+                        return
+                    # not last; remember current generation to wait on
+                    wait_gen = gen
+                # spin until generation changes
+                while True:
+                    with self.pnr_mp_tally.get_lock():
+                        if self.pnr_mp_tally[1] != wait_gen:
+                            break
+                    time.sleep(1)
+                return
 
-        def wait(tally, target):
-            while get_tally(tally) != target:
-                time.sleep(1)
+        # can send in empty chocies to ensure all subprocesses will hit the barrier
+        if not choices.empty:
+            with self.shared_pnr_choice.get_lock():
+                # first_in = self.pnr_mp_tally[0] == 0
+                # create a dataframe of the already existing choices
+                mp_choices_df = pd.DataFrame(
+                    data={
+                        "pnr_zone_id": np.frombuffer(
+                            self.shared_pnr_choice.get_obj(), dtype=np.int64
+                        ),
+                        "start": np.frombuffer(
+                            self.shared_pnr_choice_start.get_obj(), dtype=np.int64
+                        ),
+                    },
+                    index=np.frombuffer(
+                        self.shared_pnr_choice_idx.get_obj(), dtype=np.int64
+                    ),
+                )
+                mp_choices_df.index.name = "tour_id"
+                # discard zero entries
+                mp_choices_df = mp_choices_df[mp_choices_df.pnr_zone_id > 0]
+                # append the new choices
+                synced_choices = pd.concat(
+                    [mp_choices_df, choices[["pnr_zone_id", "start"]]],
+                    axis=0,
+                    ignore_index=False,
+                )
+                # sort by index (tour_id)
+                synced_choices = synced_choices.sort_index()
 
-        # - nobody checks in until checkout clears
-        wait(TALLY_CHECKOUT, 0)
+                # now append any additional rows need to get size back to original length
+                pad = len(self.shared_pnr_choice) - len(synced_choices)
+                new_arr_values = np.concatenate(
+                    [
+                        synced_choices["pnr_zone_id"].to_numpy(np.int64),
+                        np.zeros(pad, dtype=np.int64),
+                    ]
+                )
+                new_arr_idx = np.concatenate(
+                    [
+                        synced_choices.index.to_numpy(np.int64),
+                        np.zeros(pad, dtype=np.int64),
+                    ]
+                )
+                new_arr_start = np.concatenate(
+                    [
+                        synced_choices["start"].to_numpy(np.int64),
+                        np.zeros(pad, dtype=np.int64),
+                    ]
+                )
 
-        with self.shared_data_choice_lock:
-            first_in = self.shared_data_choice[TALLY_CHECKIN] == 0
+                # write the updated arrays back to the shared memory
+                self.shared_pnr_choice_idx[:] = new_arr_idx.tolist()
+                self.shared_pnr_choice[:] = new_arr_values.tolist()
+                self.shared_pnr_choice_start[:] = new_arr_start.tolist()
 
-        pass
+        # Wait for all processes to finish writing
+        barrier()
+
+        # need to create the final synced_choices again since other processes may have written to the shared memory
+        # don't need the lock since we are only reading at this stage
+        synced_choices = pd.DataFrame(
+            data={
+                "pnr_zone_id": np.frombuffer(
+                    self.shared_pnr_choice.get_obj(), dtype=np.int64
+                ),
+                "start": np.frombuffer(
+                    self.shared_pnr_choice_start.get_obj(), dtype=np.int64
+                ),
+            },
+            index=np.frombuffer(self.shared_pnr_choice_idx.get_obj(), dtype=np.int64),
+        )
+        synced_choices.index.name = "tour_id"
+        synced_choices = synced_choices[synced_choices.pnr_zone_id > 0].copy()
+
+        # barrier 2: last-out resets arrays for next iteration
+        def reset_arrays():
+            self.shared_pnr_choice[:] = np.zeros(
+                len(self.shared_pnr_choice), dtype=np.int64
+            ).tolist()
+            self.shared_pnr_choice_idx[:] = np.zeros(
+                len(self.shared_pnr_choice_idx), dtype=np.int64
+            ).tolist()
+            self.shared_pnr_choice_start[:] = np.zeros(
+                len(self.shared_pnr_choice_start), dtype=np.int64
+            ).tolist()
+
+        barrier(reset_callback=reset_arrays)
+
+        return synced_choices
 
     def scale_pnr_capacity(self, state):
         """
@@ -167,7 +270,7 @@ class ParkAndRideCapacity:
         # note that this dataframe contains tours across all processes but choosers is only from the current process
         self.determine_capacitated_pnr_zones()
         tours_in_cap_zones = self.choices_synced[
-            self.choices_synced.isin(self.capacitated_zones)
+            self.choices_synced.pnr_zone_id.isin(self.capacitated_zones)
         ]
 
         # if no tours in capacitated zones, return empty DataFrame
@@ -183,15 +286,12 @@ class ParkAndRideCapacity:
             num_over_limit = num_over_limit[num_over_limit > 0].astype(int)
 
             tours_in_cap_zones = pd.merge(
-                tours_in_cap_zones.to_frame(name="pnr_zone_id"),
+                tours_in_cap_zones,
                 num_over_limit.to_frame(name="num_over_limit"),
                 left_on="pnr_zone_id",
                 right_index=True,
                 how="left",
             )
-            tours_in_cap_zones["start"] = choosers.loc[
-                tours_in_cap_zones.index, "start"
-            ]
 
             # sort tours by order arriving at each pnr zone
             tours_in_cap_zones.sort_values(
@@ -223,6 +323,7 @@ class ParkAndRideCapacity:
                 / self.scaled_pnr_capacity_df["pnr_capacity"]
             )
             zonal_sample_rate = zonal_sample_rate[zonal_sample_rate > 1]
+            zonal_sample_rate = (zonal_sample_rate - 1).clip(lower=0, upper=1)
 
             # person's probability of being selected for re-simulation is from the zonal sample rate
             sample_rates = tours_in_cap_zones.pnr_zone_id.map(
@@ -304,49 +405,40 @@ def create_park_and_ride_capacity_data_buffers(state):
     """
 
     # get landuse and person tables to determine the size of the buffers
-    land_use = state.get_dataframe("land_use")
     persons = state.get_dataframe("persons")
-
-    # canonical, identical across processes
-    zone_ids = land_use.reset_index()["zone_id"].to_numpy(dtype=np.int64)
-    n_zones = zone_ids.size
-
-    # shared occupancy: 1 value per zone (zone_id itself is NOT shared)
-    mparr_occupancy = multiprocessing.Array(ctypes.c_int64, n_zones, lock=True)
-    occ_view = np.frombuffer(mparr_occupancy.get_obj(), dtype=np.int64, count=n_zones)
-    occ_view[:] = 0  # init
-
-    # DataFrame wrapper with fixed index in the same order in every process
-    shared_pnr_occupancy_df = pd.DataFrame(
-        {"pnr_occupancy": occ_view},
-        index=pd.Index(zone_ids, name="zone_id"),
-    )
 
     # don't know a-priori how many park-and-ride tours there are at the start of the model run
     # giving the buffer a size equal to the number of persons should be sufficient
-    # need column for tour_id and column for choice
-    pnr_choice_df = persons.reset_index()["person_id"].to_frame()
-    pnr_choice_df["pnr_lot_id"] = -1  # default value for park-and-ride lot choice
-    pnr_choice_df["tour_id"] = -1
-    mparr_choice = multiprocessing.Array(
-        ctypes.c_int64, pnr_choice_df.values.reshape(-1)
-    )
+    n = len(persons)
 
-    # create a new df based on the shared array
-    shared_pnr_choice_df = pd.DataFrame(
-        np.frombuffer(mparr_choice.get_obj()).reshape(pnr_choice_df.shape),
-        columns=pnr_choice_df.columns,
-    )
+    # creating one interprocess lock to be shared by all arrays
+    shared_lock = mp.RLock()
 
-    total_bytes = mparr_occupancy.get_obj().nbytes + mparr_choice.get_obj().nbytes
+    # need two arrays -- one for the choices and one for the IDs of the tours making the choice
+    choice_arr = mp.Array(ctypes.c_int64, n, lock=shared_lock)
+    choice_arr_idx = mp.Array(ctypes.c_int64, n, lock=shared_lock)
+    choice_arr_start = mp.Array(ctypes.c_int64, n, lock=shared_lock)
 
+    # init the arrays to 0
+    choice_arr[:] = np.zeros(n, dtype=np.int64).tolist()
+    choice_arr_idx[:] = np.zeros(n, dtype=np.int64).tolist()
+    choice_arr_start[:] = np.zeros(n, dtype=np.int64).tolist()
+
+    # one more shared array of length two to count processes as they check in and out
+    pnr_mp_tally = mp.Array(ctypes.c_int64, 2, lock=shared_lock)
+    pnr_mp_tally[:] = [0, 0]
+
+    # recording memory size
+    total_bytes = n * np.dtype(np.int64).itemsize * 3
     logger.info(
         f"allocating shared park-and-ride lot choice buffers with buffer_size {total_bytes} bytes ({util.GB(total_bytes)})"
     )
 
     data_buffers = {
-        "pnr_occupancy": shared_pnr_occupancy_df,
-        "pnr_choices": shared_pnr_choice_df,
-        "pnr_data_lock": mparr_choice.get_lock(),
+        "shared_pnr_choice": choice_arr,
+        "shared_pnr_choice_idx": choice_arr_idx,
+        "shared_pnr_choice_start": choice_arr_start,
+        "pnr_mp_tally": pnr_mp_tally,
     }
+
     return data_buffers

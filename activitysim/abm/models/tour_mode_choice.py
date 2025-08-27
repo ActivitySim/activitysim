@@ -300,7 +300,7 @@ def tour_mode_choice_simulate(
             trace_label,
         )
 
-    iterations = 1  # default number of times to run tour mode choice if park-and-ride is not capacitated
+    max_iterations = 1  # default number of times to run tour mode choice if park-and-ride is not capacitated
 
     # if park-and-ride is included, need to check whether we iterate and how many times
     if "pnr_zone_id" in primary_tours_merged.columns:
@@ -384,13 +384,21 @@ def tour_mode_choice_simulate(
         if (max_iterations > 1) and (i < max_iterations - 1):
             # need to update the park-and-ride lot capacities and select new choosers
             pnr_capacity_cls.iteration = i
+            # grabbing pnr_zone_id to calculate capacities
             choices_i["pnr_zone_id"] = choosers["pnr_zone_id"].reindex(choices_i.index)
+            # grabbing start time to help determine which tours need to get resimulated
+            choices_i["start"] = choosers["start"].reindex(choices_i.index)
             pnr_capacity_cls.set_choices(choices_i)
             choosers = pnr_capacity_cls.select_new_choosers(state, choosers)
             if choosers.empty:
                 logger.info(
                     f"finished tour mode choice iterations at iteration {i} because all park-and-ride demand was met"
                 )
+                if pnr_capacity_cls.num_processes > 1:
+                    # need to have this subprocess check-in still to satisfy barrier in synchronize_choices
+                    for j in range(i, max_iterations):
+                        dummy_choices = pd.DataFrame(columns=choices_i.columns)
+                        pnr_capacity_cls.set_choices(dummy_choices)
                 break
             choosers["pnr_zone_id"] = run_park_and_ride_lot_choice(
                 state,

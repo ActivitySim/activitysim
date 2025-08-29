@@ -20,7 +20,13 @@ logger = logging.getLogger(__name__)
 
 class MatrixTableSettings(PydanticReadable):
     name: str
+    """Name of the core in the omx output file"""
     data_field: str
+    """Column in the trips table to aggregate"""
+    origin: str = "origin"
+    """Column in the trips table representing the from zone"""
+    destination: str = "destination"
+    """Column in the trips table representing the to zone"""
 
 
 class MatrixSettings(PydanticReadable):
@@ -127,113 +133,59 @@ def write_trip_matrices(
     # write matrices by zone system type
     if network_los.zone_system == los.ONE_ZONE:  # taz trips written to taz matrices
         logger.info("aggregating trips one zone...")
-        aggregate_trips = trips_df.groupby(["origin", "destination"], sort=False).sum(
-            numeric_only=True
-        )
-
-        # use the average household weight for all trips in the origin destination pair
-        hh_weight_col = model_settings.HH_EXPANSION_WEIGHT_COL
-        aggregate_weight = (
-            trips_df[["origin", "destination", hh_weight_col]]
-            .groupby(["origin", "destination"], sort=False)
-            .mean()
-        )
-        aggregate_trips[hh_weight_col] = aggregate_weight[hh_weight_col]
-
-        orig_vals = aggregate_trips.index.get_level_values("origin")
-        dest_vals = aggregate_trips.index.get_level_values("destination")
 
         # use the land use table for the set of possible tazs
         land_use = state.get_dataframe("land_use")
-        zone_index = land_use.index
-        assert all(zone in zone_index for zone in orig_vals)
-        assert all(zone in zone_index for zone in dest_vals)
-
-        _, orig_index = zone_index.reindex(orig_vals)
-        _, dest_index = zone_index.reindex(dest_vals)
-
         try:
             zone_labels = land_use[f"_original_{land_use.index.name}"]
         except KeyError:
             zone_labels = land_use.index
 
         write_matrices(
-            state, aggregate_trips, zone_labels, orig_index, dest_index, model_settings
+            state=state,
+            trips_df=trips_df,
+            zone_index=zone_labels,  # Series or Index; used for mapping and shape
+            model_settings=model_settings,
+            is_tap=False,
         )
 
     elif network_los.zone_system == los.TWO_ZONE:  # maz trips written to taz matrices
         logger.info("aggregating trips two zone...")
-        trips_df["otaz"] = (
-            state.get_dataframe("land_use").reindex(trips_df["origin"]).TAZ.tolist()
-        )
-        trips_df["dtaz"] = (
-            state.get_dataframe("land_use")
-            .reindex(trips_df["destination"])
-            .TAZ.tolist()
-        )
-        aggregate_trips = trips_df.groupby(["otaz", "dtaz"], sort=False).sum(
-            numeric_only=True
-        )
 
-        # use the average household weight for all trips in the origin destination pair
-        hh_weight_col = model_settings.HH_EXPANSION_WEIGHT_COL
-        aggregate_weight = (
-            trips_df[["otaz", "dtaz", hh_weight_col]]
-            .groupby(["otaz", "dtaz"], sort=False)
-            .mean()
-        )
-        aggregate_trips[hh_weight_col] = aggregate_weight[hh_weight_col]
+        # TAZ domain for output
+        zone_index = pd.Index(network_los.get_tazs(state), name="TAZ")
 
-        orig_vals = aggregate_trips.index.get_level_values("otaz")
-        dest_vals = aggregate_trips.index.get_level_values("dtaz")
-
+        # If original TAZ labels are provided, use them in the OMX mapping
         try:
             land_use_taz = state.get_dataframe("land_use_taz")
         except (KeyError, RuntimeError):
             pass  # table missing, ignore
         else:
             if "_original_TAZ" in land_use_taz.columns:
-                orig_vals = orig_vals.map(land_use_taz["_original_TAZ"])
-                dest_vals = dest_vals.map(land_use_taz["_original_TAZ"])
-
-        zone_index = pd.Index(network_los.get_tazs(state), name="TAZ")
-        assert all(zone in zone_index for zone in orig_vals)
-        assert all(zone in zone_index for zone in dest_vals)
-
-        _, orig_index = zone_index.reindex(orig_vals)
-        _, dest_index = zone_index.reindex(dest_vals)
+                zone_index = pd.Series(
+                    land_use_taz["_original_TAZ"]
+                    .reindex(zone_index)
+                    .fillna(zone_index)
+                    .values,
+                    index=pd.Index(zone_index, name="TAZ"),
+                    name="TAZ",
+                )
 
         write_matrices(
-            state, aggregate_trips, zone_index, orig_index, dest_index, model_settings
+            state=state,
+            trips_df=trips_df,
+            zone_index=zone_index,
+            model_settings=model_settings,
+            is_tap=False,
         )
 
     elif (
         network_los.zone_system == los.THREE_ZONE
     ):  # maz trips written to taz and tap matrices
         logger.info("aggregating trips three zone taz...")
-        trips_df["otaz"] = (
-            state.get_dataframe("land_use").reindex(trips_df["origin"]).TAZ.tolist()
-        )
-        trips_df["dtaz"] = (
-            state.get_dataframe("land_use")
-            .reindex(trips_df["destination"])
-            .TAZ.tolist()
-        )
-        aggregate_trips = trips_df.groupby(["otaz", "dtaz"], sort=False).sum(
-            numeric_only=True
-        )
 
-        # use the average household weight for all trips in the origin destination pair
-        hh_weight_col = model_settings.HH_EXPANSION_WEIGHT_COL
-        aggregate_weight = (
-            trips_df[["otaz", "dtaz", hh_weight_col]]
-            .groupby(["otaz", "dtaz"], sort=False)
-            .mean()
-        )
-        aggregate_trips[hh_weight_col] = aggregate_weight[hh_weight_col]
-
-        orig_vals = aggregate_trips.index.get_level_values("otaz")
-        dest_vals = aggregate_trips.index.get_level_values("dtaz")
+        # TAZ domain for output
+        zone_index = pd.Index(network_los.get_tazs(state), name="TAZ")
 
         try:
             land_use_taz = state.get_dataframe("land_use_taz")
@@ -241,52 +193,33 @@ def write_trip_matrices(
             pass  # table missing, ignore
         else:
             if "_original_TAZ" in land_use_taz.columns:
-                orig_vals = orig_vals.map(land_use_taz["_original_TAZ"])
-                dest_vals = dest_vals.map(land_use_taz["_original_TAZ"])
-
-        zone_index = pd.Index(network_los.get_tazs(state), name="TAZ")
-        assert all(zone in zone_index for zone in orig_vals)
-        assert all(zone in zone_index for zone in dest_vals)
-
-        _, orig_index = zone_index.reindex(orig_vals)
-        _, dest_index = zone_index.reindex(dest_vals)
+                zone_index = pd.Series(
+                    land_use_taz["_original_TAZ"]
+                    .reindex(zone_index)
+                    .fillna(zone_index)
+                    .values,
+                    index=pd.Index(zone_index, name="TAZ"),
+                    name="TAZ",
+                )
 
         write_matrices(
-            state, aggregate_trips, zone_index, orig_index, dest_index, model_settings
+            state=state,
+            trips_df=trips_df,
+            zone_index=zone_index,
+            model_settings=model_settings,
+            is_tap=False,
         )
 
         logger.info("aggregating trips three zone tap...")
-        aggregate_trips = trips_df.groupby(["btap", "atap"], sort=False).sum(
-            numeric_only=True
-        )
 
-        # use the average household weight for all trips in the origin destination pair
-        hh_weight_col = model_settings.HH_EXPANSION_WEIGHT_COL
-        aggregate_weight = (
-            trips_df[["btap", "atap", hh_weight_col]]
-            .groupby(["btap", "atap"], sort=False)
-            .mean()
-        )
-        aggregate_trips[hh_weight_col] = aggregate_weight[hh_weight_col]
-
-        orig_vals = aggregate_trips.index.get_level_values("btap")
-        dest_vals = aggregate_trips.index.get_level_values("atap")
-
-        zone_index = pd.Index(network_los.get_taps(), name="TAP")
-        assert all(zone in zone_index for zone in orig_vals)
-        assert all(zone in zone_index for zone in dest_vals)
-
-        _, orig_index = zone_index.reindex(orig_vals)
-        _, dest_index = zone_index.reindex(dest_vals)
+        tap_index = pd.Index(network_los.get_taps(), name="TAP")
 
         write_matrices(
-            state,
-            aggregate_trips,
-            zone_index,
-            orig_index,
-            dest_index,
-            model_settings,
-            True,
+            state=state,
+            trips_df=trips_df,
+            zone_index=tap_index,
+            model_settings=model_settings,
+            is_tap=True,
         )
 
     if "parking_location" in state.settings.models:
@@ -369,67 +302,147 @@ def annotate_trips(
 
 def write_matrices(
     state: workflow.State,
-    aggregate_trips,
-    zone_index,
-    orig_index,
-    dest_index,
+    trips_df: pd.DataFrame,
+    zone_index: pd.Index | pd.Series,
     model_settings: WriteTripMatricesSettings,
-    is_tap=False,
+    is_tap: bool = False,
 ):
     """
-    Write aggregated trips to OMX format.
-
-    The MATRICES setting lists the new OMX files to write.
-    Each file can contain any number of 'tables', each specified by a
-    table key ('name') and a trips table column ('data_field') to use
-    for aggregated counts.
-
-    Any data type may be used for columns added in the annotation phase,
-    but the table 'data_field's must be summable types: ints, floats, bools.
+    Write aggregated trips to OMX format per table using table-specific origin/destination
+    columns and allow repeated table names to accumulate into the same matrix.
     """
 
     matrix_settings = model_settings.MATRICES
 
     if not matrix_settings:
         logger.error("Missing MATRICES setting in write_trip_matrices.yaml")
+        return
 
+    # Normalize zone index used for placement (pos_index) and mapping labels (map_labels)
+    if isinstance(zone_index, pd.Series):
+        pos_index = zone_index.index
+        map_labels = zone_index
+    else:
+        pos_index = zone_index
+        map_labels = zone_index
+
+    n_zones = len(pos_index)
+    pos_index = pd.Index(pos_index, name=pos_index.name or "ZONE")
+
+    hh_weight_col = model_settings.HH_EXPANSION_WEIGHT_COL
+
+    # For each output file, accumulate table_name -> matrix
     for matrix in matrix_settings:
-        matrix_is_tap = matrix.is_tap
+        if matrix.is_tap != is_tap:
+            continue
 
-        if matrix_is_tap == is_tap:  # only write tap matrices to tap matrix files
-            filename = str(matrix.file_name)
-            filepath = state.get_output_file_path(filename)
-            logger.info("opening %s" % filepath)
-            file = omx.open_file(str(filepath), "w")  # possibly overwrite existing file
-            table_settings = matrix.tables
+        filename = str(matrix.file_name)
+        filepath = state.get_output_file_path(filename)
+        logger.info(f"opening {filepath}")
+        f = omx.open_file(str(filepath), "w")  # overwrite file each run
 
-            for table in table_settings:
-                table_name = table.name
-                col = table.data_field
+        # Accumulator for datasets in this file
+        datasets: dict[str, np.ndarray] = {}
 
-                if col not in aggregate_trips:
-                    logger.error(f"missing {col} column in aggregate_trips DataFrame")
-                    return
+        for table in matrix.tables:
+            table_name = table.name
+            col = table.data_field
 
-                hh_weight_col = model_settings.HH_EXPANSION_WEIGHT_COL
-                if hh_weight_col:
-                    aggregate_trips[col] = (
-                        aggregate_trips[col] / aggregate_trips[hh_weight_col]
-                    )
-
-                data = np.zeros((len(zone_index), len(zone_index)))
-                data[orig_index, dest_index] = aggregate_trips[col]
-                logger.debug(
-                    "writing %s sum %0.2f" % (table_name, aggregate_trips[col].sum())
+            if col not in trips_df.columns:
+                logger.warning(
+                    f"Skipping table {table_name}: missing column {col} in trips"
                 )
-                file[table_name] = data  # write to file
+                continue
 
-            # include the index-to-zone map in the file
-            logger.info(
-                "adding %s mapping for %s zones to %s"
-                % (zone_index.name, zone_index.size, filename)
-            )
-            file.create_mapping(zone_index.name, zone_index.to_numpy())
+            # Effective origin/destination columns
+            ocol = table.origin or ("btap" if is_tap else "origin")
+            dcol = table.destination or ("atap" if is_tap else "destination")
 
-            logger.info("closing %s" % filepath)
-            file.close()
+            if ocol not in trips_df.columns or dcol not in trips_df.columns:
+                logger.warning(
+                    f"Skipping table {table_name}: missing origin/destination columns "
+                    f"{ocol}/{dcol} in trips"
+                )
+                continue
+
+            # Build a working frame with needed columns
+            work = trips_df[[ocol, dcol, col]].copy()
+            if hh_weight_col and hh_weight_col in trips_df.columns:
+                work[hh_weight_col] = trips_df[hh_weight_col]
+
+            # Map to zone domain if needed (TAZ/TAP domain is pos_index)
+            # if values are already in domain, keep; else try MAZ->TAZ mapping for TAZ outputs
+            def to_domain_vals(series: pd.Series) -> pd.Series:
+                # already in domain?
+                in_domain = pd.Series(series.isin(pos_index).values, index=series.index)
+                if in_domain.all() or is_tap:
+                    return series
+                # try MAZ -> TAZ using land_use while preserving the original index
+                try:
+                    lu = state.get_dataframe("land_use")
+                    if "TAZ" in lu.columns:
+                        mapped = series.map(lu["TAZ"])
+                        # if mapping produced any non-nulls, use it
+                        if mapped.notna().any():
+                            return mapped
+                except Exception:
+                    pass
+                return series  # fallback; may drop later if not in domain
+
+            work["_o"] = to_domain_vals(work[ocol])
+            work["_d"] = to_domain_vals(work[dcol])
+
+            # Drop rows with either missing origin/destination
+            work = work.dropna(subset=["_o", "_d"])
+
+            # Aggregate by OD
+            if hh_weight_col and hh_weight_col in work.columns:
+                grouped_sum = work.groupby(["_o", "_d"], sort=False)[col].sum()
+                mean_w = work.groupby(["_o", "_d"], sort=False)[hh_weight_col].mean()
+                vals = (grouped_sum / mean_w.replace(0, np.nan)).fillna(0.0)
+            else:
+                vals = work.groupby(["_o", "_d"], sort=False)[col].sum()
+
+            if vals.empty:
+                continue
+
+            # Map OD labels to positional indices
+            o_vals = vals.index.get_level_values(0)
+            d_vals = vals.index.get_level_values(1)
+
+            oi = pos_index.get_indexer(o_vals)
+            di = pos_index.get_indexer(d_vals)
+
+            mask = (oi != -1) & (di != -1)
+            if not np.any(mask):
+                logger.warning(
+                    f"No valid OD pairs for table {table_name} in domain; skipping."
+                )
+                continue
+
+            oi = oi[mask]
+            di = di[mask]
+            v = vals.to_numpy()[mask]
+
+            # Accumulate into dataset matrix
+            data = datasets.get(table_name)
+            if data is None:
+                data = np.zeros((n_zones, n_zones), dtype=float)
+                datasets[table_name] = data
+            data[oi, di] += v
+
+            logger.debug(f"accumulated {table_name} sum {v.sum():0.2f}")
+
+        # Write all accumulated datasets for this file
+        for table_name, data in datasets.items():
+            f[table_name] = data
+
+        # include the index-to-zone map in the file
+        logger.info(
+            "adding %s mapping for %s zones to %s"
+            % (map_labels.name or "ZONE", len(map_labels), filename)
+        )
+        f.create_mapping(map_labels.name or "ZONE", pd.Index(map_labels).to_numpy())
+
+        logger.info("closing %s" % filepath)
+        f.close()

@@ -66,26 +66,29 @@ def atwork_subtour_mode_choice(
     constants = {}
     constants.update(model_settings.CONSTANTS)
 
-    if model_settings.include_explicit_pnr:
-        subtours_merged["pnr_zone_id"] = run_park_and_ride_lot_choice(
-            state,
-            choosers=subtours_merged,
-            land_use=state.get_dataframe("land_use"),
-            network_los=network_los,
-            model_settings=None,
-            choosers_dest_col_name="destination",
-            choosers_origin_col_name="workplace_zone_id",
-            estimator=None,
-            pnr_capacity_cls=None,
-            trace_label=tracing.extend_trace_label(trace_label, "pnr_lot_choice"),
-        )
+    if "pnr_zone_id" in subtours_merged.columns:
+        if model_settings.run_atwork_pnr_lot_choice:
+            subtours_merged["pnr_zone_id"] = run_park_and_ride_lot_choice(
+                state,
+                choosers=subtours_merged,
+                land_use=state.get_dataframe("land_use"),
+                network_los=network_los,
+                model_settings=None,
+                choosers_dest_col_name="destination",
+                choosers_origin_col_name="workplace_zone_id",
+                estimator=None,
+                pnr_capacity_cls=None,
+                trace_label=tracing.extend_trace_label(trace_label, "pnr_lot_choice"),
+            )
+        else:
+            subtours_merged["pnr_zone_id"].fillna(-1, inplace=True)
 
     # setup skim keys
     skims = setup_skims(
         network_los,
         subtours_merged,
         add_periods=False,
-        include_pnr_skims=model_settings.include_explicit_pnr,
+        include_pnr_skims=model_settings.run_atwork_pnr_lot_choice,
         orig_col_name="workplace_zone_id",
         dest_col_name="destination",
         trace_label=trace_label,

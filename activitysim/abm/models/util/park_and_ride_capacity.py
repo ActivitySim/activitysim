@@ -5,7 +5,7 @@ import logging
 import multiprocessing as mp
 import time
 
-from activitysim.core import util, logit
+from activitysim.core import util, logit, tracing
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +91,13 @@ class ParkAndRideCapacity:
         # (those selected for resimulation are removed in the select_new_choosers function)
         self.shared_pnr_occupancy_df["pnr_occupancy"].values[:] += pnr_counts.values
 
+        # logging summary of this aggregation
+        lots_with_demand = int((pnr_counts > 0).sum())
+        logger.info(
+            f"PNR iter {self.iteration}: aggregated {len(self.choices_synced)} choices across "
+            f"{lots_with_demand} lots."
+        )
+
     def synchronize_choices(self, choices):
         """
         Synchronize the choices across all processes.
@@ -112,6 +119,8 @@ class ParkAndRideCapacity:
         assert self.num_processes > 1, "num_processes must be greater than 1"
 
         # barrier implemented with arrival count (idx 0) and generation (idx 1)
+        # cannot just use mp.barrier() because we do not know how many processes
+        # there will be when the tour mode choice iteration with pnr begins
         def barrier(reset_callback=None):
             while True:
                 with self.pnr_mp_tally.get_lock():
@@ -269,7 +278,7 @@ class ParkAndRideCapacity:
         """
         # select tours from capacitated zones
         # note that this dataframe contains tours across all processes but choosers is only from the current process
-        self.determine_capacitated_pnr_zones()
+        self.determine_capacitated_pnr_zones(state)
         tours_in_cap_zones = self.choices_synced[
             self.choices_synced.pnr_zone_id.isin(self.capacitated_zones)
         ]
@@ -351,7 +360,7 @@ class ParkAndRideCapacity:
 
         return choosers
 
-    def determine_capacitated_pnr_zones(self):
+    def determine_capacitated_pnr_zones(self, state):
         """
         Determine which park-and-ride zones are at or over capacity.
 
@@ -373,6 +382,24 @@ class ParkAndRideCapacity:
 
         self.capacitated_zones = cap.index[capacitated_zones_mask]
 
+        # generating a df summarizing zonal capacity
+        df = pd.DataFrame({"pnr_capacity": cap, "pnr_occupancy": occ})
+        with np.errstate(divide="ignore", invalid="ignore"):
+            df["pct_utilized"] = np.where(
+                df.pnr_capacity > 0, df.pnr_occupancy / df.pnr_capacity * 100, np.nan
+            )
+        df["over_by"] = (df.pnr_occupancy - df.pnr_capacity).clip(lower=0)
+        df["capacitated"] = capacitated_zones_mask
+        self.capacity_snapshot = df
+
+        # writing snapshot to output trace folder
+        if state.settings.trace_hh_id:
+            state.tracing.trace_df(
+                df=self.capacity_snapshot,
+                label=f"pnr_capacity_snapshot_i{self.iteration}",
+                transpose=False,
+            )
+
     def flag_capacitated_pnr_zones(self, pnr_alts):
         """
         Flag park-and-ride lots that are at capacity.
@@ -389,11 +416,8 @@ class ParkAndRideCapacity:
         pandas.DataFrame
             updated landuse table
         """
-        # capacitated pnr zones
-        self.determine_capacitated_pnr_zones()
-        capacitated_zones_mask = pnr_alts.index.isin(self.capacitated_zones)
 
-        return np.where(capacitated_zones_mask, 1, 0)
+        return np.where(pnr_alts.index.isin(self.capacitated_zones), 1, 0)
 
 
 def create_park_and_ride_capacity_data_buffers(state):

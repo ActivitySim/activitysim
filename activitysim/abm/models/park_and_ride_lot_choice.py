@@ -38,6 +38,11 @@ class ParkAndRideLotChoiceSettings(LogitComponentSettings, extra="forbid"):
     """A list of skim names to use for filtering choosers to only those with destinations that have transit access.
     If None, all tours are considered eligible for park-and-ride lot choice."""
 
+    LANDUSE_COL_FOR_PNR_ELIGIBLE_DEST: str | None = None
+    """The column name in the land use table that indicates whether a destination is eligible for park-and-ride.
+    If supplied, then TRANSIT_SKIMS_FOR_ELIGIBILITY is not used.
+    """
+
     explicit_chunk: float = 0
     """
     If > 0, use this chunk size instead of adaptive chunking.
@@ -79,52 +84,61 @@ def filter_chooser_to_transit_accessible_destinations(
 ) -> pd.DataFrame:
     """
     Filter choosers to only those with destinations that have transit access.
-    We look at the skims and check the destination has any non-zero terms for transit access.
-    We get the skims to check from the model settings.
+    If precomputed landuse column is supplied, use that.
+    Otherwise look at the skims and check the destination has any non-zero terms for transit access.
+    If no landuse column or skim cores supplied, return all choosers.
     """
-    # all choosers are eligible if transit skims are not provided
-    if model_settings.TRANSIT_SKIMS_FOR_ELIGIBILITY is None:
-        logger.info(
-            "No transit skims provided for park-and-ride lot choice model. All tours are eligible."
-        )
-        return choosers
 
-    skim_dict = network_los.get_default_skim_dict()
-    unique_destinations = choosers[choosers_dest_col_name].unique()
-    unique_lot_locations = pnr_alts.index.values
-    transit_accessible = np.full(
-        shape=len(unique_destinations), fill_value=False, dtype=bool
-    )
-
-    for skim_name in model_settings.TRANSIT_SKIMS_FOR_ELIGIBILITY:
-        if "__" in skim_name:
-            # If the skim name contains '__', it is a 3D skim
-            # we need to pass the skim name as a tuple to the lookup method, e.g. ('WALK_TRANSIT_IVTT', 'MD')
-            skim_name = tuple(skim_name.split("__"))
-        if skim_name not in skim_dict.skim_info.omx_keys.keys():
-            raise ValueError(
-                f"Skim '{skim_name}' not found in the skim dictionary."
-                "Please update the model setting TRANSIT_SKIMS_FOR_ELIGIBILITY with valid skim names."
-            )
-        # Filter choosers to only those with destinations that have transit access
-        # want to check whether ANY of the lot locations have transit access to EVERY destination
-        transit_accessible_i = [
-            (
-                skim_dict.lookup(
-                    unique_lot_locations,
-                    np.full(shape=len(unique_lot_locations), fill_value=dest),
-                    skim_name,
-                )
-                > 0
-            ).any()
-            for dest in unique_destinations
+    if model_settings.LANDUSE_COL_FOR_PNR_ELIGIBLE_DEST is not None:
+        col = model_settings.LANDUSE_COL_FOR_PNR_ELIGIBLE_DEST
+        assert (
+            col in pnr_alts.columns
+        ), f"{col} not in landuse table, check LANDUSE_COL_FOR_PNR_ELIGIBLE_DEST setting in park_and_ride_lot_choice.yaml"
+        available_dests = pnr_alts[pnr_alts[col]].index
+        filtered_choosers = choosers[
+            choosers[choosers[choosers_dest_col_name].isin(available_dests)]
         ]
-        transit_accessible = np.logical_or(transit_accessible, transit_accessible_i)
 
-    eligible_destinations = unique_destinations[transit_accessible]
-    filtered_choosers = choosers[
-        choosers[choosers_dest_col_name].isin(eligible_destinations)
-    ]
+    elif model_settings.TRANSIT_SKIMS_FOR_ELIGIBILITY is None:
+
+        skim_dict = network_los.get_default_skim_dict()
+        unique_destinations = choosers[choosers_dest_col_name].unique()
+        unique_lot_locations = pnr_alts.index.values
+        transit_accessible = np.full(
+            shape=len(unique_destinations), fill_value=False, dtype=bool
+        )
+
+        for skim_name in model_settings.TRANSIT_SKIMS_FOR_ELIGIBILITY:
+            if "__" in skim_name:
+                # If the skim name contains '__', it is a 3D skim
+                # we need to pass the skim name as a tuple to the lookup method, e.g. ('WALK_TRANSIT_IVTT', 'MD')
+                skim_name = tuple(skim_name.split("__"))
+            if skim_name not in skim_dict.skim_info.omx_keys.keys():
+                raise ValueError(
+                    f"Skim '{skim_name}' not found in the skim dictionary."
+                    "Please update the model setting TRANSIT_SKIMS_FOR_ELIGIBILITY with valid skim names."
+                )
+            # Filter choosers to only those with destinations that have transit access
+            # want to check whether ANY of the lot locations have transit access to EVERY destination
+            transit_accessible_i = [
+                (
+                    skim_dict.lookup(
+                        unique_lot_locations,
+                        np.full(shape=len(unique_lot_locations), fill_value=dest),
+                        skim_name,
+                    )
+                    > 0
+                ).any()
+                for dest in unique_destinations
+            ]
+            transit_accessible = np.logical_or(transit_accessible, transit_accessible_i)
+
+        eligible_destinations = unique_destinations[transit_accessible]
+        filtered_choosers = choosers[
+            choosers[choosers_dest_col_name].isin(eligible_destinations)
+        ]
+    else:
+        filtered_choosers = choosers
 
     logger.info(
         f"Preparing choosers for park-and-ride lot choice model:\n"

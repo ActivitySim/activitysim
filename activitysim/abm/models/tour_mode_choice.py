@@ -412,6 +412,11 @@ def tour_mode_choice_simulate(
                 pnr_capacity_cls=pnr_capacity_cls,
                 trace_label=trace_label,
             )
+            # drop out_period and in_period from choosers since they get generated in run_tour_mode_choice_simulate
+            # they are added since we are not sending a copy of the choosers to the above pnr lot choice call
+            choosers.drop(
+                columns=["out_period", "in_period"], errors="ignore", inplace=True
+            )
 
     # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
     if network_los.zone_system == los.THREE_ZONE:

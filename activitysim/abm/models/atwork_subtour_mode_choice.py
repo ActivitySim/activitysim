@@ -70,7 +70,7 @@ def atwork_subtour_mode_choice(
         if model_settings.run_atwork_pnr_lot_choice:
             subtours_merged["pnr_zone_id"] = run_park_and_ride_lot_choice(
                 state,
-                choosers=subtours_merged,
+                choosers=subtours_merged.copy(),
                 land_use=state.get_dataframe("land_use"),
                 network_los=network_los,
                 model_settings=None,

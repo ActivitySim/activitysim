@@ -1,4 +1,4 @@
-name: rebuild docs
+name: Rebuild Docs
 on:
     workflow_dispatch:
         inputs:
@@ -15,6 +15,8 @@ jobs:
     docbuild:
         name: ubuntu-latest py3.9
         runs-on: ubuntu-latest
+        permissions:
+            contents: write
         defaults:
             run:
                 shell: bash -l {0}

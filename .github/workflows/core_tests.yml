@@ -215,7 +215,7 @@ jobs:
           - region: Standard 2-Zone Example (SANDAG)
             region-org: ActivitySim
             region-repo: sandag-abm3-example
-            region-branch: pandas2
+            region-branch: main
       fail-fast: false
     defaults:
       run:

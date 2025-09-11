@@ -1,0 +1,850 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Ways to Run the Model &#8212; ActivitySim</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/design-tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'users-guide/ways_to_run';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1000.dev1.g2e5f73273';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Runtime Performance" href="performance/index.html" />
+    <link rel="prev" title="Model Setup" href="modelsetup.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1000.dev1.g2e5f73273" />
+    <meta name="docbuild:last-update" content="Sep 11, 2025"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">ActivitySim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="modelsetup.html">Model Setup</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Ways to Run the Model</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="performance/index.html">Runtime Performance</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="performance/multiprocessing.html">Multiprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance/multithreading.html">Multithreading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance/chunking.html">Chunking to Reduce Peak Memory Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance/sharrow.html">Compiling with Sharrow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance/skim-data-format.html">Skim Data Format</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="run_primary_example.html">Run the Primary Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model_anatomy.html">Anatomy of a Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howitworks.html">How the System Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model_dev.html">Model Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_models.html">Example Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_performance.html">Example Model Performance Benchmarking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other_examples.html">Other Example Models</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Users Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Ways to Run the Model</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="ways-to-run-the-model">
+<h1>Ways to Run the Model<a class="headerlink" href="#ways-to-run-the-model" title="Permalink to this heading">#</a></h1>
+<p>This section describes the different ways by which an ActivitySim Model can be run.</p>
+<section id="options-to-execute-a-model">
+<h2>Options to Execute a Model<a class="headerlink" href="#options-to-execute-a-model" title="Permalink to this heading">#</a></h2>
+<section id="using-the-command-line-interface">
+<h3>Using the Command Line Interface<a class="headerlink" href="#using-the-command-line-interface" title="Permalink to this heading">#</a></h3>
+<p>ActivitySim’s <strong>Command Line Interface (CLI)</strong> allows the user to create examples and run models through quick DOS commands. This functionality gives users a better way to distribute multiple examples/run the model. The CLI functionality also enables to run ActivitySim across different platforms -  Linux, Windows, and macOS.</p>
+<p>ActivitySim includes a <a class="reference internal" href="../cli.html#cli"><span class="std std-ref">Command Line Interface</span></a> for creating examples and running the model.  See <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">-h</span></code> for
+more information.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
+contains example commands to create and run several versions of the examples.</p>
+</div>
+<section id="create">
+<h4>Create<a class="headerlink" href="#create" title="Permalink to this heading">#</a></h4>
+<p>Create an ActivitySim example setup.  See <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-h</span></code> for more information.
+More complete examples, including the full scale prototype MTC
+regional demand model are available for creation by typing <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-l</span></code>.  To create
+these examples, ActivitySim downloads the large input files from
+the <a class="reference external" href="https://github.com/rsginc/activitysim_resources">ActivitySim resources</a> repository.</p>
+<section id="module-activitysim.cli.create">
+<span id="api"></span><h5>API<a class="headerlink" href="#module-activitysim.cli.create" title="Permalink to this heading">#</a></h5>
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.cli.create.add_create_args">
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.create.</span></span><span class="sig-name descname"><span class="pre">add_create_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.create.add_create_args" title="Permalink to this definition">#</a></dt>
+<dd><p>Create command args</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.cli.create.create">
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.create.</span></span><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.create.create" title="Permalink to this definition">#</a></dt>
+<dd><p>Create a new ActivitySim configuration from an existing template.</p>
+<p>Use the -l flag to view a list of example configurations, then
+copy to your own working directory. These new project files can
+be run with the ‘run’ command.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.cli.create.download_asset">
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.create.</span></span><span class="sig-name descname"><span class="pre">download_asset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sha256</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unpack</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.create.download_asset" title="Permalink to this definition">#</a></dt>
+<dd><p>Download assets (extra files) associated with examples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>url</strong><span class="classifier">str</span></dt><dd><p>The URL to download.</p>
+</dd>
+<dt><strong>target_path</strong><span class="classifier">str</span></dt><dd><p>The location where the asset should be made available. The raw asset
+file is not necessarily stored here, as it may be stored in a cache
+directory and symlinked here instead (see <cite>link</cite>).</p>
+</dd>
+<dt><strong>sha256</strong><span class="classifier">str, optional</span></dt><dd><p>Checksum for the file.  If there is already a cached file and the
+checksum matches, it is not re-downloaded and the cached version is
+used.  Otherwise, the file is downloaded, and if the downloaded file’s
+checksum does not match, an error is raised.</p>
+</dd>
+<dt><strong>link</strong><span class="classifier">bool, default True</span></dt><dd><p>Download the raw asset to a cache location, and then symlink to the
+desired <cite>target_path</cite> location.  Note symlinks may not work on Windows
+so the file will still be stored in the cache but it will be <em>copied</em>
+instead of linked.</p>
+</dd>
+<dt><strong>base_path</strong><span class="classifier">str, optional</span></dt><dd><p>Give the base directory for the example.</p>
+</dd>
+<dt><strong>unpack</strong><span class="classifier">str, optional</span></dt><dd><p>If the asset is an archive file (.zip, .tar.gz, or .tar.zst), it
+will be decompressed into this location.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.cli.create.get_example">
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.create.</span></span><span class="sig-name descname"><span class="pre">get_example</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">example_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmarking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.create.get_example" title="Permalink to this definition">#</a></dt>
+<dd><p>Copy project data to user-specified directory.</p>
+<p>Examples and their data are described in a manifest
+YAML file. Each example contains at least a <cite>name</cite> and
+<cite>include</cite> field which is a list of files/folders to include
+in the copied example.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>example_name: str, name of the example to copy.</strong></dt><dd><p>Options can be found via list_examples()</p>
+</dd>
+<dt><strong>destination: name of target directory to copy files to.</strong></dt><dd><p>If the target directory does not exist, it is created.
+Project files will then be copied into a subdirectory
+with the same name as the example</p>
+</dd>
+<dt><strong>benchmarking: bool</strong></dt><dd></dd>
+<dt><strong>optimize: bool</strong></dt><dd></dd>
+<dt><strong>link: bool or path-like</strong></dt><dd><p>Files downloaded via http pointers will be cached in
+this location.  If a path is not given but just a truthy
+value, then a cache directory is created using in a location
+selected by the platformdirs library (or, if not installed,
+linking is skipped.)</p>
+</dd>
+<dt><strong>with_subdirs: bool, default False</strong></dt><dd><p>Also return any instructions about sub-directories.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Path or (Path, dict)</dt><dd><p>The path to the location where the example was installed, and
+optionally also a mapping of example subdirectory locations.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="run">
+<h4>Run<a class="headerlink" href="#run" title="Permalink to this heading">#</a></h4>
+<p>Run ActivitySim.  See <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">run</span> <span class="pre">-h</span></code> for more information.</p>
+<section id="settings-file-inheritance">
+<span id="index-0"></span><span id="id1"></span><h5>Settings File Inheritance<a class="headerlink" href="#settings-file-inheritance" title="Permalink to this heading">#</a></h5>
+<p>ActivitySim model runs can be configured with settings file inheritance to avoid
+duplicating settings across model configurations. The command below runs ActivitySim
+with two configs folders - <code class="docutils literal notranslate"><span class="pre">configs</span></code> and <code class="docutils literal notranslate"><span class="pre">configs_mp</span></code>.  This setup allows for overriding setings
+in the configs folder with additional settings in the configs_mp folder so that
+expression files and settings in the single process (e.g. configs folder) can be re-used for
+the multiprocessed setup (e.g. configs_mp folder).  Settings files, as opposed to configs folders,
+can also be inherited by specifying <code class="docutils literal notranslate"><span class="pre">-s</span></code> multiple times.  See <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">run</span> <span class="pre">-h</span></code> for
+more information.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># in configs_mp\settings.yaml</span>
+<span class="n">inherit_settings</span><span class="p">:</span> <span class="kc">True</span>
+
+<span class="c1">#then on the command line</span>
+<span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_mp</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span>
+</pre></div>
+</div>
+</section>
+<section id="id2">
+<h5>API<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h5>
+<span class="target" id="module-activitysim.cli.run"></span><dl class="py function">
+<dt class="sig sig-object py" id="activitysim.cli.run.add_run_args">
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.run.</span></span><span class="sig-name descname"><span class="pre">add_run_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.run.add_run_args" title="Permalink to this definition">#</a></dt>
+<dd><p>Run command args</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.cli.run.run">
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.run.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.run.run" title="Permalink to this definition">#</a></dt>
+<dd><p>Run the models. Specify a project folder using the ‘–working_dir’ option,
+or point to the config, data, and output folders directly with
+‘–config’, ‘–data’, and ‘–output’. Both ‘–config’ and ‘–data’ can be
+specified multiple times. Directories listed first take precedence.</p>
+<dl class="simple">
+<dt>returns:</dt><dd><p>int: sys.exit exit code</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="running-the-primary-example-using-cli">
+<h4>Running the Primary Example using CLI<a class="headerlink" href="#running-the-primary-example-using-cli" title="Permalink to this heading">#</a></h4>
+<p>Refer to the <a class="reference internal" href="run_primary_example.html#run-the-primary-example"><span class="std std-ref">Run the Primary Example</span></a> section to learn how to run the primary ActivitySim example model using the Command Line Interface.</p>
+</section>
+</section>
+<section id="using-jupyter-notebook">
+<h3>Using Jupyter Notebook<a class="headerlink" href="#using-jupyter-notebook" title="Permalink to this heading">#</a></h3>
+<p>ActivitySim includes a <a class="reference external" href="https://jupyter.org">Jupyter Notebook</a> recipe book with interactive examples.</p>
+<ul class="simple">
+<li><p>To start JupyterLab, from the ActivitySim project directory run <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span> <span class="pre">jupyter</span> <span class="pre">lab</span></code>. This will start the JupyterLab server and pop up a browser window with the interactive development environment.</p></li>
+<li><p>Navigate to the <code class="docutils literal notranslate"><span class="pre">examples/prototype_mtc/notebooks</span></code> folder and select a notebook to learn more:</p>
+<ul>
+<li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/getting_started.ipynb/">Getting started</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/summarizing_results.ipynb/">Summarizing results</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/change_in_auto_ownership.ipynb/">Testing a change in auto ownership</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/adding_tncs.ipynb/">Adding TNCs</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/memory_usage.ipynb/">Memory usage</a></p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="running-select-components-of-the-model">
+<h2>Running Select Components of the Model<a class="headerlink" href="#running-select-components-of-the-model" title="Permalink to this heading">#</a></h2>
+<p>ActivitySim can be run for all components in any model implementation, or a select set of components. If running the model for a subset of model components, the upstream model components would need to have been run first. For example, if you want to rerun just tour mode choice, all of the steps before tour mode choice would need to have been run. This is described below:</p>
+<ul class="simple">
+<li><p>To only run the model up to a certain step, simply comment out (add # at the beginning of the line) all the model steps following that model.</p></li>
+<li><p>To resume the model run after a successfully-run previous step, add the name of the step in front of the resume after line.</p></li>
+</ul>
+<p>The below figure shows an example of the settings.yaml file to run select components of ActivitySim.</p>
+<img alt="../_images/run_select_components.png" src="../_images/run_select_components.png" />
+</section>
+<section id="advanced-configuration">
+<h2>Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Permalink to this heading">#</a></h2>
+<p>There are several ways to maximize the performance of the model run, either to be able to run the model within the given hardware limitations (such as available RAM) or to reduce the run times. This section describes the various options and settings available in ActivitySim to improve the model run performance.</p>
+<section id="chunking">
+<span id="chunking-ways-to-run"></span><h3>Chunking<a class="headerlink" href="#chunking" title="Permalink to this heading">#</a></h3>
+<p>Chunking is designed to divide up the computations in chunks, to reduce the amount of memory needed to complete computations,
+and then combine the data. This process will increase run time but may be a good option if the maximum RAM required to run the
+model is more than the hardware available.</p>
+<p>Refer to the <a class="reference internal" href="../core.html#chunk"><span class="std std-ref">Chunking</span></a> section for more details on how to configure and run ActivitySim with chunking.</p>
+<p>In general, before running ActivitySim for the first time on a new machine, it needs to be run in training_mode to efficiently handle memory usage (to set the appropriate chunking size). RSG, however, has ran the model in training mode once and has successfully used the cache on different machines. So in general, the provided cache.csv should help run the model on a different server as well.</p>
+<p>However, should the model crash with an OutofMemory error on a first attempt on a new machine, ActivitySim should be run in training mode first to generate a new cache.csv file. To do so, change the chunk_training_mode line to training in the settings_source.yaml file, set household_sample_size: 0 and chunk_size to 80% of the available RAM on the machine (value is in bytes, so a value of 200_000_000_000 is equivalent to 200GB).</p>
+<p>For example, in the SEMCOG model, following settings can be changed to enable chunking
+•       <code class="docutils literal notranslate"><span class="pre">households_sample_size</span></code>: to set the number of households to run the model with.
+•       <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code>: to set the available RAM in the machine to use to run ActivitySim
+•       <code class="docutils literal notranslate"><span class="pre">num_processes</span></code> line to set how many CPU physical cores to use to run the model
+•       <code class="docutils literal notranslate"><span class="pre">chunk_training_mode</span></code> line sets what mode to run the model in. The options include “training”, and “production”.</p>
+<blockquote>
+<div><p>In training, the model runs once to estimate the best way to allocate memory to run each step, and then saves the information
+in cache.csv for later runs. The production mode makes use of this information to run the model more efficiently. the next
+subsection discusses more details on how to run the model in training mode.</p>
+</div></blockquote>
+</section>
+<section id="multiprocessing">
+<span id="multi-proc-ways-to-run"></span><h3>Multiprocessing<a class="headerlink" href="#multiprocessing" title="Permalink to this heading">#</a></h3>
+<p>Most models can be implemented as a series of independent vectorized operations on pandas DataFrames and
+numpy arrays. These vectorized operations are much faster than sequential Python because they are
+implemented by native code (compiled C) and are to some extent multi-threaded. But the benefits of
+numpy multi-processing are limited because they only apply to atomic numpy or pandas calls, and as
+soon as control returns to Python it is single-threaded and slow.</p>
+<p>Multi-threading is not an attractive strategy to get around the Python performance problem because
+of the limitations imposed by Python’s global interpreter lock (GIL). Rather than struggling with
+Python multi-threading, ActivitySim uses the
+Python <a class="reference external" href="https://docs.python.org/2/library/multiprocessing.html">multiprocessing</a> library to parallelize
+most models.</p>
+<p>ActivitySim’s modular and extensible architecture makes it possible to not hardwire the multiprocessing
+architecture. The specification of which models should be run in parallel, how many processers
+should be used, and the segmentation of the data between processes are all specified in the
+settings config file.</p>
+<p>The multiprocess_steps setting below indicate that the simulation should be broken into three steps.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">models</span><span class="p">:</span>
+  <span class="c1">### mp_initialize step</span>
+  <span class="o">-</span> <span class="n">initialize_landuse</span>
+  <span class="o">-</span> <span class="n">compute_accessibility</span>
+  <span class="o">-</span> <span class="n">initialize_households</span>
+  <span class="c1">### mp_households step</span>
+  <span class="o">-</span> <span class="n">school_location</span>
+  <span class="o">-</span> <span class="n">workplace_location</span>
+  <span class="o">-</span> <span class="n">auto_ownership_simulate</span>
+  <span class="o">-</span> <span class="n">free_parking</span>
+  <span class="c1">### mp_summarize step</span>
+  <span class="o">-</span> <span class="n">write_tables</span>
+
+<span class="n">multiprocess_steps</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">mp_initialize</span>
+    <span class="n">begin</span><span class="p">:</span> <span class="n">initialize_landuse</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">mp_households</span>
+    <span class="n">begin</span><span class="p">:</span> <span class="n">school_location</span>
+    <span class="n">num_processes</span><span class="p">:</span> <span class="mi">2</span>
+    <span class="nb">slice</span><span class="p">:</span>
+      <span class="n">tables</span><span class="p">:</span>
+        <span class="o">-</span> <span class="n">households</span>
+        <span class="o">-</span> <span class="n">persons</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">mp_summarize</span>
+    <span class="n">begin</span><span class="p">:</span> <span class="n">write_tables</span>
+</pre></div>
+</div>
+<p>The first multiprocess_step, <code class="docutils literal notranslate"><span class="pre">mp_initialize</span></code>, begins with the initialize landuse step and is
+implicity single-process because there is no ‘slice’ key indicating how to apportion the tables.
+This first step includes all models listed in the ‘models’ setting up until the first step
+in the next multiprocess_steps.</p>
+<p>The second multiprocess_step, <code class="docutils literal notranslate"><span class="pre">mp_households</span></code>, starts with the school location model and continues
+through auto ownership. The ‘slice’ info indicates that the tables should be sliced by
+<code class="docutils literal notranslate"><span class="pre">households</span></code>, and that <code class="docutils literal notranslate"><span class="pre">persons</span></code> is a dependent table and so <code class="docutils literal notranslate"><span class="pre">persons</span></code> with a ref_col (foreign key
+column with the same name as the <code class="docutils literal notranslate"><span class="pre">Households</span></code> table index) referencing a household record should be
+taken to ‘belong’ to that household. Similarly, any other table that either share an index
+(i.e. having the same name) with either the <code class="docutils literal notranslate"><span class="pre">households</span></code> or <code class="docutils literal notranslate"><span class="pre">persons</span></code> table, or have a ref_col to
+either of their indexes, should also be considered a dependent table.</p>
+<p>The num_processes setting of 2 indicates that the pipeline should be split in two, and half of the
+households should be apportioned into each subprocess pipeline, and all dependent tables should
+likewise be apportioned accordingly. All other tables (e.g. <code class="docutils literal notranslate"><span class="pre">land_use</span></code>) that do share an index (name)
+or have a ref_col should be considered mirrored and be included in their entirety.</p>
+<p>The primary table is sliced by num_processes-sized strides. (e.g. for num_processes == 2, the
+sub-processes get every second record starting at offsets 0 and 1 respectively. All other dependent
+tables slices are based (directly or indirectly) on this primary stride segmentation of the primary
+table index.</p>
+<p>Two separate sub-process are launched (num_processes == 2) and each passed the name of their
+apportioned pipeline file. They execute independently and if they terminate successfully, their
+contents are then coalesced into a single pipeline file whose tables should then be essentially
+the same as it had been generated by a single process.</p>
+<p>We assume that any new tables that are created by the sub-processes are directly dependent on the
+previously primary tables or are mirrored. Thus we can coalesce the sub-process pipelines by
+concatenating the primary and dependent tables and simply retaining any copy of the mirrored tables
+(since they should all be identical.)</p>
+<p>The third multiprocess_step, <code class="docutils literal notranslate"><span class="pre">mp_summarize</span></code>, then is handled in single-process mode and runs the
+<code class="docutils literal notranslate"><span class="pre">write_tables</span></code> model, writing the results, but also leaving the tables in the pipeline, with
+essentially the same tables and results as if the whole simulation had been run as a single process.</p>
+<p>Although multiprocessing subprocesses each have their apportioned pipeline, they also share some
+data passed to them by the parent process:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>read-only shared data such as skim matrices</p></li>
+<li><p>read-write shared memory when needed.  For example when school and work modeled destinations by zone are compared to target zone sizes (as calculated by the size terms).</p></li>
+</ul>
+</div></blockquote>
+<p>When multiprocessing is run, the following additional outputs are created, which are useful for understanding how multiprocessing works:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>run_list.txt - which contains the expanded model run list with additional annotation for single and multiprocessed steps</p></li>
+<li><p>Log files for each multiprocess step and process, for example <code class="docutils literal notranslate"><span class="pre">mp_households_0-activitysim.log</span></code> and <code class="docutils literal notranslate"><span class="pre">mp_households_1-activitysim.log</span></code></p></li>
+<li><p>Pipeline file for each multiprocess step and process, for example <code class="docutils literal notranslate"><span class="pre">mp_households_0-pipeline.h5</span></code></p></li>
+<li><p>mem.csv - memory used for each step</p></li>
+<li><p>breadcrumbs.yaml - multiprocess global info</p></li>
+</ul>
+</div></blockquote>
+<p>See the <a class="reference internal" href="../core.html#multiprocessing-in-detail"><span class="std std-ref">Multiprocessing</span></a> section for more detail.</p>
+<span class="target" id="index-1"></span><span class="target" id="index-2"></span></section>
+<section id="sharrow">
+<span id="sharrow-ways-to-run"></span><span id="index-3"></span><h3>Sharrow<a class="headerlink" href="#sharrow" title="Permalink to this heading">#</a></h3>
+<p><a class="reference external" href="https://activitysim.github.io/sharrow/intro.html">Sharrow</a> is a Python library designed to decrease run-time for ActivitySim models. The sharrow package is an extension of <em>numba</em>, and offers access to data formatting and a just-in-time compiler specifically for converting ActivitySim-style “specification” files into optimized, runnable functions that can significantly reduce the amount of run-time. The idea is to pay the cost of compiling these specification files only once, and then re-use the optimized results many times. If there is a change to the utility functions, machine, core, or the user deletes the cached files, this will automatically trigger a recompiling process.</p>
+<p>Please refer to <a class="reference external" href="https://activitysim.github.io/sharrow/intro.html#installation">Sharrow installation</a> for details on how to install Sharrow. Details on using Activitysim with Sharrow can be found in the <a class="reference internal" href="../dev-guide/using-sharrow.html#using-sharrow"><span class="std std-ref">Using Sharrow</span></a> section of the Developer’s Guide. More details on Sharrow features can be found in the <a class="reference external" href="https://activitysim.github.io/sharrow/walkthrough/index.html">Sharrow user guide</a>.</p>
+</section>
+<section id="tracing">
+<span id="tracing-ways-to-run"></span><h3>Tracing<a class="headerlink" href="#tracing" title="Permalink to this heading">#</a></h3>
+<p>Tracing allows the user to access information throughout the model run for a specified number of households/persons/zones. Enabling this feature will increase run-time and memory usage. It is recommended that this feature be turned off for typical model application.</p>
+<p>There are two types of tracing in ActivtiySim: household and origin-destination (OD) pair.  If a household trace ID
+is specified, then ActivitySim will output a comprehensive set (i.e. hundreds) of trace files for all
+calculations for all household members:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Several</span> <span class="pre">CSV</span> <span class="pre">files</span></code> - each input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for each sub-model</p></li>
+</ul>
+<p>If an OD pair trace is specified, then ActivitySim will output the acessibility calculations trace
+file:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">accessibility.result.csv</span></code> - accessibility expression results for the OD pair</p></li>
+</ul>
+<p>With the set of output CSV files, the user can trace ActivitySim calculations in order to ensure they are correct and/or to
+help debug data and/or logic errors.</p>
+<p>Refer to <a class="reference internal" href="../core.html#trace"><span class="std std-ref">Tracing</span></a> for more details on configuring tracing and the various output files.</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="modelsetup.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Model Setup</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="performance/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Runtime Performance</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#options-to-execute-a-model">Options to Execute a Model</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-command-line-interface">Using the Command Line Interface</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#create">Create</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#module-activitysim.cli.create">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.cli.create.add_create_args"><code class="docutils literal notranslate"><span class="pre">add_create_args()</span></code></a></li>
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.cli.create.create"><code class="docutils literal notranslate"><span class="pre">create()</span></code></a></li>
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.cli.create.download_asset"><code class="docutils literal notranslate"><span class="pre">download_asset()</span></code></a></li>
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.cli.create.get_example"><code class="docutils literal notranslate"><span class="pre">get_example()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#run">Run</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#settings-file-inheritance">Settings File Inheritance</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.cli.run.add_run_args"><code class="docutils literal notranslate"><span class="pre">add_run_args()</span></code></a></li>
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.cli.run.run"><code class="docutils literal notranslate"><span class="pre">run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#running-the-primary-example-using-cli">Running the Primary Example using CLI</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-jupyter-notebook">Using Jupyter Notebook</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-select-components-of-the-model">Running Select Components of the Model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-configuration">Advanced Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#chunking">Chunking</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multiprocessing">Multiprocessing</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sharrow">Sharrow</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracing">Tracing</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/users-guide/ways_to_run.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><!-- This will display the version of the docs -->
+<p class="last-updated">
+ActivitySim 1000.dev1+g2e5f73273, documentation last updated Sep 11, 2025.<br/>
+</p></div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

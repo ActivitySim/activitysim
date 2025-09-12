@@ -1,0 +1,9 @@
+Description,Target,Expression
+,num_maint_shop_escort,df.num_maint_tours+df.num_shop_tours+df.num_escort_tours
+#,num_joint_maint_shop_eat,"reindex_i(tours[(tours.tour_category=='joint') & tours.tour_type.isin(['othmaint', 'shopping', 'eatout'])].groupby('person_id').size(), df.person_id)"
+#,num_eatout_tours,"reindex_i(tours[~tours.is_joint & (tours.tour_type==EATOUT_TOUR)].groupby('person_id').size(), df.person_id)"
+joint tour participants annotated with tour type,_PARTICIPANTS,"pd.merge(joint_tour_participants[['tour_id', 'person_id']], tours[['tour_type']], left_on='tour_id', right_index=True, how='left')"
+,num_joint_discr,"reindex_i(_PARTICIPANTS[_PARTICIPANTS.tour_type=='othdiscr'].groupby('person_id').size(), df.person_id)"
+,num_joint_maint_shop_eat,"reindex_i(_PARTICIPANTS[_PARTICIPANTS.tour_type.isin(['othmaint', 'shopping', 'eatout'])].groupby('person_id').size(), df.person_id)"
+#,,
+,work_tour_is_SOV,"df.tour_mode.isin(['DRIVEALONEFREE','DRIVEALONEPAY'])"

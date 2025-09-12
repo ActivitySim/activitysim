@@ -1,0 +1,10 @@
+coefficient_name,value,constrain
+coef_distance_piecewise_linear_from_0_to_1_miles,-0.7926,F
+coef_distance_piecewise_linear_from_1_to_2_miles,-0.7926,F
+coef_distance_piecewise_linear_from_2_to_5_miles,-0.5197,F
+coef_distance_piecewise_linear_from_5_to_15_miles,-0.2045,F
+coef_distance_piecewise_linear_for_15_plus_miles,-0.2045,F
+coef_size_variable_atwork,1,T
+coef_no_attractions_atwork_size_variable_is_0,-999,T
+coef_mode_choice_logsum,0.5136,F
+coef_sample_of_alternatives_correction_factor,1,T

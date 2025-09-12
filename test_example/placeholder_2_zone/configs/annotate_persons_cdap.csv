@@ -1,0 +1,6 @@
+Description,Target,Expression
+#,, annotate persons table after cdap model has run
+travel_active,travel_active,persons.cdap_activity != CDAP_ACTIVITY_HOME
+under16_not_at_school,under16_not_at_school,"persons.ptype.isin([PTYPE_SCHOOL, PTYPE_PRESCHOOL]) & persons.cdap_activity.isin(['N', 'H'])"
+has_preschool_kid_at_home,has_preschool_kid_at_home,"other_than(persons.household_id, (persons.ptype == PTYPE_PRESCHOOL) & (persons.cdap_activity == 'H'))"
+has_school_kid_at_home,has_school_kid_at_home,"other_than(persons.household_id, (persons.ptype == PTYPE_SCHOOL) & (persons.cdap_activity == 'H'))"

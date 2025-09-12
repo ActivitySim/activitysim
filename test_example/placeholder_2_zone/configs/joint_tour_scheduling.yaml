@@ -1,0 +1,13 @@
+
+SPEC: tour_scheduling_joint.csv
+COEFFICIENTS: tour_scheduling_joint_coefficients.csv
+
+LOGIT_TYPE: MNL
+
+preprocessor:
+  SPEC: joint_tour_scheduling_annotate_tours_preprocessor
+  DF: joint_tours
+  TABLES:
+    - land_use
+    - households
+    - joint_tour_participants

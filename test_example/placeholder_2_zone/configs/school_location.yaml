@@ -1,0 +1,65 @@
+SAMPLE_SIZE: 30
+
+SIMULATE_CHOOSER_COLUMNS:
+  - home_zone_id
+  - school_segment
+  - household_id
+
+# model-specific logsum-related settings
+CHOOSER_ORIG_COL_NAME: home_zone_id
+ALT_DEST_COL_NAME: alt_dest
+IN_PERIOD: 14
+OUT_PERIOD: 8
+
+DEST_CHOICE_COLUMN_NAME: school_zone_id
+# comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if not desired in persons table
+DEST_CHOICE_LOGSUM_COLUMN_NAME: school_location_logsum
+
+# comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if saved alt logsum table
+DEST_CHOICE_SAMPLE_TABLE_NAME: school_location_sample
+
+
+SAMPLE_SPEC: school_location_sample.csv
+SPEC: school_location.csv
+COEFFICIENTS: school_location_coefficients.csv
+
+LOGSUM_SETTINGS: tour_mode_choice.yaml
+LOGSUM_PREPROCESSOR: nontour_preprocessor
+
+LOGSUM_TOUR_PURPOSE:
+  university: univ
+  highschool: school
+  gradeschool: school
+
+annotate_persons:
+  SPEC: annotate_persons_school
+  DF: persons
+
+# - shadow pricing
+
+# required by initialize_households when creating school_destination_size table
+CHOOSER_TABLE_NAME: persons
+
+# size_terms model_selector
+MODEL_SELECTOR: school
+
+# chooser column with segment_id for this segment type
+CHOOSER_SEGMENT_COLUMN_NAME: school_segment
+
+# boolean column to filter choosers (True means keep)
+CHOOSER_FILTER_COLUMN_NAME: is_student
+
+
+# FIXME - these are assigned to persons in annotate_persons. we need a better way to manage this
+SEGMENT_IDS:
+  university: 3  # SCHOOL_SEGMENT_UNIV
+  highschool: 2  # SCHOOL_SEGMENT_HIGH
+  gradeschool: 1  # SCHOOL_SEGMENT_GRADE
+
+
+# model adds these tables (informational - not added if commented out)
+SHADOW_PRICE_TABLE: school_shadow_prices
+MODELED_SIZE_TABLE: school_modeled_size
+
+# not loaded if commented out
+SAVED_SHADOW_PRICE_TABLE_NAME: school_shadow_prices.csv

@@ -1,0 +1,8 @@
+Label,Description,Expression,atwork
+util_distance_piecewise_linear_from_0_to_1_miles,"Distance, piecewise linear from 0 to 1 miles","@skims['DIST'].clip(0,1)",coef_distance_piecewise_linear_from_0_to_1_miles
+util_distance_piecewise_linear_from_1_to_2_miles,"Distance, piecewise linear from 1 to 2 miles","@(skims['DIST']-1).clip(0,1)",coef_distance_piecewise_linear_from_1_to_2_miles
+util_distance_piecewise_linear_from_2_to_5_miles,"Distance, piecewise linear from 2 to 5 miles","@(skims['DIST']-2).clip(0,3)",coef_distance_piecewise_linear_from_2_to_5_miles
+util_distance_piecewise_linear_from_5_to_15_miles,"Distance, piecewise linear from 5 to 15 miles","@(skims['DIST']-5).clip(0,10)",coef_distance_piecewise_linear_from_5_to_15_miles
+util_distance_piecewise_linear_for_15_plus_miles,"Distance, piecewise linear for 15+ miles",@(skims['DIST']-15.0).clip(0),coef_distance_piecewise_linear_for_15_plus_miles
+util_size_variable_atwork,atwork size_term variable,"@df['size_term'].apply(np.log1p)",coef_size_variable_atwork
+util_no_attractions_atwork_size_variable_is_0,"No attractions, atwork size_term variable is 0",size_term==0,coef_no_attractions_atwork_size_variable_is_0

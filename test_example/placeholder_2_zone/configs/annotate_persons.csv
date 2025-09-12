@@ -1,0 +1,38 @@
+Description,Target,Expression
+#,, annotate persons table after import
+age_16_to_19,age_16_to_19,"persons.age.between(16, 19)"
+age_16_p,age_16_p,persons.age >= 16
+adult,adult,persons.age >= 18
+male,male,persons.sex == 1
+female,female,persons.sex == 2
+presence of non_worker other than self in household,has_non_worker,"other_than(persons.household_id, persons.ptype == PTYPE_NONWORK)"
+presence of retiree other than self in household,has_retiree,"other_than(persons.household_id, persons.ptype == PTYPE_RETIRED)"
+presence of preschooler other than self in household,has_preschool_kid,"other_than(persons.household_id, persons.ptype == PTYPE_PRESCHOOL)"
+presence of driving_kid other than self in household,has_driving_kid,"other_than(persons.household_id, persons.ptype == PTYPE_DRIVING)"
+presence of school_kid other than self in household,has_school_kid,"other_than(persons.household_id, persons.ptype == PTYPE_SCHOOL)"
+presence of full_time worker other than self in household (independent of person type),has_full_time,"other_than(persons.household_id, persons.pemploy==PEMPLOY_FULL)"
+presence of part_time worker other than self in household (independent of person type),has_part_time,"other_than(persons.household_id, persons.pemploy==PEMPLOY_PART)"
+presence of university student other than self in household,has_university,"other_than(persons.household_id, persons.ptype == PTYPE_UNIVERSITY)"
+student_is_employed,student_is_employed,"(persons.ptype.isin([PTYPE_UNIVERSITY, PTYPE_DRIVING]) & persons.pemploy.isin([PEMPLOY_FULL, PEMPLOY_PART]))"
+nonstudent_to_school,nonstudent_to_school,"(persons.ptype.isin([PTYPE_FULL, PTYPE_PART, PTYPE_NONWORK, PTYPE_RETIRED]) & persons.pstudent.isin([PSTUDENT_GRADE_OR_HIGH, PSTUDENT_UNIVERSITY]))"
+#,,
+#,, FIXME - if person is a university student but has school age student category value then reset student category value
+,pstudent,"persons.pstudent.where(persons.ptype!=PTYPE_UNIVERSITY, PSTUDENT_UNIVERSITY)"
+#,, FIXME if person is a student of any kind but has full-time employment status then reset student category value to non-student
+,pstudent,"pstudent.where(persons.ptype!=PTYPE_FULL, PSTUDENT_NOT)"
+#,, FIXME if student category is non-student and employment is student then reset student category value to student
+,pstudent,"pstudent.where((persons.ptype!=PTYPE_DRIVING) & (persons.ptype!=PTYPE_SCHOOL), PSTUDENT_GRADE_OR_HIGH)"
+#,,
+is_student,is_student,"pstudent.isin([PSTUDENT_GRADE_OR_HIGH, PSTUDENT_UNIVERSITY])"
+preschool age can go to preschool,is_student,"is_student.where(persons.age > GRADE_SCHOOL_MIN_AGE, True)"
+preschool age can go to preschool,pstudent,"pstudent.where(persons.age > GRADE_SCHOOL_MIN_AGE, PSTUDENT_GRADE_OR_HIGH)"
+is_gradeschool,is_gradeschool,(pstudent == PSTUDENT_GRADE_OR_HIGH) & (persons.age <= GRADE_SCHOOL_MAX_AGE)
+is_highschool,is_highschool,(pstudent == PSTUDENT_GRADE_OR_HIGH) & (persons.age > GRADE_SCHOOL_MAX_AGE)
+is_university,is_university,pstudent == PSTUDENT_UNIVERSITY
+school_segment gradeschool,school_segment,"np.where(is_gradeschool, SCHOOL_SEGMENT_GRADE, SCHOOL_SEGMENT_NONE)"
+school_segment highschool,school_segment,"np.where(is_highschool, SCHOOL_SEGMENT_HIGH, school_segment)"
+school_segment university,school_segment,"np.where(is_university, SCHOOL_SEGMENT_UNIV, school_segment).astype(np.int8)"
+#,,
+is_worker,is_worker,"persons.pemploy.isin([PEMPLOY_FULL, PEMPLOY_PART])"
+#,,
+home_zone_id,home_zone_id,"reindex(households.home_zone_id, persons.household_id)"

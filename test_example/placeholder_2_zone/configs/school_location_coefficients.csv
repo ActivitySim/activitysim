@@ -1,0 +1,17 @@
+coefficient_name,value,constrain
+coef_univ_dist_0_1,-3.2451,F
+coef_univ_dist_1_2,-2.7011,F
+coef_univ_dist_2_5,-0.5707,F
+coef_univ_dist_5_15,-0.5002,F
+coef_univ_dist_15_up,-0.073,F
+coef_high_dist_0_1,-0.9523,F
+coef_high_grade_dist_1_2,-0.57,F
+coef_high_grade_dist_2_5,-0.57,F
+coef_high_dist_5_15,-0.193,F
+coef_high_dist_15_up,-0.1882,F
+coef_grade_dist_0_1,-1.6419,F
+#coef_high_grade_dist_1_2,-0.57,F
+#coef_high_grade_dist_2_5,-0.57,F
+coef_grade_dist_5_15,-0.2031,F
+coef_grade_dist_15_up,-0.046,F
+coef_mode_logsum,0.5358,F

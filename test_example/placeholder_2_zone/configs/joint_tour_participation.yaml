@@ -1,0 +1,20 @@
+
+SPEC: joint_tour_participation.csv
+COEFFICIENTS: joint_tour_participation_coefficients.csv
+
+LOGIT_TYPE: MNL
+
+#max_participation_choice_iterations: 5000
+
+preprocessor:
+  SPEC: joint_tour_participation_annotate_participants_preprocessor
+  DF: participants
+#  TABLES:
+#    - persons
+#    - accessibility
+
+annotate_persons:
+  SPEC: annotate_persons_jtp
+  DF: persons
+  TABLES:
+    - joint_tour_participants

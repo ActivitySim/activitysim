@@ -1,0 +1,40 @@
+
+SIMULATE_CHOOSER_COLUMNS:
+  - ptype
+  - hhsize
+  - roundtrip_auto_time_to_work
+  - num_workers
+  - income_in_thousands
+  - work_and_school_and_worker
+  - work_and_school_and_student
+  - workplace_in_cbd
+  - home_is_rural
+  - mandatory_tour_frequency
+  - is_worker
+  - is_student
+  - is_university
+  - workplace_zone_id
+  - school_zone_id
+  - home_zone_id
+
+LOGSUM_SETTINGS: tour_mode_choice.yaml
+
+# school and univ have the same spec file and coefficients but are handled seperately
+# because mode_choice_logsums has distinct specs and ceofficients for univ and school
+TOUR_SPEC_SEGMENTS:
+  work: work
+  school: school
+  univ: school
+
+SPEC_SEGMENTS:
+  work:
+    'SPEC': tour_scheduling_work.csv
+    'COEFFICIENTS': tour_scheduling_work_coefficients.csv
+  school:
+    'SPEC': tour_scheduling_school.csv
+    'COEFFICIENTS': tour_scheduling_school_coefficients.csv
+
+DESTINATION_FOR_TOUR_PURPOSE:
+  work: workplace_zone_id
+  school: school_zone_id
+  univ: school_zone_id

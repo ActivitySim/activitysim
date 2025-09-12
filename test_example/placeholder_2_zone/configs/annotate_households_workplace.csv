@@ -1,0 +1,5 @@
+Description,Target,Expression
+#,, annotate households table after workplace_location model has run
+#,, hh_work_auto_savings_ratio is sum of persons work_auto_savings_ratio
+,hh_work_auto_savings_ratio,persons.work_auto_savings_ratio.groupby(persons.household_id).sum().reindex(households.index).fillna(0.0)
+#,,handle persons with no location

@@ -1,0 +1,10 @@
+Description,Target,Expression
+#,, annotate households table after cdap model has run
+num_under16_not_at_school,num_under16_not_at_school,persons.under16_not_at_school.astype(int).groupby(persons.household_id).sum().reindex(households.index).fillna(0).astype(np.int8)
+num_travel_active,num_travel_active,persons.travel_active.astype(int).groupby(persons.household_id).sum().reindex(households.index).fillna(0).astype(np.int8)
+num_travel_active_adults,num_travel_active_adults,(persons.adult & persons.travel_active).astype(int).groupby(persons.household_id).sum().reindex(households.index).fillna(0).astype(np.int8)
+num_travel_active_preschoolers,num_travel_active_preschoolers,((persons.ptype == PTYPE_PRESCHOOL) & persons.travel_active).astype(int).groupby(persons.household_id).sum().reindex(households.index).fillna(0).astype(np.int8)
+num_travel_active_children,num_travel_active_children,num_travel_active - num_travel_active_adults
+num_travel_active_non_preschoolers,num_travel_active_non_preschoolers,num_travel_active - num_travel_active_preschoolers
+#participates_in_jtf_model,participates_in_jtf_model,(num_travel_active > 1) & (num_travel_active_non_preschoolers > 0)
+participates_in_jtf_model,participates_in_jtf_model,(num_travel_active > 1)

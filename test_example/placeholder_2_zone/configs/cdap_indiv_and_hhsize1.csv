@@ -1,0 +1,52 @@
+Description,Expression,M,N,H
+Full-time worker alternative-specific constants,ptype == 1,coef_full_time_worker_asc_M,coef_full_time_worker_asc_N,
+Part-time worker alternative-specific constants,ptype == 2,coef_part_time_worker_asc_M,coef_part_time_worker_asc_N,
+University student alternative-specific constants,ptype == 3,coef_university_student_asc_M,coef_university_student_asc_N,
+Non-working adult alternative-specific constants,ptype == 4,coef_UNAVAILABLE,coef_non_working_adult_asc_N,
+Retired alternative-specific constants,ptype == 5,coef_UNAVAILABLE,coef_retired_asc_N,
+Driving-age child who is in school alternative-specific constants,ptype == 6,coef_driving_age_child_who_is_in_school_asc_M,coef_driving_age_child_who_is_in_school_asc_N,
+Pre-driving-age child who is in school alternative-specific constants,ptype == 7,coef_pre_driving_age_child_who_is_in_school_asc_M,coef_pre_driving_age_child_who_is_in_school_asc_N,
+Pre-driving-age child who is in school interaction with age 6 to 9,(ptype == 7) & (age >= 6) & (age <= 9),coef_pre_driving_age_child_who_is_in_school_interaction_with_age_6_to_9_M,,
+Pre-driving-age child who is in school interaction with age 13 to 15,(ptype == 7) & (age >= 13) & (age <= 15),coef_pre_driving_age_child_who_is_in_school_interaction_with_age_13_to_15_M,coef_pre_driving_age_child_who_is_in_school_interaction_with_age_13_to_15_N,
+Pre-driving-age child who is too young for school alternative-specific constants,ptype == 8,coef_pre_driving_age_child_who_is_too_young_for_school_asc_M,coef_pre_driving_age_child_who_is_too_young_for_school_asc_N,
+# corrected tm1 age bug,,,,
+Pre-driving-age child who is too young for school interaction with age 0 to 1,(ptype == 8) & (age >= 0) & (age <= 1),coef_pre_driving_age_child_who_is_too_young_for_school_interaction_with_age_0_to_1_M,,
+Pre-driving-age child who is too young for school interaction with age 4 to 5,(ptype == 8) & (age >= 4) & (age <= 5),coef_pre_driving_age_child_who_is_too_young_for_school_interaction_with_age_4_to_5_M,,
+#,,,,
+Full-time worker interaction with age less than 40,(ptype == 1) & (age < 40),coef_full_time_worker_interaction_with_age_less_than_40_M,,
+Retired interaction with age more than 80,(ptype == 5) & (age > 80),,,coef_retired_interaction_with_age_more_than_80_H
+Full-time worker interaction with female gender,(ptype == 1) & (sex == 2),coef_full_time_worker_interaction_with_female_gender_M,,
+Non-working adult interaction with female gender,(ptype == 4) & (sex == 2),coef_non_working_adult_interaction_with_female_gender_M,,
+Retired interaction with female,(ptype == 5) & (sex == 2),coef_retired_interaction_with_female_M,,
+Non-working adult interaction with more cars than workers,(ptype == 4) & (auto_ownership > num_workers),coef_non_working_adult_interaction_with_more_cars_than_workers_M,coef_non_working_adult_interaction_with_more_cars_than_workers_N,
+Retired interaction with more cars than workers,(ptype == 5) & (auto_ownership > num_workers),coef_retired_interaction_with_more_cars_than_workers_M,coef_retired_interaction_with_more_cars_than_workers_N,
+Pre-driving-age child who is too young for school interaction with more cars than workers,(ptype == 8) & (auto_ownership > num_workers),,coef_pre_driving_age_child_who_is_too_young_for_school_interaction_with_more_cars_than_workers_N,
+Full-time worker interaction with fewer cars than workers,(ptype == 1) & (auto_ownership < num_workers),,,coef_full_time_worker_interaction_with_fewer_cars_than_workers_H
+Non-working adult interaction with fewer cars than workers,(ptype == 4) & (auto_ownership < num_workers),,,coef_non_working_adult_interaction_with_fewer_cars_than_workers_H
+Retired interaction with fewer cars than workers,(ptype == 5) & (auto_ownership < num_workers),,,coef_retired_interaction_with_fewer_cars_than_workers_H
+Driving-age child who is in school interaction with fewer cars than workers,(ptype == 6) & (auto_ownership < num_workers),,,coef_driving_age_child_who_is_in_school_interaction_with_fewer_cars_than_workers_H
+Pre-driving-age child who is in school interaction with fewer cars than workers,(ptype == 7) & (auto_ownership < num_workers),,,coef_pre_driving_age_child_who_is_in_school_interaction_with_fewer_cars_than_workers_H
+Pre-driving-age child who is too young for school interaction with fewer cars than workers,(ptype == 8) & (auto_ownership < num_workers),,,coef_pre_driving_age_child_who_is_too_young_for_school_interaction_with_fewer_cars_than_workers_H
+Full-time worker interaction with income less than $20k,(ptype == 1) & (income_in_thousands < 20),,,coef_full_time_worker_interaction_with_income_less_than_20k_H
+Retired interaction with income less than $20k,(ptype == 5) & (income_in_thousands < 20),,,coef_retired_interaction_with_income_less_than_20k_H
+Part-time worker interaction with income less than $20k,(ptype == 2) & (income_in_thousands < 20),,,coef_part_time_worker_interaction_with_income_less_than_20k_H
+Part-time worker interaction with income between $50k and $100k,(ptype == 2) & (income_in_thousands >= 50) & (income_in_thousands <= 100),,,coef_part_time_worker_interaction_with_income_between_50k_and_100k_H
+Part-time worker interaction with income more than $100k,(ptype == 2) & (income_in_thousands >= 100),,coef_part_time_worker_interaction_with_income_more_than_100k_N,coef_part_time_worker_interaction_with_income_more_than_100k_H
+Non-working adult interaction with income between $50k and $100k,(ptype == 4) & (income_in_thousands >= 50) & (income_in_thousands <= 100),,,coef_non_working_adult_interaction_with_income_between_50k_and_100k_H
+Non-working adult interaction with income more than $100k,(ptype == 4) & (income_in_thousands >= 100),,,coef_non_working_adult_interaction_with_income_more_than_100k_H
+Driving-age child who is in school interaction with less than $20k,(ptype == 6) & (income_in_thousands < 20),,,coef_driving_age_child_who_is_in_school_interaction_with_less_than_20k_H
+Driving-age child who is in school interaction income between $50k and $100k,(ptype == 6) & (income_in_thousands >= 50) & (income_in_thousands <= 100),,,coef_driving_age_child_who_is_in_school_interaction_income_between_50k_and_100k_H
+Driving-age child who is in school interaction with income more than $100k,(ptype == 6) & (income_in_thousands >= 100),,,coef_driving_age_child_who_is_in_school_interaction_with_income_more_than_100k_H
+Pre-driving-age child who is too young for school interaction with income between $50k and $100k,(ptype == 8) & (income_in_thousands >= 50) & (income_in_thousands <= 100),,,coef_pre_driving_age_child_who_is_too_young_for_school_interaction_with_income_between_50k_and_100k_H
+Pre-driving-age child who is too young for school interaction with income more than $100k,(ptype == 8) & (income_in_thousands >= 100),,,coef_pre_driving_age_child_who_is_too_young_for_school_interaction_with_income_more_than_100k_H
+Full-time worker intraction with peak accessibility to all employment,(ptype == 1) * auPkTotal,coef_full_time_worker_intraction_with_peak_accessibility_to_all_employment_M,,
+Part-time worker interaction with peak accessibility to all employment,(ptype == 2) * auPkTotal,coef_part_time_worker_interaction_with_peak_accessibility_to_all_employment_M,,
+Non-working adult interaction with peak accessibility to all employment,(ptype == 4) * auPkTotal,coef_non_working_adult_interaction_with_peak_accessibility_to_all_employment_M,,
+Retired interaction with peak accessibility to all employment,(ptype == 5) * auPkTotal,coef_retired_interaction_with_peak_accessibility_to_all_employment_M,,
+Non-working adult interaction with off-peak accessibility to retail,(ptype == 4) * auOpRetail,,coef_non_working_adult_retired_or_univ_student_interaction_with_off_peak_accessibility_to_all_employment_N,
+Retired interaction with off-peak accessibility to retail,(ptype == 5) * auOpRetail,,coef_non_working_adult_retired_or_univ_student_interaction_with_off_peak_accessibility_to_all_employment_N,
+University student interaction with off-peak accessibility to retail,(ptype == 3) * auOpRetail,,coef_non_working_adult_retired_or_univ_student_interaction_with_off_peak_accessibility_to_all_employment_N,
+Driving-age child who is in school interaction with off-peak accessibility to retail,(ptype == 6) * auOpRetail,,coef_child_who_is_in_school_or_too_young_for_school_interaction_with_off_peak_accessibility_to_retail_N,
+Pre-driving-age child who is in school interaction with off-peak accessibility to retail,(ptype == 7) * auOpRetail,,coef_child_who_is_in_school_or_too_young_for_school_interaction_with_off_peak_accessibility_to_retail_N,
+Pre-driving-age child who is too young for school interaction with off-peak accessibility to retail,(ptype == 8) * auOpRetail,,coef_child_who_is_in_school_or_too_young_for_school_interaction_with_off_peak_accessibility_to_retail_N,
+

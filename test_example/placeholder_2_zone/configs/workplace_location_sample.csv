@@ -1,0 +1,12 @@
+Label,Description,Expression,coefficient
+local_dist,,_DIST@skims['DIST'],1
+util_dist_0_1,"Distance, piecewise linear from 0 to 1 miles","@_DIST.clip(0,1)",coef_dist_0_1
+util_dist_1_2,"Distance, piecewise linear from 1 to 2 miles","@(_DIST-1).clip(0,1)",coef_dist_1_2
+util_dist_2_5,"Distance, piecewise linear from 2 to 5 miles","@(_DIST-2).clip(0,3)",coef_dist_2_5
+util_dist_5_15,"Distance, piecewise linear from 5 to 15 miles","@(_DIST-5).clip(0,10)",coef_dist_5_15
+util_dist_15_up,"Distance, piecewise linear for 15+ miles",@(_DIST-15.0).clip(0),coef_dist_15_up
+util_dist_0_5_high,"Distance 0 to 5 mi, high and very high income",@(df['income_segment']>=WORK_HIGH_SEGMENT_ID) * _DIST.clip(upper=5),coef_dist_0_5_high
+util_dist_15_up_high,"Distance 5+ mi, high and very high income",@(df['income_segment']>=WORK_HIGH_SEGMENT_ID) * (_DIST-5).clip(0),coef_dist_5_up_high
+util_size_variable,Size variable,@(df['size_term'] * df['shadow_price_size_term_adjustment']).apply(np.log1p),1
+util_utility_adjustment,utility adjustment,@df['shadow_price_utility_adjustment'],1
+util_no_attractions,No attractions,@df['size_term']==0,-999

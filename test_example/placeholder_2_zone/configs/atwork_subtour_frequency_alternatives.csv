@@ -1,0 +1,8 @@
+#,,,alt file for building tours even though simulation is simple_simulate not interaction_simulate
+alt,eat,business,maint
+no_subtours,0,0,0
+eat,1,0,0
+business1,0,1,0
+maint,0,0,1
+business2,0,2,0
+eat_business,1,1,0

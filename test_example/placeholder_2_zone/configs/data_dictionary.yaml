@@ -1,0 +1,14 @@
+
+
+land_use:
+  county_id:
+    1: San Francisco
+    2: San Mateo
+    3: Santa Clara
+    4: Alameda
+    5: Contra Costa
+    6: Solano
+    7: Napa
+    8: Sonoma
+    9: Marin
+

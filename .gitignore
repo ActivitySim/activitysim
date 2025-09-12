@@ -83,3 +83,6 @@ activitysim/examples/prototype_mtc_extended/test/*.ipynb
 activitysim/examples/prototype_mtc/*.ipynb
 Untitled.ipynb
 docs/dev-guide/_generated2
+
+# Test examples created during validation
+test_example/

@@ -272,6 +272,17 @@ def mandatory_tour_scheduling_school_model(
     )
 
 
+def mandatory_tour_scheduling_univ_model(
+    edb_directory="output/estimation_data_bundle/{name}/", return_data=False
+):
+    return schedule_choice_model(
+        name="mandatory_tour_scheduling_univ",
+        edb_directory=edb_directory,
+        return_data=return_data,
+        coefficients_file="tour_scheduling_univ_coefficients.csv",
+    )
+
+
 def non_mandatory_tour_scheduling_model(
     edb_directory="output/estimation_data_bundle/{name}/", return_data=False
 ):

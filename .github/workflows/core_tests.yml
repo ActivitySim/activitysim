@@ -251,7 +251,7 @@ jobs:
 
       - name: Test ${{ matrix.region }}
         run: |
-          uv run --locked --group github-action --no-dev pytest --rootdir ${{ matrix.region-repo }}/test .
+          uv run --locked --group github-action --no-dev pytest --rootdir ${{ matrix.region-repo }}/test ${{ matrix.region-repo }}/test
 
   random_seed_generation:
     needs: foundation

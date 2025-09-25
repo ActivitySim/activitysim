@@ -670,7 +670,7 @@ def run_location_simulate(
         skims=None,
         model_settings=model_settings,
         trace_label=trace_label,
-        preprocessor_setting_name="alts_preprocessor_sample",
+        preprocessor_setting_name="alts_preprocessor_simulate",
     )
 
     if estimator:

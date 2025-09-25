@@ -295,6 +295,22 @@ def work_from_home_model(
     )
 
 
+def telecommute_status_model(
+    name="telecommute_status",
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+):
+    return simple_simulate_model(
+        name=name,
+        edb_directory=edb_directory,
+        return_data=return_data,
+        choices={
+            True: 1,
+            False: 2,
+        },  # True is telecommute, false is does not telecommute, names match spec positions
+    )
+
+
 def mandatory_tour_frequency_model(
     name="mandatory_tour_frequency",
     edb_directory="output/estimation_data_bundle/{name}/",

@@ -1,0 +1,1301 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Vehicle Type Choice &#8212; ActivitySim</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/clipboard.min.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <script src="../../_static/design-tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/components/vehicle_type_choice';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1000.dev1.g2e5f73273';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Telecommute Frequency" href="telecommute_frequency.html" />
+    <link rel="prev" title="Auto Ownership" href="auto_ownership.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1000.dev1.g2e5f73273" />
+    <meta name="docbuild:last-update" content="Sep 26, 2025"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">ActivitySim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../users-guide/index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../users-guide/index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Developer Installation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../core-workflow.html">Workflow State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../core-workflow-api.html">State API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.__init__.html">State.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.make_default.html">State.make_default</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.make_temp.html">State.make_temp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.create_example.html">create_example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.run.heading_level.html">State.run.heading_level</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.checkpoint.last_checkpoint.html">State.checkpoint.last_checkpoint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.checkpoint.checkpoints.html">State.checkpoint.checkpoints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.checkpoint.store.html">State.checkpoint.store</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.tracing.initialize.html">State.tracing.initialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.tracing.register_traceable_table.html">State.tracing.register_traceable_table</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.tracing.deregister_traceable_table.html">State.tracing.deregister_traceable_table</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.tracing.write_csv.html">State.tracing.write_csv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.tracing.trace_df.html">State.tracing.trace_df</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.tracing.trace_interaction_eval_results.html">State.tracing.trace_interaction_eval_results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.tracing.get_trace_target.html">State.tracing.get_trace_target</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.tracing.trace_targets.html">State.tracing.trace_targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.tracing.has_trace_targets.html">State.tracing.has_trace_targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.tracing.dump_df.html">State.tracing.dump_df</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.tracing.delete_output_files.html">State.tracing.delete_output_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.tracing.delete_trace_files.html">State.tracing.delete_trace_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.extend.declare_table.html">State.extend.declare_table</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-workflow-steps.html">Workflow Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-workflow-table.html">Workflow Tables</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../using-sharrow.html">Using Sharrow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../skim-dataset.html">Using Skim Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../checkpointing.html">Checkpointing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows.html">Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../development.html">Software Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../component-configs.html">Component Configuration</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Components</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="input_checker.html">Input Checker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initialize.html">Initialize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initialize_los.html">Initialize LOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initialize_tours.html">Initialize Tours</a></li>
+<li class="toctree-l2"><a class="reference internal" href="accessibility.html">Accessibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auto_ownership.html">Auto Ownership</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Vehicle Type Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="telecommute_frequency.html">Telecommute Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cdap.html">Coordinated Daily Activity Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mandatory_tour_frequency.html">Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="school_escorting.html">School Escorting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_composition.html">Joint Tour Composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_participation.html">Joint Tour Participation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_destination.html">Joint Tour Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint_tour_scheduling.html">Joint Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="non_mandatory_tour_frequency.html">Non-Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="non_mandatory_destination.html">Non-Mandatory Destination Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="non_mandatory_scheduling.html">Non-Mandatory Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mandatory_scheduling.html">Mandatory Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="disaggregate_accessibility.html">Disaggregate Accessibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="free_parking.html">Free Parking Eligibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="school_location_choice.html">School Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit_pass_ownership.html">Transit Pass Ownership</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit_pass_subsidy.html">Transit Pass Subsidy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_destination.html">Trip Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="work_from_home.html">Work from Home</a></li>
+<li class="toctree-l2"><a class="reference internal" href="work_location_choice.html">Work Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tour_mode_choice.html">Tour Mode Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_frequency.html">At-work Subtours Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_destination.html">At-work Subtours Destination Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_scheduling.html">At-work Subtour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atwork_subtour_mode_choice.html">At-work Subtour Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stop_frequency.html">Stop Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_purpose.html">Trip Purpose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_destination.html">Trip Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_purpose_and_destination.html">Trip Purpose and Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_scheduling_choice.html">Trip Scheduling Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_departure_choice.html">Trip Departure Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trip_mode_choice.html">Trip Mode Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parking_location_choice.html">Parking Location Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_trip_matrices.html">Write Trip Matrices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmarking.html">Benchmarking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build-docs.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changes.html">Change Log</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Developers</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Components</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Vehicle Type Choice</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="vehicle-type-choice">
+<span id="component-vehicle-type-choice"></span><h1>Vehicle Type Choice<a class="headerlink" href="#vehicle-type-choice" title="Permalink to this heading">#</a></h1>
+<p>The vehicle type choice model selects a vehicle type for each household vehicle. A vehicle type
+is a combination of the vehicle’s body type, age, and fuel type.  For example, a 13 year old
+gas powered van would have a vehicle type of <em>van_13_gas</em>.</p>
+<p>There are two vehicle type choice model structures implemented:</p>
+<ol class="arabic simple">
+<li><p>Simultaneous choice of body type, age, and fuel type.</p></li>
+<li><p>Simultaneous choice of body type and age, with fuel type assigned from a probability distribution.</p></li>
+</ol>
+<section id="structure">
+<h2>Structure<a class="headerlink" href="#structure" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p><em>Configuration File</em>: <code class="docutils literal notranslate"><span class="pre">vehicle_type_choice.yaml</span></code></p></li>
+</ul>
+<p>Input vehicle type data included in <a class="reference internal" href="../../users-guide/other_examples.html#prototype-mtc-extended"><span class="std std-ref">prototype_mtc_extended</span></a> came from a variety of sources. The number of vehicle makes, models, MPG, and
+electric vehicle range was sourced from the Enivornmental Protection Agency (EPA).  Additional data on vehicle costs were derived from the
+National Household Travel Survey. Auto operating costs in the vehicle type data file were a sum of fuel costs and maintenance costs.
+Fuel costs were calculated from MPG assuming a $3.00 cost for a gallon of gas. When MPG was not available to calculate fuel costs,
+the closest year, vehicle type, or body type available was used. Maintenance costs were taken from AAA’s
+<a class="reference external" href="https://exchange.aaa.com/wp-content/uploads/2017/08/17-0013_Your-Driving-Costs-Brochure-2017-FNL-CX-1.pdf">2017 driving cost study</a>.
+Size categories within body types were averaged, e.g. car was an average of AAA’s small, medium, and large sedan categories.
+Motorcycles were assigned the small sedan maintenance costs since they were not included in AAA’s report.
+Maintenance costs were not varied by vehicle year. (According to
+`data from the U.S. <a class="reference external" href="https://www.bls.gov/opub/btn/volume-3/pdf/americans-aging-autos.pdf">Bureau of Labor Statistics</a>,
+there was no consistent relationship between vehicle age and maintenance costs.)</p>
+<p>Using the above methodology, the average auto operating costs of vehicles output from :ref:<code class="docutils literal notranslate"><span class="pre">prototype_mtc_extended</span></code> was 18.4 cents.
+This value is very close to the auto operating cost of 18.3 cents used in <a class="reference internal" href="../../users-guide/example_models.html#prototype-mtc"><span class="std std-ref">prototype_mtc</span></a>.
+Non-household vehicles in prototype_mtc_extended use the auto operating cost of 18.3 cents used in prototype_mtc.
+Users are encouraged to make their own assumptions and calculate auto operating costs as they see fit.</p>
+<p>The distribution of fuel type probabilities included in <a class="reference internal" href="../../users-guide/other_examples.html#prototype-mtc-extended"><span class="std std-ref">prototype_mtc_extended</span></a> are computed directly from the National Household Travel Survey data
+and include the entire US. Therefore, there is “lumpiness” in probabilities due to poor statistics in the data for some vehicle types.
+The user is encouraged to adjust the probabilities to their modeling region and “smooth” them for more consistent results.</p>
+<p>Further discussion of output results and model sensitivities can be found <a class="reference external" href="https://github.com/ActivitySim/activitysim/wiki/Project-Meeting-2022.05.05">here</a>.</p>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">#</a></h2>
+<dl class="py class pydantic_model">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings">
+<em class="property"><span class="pre">settings</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.vehicle_type_choice.</span></span><span class="sig-name descname"><span class="pre">VehicleTypeChoiceSettings</span></span><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../_generated/activitysim.core.configuration.logit.LogitComponentSettings.html#activitysim.core.configuration.logit.LogitComponentSettings" title="activitysim.core.configuration.logit.LogitComponentSettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogitComponentSettings</span></code></a></p>
+<p>Settings for the <cite>vehicle_type_choice</cite> component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Config<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>extra</strong>: <em>str = forbid</em></p></li>
+</ul>
+</dd>
+<dt class="field-even">Fields<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COEFFICIENTS" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COEFFICIENTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">COEFFICIENTS</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_ALTS_TABLE" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_ALTS_TABLE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">COLS_TO_INCLUDE_IN_ALTS_TABLE</span> <span class="pre">(list[str])</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_CHOOSER_TABLE" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_CHOOSER_TABLE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">COLS_TO_INCLUDE_IN_CHOOSER_TABLE</span> <span class="pre">(list[str])</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_VEHICLE_TABLE" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_VEHICLE_TABLE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">COLS_TO_INCLUDE_IN_VEHICLE_TABLE</span> <span class="pre">(list[str])</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.CONSTANTS" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.CONSTANTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CONSTANTS</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.FLEET_YEAR" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.FLEET_YEAR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FLEET_YEAR</span> <span class="pre">(int)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.LOGIT_TYPE" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.LOGIT_TYPE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGIT_TYPE</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.NESTS" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.NESTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NESTS</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.PROBS_SPEC" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.PROBS_SPEC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROBS_SPEC</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.REQUIRE_DATA_FOR_ALL_ALTS" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.REQUIRE_DATA_FOR_ALL_ALTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REQUIRE_DATA_FOR_ALL_ALTS</span> <span class="pre">(bool)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.SIMULATION_TYPE" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.SIMULATION_TYPE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIMULATION_TYPE</span> <span class="pre">(Literal['simple_simulate',</span> <span class="pre">'interaction_simulate'])</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.SPEC" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.SPEC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPEC</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.VEHICLE_TYPE_DATA_FILE" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.VEHICLE_TYPE_DATA_FILE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VEHICLE_TYPE_DATA_FILE</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.WRITE_OUT_ALTS_FILE" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.WRITE_OUT_ALTS_FILE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WRITE_OUT_ALTS_FILE</span> <span class="pre">(bool)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.alts_preprocessor" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.alts_preprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">alts_preprocessor</span> <span class="pre">(PreprocessorSettings</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_households" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_households"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_households</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_persons" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_persons"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_persons</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_tours" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_tours"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_tours</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_trips" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_trips"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_trips</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_vehicles" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_vehicles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_vehicles</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.combinatorial_alts" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.combinatorial_alts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">combinatorial_alts</span> <span class="pre">(dict</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.compute_settings" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.compute_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_settings</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.explicit_chunk" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.explicit_chunk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explicit_chunk</span> <span class="pre">(float)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.preprocessor" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.preprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocessor</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.source_file_paths" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.source_file_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">()</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-odd">Validators<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code> » <code class="xref py py-obj docutils literal notranslate"><span class="pre">all</span> <span class="pre">fields</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COEFFICIENTS">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">COEFFICIENTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COEFFICIENTS" title="Permalink to this definition">#</a></dt>
+<dd><p>Coefficients filename.</p>
+<p>This is a CSV file giving named parameters for use in the utility expression.
+If it is not provided, then it is assumed that all model coefficients are
+given explicitly in the <cite>SPEC</cite> as numerical values instead of named parameters.
+This is perfectly acceptable for use with ActivitySim for typical simulation
+applications, but may be problematic if used with “estimation mode”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_ALTS_TABLE">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">COLS_TO_INCLUDE_IN_ALTS_TABLE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_ALTS_TABLE" title="Permalink to this definition">#</a></dt>
+<dd><p>Columns to include in the alternatives table for use in utility calculations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_CHOOSER_TABLE">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">COLS_TO_INCLUDE_IN_CHOOSER_TABLE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_CHOOSER_TABLE" title="Permalink to this definition">#</a></dt>
+<dd><p>Columns to include in the chooser table for use in utility calculations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_VEHICLE_TABLE">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">COLS_TO_INCLUDE_IN_VEHICLE_TABLE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_VEHICLE_TABLE" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.CONSTANTS">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CONSTANTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.CONSTANTS" title="Permalink to this definition">#</a></dt>
+<dd><p>Named constants usable in the utility expressions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.FLEET_YEAR">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FLEET_YEAR</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.FLEET_YEAR" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.LOGIT_TYPE">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LOGIT_TYPE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'MNL'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'NL'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'MNL'</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.LOGIT_TYPE" title="Permalink to this definition">#</a></dt>
+<dd><p>Logit model mathematical form.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>“MNL”</dt><dd><p>Multinomial logit model.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>“NL”</dt><dd><p>Nested multinomial logit model.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.NESTS">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NESTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.logit.LogitNestSpec.html#activitysim.core.configuration.logit.LogitNestSpec" title="activitysim.core.configuration.logit.LogitNestSpec"><span class="pre">LogitNestSpec</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.NESTS" title="Permalink to this definition">#</a></dt>
+<dd><p>Nesting structure for a nested logit model.</p>
+<p>The nesting structure is specified heirarchically from the top, so the
+value of this field should be the “root” level nest of the nested logit
+tree, which should contain references to lower level nests and/or the
+actual alternatives.</p>
+<p>For example, this YAML defines a simple nesting structure for four
+alternatives (DRIVE, WALK, WALK_TO_TRANSIT, DRIVE_TO_TRANSIT) with the two
+transit alternatives grouped together in a nest:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">NESTS</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">root</span>
+<span class="w">  </span><span class="nt">coefficient</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coef_nest_root</span>
+<span class="w">  </span><span class="nt">alternatives</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DRIVE</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">WALK</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TRANSIT</span>
+<span class="w">      </span><span class="nt">coefficient</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coef_nest_transit</span>
+<span class="w">      </span><span class="nt">alternatives</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">WALK_TO_TRANSIT</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DRIVE_TO_TRANSIT</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.PROBS_SPEC">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PROBS_SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.PROBS_SPEC" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.REQUIRE_DATA_FOR_ALL_ALTS">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">REQUIRE_DATA_FOR_ALL_ALTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.REQUIRE_DATA_FOR_ALL_ALTS" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.SIMULATION_TYPE">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SIMULATION_TYPE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'simple_simulate'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'interaction_simulate'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'interaction_simulate'</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.SIMULATION_TYPE" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.SPEC">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Path</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.SPEC" title="Permalink to this definition">#</a></dt>
+<dd><p>Utility specification filename.</p>
+<p>This is sometimes alternatively called the utility expressions calculator
+(UEC). It is a CSV file giving all the functions for the terms of a
+linear-in-parameters utility expression.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.VEHICLE_TYPE_DATA_FILE">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">VEHICLE_TYPE_DATA_FILE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.VEHICLE_TYPE_DATA_FILE" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.WRITE_OUT_ALTS_FILE">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">WRITE_OUT_ALTS_FILE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.WRITE_OUT_ALTS_FILE" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.alts_preprocessor">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">alts_preprocessor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.alts_preprocessor" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_households">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">annotate_households</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_households" title="Permalink to this definition">#</a></dt>
+<dd><p>Annotate households output tables with additional columns.</p>
+<p>These settings are used to add additional columns to the output tables
+after the logit model is run. They are typically used to add
+additional attributes that are derived from the model results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_persons">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">annotate_persons</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_persons" title="Permalink to this definition">#</a></dt>
+<dd><p>Annotate persons output tables with additional columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_tours">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">annotate_tours</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_tours" title="Permalink to this definition">#</a></dt>
+<dd><p>Annotate tours output tables with additional columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_trips">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">annotate_trips</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_trips" title="Permalink to this definition">#</a></dt>
+<dd><p>Annotate trips output tables with additional columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_vehicles">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">annotate_vehicles</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_vehicles" title="Permalink to this definition">#</a></dt>
+<dd><p>Annotate vehicles output tables with additional columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.combinatorial_alts">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">combinatorial_alts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.combinatorial_alts" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.compute_settings">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_settings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ComputeSettings</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">ComputeSettings(sharrow_skip=False,</span> <span class="pre">fastmath=True,</span> <span class="pre">use_bottleneck=None,</span> <span class="pre">use_numexpr=None,</span> <span class="pre">use_numba=None,</span> <span class="pre">drop_unused_columns=True,</span> <span class="pre">protect_columns=[])</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.compute_settings" title="Permalink to this definition">#</a></dt>
+<dd><p>Sharrow settings for this component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.explicit_chunk">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">explicit_chunk</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.explicit_chunk" title="Permalink to this definition">#</a></dt>
+<dd><p>If &gt; 0, use this chunk size instead of adaptive chunking.
+If less than 1, use this fraction of the total number of rows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.preprocessor">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">preprocessor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.preprocessor" title="Permalink to this definition">#</a></dt>
+<dd><p>Chooser preprocessor settings.</p>
+<p>This is a set of expressions to be evaluated on the choosers
+before the logit model is run. It is used to prepare the choosers
+for the logit model by adding columns that are used in the
+utility expressions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.source_file_paths">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">source_file_paths</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Path</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.source_file_paths" title="Permalink to this definition">#</a></dt>
+<dd><p>A list of source files from which these settings were loaded.</p>
+<p>This value should not be set by the user within the YAML settings files,
+instead it is populated as those files are loaded.  It is primarily
+provided for debugging purposes, and does not actually affect the operation
+of any model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.nests_are_for_nl">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nests_are_for_nl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nests</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.nests_are_for_nl" title="Permalink to this definition">#</a></dt>
+<dd><p>Checks that nests are provided if (and only if) <cite>LOGIT_TYPE</cite> is NL.</p>
+</dd></dl>
+
+<dl class="py method pydantic_validator">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.update_sharrow_skip">
+<em class="property"><span class="pre">validator</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">update_sharrow_skip</span></span><em class="autodoc_pydantic_validator_arrow property">&#160; <span class="pre">»</span>&#160; </em><em class="xref py py-obj"><span class="pre">all</span> <span class="pre">fields</span></em><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.update_sharrow_skip" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc_extended/configs/vehicle_type_choice.yaml">Prototype MTC</a></p></li>
+</ul>
+</section>
+</section>
+<section id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.vehicle_type_choice">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.vehicle_type_choice.</span></span><span class="sig-name descname"><span class="pre">vehicle_type_choice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">persons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.2)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">households</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.2)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">vehicles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.2)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">vehicles_merged</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.2)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings"><span class="pre">VehicleTypeChoiceSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings_file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'vehicle_type_choice.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'vehicle_type_choice'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.vehicle_type_choice" title="Permalink to this definition">#</a></dt>
+<dd><p>Assign a vehicle type to each vehicle in the <cite>vehicles</cite> table.</p>
+<p>If a “SIMULATION_TYPE” is set to simple_simulate in the
+vehicle_type_choice.yaml config file, then the model specification .csv file
+should contain one column of coefficients for each distinct alternative. This
+format corresponds to ActivitySim’s <a class="reference internal" href="../../core.html#activitysim.core.simulate.simple_simulate" title="activitysim.core.simulate.simple_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.simulate.simple_simulate()</span></code></a>
+format. Otherwise, this model will construct a table of alternatives, at run time,
+based on all possible combinations of values of the categorical variables enumerated
+as “combinatorial_alts” in the .yaml config. In this case, the model leverages
+ActivitySim’s <a class="reference internal" href="../../core.html#module-activitysim.core.interaction_simulate" title="activitysim.core.interaction_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.interaction_simulate()</span></code></a> model design, in which
+the model specification .csv has only one column of coefficients, and the utility
+expressions can turn coefficients on or off based on attributes of either
+the chooser _or_ the alternative.</p>
+<p>As an optional second step, the user may also specify a “PROBS_SPEC” .csv file in
+the main .yaml config, corresponding to a lookup table of additional vehicle
+attributes and probabilities to be sampled and assigned to vehicles after the logit
+choices have been made. The rows of the “PROBS_SPEC” file must include all body type
+and vehicle age choices assigned in the logit model. These additional attributes are
+concatenated with the selected alternative from the logit model to form a single
+vehicle type name to be stored in the <cite>vehicles</cite> table as the vehicle_type column.</p>
+<p>Only one household vehicle is selected at a time to allow for the introduction of
+owned vehicle related attributes. For example, a household may be less likely to
+own a second van if they already own one. The model is run sequentially through
+household vehicle numbers. The preprocessor is run for each iteration on the entire
+vehicles table to allow for computation of terms involving the presence of other
+household vehicles.</p>
+<p>The user may also augment the <cite>households</cite> or <cite>persons</cite> tables with new vehicle
+type-based fields specified via expressions in “annotate_households_vehicle_type.csv”
+and “annotate_persons_vehicle_type.csv”, respectively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>state</strong><span class="classifier">workflow.State</span></dt><dd></dd>
+<dt><strong>persons</strong><span class="classifier">pd.DataFrame</span></dt><dd></dd>
+<dt><strong>households</strong><span class="classifier">pd.DataFrame</span></dt><dd></dd>
+<dt><strong>vehicles</strong><span class="classifier">pd.DataFrame</span></dt><dd></dd>
+<dt><strong>vehicles_merged :pd. DataFrame</strong></dt><dd></dd>
+<dt><strong>model_settings</strong><span class="classifier">class specifying the model settings</span></dt><dd></dd>
+<dt><strong>model_settings_file_name: filename of the model settings file</strong></dt><dd></dd>
+<dt><strong>trace_label: trace label of the vehicle type choice model</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.append_probabilistic_vehtype_type_choices">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.vehicle_type_choice.</span></span><span class="sig-name descname"><span class="pre">append_probabilistic_vehtype_type_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">choices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings"><span class="pre">VehicleTypeChoiceSettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.append_probabilistic_vehtype_type_choices" title="Permalink to this definition">#</a></dt>
+<dd><p>Select a fuel type for the provided body type and age of the vehicle.</p>
+<p>Make probabilistic choices based on the <cite>PROBS_SPEC</cite> file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>state</strong><span class="classifier">workflow.State</span></dt><dd></dd>
+<dt><strong>choices</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>selection of {body_type}_{age} to append vehicle type to</p>
+</dd>
+<dt><strong>model_settings</strong><span class="classifier">VehicleTypeChoiceSettings</span></dt><dd></dd>
+<dt><strong>trace_label</strong><span class="classifier">str</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>choices</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>table of chosen vehicle types</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.annotate_vehicle_type_choice_households">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.vehicle_type_choice.</span></span><span class="sig-name descname"><span class="pre">annotate_vehicle_type_choice_households</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings"><span class="pre">VehicleTypeChoiceSettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.annotate_vehicle_type_choice_households" title="Permalink to this definition">#</a></dt>
+<dd><p>Add columns to the households table in the pipeline according to spec.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>state</strong><span class="classifier">workflow.State</span></dt><dd></dd>
+<dt><strong>model_settings</strong><span class="classifier">VehicleTypeChoiceSettings</span></dt><dd></dd>
+<dt><strong>trace_label</strong><span class="classifier">str</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.annotate_vehicle_type_choice_persons">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.vehicle_type_choice.</span></span><span class="sig-name descname"><span class="pre">annotate_vehicle_type_choice_persons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings"><span class="pre">VehicleTypeChoiceSettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.annotate_vehicle_type_choice_persons" title="Permalink to this definition">#</a></dt>
+<dd><p>Add columns to the persons table in the pipeline according to spec.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>state</strong><span class="classifier">workflow.State</span></dt><dd></dd>
+<dt><strong>model_settings</strong><span class="classifier">VehicleTypeChoiceSettings</span></dt><dd></dd>
+<dt><strong>trace_label</strong><span class="classifier">str</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.annotate_vehicle_type_choice_vehicles">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.vehicle_type_choice.</span></span><span class="sig-name descname"><span class="pre">annotate_vehicle_type_choice_vehicles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings"><span class="pre">VehicleTypeChoiceSettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.annotate_vehicle_type_choice_vehicles" title="Permalink to this definition">#</a></dt>
+<dd><p>Add columns to the vehicles table in the pipeline according to spec.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>state</strong><span class="classifier">workflow.State</span></dt><dd></dd>
+<dt><strong>model_settings</strong><span class="classifier">VehicleTypeChoiceSettings</span></dt><dd></dd>
+<dt><strong>trace_label</strong><span class="classifier">str</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.get_combinatorial_vehicle_alternatives">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.vehicle_type_choice.</span></span><span class="sig-name descname"><span class="pre">get_combinatorial_vehicle_alternatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alts_cats_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.get_combinatorial_vehicle_alternatives" title="Permalink to this definition">#</a></dt>
+<dd><p>Build a pandas dataframe containing columns for each vehicle alternative.</p>
+<p>Rows will correspond to the alternative number and will be 0 except for the
+1 in the column corresponding to that alternative.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>alts_cats_dict</strong><span class="classifier">dict</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>alts_wide</strong><span class="classifier">pd.DataFrame in wide format expanded using pandas get_dummies function</span></dt><dd></dd>
+<dt><strong>alts_long</strong><span class="classifier">pd.DataFrame in long format</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.construct_model_alternatives">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.vehicle_type_choice.</span></span><span class="sig-name descname"><span class="pre">construct_model_alternatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings"><span class="pre">VehicleTypeChoiceSettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts_cats_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vehicle_type_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.construct_model_alternatives" title="Permalink to this definition">#</a></dt>
+<dd><p>Construct the table of vehicle type alternatives.</p>
+<p>Vehicle type data is joined to the alternatives table for use in utility expressions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>state</strong><span class="classifier">workflow.State</span></dt><dd></dd>
+<dt><strong>model_settings</strong><span class="classifier">VehicleTypeChoiceSettings</span></dt><dd></dd>
+<dt><strong>alts_cats_dict</strong><span class="classifier">dict</span></dt><dd><p>nested dictionary of vehicle body, age, and fuel options</p>
+</dd>
+<dt><strong>vehicle_type_data</strong><span class="classifier">pandas.DataFrame</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>alts_wide</strong><span class="classifier">pd.DataFrame</span></dt><dd><p>includes column indicators and data for each alternative</p>
+</dd>
+<dt><strong>alts_long</strong><span class="classifier">pd.DataFrame</span></dt><dd><p>rows just list the alternatives</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.get_vehicle_type_data">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.vehicle_type_choice.</span></span><span class="sig-name descname"><span class="pre">get_vehicle_type_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings"><span class="pre">VehicleTypeChoiceSettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">vehicle_type_data_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.get_vehicle_type_data" title="Permalink to this definition">#</a></dt>
+<dd><p>Read in the vehicle type data and computes the vehicle age.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>state</strong><span class="classifier">workflow.State</span></dt><dd></dd>
+<dt><strong>model_settings</strong><span class="classifier">VehicleTypeChoiceSettings</span></dt><dd></dd>
+<dt><strong>vehicle_type_data_file</strong><span class="classifier">str</span></dt><dd><p>name of vehicle type data file found in config folder</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>vehicle_type_data</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>table of vehicle type data with required body_type, age, and fuel_type columns</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.vehicle_type_choice.iterate_vehicle_type_choice">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.vehicle_type_choice.</span></span><span class="sig-name descname"><span class="pre">iterate_vehicle_type_choice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">vehicles_merged</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.2)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings" title="activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings"><span class="pre">VehicleTypeChoiceSettings</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.vehicle_type_choice.iterate_vehicle_type_choice" title="Permalink to this definition">#</a></dt>
+<dd><p>Select vehicle type for each household vehicle sequentially.</p>
+<p>Iterate through household vehicle numbers and select a vehicle type of
+the form {body_type}_{age}_{fuel_type}. The preprocessor is run for each
+iteration on the entire chooser table, not just the one for the current
+vehicle number.  This allows for computation of terms involving the presence
+of other household vehicles.</p>
+<p>Vehicle type data is read in according to the specification and joined to
+the alternatives. It can optionally be included in the output vehicles table
+by specifying the <cite>COLS_TO_INCLUDE_IN_VEHICLE_TABLE</cite> option in the model yaml.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>vehicles_merged</strong><span class="classifier">DataFrame</span></dt><dd><p>vehicle list owned by each household merged with households table</p>
+</dd>
+<dt><strong>model_settings</strong><span class="classifier">dict</span></dt><dd><p>yaml model settings file as dict</p>
+</dd>
+<dt><strong>model_spec</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>omnibus spec file with expressions in index and one column per segment</p>
+</dd>
+<dt><strong>locals_dict</strong><span class="classifier">dict</span></dt><dd><p>additional variables available when writing expressions</p>
+</dd>
+<dt><strong>estimator</strong><span class="classifier">Estimator object</span></dt><dd></dd>
+<dt><strong>chunk_size</strong><span class="classifier">int</span></dt><dd></dd>
+<dt><strong>trace_label</strong><span class="classifier">str</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>all_choices</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>single table of selected vehicle types and associated data</p>
+</dd>
+<dt><strong>all_choosers</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>single table of chooser data with preprocessor variables included</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="auto_ownership.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Auto Ownership</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="telecommute_frequency.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Telecommute Frequency</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#structure">Structure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.COEFFICIENTS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_ALTS_TABLE"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_ALTS_TABLE</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_CHOOSER_TABLE"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_CHOOSER_TABLE</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_VEHICLE_TABLE"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.COLS_TO_INCLUDE_IN_VEHICLE_TABLE</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.CONSTANTS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.FLEET_YEAR"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.FLEET_YEAR</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.LOGIT_TYPE"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.LOGIT_TYPE</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.NESTS"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.NESTS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.PROBS_SPEC"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.PROBS_SPEC</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.REQUIRE_DATA_FOR_ALL_ALTS"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.REQUIRE_DATA_FOR_ALL_ALTS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.SIMULATION_TYPE"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.SIMULATION_TYPE</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.SPEC"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.SPEC</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.VEHICLE_TYPE_DATA_FILE"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.VEHICLE_TYPE_DATA_FILE</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.WRITE_OUT_ALTS_FILE"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.WRITE_OUT_ALTS_FILE</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.alts_preprocessor"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.alts_preprocessor</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_households"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.annotate_households</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_persons"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.annotate_persons</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_tours"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.annotate_tours</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_trips"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.annotate_trips</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.annotate_vehicles"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.annotate_vehicles</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.combinatorial_alts"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.combinatorial_alts</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.compute_settings"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.compute_settings</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.explicit_chunk"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.explicit_chunk</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.preprocessor</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.source_file_paths</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.nests_are_for_nl()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.VehicleTypeChoiceSettings.update_sharrow_skip"><code class="docutils literal notranslate"><span class="pre">VehicleTypeChoiceSettings.update_sharrow_skip</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation">Implementation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.vehicle_type_choice"><code class="docutils literal notranslate"><span class="pre">vehicle_type_choice()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.append_probabilistic_vehtype_type_choices"><code class="docutils literal notranslate"><span class="pre">append_probabilistic_vehtype_type_choices()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.annotate_vehicle_type_choice_households"><code class="docutils literal notranslate"><span class="pre">annotate_vehicle_type_choice_households()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.annotate_vehicle_type_choice_persons"><code class="docutils literal notranslate"><span class="pre">annotate_vehicle_type_choice_persons()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.annotate_vehicle_type_choice_vehicles"><code class="docutils literal notranslate"><span class="pre">annotate_vehicle_type_choice_vehicles()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.get_combinatorial_vehicle_alternatives"><code class="docutils literal notranslate"><span class="pre">get_combinatorial_vehicle_alternatives()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.construct_model_alternatives"><code class="docutils literal notranslate"><span class="pre">construct_model_alternatives()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.get_vehicle_type_data"><code class="docutils literal notranslate"><span class="pre">get_vehicle_type_data()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.vehicle_type_choice.iterate_vehicle_type_choice"><code class="docutils literal notranslate"><span class="pre">iterate_vehicle_type_choice()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/dev-guide/components/vehicle_type_choice.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><!-- This will display the version of the docs -->
+<p class="last-updated">
+ActivitySim 1000.dev1+g2e5f73273, documentation last updated Sep 26, 2025.<br/>
+</p></div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

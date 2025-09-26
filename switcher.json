@@ -1,11 +1,16 @@
 [
     {
         "name": "Development",
-        "version": "1.4.dev",
+        "version": "1.5.dev",
         "url": "https://activitysim.github.io/activitysim/develop/index.html"
     },
     {
-        "name": "1.3 (Latest)",
+        "name": "1.4 (Latest)",
+        "version": "1.4.0",
+        "url": "https://activitysim.github.io/activitysim/v1.4.0/index.html"
+    },
+    {
+        "name": "1.3",
         "version": "1.3.1",
         "url": "https://activitysim.github.io/activitysim/v1.3.1/index.html"
     },

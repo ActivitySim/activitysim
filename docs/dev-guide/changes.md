@@ -5,6 +5,21 @@ major new features that may require modifications to existing model configuratio
 or code to utilize, as well as breaking changes that may cause existing model
 configurations or code to fail to run correctly.
 
+## v1.4
+
+### Improved Estimation Mode
+
+Version 1.4 includes several improvements to the estimation mode, including:
+
+- The ability to run estimation mode in parallel, which can significantly
+  speed up the estimation process for large models.
+- The ability to modify the model specification and coefficients file(s) for
+  the estimated submodels without re-running ActivitySim, which allows for more
+  flexibility in the estimation process.
+- Other improvements to the estimation mode workflow, including better error
+  handling, logging, and model evaluation tools.
+
+
 ## v1.3
 
 ### New Canonical Examples

@@ -321,6 +321,83 @@ jobs:
         run: |
           uv run pytest activitysim/estimation/test/test_larch_estimation.py --durations=0
 
+  estimation_notebooks:
+    needs: foundation
+    env:
+      python-version: "3.10"
+      label: win-64
+    defaults:
+      run:
+        shell: pwsh
+    name: Estimation Notebooks Test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: setup graphviz
+        uses: ts-graphviz/setup-graphviz@v2
+
+      - name: Install activitysim
+        run: |
+          uv sync --locked --group github-action
+
+      - name: Create Estimation Data
+        run: >
+          uv run --group github-action python activitysim/examples/example_estimation/notebooks/est_mode_setup.py 
+          --household_sample_size 5000
+
+      - name: Test Estimation Notebooks
+        run: >
+          uv run --group github-action pytest activitysim/examples/example_estimation/notebooks 
+          --nbmake-timeout=3000 
+          --ignore=activitysim/examples/example_estimation/notebooks/01_estimation_mode.ipynb 
+          --ignore-glob=activitysim/examples/example_estimation/notebooks/test-estimation-data/**
+
+  estimation_edb_creation:
+    needs: foundation
+    env:
+      python-version: "3.10"
+      label: win-64
+    defaults:
+      run:
+        shell: pwsh
+    name: estimation_edb_creation_test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install activitysim
+        run: |
+          uv sync --locked --only-group github-action
+
+      - name: Test Estimation EDB Creation
+        run: |
+          uv run pytest activitysim/estimation/test/test_edb_creation/test_edb_formation.py --durations=0
+
   expression-profiling:
     needs: foundation
     env:

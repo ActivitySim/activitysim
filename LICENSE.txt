@@ -1,6 +1,6 @@
 BSD 3-Clause License
 
-Copyright (c) Association of Metropolitan Planning Organizations Research Foundation
+Copyright (c) Zephyr Foundation
 
 All rights reserved.
 

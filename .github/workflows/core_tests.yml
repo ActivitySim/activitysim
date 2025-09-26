@@ -39,7 +39,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --only-group github-action
+          uv sync --locked --group github-action --no-dev
 
       - name: Lint with Black
         run: |
@@ -105,7 +105,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --only-group github-action
+          uv sync --locked --group github-action --no-dev
 
       - name: Lint with Black
         run: |
@@ -171,7 +171,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --only-group github-action
+          uv sync --locked --group github-action --no-dev
 
       # TODO: Cache sharrow compiled flows?  The contents of __pycache__ appear to
       #       be ignored, so this is not working as expected right now
@@ -215,7 +215,7 @@ jobs:
           - region: Standard 2-Zone Example (SANDAG)
             region-org: ActivitySim
             region-repo: sandag-abm3-example
-            region-branch: pandas2
+            region-branch: main
       fail-fast: false
     defaults:
       run:
@@ -240,7 +240,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --only-group github-action
+          uv sync --locked --group github-action --no-dev
 
       - name: Checkout Example
         uses: actions/checkout@v4
@@ -251,8 +251,8 @@ jobs:
 
       - name: Test ${{ matrix.region }}
         run: |
-          cd ${{ matrix.region-repo }}/test
-          uv run pytest .
+          cd ${{ matrix.region-repo }}
+          uv run --project .. --locked --group github-action --no-dev pytest ./test
 
   random_seed_generation:
     needs: foundation
@@ -282,7 +282,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --only-group github-action
+          uv sync --locked --group github-action --no-dev
 
       - name: Test Random Seed Generation
         run: |
@@ -315,7 +315,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --only-group github-action
+          uv sync --locked --group github-action --no-dev
 
       - name: Test Estimation Mode
         run: |
@@ -348,7 +348,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --only-group github-action
+          uv sync --locked --group github-action --no-dev
 
       - name: Test Expression Profiling
         run: |
@@ -380,7 +380,7 @@ jobs:
           python-version-file: ".python-version"
       - name: Install activitysim
         run: |
-          uv sync --locked --only-group github-action
+          uv sync --locked --group github-action --no-dev
       - name: localize version switcher
         run: |
           python .github/workflows/localize-base-urls.py docs/_static/switcher.json

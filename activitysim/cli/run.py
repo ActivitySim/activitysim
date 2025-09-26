@@ -452,7 +452,13 @@ def run(args):
         raise
 
     chunk.consolidate_logs(state)
-    mem.consolidate_logs(state)
+    try:
+        mem.consolidate_logs(state)
+    except Exception as e:
+        logger.warning(
+            f"Memory log consolidation failed with error: {e}. "
+            "This does not affect model results, but memory usage logs will not be consolidated."
+        )
 
     from activitysim.core.flow import TimeLogger
 

@@ -664,12 +664,11 @@ applications, but may be problematic if used with “estimation mode”.</p>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings.ESTIMATION_SAMPLE_SIZE">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ESTIMATION_SAMPLE_SIZE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings.ESTIMATION_SAMPLE_SIZE" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ESTIMATION_SAMPLE_SIZE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-1</span></em><a class="headerlink" href="#activitysim.abm.models.non_mandatory_destination.TourLocationComponentSettings.ESTIMATION_SAMPLE_SIZE" title="Permalink to this definition">#</a></dt>
 <dd><p>The number of alternatives to sample for estimation mode.
-If zero, then all alternatives are used.
-Truth alternative will be included in the sample.
-Larch does not yet support sampling alternatives for estimation,
-but this setting is still helpful for estimation mode runtime.</p>
+If zero, then all alternatives are used. If negative, then the regular
+<cite>SAMPLE_SIZE</cite> is used.
+Truth alternative will be included in the sample.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1224,7 +1223,7 @@ person that’s making the tour)</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev13+g10f8f4408, documentation last updated Sep 26, 2025.<br/>
+ActivitySim 1.4.1.dev14+g1a94629e1, documentation last updated Sep 26, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

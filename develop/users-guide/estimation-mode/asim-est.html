@@ -1,0 +1,753 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Running ActivitySim in Estimation Mode &#8212; ActivitySim</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/clipboard.min.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <script src="../../_static/design-tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'users-guide/estimation-mode/asim-est';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.4.1';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Using Larch" href="larch.html" />
+    <link rel="prev" title="Estimation Mode" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.4.1" />
+    <meta name="docbuild:last-update" content="Sep 26, 2025"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">ActivitySim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../modelsetup.html">Model Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ways_to_run.html">Ways to Run the Model</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../performance/index.html">Runtime Performance</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../performance/multiprocessing.html">Multiprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../performance/multithreading.html">Multithreading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../performance/chunking.html">Chunking to Reduce Peak Memory Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../performance/sharrow.html">Compiling with Sharrow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../performance/skim-data-format.html">Skim Data Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../performance/expr-profiling.html">Expression Profiling</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../run_primary_example.html">Run the Primary Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model_anatomy.html">Anatomy of a Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../howitworks.html">How the System Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model_dev.html">Model Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example_models.html">Example Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example_performance.html">Example Model Performance Benchmarking</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Estimation Mode</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#"> Running ActivitySim in Estimation Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="larch.html"> Using Larch to Re-estimate Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="larch-api.html"> ActivitySim Larch Tool API</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../other_examples.html">Other Example Models</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Users Guide</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Estimation Mode</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Running ActivitySim in Estimation Mode</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="running-activitysim-in-estimation-mode">
+<h1>Running ActivitySim in Estimation Mode<a class="headerlink" href="#running-activitysim-in-estimation-mode" title="Permalink to this heading">#</a></h1>
+<p>ActivitySim is run in estimation mode to read ActivitySim-format travel survey
+files, and apply the ActivitySim submodels to write estimation data bundles (EDBs)
+that contains the model utility specifications, coefficients, chooser data, and
+alternatives data for each submodel. These EDBs are then used with Larch to
+re-estimate the model parameters.</p>
+<p>ActivitySim can be run in estimation mode by including a few extra settings in
+the <code class="docutils literal notranslate"><span class="pre">estimation.yaml</span></code> config file.  The key setting in this file is the <code class="docutils literal notranslate"><span class="pre">enabled</span></code>
+setting, which must be set to <code class="docutils literal notranslate"><span class="pre">True</span></code> in order to run in estimation mode. The
+default value for this setting is <code class="docutils literal notranslate"><span class="pre">False</span></code>, so if it is not explicitly set to
+<code class="docutils literal notranslate"><span class="pre">True</span></code>, ActivitySim will run in normal simulation mode, and everything else
+in the <code class="docutils literal notranslate"><span class="pre">estimation.yaml</span></code> config file will be ignored. These settings are
+documented below. After running ActivitySim in estimation mode, the EDBs will be
+written to disk, and can be used with Larch to re-estimate the model parameters.</p>
+<section id="configuration-settings">
+<h2>Configuration Settings<a class="headerlink" href="#configuration-settings" title="Permalink to this heading">#</a></h2>
+<dl class="py class pydantic_model">
+<dt class="sig sig-object py" id="activitysim.core.estimation.EstimationConfig">
+<em class="property"><span class="pre">settings</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.estimation.</span></span><span class="sig-name descname"><span class="pre">EstimationConfig</span></span><a class="headerlink" href="#activitysim.core.estimation.EstimationConfig" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../dev-guide/_generated/activitysim.core.configuration.base.PydanticReadable.html#activitysim.core.configuration.base.PydanticReadable" title="activitysim.core.configuration.base.PydanticReadable"><code class="xref py py-class docutils literal notranslate"><span class="pre">PydanticReadable</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Fields<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.DELETE_MP_SUBDIRS" title="activitysim.core.estimation.EstimationConfig.DELETE_MP_SUBDIRS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DELETE_MP_SUBDIRS</span> <span class="pre">(bool)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.EDB_FILETYPE" title="activitysim.core.estimation.EstimationConfig.EDB_FILETYPE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EDB_FILETYPE</span> <span class="pre">(Literal['csv',</span> <span class="pre">'parquet',</span> <span class="pre">'pkl'])</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.SKIP_BUNDLE_WRITE_FOR" title="activitysim.core.estimation.EstimationConfig.SKIP_BUNDLE_WRITE_FOR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SKIP_BUNDLE_WRITE_FOR</span> <span class="pre">(list[str])</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.bundles" title="activitysim.core.estimation.EstimationConfig.bundles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bundles</span> <span class="pre">(list[str])</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.enable" title="activitysim.core.estimation.EstimationConfig.enable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enable</span> <span class="pre">(bool)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.estimation_table_recipes" title="activitysim.core.estimation.EstimationConfig.estimation_table_recipes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">estimation_table_recipes</span> <span class="pre">(dict[str,</span> <span class="pre">EstimationTableRecipeConfig])</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.estimation_table_types" title="activitysim.core.estimation.EstimationConfig.estimation_table_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">estimation_table_types</span> <span class="pre">(dict[str,</span> <span class="pre">str])</span></code></a></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">()</span></code></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.survey_tables" title="activitysim.core.estimation.EstimationConfig.survey_tables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">survey_tables</span> <span class="pre">(dict[str,</span> <span class="pre">SurveyTableConfig])</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Validators<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes" title="activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_estimation_table_recipes</span></code></a> » <code class="xref py py-obj docutils literal notranslate"><span class="pre">all</span> <span class="pre">fields</span></code></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.validate_estimation_table_types" title="activitysim.core.estimation.EstimationConfig.validate_estimation_table_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_estimation_table_types</span></code></a> » <code class="xref py py-obj docutils literal notranslate"><span class="pre">all</span> <span class="pre">fields</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.estimation.EstimationConfig.DELETE_MP_SUBDIRS">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DELETE_MP_SUBDIRS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#activitysim.core.estimation.EstimationConfig.DELETE_MP_SUBDIRS" title="Permalink to this definition">#</a></dt>
+<dd><p>Flag to delete the multiprocessing subdirectories after coalescing the results.</p>
+<p>Typically only used for debugging purposes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes" title="activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_estimation_table_recipes</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.validate_estimation_table_types" title="activitysim.core.estimation.EstimationConfig.validate_estimation_table_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_estimation_table_types</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.estimation.EstimationConfig.EDB_FILETYPE">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">EDB_FILETYPE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'csv'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'parquet'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'pkl'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'parquet'</span></em><a class="headerlink" href="#activitysim.core.estimation.EstimationConfig.EDB_FILETYPE" title="Permalink to this definition">#</a></dt>
+<dd><p>File type for dataframes written to the estimation data bundles.</p>
+<p>Options are ‘csv’, ‘parquet’, or ‘pkl’.  When set to ‘parquet’, if file
+writing fails for any reason, it will fall back to ‘pkl’.  This typically
+will happen when the data types in the dataframe are not compatible with
+parquet (e.g. Python ‘object’ dtype with mixed format content).</p>
+<p>Legacy ActivitySim used ‘csv’ to maximize compatibility with other software.
+As of version 1.4, the default changed to ‘parquet’, which is more efficient
+and better preserves data types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes" title="activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_estimation_table_recipes</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.validate_estimation_table_types" title="activitysim.core.estimation.EstimationConfig.validate_estimation_table_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_estimation_table_types</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.estimation.EstimationConfig.SKIP_BUNDLE_WRITE_FOR">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SKIP_BUNDLE_WRITE_FOR</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#activitysim.core.estimation.EstimationConfig.SKIP_BUNDLE_WRITE_FOR" title="Permalink to this definition">#</a></dt>
+<dd><p>List of bundle names to skip writing to disk.</p>
+<p>This is useful for saving disk space and decreasing runtime
+if you do not care about the estimation output for all models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes" title="activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_estimation_table_recipes</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.validate_estimation_table_types" title="activitysim.core.estimation.EstimationConfig.validate_estimation_table_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_estimation_table_types</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.estimation.EstimationConfig.bundles">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bundles</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#activitysim.core.estimation.EstimationConfig.bundles" title="Permalink to this definition">#</a></dt>
+<dd><p>List of component names to create EDBs for.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes" title="activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_estimation_table_recipes</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.validate_estimation_table_types" title="activitysim.core.estimation.EstimationConfig.validate_estimation_table_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_estimation_table_types</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.estimation.EstimationConfig.enable">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">enable</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.estimation.EstimationConfig.enable" title="Permalink to this definition">#</a></dt>
+<dd><p>Flag to enable estimation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes" title="activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_estimation_table_recipes</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.validate_estimation_table_types" title="activitysim.core.estimation.EstimationConfig.validate_estimation_table_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_estimation_table_types</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.estimation.EstimationConfig.estimation_table_recipes">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimation_table_recipes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">EstimationTableRecipeConfig</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.estimation.EstimationConfig.estimation_table_recipes" title="Permalink to this definition">#</a></dt>
+<dd><p>This option has been removed from the user-facing configuration file.</p>
+<p>Mapping of estimation table recipe names to their configurations.</p>
+<p>The keys of this mapping are the names of the estimation table recipes.
+The recipes are generally related to the generic model types, such as
+‘simple_simulate’, ‘interaction_simulate’, ‘interaction_sample_simulate’,
+etc. The values are the configurations for the estimation table recipes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes" title="activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_estimation_table_recipes</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.validate_estimation_table_types" title="activitysim.core.estimation.EstimationConfig.validate_estimation_table_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_estimation_table_types</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.estimation.EstimationConfig.estimation_table_types">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimation_table_types</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#activitysim.core.estimation.EstimationConfig.estimation_table_types" title="Permalink to this definition">#</a></dt>
+<dd><p>Mapping of component names to estimation table types.</p>
+<p>The keys of this mapping are the model component names, and the values are the
+names of the estimation table recipes that should be used to generate the
+estimation tables for the model component.  The recipes are generally related
+to the generic model types, such as ‘simple_simulate’, ‘interaction_simulate’,
+‘interaction_sample_simulate’, etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes" title="activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_estimation_table_recipes</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.validate_estimation_table_types" title="activitysim.core.estimation.EstimationConfig.validate_estimation_table_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_estimation_table_types</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.estimation.EstimationConfig.survey_tables">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">survey_tables</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#activitysim.core.estimation.SurveyTableConfig" title="activitysim.core.estimation.SurveyTableConfig"><span class="pre">SurveyTableConfig</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#activitysim.core.estimation.EstimationConfig.survey_tables" title="Permalink to this definition">#</a></dt>
+<dd><p>Mapping of survey table names to their configurations.</p>
+<p>Each survey table should have a file name and an index column.  These files
+are where the survey data is read from while running in estimation mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes" title="activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_estimation_table_recipes</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.EstimationConfig.validate_estimation_table_types" title="activitysim.core.estimation.EstimationConfig.validate_estimation_table_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_estimation_table_types</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method pydantic_validator">
+<dt class="sig sig-object py" id="activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes">
+<em class="property"><span class="pre">validator</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">check_estimation_table_recipes</span></span><em class="autodoc_pydantic_validator_arrow property">&#160; <span class="pre">»</span>&#160; </em><em class="xref py py-obj"><span class="pre">all</span> <span class="pre">fields</span></em><a class="headerlink" href="#activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method pydantic_validator">
+<dt class="sig sig-object py" id="activitysim.core.estimation.EstimationConfig.validate_estimation_table_types">
+<em class="property"><span class="pre">validator</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_estimation_table_types</span></span><em class="autodoc_pydantic_validator_arrow property">&#160; <span class="pre">»</span>&#160; </em><em class="xref py py-obj"><span class="pre">all</span> <span class="pre">fields</span></em><a class="headerlink" href="#activitysim.core.estimation.EstimationConfig.validate_estimation_table_types" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="survey-table-settings">
+<h2>Survey Table Settings<a class="headerlink" href="#survey-table-settings" title="Permalink to this heading">#</a></h2>
+<dl class="py class pydantic_model">
+<dt class="sig sig-object py" id="activitysim.core.estimation.SurveyTableConfig">
+<em class="property"><span class="pre">settings</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.estimation.</span></span><span class="sig-name descname"><span class="pre">SurveyTableConfig</span></span><a class="headerlink" href="#activitysim.core.estimation.SurveyTableConfig" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Config<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arbitrary_types_allowed</strong>: <em>bool = True</em></p></li>
+</ul>
+</dd>
+<dt class="field-even">Fields<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.core.estimation.SurveyTableConfig.df" title="activitysim.core.estimation.SurveyTableConfig.df"><code class="xref py py-obj docutils literal notranslate"><span class="pre">df</span> <span class="pre">(pandas.core.frame.DataFrame</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.SurveyTableConfig.file_name" title="activitysim.core.estimation.SurveyTableConfig.file_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">file_name</span> <span class="pre">(str)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.estimation.SurveyTableConfig.index_col" title="activitysim.core.estimation.SurveyTableConfig.index_col"><code class="xref py py-obj docutils literal notranslate"><span class="pre">index_col</span> <span class="pre">(str)</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.estimation.SurveyTableConfig.df">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">df</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pd.DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.estimation.SurveyTableConfig.df" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.estimation.SurveyTableConfig.file_name">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">file_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.core.estimation.SurveyTableConfig.file_name" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.estimation.SurveyTableConfig.index_col">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">index_col</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.core.estimation.SurveyTableConfig.index_col" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="activitysim.core.estimation.SurveyTableConfig.Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#activitysim.core.estimation.SurveyTableConfig.Config" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Estimation Mode</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="larch.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Using Larch</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration-settings">Configuration Settings</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.EstimationConfig"><code class="docutils literal notranslate"><span class="pre">EstimationConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.EstimationConfig.DELETE_MP_SUBDIRS"><code class="docutils literal notranslate"><span class="pre">EstimationConfig.DELETE_MP_SUBDIRS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.EstimationConfig.EDB_FILETYPE"><code class="docutils literal notranslate"><span class="pre">EstimationConfig.EDB_FILETYPE</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.EstimationConfig.SKIP_BUNDLE_WRITE_FOR"><code class="docutils literal notranslate"><span class="pre">EstimationConfig.SKIP_BUNDLE_WRITE_FOR</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.EstimationConfig.bundles"><code class="docutils literal notranslate"><span class="pre">EstimationConfig.bundles</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.EstimationConfig.enable"><code class="docutils literal notranslate"><span class="pre">EstimationConfig.enable</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.EstimationConfig.estimation_table_recipes"><code class="docutils literal notranslate"><span class="pre">EstimationConfig.estimation_table_recipes</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.EstimationConfig.estimation_table_types"><code class="docutils literal notranslate"><span class="pre">EstimationConfig.estimation_table_types</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.EstimationConfig.survey_tables"><code class="docutils literal notranslate"><span class="pre">EstimationConfig.survey_tables</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.EstimationConfig.check_estimation_table_recipes"><code class="docutils literal notranslate"><span class="pre">EstimationConfig.check_estimation_table_recipes</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.EstimationConfig.validate_estimation_table_types"><code class="docutils literal notranslate"><span class="pre">EstimationConfig.validate_estimation_table_types</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#survey-table-settings">Survey Table Settings</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.SurveyTableConfig"><code class="docutils literal notranslate"><span class="pre">SurveyTableConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.SurveyTableConfig.df"><code class="docutils literal notranslate"><span class="pre">SurveyTableConfig.df</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.SurveyTableConfig.file_name"><code class="docutils literal notranslate"><span class="pre">SurveyTableConfig.file_name</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.SurveyTableConfig.index_col"><code class="docutils literal notranslate"><span class="pre">SurveyTableConfig.index_col</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.estimation.SurveyTableConfig.Config"><code class="docutils literal notranslate"><span class="pre">SurveyTableConfig.Config</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/users-guide/estimation-mode/asim-est.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><!-- This will display the version of the docs -->
+<p class="last-updated">
+ActivitySim 1.4.1.dev14+g1a94629e1, documentation last updated Sep 26, 2025.<br/>
+</p></div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

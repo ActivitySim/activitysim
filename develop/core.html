@@ -5152,6 +5152,15 @@ helpful in expression files that compute counts (e.g. num_work_tours)</p>
 <section id="id23">
 <h4>API<a class="headerlink" href="#id23" title="Permalink to this heading">#</a></h4>
 <span class="target" id="module-activitysim.core.steps.output"></span><dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.steps.output.coalesce_estimation_data_bundles">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.steps.output.</span></span><span class="sig-name descname"><span class="pre">coalesce_estimation_data_bundles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#activitysim.core.steps.output.coalesce_estimation_data_bundles" title="Permalink to this definition">#</a></dt>
+<dd><p>In estimation mode, estimation data bundles are written to separate subdirectories for each subprocess.
+This model will go through each subdirectory and concat / copy the files to the parent directory.
+This will only occur if the lowest level directory contains the multiprocess step names.
+Only multiprocess step names are used because that’s how EDBs are written in estimation mode.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.steps.output.previous_write_data_dictionary">
 <span class="sig-prename descclassname"><span class="pre">activitysim.core.steps.output.</span></span><span class="sig-name descname"><span class="pre">previous_write_data_dictionary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.steps.output.previous_write_data_dictionary" title="Permalink to this definition">#</a></dt>
 <dd><p>Write table_name, number of rows, columns, and bytes for each checkpointed table</p>
@@ -5692,6 +5701,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output">Output</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.steps.output.coalesce_estimation_data_bundles"><code class="docutils literal notranslate"><span class="pre">coalesce_estimation_data_bundles()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.steps.output.previous_write_data_dictionary"><code class="docutils literal notranslate"><span class="pre">previous_write_data_dictionary()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.steps.output.track_skim_usage"><code class="docutils literal notranslate"><span class="pre">track_skim_usage()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.steps.output.write_data_dictionary"><code class="docutils literal notranslate"><span class="pre">write_data_dictionary()</span></code></a></li>
@@ -5738,7 +5748,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev13+g10f8f4408, documentation last updated Sep 26, 2025.<br/>
+ActivitySim 1.4.1.dev14+g1a94629e1, documentation last updated Sep 26, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

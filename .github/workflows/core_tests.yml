@@ -39,7 +39,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --group github-action --no-dev
+          uv sync --locked
 
       - name: Lint with Black
         run: |
@@ -105,7 +105,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --group github-action --no-dev
+          uv sync --locked
 
       - name: Lint with Black
         run: |
@@ -171,7 +171,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --group github-action --no-dev
+          uv sync --locked
 
       # TODO: Cache sharrow compiled flows?  The contents of __pycache__ appear to
       #       be ignored, so this is not working as expected right now
@@ -240,7 +240,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --group github-action --no-dev
+          uv sync --locked
 
       - name: Checkout Example
         uses: actions/checkout@v4
@@ -252,7 +252,7 @@ jobs:
       - name: Test ${{ matrix.region }}
         run: |
           cd ${{ matrix.region-repo }}
-          uv run --project .. --locked --group github-action --no-dev pytest ./test
+          uv run --project .. --locked pytest ./test
 
   random_seed_generation:
     needs: foundation
@@ -282,7 +282,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --group github-action --no-dev
+          uv sync --locked
 
       - name: Test Random Seed Generation
         run: |
@@ -315,7 +315,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --group github-action --no-dev
+          uv sync --locked
 
       - name: Test Estimation Mode
         run: |
@@ -351,16 +351,16 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --group github-action
+          uv sync --locked
 
       - name: Create Estimation Data
         run: >
-          uv run --group github-action python activitysim/examples/example_estimation/notebooks/est_mode_setup.py 
+          uv run python activitysim/examples/example_estimation/notebooks/est_mode_setup.py 
           --household_sample_size 5000
 
       - name: Test Estimation Notebooks
         run: >
-          uv run --group github-action pytest activitysim/examples/example_estimation/notebooks 
+          uv run pytest activitysim/examples/example_estimation/notebooks 
           --nbmake-timeout=3000 
           --ignore=activitysim/examples/example_estimation/notebooks/01_estimation_mode.ipynb 
           --ignore-glob=activitysim/examples/example_estimation/notebooks/test-estimation-data/**
@@ -392,7 +392,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --only-group github-action
+          uv sync --locked
 
       - name: Test Estimation EDB Creation
         run: |
@@ -425,7 +425,7 @@ jobs:
 
       - name: Install activitysim
         run: |
-          uv sync --locked --group github-action --no-dev
+          uv sync --locked
 
       - name: Test Expression Profiling
         run: |
@@ -457,7 +457,7 @@ jobs:
           python-version-file: ".python-version"
       - name: Install activitysim
         run: |
-          uv sync --locked --group github-action --no-dev
+          uv sync --locked
       - name: localize version switcher
         run: |
           python .github/workflows/localize-base-urls.py docs/_static/switcher.json

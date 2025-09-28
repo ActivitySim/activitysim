@@ -118,7 +118,7 @@ dev = [
     "isort==5.12.0",
     "jupyter-book",
     "jupyterlab",
-    "larch>=5.7",
+    "larch>=6.0.42",
     "matplotlib",
     "myst-nb",
     "myst-parser",  # allows markdown in sphinx

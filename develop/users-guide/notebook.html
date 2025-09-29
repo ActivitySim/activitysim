@@ -32,7 +32,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
@@ -63,7 +63,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.4.1" />
-    <meta name="docbuild:last-update" content="Sep 26, 2025"/>
+    <meta name="docbuild:last-update" content="Sep 29, 2025"/>
   </head>
   
   
@@ -441,18 +441,35 @@ will be coerced to an integer (by dropping the fractional part).</p>
 <span class="ne">----&gt; </span><span class="mi">1</span> <span class="n">state</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">households_sample_size</span> <span class="o">=</span> <span class="mf">3500.8</span>
 <span class="g g-Whitespace">      </span><span class="mi">2</span> <span class="n">state</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">households_sample_size</span>
 
-<span class="nn">File ~/work/activitysim/activitysim/.venv/lib/python3.10/site-packages/pydantic/main.py:792,</span> in <span class="ni">BaseModel.__setattr__</span><span class="nt">(self, name, value)</span>
-<span class="g g-Whitespace">    </span><span class="mi">790</span>     <span class="n">attr</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">791</span> <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;validate_assignment&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-<span class="ne">--&gt; </span><span class="mi">792</span>     <span class="bp">self</span><span class="o">.</span><span class="n">__pydantic_validator__</span><span class="o">.</span><span class="n">validate_assignment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">793</span> <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;extra&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;allow&#39;</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_fields</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">794</span>     <span class="c1"># TODO - matching error</span>
-<span class="g g-Whitespace">    </span><span class="mi">795</span>     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&quot; object has no field &quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+<span class="nn">File ~/work/activitysim/activitysim/.venv/lib/python3.10/site-packages/pydantic/main.py:995,</span> in <span class="ni">BaseModel.__setattr__</span><span class="nt">(self, name, value)</span>
+<span class="g g-Whitespace">    </span><span class="mi">993</span> <span class="k">def</span><span class="w"> </span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">994</span>     <span class="k">if</span> <span class="p">(</span><span class="n">setattr_handler</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pydantic_setattr_handlers__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<span class="ne">--&gt; </span><span class="mi">995</span>         <span class="n">setattr_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">996</span>     <span class="c1"># if None is returned from _setattr_handler, the attribute was set directly</span>
+<span class="g g-Whitespace">    </span><span class="mi">997</span>     <span class="k">elif</span> <span class="p">(</span><span class="n">setattr_handler</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setattr_handler</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+<span class="nn">File ~/work/activitysim/activitysim/.venv/lib/python3.10/site-packages/pydantic/main.py:114,</span> in <span class="ni">&lt;lambda&gt;</span><span class="nt">(model, name, val)</span>
+<span class="g g-Whitespace">    </span><span class="mi">108</span>         <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s1">&#39;__pydantic_private__&#39;</span><span class="p">,</span> <span class="p">{})</span>
+<span class="g g-Whitespace">    </span><span class="mi">109</span>     <span class="n">model</span><span class="o">.</span><span class="n">__pydantic_private__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>  <span class="c1"># pyright: ignore[reportOptionalSubscript]</span>
+<span class="g g-Whitespace">    </span><span class="mi">112</span> <span class="n">_SIMPLE_SETATTR_HANDLERS</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">BaseModel</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+<span class="g g-Whitespace">    </span><span class="mi">113</span>     <span class="s1">&#39;model_field&#39;</span><span class="p">:</span> <span class="n">_model_field_setattr_handler</span><span class="p">,</span>
+<span class="ne">--&gt; </span><span class="mi">114</span>     <span class="s1">&#39;validate_assignment&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">__pydantic_validator__</span><span class="o">.</span><span class="n">validate_assignment</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">),</span>  <span class="c1"># pyright: ignore[reportAssignmentType]</span>
+<span class="g g-Whitespace">    </span><span class="mi">115</span>     <span class="s1">&#39;private&#39;</span><span class="p">:</span> <span class="n">_private_setattr_handler</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">116</span>     <span class="s1">&#39;cached_property&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">),</span>
+<span class="g g-Whitespace">    </span><span class="mi">117</span>     <span class="s1">&#39;extra_known&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="n">_object_setattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">),</span>
+<span class="g g-Whitespace">    </span><span class="mi">118</span> <span class="p">}</span>
+<span class="g g-Whitespace">    </span><span class="mi">121</span> <span class="k">class</span><span class="w"> </span><span class="nc">BaseModel</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">_model_construction</span><span class="o">.</span><span class="n">ModelMetaclass</span><span class="p">):</span>
+<span class="g g-Whitespace">    </span><span class="mi">122</span><span class="w">     </span><span class="sd">&quot;&quot;&quot;!!! abstract &quot;Usage Documentation&quot;</span>
+<span class="g g-Whitespace">    </span><span class="mi">123</span><span class="sd">         [Models](../concepts/models.md)</span>
+<span class="g g-Whitespace">    </span><span class="mi">124</span><span class="sd"> </span>
+<span class="sd">   (...)</span>
+<span class="g g-Whitespace">    </span><span class="mi">151</span><span class="sd">         __pydantic_private__: Values of private attributes set on the model instance.</span>
+<span class="g g-Whitespace">    </span><span class="mi">152</span><span class="sd">     &quot;&quot;&quot;</span>
 
 <span class="ne">ValidationError</span>: 1 validation error for Settings
 <span class="n">households_sample_size</span>
   <span class="n">Input</span> <span class="n">should</span> <span class="n">be</span> <span class="n">a</span> <span class="n">valid</span> <span class="n">integer</span><span class="p">,</span> <span class="n">got</span> <span class="n">a</span> <span class="n">number</span> <span class="k">with</span> <span class="n">a</span> <span class="n">fractional</span> <span class="n">part</span> <span class="p">[</span><span class="nb">type</span><span class="o">=</span><span class="n">int_from_float</span><span class="p">,</span> <span class="n">input_value</span><span class="o">=</span><span class="mf">3500.8</span><span class="p">,</span> <span class="n">input_type</span><span class="o">=</span><span class="nb">float</span><span class="p">]</span>
-    <span class="n">For</span> <span class="n">further</span> <span class="n">information</span> <span class="n">visit</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">errors</span><span class="o">.</span><span class="n">pydantic</span><span class="o">.</span><span class="n">dev</span><span class="o">/</span><span class="mf">2.6</span><span class="o">/</span><span class="n">v</span><span class="o">/</span><span class="n">int_from_float</span>
+    <span class="n">For</span> <span class="n">further</span> <span class="n">information</span> <span class="n">visit</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">errors</span><span class="o">.</span><span class="n">pydantic</span><span class="o">.</span><span class="n">dev</span><span class="o">/</span><span class="mf">2.11</span><span class="o">/</span><span class="n">v</span><span class="o">/</span><span class="n">int_from_float</span>
 </pre></div>
 </div>
 </div>
@@ -646,7 +663,7 @@ that can generate histograms or nominal distributions of data features.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev16+g5e528fc1a, documentation last updated Sep 26, 2025.<br/>
+ActivitySim 1.4.1.dev17+g00a76ef4d, documentation last updated Sep 29, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

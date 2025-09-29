@@ -27,20 +27,37 @@ Cell [0;32mIn[6], line 1[0m
 [0;32m----> 1[0m [43mstate[49m[38;5;241;43m.[39;49m[43msettings[49m[38;5;241;43m.[39;49m[43mhouseholds_sample_size[49m [38;5;241m=[39m [38;5;241m3500.8[39m
 [1;32m      2[0m state[38;5;241m.[39msettings[38;5;241m.[39mhouseholds_sample_size
 
-File [0;32m~/work/activitysim/activitysim/.venv/lib/python3.10/site-packages/pydantic/main.py:792[0m, in [0;36mBaseModel.__setattr__[0;34m(self, name, value)[0m
-[1;32m    790[0m     attr[38;5;241m.[39m[38;5;21m__set__[39m([38;5;28mself[39m, value)
-[1;32m    791[0m [38;5;28;01melif[39;00m [38;5;28mself[39m[38;5;241m.[39mmodel_config[38;5;241m.[39mget([38;5;124m'[39m[38;5;124mvalidate_assignment[39m[38;5;124m'[39m, [38;5;28;01mNone[39;00m):
-[0;32m--> 792[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m__pydantic_validator__[49m[38;5;241;43m.[39;49m[43mvalidate_assignment[49m[43m([49m[38;5;28;43mself[39;49m[43m,[49m[43m [49m[43mname[49m[43m,[49m[43m [49m[43mvalue[49m[43m)[49m
-[1;32m    793[0m [38;5;28;01melif[39;00m [38;5;28mself[39m[38;5;241m.[39mmodel_config[38;5;241m.[39mget([38;5;124m'[39m[38;5;124mextra[39m[38;5;124m'[39m) [38;5;241m!=[39m [38;5;124m'[39m[38;5;124mallow[39m[38;5;124m'[39m [38;5;129;01mand[39;00m name [38;5;129;01mnot[39;00m [38;5;129;01min[39;00m [38;5;28mself[39m[38;5;241m.[39mmodel_fields:
-[1;32m    794[0m     [38;5;66;03m# TODO - matching error[39;00m
-[1;32m    795[0m     [38;5;28;01mraise[39;00m [38;5;167;01mValueError[39;00m([38;5;124mf[39m[38;5;124m'[39m[38;5;124m"[39m[38;5;132;01m{[39;00m[38;5;28mself[39m[38;5;241m.[39m[38;5;18m__class__[39m[38;5;241m.[39m[38;5;18m__name__[39m[38;5;132;01m}[39;00m[38;5;124m"[39m[38;5;124m object has no field [39m[38;5;124m"[39m[38;5;132;01m{[39;00mname[38;5;132;01m}[39;00m[38;5;124m"[39m[38;5;124m'[39m)
+File [0;32m~/work/activitysim/activitysim/.venv/lib/python3.10/site-packages/pydantic/main.py:995[0m, in [0;36mBaseModel.__setattr__[0;34m(self, name, value)[0m
+[1;32m    993[0m [38;5;28;01mdef[39;00m[38;5;250m [39m[38;5;21m__setattr__[39m([38;5;28mself[39m, name: [38;5;28mstr[39m, value: Any) [38;5;241m-[39m[38;5;241m>[39m [38;5;28;01mNone[39;00m:
+[1;32m    994[0m     [38;5;28;01mif[39;00m (setattr_handler [38;5;241m:=[39m [38;5;28mself[39m[38;5;241m.[39m__pydantic_setattr_handlers__[38;5;241m.[39mget(name)) [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
+[0;32m--> 995[0m         [43msetattr_handler[49m[43m([49m[38;5;28;43mself[39;49m[43m,[49m[43m [49m[43mname[49m[43m,[49m[43m [49m[43mvalue[49m[43m)[49m
+[1;32m    996[0m     [38;5;66;03m# if None is returned from _setattr_handler, the attribute was set directly[39;00m
+[1;32m    997[0m     [38;5;28;01melif[39;00m (setattr_handler [38;5;241m:=[39m [38;5;28mself[39m[38;5;241m.[39m_setattr_handler(name, value)) [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
+
+File [0;32m~/work/activitysim/activitysim/.venv/lib/python3.10/site-packages/pydantic/main.py:114[0m, in [0;36m<lambda>[0;34m(model, name, val)[0m
+[1;32m    108[0m         [38;5;28mobject[39m[38;5;241m.[39m[38;5;21m__setattr__[39m(model, [38;5;124m'[39m[38;5;124m__pydantic_private__[39m[38;5;124m'[39m, {})
+[1;32m    109[0m     model[38;5;241m.[39m__pydantic_private__[name] [38;5;241m=[39m val  [38;5;66;03m# pyright: ignore[reportOptionalSubscript][39;00m
+[1;32m    112[0m _SIMPLE_SETATTR_HANDLERS: Mapping[[38;5;28mstr[39m, Callable[[BaseModel, [38;5;28mstr[39m, Any], [38;5;28;01mNone[39;00m]] [38;5;241m=[39m {
+[1;32m    113[0m     [38;5;124m'[39m[38;5;124mmodel_field[39m[38;5;124m'[39m: _model_field_setattr_handler,
+[0;32m--> 114[0m     [38;5;124m'[39m[38;5;124mvalidate_assignment[39m[38;5;124m'[39m: [38;5;28;01mlambda[39;00m model, name, val: [43mmodel[49m[38;5;241;43m.[39;49m[43m__pydantic_validator__[49m[38;5;241;43m.[39;49m[43mvalidate_assignment[49m[43m([49m[43mmodel[49m[43m,[49m[43m [49m[43mname[49m[43m,[49m[43m [49m[43mval[49m[43m)[49m,  [38;5;66;03m# pyright: ignore[reportAssignmentType][39;00m
+[1;32m    115[0m     [38;5;124m'[39m[38;5;124mprivate[39m[38;5;124m'[39m: _private_setattr_handler,
+[1;32m    116[0m     [38;5;124m'[39m[38;5;124mcached_property[39m[38;5;124m'[39m: [38;5;28;01mlambda[39;00m model, name, val: model[38;5;241m.[39m[38;5;18m__dict__[39m[38;5;241m.[39m[38;5;21m__setitem__[39m(name, val),
+[1;32m    117[0m     [38;5;124m'[39m[38;5;124mextra_known[39m[38;5;124m'[39m: [38;5;28;01mlambda[39;00m model, name, val: _object_setattr(model, name, val),
+[1;32m    118[0m }
+[1;32m    121[0m [38;5;28;01mclass[39;00m[38;5;250m [39m[38;5;21;01mBaseModel[39;00m(metaclass[38;5;241m=[39m_model_construction[38;5;241m.[39mModelMetaclass):
+[1;32m    122[0m [38;5;250m    [39m[38;5;124;03m"""!!! abstract "Usage Documentation"[39;00m
+[1;32m    123[0m [38;5;124;03m        [Models](../concepts/models.md)[39;00m
+[1;32m    124[0m 
+[0;32m   (...)[0m
+[1;32m    151[0m [38;5;124;03m        __pydantic_private__: Values of private attributes set on the model instance.[39;00m
+[1;32m    152[0m [38;5;124;03m    """[39;00m
 
 [0;31mValidationError[0m: 1 validation error for Settings
 households_sample_size
   Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=3500.8, input_type=float]
-    For further information visit https://errors.pydantic.dev/2.6/v/int_from_float
+    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float
 ValidationError: 1 validation error for Settings
 households_sample_size
   Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=3500.8, input_type=float]
-    For further information visit https://errors.pydantic.dev/2.6/v/int_from_float
+    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float
 

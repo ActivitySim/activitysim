@@ -271,7 +271,7 @@ removing any dependency on the source code.
 
 Also, `uv run` automatically installs the dependencies listed in `pyproject.toml`
 under `dependencies` under `[project]`, and it also installs those listed 
-under `dev` under `[dependency-groups]` (not `github-action`). If you want to 
+under `dev` under `[dependency-groups]`. If you want to
 skip the dependency groups entirely with a *uv* install (and only install those
 that would install via `pip` from 'pypi`), use the `--no-default-groups` flag 
 with `uv sync`.

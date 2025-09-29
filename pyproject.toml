@@ -105,9 +105,9 @@ dev = [
     "altair",
     "autodoc_pydantic",
     "asv",  # for benchmarking
-    "black==22.12.0,<23",
+    "black==22.12.0",
     "bump2version",  # for making a release
-    "coveralls==3.3.1",
+    "coveralls>=3.3.1",
     "dask==2023.11",
     "descartes",
     "filelock",
@@ -118,7 +118,7 @@ dev = [
     "isort==5.12.0",
     "jupyter-book",
     "jupyterlab",
-    "larch>=5.7",
+    "larch>=6.0.42",
     "matplotlib",
     "myst-nb",
     "myst-parser",  # allows markdown in sphinx
@@ -130,10 +130,12 @@ dev = [
     "pre-commit",
     "pycodestyle",
     "pydata-sphinx-theme",
+    "pydot>=4.0.1",
     "pyinstrument==4.4",
     "pytest==7.2",
     "pytest-cov",
     "pytest-regressions",
+    "requests>=2.32.3",
     "rich==13.3",
     "ruby",  # for benchmarking pre-commit hooks
     "ruff",
@@ -147,25 +149,10 @@ dev = [
     "sphinx-remove-toctrees",
     "sphinx_rtd_theme==1.2",
     "sphinx-argparse==0.4",
+    "xlsxwriter==3.2.5",
     "xmle",
     "zarr>=2,<3",
     "zstandard"
-]
-github-action = [
-    "black==22.12.0",
-    "coveralls==3.3.1",
-    "dask==2023.11",
-    "isort==5.12.0",
-    "nbmake==1.4.6",
-    "pydot>=4.0.1",
-    "pytest==7.2",
-    "pytest-cov",
-    "pytest-regressions",
-    "requests>=2.32.3",
-    "ruff",
-    "xlsxwriter==3.2.5",
-    "zarr>=2,<3",
-    "zstandard",
 ]
 
 [tool.uv]

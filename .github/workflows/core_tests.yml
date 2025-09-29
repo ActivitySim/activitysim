@@ -143,7 +143,6 @@ jobs:
           - placeholder_psrc
           - prototype_marin
           - prototype_mtc_extended
-          - placeholder_sandag
           - prototype_sandag_xborder
           - production_semcog
           - prototype_mwcog

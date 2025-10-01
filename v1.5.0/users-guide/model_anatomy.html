@@ -1,0 +1,983 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Anatomy of a Model &#8212; ActivitySim</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/design-tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'users-guide/model_anatomy';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.5.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="How the System Works" href="../howitworks.html" />
+    <link rel="prev" title="Run the Primary Example" href="run_primary_example.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.5.0" />
+    <meta name="docbuild:last-update" content="Oct 01, 2025"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">ActivitySim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="modelsetup.html">Model Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ways_to_run.html">Ways to Run the Model</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="performance/index.html">Runtime Performance</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="performance/multiprocessing.html">Multiprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance/multithreading.html">Multithreading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance/chunking.html">Chunking to Reduce Peak Memory Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance/sharrow.html">Compiling with Sharrow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance/skim-data-format.html">Skim Data Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance/expr-profiling.html">Expression Profiling</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="run_primary_example.html">Run the Primary Example</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Anatomy of a Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howitworks.html">How the System Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model_dev.html">Model Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_models.html">Example Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_performance.html">Example Model Performance Benchmarking</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="estimation-mode/index.html">Estimation Mode</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="estimation-mode/asim-est.html"> Running ActivitySim in Estimation Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="estimation-mode/larch.html"> Using Larch to Re-estimate Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="estimation-mode/larch-api.html"> ActivitySim Larch Tool API</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="other_examples.html">Other Example Models</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Users Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Anatomy of a Model</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="anatomy-of-a-model">
+<h1>Anatomy of a Model<a class="headerlink" href="#anatomy-of-a-model" title="Permalink to this heading">#</a></h1>
+<span class="target" id="index-0"></span><span class="target" id="index-1"></span><span class="target" id="index-2"></span><span class="target" id="index-3"></span><span class="target" id="index-4"></span><span class="target" id="index-5"></span><span class="target" id="index-6"></span><span class="target" id="index-7"></span><section id="input-data">
+<span id="index-8"></span><h2>Input Data<a class="headerlink" href="#input-data" title="Permalink to this heading">#</a></h2>
+<p>In order to run any model, the user needs the input files in the <code class="docutils literal notranslate"><span class="pre">data</span></code> folder as identified in the <code class="docutils literal notranslate"><span class="pre">configs\settings.yaml</span></code>
+file and the <code class="docutils literal notranslate"><span class="pre">configs\network_los.yaml</span></code> file.</p>
+<p>The following tables are currently implemented:</p>
+<ul class="simple">
+<li><p>households - household attributes for each household being simulated.  Index: <code class="docutils literal notranslate"><span class="pre">household_id</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.households.py</span></code>)</p></li>
+<li><p>landuse - zonal land use (such as population and employment) attributes. Index: <code class="docutils literal notranslate"><span class="pre">zone_id</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.landuse.py</span></code>)</p></li>
+<li><p>persons - person attributes for each person being simulated.  Index: <code class="docutils literal notranslate"><span class="pre">person_id</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.persons.py</span></code>)</p></li>
+<li><p>time windows - manages person time windows throughout the simulation.  See <a class="reference internal" href="../core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a>.  Index:  <code class="docutils literal notranslate"><span class="pre">person_id</span></code> (see the person_windows table create decorator in <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.time_windows.py</span></code>)</p></li>
+<li><p>tours - tour attributes for each tour (mandatory, non-mandatory, joint, and atwork-subtour) being simulated.  Index:  <code class="docutils literal notranslate"><span class="pre">tour_id</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.models.util.tour_frequency.py</span></code>)</p></li>
+<li><p>trips - trip attributes for each trip being simulated.  Index: <code class="docutils literal notranslate"><span class="pre">trip_id</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.models.stop_frequency.py</span></code>)</p></li>
+</ul>
+<p>A few additional tables are also used, which are not really tables, but classes:</p>
+<ul class="simple">
+<li><p>input store - reads input data tables from the input data store</p></li>
+<li><p>constants - various constants used throughout the model system, such as person type codes</p></li>
+<li><p>shadow pricing - shadow price calculator and associated utility methods, see <span class="xref std std-ref">shadow_pricing</span></p></li>
+<li><p>size terms - created by reading the <code class="docutils literal notranslate"><span class="pre">destination_choice_size_terms.csv</span></code> input file.  Index - <code class="docutils literal notranslate"><span class="pre">segment</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.size_terms.py</span></code>)</p></li>
+<li><p>skims - each model runs requires skims, but how the skims are defined can vary significantly depending on the ActivitySim implementation. The skims class defines Inject injectables to access the skim matrices. The skims class reads the skims from the omx_file on disk.</p></li>
+<li><p>table dictionary - stores which tables should be registered as random number generator channels for restartability of the pipeline</p></li>
+</ul>
+</section>
+<section id="zone-system">
+<span id="zone-systems"></span><h2>Zone System<a class="headerlink" href="#zone-system" title="Permalink to this heading">#</a></h2>
+<p>ActivitySim supports models with multiple zone systems.</p>
+<p>In a multiple zone system approach, households, land use, and trips are modeled at the microzone (MAZ) level.  MAZs are smaller
+than traditional TAZs and therefore make for a more precise system.  However, when considering network level-of-service (LOS)
+indicators (e.g. skims), the model uses different spatial resolutions for different travel modes in order to reduce the network
+modeling burden and model runtimes.  The typical multiple zone system setup is a TAZ zone system for auto travel, a MAZ zone
+system for non-motorized travel, and optionally a transit access points (TAPs) zone system for transit.</p>
+<p>The three versions of multiple zone systems are one-zone, two-zone, and three-zone.</p>
+<ul class="simple">
+<li><p><strong>One-zone</strong>: This version is based on TM1 and supports only TAZs. All origins and
+destinations are represented at the TAZ level, and all skims including auto, transit,
+and non-motorized times and costs are also represented at the TAZ level.</p></li>
+<li><p><strong>Two-zone</strong>: This version is similar to many DaySim models. It uses microzones (MAZs)
+for origins and destinations, and TAZs for specification of auto and transit times and
+costs. Impedance for walk or bike all-the-way from the origin to the destination can
+be specified at the MAZ level for close together origins and destinations, and at
+the TAZ level for further origins and destinations. Users can also override transit
+walk access and egress times with times specified in the MAZ file by transit mode.
+Careful pre-calculation of the assumed transit walk access and egress time by MAZ
+and transit mode is required depending on the network scenario.</p></li>
+<li><p><strong>Three-zone</strong>: This version is based on the SANDAG generation of CT-RAMP models.
+Origins and destinations are represented at the MAZ level. Impedance for walk or
+bike all-the-way from the origin to the destination can be specified at the MAZ
+level for close together origins and destinations, and at the TAZ level for further
+origins and destinations, just like the two-zone system. TAZs are used for auto
+times and costs. The difference between this system and the two-zone system is that
+transit times and costs are represented between Transit Access Points (TAPs), which
+are essentially dummy zones that represent transit stops or clusters of stops.
+Transit skims are built between TAPs, since there are typically too many MAZs to
+build skims between them. Often multiple sets of TAP to TAP skims (local bus only,
+all modes, etc.) are created and input to the demand model for consideration.  Walk
+access and egress times are also calculated between the MAZ and the TAP, and total
+transit path utilities are assembled from their respective components - from MAZ to
+first boarding TAP, from first boarding to final alighting TAP, and from alighting
+TAP to destination MAZ. This assembling is done via the
+<a class="reference internal" href="../core.html#transit-virtual-path-builder"><span class="std std-ref">Transit Virtual Path Builder</span></a> (TVPB), which considers all possible
+combinations of nearby boarding and alighting TAPs for each origin destination MAZ
+pair.</p></li>
+</ul>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>The ActivitySim consortium is moving away from the three-zone approach, in favor of
+to the one- or two-zone approaches.  The code for the three-zone approach remains
+available for users who have already implemented it, but it is recommended that
+users consider the one- or two-zone approaches for new implementations.
+The three-zone system may be formally deprecated and removed in the future.</p>
+</div>
+<p>Regions that have an interest in more precise transit and non-motorized forecasts
+may wish to adopt the two-zone approach, while other regions may adopt the one or two-zone approach.  The
+microzone version requires coding households and land use at the microzone level.
+Typically an all-streets network is used for representation of non-motorized impedances.
+This requires a routable all-streets network, with centroids and connectors for
+microzones.  If the three-zone system is adopted, procedures need to be developed to
+code TAPs from transit stops and populate the all-street network with TAP centroids
+and centroid connectors.  A model with transit virtual path building takes longer to
+run than a traditional TAZ only model, but it provides a much richer framework for
+transit modeling.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The two and three zone system test examples are simple test examples developed from the TM1 example.  To develop the two zone system
+example, TM1 TAZs were labeled MAZs, each MAZ was assigned a TAZ, and MAZ to MAZ impedance files were created from the
+TAZ to TAZ impedances.  To develop the three zone example system example, the TM1 TAZ model was further transformed
+so select TAZs also became TAPs and TAP to TAP skims and MAZ to TAP impedances files were created.  While sufficient for
+initial development, these examples were insufficient for validation and performance testing of the new software. As a result,
+the <span class="xref std std-ref">prototype_marin</span> example was created.</p>
+</div>
+<section id="skims">
+<span id="omx-skims"></span><h3>Skims<a class="headerlink" href="#skims" title="Permalink to this heading">#</a></h3>
+<p>The basic level-of-service data that represents the transportation system is
+made available to ActivitySim via one or more sets of “skims”.  Skims are
+essentially matrices of travel times, costs, and other level of service attributes,
+calculated between various zones in the system.  This skim data is made available
+to ActivitySim using files in the`openmatrix &lt;<a class="github reference external" href="http://github.com/osPlanning/omx">osPlanning/omx</a>&gt;`__
+(OMX) format.  All of the skim data can be provided in a single OMX file, or
+multiple OMX files can be used (this is typical for larger models, to keep file
+sizes manageable).  If multiple files are used, the content of those files is
+simply concatenated together into a single notional bucket of skim data when
+the model is run.  Within that bucket, each skim variable is identified by a unique name.
+For skim variables that vary across model time periods, the time period is
+appended to the skim name, separated by a double underscore (e.g. <code class="docutils literal notranslate"><span class="pre">BUS_IVT__AM</span></code>).</p>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>When using “legacy” mode for ActivitySim, it is possible (but not recommended)
+to have a skim variable that has both a time period agnostic value as well as
+a set of time period dependent values, e.g. “WALK_TIME” and “WALK_TIME__AM”.
+If you have conflicting names like this, a warning message will be issued, which
+will look like this in an ActivitySim log file:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>WARNING: activitysim/core/skim_dict_factory.py:212:
+UserWarning: some skims have both time-dependent and time-agnostic versions:
+- BIKE_LOGSUM
+- BIKE_TIME
+</pre></div>
+</div>
+<p>This is a warning, not an error, and the model will run if not using sharrow.
+However, if “sharrow” mode is activated, this will result in an error once the
+skims are actually loaded, unless instructions are included in the settings file
+to resolve the conflict.  The error message will look like this:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>ERROR: skims [&#39;BIKE_TIME&#39;] are present in both time-dependent and time-agnostic formats.
+Please add ignore rules to the omx_ignore_patterns setting to resolve this issue.
+To ignore the time dependent skims, add the following to your settings file:
+
+omx_ignore_patterns:
+  - &#39;^BIKE_TIME__.+&#39;
+
+To ignore the time agnostic skims, add the following to your settings file:
+
+omx_ignore_patterns:
+  - &#39;^BIKE_TIME$&#39;
+
+You can also do some variation or combination of the two, as long as you resolve
+the conflict(s). In addition, note that minor edits to model spec files may be
+needed to accommodate these changes in how skim data is represented (e.g. changing
+`odt_skims` to `od_skims`, or similar modifications wherever the offending variable
+names are used).  Alternatively, you can modify the skim data in the source files to
+remove the naming conflicts, which is typically done upstream of ActivitySim in
+whatever tool you are using to create the skims in the first place.
+</pre></div>
+</div>
+<p>It should be relatively simple to resolve the conflict by following the instructions
+in the error message. The cleaner and more reliable solution is to ensure each skim
+variable has a unique name, e.g. by changing the name on the time period agnostic
+value, so that instead of “BIKE_TIME” it is “BIKE_TIME_BASE”. This may also require
+minor edits to the model spec files to accommodate the new skim name.</p>
+</div>
+</section>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">#</a></h3>
+<p>Example simple test configurations and inputs for two and three-zone system models are described below.</p>
+<p>To run the two zone and three zone system examples, do the following:</p>
+<ul class="simple">
+<li><p>Create a local copy of the example</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># simple two zone example</span>
+<span class="n">uv</span> <span class="n">run</span> <span class="n">activitysim</span> <span class="n">create</span> <span class="o">-</span><span class="n">e</span> <span class="n">placeholder_2_zone</span> <span class="o">-</span><span class="n">d</span> <span class="n">test_placeholder_2_zone</span>
+
+<span class="c1"># simple three zone example</span>
+<span class="n">uv</span> <span class="n">run</span> <span class="n">activitysim</span> <span class="n">create</span> <span class="o">-</span><span class="n">e</span> <span class="n">placeholder_3_zone</span> <span class="o">-</span><span class="n">d</span> <span class="n">test_placeholder_3_zone</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Change to the example directory</p></li>
+<li><p>Run the example</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># simple two zone example</span>
+<span class="n">uv</span> <span class="n">run</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_2_zone</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_2</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_2</span>
+
+<span class="c1"># simple three zone example, single process and multiprocess (and makes use of settings file inheritance for running)</span>
+<span class="n">uv</span> <span class="n">run</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_3_zone</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_3</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_3</span> <span class="o">-</span><span class="n">s</span> <span class="n">settings_static</span><span class="o">.</span><span class="n">yaml</span>
+<span class="n">uv</span> <span class="n">run</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_3_zone</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_3</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_3</span> <span class="o">-</span><span class="n">s</span> <span class="n">settings_mp</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+</section>
+<section id="settings">
+<h3>Settings<a class="headerlink" href="#settings" title="Permalink to this heading">#</a></h3>
+<p>Additional settings for running ActivitySim with two or three zone systems are specified in the <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code> and
+<code class="docutils literal notranslate"><span class="pre">network_los.yaml</span></code> files.  The settings are:</p>
+<section id="two-zone">
+<h4>Two Zone<a class="headerlink" href="#two-zone" title="Permalink to this heading">#</a></h4>
+<p>In <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">want_dest_choice_presampling</span></code> - enable presampling for multizone systems, which
+means first select a TAZ using the sampling model and then select a microzone within
+the TAZ based on the microzone share of TAZ size term.</p></li>
+</ul>
+<p>In <code class="docutils literal notranslate"><span class="pre">network_los.yaml</span></code>:</p>
+<p>The additional two zone system settings and inputs are described and illustrated below.
+No additional utility expression files or expression revisions are required beyond the
+one zone approach.  The MAZ data is available as zone data and the MAZ to MAZ data is
+available using the existing skim expressions.  Users can specify mode utilities using
+MAZ data, MAZ to MAZ impedances, and TAZ to TAZ impedances.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">zone_system</span></code> - set to 2 for two zone system</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maz</span></code> -  MAZ data file, with MAZ ID, TAZ, and land use and other MAZ attributes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_maz:tables</span></code> - list of MAZ to MAZ impedance tables.  These tables are read
+as pandas DataFrames and the columns are exposed to expressions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_maz:max_blend_distance</span></code> - in order to avoid cliff effects, the lookup of
+MAZ to MAZ impedance can be a blend of origin MAZ to destination MAZ impedance and
+origin TAZ to destination TAZ impedance up to a max distance.  The blending formula
+is below.  This requires specifying a distance TAZ skim and distance columns from
+the MAZ to MAZ files.  The TAZ skim name and MAZ to MAZ column name need to be the
+same so the blending can happen on-the-fly or else a value of 0 is returned.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">MAZ</span> <span class="n">to</span> <span class="n">MAZ</span> <span class="n">distance</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">distance</span> <span class="o">/</span> <span class="nb">max</span> <span class="n">distance</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">TAZ</span> <span class="n">to</span> <span class="n">TAZ</span> <span class="n">distance</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">distance</span> <span class="o">/</span> <span class="nb">max</span> <span class="n">distance</span><span class="p">))</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_maz:blend_distance_skim_name</span></code> - Identify the distance skim for the blending calculation if different than the blend skim.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">zone_system</span><span class="p">:</span> <span class="mi">2</span>
+<span class="n">maz</span><span class="p">:</span> <span class="n">maz</span><span class="o">.</span><span class="n">csv</span>
+
+<span class="n">maz_to_maz</span><span class="p">:</span>
+  <span class="n">tables</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">maz_to_maz_walk</span><span class="o">.</span><span class="n">csv</span>
+    <span class="o">-</span> <span class="n">maz_to_maz_bike</span><span class="o">.</span><span class="n">csv</span>
+
+  <span class="n">max_blend_distance</span><span class="p">:</span>
+    <span class="n">DIST</span><span class="p">:</span> <span class="mi">5</span>
+    <span class="n">DISTBIKE</span><span class="p">:</span> <span class="mi">0</span>
+    <span class="n">DISTWALK</span><span class="p">:</span> <span class="mi">1</span>
+
+  <span class="n">blend_distance_skim_name</span><span class="p">:</span> <span class="n">DIST</span>
+</pre></div>
+</div>
+</section>
+<section id="three-zone">
+<h4>Three Zone<a class="headerlink" href="#three-zone" title="Permalink to this heading">#</a></h4>
+<p>In addition to the extra two zone system settings and inputs above, the following additional settings and inputs are required for a three zone system model.  Examples values are illustrated below.</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">models</span></code> - add initialize_los and initialize_tvpb to load network LOS inputs / skims and pre-compute TAP to TAP utilities for TVPB.  See <span class="xref std std-ref">initialize_los</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">want_dest_choice_presampling</span></code> - enable presampling for multizone systems, which means first select a TAZ using the sampling model and then select a microzone within the TAZ based on the microzone share of TAZ size term.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">models</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">initialize_landuse</span>
+  <span class="o">-</span> <span class="n">compute_accessibility</span>
+  <span class="o">-</span> <span class="n">initialize_households</span>
+  <span class="c1"># ---</span>
+  <span class="o">-</span> <span class="n">initialize_los</span>
+  <span class="o">-</span> <span class="n">initialize_tvpb</span>
+  <span class="c1"># ---</span>
+  <span class="o">-</span> <span class="n">school_location</span>
+  <span class="o">-</span> <span class="n">workplace_location</span>
+</pre></div>
+</div>
+<p>In <code class="docutils literal notranslate"><span class="pre">network_los.yaml</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">zone_system</span></code> - set to 3 for three zone system</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rebuild_tvpb_cache</span></code> - rebuild and overwrite existing pre-computed TAP to TAP utilities cache</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trace_tvpb_cache_as_csv</span></code> - write a CSV version of TVPB cache for tracing</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tap_skims</span></code> - TAP to TAP skims OMX file name. The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tap</span></code> - TAPs table</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tap_lines</span></code> - table of transit line names served for each TAP.  This file is used to trimmed the set of nearby TAP for each MAZ so only TAPs that are further away and serve new service are included in the TAP set for consideration.  It is a very important file to include as it can considerably reduce runtimes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_tap</span></code> - list of MAZ to TAP access/egress impedance files by user defined mode.  Examples include walk and drive.  The file also includes MAZ to TAP impedances.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_tap:{walk}:max_dist</span></code> - max distance from MAZ to TAP to consider TAP</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_tap:{walk}:tap_line_distance_col</span></code> - MAZ to TAP data field to use for TAP lines distance filter</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">demographic_segments</span></code> - list of user defined demographic_segments for pre-computed TVPB impedances.  Each chooser is coded with a user defined demographic segment.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:units</span></code> - specify the units for calculations, e.g. utility or time.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types</span></code> - user defined set of TVPB path types to be calculated and available to the mode choice models.  Examples include walk transit walk (WTW), drive transit walk (DTW), and walk transit drive (WTD).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types:{WTW}:access</span></code> - access mode for the path type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types:{WTW}:egress</span></code> - egress mode for the path type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types:{WTW}:max_paths_across_tap_sets</span></code> - max paths to keep across all skim sets, for example, 3 TAP to TAP pairs per origin MAZ destination MAZ pair</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types:{WTW}:max_paths_per_tap_set</span></code> - max paths to keep per skim set, for example 1 per skim set - all transit submodes, local bus only, etc.</p></li>
+</ul>
+<p>Unlike the one and two zone system approach, the three zone system approach requires additional expression files for the TVPB.  The additional expression files for the TVPB are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:tap_tap_settings:SPEC</span></code> - TAP to TAP expressions, e.g. tvpb_utility_tap_tap.csv</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:tap_tap_settings:PREPROCESSOR:SPEC</span></code> - TAP to TAP chooser preprocessor, e.g. tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:maz_tap_settings:walk:SPEC</span></code> - MAZ to TAP {walk} expressions, e.g. tvpb_utility_walk_maz_tap.csv</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:maz_tap_settings:drive:SPEC</span></code> - MAZ to TAP {drive} expressions, e.g. tvpb_utility_drive_maz_tap.csv</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:accessibility:tap_tap_settings:SPEC</span></code> - TAP to TAP expressions for the accessibility calculator, e.g. tvpb_accessibility_tap_tap.csv</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:accessibility:maz_tap_settings:walk:SPEC</span></code> - MAz to TAP {walk} expressions for the accessibility calculator, e.g. tvpb_accessibility_walk_maz_tap.csv</p></li>
+</ul>
+<p>Additional settings to configure the TVPB are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:tap_tap_settings:attribute_segments:demographic_segment</span></code> - TVPB pre-computes TAP to TAP total utilities for demographic segments.  These are defined using the attribute_segments keyword.  In the example below, the segments are demographic_segment (household income bin), tod (time-of-day), and access_mode (drive, walk).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:maz_tap_settings:{walk}:CHOOSER_COLUMNS</span></code> - input impedance columns to expose for TVPB calculations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:maz_tap_settings:{walk}:CONSTANTS</span></code> - constants for TVPB calculations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">accessibility:...</span></code> - for the accessibility model step, the same basic set of TVPB configurations are available.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">zone_system</span><span class="p">:</span> <span class="mi">3</span>
+
+<span class="n">rebuild_tvpb_cache</span><span class="p">:</span> <span class="kc">False</span>
+<span class="n">trace_tvpb_cache_as_csv</span><span class="p">:</span> <span class="kc">False</span>
+<span class="n">tap_skims</span><span class="p">:</span> <span class="n">tap_skims</span><span class="o">.</span><span class="n">omx</span>
+<span class="n">tap</span><span class="p">:</span> <span class="n">tap</span><span class="o">.</span><span class="n">csv</span>
+<span class="n">maz_to_tap</span><span class="p">:</span>
+  <span class="n">walk</span><span class="p">:</span>
+    <span class="n">table</span><span class="p">:</span> <span class="n">maz_to_tap_walk</span><span class="o">.</span><span class="n">csv</span>
+  <span class="n">drive</span><span class="p">:</span>
+    <span class="n">table</span><span class="p">:</span> <span class="n">maz_to_tap_drive</span><span class="o">.</span><span class="n">csv</span>
+
+<span class="n">demographic_segments</span><span class="p">:</span> <span class="o">&amp;</span><span class="n">demographic_segments</span>
+<span class="o">-</span> <span class="o">&amp;</span><span class="n">low_income_segment_id</span> <span class="mi">0</span>
+<span class="o">-</span> <span class="o">&amp;</span><span class="n">high_income_segment_id</span> <span class="mi">1</span>
+
+<span class="n">TVPB_SETTINGS</span><span class="p">:</span>
+  <span class="n">tour_mode_choice</span><span class="p">:</span>
+    <span class="n">units</span><span class="p">:</span> <span class="n">utility</span>
+    <span class="n">path_types</span><span class="p">:</span>
+      <span class="n">WTW</span><span class="p">:</span>
+        <span class="n">access</span><span class="p">:</span> <span class="n">walk</span>
+        <span class="n">egress</span><span class="p">:</span> <span class="n">walk</span>
+        <span class="n">max_paths_across_tap_sets</span><span class="p">:</span> <span class="mi">3</span>
+        <span class="n">max_paths_per_tap_set</span><span class="p">:</span> <span class="mi">1</span>
+      <span class="n">DTW</span><span class="p">:</span>
+        <span class="n">access</span><span class="p">:</span> <span class="n">drive</span>
+        <span class="n">egress</span><span class="p">:</span> <span class="n">walk</span>
+        <span class="n">max_paths_across_tap_sets</span><span class="p">:</span> <span class="mi">3</span>
+        <span class="n">max_paths_per_tap_set</span><span class="p">:</span> <span class="mi">1</span>
+      <span class="n">WTD</span><span class="p">:</span>
+        <span class="n">access</span><span class="p">:</span> <span class="n">walk</span>
+        <span class="n">egress</span><span class="p">:</span> <span class="n">drive</span>
+        <span class="n">max_paths_across_tap_sets</span><span class="p">:</span> <span class="mi">3</span>
+        <span class="n">max_paths_per_tap_set</span><span class="p">:</span> <span class="mi">1</span>
+    <span class="n">tap_tap_settings</span><span class="p">:</span>
+      <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_utility_tap_tap</span><span class="o">.</span><span class="n">csv</span>
+      <span class="n">PREPROCESSOR</span><span class="p">:</span>
+        <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_utility_tap_tap_annotate_choosers_preprocessor</span><span class="o">.</span><span class="n">csv</span>
+        <span class="n">DF</span><span class="p">:</span> <span class="n">df</span>
+      <span class="n">attribute_segments</span><span class="p">:</span>
+        <span class="n">demographic_segment</span><span class="p">:</span> <span class="o">*</span><span class="n">demographic_segments</span>
+        <span class="n">tod</span><span class="p">:</span> <span class="o">*</span><span class="n">skim_time_period_labels</span>
+        <span class="n">access_mode</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;drive&#39;</span><span class="p">,</span> <span class="s1">&#39;walk&#39;</span><span class="p">]</span>
+      <span class="n">attributes_as_columns</span><span class="p">:</span>
+        <span class="o">-</span> <span class="n">demographic_segment</span>
+        <span class="o">-</span> <span class="n">tod</span>
+    <span class="n">maz_tap_settings</span><span class="p">:</span>
+      <span class="n">walk</span><span class="p">:</span>
+        <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_utility_walk_maz_tap</span><span class="o">.</span><span class="n">csv</span>
+        <span class="n">CHOOSER_COLUMNS</span><span class="p">:</span>
+          <span class="o">-</span> <span class="n">walk_time</span>
+      <span class="n">drive</span><span class="p">:</span>
+        <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_utility_drive_maz_tap</span><span class="o">.</span><span class="n">csv</span>
+        <span class="n">CHOOSER_COLUMNS</span><span class="p">:</span>
+          <span class="o">-</span> <span class="n">drive_time</span>
+          <span class="o">-</span> <span class="n">DIST</span>
+    <span class="n">CONSTANTS</span><span class="p">:</span>
+      <span class="n">c_ivt_high_income</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.028</span>
+      <span class="o">...</span>
+
+  <span class="n">accessibility</span><span class="p">:</span>
+    <span class="n">units</span><span class="p">:</span> <span class="n">time</span>
+    <span class="n">path_types</span><span class="p">:</span>
+      <span class="n">WTW</span><span class="p">:</span>
+        <span class="n">access</span><span class="p">:</span> <span class="n">walk</span>
+        <span class="n">egress</span><span class="p">:</span> <span class="n">walk</span>
+        <span class="n">max_paths_across_tap_sets</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="n">max_paths_per_tap_set</span><span class="p">:</span> <span class="mi">1</span>
+    <span class="n">tap_tap_settings</span><span class="p">:</span>
+      <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_accessibility_tap_tap_</span><span class="o">.</span><span class="n">csv</span>
+    <span class="n">maz_tap_settings</span><span class="p">:</span>
+        <span class="n">walk</span><span class="p">:</span>
+          <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_accessibility_walk_maz_tap</span><span class="o">.</span><span class="n">csv</span>
+          <span class="n">CHOOSER_COLUMNS</span><span class="p">:</span>
+            <span class="o">-</span> <span class="n">walk_time</span>
+    <span class="n">CONSTANTS</span><span class="p">:</span>
+        <span class="n">out_of_vehicle_walk_time_weight</span><span class="p">:</span> <span class="mf">1.5</span>
+        <span class="n">out_of_vehicle_wait_time_weight</span><span class="p">:</span> <span class="mf">2.0</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="outputs">
+<h3>Outputs<a class="headerlink" href="#outputs" title="Permalink to this heading">#</a></h3>
+<p>Essentially the same set of outputs is created for a two or three zone system
+model as for a one zone system model.  However, the one key additional bit of
+information for a three zone system model is the boarding TAP, alighting TAP, and
+transit skim set is added to the relevant chooser table (e.g. tours and trips) when the
+chosen mode is transit.  Logging and tracing also work for two and three zone models,
+including tracing of the TVPB calculations. The <span class="xref std std-ref">write_trip_matrices</span> step writes
+both TAZ and TAP level matrices depending on the configured number of zone systems.</p>
+</section>
+<section id="presampling">
+<span id="id1"></span><h3>Presampling<a class="headerlink" href="#presampling" title="Permalink to this heading">#</a></h3>
+<p>In multiple zone systems models, destination choice presampling is activated by default.  Destination
+choice presampling first aggregates microzone size terms to the TAZ level and then runs destination
+choice sampling at the TAZ level using the destination choice sampling models.  After sampling X
+number of TAZs based on impedance and size, the model selects a microzone for each TAZ based
+on the microzone share of TAZ size.  Presampling significantly reduces runtime while producing
+similar results.</p>
+</section>
+</section>
+<section id="configuration">
+<span id="user-configuration"></span><h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder for a model implementation contains settings, expressions
+files, and other files required for specifying model utilities and form.  Each
+component will have one or more files that control the operation of that
+component. More information about individual configuration files can be found in the <a class="reference internal" href="../dev-guide/components/index.html#dev-components"><span class="std std-ref">Components</span></a> section of the Developers Guide.</p>
+</section>
+<section id="top-level-settings">
+<h2>Top Level Settings<a class="headerlink" href="#top-level-settings" title="Permalink to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.Settings.html#activitysim.core.configuration.Settings" title="activitysim.core.configuration.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p></td>
+<td><p>The overall settings for the ActivitySim model system.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.InputTable.html#activitysim.core.configuration.InputTable" title="activitysim.core.configuration.InputTable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InputTable</span></code></a></p></td>
+<td><p>The features that define an input table to be read by ActivitySim.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.OutputTable.html#activitysim.core.configuration.OutputTable" title="activitysim.core.configuration.OutputTable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OutputTable</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.OutputTables.html#activitysim.core.configuration.OutputTables" title="activitysim.core.configuration.OutputTables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OutputTables</span></code></a></p></td>
+<td><p>Instructions on how to write out final pipeline tables.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.MultiprocessStep.html#activitysim.core.configuration.MultiprocessStep" title="activitysim.core.configuration.MultiprocessStep"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiprocessStep</span></code></a></p></td>
+<td><p>A contiguous group of model components that are multiprocessed together.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.MultiprocessStepSlice.html#activitysim.core.configuration.MultiprocessStepSlice" title="activitysim.core.configuration.MultiprocessStepSlice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiprocessStepSlice</span></code></a></p></td>
+<td><p>Instructions on how to slice tables for each subprocess.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="file-system">
+<h2>File System<a class="headerlink" href="#file-system" title="Permalink to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.FileSystem.html#activitysim.core.configuration.FileSystem" title="activitysim.core.configuration.FileSystem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FileSystem</span></code></a></p></td>
+<td><p>Manage finding and loading files for ActivitySim's command line interface.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="network-level-of-service">
+<h2>Network Level of Service<a class="headerlink" href="#network-level-of-service" title="Permalink to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.NetworkSettings.html#activitysim.core.configuration.NetworkSettings" title="activitysim.core.configuration.NetworkSettings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NetworkSettings</span></code></a></p></td>
+<td><p>Network level of service and skims settings</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.TAZ_Settings.html#activitysim.core.configuration.TAZ_Settings" title="activitysim.core.configuration.TAZ_Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TAZ_Settings</span></code></a></p></td>
+<td><p>Complex settings for TAZ skims that are not just OMX file(s).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.DigitalEncoding.html#activitysim.core.configuration.DigitalEncoding" title="activitysim.core.configuration.DigitalEncoding"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DigitalEncoding</span></code></a></p></td>
+<td><p>Digital encoding instructions for skim tables.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="utility-specifications">
+<h2>Utility Specifications<a class="headerlink" href="#utility-specifications" title="Permalink to this heading">#</a></h2>
+<p>The model specifications files are typically included in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder. These files store python/pandas/numpy expressions,
+alternatives, coefficients, constants and other settings for each model. For more information, see the <a class="reference internal" href="../core.html#util-expressions"><span class="std std-ref">Utility Expressions</span></a> section of the Developers Guide.</p>
+</section>
+<section id="id2">
+<h2>Outputs<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h2>
+<p>The key output of ActivitySim is the HDF5 data pipeline file <code class="docutils literal notranslate"><span class="pre">output\pipeline.h5</span></code>. This datastore by default contains
+a copy of each data table after each model step in which the table was modified. The exact fields for each set of outputs will be different for various implementations of ActivitySim.</p>
+</section>
+<section id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this heading">#</a></h2>
+<p>Included in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder is the <code class="docutils literal notranslate"><span class="pre">logging.yaml</span></code>, which configures Python logging
+library.  The following key log files are created with a model run:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">activitysim.log</span></code> - overall system log file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timing_log.csv</span></code> - submodel step runtimes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">omnibus_mem.csv</span></code> - multiprocessed submodel memory usage</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="run_primary_example.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Run the Primary Example</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../howitworks.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">How the System Works</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#input-data">Input Data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#zone-system">Zone System</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skims">Skims</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#settings">Settings</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#two-zone">Two Zone</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#three-zone">Three Zone</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#presampling">Presampling</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#top-level-settings">Top Level Settings</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#file-system">File System</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#network-level-of-service">Network Level of Service</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#utility-specifications">Utility Specifications</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging">Logging</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/users-guide/model_anatomy.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><!-- This will display the version of the docs -->
+<p class="last-updated">
+ActivitySim 1.5.0, documentation last updated Oct 01, 2025.<br/>
+</p></div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,987 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>FileSystem &#8212; ActivitySim</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/clipboard.min.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <script src="../../_static/design-tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'users-guide/_generated/activitysim.core.configuration.FileSystem';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.5.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.5.0" />
+    <meta name="docbuild:last-update" content="Oct 01, 2025"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">ActivitySim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">FileSystem</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="filesystem">
+<h1>FileSystem<a class="headerlink" href="#filesystem" title="Permalink to this heading">#</a></h1>
+<dl class="py class pydantic_model">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem">
+<em class="property"><span class="pre">settings</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.configuration.</span></span><span class="sig-name descname"><span class="pre">FileSystem</span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem" title="Permalink to this definition">#</a></dt>
+<dd><p>Manage finding and loading files for ActivitySim’s command line interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Config<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>validate_assignment</strong>: <em>bool = True</em></p></li>
+</ul>
+</dd>
+<dt class="field-even">Fields<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_dir</span> <span class="pre">(pathlib.Path)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">configs_dir</span> <span class="pre">(tuple[pathlib.Path,</span> <span class="pre">...])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">data_dir</span> <span class="pre">(tuple[pathlib.Path,</span> <span class="pre">...])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">data_model_dir</span> <span class="pre">(tuple[pathlib.Path,</span> <span class="pre">...])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_dir</span> <span class="pre">(pathlib.Path)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline_file_name</span> <span class="pre">(str)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">profile_dir</span> <span class="pre">(pathlib.Path)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">settings_file_name</span> <span class="pre">(str)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sharrow_cache_dir</span> <span class="pre">(pathlib.Path)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">working_dir</span> <span class="pre">(pathlib.Path)</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.cache_dir">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cache_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Path</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.FileSystem.cache_dir" title="Permalink to this definition">#</a></dt>
+<dd><p>Name of the output directory for general cache files.</p>
+<p>If not given, a directory named “cache” will be created inside
+the usual output directory.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.configs_dir">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">configs_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('configs',)</span></em><a class="headerlink" href="#activitysim.core.configuration.FileSystem.configs_dir" title="Permalink to this definition">#</a></dt>
+<dd><p>Name[s] of the config directory.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.data_dir">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('data',)</span></em><a class="headerlink" href="#activitysim.core.configuration.FileSystem.data_dir" title="Permalink to this definition">#</a></dt>
+<dd><p>Name of the data directory.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.data_model_dir">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data_model_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('data_model',)</span></em><a class="headerlink" href="#activitysim.core.configuration.FileSystem.data_model_dir" title="Permalink to this definition">#</a></dt>
+<dd><p>Name of the data model directory.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.output_dir">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">output_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Path</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'output'</span></em><a class="headerlink" href="#activitysim.core.configuration.FileSystem.output_dir" title="Permalink to this definition">#</a></dt>
+<dd><p>Name of the output directory.</p>
+<p>This directory will be created on access if it does not exist.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.pipeline_file_name">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pipeline_file_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'pipeline'</span></em><a class="headerlink" href="#activitysim.core.configuration.FileSystem.pipeline_file_name" title="Permalink to this definition">#</a></dt>
+<dd><p>The name for the base pipeline file or directory.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.profile_dir">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">profile_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Path</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.FileSystem.profile_dir" title="Permalink to this definition">#</a></dt>
+<dd><p>Name of the output directory for pyinstrument profiling files.</p>
+<p>If not given, a unique time-stamped directory will be created inside
+the usual output directory.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.settings_file_name">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">settings_file_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'settings.yaml'</span></em><a class="headerlink" href="#activitysim.core.configuration.FileSystem.settings_file_name" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.sharrow_cache_dir">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sharrow_cache_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Path</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.FileSystem.sharrow_cache_dir" title="Permalink to this definition">#</a></dt>
+<dd><p>Name of the output directory for sharrow cache files.</p>
+<p>If not given, the sharrow cache is stored in a run-independent persistent
+location, according to <cite>platformdirs.user_cache_dir</cite>.  See <cite>persist_sharrow_cache</cite>.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.working_dir">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">working_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">DirectoryPath</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.FileSystem.working_dir" title="Permalink to this definition">#</a></dt>
+<dd><p>Name of the working directory.</p>
+<p>All other directories (configs, data, output, cache), when given as relative
+paths, are assumed to be relative to this working directory. If it is not
+provided, the usual Python current working directory is used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Constraints<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_type</strong> = dir</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.configs_dirs_must_exist">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">configs_dirs_must_exist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configs_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.configs_dirs_must_exist" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.data_dirs_must_exist">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data_dirs_must_exist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.data_dirs_must_exist" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.data_model_dirs_must_exist">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data_model_dirs_must_exist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_model_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.data_model_dirs_must_exist" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.expand_input_file_list">
+<span class="sig-name descname"><span class="pre">expand_input_file_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_files</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.expand_input_file_list" title="Permalink to this definition">#</a></dt>
+<dd><p>expand list by unglobbing globs globs</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.find_trace_file_path">
+<span class="sig-name descname"><span class="pre">find_trace_file_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.find_trace_file_path" title="Permalink to this definition">#</a></dt>
+<dd><p>Find the complete path to one or more existing trace file(s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_name</strong><span class="classifier">str</span></dt><dd><p>Base name of the trace file.</p>
+</dd>
+<dt><strong>trace_dir</strong><span class="classifier">path-like, optional</span></dt><dd><p>Construct the trace file path within this directory.  If not
+provided (typically for normal operation) the “trace” sub-directory
+of the normal output directory given by <cite>get_output_dir</cite> is used.
+The option to give a different location is primarily used to
+conduct trace file validation testing.</p>
+</dd>
+<dt><strong>return_all</strong><span class="classifier">bool, default False</span></dt><dd><p>By default, only a single matching filename is returned, otherwise
+an exception is raised.  Alternatively, set this to true to return
+all matches.</p>
+</dd>
+<dt><strong>file_type</strong><span class="classifier">str, optional</span></dt><dd><p>If provided, ensure that the located file path(s) have this extension.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Path or list[Path]</dt><dd><p>A single Path if return_all is False, otherwise a list</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>FileNotFoundError</dt><dd><p>If there are zero OR multiple matches.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.get_cache_dir">
+<span class="sig-name descname"><span class="pre">get_cache_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.get_cache_dir" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the cache directory, creating it if needed.</p>
+<dl class="simple">
+<dt>The cache directory is used to store:</dt><dd><ul class="simple">
+<li><p>skim memmaps created by skim+dict_factories</p></li>
+<li><p>tvpb tap_tap table cache</p></li>
+<li><p>pre-compiled sharrow modules</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>subdir</strong><span class="classifier">Path-like, optional</span></dt><dd><p>If given, get this subdirectory of the output_dir.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Path</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.get_config_file_path">
+<span class="sig-name descname"><span class="pre">get_config_file_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">mandatory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_glob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.get_config_file_path" title="Permalink to this definition">#</a></dt>
+<dd><p>Find the first matching file among config directories.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_name</strong><span class="classifier">Path-like</span></dt><dd><p>The name of the file to match.</p>
+</dd>
+<dt><strong>mandatory</strong><span class="classifier">bool, default True</span></dt><dd><p>Raise a FileNotFoundError if no match is found.  If set to False,
+this method returns None when there is no match.</p>
+</dd>
+<dt><strong>allow_glob</strong><span class="classifier">bool, default False</span></dt><dd><p>Allow glob-style matches.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Path or None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.get_configs_dir">
+<span class="sig-name descname"><span class="pre">get_configs_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.get_configs_dir" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the configs directories.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>tuple[Path]</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.get_data_dir">
+<span class="sig-name descname"><span class="pre">get_data_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.get_data_dir" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the data directories.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>tuple[Path]</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.get_data_file_path">
+<span class="sig-name descname"><span class="pre">get_data_file_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mandatory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_glob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternative_suffixes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.get_data_file_path" title="Permalink to this definition">#</a></dt>
+<dd><p>Find the first matching file among data directories.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_name</strong><span class="classifier">Path-like</span></dt><dd><p>The name of the file to match.</p>
+</dd>
+<dt><strong>mandatory</strong><span class="classifier">bool, default True</span></dt><dd><p>Raise a FileNotFoundError if no match is found.  If set to False,
+this method returns None when there is no match.</p>
+</dd>
+<dt><strong>allow_glob</strong><span class="classifier">bool, default False</span></dt><dd><p>Allow glob-style matches.</p>
+</dd>
+<dt><strong>alternative_suffixes</strong><span class="classifier">Iterable[str], optional</span></dt><dd><p>Other file suffixes to search for, if the expected filename is
+not found. This allows, for example, the data files to be stored
+as compressed csv (”<a href="#id1"><span class="problematic" id="id2">*</span></a>.csv.gz”) without changing the config files.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Path or None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.get_log_file_path">
+<span class="sig-name descname"><span class="pre">get_log_file_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.get_log_file_path" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the complete path to a log file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_name</strong><span class="classifier">str</span></dt><dd><p>Base name of the log file.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Path</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.get_output_dir">
+<span class="sig-name descname"><span class="pre">get_output_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.get_output_dir" title="Permalink to this definition">#</a></dt>
+<dd><p>Get an output directory, creating it if needed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>subdir</strong><span class="classifier">Path-like, optional</span></dt><dd><p>If given, get this subdirectory of the output_dir.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Path</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.get_output_file_path">
+<span class="sig-name descname"><span class="pre">get_output_file_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.get_output_file_path" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.get_pipeline_filepath">
+<span class="sig-name descname"><span class="pre">get_pipeline_filepath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.get_pipeline_filepath" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the complete path to the pipeline file or directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>Path</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.get_profiling_file_path">
+<span class="sig-name descname"><span class="pre">get_profiling_file_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.get_profiling_file_path" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the complete path to a profile output file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_name</strong><span class="classifier">str</span></dt><dd><p>Base name of the profiling output file.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Path</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.get_segment_coefficients">
+<span class="sig-name descname"><span class="pre">get_segment_coefficients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BaseModel</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">segment_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.get_segment_coefficients" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.get_sharrow_cache_dir">
+<span class="sig-name descname"><span class="pre">get_sharrow_cache_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.get_sharrow_cache_dir" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the sharrow cache directory, creating it if needed.</p>
+<p>The sharrow cache directory is used to store only sharrow’s cache
+of pre-compiled functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>Path</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.get_trace_file_path">
+<span class="sig-name descname"><span class="pre">get_trace_file_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tail</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_dirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.get_trace_file_path" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the complete path to a trace file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_name</strong><span class="classifier">str</span></dt><dd><p>Base name of the trace file.</p>
+</dd>
+<dt><strong>tail</strong><span class="classifier">str or False, optional</span></dt><dd><p>Add this suffix to filenames.  If not given, a quasi-random short
+string is derived from the current time.  Set to <cite>False</cite> to omit
+the suffix entirely.  Having a unique suffix makes it easier to
+open multiple comparable trace files side-by-side in Excel, which
+doesn’t allow identically named files to be open simultaneously.
+Omitting the suffix can be valuable for using automated tools to
+find file differences across many files simultaneously.</p>
+</dd>
+<dt><strong>trace_dir</strong><span class="classifier">path-like, optional</span></dt><dd><p>Construct the trace file path within this directory.  If not
+provided (typically for normal operation) the “trace” sub-directory
+of the normal output directory given by <cite>get_output_dir</cite> is used.
+The option to give a different location is primarily used to
+conduct trace file validation testing.</p>
+</dd>
+<dt><strong>create_dirs</strong><span class="classifier">bool, default True</span></dt><dd><p>If the path to the containing directory of the trace file does not
+yet exist, create it.</p>
+</dd>
+<dt><strong>file_type</strong><span class="classifier">str, optional</span></dt><dd><p>If provided, ensure that the generated file path has this extension.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Path</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.get_working_subdir">
+<span class="sig-name descname"><span class="pre">get_working_subdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subdir</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.get_working_subdir" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.open_log_file">
+<span class="sig-name descname"><span class="pre">open_log_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.open_log_file" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.parse_args">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parse_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.parse_args" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.parse_settings">
+<span class="sig-name descname"><span class="pre">parse_settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.parse_settings" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.persist_sharrow_cache">
+<span class="sig-name descname"><span class="pre">persist_sharrow_cache</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.persist_sharrow_cache" title="Permalink to this definition">#</a></dt>
+<dd><p>Change the sharrow cache directory to a persistent, user-global location.</p>
+<p>The change is made in-place to <cite>sharrow_cache_dir</cite> for this object. The
+location for the cache is selected by <cite>platformdirs.user_cache_dir</cite>.
+An extra directory layer based on the current numba version is also added
+to the cache directory, which allows for different sets of cache files to
+co-exist for different version of numba (i.e. different conda envs).
+This location is not configurable – to select a different location,
+change the value of <cite>FileSystem.sharrow_cache_dir</cite> itself.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#activitysim.core.configuration.FileSystem.sharrow_cache_dir" title="activitysim.core.configuration.FileSystem.sharrow_cache_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FileSystem.sharrow_cache_dir</span></code></a></dt><dd></dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.read_model_coefficients">
+<span class="sig-name descname"><span class="pre">read_model_coefficients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../dev-guide/_generated/activitysim.core.configuration.logit.LogitComponentSettings.html#activitysim.core.configuration.logit.LogitComponentSettings" title="activitysim.core.configuration.logit.LogitComponentSettings"><span class="pre">LogitComponentSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.3)"><span class="pre">DataFrame</span></a></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.read_model_coefficients" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.read_model_settings">
+<span class="sig-name descname"><span class="pre">read_model_settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mandatory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.read_model_settings" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.read_model_spec">
+<span class="sig-name descname"><span class="pre">read_model_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.read_model_spec" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.configuration.FileSystem.read_settings_file">
+<span class="sig-name descname"><span class="pre">read_settings_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">mandatory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_stack</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configs_dir_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validator_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">pydantic.main.BaseModel</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BaseModel</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a></span></span><a class="headerlink" href="#activitysim.core.configuration.FileSystem.read_settings_file" title="Permalink to this definition">#</a></dt>
+<dd><p>Load settings from one or more yaml files.</p>
+<p>This method will look for first occurrence of a yaml file named
+&lt;file_name&gt; in the directories in configs_dir list, and
+read settings from that yaml file.</p>
+<p>Settings file may contain directives that affect which file settings
+are returned:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>inherit_settings (boolean)</dt><dd><p>If found and set to true, this method will backfill settings
+in the current file with values from the next settings file
+in configs_dir list (if any)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>include_settings: string &lt;include_file_name&gt;</dt><dd><p>Read settings from specified include_file in place of the current
+file. To avoid confusion, this directive must appear ALONE in the
+target file, without any additional settings or directives.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_name</strong><span class="classifier">str</span></dt><dd></dd>
+<dt><strong>mandatory</strong><span class="classifier">boolean, default True</span></dt><dd><p>If true, raise SettingsFileNotFoundError if no matching settings file
+is found in any config directory, otherwise this method will return
+an empty dict or an all-default instance of the validator class.</p>
+</dd>
+<dt><strong>include_stack</strong><span class="classifier">boolean or list</span></dt><dd><p>Only used for recursive calls, provides a list of files included
+so far to detect and prevent cycles.</p>
+</dd>
+<dt><strong>validator_class</strong><span class="classifier">type[pydantic.BaseModel], optional</span></dt><dd><p>This model is used to validate the loaded settings.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>dict or validator_class</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem"><code class="docutils literal notranslate"><span class="pre">FileSystem</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.cache_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.cache_dir</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.configs_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.configs_dir</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.data_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.data_dir</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.data_model_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.data_model_dir</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.output_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.output_dir</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.pipeline_file_name"><code class="docutils literal notranslate"><span class="pre">FileSystem.pipeline_file_name</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.profile_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.profile_dir</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.settings_file_name"><code class="docutils literal notranslate"><span class="pre">FileSystem.settings_file_name</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.sharrow_cache_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.sharrow_cache_dir</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.working_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.working_dir</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.configs_dirs_must_exist"><code class="docutils literal notranslate"><span class="pre">FileSystem.configs_dirs_must_exist()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.data_dirs_must_exist"><code class="docutils literal notranslate"><span class="pre">FileSystem.data_dirs_must_exist()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.data_model_dirs_must_exist"><code class="docutils literal notranslate"><span class="pre">FileSystem.data_model_dirs_must_exist()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.expand_input_file_list"><code class="docutils literal notranslate"><span class="pre">FileSystem.expand_input_file_list()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.find_trace_file_path"><code class="docutils literal notranslate"><span class="pre">FileSystem.find_trace_file_path()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.get_cache_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.get_cache_dir()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.get_config_file_path"><code class="docutils literal notranslate"><span class="pre">FileSystem.get_config_file_path()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.get_configs_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.get_configs_dir()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.get_data_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.get_data_dir()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.get_data_file_path"><code class="docutils literal notranslate"><span class="pre">FileSystem.get_data_file_path()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.get_log_file_path"><code class="docutils literal notranslate"><span class="pre">FileSystem.get_log_file_path()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.get_output_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.get_output_dir()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.get_output_file_path"><code class="docutils literal notranslate"><span class="pre">FileSystem.get_output_file_path()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.get_pipeline_filepath"><code class="docutils literal notranslate"><span class="pre">FileSystem.get_pipeline_filepath()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.get_profiling_file_path"><code class="docutils literal notranslate"><span class="pre">FileSystem.get_profiling_file_path()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.get_segment_coefficients"><code class="docutils literal notranslate"><span class="pre">FileSystem.get_segment_coefficients()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.get_sharrow_cache_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.get_sharrow_cache_dir()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.get_trace_file_path"><code class="docutils literal notranslate"><span class="pre">FileSystem.get_trace_file_path()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.get_working_subdir"><code class="docutils literal notranslate"><span class="pre">FileSystem.get_working_subdir()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.open_log_file"><code class="docutils literal notranslate"><span class="pre">FileSystem.open_log_file()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.parse_args"><code class="docutils literal notranslate"><span class="pre">FileSystem.parse_args()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.parse_settings"><code class="docutils literal notranslate"><span class="pre">FileSystem.parse_settings()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.persist_sharrow_cache"><code class="docutils literal notranslate"><span class="pre">FileSystem.persist_sharrow_cache()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.read_model_coefficients"><code class="docutils literal notranslate"><span class="pre">FileSystem.read_model_coefficients()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.read_model_settings"><code class="docutils literal notranslate"><span class="pre">FileSystem.read_model_settings()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.read_model_spec"><code class="docutils literal notranslate"><span class="pre">FileSystem.read_model_spec()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.FileSystem.read_settings_file"><code class="docutils literal notranslate"><span class="pre">FileSystem.read_settings_file()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/users-guide/_generated/activitysim.core.configuration.FileSystem.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><!-- This will display the version of the docs -->
+<p class="last-updated">
+ActivitySim 1.5.0, documentation last updated Oct 01, 2025.<br/>
+</p></div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

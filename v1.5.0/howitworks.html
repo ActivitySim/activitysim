@@ -1,0 +1,720 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>How the System Works &#8212; ActivitySim</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script src="_static/design-tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'howitworks';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.5.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Model Development" href="users-guide/model_dev.html" />
+    <link rel="prev" title="Anatomy of a Model" href="users-guide/model_anatomy.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.5.0" />
+    <meta name="docbuild:last-update" content="Oct 01, 2025"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">ActivitySim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="users-guide/index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="users-guide/index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="users-guide/modelsetup.html">Model Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="users-guide/ways_to_run.html">Ways to Run the Model</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="users-guide/performance/index.html">Runtime Performance</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="users-guide/performance/multiprocessing.html">Multiprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="users-guide/performance/multithreading.html">Multithreading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="users-guide/performance/chunking.html">Chunking to Reduce Peak Memory Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="users-guide/performance/sharrow.html">Compiling with Sharrow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="users-guide/performance/skim-data-format.html">Skim Data Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="users-guide/performance/expr-profiling.html">Expression Profiling</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="users-guide/run_primary_example.html">Run the Primary Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="users-guide/model_anatomy.html">Anatomy of a Model</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">How the System Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="users-guide/model_dev.html">Model Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="users-guide/visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="users-guide/example_models.html">Example Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="users-guide/example_performance.html">Example Model Performance Benchmarking</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="users-guide/estimation-mode/index.html">Estimation Mode</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="users-guide/estimation-mode/asim-est.html"> Running ActivitySim in Estimation Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="users-guide/estimation-mode/larch.html"> Using Larch to Re-estimate Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="users-guide/estimation-mode/larch-api.html"> ActivitySim Larch Tool API</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="users-guide/other_examples.html">Other Example Models</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="users-guide/index.html" class="nav-link">Users Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">How the System Works</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="how-the-system-works">
+<h1>How the System Works<a class="headerlink" href="#how-the-system-works" title="Permalink to this heading">#</a></h1>
+<p>This page describes how the software works, how multiprocessing works, and the primary example model data schema.  The code snippets below may not exactly match the latest version of the software, but they are close enough to illustrate how the system works.</p>
+<section id="execution-flow">
+<span id="id1"></span><h2>Execution Flow<a class="headerlink" href="#execution-flow" title="Permalink to this heading">#</a></h2>
+<p>An example model run starts by running the steps in <span class="xref std std-ref">example_run</span>. The following flow chart represents steps of ActivitySim, but specific implementations will have different individual model components in their execution.</p>
+<img alt="_images/example_flowchart.png" src="_images/example_flowchart.png" />
+<section id="initialization">
+<h3>Initialization<a class="headerlink" href="#initialization" title="Permalink to this heading">#</a></h3>
+<p>The first significant step of the <code class="docutils literal notranslate"><span class="pre">run</span></code> command is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">activitysim</span><span class="w"> </span><span class="kn">import</span> <span class="n">abm</span>
+</pre></div>
+</div>
+<p>which loads <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.__init__</span></code>, which calls:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">misc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tables</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">models</span>
+</pre></div>
+</div>
+<p>which then loads the misc, tables, and models class definitions.  Loading <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.misc</span></code> calls:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">activitysim.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">activitysim.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">inject</span>
+</pre></div>
+</div>
+<p>which loads the config and inject classes.  These define Inject injectables (functions) and
+helper functions for running models.  For example, the Python decorator <code class="docutils literal notranslate"><span class="pre">&#64;inject.injectable</span></code> overrides the function definition <code class="docutils literal notranslate"><span class="pre">settings</span></code> to
+execute this function whenever the <code class="docutils literal notranslate"><span class="pre">settings</span></code> object is called by the system.  The <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.inject</span></code> manages the data
+pipeline.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inject</span><span class="o">.</span><span class="n">injectable</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">settings</span><span class="p">():</span>
+    <span class="n">settings_dict</span> <span class="o">=</span> <span class="n">read_settings_file</span><span class="p">(</span><span class="s1">&#39;settings.yaml&#39;</span><span class="p">,</span> <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">settings_dict</span>
+</pre></div>
+</div>
+<p>Next, the tables module executes the following import statements in <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.tables.__init__</span></code> to
+define the dynamic inject tables (households, persons, skims, etc.), but does not load them. It also defines the
+core dynamic injectables (functions) defined in the classes. The Python decorator <code class="docutils literal notranslate"><span class="pre">&#64;inject.table</span></code> override the function
+definitions so the name of the function becomes the name of the table when dynamically called by the system.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">households</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">persons</span>
+<span class="c1">#etc...</span>
+
+<span class="c1">#then in households.py</span>
+<span class="nd">@inject</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">households</span><span class="p">(</span><span class="n">households_sample_size</span><span class="p">,</span> <span class="n">override_hh_ids</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>The models module then loads all the sub-models, which are registered as model steps with
+the <code class="docutils literal notranslate"><span class="pre">&#64;inject.step()</span></code> decorator.  These steps will eventually be run by the data pipeliner.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">accessibility</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">atwork_subtour_destination</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">atwork_subtour_frequency</span>
+<span class="c1">#etc...</span>
+
+<span class="c1">#then in accessibility.py</span>
+<span class="nd">@inject</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_accessibility</span><span class="p">(</span><span class="n">accessibility</span><span class="p">,</span> <span class="n">network_los</span><span class="p">,</span> <span class="n">land_use</span><span class="p">,</span> <span class="n">trace_od</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>Back in the main <code class="docutils literal notranslate"><span class="pre">run</span></code> command, the next steps are to load the tracing, configuration, setting, and pipeline classes
+to get the system management components up and running.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">activitysim.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">tracing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">activitysim.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">activitysim.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">pipeline</span>
+</pre></div>
+</div>
+<p>The next step in the example is to define the <code class="docutils literal notranslate"><span class="pre">run</span></code> method, call it if the script is being run as the program entry point, and handle the
+arguments passed in via the command line.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">():</span>
+  <span class="c1">#etc...</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+  <span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For more information on run options, type <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">run</span> <span class="pre">-h</span></code> on the command line</p>
+</div>
+<p>The first key thing that happens in the <code class="docutils literal notranslate"><span class="pre">run</span></code> function is <code class="docutils literal notranslate"><span class="pre">resume_after</span> <span class="pre">=</span> <span class="pre">setting('resume_after',</span> <span class="pre">None)</span></code>, which causes the system
+to go looking for <code class="docutils literal notranslate"><span class="pre">setting</span></code>.  Earlier we saw that <code class="docutils literal notranslate"><span class="pre">setting</span></code> was defined as an injectable and so the system gets this object if it
+is already in memory, or if not, calls this function which loads the <code class="docutils literal notranslate"><span class="pre">config/settings.yaml</span></code> file.  This is called lazy loading or
+on-demand loading. Next, the system loads the models list and starts the pipeline:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">setting</span><span class="p">(</span><span class="s1">&#39;models&#39;</span><span class="p">),</span> <span class="n">resume_after</span><span class="o">=</span><span class="n">resume_after</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.run()</span></code> method loops through the list of models, calls <code class="docutils literal notranslate"><span class="pre">inject.run([step_name])</span></code>,
+and manages the data pipeline.  The first disaggregate data processing step (or model) run is <code class="docutils literal notranslate"><span class="pre">initialize_households</span></code>, defined in
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.models.initialize</span></code>.  The <code class="docutils literal notranslate"><span class="pre">initialize_households</span></code> step is responsible for requesting reading of the raw
+households and persons into memory.</p>
+</section>
+<section id="initialize-households">
+<h3>Initialize Households<a class="headerlink" href="#initialize-households" title="Permalink to this heading">#</a></h3>
+<p>The initialize households step/model is run via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inject</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">initialize_households</span><span class="p">():</span>
+
+   <span class="n">trace_label</span> <span class="o">=</span> <span class="s1">&#39;initialize_households&#39;</span>
+   <span class="n">model_settings</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">read_model_settings</span><span class="p">(</span><span class="s1">&#39;initialize_households.yaml&#39;</span><span class="p">,</span> <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+   <span class="n">annotate_tables</span><span class="p">(</span><span class="n">model_settings</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This step reads the <code class="docutils literal notranslate"><span class="pre">initialize_households.yaml</span></code> config file, which defines the <span class="xref std std-ref">table_annotation</span> below.  Each table
+annotation applies the expressions specified in the annotate spec to the relevant table.  For example, the <code class="docutils literal notranslate"><span class="pre">persons</span></code> table
+is annotated with the results of the expressions in <code class="docutils literal notranslate"><span class="pre">annotate_persons.csv</span></code>.  If the table is not already in memory, then
+inject goes looking for it as explained below.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#initialize_households.yaml</span>
+<span class="n">annotate_tables</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">tablename</span><span class="p">:</span> <span class="n">persons</span>
+    <span class="n">annotate</span><span class="p">:</span>
+      <span class="n">SPEC</span><span class="p">:</span> <span class="n">annotate_persons</span>
+      <span class="n">DF</span><span class="p">:</span> <span class="n">persons</span>
+      <span class="n">TABLES</span><span class="p">:</span>
+        <span class="o">-</span> <span class="n">households</span>
+  <span class="o">-</span> <span class="n">tablename</span><span class="p">:</span> <span class="n">households</span>
+    <span class="n">column_map</span><span class="p">:</span>
+      <span class="n">PERSONS</span><span class="p">:</span> <span class="n">hhsize</span>
+      <span class="n">workers</span><span class="p">:</span> <span class="n">num_workers</span>
+    <span class="n">annotate</span><span class="p">:</span>
+      <span class="n">SPEC</span><span class="p">:</span> <span class="n">annotate_households</span>
+      <span class="n">DF</span><span class="p">:</span> <span class="n">households</span>
+      <span class="n">TABLES</span><span class="p">:</span>
+        <span class="o">-</span> <span class="n">persons</span>
+        <span class="o">-</span> <span class="n">land_use</span>
+  <span class="o">-</span> <span class="n">tablename</span><span class="p">:</span> <span class="n">persons</span>
+    <span class="n">annotate</span><span class="p">:</span>
+      <span class="n">SPEC</span><span class="p">:</span> <span class="n">annotate_persons_after_hh</span>
+      <span class="n">DF</span><span class="p">:</span> <span class="n">persons</span>
+      <span class="n">TABLES</span><span class="p">:</span>
+        <span class="o">-</span> <span class="n">households</span>
+
+<span class="c1">#initialize.py</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">annotate_tables</span><span class="p">(</span><span class="n">model_settings</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">):</span>
+
+ <span class="n">annotate_tables</span> <span class="o">=</span> <span class="n">model_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;annotate_tables&#39;</span><span class="p">,</span> <span class="p">[])</span>
+
+ <span class="k">for</span> <span class="n">table_info</span> <span class="ow">in</span> <span class="n">annotate_tables</span><span class="p">:</span>
+
+     <span class="n">tablename</span> <span class="o">=</span> <span class="n">table_info</span><span class="p">[</span><span class="s1">&#39;tablename&#39;</span><span class="p">]</span>
+     <span class="n">df</span> <span class="o">=</span> <span class="n">inject</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+
+     <span class="c1"># - annotate</span>
+     <span class="n">annotate</span> <span class="o">=</span> <span class="n">table_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;annotate&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+     <span class="k">if</span> <span class="n">annotate</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;annotated </span><span class="si">%s</span><span class="s2"> SPEC </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">annotate</span><span class="p">[</span><span class="s1">&#39;SPEC&#39;</span><span class="p">],))</span>
+         <span class="n">expressions</span><span class="o">.</span><span class="n">assign_columns</span><span class="p">(</span>
+             <span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
+             <span class="n">model_settings</span><span class="o">=</span><span class="n">annotate</span><span class="p">,</span>
+             <span class="n">trace_label</span><span class="o">=</span><span class="n">trace_label</span><span class="p">)</span>
+
+     <span class="c1"># - write table to pipeline</span>
+     <span class="n">pipeline</span><span class="o">.</span><span class="n">replace_table</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Remember that the <code class="docutils literal notranslate"><span class="pre">persons</span></code> table was previously registered as an injectable table when the persons table class was
+imported.  Now that the <code class="docutils literal notranslate"><span class="pre">persons</span></code> table is needed, inject calls this function, which requires the <code class="docutils literal notranslate"><span class="pre">households</span></code> and
+<code class="docutils literal notranslate"><span class="pre">trace_hh_id</span></code> objects as well.  Since <code class="docutils literal notranslate"><span class="pre">households</span></code> has yet to be loaded, the system run the households inject table operation
+as well.  The various calls also setup logging, tracing, stable random number management, etc.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#persons in persons.py requires households, trace_hh_id</span>
+<span class="nd">@inject</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">persons</span><span class="p">(</span><span class="n">households</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
+
+  <span class="n">df</span> <span class="o">=</span> <span class="n">read_raw_persons</span><span class="p">(</span><span class="n">households</span><span class="p">)</span>
+
+  <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;loaded persons </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">,))</span>
+
+  <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;person_id&#39;</span>
+
+  <span class="c1"># replace table function with dataframe</span>
+  <span class="n">inject</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s1">&#39;persons&#39;</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+  <span class="n">pipeline</span><span class="o">.</span><span class="n">get_rn_generator</span><span class="p">()</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="s1">&#39;persons&#39;</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">trace_hh_id</span><span class="p">:</span>
+      <span class="n">tracing</span><span class="o">.</span><span class="n">register_traceable_table</span><span class="p">(</span><span class="s1">&#39;persons&#39;</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+      <span class="n">whale</span><span class="o">.</span><span class="n">trace_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s2">&quot;raw.persons&quot;</span><span class="p">,</span> <span class="n">warn_if_empty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">df</span>
+
+<span class="c1">#households requires households_sample_size, override_hh_ids, trace_hh_id</span>
+<span class="nd">@inject</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">households</span><span class="p">(</span><span class="n">households_sample_size</span><span class="p">,</span> <span class="n">override_hh_ids</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
+
+  <span class="n">df_full</span> <span class="o">=</span> <span class="n">read_input_table</span><span class="p">(</span><span class="s2">&quot;households&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The process continues until all the dependencies are resolved.  It is the <code class="docutils literal notranslate"><span class="pre">read_input_table</span></code> function that
+actually reads the input tables from the input HDF5 or CSV file using the <code class="docutils literal notranslate"><span class="pre">input_table_list</span></code> found in <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">input_table_list</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">tablename</span><span class="p">:</span> <span class="n">households</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="n">households</span><span class="o">.</span><span class="n">csv</span>
+    <span class="n">index_col</span><span class="p">:</span> <span class="n">household_id</span>
+    <span class="n">column_map</span><span class="p">:</span>
+      <span class="n">HHID</span><span class="p">:</span> <span class="n">household_id</span>
+</pre></div>
+</div>
+</section>
+<section id="running-model-components">
+<h3>Running Model Components<a class="headerlink" href="#running-model-components" title="Permalink to this heading">#</a></h3>
+<p>The next steps include running the model components specific to the individual implementation that you are running and as specified in the <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code> file.</p>
+</section>
+<section id="finishing-up">
+<h3>Finishing Up<a class="headerlink" href="#finishing-up" title="Permalink to this heading">#</a></h3>
+<p>The last models to be run by the data pipeline are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">write_data_dictionary</span></code>, which writes the table_name, number of rows, number of columns, and number of bytes for each checkpointed table</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">track_skim_usage</span></code>, which tracks skim data memory usage</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">write_tables</span></code>, which writes pipeline tables as CSV files as specified by the output_tables setting</p></li>
+</ul>
+<p>Back in the main <code class="docutils literal notranslate"><span class="pre">run</span></code> command, the final steps are to:</p>
+<ul class="simple">
+<li><p>close the data pipeline (and attached HDF5 file)</p></li>
+</ul>
+</section>
+</section>
+<section id="components">
+<h2>Components<a class="headerlink" href="#components" title="Permalink to this heading">#</a></h2>
+<p>Individual models and components are defined and described in the Developers Guide. Please refer to the <a class="reference internal" href="dev-guide/components/index.html#dev-components"><span class="std std-ref">Components</span></a> section.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="users-guide/model_anatomy.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Anatomy of a Model</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="users-guide/model_dev.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Model Development</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execution-flow">Execution Flow</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#initialization">Initialization</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#initialize-households">Initialize Households</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#running-model-components">Running Model Components</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#finishing-up">Finishing Up</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#components">Components</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/howitworks.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><!-- This will display the version of the docs -->
+<p class="last-updated">
+ActivitySim 1.5.0, documentation last updated Oct 01, 2025.<br/>
+</p></div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

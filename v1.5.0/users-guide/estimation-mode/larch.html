@@ -1,0 +1,808 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Using Larch &#8212; ActivitySim</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/clipboard.min.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <script src="../../_static/design-tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'users-guide/estimation-mode/larch';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.5.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Larch Tool API" href="larch-api.html" />
+    <link rel="prev" title="Running ActivitySim in Estimation Mode" href="asim-est.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.5.0" />
+    <meta name="docbuild:last-update" content="Oct 01, 2025"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">ActivitySim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../modelsetup.html">Model Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ways_to_run.html">Ways to Run the Model</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../performance/index.html">Runtime Performance</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../performance/multiprocessing.html">Multiprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../performance/multithreading.html">Multithreading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../performance/chunking.html">Chunking to Reduce Peak Memory Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../performance/sharrow.html">Compiling with Sharrow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../performance/skim-data-format.html">Skim Data Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../performance/expr-profiling.html">Expression Profiling</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../run_primary_example.html">Run the Primary Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model_anatomy.html">Anatomy of a Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../howitworks.html">How the System Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model_dev.html">Model Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example_models.html">Example Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example_performance.html">Example Model Performance Benchmarking</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Estimation Mode</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="asim-est.html"> Running ActivitySim in Estimation Mode</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#"> Using Larch to Re-estimate Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="larch-api.html"> ActivitySim Larch Tool API</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../other_examples.html">Other Example Models</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Users Guide</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Estimation Mode</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Using Larch</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="using-larch">
+<h1>Using Larch<a class="headerlink" href="#using-larch" title="Permalink to this heading">#</a></h1>
+<p>ActivitySim component models are mostly built as discrete choice models. The
+parameters for these models typically need to be estimated based on observed
+survey data. The estimation process is facilitated by the Larch package, which
+is a Python package for estimating discrete choice models. Larch is a
+general-purpose package that can be used to estimate a wide variety of discrete
+choice models, including the multinomial logit and nested logit models that are
+commonly used in ActivitySim. This section highlights some of the features of
+Larch, particularly as they relate to ActivitySim, as there are a few subtle
+differences between the two packages that users should be aware of when
+estimating models.</p>
+<section id="setting-up-larch-models">
+<h2>Setting up Larch Models<a class="headerlink" href="#setting-up-larch-models" title="Permalink to this heading">#</a></h2>
+<p>ActivitySim includes a number of scripts and tools to set up Larch models for
+estimation. The <code class="docutils literal notranslate"><span class="pre">activitysim.estimation.larch</span></code> library includes functions to
+read the EDBs written by ActivitySim and convert them into Larch models,
+including a generic <a class="reference internal" href="#activitysim.estimation.larch.component_model"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">component_model</span></code></span></a>
+function that can be used to load the data and set up Larch for any standard
+ActivitySim component. This function is demonstrated in the [example notebooks]
+(#example-notebooks).</p>
+<p>When given a truthy <code class="docutils literal notranslate"><span class="pre">return_data</span></code> argument, the <code class="docutils literal notranslate"><span class="pre">component_model</span></code> function will
+return a 2-tuple of the Larch model and the data used to create it. The data as
+the second element of this tuple should be treated as a <em>copy</em> of the data used
+to create the model, and is provided primarily for the user to review and use in
+debugging if needed. If it is necessary to modify the data (e.g. to recreate
+temporary variables), the user should modify the <code class="docutils literal notranslate"><span class="pre">data</span></code> attribute of the model
+itself (i.e. <code class="docutils literal notranslate"><span class="pre">model.data</span></code> if <code class="docutils literal notranslate"><span class="pre">model</span></code> is the first element of the returned
+tuple), not the data returned in the second element of the tuple.</p>
+</section>
+<section id="model-specification">
+<h2>Model Specification<a class="headerlink" href="#model-specification" title="Permalink to this heading">#</a></h2>
+<p>By default, the process of estimating parameters for ActivitySim model
+components with Larch is based on the existing model specification files. These
+are the CSV files that are used to define the utility function for each logit
+component. When running ActivitySim, these files are typically found in the
+configs directory, but when running in estimation mode, they are written out to
+the EDB as well, which is where the <code class="docutils literal notranslate"><span class="pre">activitysim.estimation.larch</span></code> library
+functions look for these input files.</p>
+<p>Users are not limited to using the existing model specification files, however.
+The Larch tools for model estimation now allow users to modify the model
+specification files, and then re-estimate the model, including existing and new
+parameters. The revised model specification files must rely on the same data
+that has already been written out to the EDB, but the user can add new
+expressions to the specification to transform the data, or to create new
+variables. This is particularly useful for creating new piecewise linear
+transformations, or for creating new categorical variables from continuous
+variables. The user can also add new variables to the specification that are not
+in the EDB, but this will require re-running ActivitySim in estimation mode to
+write a new EDB. Examples for how to re-specify the model specification files
+are included in <a class="reference internal" href="#examples-that-include-re-specification">selected example notebooks</a>.</p>
+</section>
+<section id="maximum-likelihood-estimation">
+<h2>Maximum Likelihood Estimation<a class="headerlink" href="#maximum-likelihood-estimation" title="Permalink to this heading">#</a></h2>
+<p>The approach used to estimate the parameters of a discrete choice model is
+maximum likelihood estimation (MLE). The goal of MLE is to find the set of
+parameters that maximize the likelihood of observing the choice data that we
+have collected.</p>
+<p>Finding the maximum likelihood estimates of the parameters is a non-linear
+optimization problem. To solve this problem, Larch primarily relies on the
+widely-used <code class="docutils literal notranslate"><span class="pre">scipy.optimize</span></code> package, which provides a number of
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/optimize.html#local-multivariate-optimization">optimization algorithms</a>
+that can be used to find the maximum likelihood estimates. Different algorithms
+have different strengths and weaknesses, and the choice of algorithm can have a
+significant impact on the speed and accuracy of the estimation process. By
+default, when no constraints or bounds are present, Larch uses an
+implementation of the <a class="reference external" href="https://en.wikipedia.org/wiki/Berndt%E2%80%93Hall%E2%80%93Hall%E2%80%93Hausman_algorithm">BHHH algorithm</a>,
+which is not included in scipy but is usually efficient for simple, well
+specified choice models without any constraints. When constraints or bounds are
+present, by default Larch uses the <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> function with the
+<code class="docutils literal notranslate"><span class="pre">SLSQP</span></code> algorithm. The <code class="docutils literal notranslate"><span class="pre">larch.Model.estimate</span></code> method allows the user to specify
+the optimization algorithm to use via the <code class="docutils literal notranslate"><span class="pre">method</span></code> argument, which can be set to
+‘BHHH’, ‘SLSQP’, or any other algorithm supported by <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>.
+If you are estimating a model and find the optimization is not converging as
+fast as expected (or at all), you may want to try a different optimization
+algorithm.</p>
+</section>
+<section id="model-evaluation">
+<h2>Model Evaluation<a class="headerlink" href="#model-evaluation" title="Permalink to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">larch.Model</span></code> class includes a number of methods for evaluating the
+quality of each estimated model. These tools are explained in
+<a class="reference external" href="https://larch.driftless.xyz/v6.0/user-guide/analysis.html">detail</a> in the
+Larch documentation.</p>
+<p>A <a class="reference external" href="https://larch.driftless.xyz/v6.0/user-guide/analysis.html#choice-and-availability-summary">simple aggregate analysis</a>
+of a Larch model data’s choice and availability statistics is available.</p>
+<p>Larch also includes methods to
+<a class="reference external" href="https://larch.driftless.xyz/v6.0/user-guide/analysis.html#analyze-predictions">analyze model predictions</a>
+across various dimensions. The <code class="docutils literal notranslate"><span class="pre">analyze_predictions_co</span></code> method can be used to
+examine how well the model predicts choices against any available (or
+computable) attribute of the chooser. In addition, there are tools to evaluate
+<a class="reference external" href="https://larch.driftless.xyz/v6.0/user-guide/analysis.html#elasticity">demand elasticity</a> with
+respect to changes in underlying data.</p>
+</section>
+<section id="model-overspecification">
+<h2>Model Overspecification<a class="headerlink" href="#model-overspecification" title="Permalink to this heading">#</a></h2>
+<p>When using ActivitySim for simulation, there are generally few limitations or
+requirements on the uniqueness of data elements. For example, it may end up
+being confusing for a user, but there is nothing fundamentally wrong with having
+two different variables in the model specification that both represent “income”
+but have different scales, or with having alternative-specific constants for all
+the alternatives. In model estimation, however, this can lead to problems.
+Having two data elements that are perfectly correlated (e.g. two different
+variables that both represent “income”) or having a full set of
+alternative-specific values for all the alternatives can lead to numerical
+problems in the estimation process, as the log likelihood function will have
+flat areas and will not have a unique maximum. This is called “model
+overspecification”. In Larch, the user is warned if an estimated model appears
+to be overspecified, see the Larch documentation
+<a class="reference external" href="https://larch.driftless.xyz/v6.0/user-guide/choice-models.html#overspecification">for details</a>.</p>
+</section>
+<section id="recreating-temporary-variables">
+<h2>Recreating Temporary Variables<a class="headerlink" href="#recreating-temporary-variables" title="Permalink to this heading">#</a></h2>
+<p>When writing out estimation data bundles, ActivitySim may omit certain temporary
+variables included in a model spec. For example, in the example workplace
+location choice model, the spec creates a temporary variable
+<a class="reference external" href="https://github.com/ActivitySim/activitysim-prototype-mtc/blob/7da9d6d6deca670cc4701fea749a270ab6fe77aa/configs/workplace_location.csv#L2">“_DIST”</a>
+which is then reused in several subsequent expressions. When the model’s
+estimation data bundle is written out, the “_DIST” variable may not be
+included<a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. This is not a problem when simply re-estimating the parameters of
+the current model specification, as all the piecewise linear transformations
+that use “_DIST” are included. However, if the user wanted to change those
+piecewise linear transformations (e.g. by moving the breakpoints), the absence
+of the “_DIST” value will be relevant.</p>
+<p>If the missing temporary value can be reconstructed from the data that <em>is</em>
+included in the EDB, it can be added back into the model’s data. For example,
+here we reconstitute the total distance by summing up over the piecewise
+component parts:</p>
+<p>Note in this expression, we are modifying <code class="docutils literal notranslate"><span class="pre">model.data</span></code>, i.e. the data attached
+to the model. If you have other raw data available in your estimation notebook,
+e.g., from running <code class="docutils literal notranslate"><span class="pre">model,</span> <span class="pre">data</span> <span class="pre">=</span> <span class="pre">component_model(...,</span> <span class="pre">return_data=True)</span></code>, it is
+not sufficient to manipulate <code class="docutils literal notranslate"><span class="pre">data</span></code> itself; you must manipulate <code class="docutils literal notranslate"><span class="pre">model.data</span></code> or
+otherwise re-attach any data changes to the model, or else the changes will not
+show up in estimation.</p>
+</section>
+<section id="expressing-alternative-availability">
+<h2>Expressing Alternative Availability<a class="headerlink" href="#expressing-alternative-availability" title="Permalink to this heading">#</a></h2>
+<p>In ActivitySim, the unavailability of alternatives is typically expressed in the
+utility function given in the model specification, by including an indicator variable
+for unavailable alternatives, which is then attached to a large negative coefficient.
+This creates a large negative utility for the unavailable alternative, which will
+render it effectively unavailable in the choice model. If <em>all</em> the alternatives
+are made unavailable in this manner, this can result in a condition where no
+alternative can be chosen, and ActivitySim will raise an error.</p>
+<p>When estimating models in Larch for use with ActivitySim, it is totally acceptable and
+appropriate to use this approach to express alternative availability,
+by embedding it in the utility function. This will greatly simplify the process
+of subsequently transferring the resulting model specification and parameters
+back to the ActivitySim model. However, it is important to note that this
+approach is not the only way to express alternative availability in Larch.</p>
+<p>Larch includes a system to define the availability of alternatives explicitly as a
+<a class="reference external" href="https://larch.driftless.xyz/dev/user-guide/choice-models.html#availability">separate array of values</a>,
+which is not included in the utility function. This is
+more robust in estimation, as the Larch computational engine can (and will)
+automatically shift the utility values to avoid numerical underflow or overflow
+issues that can arise when some choices are very unlikely but not strictly unavailable.
+When using the ActivitySim style of expressing alternative availability, the onus
+is entirely on the user to ensure that the utility values are not so large or small
+that they cause numerical problems. If this is not checked, it is possible that
+the model will appear to be estimating correctly in Larch, but the resulting model
+will underflow in ActivitySim, resulting in an error when the model is run.</p>
+<p>The scripts that build Larch models from estimation data bundles
+(<code class="docutils literal notranslate"><span class="pre">activitysim.estimation.larch</span></code>) will attempt to identify unavailability flags
+in the utility specifications, and when such flags are found it will automatically
+convert them to the Larch availability array format. However, since specification
+files can be complex, and the unavailability flags can be expressed in many different
+ways, it is possible that the automatic detection will not always work as expected.
+It is a good idea to check the
+<a class="reference external" href="https://larch.driftless.xyz/dev/user-guide/analysis.html#choice-and-availability-summary">choice and availability summary</a>
+on the Larch model to confirm that the availability of alternatives is being
+processes as expected.</p>
+</section>
+<section id="components-that-have-related-models">
+<h2>Components that have Related Models<a class="headerlink" href="#components-that-have-related-models" title="Permalink to this heading">#</a></h2>
+<p>Within ActivitySim, it is possible for multiple parts of model components
+to share a common set of coefficients. It is even possible for completely
+separate components to do so. For example, in the MTC example model,
+the joint tour destination choice model and the non-mandatory tour destination
+choice model share a common set of coefficients written in a single file.
+To re-estimate these coefficients, the user must simultaneously work with all
+the estimation survey data from both models.</p>
+<p>In Larch, the case of two models sharing coefficients is handled by creating two separate
+<code class="docutils literal notranslate"><span class="pre">Model</span></code> objects, one for each model, and then using the <code class="docutils literal notranslate"><span class="pre">ModelGroup</span></code> object to link them
+together. The <code class="docutils literal notranslate"><span class="pre">ModelGroup</span></code> object allows the user to specify a set of common parameters
+for two or more models, and then estimate them together. In the case of re-estimating
+the joint tour destination choice model and the non-mandatory tour destination
+choice model, it may be that both models have a similar (or even identical)
+utility structure. In other cases, the linked models may have different utility
+structures, which share a subset of parameters, but also may have other parameters
+that are unique to each model. In either case, when using the <code class="docutils literal notranslate"><span class="pre">ModelGroup</span></code> object,
+parameters are identified as being linked across models by having a common name.</p>
+<p>There are also components in ActivitySim where a single component can embed multiple
+discrete choice models which share details, but each sub-model can have a different
+utility structure or different sets of parameters. For example, the <code class="docutils literal notranslate"><span class="pre">tour_mode_choice</span></code>
+component has a coefficient template file, which allows the model developer to
+specify a different set of coefficients for each tour purpose, which are otherwise
+processed using a common utility function. This is implemented in Larch with the
+<code class="docutils literal notranslate"><span class="pre">ModelGroup</span></code> object, where each purpose is represented as a separate <code class="docutils literal notranslate"><span class="pre">Model</span></code> object,
+and the <code class="docutils literal notranslate"><span class="pre">ModelGroup</span></code> object is used to link them together. This logic is further
+extended by including the at-work subtour mode choice component, which allows for
+the joint estimation of the tour mode choice model and the at-work subtour mode
+choice model, which very reasonably share numerous parameters, but also have a few
+differences. Similarly, the stop frequency and CDAP models are implemented for
+Larch estimation as <code class="docutils literal notranslate"><span class="pre">ModelGroup</span></code> objects, segmented on tour purpose and household
+size, respectively.</p>
+<p>When estimating a <code class="docutils literal notranslate"><span class="pre">ModelGroup</span></code> object, process for estimating the likelihood
+maximizing parameters is the same as for a single model: the log likelihood is computed
+for each observation (i.e. chooser) in the data set according to the parameters, model,
+and data for that chooser, and the overall log likelihood is the sum of all the
+chooser log likelihoods. By using this approach, the rest of the estimation process is
+the same as for a single model, including finding parameter estimates, the standard
+error of those estimates, and any statistical tests or interpretations that are
+desired.</p>
+</section>
+<section id="components-with-size-terms">
+<h2>Components with Size Terms<a class="headerlink" href="#components-with-size-terms" title="Permalink to this heading">#</a></h2>
+<p>Location choice models in ActivitySim (and in discrete choice modeling
+in general) usually include a “size” term. The size term is a measure
+of the quantity of the alternative, which in location choice models is
+typically a geographic area that contains multiple distinct alternatives.
+For example, in a workplace location choice model, the size term might
+be the number of jobs in the zone. In practice, the size term is a statistical
+approximation of the number of opportunities available in the zone, and
+can be composed of multiple components, such as the number of employers, the
+number of households, and/or the number of retail establishments.</p>
+<p>The size term is included in the utility function of the model, but it is
+expressed differently from other qualitative measures. The typical model
+specification for a location choice model will include a utility function
+given in a spec file, which will represent the quality of the alternative(s)
+that are being considered. Put another way, the “regular” utility function
+is a measure of the quality of the alternative, while the size term is a
+measure of the quantity of the alternative.</p>
+<p>In ActivitySim, size terms appear not in the utility spec files, but instead
+are expressed in a separate “size term” spec file, typically named
+“destination_choice_size_terms.csv”. This one file contains all the size
+terms for all the location choice models.</p>
+<p>When using Larch for model estimation, size terms can be estimated alongside the
+other parameters. The <code class="docutils literal notranslate"><span class="pre">update_size_spec</span></code> function in the <code class="docutils literal notranslate"><span class="pre">activitysim.estimation.larch</span></code> library
+allows the user to update the size term specification for a model. This function
+takes the existing size term specification and updates the appropriate rows
+that correspond to the model being re-estimated. The resulting updated size
+term output file will also include the (unmodified) size term specification
+for all other size-based models. When copying the revised size term specification
+to the model configuration, the user should be careful that re-estimation updates
+from multiple models are not inadvertently overwriting each other.</p>
+<p>As an alternative, users can choose to <em>not</em> re-estimate the size terms, by
+providing exogenous size terms in the model specification, and instructing Larch
+not to re-estimate these parameters. This is done via the <code class="docutils literal notranslate"><span class="pre">Model.lock_value</span></code>
+command, which will fix any given named parameter to a specific value. This command
+takes two arguments: the name of the parameter to be fixed, and the value to
+fix it to. The <code class="docutils literal notranslate"><span class="pre">lock_value</span></code> command can be used to fix the size term parameters
+to the values in the size term specification file, and then the model will be
+estimated without re-estimating the size terms. If no re-estimation is desired,
+users can also safely ignore the <code class="docutils literal notranslate"><span class="pre">update_size_spec</span></code> function.</p>
+</section>
+<section id="example-notebooks">
+<h2>Example Notebooks<a class="headerlink" href="#example-notebooks" title="Permalink to this heading">#</a></h2>
+<p>ActivitySim includes a collection of Jupyter notebooks with interactive
+re-estimation examples for many core submodels, which can be found in the GitHub
+repository under the <a class="reference external" href="https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples/example_estimation/notebooks"><code class="docutils literal notranslate"><span class="pre">activitysim/examples/example_estimation/notebooks</span></code></a>
+directory. Most of these notebooks demonstrate the process of re-estimating
+model parameters, without changing the model specification, i.e. finding updated
+values for coefficients without changing the mathematical form of a model’s
+utility function.</p>
+<section id="examples-that-include-re-specification">
+<h3>Examples that include Re-Specification<a class="headerlink" href="#examples-that-include-re-specification" title="Permalink to this heading">#</a></h3>
+<p>A selection of these notebooks have also been updated to demonstrate the process
+of estimating model parameters and also <em>changing the model specification</em>.
+These notebooks generally include instructions and a demonstration of how to
+modify the model specification, and then re-estimate the model parameters, as
+well as how to compare the results of the original and modified models
+side-by-side, which can be useful for understanding the impact of the changes
+made, and conducting statistical tests to determine if the changes made are
+statistically significant.</p>
+<p>The following notebooks include examples of modifying the model specification:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples/example_estimation/notebooks/03_work_location.ipynb"><code class="docutils literal notranslate"><span class="pre">03_work_location.ipynb</span></code></a>:
+This notebook includes a demonstration of modification to the SPEC file for a
+destination choice model, using the “interact-sample-simulate” type model.</p></li>
+<li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples/example_estimation/notebooks/04_auto_ownership.ipynb"><code class="docutils literal notranslate"><span class="pre">04_auto_ownership.ipynb</span></code></a>:
+This notebook includes a demonstration of modification to the SPEC file for the
+auto ownership model. It shows an example of an edit in the utility function
+for a “simple simulate” type model.</p></li>
+<li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples/example_estimation/notebooks/06_cdap.ipynb"><code class="docutils literal notranslate"><span class="pre">06_cdap.ipynb</span></code></a>:
+This notebook includes a demonstration of modification to the SPEC file for the
+CDAP model. This model has a complex structure that is unique among the
+ActivitySim component models.</p></li>
+<li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples/example_estimation/notebooks/17_tour_mode_choice.ipynb"><code class="docutils literal notranslate"><span class="pre">17_tour_mode_choice.ipynb</span></code></a>:
+This notebook includes a demonstration of modification to the spec, coefficients,
+and coefficients template file for the tour mode choice model.</p></li>
+</ul>
+<hr class="footnotes docutils" />
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id2" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Future versions of ActivitySim may include these values in the EDB output.</p>
+</aside>
+</aside>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="asim-est.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Running ActivitySim in Estimation Mode</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="larch-api.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Larch Tool API</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-up-larch-models">Setting up Larch Models</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#model-specification">Model Specification</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#maximum-likelihood-estimation">Maximum Likelihood Estimation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#model-evaluation">Model Evaluation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#model-overspecification">Model Overspecification</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#recreating-temporary-variables">Recreating Temporary Variables</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#expressing-alternative-availability">Expressing Alternative Availability</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#components-that-have-related-models">Components that have Related Models</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#components-with-size-terms">Components with Size Terms</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-notebooks">Example Notebooks</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-that-include-re-specification">Examples that include Re-Specification</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/users-guide/estimation-mode/larch.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><!-- This will display the version of the docs -->
+<p class="last-updated">
+ActivitySim 1.5.0, documentation last updated Oct 01, 2025.<br/>
+</p></div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

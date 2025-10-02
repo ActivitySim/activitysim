@@ -5,7 +5,12 @@
         "url": "https://activitysim.github.io/activitysim/develop/index.html"
     },
     {
-        "name": "1.4 (Latest)",
+        "name": "1.5 (Latest)",
+        "version": "1.5.0",
+        "url": "https://activitysim.github.io/activitysim/v1.5.0/index.html"
+    },
+    {
+        "name": "1.4",
         "version": "1.4.0",
         "url": "https://activitysim.github.io/activitysim/v1.4.0/index.html"
     },

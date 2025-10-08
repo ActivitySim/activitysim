@@ -56,3 +56,23 @@ class ReadOnlyError(IOError):
 
 class MissingInputTableDefinition(RuntimeError):
     """An input table definition was expected but not found."""
+
+
+class SettingsConfigurationError(RuntimeError):
+    """An error in the system configuration (possibly in settings.yaml) was found."""
+
+
+class ModelConfigurationError(RuntimeError):
+    """An error in the model configuration was found."""
+
+
+class InvalidTravelError(RuntimeError):
+    """Travel behavior could not be completed in a valid way."""
+
+
+class TableSliceError(RuntimeError):
+    """An error occurred trying to slice a table."""
+
+
+class InputPopulationError(RuntimeError):
+    """An issue with the input population was found."""

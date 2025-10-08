@@ -14,6 +14,7 @@ import pandas as pd
 import psutil
 
 from activitysim.core import config, los, util
+from activitysim.core.exceptions import StateAccessError, TableTypeError
 
 logger = logging.getLogger(__name__)
 
@@ -177,7 +178,7 @@ class TVPBCache(object):
                 f"TVPBCache.open {self.cache_tag} read fully_populated data array from mmap file"
             )
         else:
-            raise RuntimeError(
+            raise StateAccessError(
                 f"Pathbuilder cache not found. Did you forget to run initialize tvpb?"
                 f"Expected cache file: {self.cache_path}"
             )
@@ -253,7 +254,7 @@ class TVPBCache(object):
             elif dtype_name == "float32":
                 typecode = "f"
             else:
-                raise RuntimeError(
+                raise TableTypeError(
                     "allocate_data_buffer unrecognized dtype %s" % dtype_name
                 )
 

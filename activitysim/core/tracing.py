@@ -11,6 +11,8 @@ from builtins import range
 import numpy as np
 import pandas as pd
 
+from activitysim.core.exceptions import TableSliceError
+
 # Configurations
 ASIM_LOGGER = "activitysim"
 CSV_FILE_TYPE = "csv"
@@ -247,7 +249,7 @@ def slice_ids(df, ids, column=None):
     except KeyError:
         # this happens if specified slicer column is not in df
         # df = df[0:0]
-        raise RuntimeError("slice_ids slicer column '%s' not in dataframe" % column)
+        raise TableSliceError("slice_ids slicer column '%s' not in dataframe" % column)
 
     return df
 

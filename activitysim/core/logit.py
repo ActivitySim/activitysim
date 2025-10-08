@@ -11,6 +11,7 @@ import pandas as pd
 from activitysim.core import tracing, workflow
 from activitysim.core.choosing import choice_maker
 from activitysim.core.configuration.logit import LogitNestSpec
+from activitysim.core.exceptions import InvalidTravelError, ModelConfigurationError
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +84,7 @@ def report_bad_choices(
         logger.warning(row_msg)
 
     if raise_error:
-        raise RuntimeError(msg_with_count)
+        raise InvalidTravelError(msg_with_count)
 
 
 def utils_to_logsums(utils, exponentiated=False, allow_zero_probs=False):
@@ -469,7 +470,7 @@ def validate_nest_spec(nest_spec: dict | LogitNestSpec, trace_label: str):
         # nest.print()
 
     if duplicates:
-        raise RuntimeError(
+        raise ModelConfigurationError(
             f"validate_nest_spec:duplicate nest key/s '{duplicates}' in nest spec - {trace_label}"
         )
 
@@ -568,7 +569,7 @@ def each_nest(nest_spec: dict | LogitNestSpec, type=None, post_order=False):
             Nest object with info about the current node (nest or leaf)
     """
     if type is not None and type not in Nest.nest_types():
-        raise RuntimeError("Unknown nest type '%s' in call to each_nest" % type)
+        raise ModelConfigurationError("Unknown nest type '%s' in call to each_nest" % type)
 
     if isinstance(nest_spec, dict):
         nest_spec = LogitNestSpec.model_validate(nest_spec)

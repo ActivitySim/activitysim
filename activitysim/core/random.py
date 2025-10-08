@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core.util import reindex
+from activitysim.core.exceptions import DuplicateLoadableObjectError
 
 from .tracing import print_elapsed_time
 
@@ -528,7 +529,7 @@ class Random(object):
         """
 
         if self.step_name is not None or self.channels:
-            raise RuntimeError("Can only call set_base_seed before the first step.")
+            raise DuplicateLoadableObjectError("Can only call set_base_seed before the first step.")
 
         assert len(list(self.channels.keys())) == 0
 

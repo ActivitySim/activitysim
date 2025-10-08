@@ -7,6 +7,7 @@ from typing import Any, TypeVar
 from activitysim.core import workflow
 from activitysim.core.configuration.base import PydanticBase
 from activitysim.core.configuration.logit import LogitComponentSettings
+from activitysim.core.exceptions import ModelConfigurationError
 
 # ActivitySim
 # See full license in LICENSE.txt.
@@ -123,13 +124,13 @@ def get_logit_model_settings(
 
         if logit_type not in ["NL", "MNL"]:
             logger.error("Unrecognized logit type '%s'" % logit_type)
-            raise RuntimeError("Unrecognized logit type '%s'" % logit_type)
+            raise ModelConfigurationError("Unrecognized logit type '%s'. Logit type must be 'NL' for nested logit or 'MNL' for multinomial logit" % logit_type)
 
         if logit_type == "NL":
             nests = model_settings.get("NESTS", None)
             if nests is None:
                 logger.error("No NEST found in model spec for NL model type")
-                raise RuntimeError("No NEST found in model spec for NL model type")
+                raise ModelConfigurationError("No NEST found in model spec for NL model type")
 
     return nests
 

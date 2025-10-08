@@ -298,7 +298,7 @@ def quick_loc_series(loc_list, target_series):
     elif isinstance(loc_list, np.ndarray) or isinstance(loc_list, list):
         left_df = pd.DataFrame({left_on: loc_list})
     else:
-        raise RuntimeError(
+        raise TypeError(
             "quick_loc_series loc_list of unexpected type %s" % type(loc_list)
         )
 

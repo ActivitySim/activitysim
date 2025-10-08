@@ -76,3 +76,6 @@ class TableSliceError(RuntimeError):
 
 class InputPopulationError(RuntimeError):
     """An issue with the input population was found."""
+
+class SubprocessError(RuntimeError):
+    """An error occurred in a subprocess."""

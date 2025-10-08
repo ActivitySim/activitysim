@@ -170,15 +170,17 @@ def _destination_sample(
     )
 
     sample_size = model_settings.SAMPLE_SIZE
-    if state.settings.disable_destination_sampling or (
-        estimator and estimator.want_unsampled_alternatives
-    ):
-        # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
+    if estimator and model_settings.ESTIMATION_SAMPLE_SIZE >= 0:
+        sample_size = model_settings.ESTIMATION_SAMPLE_SIZE
         logger.info(
-            f"Estimation mode for {trace_label} using "
-            f"unsampled alternatives short_circuit_choices"
+            f"Estimation mode for {trace_label} using sample size of {sample_size}"
         )
+
+    if state.settings.disable_destination_sampling:
         sample_size = 0
+        logger.info(
+            f"SAMPLE_SIZE set to 0 for {trace_label} because disable_destination_sampling is set"
+        )
 
     locals_dict = state.get_global_constants().copy()
     locals_dict.update(model_settings.CONSTANTS)
@@ -290,6 +292,7 @@ def choose_MAZ_for_TAZ(
     network_los,
     alt_dest_col_name,
     trace_label,
+    model_settings,
 ):
     """
     Convert taz_sample table with TAZ zone sample choices to a table with a MAZ zone chosen for each TAZ
@@ -529,6 +532,57 @@ def choose_MAZ_for_TAZ(
             transpose=False,
         )
 
+    if estimation.manager.enabled and (
+        model_settings.ESTIMATION_SAMPLE_SIZE > 0
+        or (
+            model_settings.ESTIMATION_SAMPLE_SIZE < 0 and model_settings.SAMPLE_SIZE > 0
+        )
+    ):
+        # want to ensure the override choice is in the choice set
+        survey_choices = estimation.manager.get_survey_destination_choices(
+            state, chooser_df, trace_label
+        )
+        if survey_choices is not None:
+            assert (
+                chooser_df.index == survey_choices.index
+            ).all(), "survey_choices index should match chooser_df index"
+            survey_choices.name = DEST_MAZ
+            survey_choices = survey_choices.dropna().astype(taz_choices[DEST_MAZ].dtype)
+            # merge maz_sizes onto survey choices
+            maz_sizes["MAZ_prob"] = maz_sizes.groupby(DEST_TAZ)["size_term"].transform(
+                lambda x: x / x.sum()
+            )
+            survey_choices = pd.merge(
+                survey_choices.reset_index(),
+                maz_sizes[[DEST_MAZ, DEST_TAZ, "MAZ_prob"]],
+                on=[DEST_MAZ],
+                how="left",
+            )
+            # merge TAZ_prob from taz_choices onto survey choices
+            survey_choices = pd.merge(
+                survey_choices,
+                # dropping duplicates to avoid duplicate rows as the same TAZ can be chosen multiple times
+                taz_choices[[chooser_id_col, DEST_TAZ, "TAZ_prob"]].drop_duplicates(
+                    subset=[chooser_id_col, DEST_TAZ]
+                ),
+                on=[chooser_id_col, DEST_TAZ],
+                how="left",
+            )
+            survey_choices["prob"] = (
+                survey_choices["TAZ_prob"] * survey_choices["MAZ_prob"]
+            )
+
+            # Don't care about getting dest_TAZ correct as it gets dropped later
+            survey_choices.fillna(0, inplace=True)
+
+            # merge survey choices back into choices_df and sort by chooser
+            taz_choices = pd.concat(
+                [taz_choices, survey_choices[taz_choices.columns]], ignore_index=True
+            )
+            taz_choices.sort_values(
+                by=[chooser_id_col, DEST_TAZ], inplace=True, ignore_index=True
+            )
+
     taz_choices = taz_choices.drop(columns=["TAZ_prob", "MAZ_prob"])
     taz_choices = taz_choices.groupby([chooser_id_col, DEST_MAZ]).agg(
         prob=("prob", "max"), pick_count=("prob", "count")
@@ -602,6 +656,7 @@ def destination_presample(
         network_los,
         alt_dest_col_name,
         trace_label,
+        model_settings,
     )
 
     assert alt_dest_col_name in maz_sample
@@ -1053,16 +1108,21 @@ def choose_trip_destination(
         return pd.Series(index=trips.index).to_frame("choice"), None
 
     # - compute logsums
-    destination_sample = compute_logsums(
-        state,
-        primary_purpose=primary_purpose,
-        trips=trips,
-        destination_sample=destination_sample,
-        tours_merged=tours_merged,
-        model_settings=model_settings,
-        skim_hotel=skim_hotel,
-        trace_label=trace_label,
-    )
+    # If LOGSUM_SETTINGS is set to None, we don't want to compute logsums
+    if model_settings.LOGSUM_SETTINGS:
+        destination_sample = compute_logsums(
+            state,
+            primary_purpose=primary_purpose,
+            trips=trips,
+            destination_sample=destination_sample,
+            tours_merged=tours_merged,
+            model_settings=model_settings,
+            skim_hotel=skim_hotel,
+            trace_label=trace_label,
+        )
+    else:
+        destination_sample["od_logsum"] = 0.0
+        destination_sample["dp_logsum"] = 0.0
 
     t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0)
 
@@ -1272,9 +1332,14 @@ def run_trip_destination(
             state.filesystem, model_settings_file_name
         )
     preprocessor_settings = model_settings.preprocessor
-    logsum_settings = state.filesystem.read_model_settings(
-        model_settings.LOGSUM_SETTINGS
-    )
+
+    # read in logsum settings if they exist, otherwise logsum calculations are skipped
+    if model_settings.LOGSUM_SETTINGS:
+        logsum_settings = state.filesystem.read_model_settings(
+            model_settings.LOGSUM_SETTINGS
+        )
+    else:
+        logsum_settings = None
 
     logsum_column_name = model_settings.DEST_CHOICE_LOGSUM_COLUMN_NAME
     want_logsums = logsum_column_name is not None
@@ -1313,6 +1378,8 @@ def run_trip_destination(
 
         # expect all the same trips
         survey_trips = estimator.get_survey_table("trips").sort_index()
+        # need to check household_id incase household_sample_size != 0
+        survey_trips = survey_trips[survey_trips.household_id.isin(trips.household_id)]
         assert survey_trips.index.equals(trips.index)
 
         first = survey_trips.trip_num == 1
@@ -1342,7 +1409,9 @@ def run_trip_destination(
 
     # - filter tours_merged (AFTER copying destination and origin columns to trips)
     # tours_merged is used for logsums, we filter it here upfront to save space and time
-    tours_merged_cols = logsum_settings["TOURS_MERGED_CHOOSER_COLUMNS"]
+    tours_merged_cols = (
+        logsum_settings["TOURS_MERGED_CHOOSER_COLUMNS"] if logsum_settings else []
+    )
     redundant_cols = model_settings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS or []
     if redundant_cols:
         tours_merged_cols = [c for c in tours_merged_cols if c not in redundant_cols]

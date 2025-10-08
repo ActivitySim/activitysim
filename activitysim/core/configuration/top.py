@@ -537,6 +537,60 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     own that pollutes the collected data.
     """
 
+    expression_profile: bool | None = None
+    """
+    Track the runtime of each individual expression in each spec file.
+
+    .. versionadded:: 1.4
+
+    The default value of this setting is `None`, which sets no global control
+    of expression profiling, and allows this feature to be turned on or off
+    for individual components.  If set to `True`, all components will have
+    expression profiling enabled, and the outputs will be written to files named
+    based on the trace label unless explicitly set in the `compute_settings` for
+    individual components.  If set to `False`, all components will have expression
+    profiling disabled.
+
+    This is generally a developer-only feature and not needed for regular usage.
+    It will add some overhead to the model run, which is only valuable if you
+    expect the review the expression runtimes with an eye towards improving them.
+    Production model users should typically have this set explicitly to `False`.
+    """
+
+    expression_profile_style: Literal["simple", "grid"] = "grid"
+    """
+    The style of the expression profiling report.
+
+    .. versionadded:: 1.4
+
+    This setting controls the style of the expression profiling report that is
+    generated at the end of a model run when :py:attr:`expression_profile` is
+    `True`. The report summarizes the runtime of each expression in each spec
+    file, and can be used to identify slow or inefficient expressions.
+
+    The "simple" style generates a simple HTML table with the expression names,
+    runtimes, and other relevant information. This may be easier to import into
+    other tools (e.g. Excel) for further analysis if desired. The "grid" style
+    generates a JavaScript data grid that allows for sorting and filtering of the
+    expression runtimes, making it easier to analyze large sets of expressions
+    directly in a web browser with no other outside analysis tools.
+    """
+
+    expression_profile_cutoff: float = 0.1
+    """
+    Minimum runtime for an expression to be included in the expression profile.
+
+    .. versionadded:: 1.4
+
+    Expressions that take less than this amount of time to evaluate will not be
+    included in the summary report of expression profiling generated at the end
+    of a model run. For large scale models, this value can be increased to make
+    the report file smaller, as only the largest values will typically be of
+    interest.
+
+    This setting has no effect if :py:attr:`expression_profile` is not `True`.
+    """
+
     benchmarking: bool = False
     """
     Flag this model run as a benchmarking run.
@@ -718,6 +772,13 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     Use of this setting should be tested by the region to confirm result consistency.
 
     .. versionadded:: 1.3
+    """
+
+    check_model_settings: bool = True
+    """
+    run checks to validate that YAML settings files are loadable and spec and coefficent csv can be resolved.
+
+    should catch many common errors early, including missing required configurations or specified coefficient labels without defined values.  
     """
 
     other_settings: dict[str, Any] = None

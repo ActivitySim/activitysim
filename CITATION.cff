@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "ActivitySim"
+abstract: "Advanced, open-source, activity-based travel behavior modeling software based on best software development practices for distribution at no charge to the public."
+authors:
+  - name: "Zephyr Foundation"
+repository-code: "https://github.com/ActivitySim/activitysim"
+url: "https://activitysim.github.io/activitysim"
+license: BSD-3-Clause
+keywords:
+  - "activity-based modeling"
+  - "travel behavior"
+  - "transportation planning"
+  - "microsimulation"
+  - "travel demand modeling"
+preferred-citation:
+  type: software
+  title: "ActivitySim"
+  authors:
+    - name: "Zephyr Foundation"
+  repository-code: "https://github.com/ActivitySim/activitysim"
+  url: "https://activitysim.github.io/activitysim"
+  license: BSD-3-Clause

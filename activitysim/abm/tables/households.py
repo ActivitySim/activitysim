@@ -11,6 +11,7 @@ from activitysim.abm.misc import override_hh_ids
 from activitysim.abm.tables.util import simple_table_join
 from activitysim.core import tracing, workflow
 from activitysim.core.input import read_input_table
+from activitysim.core.exceptions import MissingInputTableDefinition
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ def households(state: workflow.State) -> pd.DataFrame:
             )
 
         if df.shape[0] == 0:
-            raise RuntimeError("No override households found in store")
+            raise MissingInputTableDefinition("No override households found in store")
 
     # if we are tracing hh exclusively
     elif _trace_hh_id and households_sample_size == 1:

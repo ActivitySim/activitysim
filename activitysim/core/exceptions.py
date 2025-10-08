@@ -58,7 +58,7 @@ class MissingInputTableDefinition(RuntimeError):
     """An input table definition was expected but not found."""
 
 
-class SettingsConfigurationError(RuntimeError):
+class SystemConfigurationError(RuntimeError):
     """An error in the system configuration (possibly in settings.yaml) was found."""
 
 

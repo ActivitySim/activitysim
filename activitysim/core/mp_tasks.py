@@ -635,7 +635,7 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
                         # don't slice mirrored tables
                         sliced_tables[table_name] = df
                     else:
-                        raise TableSliceError(
+                        raise TableSlicingError(
                             "Unrecognized slice rule '%s' for table %s"
                             % (rule["slice_by"], table_name)
                         )
@@ -712,7 +712,7 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
                     # don't slice mirrored tables
                     sliced_tables[table_name] = df
                 else:
-                    raise TableSliceError(
+                    raise TableSlicingError(
                         "Unrecognized slice rule '%s' for table %s"
                         % (rule["slice_by"], table_name)
                     )

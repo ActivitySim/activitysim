@@ -70,7 +70,7 @@ class InvalidTravelError(RuntimeError):
     """Travel behavior could not be completed in a valid way."""
 
 
-class TableSliceError(RuntimeError):
+class TableSlicingError(RuntimeError):
     """An error occurred trying to slice a table."""
 
 

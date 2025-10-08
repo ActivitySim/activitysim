@@ -13,6 +13,7 @@ import pydantic
 
 from activitysim.core import workflow
 from activitysim.core.input import read_input_table
+from activitysim.core.exceptions import ModelConfigurationError
 
 logger = logging.getLogger(__name__)
 file_logger = logger.getChild("logfile")
@@ -468,6 +469,6 @@ def input_checker(state: workflow.State):
 
     if input_check_failure:
         logger.error("Run is killed due to input checker failure!!")
-        raise RuntimeError(
+        raise ModelConfigurationError(
             "Encountered error in input checker, see input_checker.log for details"
         )

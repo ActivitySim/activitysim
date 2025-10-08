@@ -79,3 +79,6 @@ class InputPopulationError(RuntimeError):
 
 class SubprocessError(RuntimeError):
     """An error occurred in a subprocess."""
+
+class SegmentedSpecificationError(RuntimeError):
+    """An error was caused by creating an invalid spec table for a segmented model component."""

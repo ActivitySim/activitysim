@@ -20,6 +20,7 @@ from activitysim.core import (
 from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.skim_dataset import DatasetWrapper
 from activitysim.core.skim_dictionary import SkimWrapper
+from activitysim.core.exceptions import SegmentedSpecificationError
 
 logger = logging.getLogger(__name__)
 
@@ -219,7 +220,7 @@ def _interaction_sample(
         )
 
     if len(spec.columns) > 1:
-        raise RuntimeError("spec must have only one column")
+        raise SegmentedSpecificationError("spec must have only one column")
 
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for set_skim_wrapper_targets

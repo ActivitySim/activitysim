@@ -16,6 +16,7 @@ import pandas as pd
 from activitysim.core import chunk, logit, simulate, timing, tracing, util, workflow
 from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.fast_eval import fast_eval
+from activitysim.core.exceptions import SegmentedSpecificationError
 
 logger = logging.getLogger(__name__)
 
@@ -722,7 +723,7 @@ def _interaction_simulate(
         )
 
     if len(spec.columns) > 1:
-        raise RuntimeError("spec must have only one column")
+        raise SegmentedSpecificationError("spec must have only one column")
 
     sample_size = sample_size or len(alternatives)
 

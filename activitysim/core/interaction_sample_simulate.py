@@ -10,6 +10,7 @@ import pandas as pd
 from activitysim.core import chunk, interaction_simulate, logit, tracing, util, workflow
 from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.simulate import set_skim_wrapper_targets
+from activitysim.core.exceptions import SegmentedSpecificationError
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +116,7 @@ def _interaction_sample_simulate(
         )
 
     if len(spec.columns) > 1:
-        raise RuntimeError("spec must have only one column")
+        raise SegmentedSpecificationError("spec must have only one column")
 
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for the skims dereference below

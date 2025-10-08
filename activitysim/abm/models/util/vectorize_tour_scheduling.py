@@ -82,7 +82,7 @@ def skims_for_logsums(
     elif isinstance(destination_for_tour_purpose, dict):
         dest_col_name = destination_for_tour_purpose.get(tour_purpose)
     else:
-        raise RuntimeError(
+        raise TypeError(
             f"expected string or dict DESTINATION_FOR_TOUR_PURPOSE model_setting for {tour_purpose}"
         )
 

@@ -18,6 +18,7 @@ from activitysim.abm.models.util.trip import cleanup_failed_trips, failed_trip_c
 from activitysim.core import chunk, config, estimation, expressions, tracing, workflow
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.util import reindex
+from activitysim.core.exceptions import InvalidTravelError, PipelineError
 
 logger = logging.getLogger(__name__)
 
@@ -615,7 +616,7 @@ def trip_scheduling(
                 logger.info("%s %s failed", trace_label_i, failed.sum())
 
                 if (failed.sum() > 0) & (model_settings.scheduling_mode == "relative"):
-                    raise RuntimeError("failed trips with relative scheduling mode")
+                    raise InvalidTravelError("failed trips with relative scheduling mode")
 
                 if not is_last_iteration:
                     # boolean series of trips whose leg scheduling failed
@@ -653,7 +654,7 @@ def trip_scheduling(
         )
 
         if failfix != FAILFIX_DROP_AND_CLEANUP:
-            raise RuntimeError(
+            raise PipelineError(
                 "%s setting '%s' not enabled in settings"
                 % (FAILFIX, FAILFIX_DROP_AND_CLEANUP)
             )

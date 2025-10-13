@@ -1,0 +1,18 @@
+#,,alt file for building tours even though simulation is simple_simulate not interaction_simulate
+alt,out,in
+0out_0in,0,0
+0out_1in,0,1
+0out_2in,0,2
+0out_3in,0,3
+1out_0in,1,0
+1out_1in,1,1
+1out_2in,1,2
+1out_3in,1,3
+2out_0in,2,0
+2out_1in,2,1
+2out_2in,2,2
+2out_3in,2,3
+3out_0in,3,0
+3out_1in,3,1
+3out_2in,3,2
+3out_3in,3,3

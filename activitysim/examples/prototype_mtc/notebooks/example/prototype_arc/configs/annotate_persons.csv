@@ -1,0 +1,69 @@
+Description,Target,Expression
+#,, annotate persons table after import
+age of the person,age,persons['agep']
+sex of the person,sex,persons['sex']
+person number in the HH,PNUM,persons['PNUM']
+is_age1617,is_age1617,"persons['agep'].between(16,17)"
+is_ageLess19,is_ageless19,persons['agep'] < 19
+is_age1622,is_age1622,"persons['agep'].between(16,22)"
+is_ageLess40,is_ageless40,persons['agep'] < 40
+is_age4059,is_age4059,"persons['agep'].between(40,59)"
+is_age6079,is_age6079,"persons['agep'].between(60,79)"
+is_age60plus,is_age60plus,persons['agep'] >= 60
+is_adult,is_adult, persons['agep']>=18
+# Joint tour frequency model requires 'adult' instead of 'is_adult' (hardcoded adult),,
+adult,adult, persons['agep']>=18
+is_male,is_male,persons['sex'] == 1
+is_female,is_female,persons['sex'] == 2
+is_working_age,_is_working_age,persons['agep']>=16
+is_fulltime_worker,is_fulltime_worker,"((_is_working_age) & (persons['wkhp'] >=35) & (persons['wkw']>=1) & (persons['wkw']<=4) & (~persons['esr'].isin([3,6])))"
+is_parttime_worker,is_parttime_worker,"((_is_working_age) & (~persons['esr'].isin([3,6])) & (is_fulltime_worker == False))"
+is_worker,is_worker,"df['pecasOcc'].isin([1,2,3,4,5])"
+Work Segment - White Collar Worker,work_segment,"np.where(df['pecasOcc']==1, 1, 0)"
+Work Segment - Service Worker,work_segment,"np.where(df['pecasOcc']==2, 2, work_segment)"
+Work Segment - Health Worker,work_segment,"np.where(df['pecasOcc']==3, 3, work_segment)"
+Work Segment - Retail or Food Worker,work_segment,"np.where(df['pecasOcc']==4, 4, work_segment)"
+Work Segment - Blue Collar Worker,work_segment,"np.where(df['pecasOcc']==5, 5, work_segment)"
+is_nonworker,_is_nonworker,is_worker == False
+is_nonworker_adult,is_nonworker_adult,((_is_nonworker) & (_is_working_age))
+# Peron type definition (see ArcHouseholdDataManager.java),,
+full time workers or those with no grade-attending info,_cond1,(is_fulltime_worker) | (persons['schg'] <1)
+minimum driving age,_cond2,(persons['agep'] < 16)
+attending college or above,_cond3,(persons['schg'] >=6)
+too old for school,_cond4,(persons['agep'] > 19)
+student high school or less,_stdCat1,((_cond1) & (_cond2)) | ((~_cond1) & (_cond3) & (_cond2)) | ((~_cond1) & (~_cond3) & (~_cond4))
+student college or higher,_stdCat2,((~_cond1) & (_cond3) & (~_cond2)) | ((~_cond1) & (~_cond3) & (_cond4)) 
+non_student,_stdCat3,(_cond1) & (~_cond2)
+is_k12,is_k12,(_stdCat1)
+is_university,is_university,(_stdCat2)
+is_student,is_student,((_stdCat1)|(_stdCat2))
+is_predriver,is_predrive,persons['agep'] <= 15
+is_driver,is_driving_age,persons['agep'] > 15
+is_nondriver,is_nondriving_age,persons['agep'] < 16 
+school_segment k12_predrive,school_segment,"np.where((is_k12 & is_predrive), 1, 0)"
+school_segment k12_drive,school_segment,"np.where((is_k12 & is_driving_age), 2, school_segment)"
+school_segment university,school_segment,"np.where(is_university, 3, school_segment)"
+FT_worker_age_16plus,_empCat1,is_fulltime_worker
+PT worker non-student age 16+,_empCat2,is_parttime_worker
+PT_worker_nonstudent_age_16plus,_PT_worker_nonstudent_age_16plus,(~_empCat1) & (_stdCat3) & (_empCat2) 
+Nonworker_nonstudent_age_65plus,_Nonworker_nonstudent_age_65plus,(~_empCat1) & (_stdCat3) & (~_empCat2) &  (persons['agep'] >= 65)
+Preschool_under_age_6,_Preschool_under_age_6,(~_empCat1) & (_stdCat3) & (~_empCat2) &  (persons['agep'] < 6)
+Nonworker_nonstudent_age_16_64,_Nonworker_nonstudent_age_16_64,(~_empCat1) & (_stdCat3) & (~_empCat2) &  (persons['agep'] >= 6) & (persons['agep'] < 65)
+University/GED/Trade student either working PT or not employed,_University_student,(~_empCat1) & (_stdCat2)
+Preschool_under_age_6,_Preschool_under_age_6,(~_empCat1) & (~_stdCat3) & (~_stdCat2) & (persons['agep'] < 6)
+Student_age_16_19_not_FT_wrkr_or_univ_stud,_Student_age_16_19_not_FT_wrkr_or_univ_stud,(~_empCat1) & (~_stdCat3) & (~_stdCat2) & (persons['agep'] >= 16)
+Grade or high school student too young to drive,_Student_age_6_15_schpred,(~_empCat1) & (~_stdCat3) & (~_stdCat2) & (persons['agep'] >= 6) & (persons['agep'] <16)
+PreschoolStudent (more strict condition for preSchool Child),_isPreSchoolStudent,(_Preschool_under_age_6) & (is_k12)
+# Person Type,,
+FT worker age 16+ (Full-time worker),ptype,"np.where(_empCat1, 1, 0)"
+PT worker non-student age 16+ (Part-time worker),ptype,"np.where(_PT_worker_nonstudent_age_16plus, 2, ptype)"
+university student (University student),ptype,"np.where(_University_student, 3, ptype)"
+non-worker non-student age 16-64 (Non-working adult),ptype,"np.where(_Nonworker_nonstudent_age_16_64, 4, ptype)"
+non-worker non-student age 65+ (Retired),ptype,"np.where(_Nonworker_nonstudent_age_65plus, 5, ptype)"
+"age 16-19 student, not FT worker or university student",ptype,"np.where(_Student_age_16_19_not_FT_wrkr_or_univ_stud, 6, ptype)"
+age 6-15 pre-drive school student,ptype,"np.where(_Student_age_6_15_schpred, 7, ptype)"
+under age 6 children,ptype,"np.where(_Preschool_under_age_6, 8, ptype)"
+PreSchoolStudent,PreSchoolStudent,"np.where(_isPreSchoolStudent, 1, 0)"
+Employment dummy for university and driving age school children,student_is_employed,((_University_student)|(is_driving_age)) & ((is_fulltime_worker)|(is_parttime_worker))
+"School dummy for full-time workers, part-time workers, non-workers and retirees",nonstudent_goes_to_school,(((ptype==1)|(ptype==2)|(ptype==4)|(ptype==5)) & ((_Student_age_6_15_schpred)|(_University_student)))
+Pre School Children,preschoolChildren,ptype==8

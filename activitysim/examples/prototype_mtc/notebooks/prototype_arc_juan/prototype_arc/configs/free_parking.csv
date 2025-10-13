@@ -1,0 +1,7 @@
+Description,Expression,free,pay
+constant,1,-0.47,
+,"@(np.where(df['hh_income']>=100000, 1, 0))",0.23,
+,"@(np.where(df['hh_income']>=50000, 1, 0)*np.where(df['hh_income']<100000, 1, 0))",0.201,
+,@df.hhsize>3,0.253,
+,@df.auto_ownership>df.num_workers,0.231,
+,@df.auto_ownership<df.num_workers,-1.479,

@@ -1,0 +1,7 @@
+# alt file for building tours even though simulation is simple_simulate not interaction_simulate,,
+alt,work,school
+work1,1,0
+work2,2,0
+school1,0,1
+school2,0,2
+work_and_school,1,1

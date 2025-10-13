@@ -1,0 +1,5 @@
+Description,Target,Expression
+#,,
+,ptype,"reindex(persons.ptype, df.person_id)"
+,person_type,ptype.map(PTYPE_NAME)
+,start,"reindex_i(tours.start, df.tour_id)"

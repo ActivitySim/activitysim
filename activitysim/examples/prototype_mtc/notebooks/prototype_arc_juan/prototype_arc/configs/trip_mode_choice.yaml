@@ -1,0 +1,146 @@
+
+SPEC: trip_mode_choice.csv
+LEGACY_COEFFICIENTS: trip_mode_choice_coeffs.csv
+
+LOGIT_TYPE: NL
+
+NESTS:
+  name: root
+  coefficient: 1.00
+  alternatives:
+      - name: AUTO
+        coefficient: 0.60
+        alternatives:
+            - name: DRIVEALONE
+              coefficient: 0.4
+              alternatives:
+              - DRIVEALONEFREE
+              - DRIVEALONEPAY
+            - name: SHAREDRIDE2
+              coefficient: 0.4
+              alternatives:
+              - SHARED2FREE
+              - SHARED2PAY
+            - name: SHAREDRIDE3
+              coefficient: 0.4
+              alternatives:
+              - SHARED3FREE
+              - SHARED3PAY
+      - name: NONMOTORIZED
+        coefficient: 0.6
+        alternatives:
+        - WALK
+        - BIKE
+      - name: TRANSIT
+        coefficient:  0.6
+        alternatives:
+            - name: WALKACCESS
+              coefficient: 0.4
+              alternatives:
+              - WALK_ALLTRN
+              - WALK_PRMTRN
+            - name: PNRACCESS
+              coefficient: 0.4
+              alternatives:
+              - PNR_ALLTRN
+              - PNR_PRMTRN
+            - name: KNRACCESS
+              coefficient: 0.4
+              alternatives:
+              - KNR_ALLTRN
+              - KNR_PRMTRN
+      - name: SCHOOL
+        coefficient: 1.0
+        alternatives:
+        - SCHOOL_BUS
+        
+CONSTANTS:
+  orig_col_name: origin
+  dest_col_name: destination
+  costPerMile: 17.29
+  costShareSr2: 1.75
+  costShareSr3: 2.50
+  waitThresh: 10.00
+  walkThresh: 0.6667
+  shortWalk: 0.333
+  longWalk: 0.667
+  walkSpeed: 3.00
+  bikeThresh: 6.00
+  bikeSpeed: 12.00
+  schoolBusSpeed: 20
+  firstWaitThresh: 7.5
+  expr: 0.95
+  hrt: 0.75
+  lrt: 0.8
+  brt: 0.85
+  crl: 0.75
+  
+#    maxCbdAreaTypeThresh: 2
+#    indivTour: 1.00000
+#    upperEA: 5
+#    upperAM: 10
+#    upperMD: 15
+#    upperPM: 19
+  I_MODE_MAP:
+    DRIVEALONEFREE: 1
+    DRIVEALONEPAY: 2
+    SHARED2FREE: 3
+    SHARED2PAY: 4
+    SHARED3FREE: 5
+    SHARED3PAY: 6
+    WALK: 7
+    BIKE: 8
+    WALK_ALLTRN: 9
+    WALK_PRMTRN: 10
+    PNR_ALLTRN: 11
+    PNR_PRMTRN: 12
+    KNR_ALLTRN: 13
+    KNR_PRMTRN: 14
+    SCHOOL_BUS: 15
+  I_SOV_MODES: [1, 2]
+  I_SR2_MODES: [3, 4]
+  I_SR3P_MODES: [5, 6]
+  I_SHARED_MODES: [3, 4, 5, 6]
+  I_AUTO_MODES: [1, 2, 3, 4, 5, 6]
+  I_WALK_MODE: 7
+  I_BIKE_MODE: 8
+  I_TRANSIT_MODES: [9, 10, 11, 12, 13, 14]
+  I_WALK_TRANSIT_MODES: [9, 10]
+  I_DRIVE_TRANSIT_MODES: [11, 12, 13, 14]
+  
+# so far, we can use the same spec as for non-joint tours
+preprocessor:
+  SPEC: trip_mode_choice_annotate_trips_preprocessor
+  DF: df
+  TABLES:
+    - land_use
+    - tours
+
+#  - SPEC: trip_mode_choice_annotate_trips_preprocessor2
+#    DF: df
+#    TABLES:
+#      - land_use
+
+# to reduce memory needs filter chooser table to these fields
+TOURS_MERGED_CHOOSER_COLUMNS:
+  - hhsize
+  - age
+  - is_low_income
+  - is_medium_income
+  - is_high_income
+  - is_very_high_income
+  - auto_ownership
+  - number_of_participants
+  - tour_category
+  - parent_tour_id
+  - tour_mode
+  - duration
+  - start
+  - end
+  - tour_type
+  - free_parking_at_work
+
+REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS:
+  - number_of_participants
+
+MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum

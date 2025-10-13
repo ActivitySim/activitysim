@@ -1,0 +1,4 @@
+Description,Expression,white_collar,service,health,retail_food,blue_collar
+Distance,"@skims[('SOV_FREE_DISTANCE', 'MD')]",-0.2,-0.2,-0.2,-0.2,-0.2
+Size Variable,@(df['size_term'] * df['shadow_price_size_term_adjustment']).apply(np.log1p),1,1,1,1,1
+No Attractions,@df['size_term']==0,-999,-999,-999,-999,-999

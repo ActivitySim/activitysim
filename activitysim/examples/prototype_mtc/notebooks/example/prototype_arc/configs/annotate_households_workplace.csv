@@ -1,0 +1,8 @@
+Description,Target,Expression
+Sum of Workers Auto Savings Ratio,hh_work_auto_savings_ratio,persons.work_auto_savings_ratio.groupby(persons.household_id).sum().reindex(households.index).fillna(0.0)
+Sum of Workers Premium IVT ,_hh_workers_prmTrn_ivt,persons.workers_prmTrn_ivt.groupby(persons.household_id).sum().reindex(households.index).fillna(0.0)
+Sum of Workers Total IVT ,_hh_workers_totalTrn_ivt,persons.workers_totalTrn_ivt.groupby(persons.household_id).sum().reindex(households.index).fillna(0.0)
+Sum of Students Premium IVT ,_hh_students_prmTrn_ivt,persons.students_prmTrn_ivt.groupby(persons.household_id).sum().reindex(households.index).fillna(0.0)
+Sum of Students Total IVT ,_hh_students_totalTrn_ivt,persons.students_totalTrn_ivt.groupby(persons.household_id).sum().reindex(households.index).fillna(0.0)
+Work Rail Proportion,worker_rail_proportion,"np.where(((_hh_workers_prmTrn_ivt > 0) & (_hh_workers_totalTrn_ivt > 0)),(_hh_workers_prmTrn_ivt / _hh_workers_totalTrn_ivt),0)"
+School Rail Proportion,student_rail_proportion,"np.where(((_hh_students_prmTrn_ivt > 0) & (_hh_students_totalTrn_ivt > 0)),(_hh_students_prmTrn_ivt / _hh_students_totalTrn_ivt),0)"

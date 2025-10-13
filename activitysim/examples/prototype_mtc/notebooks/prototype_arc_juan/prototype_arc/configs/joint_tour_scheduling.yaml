@@ -1,0 +1,20 @@
+LOGIT_TYPE: MNL
+
+SPEC: tour_scheduling_joint.csv
+COEFFICIENTS: tour_scheduling_joint_coeffs.csv
+sharrow_skip: True
+# The `sharrow_skip` option is activated to disable the use of sharrow for this
+# model, because the utility specification as currently written includes a
+# large number of string comparisons (nearly every one of 400+ expressions has
+# such an operation). Sharrow can process these expressions correctly, but it is
+# slow.  If the specification is rewritten to remove most of these string
+# comparisons (see for example in the equivalent file for the prototype_mtc
+# models) then sharrow can be re-enabled for a significant speed benefit.
+
+preprocessor:
+  SPEC: joint_tour_scheduling_annotate_tours_preprocessor
+  DF: joint_tours
+  TABLES:
+    - land_use
+    - households
+    - joint_tour_participants

@@ -1,0 +1,46 @@
+Description,Target,Expression
+#,,
+# define primary_purpose to use for slicing choosers with a value that identifies the spec to be used ,,
+# e.g. univ segment means there will be a spec called stop_frequency_univ.csv,,
+# so the 'school' tour_type can treat univ and non-univ school tours differently,,
+,primary_purpose,"df.tour_type.where((df.tour_type != 'school') | ~df.is_university, 'univ')"
+,primary_purpose,"primary_purpose.where(df.tour_category!='atwork', 'atwork')"
+#,,
+,distance_in_miles,"od_skims[('SOV_FREE_DISTANCE', 'MD')]"
+#,,
+,is_joint,df.tour_category=='joint'
+,_HH_PERSON_COUNT,"lambda exp, persons: persons.query(exp).groupby('household_id').size()"
+Num Kids between 0 and 4 (including) years old,num_age_0_4,"reindex_i(_HH_PERSON_COUNT('agep < 5', persons), df.household_id)"
+Num kids between 4 and 15 (including) years old,num_age_5_15,"reindex_i(_HH_PERSON_COUNT('(agep >= 5) & (agep <16)', persons), df.household_id)"
+Number of Adults (>= 16 years old),num_adult,"reindex_i(_HH_PERSON_COUNT('agep >= 16', persons), df.household_id)"
+,more_cars_than_workers,df.auto_ownership >= (df.num_full + df.num_part)
+,tour_mode_is_transit,df.tour_mode.isin(TRANSIT_MODES)
+,tour_mode_is_drive_transit,df.tour_mode.isin(DRIVE_TO_TRANSIT_MODES)
+,tour_mode_is_non_motorized,df.tour_mode.isin(NONMOTORIZED_MODES)
+,tour_mode_is_school_bus,df.tour_mode.isin(SCHOOL_BUS)
+#,,
+#num_work_tours already defined,,
+school but not university,num_school_tours,"reindex_i(df[primary_purpose==SCHOOL_TOUR].groupby('person_id').size(), df.person_id)"
+,num_univ_tours,(df.is_university) * num_school_tours
+#num_escort_tours already defined,,
+# indiv tour counts should not include joint tours by point_person,,
+,num_shop_tours,"reindex_i(df[~is_joint & (df.tour_type==SHOP_TOUR)].groupby('person_id').size(), df.person_id)"
+,num_maint_tours,"reindex_i(df[~is_joint & (df.tour_type==MAINT_TOUR)].groupby('person_id').size(), df.person_id)"
+,num_eatout_tours,"reindex_i(df[~is_joint & (df.tour_type==EATOUT_TOUR)].groupby('person_id').size(), df.person_id)"
+,num_social_tours,"reindex_i(df[~is_joint & (df.tour_type==SOCIAL_TOUR)].groupby('person_id').size(), df.person_id)"
+#,,
+Number of subtours in the tour,num_atwork_subtours,"df.atwork_subtour_frequency.map(num_atwork_subtours_map, na_action='ignore').fillna(0).astype(np.int8)"
+#,,
+Number of hh shop tours including joint,num_hh_shop_tours,"reindex_i(df[df.tour_type==SHOP_TOUR].groupby('household_id').size(), df.person_id)"
+Number of hh maint tours including joint,num_hh_maint_tours,"reindex_i(df[df.tour_type==MAINT_TOUR].groupby('household_id').size(), df.person_id)"
+tourStartsInPeakPeriod,_tour_starts_in_peak,(network_los.skim_time_period_label(df.start) == 'AM') | (network_los.skim_time_period_label(df.start) == 'PM')
+AccesibilityAtOrigin fallback,hhacc,0
+AccesibilityAtOrigin if transit,hhacc,"hhacc.where(~tour_mode_is_transit, df.trPkRetail.where(_tour_starts_in_peak, df.trOpRetail))"
+AccesibilityAtOrigin if non_motorized,hhacc,"hhacc.where(~tour_mode_is_non_motorized, df.nmRetail)"
+AccesibilityADestination fallback,pracc,0
+AccesibilityADestination peak transit,_dest_trPkRetail,"reindex(accessibility.trPkRetail, df.destination)"
+AccesibilityADestination off-peak transit,_dest_trOpRetail,"reindex(accessibility.trOpRetail, df.destination)"
+AccesibilityAtDestination if transit,pracc,"pracc.where(~tour_mode_is_transit, _dest_trPkRetail.where(_tour_starts_in_peak, _dest_trOpRetail))"
+AccesibilityAtDestination if non_motorized,pracc,"pracc.where(~tour_mode_is_non_motorized, reindex(accessibility.nmRetail, df.destination))"
+Destination area type,destination_area_type,"reindex(land_use.areatype, df.destination)"
+Origin area type,origin_area_type,"reindex(land_use.areatype, df.origin)"

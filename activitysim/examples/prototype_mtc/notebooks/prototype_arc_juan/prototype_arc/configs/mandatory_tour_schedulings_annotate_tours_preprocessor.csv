@@ -1,0 +1,3 @@
+Description,Target,Expression,,,,,,
+,departureLinearShift1,"np.minimum(9-alt_tdd.start,48)*(alt_tdd.start<=9) + np.minimum(alt_tdd.start-9,21)*(alt_tdd.start>9)"
+,arrivalLinearShift1,"np.minimum(30-df.end,48)*(df.end<=30) + np.minimum(df.end-30,21)*(df.end>30)"

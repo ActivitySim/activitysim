@@ -16,7 +16,7 @@ from activitysim.core.configuration import PydanticReadable
 from activitysim.core.configuration.base import PydanticBase
 from activitysim.core.util import reindex
 from activitysim.core.yaml_tools import safe_dump
-from activitysim.core.exceptions import DuplicateWorkflowTableError, DuplicateLoadableObjectError
+from activitysim.core.exceptions import DuplicateWorkflowTableError, DuplicateLoadableObjectError, EstimationDataError
 
 logger = logging.getLogger("estimation")
 
@@ -537,7 +537,7 @@ class Estimator:
                 elif "household_id" in df.columns:
                     df.set_index("household_id", inplace=True)
                 else:
-                    RuntimeError(
+                    EstimationDataError(
                         f"No index column found in omnibus table {omnibus_table}: {df}"
                     )
 
@@ -946,7 +946,7 @@ class EstimationManager(object):
                 % (missing_columns, table_name)
             )
             print("survey table columns: %s" % (survey_df.columns,))
-            raise RuntimeError(
+            raise EstimationDataError(
                 "missing columns (%s) in survey table %s"
                 % (missing_columns, table_name)
             )
@@ -999,7 +999,7 @@ class EstimationManager(object):
                 logger.error(
                     "couldn't get_survey_values for %s in %s\n" % (c, table_name)
                 )
-                raise RuntimeError(
+                raise EstimationDataError(
                     "couldn't get_survey_values for %s in %s\n" % (c, table_name)
                 )
 

@@ -88,3 +88,7 @@ class SegmentedSpecificationError(RuntimeError):
 
 class TableIndexError(RuntimeError):
     """An error related to the index of a table in the pipeline."""
+
+
+class EstimationDataError(RuntimeError):
+    """An error related to estimation data."""

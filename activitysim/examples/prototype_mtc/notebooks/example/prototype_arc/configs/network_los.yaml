@@ -1,0 +1,37 @@
+# read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
+read_skim_cache: False
+# write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
+write_skim_cache: False
+
+zone_system: 1
+name: prototype_arc
+
+# glob 'skims*.omx' will match one or more files: skims.omx, skims1.omx, skims2.omx...
+taz_skims:
+    omx: skims*.omx
+    zarr: skims.zarr
+    zarr-digital-encoding:
+        - {regex: .*_IVT      , joint_dict: true}
+        - {regex: .*_DISTANCE , joint_dict: true}
+        - {regex: .*_TIME     , joint_dict: true}
+        - {regex: .*_WALK     , joint_dict: true}
+        - {regex: .*_FAR      , joint_dict: true}
+        - {regex: .*_LRT      , joint_dict: true}
+        - {regex: .*_TOLL     , joint_dict: true}
+        - {regex: .*_XPEN     , joint_dict: true}
+        - {regex: .*_HRT      , joint_dict: true}
+        - {regex: .*_IWAIT    , joint_dict: true}
+        - {regex: .*_LOCAL    , joint_dict: true}
+        - {regex: .*_BRT      , joint_dict: true}
+        - {regex: .*_XBUS     , joint_dict: true}
+        - {regex: .*_COMRAIL  , joint_dict: true}
+        - {regex: .*_BRDS     , joint_dict: true}
+        - {regex: .*_XWAIT    , joint_dict: true}
+        - {regex: .*_DIST     , joint_dict: true}
+        - {regex: .*_AUTO     , joint_dict: true}
+
+skim_time_periods:
+    time_window: 1440
+    period_minutes: 30
+    periods: [0, 6, 14, 24, 32, 48]
+    labels: ['EA', 'AM', 'MD', 'PM', 'EV']

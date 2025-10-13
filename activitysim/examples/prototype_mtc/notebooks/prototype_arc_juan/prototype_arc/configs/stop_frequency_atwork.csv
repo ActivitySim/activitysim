@@ -1,0 +1,14 @@
+Description,Expression,0out_0in,0out_1in,0out_2in,0out_3in,1out_0in,1out_1in,1out_2in,1out_3in,2out_0in,2out_1in,2out_2in,2out_3in,3out_0in,3out_1in,3out_2in,3out_3in
+Availability of the alternative. If not available it has a -999 value,1,,,,,,,,,,,,,,,,
+Alternative specific constant for outbound stops,1,,,,,-4.179789342,-4.179789342,,,,,,,,,,
+Alternative specific constant for return  stops,1,,-4.095327614,,,,-4.095327614,,,,,,,,,,
+Alternative specific constant for the total number of stops,1,,,,,,2.304155795,,,,,,,,,,
+Middle to Low Income HH ,(income_in_thousands<50000),,0.45,,,0.45,0.45,,,,,,,,,,
+Number of eating tours undertaken by the person,num_eatout_tours,,-0.28,,,-0.28,-0.28,,,,,,,,,,
+Subtour departure less than or equal to 11AM,(start<12),,0.31,,,0.31,0.31,,,,,,,,,,
+Subtour return time greater or equal to 2PM,(end > 16),,0.34,,,0.34,0.34,,,,,,,,,,
+Subtour duration in hours (integer),duration,,0.56,,,0.56,0.56,,,,,,,,,,
+dummy for subtour origin (tour destination) at Exurban  or Rual (AreaTypes = 6 or 7),(destination_area_type > 5),,0.27,,,0.27,0.27,,,,,,,,,,
+Primary Destination Accessibility (LOG of it),pracc,,0.18,,,0.18,0.18,,,,,,,,,,
+subtour distance in miles (from tour destination to subtour primary destination one way),distance_in_miles,,0.02,,,0.02,0.02,,,,,,,,,,
+Calibration constants,1,0,0.524555615,-3.944328082,-4.633813951,0.111935057,1.286012968,-5.719784853,-4.97037453,-4.077882358,-5.947455042,-8.337788705,-5.993156161,-5.578724994,-5.854640256,-7.47158577,-7.48244363

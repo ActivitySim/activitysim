@@ -1,0 +1,3 @@
+Description,Target,Expression
+#,, annotate persons table after joint_tour_participation model has run
+num_joint_tours,num_joint_tours,joint_tour_participants.groupby('person_id').size().reindex(persons.index).fillna(0).astype(np.int8)

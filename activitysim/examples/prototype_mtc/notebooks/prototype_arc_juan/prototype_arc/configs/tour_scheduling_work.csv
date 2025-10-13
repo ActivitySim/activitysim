@@ -1,0 +1,101 @@
+Description,Expression,Coefficient
+"# Note: In CTRAMP, duration is from 1 to 48 but in ActivitySim, it is from 0 to 47 since duration was calculated as (end - start). Therefore, duration in ActivitySim expression = CTRAMP duration expresssion - 1 ",,
+Mode Choice Logsum,mode_choice_logsum,0.2279
+Female - Departure before 7:00 am  - Linear,"@((df.is_female) & (df.start<9)) * df.departureLinearShift1",-0.12935306
+Female - Arrival after 6:00 pm - Linear,"@((df.is_female) & (df.end>30)) * df.arrivalLinearShift1",-0.041312616
+Female with preschool child - Departure before 7:00 am  - Linear,"@((df.is_female) & (df.is_pre_drive_child_in_HH) & (df.start<9)) * df.departureLinearShift1",-0.129130464
+Female with preschool child - Departure after 7:30 am - Linear,"@((df.is_female) & (df.is_pre_drive_child_in_HH) & (df.start>9)) * df.departureLinearShift1",-0.031947595
+Female with preschool child - Arrival after 6:00 pm - Linear,"@((df.is_female) & (df.is_pre_drive_child_in_HH) & (df.end>30)) * df.arrivalLinearShift1",-0.048859218
+Low income (<25000) - Departure before 7:00 am  - Linear,"@((df.is_income_less25K) & (df.start<9)) * df.departureLinearShift1",0.232768373
+Low income (<25000) - Departure after 7:30 am - Linear,"@((df.is_income_less25K) & (df.start>9)) * df.departureLinearShift1",0.014908169
+Low income (<25000) - Arrival after 6:00 pm - Linear,"@((df.is_income_less25K) & (df.start>30)) * df.arrivalLinearShift1",0.039105101
+Med income (25k to 60k) - Departure before 7:00 am  - Linear,"@((df.is_income_25K_to_60K) & (df.start<9)) * df.departureLinearShift1",0.123945957
+Med income (25k to 60k) - Arrival after 6:00 pm - Linear,"@((df.is_income_25K_to_60K) & (df.end>30)) * df.arrivalLinearShift1",0.020965221
+Med-high income (60k to 120k) - Departure before 7:00 am  - Linear,"@((df.is_income_60K_to_120K) & (df.start<9)) * df.departureLinearShift1",0.09890939
+Age 16 to 18 yrs - Departure Before 7:00 am,"@(((df.age>=16) & (df.age<=18)) & (df.start<9)) * df.departureLinearShift1",-0.459593556
+Age 16 to 18 yrs - Departure After 7:30 am,"@(((df.age>=16) & (df.age<=18)) & (df.start>9)) * df.departureLinearShift1",0.060951693
+Age 19 to 24 yrs - Departure After 7:30 am,"@(((df.age>=19) & (df.age<=24)) &  (df.start>9)) * df.departureLinearShift1",0.031477187
+Age 25 to 40 yrs - Departure Before 7:00 am,"@(((df.age>=25) & (df.age<=40)) & (df.start<9)) * df.departureLinearShift1",-0.11723451
+Age 65+ yrs - Departure After 7:30 am,"@((df.age>=65) & (df.start>9)) * df.departureLinearShift1",0.051923956
+Age 19 to 24 yrs - Arrival after 6:00 pm ,"@(((df.age>=19) & (df.age<=24)) & (df.end>30)) * df.arrivalLinearShift1",0.032734453
+Age 25 to 40 yrs - Arrival before 5:30 pm ,"@(((df.age>=25) & (df.age<=40)) & (df.end<30)) * df.arrivalLinearShift1",-0.027623617
+Age 56 to 64 yrs - Arrival after 6:00 pm ,"@(((df.age>=56) & (df.age<65)) & (df.end>30)) * df.arrivalLinearShift1",-0.049130187
+Age 65+ yrs - Arrival before 5:30 pm ,"@((df.age>=65) & (df.end<30)) * df.arrivalLinearShift1",0.056774635
+Age 65+ yrs - Arrival after 6:00 pm ,"@((df.age>=65) & (df.end>30)) * df.arrivalLinearShift1",-0.077532684
+Zero auto HH - Departure before 7:00 am  - Linear,"@((df.auto_ownership == 0) & (df.start<9)) * df.departureLinearShift1",0.396983749
+Zero auto HH - Arrival after 6:00 pm - Linear,"@((df.auto_ownership == 0) & (df.end>30)) * df.arrivalLinearShift1",0.050665232
+Part-time worker - Departure before 7:00 am  - Linear,"@((df.ptype==2) & (df.start<9)) * df.departureLinearShift1",-0.264760988
+Part-time worker - Departure after 7:30 am - Linear,"@((df.ptype==2) & (df.start>9)) * df.departureLinearShift1",0.126626287
+Part-time worker - Arrival before 5:30 pm  - Linear,"@((df.ptype==2) & (df.end<30)) * df.arrivalLinearShift1",0.175158545
+Part-time worker - Arrival after 6:00 pm - Linear,"@((df.ptype==2) & (df.end>30)) * df.arrivalLinearShift1",-0.054124518
+University student - Departure after 7:30 am - Linear,"@((df.ptype==3) & (df.start>9)) * df.departureLinearShift1",0.024758204
+University student - Arrival before 5:30 pm  - Linear,"@((df.ptype==3) & (df.end<30)) * df.arrivalLinearShift1",0.035389739
+University student - Arrival after 6:00 pm - Linear,"@((df.ptype==3) & (df.end>30)) * df.arrivalLinearShift1",0.06173996
+Blue collar - Departure before 7:00 am  - Linear,"@((df.work_segment==5) & (df.start<9)) * df.departureLinearShift1",0.327242475
+Blue collar - Departure after 7:30 am - Linear,"@((df.work_segment==5)& (df.start>9)) * df.departureLinearShift1",0.047214248
+Blue collar - Arrival before 5:30 pm  - Linear,"@((df.work_segment==5)& (df.end<30)) * df.arrivalLinearShift1",0.04197056
+Service - Departure before 7:00 am  - Linear,"@((df.work_segment==2) & (df.start<9)) * df.departureLinearShift1",0.117783508
+Service - Departure after 7:30 am - Linear,"@((df.work_segment==2) & (df.start>9)) * df.departureLinearShift1",0.081611629
+Service - Arrival before 5:30 pm  - Linear,"@((df.work_segment==2) & (df.end<30)) * df.arrivalLinearShift1",0
+Health - Departure before 7:00 am  - Linear,"@((df.work_segment==3) & (df.start<9)) * df.departureLinearShift1",0.135275931
+Health - Arrival after 6:00 pm - Linear,"@((df.work_segment==3) & (df.end>30)) * df.arrivalLinearShift1",0.062010123
+Retail and food - Departure after 7:30 am - Linear,"@((df.work_segment==4) & (df.start>9)) * df.departureLinearShift1",0.076302969
+Retail and food - Arrival before 5:30 pm  - Linear,"@((df.work_segment==4) & (df.end<30)) * df.arrivalLinearShift1",0.052905387
+Retail and food - Arrival after 6:00 pm - Linear,"@((df.work_segment==4) & (df.end>30)) * df.arrivalLinearShift1",0.027069194
+Time (SOV freeflow) to destination - Departure before 7:00 am  - Linear,"@(df.start<9) * df.departureLinearShift1* (df.auto_time_home_to_work)",0.011511462
+Time (SOV freeflow) to destination - Departure after 7:30 am - Linear,"@(df.start>9) * df.departureLinearShift1 * (df.auto_time_home_to_work)",-0.003821379
+Time (SOV freeflow) to destination - Arrival before 5:30 pm - Linear,"@(df.end<30) * df.arrivalLinearShift1 * (df.auto_time_home_to_work)",-0.00549578
+Time (SOV freeflow) to destination - Arrival after 6:00 pm  - Linear,"@(df.end>30) * df.arrivalLinearShift1  * (df.auto_time_home_to_work)",0.002253695
+Presence of Non-Working Adult in the HH - Departure before 7:00 am  - Linear,"@((df.is_non_worker_in_HH) & (df.start<9)) * df.departureLinearShift1",0.069957209
+Presence of Non-Working Adult in the HH - Arrival before 5:30 pm  - Linear,"@((df.is_non_worker_in_HH) & (df.end<30)) * df.arrivalLinearShift1",-0.019807228
+Presence of Pre-Driving Age Children in the HH - Departure before 7:30 am  - Linear,"@((df.is_pre_drive_child_in_HH) & (df.start<9)) * df.departureLinearShift1",-0.084564489
+Presence of Pre-Driving Age Children in the HH - Departure after 8 am - Linear,"@((df.is_pre_drive_child_in_HH) & (df.start>9)) * df.departureLinearShift1",-0.023894467
+Presence of Pre-Driving Age Children in the HH - Arrival before 5:30 pm  - Linear,"@((df.is_pre_drive_child_in_HH) & (df.end<30)) * df.arrivalLinearShift1",0.018983499
+Presence of Pre-Driving Age Children in the HH - Arrival after 6:00 pm - Linear,"@((df.is_pre_drive_child_in_HH)& (df.end>30)) * df.arrivalLinearShift1",-0.032091123
+First of 2+ mandatory tour - Departure before 7:00 am,"@(((df.tour_count>1) & (df.tour_num == 1)) & (df.start<9)) * df.departureLinearShift1",0.145890035
+First of 2+ mandatory tour - Departure after 7:30 am,"@(((df.tour_count>1) & (df.tour_num == 1)) & (df.start>9)) * df.departureLinearShift1",-0.214531877
+First of 2+ mandatory tour - Duration < 9.5 hours,"@(((df.tour_count>1) & (df.tour_num == 1)) & (df.duration<21)) * ((np.minimum(21-df.duration,47)*(df.duration<=20)) + (np.minimum(df.duration-21,20)*(df.duration>21)))",0.3069241
+First of 2+ mandatory tour - Duration > 9.5 hours,"@(((df.tour_count>1) & (df.tour_num == 1)) & (df.duration<21)) * ((np.minimum(21-df.duration,47)*(df.duration<=20)) + (np.minimum(df.duration-21,20)*(df.duration>21)))",-0.526297898
+2nd or later of 2+ mandatory tour - Departure before 1:30 pm,"@(((df.tour_count>1) & (df.tour_num > 1)) & (df.start<22)) * df.departureLinearShift1",-0.221304523
+2nd or later of 2+ mandatory tour - Departure after 2:00 pm,"@(((df.tour_count>1) & (df.tour_num > 1)) & (df.start>22)) * df.departureLinearShift1",-0.176348812
+2nd or later of 2+ mandatory tour - Duration < 9.5 hours,"@(((df.tour_count>1) & (df.tour_num > 1)) & (df.duration<21)) * ((np.minimum(21-df.duration,47)*(df.duration<=20)) + (np.minimum(df.duration-21,20)*(df.duration>21)))",0.064893097
+2nd or later of 2+ mandatory tour - Duration > 9.5 hours,"@(((df.tour_count>1) & (df.tour_num > 1)) & (df.duration<21)) * ((np.minimum(21-df.duration,47)*(df.duration<=20)) + (np.minimum(df.duration-21,20)*(df.duration>21)))",-0.656942049
+#Departure Constants,,
+Departure Constant: Shift for every 30 minutes before 6:00 am - Linear,"@(df.start<6) * ((np.minimum(6-df.start,48)*(df.start<6)) + (np.minimum(df.start-13,21)*(df.start>13)))",-1.151564775
+Departure Constant: Before 06:00 AM,start<7,-2.197677208
+Departure Constant: 06:00 AM - 06:30 AM (7) ,start==7,-1.314098638
+Departure Constant: 06:30 AM - 07:00 AM (8) ,start==8,-0.558766028
+Departure Constant: 07:00 AM - 07:30 AM (9) ,start==9,0
+Departure Constant: 07:30 AM - 08:00 AM (10) ,start==10,-0.036957515
+Departure Constant: 08:00 AM - 08:30 AM (11) ,start==11,-0.285560423
+Departure Constant: 08:30 AM - 09:00 AM (12) ,start==12,-0.555478447
+Departure Constant: After 09:00 AM,start>12,-0.865125273
+Departure Constant: Shift for every 30 minutes after 9:30 am - Square Root,"@(df.start>13) * (((np.minimum(6-df.start,48)*(df.start<6)) + (np.minimum(df.start-13,21)*(df.start>13))) ** 0.5)",-0.435746145
+#Arrival Constants,,
+Arrival Constant: Shift for every 30 minutes before 3:00 pm - Linear,"@(df.end<25) * ((np.minimum(25-df.end, 15)*(df.end<25))+ (np.minimum(df.end-35,11)*(df.end>35)))",-0.191607342
+Arrival Constant: Before 03:30 PM,end<26,-0.289333093
+Arrival Constant: 03:30 PM - 04:00 PM (26) ,end==26,-0.273555837
+Arrival Constant: 04:00 PM - 04:30 PM (27) ,end==27,-0.142653706
+Arrival Constant: 04:30 PM - 05:00 PM (28) ,end==28,-0.124814807
+Arrival Constant: 05:00 PM - 05:30 PM (29),end==29,0.004265544
+Arrival Constant: 05:30 PM - 06:00 PM (30) ,end==30,0
+Arrival Constant: 06:00 PM - 06:30 PM (31) ,end==31,-0.060515031
+Arrival Constant: 06:30 PM - 7:00 PM (32) ,end==32,-0.236621114
+Arrival Constant: 7:00 PM - 7:30 PM (33) ,end==33,-0.577646614
+Arrival Constant: 7:30 PM - 8:00 PM (34) ,end==34,-0.815994515
+Arrival Constant: After 08:00 PM,end>34,-0.854151925
+Arrival Constant: Shift for every 30 minutes after 6:30 pm - Square root,"@(df.end>35) * (((np.minimum(25-df.end, 15)*(df.end<25))+ (np.minimum(df.end-35,11)*(df.end>35))) ** 0.5)",-0.469720787
+#Duration Constants,,
+Duration Constant: Shift for every 30 minutes less than 8.5 hrs - Linear,"@(df.duration<16) * ((np.minimum(16-df.duration,47)*(df.duration<16)) + (np.minimum(df.duration-25,10)*(df.duration>25)))",-0.074266981
+Duration Constant: Shorter than 8.5 hrs,duration<17,-0.748584335
+Duration Constant: 8.5 hours,duration==17,-0.654814097
+Duration Constant: 9 hours,duration==18,-0.372064236
+Duration Constant: 9.5 hours,duration==19,-0.144226124
+Duration Constant: 10 hours,duration==20,0.013153356
+Duration Constant: 10.5 hours,duration==21,0
+Duration Constant: 11 hours,duration==22,-0.115847245
+Duration Constant: 11.5 hours,duration==23,-0.288506368
+Duration Constant: 12 hours,duration==24,-0.524241874
+Duration Constant: Longer than 12 hrs,duration>24,-0.598634071
+Duration Constant: Shift for every 30 minutes more than 10 hrs - Linear,"@(df.duration>25) * ((np.minimum(16-df.duration,47)*(df.duration<16)) + (np.minimum(df.duration-25,10)*(df.duration>25)))",-0.293607565
+Calibration constant: Duration = 0,duration == 0,-10

@@ -1,0 +1,23 @@
+Description,Expression,no_subtours,eat,business1,maint,business2,eat_business
+Dummy for full-time worker,ptype==1,-0.6,-7.28,-7.375,-8.093,-14.28,-14.79
+Dummy for non full-time worker,ptype!=1,-0.6,-8.604,-8.319,-8.214,-14.28,-14.79
+Dummy for person types 4-7 (non-workers),"ptype in [4, 5]",,0,-5,-5,-5,-5
+Middle HH income dummy,is_income_60K_to_120K,,0.61,0.5555,0.1527,1.111,1.1655
+High HH income dummy,is_income_greater60K,,0.8693,1.066,0.1651,2.132,1.9353
+Zero cars owned by HH - dummy,auto_ownership == 0,,-0.3391,,0.1762,0,-0.3391
+Individual discretionary tour made by the person who is a full-time worker,@(df.ptype==1)*df.num_discr_tours,,0.2334,0.7045,0.5061,1.409,0.9379
+Individual discretionary tour made by the person who is a part-time worker,@(df.ptype==2)*df.num_discr_tours,,0.6776,0.7045,0.5061,1.409,1.3821
+Individual eating-out tour made by the person ,num_eatout_tours,,0.5491,0.5434,0.9166,1.0868,1.0925
+Main/shop/escort tour allocated to the person who is a full-time worker,@(df.ptype==1)*df.num_maint_shop_escort,,-0.05203,-0.1903,0.1446,-0.3806,-0.24233
+Main/shop/escort tour allocated to the person who is a part-time worker,@(df.ptype==2)*df.num_maint_shop_escort,,-0.3099,-0.1903,-0.2723,-0.3806,-0.5002
+Participation in at least one joint shop/main/eat tour,num_joint_maint_shop_eat,,0.2458,0.083,0.08029,0.166,0.3288
+Participation in at least one joint discretionary tour,num_joint_discr,,0.3588,-0.2637,0.5822,-0.5274,0.0951
+Log of the work tour duration,@np.log(df.duration+0.5),,1.55,1.142,1.659,2.284,2.692
+Dummy for drive-alone mode for the work tour,work_tour_is_SOV,,0.4804,0.9901,1.153,1.9802,1.4705
+Two work tours implemented by the person,num_work_tours==2,,-0.9862,0.3753,-0.2312,0.7506,-0.6109
+"Workplace urban area dummy (cbd=1, urban=2,3, suburban=4,5,6, rural=7)",work_zone_area_type<4,,-0.4182,-0.2235,-0.1479,-0.447,-0.6417
+"Workplace suburban area dummy (cbd=1, urban=2,3, suburban=4,5,6,  rural=7)",(work_zone_area_type>3) & (work_zone_area_type<6),,-0.2916,-0.1102,,-0.2204,-0.4018
+Auto accessibility to retail for work taz (from zonal file),auOpRetail,,0.01495,0.05337,0.0265,0.10674,0.06832
+Walk accessibility to retail for work taz (from zonal file),nmRetail,,0.06,,0.04,0,0.06
+Dummy for worker or student with non-mandatory tour(s),(is_worker | is_student) * num_non_mand,,,,-0.3573,0,0
+At-work sub-tour alternative specific constant,1,,-0.123744069,-0.614920146,-1.152766666,-1.976561429,-1.71776228

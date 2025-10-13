@@ -1,0 +1,2 @@
+Description,Target,Expression
+,origin_to_destination_distance,"skim_dict.lookup(joint_tours.origin, joint_tours.destination, ('SOV_FREE_DISTANCE', 'MD'))"

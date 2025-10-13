@@ -1,0 +1,10 @@
+Description,Target,Expression
+,tripFFT,"od_skims['SOV_FREE_TIME', 'MD']"
+,is_work,trips['purpose']=='work'
+,is_school,trips['purpose']=='school'
+,is_eatout,trips['purpose']=='eatout'
+,is_other_maintenance,trips['purpose']=='othmaint'
+,is_shopping,trips['purpose']=='shopping'
+,is_social,trips['purpose']=='social'
+,is_othdisc,trips['purpose']=='othdiscr'
+,is_escort,trips['purpose']=='escort'

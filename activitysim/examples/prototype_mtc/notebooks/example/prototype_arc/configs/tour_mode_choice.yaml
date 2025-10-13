@@ -1,0 +1,138 @@
+LOGIT_TYPE: NL
+#LOGIT_TYPE: MNL
+
+NESTS:
+  name: root
+  coefficient: 1.00
+  alternatives:
+      - name: AUTO
+        coefficient: 0.60
+        alternatives:
+            - name: DRIVEALONE
+              coefficient: 0.4
+              alternatives:
+              - DRIVEALONEFREE
+              - DRIVEALONEPAY
+            - name: SHAREDRIDE2
+              coefficient: 0.4
+              alternatives:
+              - SHARED2FREE
+              - SHARED2PAY
+            - name: SHAREDRIDE3
+              coefficient: 0.4
+              alternatives:
+              - SHARED3FREE
+              - SHARED3PAY
+      - name: NONMOTORIZED
+        coefficient: 0.6
+        alternatives:
+        - WALK
+        - BIKE
+      - name: TRANSIT
+        coefficient:  0.6
+        alternatives:
+            - name: WALKACCESS
+              coefficient: 0.4
+              alternatives:
+              - WALK_ALLTRN
+              - WALK_PRMTRN
+            - name: PNRACCESS
+              coefficient: 0.4
+              alternatives:
+              - PNR_ALLTRN
+              - PNR_PRMTRN
+            - name: KNRACCESS
+              coefficient: 0.4
+              alternatives:
+              - KNR_ALLTRN
+              - KNR_PRMTRN
+      - name: SCHOOL
+        coefficient: 1.0
+        alternatives:
+        - SCHOOL_BUS
+
+SPEC: tour_mode_choice.csv
+COEFFICIENTS: tour_mode_choice_coeffs.csv
+COEFFICIENT_TEMPLATE: tour_mode_choice_coeffs_template.csv
+
+CONSTANTS:
+    #valueOfTime: 8.00
+    costPerMile: 17.29
+    costShareSr2: 1.75
+    costShareSr3: 2.50
+    waitThresh: 10.00
+    walkThresh: 0.6667
+    shortWalk: 0.333
+    longWalk: 0.667
+    walkSpeed: 3.00
+    bikeThresh: 6.00
+    bikeSpeed: 12.00
+    maxCbdAreaTypeThresh: 2
+    indivTour: 1.00000
+    upperEA: 12
+    upperAM: 22
+    upperMD: 32
+    upperPM: 40
+
+
+# so far, we can use the same spec as for non-joint tours
+preprocessor:
+  SPEC: tour_mode_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+    - tours
+
+nontour_preprocessor:
+  SPEC: tour_mode_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+
+LOGSUM_CHOOSER_COLUMNS:
+  - tour_type
+  - household_id
+  - home_zone_id
+  - is_predrive
+  - is_driving_age
+  - is_male
+  - is_female
+  - is_age1617
+  - is_age1622
+  - is_ageless40
+  - is_age4059
+  - is_age6079
+  - is_age60plus
+  - is_adult
+  - is_worker
+  - is_nonworker_adult
+  - is_k12
+  - is_university
+  - is_hhsize1
+  - is_hh_with_child_less16
+  - is_hh_with_child_16plus
+  - is_income_less10K
+  - is_income_10K_20K
+  - is_income_20K_40K
+  - is_income_less50K
+  - is_no_income
+  - is_low_income
+  - is_medium_income
+  - is_high_income
+  - is_very_high_income
+  - is_CBD
+  - is_urban
+  - is_rural_or_exurban
+  - num_workers
+  - num_full
+  - num_part
+  - num_students
+  - number_of_participants
+  - tour_category
+  - free_parking_at_work
+  - auto_ownership
+  # FROM ZoneData Table
+  - PARKRATE
+  - I_PCTLT10K
+  - I_PCT10TO20
+  - I_PCT20TO40

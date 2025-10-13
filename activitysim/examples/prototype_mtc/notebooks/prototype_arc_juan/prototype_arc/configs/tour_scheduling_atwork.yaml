@@ -1,0 +1,16 @@
+
+SPEC: tour_scheduling_atwork.csv
+COEFFICIENTS: tour_scheduling_atwork_coeffs.csv
+
+preprocessor:
+   SPEC: tour_scheduling_atwork_preprocessor
+   DF: df
+#  TABLES:
+#    - land_use
+#    - tours
+
+SIMULATE_CHOOSER_COLUMNS:
+  - od_distance
+  
+CONSTANTS:
+  time_cap: 30

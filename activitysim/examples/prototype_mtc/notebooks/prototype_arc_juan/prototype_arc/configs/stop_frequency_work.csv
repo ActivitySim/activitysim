@@ -1,0 +1,61 @@
+Description,Expression,0out_0in,0out_1in,0out_2in,0out_3in,1out_0in,1out_1in,1out_2in,1out_3in,2out_0in,2out_1in,2out_2in,2out_3in,3out_0in,3out_1in,3out_2in,3out_3in
+Availability of the alternative. If not available it has a -999 value,1,,,,,,,,,,,,,,,,
+No stops if tour mode is driveTransit,tour_mode_is_drive_transit,,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Alternative specific constant for outbound stops,1,,,,,-1.951802564,-1.951802564,-1.951802564,-1.951802564,-4.684694539,-4.684694539,-4.684694539,-4.684694539,-6.546327836,-6.546327836,-6.546327836,-6.546327836
+Alternative specific constant for return  stops,1,,-1.087499041,-3.366997222,-5.16413209,,-1.087499041,-3.366997222,-5.16413209,,-1.087499041,-3.366997222,-5.16413209,,-1.087499041,-3.366997222,-5.16413209
+Alternative specific constant for the total number of stops,1,,,0.994512619,2.185215038,,0.994512619,2.185215038,3.479116029,0.994512619,2.185215038,3.479116029,4.865450884,2.185215038,3.479116029,4.865450884,6.446741602
+Middle to Low Income HH ,(income_in_thousands>19999) & (income_in_thousands<50000),,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17
+Mid to High Income HH,(income_in_thousands>=50000) & (income_in_thousands<100000),,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23
+High Income HH,(income_in_thousands>=100000),,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24
+Number of HH Persons,hhsize,,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31
+Number of full time workes in HH,num_full,,,,,,,,,,,,,,,,
+Number of Students in HH,num_students,,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21
+Num Kids between 0 and 4 (including) years old,num_age_0_4,,,,,,,,,,,,,,,,
+Presence of Kids between 0 and 4 (including) years old,(num_age_0_4 > 0),,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74
+Num kids between 4 and 15 (including) years old,num_age_5_15,,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08
+Presence of kids between 5 and 15 (including) years old,(num_age_5_15 > 0),,0.26,0.26,0.26,0.26,0.26,0.26,0.26,0.26,0.26,0.26,0.26,0.26,0.26,0.26,0.26
+Number of Adults (>= 16 years old),num_adult,,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03
+Dummy for single parent household,(num_adult == 1) & (num_age_0_4 + num_age_5_15 > 0),,,,,,,,,,,,,,,,
+Number of Cars > Number of Workers,more_cars_than_workers,,0.16,0.16,0.16,0.16,0.16,0.16,0.16,0.16,0.16,0.16,0.16,0.16,0.16,0.16,0.16
+Number of Vehicles,auto_ownership,,,,,,,,,,,,,,,,
+Dummy for female,is_female,,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22
+Dummy for all stops made by transit,tour_mode_is_transit,,,,,,,,,,,,,,,,
+Dummy for walking to all stops,tour_mode_is_non_motorized,,-1.54,-1.54,-1.54,-1.54,-1.54,-1.54,-1.54,-1.54,-1.54,-1.54,-1.54,-1.54,-1.54,-1.54,-1.54
+Number of work tours undertaken by the person,num_work_tours,,-0.15,-0.15,-0.15,-0.15,-0.15,-0.15,-0.15,-0.15,-0.15,-0.15,-0.15,-0.15,-0.15,-0.15,-0.15
+Number of university tours tours undertaken by the person,num_univ_tours,,-0.48,-0.48,-0.48,-0.48,-0.48,-0.48,-0.48,-0.48,-0.48,-0.48,-0.48,-0.48,-0.48,-0.48,-0.48
+Number of school tours tours undertaken by the person,num_school_tours,,-1.55,-1.55,-1.55,-1.55,-1.55,-1.55,-1.55,-1.55,-1.55,-1.55,-1.55,-1.55,-1.55,-1.55,-1.55
+Number of escort tours tours undertaken by the person,num_escort_tours,,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2
+Number of shop tours undertaken by the person,num_shop_tours,,,,,,,,,,,,,,,,
+Number of maintenace tours tours undertaken by the person,num_maint_tours,,,,,,,,,,,,,,,,
+Number of eating tours tours undertaken by the person,num_eatout_tours,,,,,,,,,,,,,,,,
+Number of visit tours tours undertaken by the person,num_social_tours,,,,,,,,,,,,,,,,
+Number of subtours in the tour,num_atwork_subtours,,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19
+Number of shop tours undertaken by the houshold,num_hh_shop_tours,,-0.05,-0.05,-0.05,-0.05,-0.05,-0.05,-0.05,-0.05,-0.05,-0.05,-0.05,-0.05,-0.05,-0.05,-0.05
+AM Peak departure between 6AM and 7 AM (including) Interacted with outbound tours,(start>5) & (start<8),,-1.93,-1.93,-1.93,-1.93,-1.93,-1.93,-1.93,-1.93,-1.93,-1.93,-1.93,-1.93,-1.93,-1.93,-1.93
+Arrival later than 17:00.,(end > 16),,,,,,,,,,,,,,,,
+Evening Arrival (>=19:00) Interacted with return tours,(end > 18),,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31
+Dummy for the duration of the tour being equal or greater than or equal to 11 hours,(duration > 10),,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6
+Dummy for the duration of the tour being equal or greater than or equal to 9 hours ,(duration > 8),,,,,,,,,,,,,,,,
+Dummy for the duration of the tour being equal or greater than or equal to 3 hours ,(duration > 2),,,,,,,,,,,,,,,,
+dummy for origin at Urban Commercial. (AreaType = 2),(origin_area_type == 2),,,,,,,,,,,,,,,,
+dummy for origin at Urban Residential (AreaType = 3),(origin_area_type == 3),,,,,,,,,,,,,,,,
+dummy for origin at Suburban Commercial  (AreaType = 4),(origin_area_type == 4),,,,,,,,,,,,,,,,
+dummy for origin at Suburban Residential  (AreaType = 5),(origin_area_type == 5),,,,,,,,,,,,,,,,
+dummy for origin at Exurban  (AreaType = 6),(origin_area_type == 6),,,,,,,,,,,,,,,,
+dummy for origin at Rural  (AreaType = 7),(origin_area_type == 7),,,,,,,,,,,,,,,,
+dummy for origin not urban  (AreaType = 4-7). For tours with outbound stops only,(origin_area_type > 3),,,,,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2
+dummy for destination at Urban CBD (AreaType = 1),(destination_area_type == 1),,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22
+dummy for destination at Urban Commercial. (AreaType = 2),(destination_area_type == 2),,,,,,,,,,,,,,,,
+dummy for destination at Urban Residential (AreaType = 3),(destination_area_type == 3),,,,,,,,,,,,,,,,
+dummy for destination at Suburban Commercial  (AreaType = 4),(destination_area_type == 4),,,,,,,,,,,,,,,,
+dummy for destination at Suburban Residential  (AreaType = 5),(destination_area_type == 5),,,,,,,,,,,,,,,,
+dummy for destination at Exurban  (AreaType = 6),(destination_area_type == 6),,,,,,,,,,,,,,,,
+dummy for destination at Rural  (AreaType = 7),(destination_area_type == 7),,,,,,,,,,,,,,,,
+HH accesibility for outbound tours. Interaction,hhacc,,,,,,,,,,,,,,,,
+HH accesibility for inbound tours. Interaction,hhacc,,,,,,,,,,,,,,,,
+Primary Destination Accessibility for outbound tours. Interaction,pracc,,,,,,,,,,,,,,,,
+Primary Destination Accessibility for return tours. Interaction,pracc,,,,,,,,,,,,,,,,
+dummy for distance less than 20 Miles ,(distance_in_miles < 20),,-0.22,-0.22,-0.22,-0.22,-0.22,-0.22,-0.22,-0.22,-0.22,-0.22,-0.22,-0.22,-0.22,-0.22,-0.22
+dummy for distance in miles,distance_in_miles,,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01
+Calibration constants,1,0,0.218650959,0.347329015,0.464324822,0.162082326,-0.070863839,0.147300224,-0.006139606,0.570030219,0.200242697,0.571994662,0.314135418,0.660034866,0.014983555,0.527048412,0.555539784
+Calibration constants,1,-0.2,,,,,,,,,,,,,,,

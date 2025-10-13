@@ -1,0 +1,29 @@
+
+SPEC: atwork_subtour_destination.csv
+SAMPLE_SPEC:  atwork_subtour_destination_sample.csv
+COEFFICIENTS: atwork_subtour_destination_coeffs.csv
+
+SAMPLE_SIZE: 30
+
+SIMULATE_CHOOSER_COLUMNS:
+  - person_id
+  - ptype
+  - home_zone_id
+  - tour_type
+  - tour_mode
+  - workplace_zone_id
+
+LOGSUM_SETTINGS: tour_mode_choice.yaml
+
+# model-specific logsum-related settings
+# CHOOSER_ORIG_COL_NAME: workplace_taz
+CHOOSER_ORIG_COL_NAME: workplace_zone_id
+ALT_DEST_COL_NAME: alt_dest
+IN_PERIOD: 28
+OUT_PERIOD: 28
+
+# optional (comment out if not desired)
+DEST_CHOICE_LOGSUM_COLUMN_NAME: destination_logsum
+
+# comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if saved alt logsum table
+DEST_CHOICE_SAMPLE_TABLE_NAME: tour_destination_sample

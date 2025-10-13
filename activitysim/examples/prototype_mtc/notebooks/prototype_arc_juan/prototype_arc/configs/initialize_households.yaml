@@ -1,0 +1,27 @@
+annotate_tables:
+  - tablename: persons
+    rename_columns:
+      maz: home_zone_id
+      sporder: PNUM
+    annotate:
+      SPEC: annotate_persons
+      DF: persons
+      TABLES:
+        - households
+  - tablename: households
+    rename_columns:
+      np: hhsize
+      nwrkrs_esr: num_workers
+      maz: home_zone_id
+    annotate:
+      SPEC: annotate_households
+      DF: households
+      TABLES:
+        - persons
+        - land_use
+  - tablename: persons
+    annotate:
+      SPEC: annotate_persons_after_hh
+      DF: persons
+      TABLES:
+        - households

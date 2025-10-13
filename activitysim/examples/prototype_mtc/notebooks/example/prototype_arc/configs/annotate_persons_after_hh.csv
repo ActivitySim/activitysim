@@ -1,0 +1,67 @@
+Description,Target,Expression
+#,, annotate persons table after annotate_households
+#,, adults get full hh_value_of_time and children get 60%
+,_hh_income,"reindex(households.hincp, persons.household_id)"
+,_num_workers,"reindex(households.num_workers, persons.household_id)"
+,_hhsize,"reindex(households.hhsize, persons.household_id)"
+,_area_type,"reindex(households.areatype, persons.household_id)"
+,_CBDFlag,"reindex(households.CBDFlag, persons.household_id)"
+,home_zone_id,"reindex(households.home_zone_id, persons.household_id)"
+,_num_predrive_child,"reindex(households.num_predrive_child, persons.household_id)"
+,_num_children_less_16,"reindex(households.num_children_less_16, persons.household_id)"
+,_num_children_16plus,"reindex(households.num_children_16plus, persons.household_id)"
+,_num_adults,"reindex(households.num_adults, persons.household_id)"
+,_num_nonworker_adults,"reindex(households.num_nonworker_adults, persons.household_id)"
+,_num_full_time_workers,"reindex(households.num_fullTime_workers, persons.household_id)"
+,_num_part_time_workers,"reindex(households.num_partTime_workers, persons.household_id)"
+,_num_students,"reindex(households.num_students, persons.household_id)"
+,_I_PCTLT10K,"reindex(households.I_PCTLT10K, persons.household_id)"
+,_I_PCT10TO20,"reindex(households.I_PCT10TO20, persons.household_id)"
+,_I_PCT20TO40,"reindex(households.I_PCT20TO40, persons.household_id)"
+,_I_PCTGT40,"reindex(households.I_PCTGT40, persons.household_id)"
+,PARKRATE,"reindex(households.PARKRATE, persons.household_id)"
+Household Income,hh_income,(_hh_income/1.03154279)
+No Income Household,is_no_income,(_hh_income/1.03154279)<0
+Low Income Household,is_low_income,(_hh_income/1.03154279)<20000
+Medium Income Household,is_medium_income,((_hh_income/1.03154279)>=20000) & ((_hh_income/1.03154279)<50000) 
+High Income Household ,is_high_income,((_hh_income/1.03154279)>=50000) & ((_hh_income/1.03154279)<100000) 
+Very High Income Household,is_very_high_income,(_hh_income/1.03154279)>=100000
+Income less than 10K,is_income_less10K,(_hh_income/1.03154279)<10000
+Income between 10K to 20K,is_income_10K_20K,((_hh_income/1.03154279)>=10000) & ((_hh_income/1.03154279)<20000) 
+Income 20K to 40K,is_income_20K_40K,((_hh_income/1.03154279)>=20000) & ((_hh_income/1.03154279)<40000)
+Income less than 50K,is_income_less50K,(_hh_income/1.03154279)<50000
+Income less than 25K,is_income_less25K,(_hh_income/1.03154279)<25000
+Income 25K to 60K,is_income_25K_to_60K,((_hh_income/1.03154279)>=25000) & ((_hh_income/1.03154279)<60000)
+Income 60K to 120K,is_income_60K_to_120K, ((_hh_income/1.03154279)>=60000) & ((_hh_income/1.03154279)<120000)
+Income greater than 60K,is_income_greater60K,((_hh_income/1.03154279)>=60000)
+Income greater than 120K,is_income_greater120K,((_hh_income/1.03154279)>=120000)
+#,,
+I_PCTLT10K,I_PCTLT10K,_I_PCTLT10K
+I_PCTLT10TO20,I_PCTLT10TO20,_I_PCT10TO20
+I_PCTLT20TO40,I_PCTLT20TO40,_I_PCT20TO40
+I_PCTGT40,I_PCTGT40,_I_PCTGT40
+#,,
+#,value_of_time,"_hh_vot.where(persons.age>=18, _hh_vot * 0.667)"
+HH Size,hhsize,_hhsize
+1 Person Household,is_hhsize1,_hhsize==1
+#,,
+HH with child less 16,is_hh_with_child_less16,_num_children_less_16>0
+HH with child 16_to_17,is_hh_with_child_16plus,_num_children_16plus>0
+Presence of nonworker in HHs,is_non_worker_in_HH,_num_nonworker_adults>0
+Presence of predrive child in HHs,is_pre_drive_child_in_HH,_num_predrive_child>0
+#,,
+number of workers,num_workers,_num_workers
+number of non workers,num_non_workers,(_hhsize) - (_num_workers)
+,num_full,_num_full_time_workers
+,num_part,_num_part_time_workers
+,num_students,_num_students
+number of adults,num_adults,_num_adults
+all the adults in the HH are full time workers,is_all_adults_full_time_workers,(_num_adults) == (_num_full_time_workers)
+# Land Use Variables,,
+CBD_Dummy,CBDFlag,_CBDFlag>0
+CBD,is_CBD,_area_type==1
+exurban,is_exurban,_area_type==6
+rural,is_rural,_area_type==7
+rural or exurban,is_rural_or_exurban,(_area_type>=6) & (_area_type<=7)
+urban,is_urban,(_area_type>1) & (_area_type<4)
+suburban,is_suburban,(_area_type==4) & (_area_type==5)

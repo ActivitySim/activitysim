@@ -1,0 +1,23 @@
+Description,Expression,adults,children,mixed
+Alternative-specific constant,1,,2.7377,3.6259
+Dummy for eating-out tours,tour_type=='eat',,-0.9678,-0.8027
+Dummy for discretionary tours,tour_type=='disc',,0.7648,0.5101
+No of full-time workers,num_full_max3,1.024,,0.3624
+No of part-time workers,num_part_max3,0.5412,,0.3164
+No of university students,num_univ_max3,0.8245,,
+No of non-workers,num_nonwork_max3,0.6263,,-0.3724
+No of preschool children,num_preschool_max3,,0.7306,0.7906
+No of pre-driving school children,num_school_max3,,0.7306,0.3532
+No of driving school children,num_driving_max3,,-0.2667,-0.9399
+Low HH income dummy,income_in_thousands<20,1.248,,0.5755
+Medium HH income dummy,(income_in_thousands>=20) & (income_in_thousands<50),0.8369,,
+No of cars greater than number of workers - dummy,more_cars_than_workers,1.386,,0.751
+Residential urban area dummy,is_urban,0.5741,,
+Residential suburban area dummy,is_suburban,0.5105,,0.1283
+Log of max window overlaps between adults,log_time_window_overlap_adult,1.192,,
+Log of max window overlaps between children,log_time_window_overlap_child,,1.841,
+Log of max window overlaps between adult & child,log_time_window_overlap_adult_child,,,1.958
+Not more than 1 travel active adult in HH,num_travel_active_adults<2,-999,,
+Not more than 1 travel active child in HH,num_travel_active_children<2,,-999,
+No travel-active pair adult-child in HH ,(num_travel_active_adults == 0) | (num_travel_active_children == 0),,,-999
+Calibration Constant,1,,-4.469706876,-2.354610988

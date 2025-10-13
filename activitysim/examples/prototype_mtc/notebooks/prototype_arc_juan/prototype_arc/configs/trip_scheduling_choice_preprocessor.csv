@@ -1,0 +1,28 @@
+Description,Target,Expression
+,tour_outbound_dist,"od_skims['SOV_FREE_DISTANCE', 'MD']"
+,tour_inbound_dist,"do_skims['SOV_FREE_DISTANCE', 'MD']"
+,main_leg_dist,"obib_skims['SOV_FREE_DISTANCE', 'MD']"
+outbound leg free flow time,outbound_leg_fft,"od_skims['SOV_FREE_TIME', 'MD']"
+inbound leg free flow time,inbound_leg_fft,"do_skims['SOV_FREE_TIME', 'MD']"
+main leg free flow time,main_leg_fft,"obib_skims['SOV_FREE_TIME', 'MD']"
+#,,
+full time workers,ptype,"reindex(persons.ptype, df.person_id)"
+#,,
+,_STOP_COUNT,"lambda exp, trips, tours: (trips.query(exp).groupby('tour_id').size() - 1).reindex(tours.index).fillna(0).astype(np.int8)"
+number of work activities on the outbound tour leg,num_work_stops_ob,"_STOP_COUNT('(outbound==True & purpose==""work"")', trips, tours)"
+number of school activities on the outbound  tour leg,num_school_stops_ob,"_STOP_COUNT('(outbound==True & purpose==""school"")', trips, tours)"
+number of escort activities on the outbound  tour leg,num_escort_stops_ob,"_STOP_COUNT('(outbound==True & purpose==""escort"")', trips, tours)"
+number of shopping activities on the outbound tour leg,num_shopping_stops_ob,"_STOP_COUNT('(outbound==True & purpose==""shopping"")', trips, tours)"
+number of other maintenance activities on the outbound tour leg,num_maint_stops_ob,"_STOP_COUNT('(outbound==True & purpose==""othmaint"")', trips, tours)"
+number of eating out activities on the outbound tour leg,num_eat_out_stops_ob,"_STOP_COUNT('(outbound==True & purpose==""eatout"")', trips, tours)"
+number of social\visiting activities on the outbound tour leg,num_social_visit_stops_ob,"_STOP_COUNT('(outbound==True & purpose==""social"")', trips, tours)"
+number of other discretionary activities on the outbound tour leg,num_discr_stops_ob,"_STOP_COUNT('(outbound==True & purpose==""othdiscr"")', trips, tours)"
+#,,
+number of work activities on the inbound tour leg,num_work_stops_ib,"_STOP_COUNT('(outbound==False & purpose==""work"")', trips, tours)"
+number of school activities on the inbound  tour leg,num_school_stops_ib,"_STOP_COUNT('(outbound==False & purpose==""school"")', trips, tours)"
+number of escort activities on the inbound  tour leg,num_escort_stops_ib,"_STOP_COUNT('(outbound==False & purpose==""escort"")', trips, tours)"
+number of shopping activities on the inbound tour leg,num_shopping_stops_ib,"_STOP_COUNT('(outbound==False & purpose==""shopping"")', trips, tours)"
+number of other maintenance activities on the inbound tour leg,num_maint_stops_ib,"_STOP_COUNT('(outbound==False & purpose==""othmaint"")', trips, tours)"
+number of eating out activities on the inbound tour leg,num_eat_out_stops_ib,"_STOP_COUNT('(outbound==False & purpose==""eatout"")', trips, tours)"
+number of social\visiting activities on the inbound tour leg,num_social_visit_stops_ib,"_STOP_COUNT('(outbound==False & purpose==""social"")', trips, tours)"
+number of other discretionary activities on the inbound tour leg,num_discr_stops_ib,"_STOP_COUNT('(outbound==False & purpose==""othdiscr"")', trips, tours)"

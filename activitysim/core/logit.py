@@ -11,7 +11,7 @@ import pandas as pd
 from activitysim.core import tracing, workflow
 from activitysim.core.choosing import choice_maker
 from activitysim.core.configuration.logit import LogitNestSpec
-from activitysim.core.exceptions import InvalidTravelError, ModelConfigurationError
+from activitysim.core.exceptions import InvalidTravelError, ModelConfigurationError, TableIndexError
 
 logger = logging.getLogger(__name__)
 
@@ -361,11 +361,11 @@ def interaction_dataset(
 
     """
     if not choosers.index.is_unique:
-        raise RuntimeError(
+        raise TableIndexError(
             "ERROR: choosers index is not unique, " "sample will not work correctly"
         )
     if not alternatives.index.is_unique:
-        raise RuntimeError(
+        raise TableIndexError(
             "ERROR: alternatives index is not unique, " "sample will not work correctly"
         )
 

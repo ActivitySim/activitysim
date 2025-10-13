@@ -77,8 +77,14 @@ class TableSlicingError(RuntimeError):
 class InputPopulationError(RuntimeError):
     """An issue with the input population was found."""
 
+
 class SubprocessError(RuntimeError):
     """An error occurred in a subprocess."""
 
+
 class SegmentedSpecificationError(RuntimeError):
     """An error was caused by creating an invalid spec table for a segmented model component."""
+
+
+class TableIndexError(RuntimeError):
+    """An error related to the index of a table in the pipeline."""

@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core import workflow
-from activitysim.core.exceptions import StateAccessError
+from activitysim.core.exceptions import StateAccessError, TableIndexError
 
 logger = logging.getLogger(__name__)
 
@@ -907,7 +907,7 @@ class DataFrameMatrix(object):
             not_in_skim = not_in_skim.values
             logger.warning(f"row_ids: {row_ids[not_in_skim]}")
             logger.warning(f"col_ids: {col_ids[not_in_skim]}")
-            raise RuntimeError(
+            raise TableIndexError(
                 f"DataFrameMatrix: {not_in_skim.sum()} row_ids of {len(row_ids)} not in skim."
             )
 

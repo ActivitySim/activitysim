@@ -1212,10 +1212,14 @@ class Checkpoints(StateAccessor):
         # if there is no checkpoint name given, do not attempt to read from store
         if checkpoint_name is None:
             if table_name not in self.last_checkpoint:
-                raise CheckpointNameNotFoundError("table '%s' never checkpointed." % table_name)
+                raise CheckpointNameNotFoundError(
+                    "table '%s' never checkpointed." % table_name
+                )
 
             if not self.last_checkpoint[table_name]:
-                raise CheckpointNameNotFoundError("table '%s' was dropped." % table_name)
+                raise CheckpointNameNotFoundError(
+                    "table '%s' was dropped." % table_name
+                )
 
             return self._obj.get_dataframe(table_name)
 
@@ -1225,7 +1229,9 @@ class Checkpoints(StateAccessor):
             None,
         )
         if checkpoint is None:
-            raise CheckpointNameNotFoundError("checkpoint '%s' not in checkpoints." % checkpoint_name)
+            raise CheckpointNameNotFoundError(
+                "checkpoint '%s' not in checkpoints." % checkpoint_name
+            )
 
         # find the checkpoint that table was written to store
         last_checkpoint_name = checkpoint.get(table_name, None)

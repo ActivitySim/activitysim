@@ -1014,9 +1014,9 @@ def iterate_location_choice(
 
     logger.debug(f"{trace_label} max_iterations: {max_iterations}")
 
-    save_sample_df = (
-        choices_df
-    ) = None  # initialize to None, will be populated in first iteration
+    save_sample_df = choices_df = (
+        None  # initialize to None, will be populated in first iteration
+    )
 
     for iteration in range(1, max_iterations + 1):
         persons_merged_df_ = persons_merged_df.copy()

@@ -585,9 +585,11 @@ def trip_scheduling(
         i = 0
         while (i < max_iterations) and not trips_chunk.empty:
             # only chunk log first iteration since memory use declines with each iteration
-            with chunk.chunk_log(
-                state, trace_label
-            ) if i == 0 else chunk.chunk_log_skip():
+            with (
+                chunk.chunk_log(state, trace_label)
+                if i == 0
+                else chunk.chunk_log_skip()
+            ):
                 i += 1
                 is_last_iteration = i == max_iterations
 
@@ -616,7 +618,9 @@ def trip_scheduling(
                 logger.info("%s %s failed", trace_label_i, failed.sum())
 
                 if (failed.sum() > 0) & (model_settings.scheduling_mode == "relative"):
-                    raise InvalidTravelError("failed trips with relative scheduling mode")
+                    raise InvalidTravelError(
+                        "failed trips with relative scheduling mode"
+                    )
 
                 if not is_last_iteration:
                     # boolean series of trips whose leg scheduling failed

@@ -11,7 +11,11 @@ import pandas as pd
 from activitysim.core import tracing, workflow
 from activitysim.core.choosing import choice_maker
 from activitysim.core.configuration.logit import LogitNestSpec
-from activitysim.core.exceptions import InvalidTravelError, ModelConfigurationError, TableIndexError
+from activitysim.core.exceptions import (
+    InvalidTravelError,
+    ModelConfigurationError,
+    TableIndexError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -569,7 +573,9 @@ def each_nest(nest_spec: dict | LogitNestSpec, type=None, post_order=False):
             Nest object with info about the current node (nest or leaf)
     """
     if type is not None and type not in Nest.nest_types():
-        raise ModelConfigurationError("Unknown nest type '%s' in call to each_nest" % type)
+        raise ModelConfigurationError(
+            "Unknown nest type '%s' in call to each_nest" % type
+        )
 
     if isinstance(nest_spec, dict):
         nest_spec = LogitNestSpec.model_validate(nest_spec)

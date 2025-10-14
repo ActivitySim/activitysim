@@ -150,9 +150,9 @@ def assign_cdap_rank(
     )
 
     # tag the backfilled persons
-    persons.loc[
-        others[others.cdap_rank == RANK_UNASSIGNED].index, "cdap_rank"
-    ] = RANK_BACKFILL
+    persons.loc[others[others.cdap_rank == RANK_UNASSIGNED].index, "cdap_rank"] = (
+        RANK_BACKFILL
+    )
     del others
 
     # assign person number in cdapPersonArray preference order
@@ -472,7 +472,8 @@ def build_cdap_spec(
 
         if not (0 <= row.cardinality <= MAX_INTERACTION_CARDINALITY):
             raise ModelConfigurationError(
-                "Bad row cardinality %d for %s. Try checking that all interaction terms include 3 or fewer person types." % (row.cardinality, row.slug)
+                "Bad row cardinality %d for %s. Try checking that all interaction terms include 3 or fewer person types."
+                % (row.cardinality, row.slug)
             )
 
         # for all other interaction rules, we need to generate a row in the spec for each

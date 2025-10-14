@@ -100,9 +100,9 @@ class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
     BASE_RANDOM_SEED: int = 0
     add_size_tables: bool = True
     zone_id_names: dict[str, str] = {"index_col": "zone_id"}
-    ORIGIN_SAMPLE_METHOD: Literal[
-        None, "full", "uniform", "uniform-taz", "kmeans"
-    ] = None
+    ORIGIN_SAMPLE_METHOD: Literal[None, "full", "uniform", "uniform-taz", "kmeans"] = (
+        None
+    )
     """
     The method in which origins are sampled.
 
@@ -622,9 +622,11 @@ class ProtoPop:
 
         # Create ID columns, defaults to "%tablename%_id"
         hhid, perid, tourid = (
-            self.params[x]["index_col"]
-            if len(self.params[x]["index_col"]) > 0
-            else x + "_id"
+            (
+                self.params[x]["index_col"]
+                if len(self.params[x]["index_col"]) > 0
+                else x + "_id"
+            )
             for x in klist
         )
 

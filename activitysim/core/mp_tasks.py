@@ -441,7 +441,9 @@ def build_slice_rules(state: workflow.State, slice_info, pipeline_tables):
         tables[table_name] = pipeline_tables[table_name]
 
     if primary_slicer not in tables:
-        raise SystemConfigurationError("primary slice table '%s' not in pipeline" % primary_slicer)
+        raise SystemConfigurationError(
+            "primary slice table '%s' not in pipeline" % primary_slicer
+        )
 
     # allow wildcard 'True' to avoid slicing (or coalescing) any tables no explicitly listed in slice_info.tables
     # populationsim uses slice.except wildcards to avoid listing control tables (etc) that should not be sliced,
@@ -543,7 +545,9 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
         "last_checkpoint_in_previous_multiprocess_step", None
     )
     if last_checkpoint_in_previous_multiprocess_step is None:
-        raise CheckpointNameNotFoundError("missing last_checkpoint_in_previous_multiprocess_step")
+        raise CheckpointNameNotFoundError(
+            "missing last_checkpoint_in_previous_multiprocess_step"
+        )
     state.checkpoint.restore(resume_after=last_checkpoint_in_previous_multiprocess_step)
 
     # ensure all tables are in the pipeline
@@ -1788,7 +1792,9 @@ def get_breadcrumbs(state: workflow.State, run_list):
     # - can't resume multiprocess without breadcrumbs file
     if not breadcrumbs:
         error(state, f"empty breadcrumbs for resume_after '{resume_after}'")
-        raise CheckpointNameNotFoundError("empty breadcrumbs for resume_after '%s'" % resume_after)
+        raise CheckpointNameNotFoundError(
+            "empty breadcrumbs for resume_after '%s'" % resume_after
+        )
 
     # if resume_after is specified by name
     if resume_after != LAST_CHECKPOINT:

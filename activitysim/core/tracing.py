@@ -249,7 +249,9 @@ def slice_ids(df, ids, column=None):
     except KeyError:
         # this happens if specified slicer column is not in df
         # df = df[0:0]
-        raise TableSlicingError("slice_ids slicer column '%s' not in dataframe" % column)
+        raise TableSlicingError(
+            "slice_ids slicer column '%s' not in dataframe" % column
+        )
 
     return df
 

@@ -162,9 +162,9 @@ def test_cdap_from_pipeline(reconnect_pipeline: workflow.State, caplog):
         lambda x: x[:-1].upper() if x.endswith("0") else x.upper()
     )
     household_df["cdap_activity"] = household_df.apply(
-        lambda x: x["cdap_activity"] + "J"
-        if x["has_joint_tour"] == 1
-        else x["cdap_activity"],
+        lambda x: (
+            x["cdap_activity"] + "J" if x["has_joint_tour"] == 1 else x["cdap_activity"]
+        ),
         axis=1,
     )
 

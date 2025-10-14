@@ -79,9 +79,9 @@ def run_tour_scheduling(
             specs[spec_segment_name] = simulate.eval_coefficients(
                 state, model_spec, coefficients_df, estimator
             )
-            compute_settings[
-                spec_segment_name
-            ] = spec_settings.compute_settings.subcomponent_settings(spec_segment_name)
+            compute_settings[spec_segment_name] = (
+                spec_settings.compute_settings.subcomponent_settings(spec_segment_name)
+            )
 
             if estimator:
                 estimators[spec_segment_name] = estimator  # add to local list

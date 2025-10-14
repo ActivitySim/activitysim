@@ -905,7 +905,10 @@ class ShadowPriceCalculator:
             self.sampled_persons = sampled_persons
 
         else:
-            raise SystemConfigurationError("unknown SHADOW_PRICE_METHOD %s, method must be one of 'ctramp', 'daysim', or 'simulation'" % shadow_price_method)
+            raise SystemConfigurationError(
+                "unknown SHADOW_PRICE_METHOD %s, method must be one of 'ctramp', 'daysim', or 'simulation'"
+                % shadow_price_method
+            )
 
     def dest_size_terms(self, segment):
         assert segment in self.segment_ids
@@ -924,7 +927,8 @@ class ShadowPriceCalculator:
                 utility_adjustment = self.shadow_prices[segment]
             else:
                 raise SystemConfigurationError(
-                    "unknown SHADOW_PRICE_METHOD %s, method must be one of 'ctramp', 'daysim', or 'simulation'" % shadow_price_method
+                    "unknown SHADOW_PRICE_METHOD %s, method must be one of 'ctramp', 'daysim', or 'simulation'"
+                    % shadow_price_method
                 )
 
         size_terms = pd.DataFrame(
@@ -1037,9 +1041,7 @@ def buffers_for_shadow_pricing(shadow_pricing_info):
         if np.issubdtype(dtype, np.int64):
             typecode = ctypes.c_int64
         else:
-            raise TypeError(
-                "buffer_for_shadow_pricing unrecognized dtype %s" % dtype
-            )
+            raise TypeError("buffer_for_shadow_pricing unrecognized dtype %s" % dtype)
 
         shared_data_buffer = multiprocessing.Array(typecode, buffer_size)
 
@@ -1086,9 +1088,7 @@ def buffers_for_shadow_pricing_choice(state, shadow_pricing_choice_info):
         if np.issubdtype(dtype, np.int64):
             typecode = ctypes.c_int64
         else:
-            raise TypeError(
-                "buffer_for_shadow_pricing unrecognized dtype %s" % dtype
-            )
+            raise TypeError("buffer_for_shadow_pricing unrecognized dtype %s" % dtype)
 
         shared_data_buffer = multiprocessing.Array(typecode, buffer_size)
 
@@ -1201,7 +1201,9 @@ def shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, model_sele
         )
 
     if block_name(model_selector) not in data_buffers:
-        raise MissingNameError("Block %s not in data_buffers" % block_name(model_selector))
+        raise MissingNameError(
+            "Block %s not in data_buffers" % block_name(model_selector)
+        )
 
     shape = block_shapes[model_selector]
     data = data_buffers[block_name(model_selector)]

@@ -16,7 +16,11 @@ from activitysim.core.configuration import PydanticReadable
 from activitysim.core.configuration.base import PydanticBase
 from activitysim.core.util import reindex
 from activitysim.core.yaml_tools import safe_dump
-from activitysim.core.exceptions import DuplicateWorkflowTableError, DuplicateLoadableObjectError, EstimationDataError
+from activitysim.core.exceptions import (
+    DuplicateWorkflowTableError,
+    DuplicateLoadableObjectError,
+    EstimationDataError,
+)
 
 logger = logging.getLogger("estimation")
 

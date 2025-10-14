@@ -464,7 +464,9 @@ class TimeTable(object):
                     % self.windows_table_name,
                     level=logging.ERROR,
                 )
-            raise DuplicateWorkflowTableError("Attempt to replace_table while in transaction")
+            raise DuplicateWorkflowTableError(
+                "Attempt to replace_table while in transaction"
+            )
 
         # get windows_df from bottleneck function in case updates to self.person_window
         # do not write through to pandas dataframe

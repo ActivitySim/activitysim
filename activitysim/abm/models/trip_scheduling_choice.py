@@ -251,9 +251,9 @@ def run_trip_scheduling_choice(
     tours.loc[tours[HAS_OB_STOPS] != tours[HAS_IB_STOPS], NUM_ALTERNATIVES] = (
         tours[TOUR_DURATION_COLUMN] + 1
     )
-    tours.loc[
-        tours[HAS_OB_STOPS] & tours[HAS_IB_STOPS], NUM_ALTERNATIVES
-    ] = tours.apply(lambda x: alt_sizes[1, x.duration], axis=1)
+    tours.loc[tours[HAS_OB_STOPS] & tours[HAS_IB_STOPS], NUM_ALTERNATIVES] = (
+        tours.apply(lambda x: alt_sizes[1, x.duration], axis=1)
+    )
 
     # If no intermediate stops on the tour, then then main leg duration
     # equals the tour duration and the intermediate durations are zero

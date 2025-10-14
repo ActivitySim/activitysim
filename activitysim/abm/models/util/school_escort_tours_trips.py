@@ -165,15 +165,15 @@ def create_bundle_attributes(bundles):
                 ).sum(axis=1)
 
                 # school_destinations, school_starts, school_ends, and school_tour_ids are concatenated
-                bundles.loc[
-                    filtered_bundles.index, "school_destinations"
-                ] = join_attributes(
-                    filtered_bundles,
-                    [
-                        f"school_destination_child{first_child}",
-                        f"school_destination_child{second_child}",
-                        f"school_destination_child{third_child}",
-                    ],
+                bundles.loc[filtered_bundles.index, "school_destinations"] = (
+                    join_attributes(
+                        filtered_bundles,
+                        [
+                            f"school_destination_child{first_child}",
+                            f"school_destination_child{second_child}",
+                            f"school_destination_child{third_child}",
+                        ],
+                    )
                 )
 
                 bundles.loc[filtered_bundles.index, "school_starts"] = join_attributes(
@@ -194,15 +194,15 @@ def create_bundle_attributes(bundles):
                     ],
                 )
 
-                bundles.loc[
-                    filtered_bundles.index, "school_tour_ids"
-                ] = join_attributes(
-                    filtered_bundles,
-                    [
-                        f"school_tour_id_child{first_child}",
-                        f"school_tour_id_child{second_child}",
-                        f"school_tour_id_child{third_child}",
-                    ],
+                bundles.loc[filtered_bundles.index, "school_tour_ids"] = (
+                    join_attributes(
+                        filtered_bundles,
+                        [
+                            f"school_tour_id_child{first_child}",
+                            f"school_tour_id_child{second_child}",
+                            f"school_tour_id_child{third_child}",
+                        ],
+                    )
                 )
 
     bundles.drop(columns=["first_child", "second_child", "third_child"], inplace=True)
@@ -399,9 +399,9 @@ def create_chauf_escort_trips(bundles):
         ~chauf_trips["primary_purpose"].isna()
     ), f"Missing tour purpose for {chauf_trips[chauf_trips['primary_purpose'].isna()]}"
 
-    chauf_trips.loc[
-        chauf_trips["purpose"] == "home", "trip_num"
-    ] = 999  # trips home are always last
+    chauf_trips.loc[chauf_trips["purpose"] == "home", "trip_num"] = (
+        999  # trips home are always last
+    )
     chauf_trips.sort_values(
         by=["household_id", "tour_id", "outbound", "trip_num"],
         ascending=[True, True, False, True],
@@ -559,9 +559,9 @@ def create_escortee_trips(bundles):
     id_cols = ["household_id", "person_id", "tour_id"]
     escortee_trips[id_cols] = escortee_trips[id_cols].astype("int64")
 
-    escortee_trips.loc[
-        escortee_trips["purpose"] == "home", "trip_num"
-    ] = 999  # trips home are always last
+    escortee_trips.loc[escortee_trips["purpose"] == "home", "trip_num"] = (
+        999  # trips home are always last
+    )
     escortee_trips.sort_values(
         by=["household_id", "tour_id", "outbound", "trip_num"],
         ascending=[True, True, False, True],

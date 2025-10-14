@@ -529,7 +529,9 @@ class Random(object):
         """
 
         if self.step_name is not None or self.channels:
-            raise DuplicateLoadableObjectError("Can only call set_base_seed before the first step.")
+            raise DuplicateLoadableObjectError(
+                "Can only call set_base_seed before the first step."
+            )
 
         assert len(list(self.channels.keys())) == 0
 

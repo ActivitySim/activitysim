@@ -96,7 +96,7 @@ def update_progress_overall(description, formatting=""):
 
 def reset_progress_step(*args, description="", prefix="", **kwargs):
     if not os.environ.get("NO_RICH", False):
-        print(f"\u23F1  {time.strftime('%I:%M:%S %p')} - {description}")
+        print(f"\u23f1  {time.strftime('%I:%M:%S %p')} - {description}")
         progress.reset(progress_step, *args, description=prefix + description, **kwargs)
     else:
         print("╭" + "─" * (len(description) + 2) + "╮")

@@ -400,7 +400,6 @@ class SkimDict:
 
 
 class SkimWrapper(object):
-
     """
     A SkimWrapper object is an access wrapper around a SkimDict of multiple skim objects,
     where each object is identified by a key.

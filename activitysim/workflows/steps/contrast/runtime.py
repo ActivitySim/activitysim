@@ -67,7 +67,9 @@ def contrast_runtime(
     )
 
     if len(include_runs) == 1:
-        result = c.mark_bar(size=6,).encode(
+        result = c.mark_bar(
+            size=6,
+        ).encode(
             x=alt.X("seconds:Q", stack=None),
             y=alt.Y("model_name", type="nominal", sort=None),
             color="source",
@@ -80,7 +82,10 @@ def contrast_runtime(
         )
 
     elif len(include_runs) == 2:
-        result = c.mark_bar(yOffset=-3, size=6,).transform_filter(
+        result = c.mark_bar(
+            yOffset=-3,
+            size=6,
+        ).transform_filter(
             (alt.datum.source == relabel_source(include_runs[0]))
         ).encode(
             x=alt.X("seconds:Q", stack=None),
@@ -107,7 +112,10 @@ def contrast_runtime(
         )
 
     elif len(include_runs) == 3:
-        result = c.mark_bar(yOffset=-5, size=4,).transform_filter(
+        result = c.mark_bar(
+            yOffset=-5,
+            size=4,
+        ).transform_filter(
             (alt.datum.source == relabel_source(include_runs[0]))
         ).encode(
             x=alt.X("seconds:Q", stack=None),

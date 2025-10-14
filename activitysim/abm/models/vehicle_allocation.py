@@ -255,9 +255,9 @@ def vehicle_allocation(
 
         # set choice for non-household vehicle option
         choices["choice"] = choices["choice"].astype(veh_choice_dtype)
-        choices.loc[
-            choices["alt_choice"] == alts_from_spec[-1], "choice"
-        ] = alts_from_spec[-1]
+        choices.loc[choices["alt_choice"] == alts_from_spec[-1], "choice"] = (
+            alts_from_spec[-1]
+        )
 
         # creating a column for choice of each occupancy level
         tours_veh_occup_col = f"vehicle_occup_{occup}"

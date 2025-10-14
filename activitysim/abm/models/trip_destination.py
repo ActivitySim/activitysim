@@ -1746,7 +1746,9 @@ def trip_destination(
 
         # lest they try to put tour samples into the same table
         if state.is_table(sample_table_name):
-            raise DuplicateWorkflowTableError("sample table %s already exists" % sample_table_name)
+            raise DuplicateWorkflowTableError(
+                "sample table %s already exists" % sample_table_name
+            )
         state.extend_table(sample_table_name, save_sample_df)
 
     expressions.annotate_tables(

@@ -190,9 +190,9 @@ def disaggregate_accessibility(state: workflow.State) -> pd.DataFrame:
         )
 
     # Copy home_zone_id in proto-table to match the temporary 'nearest_zone_id'
-    proto_accessibility_df[
-        "nearest_accessibility_zone_id"
-    ] = proto_accessibility_df.home_zone_id
+    proto_accessibility_df["nearest_accessibility_zone_id"] = (
+        proto_accessibility_df.home_zone_id
+    )
 
     # Set up the useful columns
     exact_cols = merging_params.get("by", [])

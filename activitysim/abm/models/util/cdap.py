@@ -150,9 +150,9 @@ def assign_cdap_rank(
     )
 
     # tag the backfilled persons
-    persons.loc[others[others.cdap_rank == RANK_UNASSIGNED].index, "cdap_rank"] = (
-        RANK_BACKFILL
-    )
+    persons.loc[
+        others[others.cdap_rank == RANK_UNASSIGNED].index, "cdap_rank"
+    ] = RANK_BACKFILL
     del others
 
     # assign person number in cdapPersonArray preference order

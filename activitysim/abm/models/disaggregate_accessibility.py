@@ -100,9 +100,9 @@ class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
     BASE_RANDOM_SEED: int = 0
     add_size_tables: bool = True
     zone_id_names: dict[str, str] = {"index_col": "zone_id"}
-    ORIGIN_SAMPLE_METHOD: Literal[None, "full", "uniform", "uniform-taz", "kmeans"] = (
-        None
-    )
+    ORIGIN_SAMPLE_METHOD: Literal[
+        None, "full", "uniform", "uniform-taz", "kmeans"
+    ] = None
     """
     The method in which origins are sampled.
 

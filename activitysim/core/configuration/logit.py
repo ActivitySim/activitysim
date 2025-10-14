@@ -278,7 +278,7 @@ class TourModeComponentSettings(TemplatedLogitComponentSettings, extra="forbid")
     COMPUTE_TRIP_MODE_CHOICE_LOGSUMS: bool = False
     tvpb_mode_path_types: dict[str, Any] | None = None
     FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH: bool = True
-    nontour_preprocessor: PreprocessorSettings | list[PreprocessorSettings] | None = (
-        None
-    )
+    nontour_preprocessor: PreprocessorSettings | list[
+        PreprocessorSettings
+    ] | None = None
     LOGSUM_CHOOSER_COLUMNS: list[str] = []

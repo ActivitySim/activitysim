@@ -698,9 +698,9 @@ class Network_LOS(object):
 
         if self.zone_system == THREE_ZONE:
             assert self.tvpb is not None
-            skim_buffers[self.tvpb.tap_cache.cache_tag] = (
-                self.tvpb.tap_cache.allocate_data_buffer(shared=True)
-            )
+            skim_buffers[
+                self.tvpb.tap_cache.cache_tag
+            ] = self.tvpb.tap_cache.allocate_data_buffer(shared=True)
 
         return skim_buffers
 

@@ -140,9 +140,9 @@ def university_location_zone_override(
     # saving original zone if desired
     original_zone_col_name = model_settings["ORIGINAL_ZONE_COL_NAME"]
     if original_zone_col_name is not None:
-        persons.loc[persons.index.isin(choosers.index), original_zone_col_name] = (
-            choosers[original_zone_col_name]
-        )
+        persons.loc[
+            persons.index.isin(choosers.index), original_zone_col_name
+        ] = choosers[original_zone_col_name]
 
     state.add_table("persons", persons)
 

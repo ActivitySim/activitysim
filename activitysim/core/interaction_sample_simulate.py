@@ -177,9 +177,9 @@ def _interaction_sample_simulate(
     if log_alt_losers:
         # logit.interaction_dataset adds ALT_CHOOSER_ID column if log_alt_losers is True
         # to enable detection of zero_prob-driving utils (e.g. -999 for all alts in a chooser)
-        interaction_df[interaction_simulate.ALT_CHOOSER_ID] = (
-            interaction_df.index.values
-        )
+        interaction_df[
+            interaction_simulate.ALT_CHOOSER_ID
+        ] = interaction_df.index.values
 
     chunk_sizer.log_df(trace_label, "interaction_df", interaction_df)
 

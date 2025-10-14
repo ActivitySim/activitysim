@@ -1012,7 +1012,9 @@ def set_skim_wrapper_targets(df, skims):
     skims = (
         skims
         if isinstance(skims, list)
-        else skims.values() if isinstance(skims, dict) else [skims]
+        else skims.values()
+        if isinstance(skims, dict)
+        else [skims]
     )
 
     # assume any object in skims can be treated as a skim
@@ -1640,7 +1642,9 @@ def tvpb_skims(skims):
             else (
                 skims.values()
                 if isinstance(skims, dict)
-                else [skims] if skims is not None else []
+                else [skims]
+                if skims is not None
+                else []
             )
         )
 

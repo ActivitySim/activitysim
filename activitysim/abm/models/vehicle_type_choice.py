@@ -566,9 +566,9 @@ class VehicleTypeChoiceSettings(LogitComponentSettings, extra="forbid"):
     PROBS_SPEC: str | None = None
     combinatorial_alts: dict | None = None
     alts_preprocessor: PreprocessorSettings | None = None
-    SIMULATION_TYPE: Literal["simple_simulate", "interaction_simulate"] = (
-        "interaction_simulate"
-    )
+    SIMULATION_TYPE: Literal[
+        "simple_simulate", "interaction_simulate"
+    ] = "interaction_simulate"
     COLS_TO_INCLUDE_IN_VEHICLE_TABLE: list[str] = []
 
     COLS_TO_INCLUDE_IN_CHOOSER_TABLE: list[str] = []

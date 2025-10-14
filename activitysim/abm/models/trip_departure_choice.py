@@ -132,9 +132,9 @@ def build_patterns(trips, time_windows):
         ]
         possible_windows = np.unique(possible_windows, axis=1).transpose()
         filler = np.full((possible_windows.shape[0], max_trip_count), np.nan)
-        filler[: possible_windows.shape[0], : possible_windows.shape[1]] = (
-            possible_windows
-        )
+        filler[
+            : possible_windows.shape[0], : possible_windows.shape[1]
+        ] = possible_windows
         patterns.append(filler)
         pattern_sizes.append(filler.shape[0])
 

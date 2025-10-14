@@ -159,10 +159,10 @@ def parking_location_choice_at_university(
             tours_nearest_lot = tour_choosers.primary_purpose.isin(
                 nearest_lot_tour_purposes
             ) & tour_choosers.destination.isin(all_univ_zones)
-            tour_choosers.loc[tours_nearest_lot, "univ_parking_zone_id"] = (
-                tour_choosers.loc[tours_nearest_lot, "destination"].map(
-                    closest_parking_df["closest_parking_zone"]
-                )
+            tour_choosers.loc[
+                tours_nearest_lot, "univ_parking_zone_id"
+            ] = tour_choosers.loc[tours_nearest_lot, "destination"].map(
+                closest_parking_df["closest_parking_zone"]
             )
 
         logger.info(
@@ -172,12 +172,12 @@ def parking_location_choice_at_university(
         )
 
     # Overriding school_zone_id in persons table
-    trips.loc[trips.index.isin(trip_choosers.index), "parked_at_university"] = (
-        trip_choosers["parked_at_university"]
-    )
-    tours.loc[tours.index.isin(tour_choosers.index), "univ_parking_zone_id"] = (
-        tour_choosers["univ_parking_zone_id"]
-    )
+    trips.loc[
+        trips.index.isin(trip_choosers.index), "parked_at_university"
+    ] = trip_choosers["parked_at_university"]
+    tours.loc[
+        tours.index.isin(tour_choosers.index), "univ_parking_zone_id"
+    ] = tour_choosers["univ_parking_zone_id"]
 
     state.add_table("trips", trips)
     state.add_table("tours", tours)

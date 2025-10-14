@@ -472,7 +472,7 @@ def build_cdap_spec(
 
         if not (0 <= row.cardinality <= MAX_INTERACTION_CARDINALITY):
             raise ModelConfigurationError(
-                "Bad row cardinality %d for %s" % (row.cardinality, row.slug)
+                "Bad row cardinality %d for %s. Try checking that all interaction terms include 3 or fewer person types." % (row.cardinality, row.slug)
             )
 
         # for all other interaction rules, we need to generate a row in the spec for each

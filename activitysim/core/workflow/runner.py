@@ -7,7 +7,7 @@ from collections.abc import Callable, Iterable
 from datetime import timedelta
 
 from activitysim.core import tracing
-from activitysim.core.exceptions import DuplicateWorkflowNameError, TableSlicingError
+from activitysim.core.exceptions import DuplicateWorkflowNameError
 from activitysim.core.workflow.accessor import FromState, StateAccessor
 from activitysim.core.workflow.checkpoint import (
     CHECKPOINT_NAME,
@@ -265,7 +265,7 @@ class Runner(StateAccessor):
         if model_name in checkpointed_models:
             if self._obj.settings.duplicate_step_execution == "error":
                 checkpointed_model_bullets = "\n - ".join(checkpointed_models)
-                raise TableSlicingError(
+                raise DuplicateWorkflowNameError(
                     f"Checkpointed Models:\n - {checkpointed_model_bullets}\n"
                     f"Cannot run model '{model_name}' more than once"
                 )

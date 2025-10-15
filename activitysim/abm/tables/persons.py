@@ -9,8 +9,8 @@ import pandas as pd
 
 from activitysim.abm.tables.util import simple_table_join
 from activitysim.core import workflow
+from activitysim.core.exceptions import InputTableError
 from activitysim.core.input import read_input_table
-from activitysim.core.exceptions import InputPopulationError
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ def persons(state: workflow.State) -> pd.DataFrame:
             f"{persons_without_households.sum()} persons out of {len(df)} without households\n"
             f"{pd.Series({'person_id': persons_without_households.index.values})}"
         )
-        raise InputPopulationError(
+        raise InputTableError(
             f"{persons_without_households.sum()} persons with bad household_id"
         )
 
@@ -68,7 +68,7 @@ def persons(state: workflow.State) -> pd.DataFrame:
             f"{households_without_persons.sum()} households out of {len(households.index)} without  persons\n"
             f"{pd.Series({'household_id': households_without_persons.index.values})}"
         )
-        raise InputPopulationError(
+        raise InputTableError(
             f"{households_without_persons.sum()} households with no persons"
         )
 
@@ -108,5 +108,5 @@ def persons_merged(
             left_on="person_id",
         )
     if n_persons != len(persons):
-        raise InputPopulationError("number of persons changed")
+        raise InputTableError("number of persons changed")
     return persons

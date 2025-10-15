@@ -74,7 +74,7 @@ class TableSlicingError(RuntimeError):
     """An error occurred trying to slice a table."""
 
 
-class InputPopulationError(RuntimeError):
+class InputTableError(RuntimeError):
     """An issue with the input population was found."""
 
 

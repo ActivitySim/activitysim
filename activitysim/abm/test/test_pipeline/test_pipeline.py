@@ -13,6 +13,10 @@ import pkg_resources
 import pytest
 
 from activitysim.core import random, tracing, workflow
+from activitysim.core.exceptions import (
+    CheckpointNameNotFoundError,
+    SystemConfigurationError,
+)
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 50
@@ -190,12 +194,12 @@ def test_mini_pipeline_run():
     regress_mini_location_choice_logsums(state)
 
     # try to get a non-existant table
-    with pytest.raises(RuntimeError) as excinfo:
+    with pytest.raises(CheckpointNameNotFoundError) as excinfo:
         state.checkpoint.load_dataframe("bogus")
     assert "never checkpointed" in str(excinfo.value)
 
     # try to get an existing table from a non-existant checkpoint
-    with pytest.raises(RuntimeError) as excinfo:
+    with pytest.raises(CheckpointNameNotFoundError) as excinfo:
         state.checkpoint.load_dataframe("households", checkpoint_name="bogus")
     assert "not in checkpoints" in str(excinfo.value)
 
@@ -235,7 +239,7 @@ def test_mini_pipeline_run2():
     regress_mini_auto(state)
 
     # try to run a model already in pipeline
-    with pytest.raises(RuntimeError) as excinfo:
+    with pytest.raises(SystemConfigurationError) as excinfo:
         state.run.by_name("auto_ownership_simulate")
     assert "run model 'auto_ownership_simulate' more than once" in str(excinfo.value)
 

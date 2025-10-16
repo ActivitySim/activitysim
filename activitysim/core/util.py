@@ -724,7 +724,7 @@ def drop_unused_columns(
 
     logger.info("Dropping unused variables in chooser table")
 
-    logger.info(
+    logger.debug(
         "before dropping, the choosers table has {} columns: {}".format(
             len(choosers.columns), choosers.columns
         )
@@ -733,7 +733,7 @@ def drop_unused_columns(
     # keep only variables needed for spec
     choosers = choosers[[c for c in choosers.columns if c in unique_variables_in_spec]]
 
-    logger.info(
+    logger.debug(
         "after dropping, the choosers table has {} columns: {}".format(
             len(choosers.columns), choosers.columns
         )

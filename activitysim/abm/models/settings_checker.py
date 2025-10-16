@@ -322,7 +322,7 @@ def try_load_model_settings(
 ) -> tuple[PydanticBase | None, Exception | None]:
 
     msg = f"Attempting to load model settings for {model_name} via {model_settings_class.__name__} and {model_settings_file}"
-    logger.info(msg)
+    logger.debug(msg)
     file_logger.info(msg)
 
     try:
@@ -348,7 +348,7 @@ def try_load_model_settings(
             )
         result = model_settings, None
         msg = f"Successfully loaded model settings from {model_settings_file}"
-        logger.info(msg)
+        logger.debug(msg)
     except Exception as e:
         result = None, e
     return result
@@ -358,12 +358,12 @@ def try_load_spec(
     model_name: str, model_settings: PydanticBase, spec_file: str, state: State
 ) -> tuple[DataFrame | None, Exception | None]:
     msg = f"Attempting to load SPEC for {model_name} via {model_settings.__class__.__name__}"
-    logger.info(msg)
+    logger.debug(msg)
     file_logger.info(msg)
     try:
         result = state.filesystem.read_model_spec(spec_file), None
         msg = f"Successfully loaded model SPEC from {spec_file}"
-        logger.info(msg)
+        logger.debug(msg)
         file_logger.info(msg)
     except Exception as e:
         # always return a dataframe
@@ -375,13 +375,13 @@ def try_load_coefs(
     model_name: str, model_settings: PydanticBase, coefs_file: str, state: State
 ) -> tuple[DataFrame, Optional[Exception]]:
     msg = f"Attempting to load COEFFICIENTS for {model_name} via {model_settings.__class__.__name__}"
-    logger.info(msg)
+    logger.debug(msg)
     file_logger.info(msg)
 
     try:
         result = state.filesystem.read_model_coefficients(file_name=coefs_file), None
         msg = f"Successfully loaded model Coefficients from {coefs_file}"
-        logger.info(msg)
+        logger.debug(msg)
         file_logger.info(msg)
     except Exception as e:
         result = None, e
@@ -423,7 +423,7 @@ def try_eval_spec_coefs(
         else:
             result = eval_coefficients(state, spec, coefs, estimator=None), None
         msg = f"Successfully evaluated coefficients for {model_name}"
-        logger.info(msg)
+        logger.debug(msg)
         file_logger.info(msg)
     except Exception as e:
         result = None, e

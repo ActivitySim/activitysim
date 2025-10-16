@@ -67,7 +67,9 @@ def model_spec():
         0.53247,
     ]
 
-    return pd.DataFrame(index=index, data=values, columns=["stage_one"]).rename_axis('Expression')
+    return pd.DataFrame(index=index, data=values, columns=["stage_one"]).rename_axis(
+        "Expression"
+    )
 
 
 def add_canonical_dirs(configs_dir_name):
@@ -82,6 +84,7 @@ def add_canonical_dirs(configs_dir_name):
         data_dir=(data_dir,),
     )
     return state
+
 
 @pytest.fixture(scope="module")
 def skims(settings):
@@ -230,9 +233,7 @@ def test_two_way_stop_patterns(tours):
     assert set(output_columns).issubset(windows.columns)
 
 
-def test_run_trip_scheduling_choice(
-        model_spec, tours, skims, locals_dict, settings
-):
+def test_run_trip_scheduling_choice(model_spec, tours, skims, locals_dict, settings):
     configs_dir = os.path.join(os.path.dirname(__file__), "configs_test_misc")
     data_dir = os.path.join(os.path.dirname(__file__), "data")
 
@@ -243,9 +244,9 @@ def test_run_trip_scheduling_choice(
 
     state.load_settings()
     model_settings = tsc.TripSchedulingChoiceSettings.read_settings_file(
-            state.filesystem,
-            'trip_scheduling_choice.yaml',
-        )
+        state.filesystem,
+        "trip_scheduling_choice.yaml",
+    )
 
     out_tours = tsc.run_trip_scheduling_choice(
         state,
@@ -254,7 +255,7 @@ def test_run_trip_scheduling_choice(
         skims,
         locals_dict,
         trace_label="PyTest Trip Scheduling",
-        model_settings=model_settings
+        model_settings=model_settings,
     )
 
     assert len(tours) == len(out_tours)

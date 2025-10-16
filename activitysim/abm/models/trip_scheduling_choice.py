@@ -82,8 +82,8 @@ def generate_schedule_alternatives(tours):
 
     schedules = pd.concat([no_stops, one_way, two_way], sort=True)
     schedules[SCHEDULE_ID] = np.arange(1, schedules.shape[0] + 1)
-    schedules.sort_values(by=['tour_id', SCHEDULE_ID], inplace=True)
-    
+    schedules.sort_values(by=["tour_id", SCHEDULE_ID], inplace=True)
+
     return schedules
 
 
@@ -209,9 +209,7 @@ def get_spec_for_segment(
     :return: array of utility equations
     """
 
-    omnibus_spec = state.filesystem.read_model_spec(
-        file_name=model_settings.SPEC
-    )
+    omnibus_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
 
     spec = omnibus_spec[[segment]]
 
@@ -281,7 +279,7 @@ def run_trip_scheduling_choice(
             # Sort the choosers and get the schedule alternatives
             choosers = choosers.sort_index()
             schedules = generate_schedule_alternatives(choosers).sort_index()
-        
+
             # preprocessing alternatives
             expressions.annotate_preprocessors(
                 state,
@@ -350,6 +348,7 @@ class TripSchedulingChoiceSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `trip_scheduling_choice` component.
     """
+
     pass
 
 

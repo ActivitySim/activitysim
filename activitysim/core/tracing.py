@@ -147,12 +147,12 @@ def print_summary(label, df, describe=False, value_counts=False):
 
     if value_counts:
         n = 10
-        logger.info(
+        logger.debug(
             "%s top %s value counts:\n%s" % (label, n, df.value_counts().nlargest(n))
         )
 
     if describe:
-        logger.info("%s summary:\n%s" % (label, df.describe()))
+        logger.debug("%s summary:\n%s" % (label, df.describe()))
 
 
 def write_df_csv(

@@ -91,7 +91,7 @@ def eval_interaction_utilities(
     if compute_settings.sharrow_skip:
         sharrow_enabled = False
 
-    logger.info(f"{trace_label} sharrow_enabled is {sharrow_enabled}")
+    logger.debug(f"{trace_label} sharrow_enabled is {sharrow_enabled}")
 
     trace_eval_results = None
 

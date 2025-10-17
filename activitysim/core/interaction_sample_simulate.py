@@ -133,7 +133,7 @@ def _interaction_sample_simulate(
 
     # assert alternatives.index.name == choosers.index.name
     # asserting the index names are the same tells us nothing about the underlying data so why?
-    logger.info(
+    logger.debug(
         f"{trace_label} start merging choosers and alternatives to create interaction_df"
     )
 
@@ -169,7 +169,7 @@ def _interaction_sample_simulate(
         )
 
     interaction_df = alternatives.join(choosers, how="left", rsuffix="_chooser")
-    logger.info(
+    logger.debug(
         f"{trace_label} end merging choosers and alternatives to create interaction_df"
     )
 

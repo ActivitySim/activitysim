@@ -94,7 +94,7 @@ class TimeLogger:
         else:
             self.aggregate_timing[tag] += elapsed
 
-    def summary(self, logger, tag, level=20, suffix=None):
+    def summary(self, logger, tag, level=10, suffix=None):
         gross_elaspsed = time.time() - self._time_start
         if suffix:
             msg = f"{tag} in {timedelta(seconds=gross_elaspsed)}: ({suffix})\n"

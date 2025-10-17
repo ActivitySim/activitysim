@@ -633,7 +633,7 @@ def eval_interaction_utilities(
                         raise  # enter debugger now to see what's up
             timelogger.mark("sharrow interact test", True, logger, trace_label)
 
-    logger.info(f"utilities.dtypes {trace_label}\n{utilities.dtypes}")
+    logger.debug(f"utilities.dtypes {trace_label}\n{utilities.dtypes}")
     end_time = time.time()
 
     timelogger.summary(logger, "TIMING interact_simulate.eval_utils")

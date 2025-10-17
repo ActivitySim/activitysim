@@ -77,7 +77,7 @@ class TimeLogger:
             self._time_log.append((tag, timedelta(seconds=elapsed)))
             self._time_point = now
             if logger is not None:
-                logger.info(
+                logger.debug(
                     "elapsed time {0} {1} {2}".format(
                         tag,
                         timedelta(seconds=elapsed),

@@ -637,7 +637,7 @@ def eval_interaction_utilities(
     end_time = time.time()
 
     timelogger.summary(logger, "TIMING interact_simulate.eval_utils")
-    logger.info(
+    logger.debug(
         f"interact_simulate.eval_utils runtime: {timedelta(seconds=end_time - start_time)} {trace_label}"
     )
 

@@ -861,7 +861,7 @@ def eval_utilities(
     chunk_sizer.log_df(trace_label, "utilities", None)
 
     end_time = time.time()
-    logger.info(
+    logger.debug(
         f"simulate.eval_utils runtime: {timedelta(seconds=end_time - start_time)} {trace_label}"
     )
     timelogger.summary(logger, "simulate.eval_utils timing")

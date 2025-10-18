@@ -1102,7 +1102,7 @@ def choose_trip_destination(
         )
         trips = trips[~dropped_trips]
 
-    t0 = print_elapsed_time("%s.trip_destination_sample" % trace_label, t0, debug = True)
+    t0 = print_elapsed_time("%s.trip_destination_sample" % trace_label, t0, debug=True)
 
     if trips.empty:
         return pd.Series(index=trips.index).to_frame("choice"), None
@@ -1124,7 +1124,7 @@ def choose_trip_destination(
         destination_sample["od_logsum"] = 0.0
         destination_sample["dp_logsum"] = 0.0
 
-    t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0, debug = True)
+    t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0, debug=True)
 
     destinations = trip_destination_simulate(
         state,
@@ -1155,7 +1155,9 @@ def choose_trip_destination(
     else:
         destination_sample = None
 
-    t0 = print_elapsed_time("%s.trip_destination_simulate" % trace_label, t0, debug = True)
+    t0 = print_elapsed_time(
+        "%s.trip_destination_simulate" % trace_label, t0, debug=True
+    )
 
     return destinations, destination_sample
 
@@ -1484,7 +1486,9 @@ def run_trip_destination(
             else:
                 None
 
-            logger.debug("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])
+            logger.debug(
+                "Running %s with %d trips", nth_trace_label, nth_trips.shape[0]
+            )
 
             # - choose destination for nth_trips, segmented by primary_purpose
             choices_list = []

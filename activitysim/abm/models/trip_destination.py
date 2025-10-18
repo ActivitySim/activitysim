@@ -1075,7 +1075,7 @@ def choose_trip_destination(
     chunk_size,
     trace_label,
 ):
-    logger.info("choose_trip_destination %s with %d trips", trace_label, trips.shape[0])
+    logger.debug("choose_trip_destination %s with %d trips", trace_label, trips.shape[0])
 
     t0 = print_elapsed_time()
 
@@ -1484,7 +1484,7 @@ def run_trip_destination(
             else:
                 None
 
-            logger.info("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])
+            logger.debug("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])
 
             # - choose destination for nth_trips, segmented by primary_purpose
             choices_list = []

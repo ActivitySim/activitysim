@@ -140,7 +140,7 @@ def run_tour_scheduling(
     if estimators:
         timetable.begin_transaction(list(estimators.values()))
 
-    logger.info(f"Running {trace_label} with %d tours", len(chooser_tours))
+    logger.debug(f"Running {trace_label} with %d tours", len(chooser_tours))
     choices = vts.vectorize_tour_scheduling(
         state,
         chooser_tours,

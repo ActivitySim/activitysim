@@ -83,7 +83,7 @@ def eval_interaction_utilities(
     start_time = time.time()
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utils")
-    logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
+    logger.debug("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
     sharrow_enabled = state.settings.sharrow
     if compute_settings is None:

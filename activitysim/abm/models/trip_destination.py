@@ -820,7 +820,7 @@ def compute_logsums(
         adds od_logsum and dp_logsum columns to trips (in place)
     """
     trace_label = tracing.extend_trace_label(trace_label, "compute_logsums")
-    logger.info("Running %s with %d samples", trace_label, destination_sample.shape[0])
+    logger.debug("Running %s with %d samples", trace_label, destination_sample.shape[0])
 
     # chunk usage is uniform so better to combine
     chunk_tag = "trip_destination.compute_logsums"
@@ -1484,7 +1484,7 @@ def run_trip_destination(
             else:
                 None
 
-            logger.debug("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])
+            logger.info("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])
 
             # - choose destination for nth_trips, segmented by primary_purpose
             choices_list = []
@@ -1649,7 +1649,7 @@ def trip_destination(
         estimator.write_table(state.get_dataframe("land_use"), "landuse", append=False)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
-    logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
+    logger.debug("Running %s with %d trips", trace_label, trips_df.shape[0])
 
     trips_df, save_sample_df = run_trip_destination(
         state,

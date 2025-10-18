@@ -977,7 +977,7 @@ def trip_destination_simulate(
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
-    logger.info("Running trip_destination_simulate with %d trips", len(trips))
+    logger.debug("Running trip_destination_simulate with %d trips", len(trips))
 
     skims = skim_hotel.sample_skims(presample=False)
 

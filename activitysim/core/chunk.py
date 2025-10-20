@@ -1400,8 +1400,13 @@ def adaptive_chunked_choosers_and_alts(
     )
     rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()
     assert (rows_per_chunk > 0) and (
-        (rows_per_chunk <= num_choosers) & (estimated_number_of_chunks > 1)
-    ) | ((rows_per_chunk >= num_choosers) & (estimated_number_of_chunks == 1))
+        (rows_per_chunk <= num_choosers)
+        or (
+            (rows_per_chunk >= num_choosers)
+            and (estimated_number_of_chunks == 1)
+            and (state.settings.chunk_training_mode == MODE_EXPLICIT)
+        )
+    )
 
     # alt chunks boundaries are where index changes
     alt_ids = alternatives.index.values

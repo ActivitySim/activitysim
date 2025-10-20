@@ -1,0 +1,6 @@
+inherit_settings: True
+
+# read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
+read_skim_cache: False
+# write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
+write_skim_cache: False

@@ -147,6 +147,7 @@ jobs:
           - production_semcog
           - prototype_mwcog
           - placeholder_multiple_zone
+          - prototype_arc
       fail-fast: false
     defaults:
       run:

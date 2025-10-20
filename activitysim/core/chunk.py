@@ -1234,11 +1234,16 @@ def adaptive_chunked_choosers(
 
     num_choosers = len(choosers.index)
 
+    if state.settings.multiprocess:
+        num_processes = state.get_injectable("num_processes", 1)
+    else:
+        num_processes = 1
+
     if state.settings.chunk_training_mode == MODE_EXPLICIT:
         if explicit_chunk_size < 1:
             chunk_size = math.ceil(num_choosers * explicit_chunk_size)
         else:
-            chunk_size = int(explicit_chunk_size)
+            chunk_size = math.ceil(explicit_chunk_size / num_processes)
     elif chunk_size is None:
         chunk_size = state.settings.chunk_size
 
@@ -1372,11 +1377,16 @@ def adaptive_chunked_choosers_and_alts(
         f"with {num_choosers} choosers and {num_alternatives} alternatives"
     )
 
+    if state.settings.multiprocess:
+        num_processes = state.get_injectable("num_processes", 1)
+    else:
+        num_processes = 1
+
     if state.settings.chunk_training_mode == MODE_EXPLICIT:
         if explicit_chunk_size < 1:
             chunk_size = math.ceil(num_choosers * explicit_chunk_size)
         else:
-            chunk_size = int(explicit_chunk_size)
+            chunk_size = int(explicit_chunk_size / num_processes)
     elif chunk_size is None:
         chunk_size = state.settings.chunk_size
 
@@ -1389,7 +1399,9 @@ def adaptive_chunked_choosers_and_alts(
         chunk_training_mode=state.settings.chunk_training_mode,
     )
     rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()
-    assert (rows_per_chunk > 0) and (rows_per_chunk <= num_choosers)
+    assert (rows_per_chunk > 0) and (
+        (rows_per_chunk <= num_choosers) & (estimated_number_of_chunks > 1)
+    ) | ((rows_per_chunk >= num_choosers) & (estimated_number_of_chunks == 1))
 
     # alt chunks boundaries are where index changes
     alt_ids = alternatives.index.values

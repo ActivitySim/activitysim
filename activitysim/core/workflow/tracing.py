@@ -50,10 +50,22 @@ class Tracing(StateAccessor):
     Methods to provide the tracing capabilities of ActivitySim.
     """
 
+    def __init__(self, run_id = None):
+        super().__init__()
+        if run_id is None:
+            run_id = RunId()
+        self.run_id = run_id
+
     traceable_tables: list[str] = FromState(default_value=DEFAULT_TRACEABLE_TABLES)
     traceable_table_ids: dict[str, Sequence] = FromState(default_init=True)
     traceable_table_indexes: dict[str, str] = FromState(default_init=True)
-    run_id: RunId = FromState(default_init=True)
+
+    @property
+    def run_id(self) -> RunId:
+        if self._obj is None:
+            return RunId()
+        else:
+            return self.run_id
 
     @property
     def validation_directory(self) -> Path | None:

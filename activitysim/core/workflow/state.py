@@ -110,7 +110,7 @@ class State:
     The encapsulated state of an ActivitySim model.
     """
 
-    def __init__(self, context=None):
+    def __init__(self, context=None, run_id = None):
         """
         Initialize the encapsulated state of an ActivitySim model.
 
@@ -130,6 +130,12 @@ class State:
             self._context = context
         else:
             raise TypeError(f"cannot init {type(self)} with {type(context)}")
+        
+        self.run_id = run_id
+
+    @property
+    def run_id(self):
+        return self.run_id
 
     def __del__(self):
         self.close_open_files()
@@ -253,7 +259,7 @@ class State:
 
     checkpoint = Checkpoints()
     logging = Logging()
-    tracing = Tracing()
+    tracing = Tracing(run_id)
     extend = Extend()
     report = Reporting()
     dataset = Datasets()

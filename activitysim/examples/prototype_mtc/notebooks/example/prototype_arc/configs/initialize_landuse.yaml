@@ -1,8 +1,0 @@
-
-annotate_tables:
-  - tablename: land_use
-    rename_columns:
-      county: county_id
-    annotate:
-      SPEC: annotate_landuse
-      DF: land_use

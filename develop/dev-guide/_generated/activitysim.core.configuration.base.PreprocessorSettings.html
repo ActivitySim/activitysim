@@ -54,7 +54,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.4.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.5.1';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -64,8 +64,8 @@
     <link rel="prev" title="PydanticReadable" href="activitysim.core.configuration.base.PydanticReadable.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="1.4.1" />
-    <meta name="docbuild:last-update" content="Sep 29, 2025"/>
+  <meta name="docsearch:version" content="1.5.1" />
+    <meta name="docbuild:last-update" content="Oct 23, 2025"/>
   </head>
   
   
@@ -458,7 +458,7 @@
 </dl>
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.base.PreprocessorSettings.DF">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DF</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.core.configuration.base.PreprocessorSettings.DF" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DF</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.core.configuration.base.PreprocessorSettings.DF" title="Permalink to this definition">#</a></dt>
 <dd><p>Name of the primary table used for this preprocessor.</p>
 <p>The preprocessor will emit rows to a temporary table that match the rows
 in this table from the pipeline.</p>
@@ -466,7 +466,7 @@ in this table from the pipeline.</p>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.base.PreprocessorSettings.SPEC">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.core.configuration.base.PreprocessorSettings.SPEC" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.core.configuration.base.PreprocessorSettings.SPEC" title="Permalink to this definition">#</a></dt>
 <dd><p>Specification to use for pre-processing.</p>
 <p>This is the name of the specification CSV file to be found in one of the
 configs directories.  The ‘.csv’ extension may be omitted.</p>
@@ -474,7 +474,7 @@ configs directories.  The ‘.csv’ extension may be omitted.</p>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.base.PreprocessorSettings.TABLES">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TABLES</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.base.PreprocessorSettings.TABLES" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TABLES</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.base.PreprocessorSettings.TABLES" title="Permalink to this definition">#</a></dt>
 <dd><p>Names of the additional tables to be merged for the preprocessor.</p>
 <p>Data from these tables will be merged into the primary table, according
 to standard merge rules for these tables.  Care should be taken to limit the
@@ -574,7 +574,7 @@ will increase with each table.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.4.1.dev17+g00a76ef4d, documentation last updated Sep 29, 2025.<br/>
+ActivitySim 1.5.1.dev1+g34539d061, documentation last updated Oct 23, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

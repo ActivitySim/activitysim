@@ -33,6 +33,32 @@ the development and management of the ActivitySim is on the `project site <http:
         Start here to learn about developing ActivitySim, including creating
         model components, or changing the codebase.
 
+    .. grid-item-card::
+
+        :fa:`thumbs-up` |nbsp| |nbsp| Consortium Supported Examples
+
+        ^^^
+
+        The ActivitySim consortium actively supports two example models:
+
+        - `MTC <https://github.com/ActivitySim/activitysim-prototype-mtc>`__,
+          a one-zone example originally based on MTC's Travel Model One (TM1).
+        - `SANDAG <https://github.com/ActivitySim/sandag-abm3-example>`__,
+          a two-zone example that mirrors SANDAG's ABM3.
+
+    .. grid-item-card::
+
+        :fa:`square-arrow-up-right` |nbsp| |nbsp| Member Agency Models
+
+        ^^^
+
+        Several consortium member agencies have open-sourced their ActivitySim
+        implementations.  Check out these repositories for more examples:
+
+        - `Puget Sound Regional Commission <https://github.com/psrc/psrc_activitysim>`__
+        - `Atlanta Regional Commission <https://github.com/atlregional/arc-activitysim>`__
+        - `Metropolitan Council <https://github.com/Metropolitan-Council/metc-asim-model/tree/main/source/activitysim>`__
+
 .. toctree::
    :hidden:
 

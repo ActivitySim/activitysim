@@ -1,0 +1,51 @@
+name: Rebuild Docs
+on:
+    workflow_dispatch:
+        inputs:
+            commit:
+                description: 'Commit SHA or branch/tag to build docs from'
+                required: true
+                type: string
+            version:
+                description: 'Version number to publish docs as'
+                required: true
+                type: string
+
+jobs:
+    docbuild:
+        name: ubuntu-latest py3.9
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        defaults:
+            run:
+                shell: bash -l {0}
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.inputs.commit }}
+            - name: Install uv
+              uses: astral-sh/setup-uv@v5
+              with:
+                  version: "0.7.12"
+                  enable-cache: true
+                  cache-dependency-glob: "uv.lock"
+            - name: "Set up Python"
+              uses: actions/setup-python@v5
+              with:
+                  python-version-file: ".python-version"
+            - name: Install activitysim
+              run: |
+                  uv sync --locked --dev
+            - name: Build the docs
+              run: |
+                  cd docs
+                  make clean
+                  make html
+            - name: Push to GitHub Pages
+              uses: peaceiris/actions-gh-pages@v3.8.0
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  # Token is created automatically by Github Actions, no other config needed
+                  publish_dir: ./docs/_build/html
+                  destination_dir: ${{ github.event.inputs.version }}

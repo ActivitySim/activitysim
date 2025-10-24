@@ -15,11 +15,12 @@ from .general import (
 )
 
 try:
-    import larch
+    # Larch is an optional dependency, and we don't want to fail when importing
+    # this module simply because larch is not installed.
+    import larch as lx
 except ImportError:
-    larch = None
+    lx = None
 else:
-    from larch import DataFrames, Model
     from larch.util import Dict
 
 
@@ -33,11 +34,29 @@ def stop_frequency_data(
     edb_directory = edb_directory.format(name=name)
 
     settings_file = settings_file.format(name=name)
-    with open(os.path.join(edb_directory, settings_file), "r") as yf:
-        settings = yaml.load(
-            yf,
-            Loader=yaml.SafeLoader,
-        )
+    try:
+        with open(os.path.join(edb_directory, settings_file), "r") as yf:
+            settings = yaml.load(
+                yf,
+                Loader=yaml.SafeLoader,
+            )
+    except FileNotFoundError:
+        # search in all first level subdirectories for the settings file
+        for subdir in os.listdir(edb_directory):
+            if os.path.isdir(os.path.join(edb_directory, subdir)):
+                try:
+                    with open(
+                        os.path.join(edb_directory, subdir, settings_file), "r"
+                    ) as yf:
+                        settings = yaml.load(
+                            yf,
+                            Loader=yaml.SafeLoader,
+                        )
+                        break
+                except FileNotFoundError:
+                    pass
+        else:
+            raise
 
     segments = [i["primary_purpose"] for i in settings["SPEC_SEGMENTS"]]
 
@@ -117,10 +136,30 @@ def stop_frequency_data(
         seg_alt_names_to_codes.append(alt_names_to_codes)
         seg_alt_codes_to_names.append(alt_codes_to_names)
 
-        chooser_data = pd.read_csv(
-            seg_subdir / chooser_data_file.format(name=name),
-            index_col=values_index_col,
-        )
+        # load parquet if available, otherwise pickle, or if all else fails csv
+        if (
+            (seg_subdir / chooser_data_file.format(name=name))
+            .with_suffix(".parquet")
+            .exists()
+        ):
+            chooser_data = pd.read_parquet(
+                (seg_subdir / chooser_data_file.format(name=name)).with_suffix(
+                    ".parquet"
+                ),
+            ).set_index(values_index_col)
+        elif (
+            (seg_subdir / chooser_data_file.format(name=name))
+            .with_suffix(".pkl")
+            .exists()
+        ):
+            chooser_data = pd.read_pickle(
+                (seg_subdir / chooser_data_file.format(name=name)).with_suffix(".pkl"),
+            ).set_index(values_index_col)
+        else:
+            chooser_data = pd.read_csv(
+                seg_subdir / chooser_data_file.format(name=name),
+                index_col=values_index_col,
+            )
         seg_chooser_data.append(chooser_data)
 
     return Dict(
@@ -170,9 +209,9 @@ def stop_frequency_model(
 
         if settings.get("LOGIT_TYPE") == "NL":
             tree = construct_nesting_tree(data.alt_names[n], settings["NESTS"])
-            m = Model(graph=tree)
+            m = lx.Model(graph=tree, compute_engine="numba")
         else:
-            m = Model()
+            m = lx.Model(compute_engine="numba")
 
         m.utility_co = dict_of_linear_utility_from_spec(
             spec,
@@ -184,15 +223,13 @@ def stop_frequency_model(
 
         avail = True
 
-        d = DataFrames(
-            co=chooser_data,
-            av=avail,
-            alt_codes=alt_codes,
-            alt_names=alt_names,
+        d = lx.Dataset.construct.from_idco(
+            chooser_data, alts=dict(zip(alt_codes, alt_names))
         )
 
-        m.dataservice = d
+        m.datatree = d
         m.choice_co_code = "override_choice_code"
+        m.availability_any = True
         models.append(m)
 
     from larch.model.model_group import ModelGroup

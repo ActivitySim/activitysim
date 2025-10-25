@@ -41,10 +41,15 @@ the development and management of the ActivitySim is on the `project site <http:
 
         The ActivitySim consortium actively supports two example models:
 
-        - `MTC <https://github.com/ActivitySim/activitysim-prototype-mtc>`__,
-          a one-zone example originally based on MTC's Travel Model One (TM1).
-        - `SANDAG <https://github.com/ActivitySim/sandag-abm3-example>`__,
-          a two-zone example that mirrors SANDAG's ABM3.
+        **`One-Zone <https://github.com/ActivitySim/activitysim-prototype-mtc>`__**
+          Our one-zone example is originally based on MTC's Travel Model One (TM1),
+          but has evolved to be a slightly different model. It is still a reasonable
+          starting point as a donor model for new implementations.
+
+        **`Two Zone <https://github.com/ActivitySim/sandag-abm3-example>`__**
+          Our two-zone example mirrors SANDAG's ABM3. Some effort has been made to
+          keep it aligned with SANDAG's model, but it is not an exact copy of
+          SANDAG's production model.
 
     .. grid-item-card::
 
@@ -53,11 +58,15 @@ the development and management of the ActivitySim is on the `project site <http:
         ^^^
 
         Several consortium member agencies have open-sourced their ActivitySim
-        implementations.  Check out these repositories for more examples:
+        implementations. These open models may or may not be complete calibrated
+        tools that are representative of their respective agencies actual models
+        used for official policy analysis, as public agencies often publish
+        in-progress model development to foster collaboration and transparency.
+        Contact the agencies directly with questions.
 
-        - `Puget Sound Regional Commission <https://github.com/psrc/psrc_activitysim>`__
+        - `Puget Sound Regional Commission <https://github.com/psrc/psrc_activitysim>`__ (Seattle)
         - `Atlanta Regional Commission <https://github.com/atlregional/arc-activitysim>`__
-        - `Metropolitan Council <https://github.com/Metropolitan-Council/metc-asim-model/tree/main/source/activitysim>`__
+        - `Metropolitan Council <https://github.com/Metropolitan-Council/metc-asim-model/tree/main/source/activitysim>`__ (Minneapolis-St. Paul)
 
 .. toctree::
    :hidden:

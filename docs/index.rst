@@ -39,16 +39,15 @@ the development and management of the ActivitySim is on the `project site <http:
 
         ^^^
 
-        The ActivitySim consortium actively supports two example models:
+        The ActivitySim consortium actively supports two example models, each of which
+        can be used as a starting point (i.e. a "donor model") for new implementations.
 
-        - `MTC Example <https://github.com/ActivitySim/activitysim-prototype-mtc>`__,
-          our one-zone system prototype is originally based on MTC's Travel Model One (TM1),
-          but has evolved to be a slightly different model. It is still a reasonable
-          starting point as a donor model for new implementations.
-        - `SANDAG Example <https://github.com/ActivitySim/sandag-abm3-example>`__,
-          our two-zone system model mirrors the typical resident portion of SANDAG's
-          ABM3. Some effort has been made to keep it aligned with SANDAG's model, but
-          it is not an exact copy of SANDAG's production model.
+        - The `MTC Example <https://github.com/ActivitySim/activitysim-prototype-mtc>`__,
+          our one-zone system prototype. This example is originally based on MTC's Travel Model One (TM1),
+          but has evolved to be a slightly different model.
+        - The `SANDAG Example <https://github.com/ActivitySim/sandag-abm3-example>`__,
+          our two-zone system model. Some effort has been made to keep it aligned
+          with SANDAG's model, but it is not an exact copy of SANDAG's production model.
 
     .. grid-item-card::
 

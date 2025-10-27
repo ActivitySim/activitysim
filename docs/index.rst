@@ -57,9 +57,9 @@ the development and management of the ActivitySim is on the `project site <http:
 
         Several consortium member agencies have open-sourced their ActivitySim
         implementations. These open models may or may not be complete calibrated
-        tools that are representative of their respective agencies actual models
-        used for official policy analysis, as public agencies often publish
-        in-progress model development to foster collaboration and transparency.
+        tools. Unless clearly marked, users should not assume that mlinked models are
+        "official" implementations used for policy analysis; public agencies often
+        publish in-progress model development to foster collaboration and transparency.
         Contact the agencies directly with questions.
 
         - `Puget Sound Regional Commission <https://github.com/psrc/psrc_activitysim>`__ (Seattle)

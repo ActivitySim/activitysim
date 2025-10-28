@@ -1495,23 +1495,40 @@ def run_trip_destination(
             for primary_purpose, trips_segment in nth_trips.groupby(
                 "primary_purpose", observed=True
             ):
-                choices, destination_sample = choose_trip_destination(
-                    state,
-                    primary_purpose,
-                    trips_segment,
-                    alternatives,
-                    tours_merged,
-                    model_settings,
-                    want_logsums,
-                    want_sample_table,
-                    size_term_matrix,
-                    skim_hotel,
-                    estimator,
-                    chunk_size,
-                    trace_label=tracing.extend_trace_label(
-                        nth_trace_label, primary_purpose
-                    ),
-                )
+                try:
+                    choices, destination_sample = choose_trip_destination(
+                        state,
+                        primary_purpose,
+                        trips_segment,
+                        alternatives,
+                        tours_merged,
+                        model_settings,
+                        want_logsums,
+                        want_sample_table,
+                        size_term_matrix,
+                        skim_hotel,
+                        estimator,
+                        chunk_size,
+                        trace_label=tracing.extend_trace_label(
+                            nth_trace_label, primary_purpose
+                        ),
+                    )
+                except KeyError as err:
+                    if err.args[0] == "purpose_index_num":
+                        logger.error("""
+                        
+                        When using the trip destination model with sharrow, it is necessary
+                        to set a value for `purpose_index_num` in the trip destination 
+                        annotate trips preprocessor.  This allows for an optimized compiled 
+                        lookup of the size term from the array of size terms.  The value of
+                        `purpose_index_num` should be the integer column position in the size 
+                        matrix, with usual zero-based numpy indexing semantics (i.e. the first 
+                        column is zero).  The preprocessor expression most likely needs to be
+                        "size_terms.get_cols(df.purpose)" unless some unusual transform of 
+                        size terms has been employed.
+                        
+                        """)
+                    raise
 
                 choices_list.append(choices)
                 if want_sample_table:

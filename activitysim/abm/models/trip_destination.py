@@ -820,7 +820,7 @@ def compute_logsums(
         adds od_logsum and dp_logsum columns to trips (in place)
     """
     trace_label = tracing.extend_trace_label(trace_label, "compute_logsums")
-    logger.info("Running %s with %d samples", trace_label, destination_sample.shape[0])
+    logger.debug("Running %s with %d samples", trace_label, destination_sample.shape[0])
 
     # chunk usage is uniform so better to combine
     chunk_tag = "trip_destination.compute_logsums"
@@ -977,7 +977,7 @@ def trip_destination_simulate(
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
-    logger.info("Running trip_destination_simulate with %d trips", len(trips))
+    logger.debug("Running trip_destination_simulate with %d trips", len(trips))
 
     skims = skim_hotel.sample_skims(presample=False)
 
@@ -1102,7 +1102,7 @@ def choose_trip_destination(
         )
         trips = trips[~dropped_trips]
 
-    t0 = print_elapsed_time("%s.trip_destination_sample" % trace_label, t0)
+    t0 = print_elapsed_time("%s.trip_destination_sample" % trace_label, t0, debug=True)
 
     if trips.empty:
         return pd.Series(index=trips.index).to_frame("choice"), None
@@ -1124,7 +1124,7 @@ def choose_trip_destination(
         destination_sample["od_logsum"] = 0.0
         destination_sample["dp_logsum"] = 0.0
 
-    t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0)
+    t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0, debug=True)
 
     destinations = trip_destination_simulate(
         state,
@@ -1155,7 +1155,9 @@ def choose_trip_destination(
     else:
         destination_sample = None
 
-    t0 = print_elapsed_time("%s.trip_destination_simulate" % trace_label, t0)
+    t0 = print_elapsed_time(
+        "%s.trip_destination_simulate" % trace_label, t0, debug=True
+    )
 
     return destinations, destination_sample
 
@@ -1484,7 +1486,9 @@ def run_trip_destination(
             else:
                 None
 
-            logger.info("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])
+            logger.debug(
+                "Running %s with %d trips", nth_trace_label, nth_trips.shape[0]
+            )
 
             # - choose destination for nth_trips, segmented by primary_purpose
             choices_list = []
@@ -1649,7 +1653,7 @@ def trip_destination(
         estimator.write_table(state.get_dataframe("land_use"), "landuse", append=False)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
-    logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
+    logger.debug("Running %s with %d trips", trace_label, trips_df.shape[0])
 
     trips_df, save_sample_df = run_trip_destination(
         state,

@@ -65,6 +65,7 @@ the development and management of the ActivitySim is on the `project site <http:
         - `Puget Sound Regional Commission <https://github.com/psrc/psrc_activitysim>`__ (Seattle)
         - `Atlanta Regional Commission <https://github.com/atlregional/arc-activitysim>`__
         - `Metropolitan Council <https://github.com/Metropolitan-Council/metc-asim-model/tree/main/source/activitysim>`__ (Minneapolis-St. Paul)
+        - `Oregon Modeling Statewide Collaborative <https://github.com/OrMSC/SimOR>`__
 
 .. toctree::
    :hidden:

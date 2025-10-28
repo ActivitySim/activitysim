@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.1" />
-    <meta name="docbuild:last-update" content="Oct 23, 2025"/>
+    <meta name="docbuild:last-update" content="Oct 28, 2025"/>
   </head>
   
   
@@ -500,6 +500,82 @@ subtasks by setting “is_sub_task” and “is_not_sub_task” keys like this:<
 </pre></div>
 </div>
 </section>
+<section id="logging-levels">
+<h2>Logging levels<a class="headerlink" href="#logging-levels" title="Permalink to this heading">#</a></h2>
+<p>Python’s built-in <code class="docutils literal notranslate"><span class="pre">logging</span></code> module that includes five levels of logging, which are (in order
+of increasing severity): <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code>, <code class="docutils literal notranslate"><span class="pre">INFO</span></code>, <code class="docutils literal notranslate"><span class="pre">WARNING</span></code>, <code class="docutils literal notranslate"><span class="pre">ERROR</span></code>, and <code class="docutils literal notranslate"><span class="pre">CRITICAL</span></code>. One can set the
+minimum level to display messages in both the console window as well as the output logfile
+within <code class="docutils literal notranslate"><span class="pre">logging.yaml</span></code> in the model settings. For example, if the block of code below were
+inside the <code class="docutils literal notranslate"><span class="pre">logging.yaml</span></code> file, than the console window and output activitysim.log file would
+print every logging message at the level of <code class="docutils literal notranslate"><span class="pre">INFO</span></code> and above:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">loggers</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">activitysim</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">INFO</span>
+<span class="w">    </span><span class="nt">handlers</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">console</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">logfile</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">propogate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</pre></div>
+</div>
+<p>However, if a model run were to crash and the user wanted to print all of the <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> messages
+in order to diagnose what was causing the crash, they would need to change the <code class="docutils literal notranslate"><span class="pre">level</span></code> within
+the logging settings:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">loggers</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">activitysim</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DEBUG</span>
+<span class="w">    </span><span class="nt">handlers</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">console</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">logfile</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">propogate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</pre></div>
+</div>
+<p>The following guidelines demonstrate how each level is used within ActivitySim:</p>
+<section id="debug-level-10">
+<h3>Debug (Level 10)<a class="headerlink" href="#debug-level-10" title="Permalink to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> message indicates detailed information that would be of interest to a user while
+debugging a model. The information reported at this level can include:</p>
+<ul class="simple">
+<li><p>Runtimes of specific steps of model components, such as the time to run each of sampling,
+logsum computation, and simulation in destination choice</p></li>
+<li><p>Table attributes at various stages of processing, such as the size or columns</p></li>
+<li><p>Evaluations of preprocessor or specification expressions</p></li>
+<li><p>General repetitive messages that can be used to narrow down exactly where an error is occuring</p></li>
+</ul>
+</section>
+<section id="info-level-20">
+<h3>Info (Level 20)<a class="headerlink" href="#info-level-20" title="Permalink to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">INFO</span></code> message gives reports general information about how the status of the model run,
+particularly where in the model flow the system is at. The information reported at this level
+can include:</p>
+<ul class="simple">
+<li><p>Beginning and ending of a model step</p></li>
+<li><p>Intermediate stages of a longer step. For example, in trip destination, the trip number and
+segment will be reported at this level.</p></li>
+</ul>
+</section>
+<section id="warning-level-30">
+<h3>Warning (Level 30)<a class="headerlink" href="#warning-level-30" title="Permalink to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> message notifies the user of a potential issue that they should be aware of,
+but doesn’t result in the model system failing. The information reported at this level can include:</p>
+<ul class="simple">
+<li><p>Future changes to dependencies</p></li>
+<li><p>ActivitySim needing to force certain travel behavior due to such behavior not working</p></li>
+</ul>
+</section>
+<section id="error-level-40">
+<h3>Error (Level 40)<a class="headerlink" href="#error-level-40" title="Permalink to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">ERROR</span></code> message gives the user information that is causing an error in a model step. The
+information reported at this level can include:</p>
+<ul class="simple">
+<li><p>More detailed issues on what could be causing an error message that wouldn’t be shown in the
+traceback message</p></li>
+</ul>
+</section>
+</section>
+<section id="critical-level-50">
+<h2>Critical (Level 50)<a class="headerlink" href="#critical-level-50" title="Permalink to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">CRITICAL</span></code> message gives the user information that is causing a critical error in a model step.
+The information reported at this level can include:</p>
+<ul class="simple">
+<li><p>Reporting to the user on the teardown of a subprocess</p></li>
+</ul>
+</section>
 </section>
 
 
@@ -551,6 +627,14 @@ subtasks by setting “is_sub_task” and “is_not_sub_task” keys like this:<
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#log-file-locations">Log file locations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#identifying-subprocesses">Identifying Subprocesses</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-levels">Logging levels</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#debug-level-10">Debug (Level 10)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#info-level-20">Info (Level 20)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#warning-level-30">Warning (Level 30)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#error-level-40">Error (Level 40)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#critical-level-50">Critical (Level 50)</a></li>
 </ul>
   </nav></div>
 
@@ -586,7 +670,7 @@ subtasks by setting “is_sub_task” and “is_not_sub_task” keys like this:<
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.1.dev1+g34539d061, documentation last updated Oct 23, 2025.<br/>
+ActivitySim 1.5.1.dev2+g335111b0f, documentation last updated Oct 28, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

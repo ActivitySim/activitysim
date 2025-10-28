@@ -5,11 +5,9 @@ import csv
 import logging
 import logging.config
 import os
-import struct
 import sys
 import tarfile
 import tempfile
-import time
 from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
 from typing import Any, Optional
@@ -35,16 +33,6 @@ DEFAULT_TRACEABLE_TABLES = [
     "vehicles",
 ]
 
-
-class RunId(str):
-    def __new__(cls, x=None):
-        if x is None:
-            return cls(
-                hex(struct.unpack("<Q", struct.pack("<d", time.time()))[0])[-6:].lower()
-            )
-        return super().__new__(cls, x)
-
-
 class Tracing(StateAccessor):
     """
     Methods to provide the tracing capabilities of ActivitySim.
@@ -53,7 +41,7 @@ class Tracing(StateAccessor):
     traceable_tables: list[str] = FromState(default_value=DEFAULT_TRACEABLE_TABLES)
     traceable_table_ids: dict[str, Sequence] = FromState(default_init=True)
     traceable_table_indexes: dict[str, str] = FromState(default_init=True)
-    run_id: RunId = FromState(default_init=True)
+    # run_id: RunId = FromState(default_init=True)
 
     @property
     def validation_directory(self) -> Path | None:
@@ -252,7 +240,7 @@ class Tracing(StateAccessor):
             file_name = "%s.%s" % (file_name, CSV_FILE_TYPE)
 
         file_path = self._obj.filesystem.get_trace_file_path(
-            file_name, tail=self.run_id
+            file_name, tail=self._obj.run_id
         )
 
         if os.name == "nt":
@@ -378,7 +366,7 @@ class Tracing(StateAccessor):
 
                         that_blob = read_csv_as_list_of_lists(that_path)
                         this_path = self._obj.filesystem.get_trace_file_path(
-                            label, tail=self.run_id, file_type="csv"
+                            label, tail=self._obj.run_id, file_type="csv"
                         )
                         this_blob = read_csv_as_list_of_lists(this_path)
 
@@ -410,7 +398,7 @@ class Tracing(StateAccessor):
                         that_df = pd.read_csv(that_path)
                         # check against the file we just wrote
                         this_path = self._obj.filesystem.get_trace_file_path(
-                            label, tail=self.run_id, file_type="csv"
+                            label, tail=self._obj.run_id, file_type="csv"
                         )
                         this_df = pd.read_csv(this_path)
                         assert_frame_substantively_equal(this_df, that_df)
@@ -452,7 +440,7 @@ class Tracing(StateAccessor):
         # write out the raw dataframe
 
         file_path = self._obj.filesystem.get_trace_file_path(
-            "%s.raw.csv" % label, tail=self.run_id
+            "%s.raw.csv" % label, tail=self._obj.run_id
         )
         trace_results.to_csv(file_path, mode="a", index=True, header=True)
 

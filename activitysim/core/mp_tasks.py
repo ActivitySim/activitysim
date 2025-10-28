@@ -885,6 +885,7 @@ def setup_injectables_and_logging(injectables, locutor: bool = True) -> workflow
     injects injectables
     """
     state = workflow.State()
+    state.run_id = injectables.get("run_id", None)
     state = state.initialize_filesystem(**injectables)
     state.settings = injectables.get("settings", Settings())
     state.filesystem.parse_settings(state.settings)

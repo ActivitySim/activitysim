@@ -988,7 +988,7 @@ def eval_variables(
 #     return utilities
 
 
-def set_skim_wrapper_targets(df, skims):
+def set_skim_wrapper_targets(df, skims, allow_partial_success: bool = True):
     """
     Add the dataframe to the SkimWrapper object so that it can be dereferenced
     using the parameters of the skims object.
@@ -1015,13 +1015,21 @@ def set_skim_wrapper_targets(df, skims):
         if isinstance(skims, dict)
         else [skims]
     )
+    problems = []
 
     # assume any object in skims can be treated as a skim
     for skim in skims:
         try:
             skim.set_df(df)
-        except AttributeError:
-            pass
+        except (AttributeError, AssertionError) as e:
+            problems.append(e)
+            if not allow_partial_success:
+                raise
+
+    if problems:
+        # if problems were discovered, log them as warnings
+        for problem in problems:
+            logger.warning(str(problem))
 
 
 #

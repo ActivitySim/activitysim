@@ -1021,7 +1021,17 @@ def set_skim_wrapper_targets(df, skims, allow_partial_success: bool = True):
     for skim in skims:
         try:
             skim.set_df(df)
-        except (AttributeError, AssertionError) as e:
+        except AttributeError:
+            # sometimes when passed as a dict, the skims have a few keys given as
+            # settings or constants, which are not actually "skim" objects and have
+            # no `set_df` attribute.  This is fine and we just let them pass.
+            pass
+        except AssertionError as e:
+            # An assertion error will get triggered if the columns of `df` are
+            # missing one of the required keys needed to look up values in the
+            # skims.  This may not be a problem, if this particular set of skims
+            # is not actually used in this model component.  So we'll warn about
+            # it but usually not raise a showstopping error.
             problems.append(e)
             if not allow_partial_success:
                 raise

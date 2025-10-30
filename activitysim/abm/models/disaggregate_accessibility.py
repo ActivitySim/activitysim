@@ -183,6 +183,8 @@ class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
     If less than 1, use this fraction of the total number of rows.
     If not supplied or None, will default to the chunk size in the location choice model settings.
     """
+    NEAREST_ZONE_SKIM: str = "DIST"
+    """The skim to use for finding the nearest zone when distributing logsums to un-sampled zones."""
 
 
 def read_disaggregate_accessibility_yaml(

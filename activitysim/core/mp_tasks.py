@@ -1274,6 +1274,43 @@ def allocate_shared_shadow_pricing_buffers_choice(state):
     return shadow_pricing_buffers_choice
 
 
+def allocate_park_and_ride_lot_choice_buffers(state: workflow.State, run_list: dict):
+    """
+    This is called by the main process to allocate memory buffer to share with subprocs
+
+    Only allocates memory if park-and-ride lot choice model is included and iterated with tour mode choice
+
+    Returns
+    -------
+        multiprocessing.RawArray
+    """
+
+    info(state, "allocate_park_and_ride_lot_choice_buffers")
+
+    park_and_ride_lot_choice_buffers = {}
+
+    # only allocate buffers if park_and_ride_lot_choice is in run_list
+    # and if it is iterated with tour mode choice
+    if "park_and_ride_lot_choice" in run_list["models"]:
+        from activitysim.abm.models import park_and_ride_lot_choice
+
+        model_settings = (
+            park_and_ride_lot_choice.ParkAndRideLotChoiceSettings.read_settings_file(
+                state.filesystem,
+                "park_and_ride_lot_choice.yaml",
+            )
+        )
+
+        if model_settings.ITERATE_WITH_TOUR_MODE_CHOICE:
+            from activitysim.abm.models.util import park_and_ride_capacity
+
+            park_and_ride_lot_choice_buffers = (
+                park_and_ride_capacity.create_park_and_ride_capacity_data_buffers(state)
+            )
+
+    return park_and_ride_lot_choice_buffers
+
+
 def run_sub_simulations(
     state: workflow.State,
     injectables,
@@ -1640,6 +1677,14 @@ def run_multiprocess(state: workflow.State, injectables):
     shared_data_buffers.update(allocate_shared_shadow_pricing_buffers_choice(state))
     t0 = tracing.print_elapsed_time("allocate shared shadow_pricing choice buffer", t0)
     state.trace_memory_info("allocate_shared_shadow_pricing_buffers_choice.completed")
+
+    # add park_and_ride_lot_choice buffers to shared_data_buffers
+    t0 = tracing.print_elapsed_time()
+    shared_data_buffers.update(
+        allocate_park_and_ride_lot_choice_buffers(state, run_list)
+    )
+    t0 = tracing.print_elapsed_time("allocate park_and_ride_lot_choice buffer", t0)
+    state.trace_memory_info("allocate_park_and_ride_lot_choice_buffers.completed")
 
     start_time = time.time()
     if sharrow_enabled:

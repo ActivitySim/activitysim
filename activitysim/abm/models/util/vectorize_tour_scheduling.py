@@ -18,6 +18,8 @@ from activitysim.core.configuration.base import ComputeSettings, PreprocessorSet
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
+from activitysim.abm.models.util.logsums import setup_skims
+from activitysim.abm.models.park_and_ride_lot_choice import run_park_and_ride_lot_choice
 
 logger = logging.getLogger(__name__)
 
@@ -64,80 +66,6 @@ class TourSchedulingSettings(LogitComponentSettings, extra="forbid"):
     """
 
 
-def skims_for_logsums(
-    state: workflow.State,
-    tour_purpose,
-    model_settings: TourSchedulingSettings,
-    trace_label: str,
-):
-    network_los = state.get_injectable("network_los")
-
-    skim_dict = network_los.get_default_skim_dict()
-
-    orig_col_name = "home_zone_id"
-
-    destination_for_tour_purpose = model_settings.DESTINATION_FOR_TOUR_PURPOSE
-    if isinstance(destination_for_tour_purpose, str):
-        dest_col_name = destination_for_tour_purpose
-    elif isinstance(destination_for_tour_purpose, dict):
-        dest_col_name = destination_for_tour_purpose.get(tour_purpose)
-    else:
-        raise RuntimeError(
-            f"expected string or dict DESTINATION_FOR_TOUR_PURPOSE model_setting for {tour_purpose}"
-        )
-
-    odt_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=orig_col_name, dest_key=dest_col_name, dim3_key="out_period"
-    )
-    dot_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=dest_col_name, dest_key=orig_col_name, dim3_key="in_period"
-    )
-    odr_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=orig_col_name, dest_key=dest_col_name, dim3_key="in_period"
-    )
-    dor_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=dest_col_name, dest_key=orig_col_name, dim3_key="out_period"
-    )
-    od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
-
-    skims = {
-        "odt_skims": odt_skim_stack_wrapper,
-        "dot_skims": dot_skim_stack_wrapper,
-        "odr_skims": odr_skim_stack_wrapper,
-        "dor_skims": dor_skim_stack_wrapper,
-        "od_skims": od_skim_stack_wrapper,
-        "orig_col_name": orig_col_name,
-        "dest_col_name": dest_col_name,
-    }
-
-    if network_los.zone_system == los.THREE_ZONE:
-        # fixme - is this a lightweight object?
-        tvpb = network_los.tvpb
-
-        tvpb_logsum_odt = tvpb.wrap_logsum(
-            orig_key=orig_col_name,
-            dest_key=dest_col_name,
-            tod_key="out_period",
-            segment_key="demographic_segment",
-            trace_label=trace_label,
-            tag="tvpb_logsum_odt",
-        )
-        tvpb_logsum_dot = tvpb.wrap_logsum(
-            orig_key=dest_col_name,
-            dest_key=orig_col_name,
-            tod_key="in_period",
-            segment_key="demographic_segment",
-            trace_label=trace_label,
-            tag="tvpb_logsum_dot",
-        )
-
-        skims.update(
-            {"tvpb_logsum_odt": tvpb_logsum_odt, "tvpb_logsum_dot": tvpb_logsum_dot}
-        )
-
-    return skims
-
-
 def _compute_logsums(
     state: workflow.State,
     alt_tdd,
@@ -145,7 +73,6 @@ def _compute_logsums(
     tour_purpose,
     model_settings: TourSchedulingSettings,
     network_los,
-    skims,
     trace_label,
 ):
     """
@@ -163,6 +90,42 @@ def _compute_logsums(
         choosers = alt_tdd.join(tours_merged, how="left", rsuffix="_chooser")
         logger.debug(
             f"{trace_label} compute_logsums for {choosers.shape[0]} choosers {alt_tdd.shape[0]} alts"
+        )
+
+        if logsum_settings.include_pnr_for_logsums:
+            # if the logsum settings include explicit PNR, then we need to add the
+            # PNR lot destination column to the choosers table by running PnR lot choice
+            choosers["pnr_zone_id"] = run_park_and_ride_lot_choice(
+                state,
+                choosers=choosers,
+                land_use=state.get_dataframe("land_use"),
+                network_los=state.get_injectable("network_los"),
+                model_settings=None,
+                choosers_dest_col_name="destination",
+                choosers_origin_col_name="home_zone_id",
+                estimator=None,
+                pnr_capacity_cls=None,
+                trace_label=tracing.extend_trace_label(trace_label, "pnr_lot_choice"),
+            )
+
+        # set destination column name for skims used in logsums
+        destination_for_tour_purpose = model_settings.DESTINATION_FOR_TOUR_PURPOSE
+        if isinstance(destination_for_tour_purpose, str):
+            dest_col_name = destination_for_tour_purpose
+        elif isinstance(destination_for_tour_purpose, dict):
+            dest_col_name = destination_for_tour_purpose.get(tour_purpose)
+        else:
+            raise RuntimeError(
+                f"expected string or dict DESTINATION_FOR_TOUR_PURPOSE model_setting for {tour_purpose}"
+            )
+
+        skims = setup_skims(
+            state.get_injectable("network_los"),
+            choosers,
+            add_periods=False,
+            include_pnr_skims=logsum_settings.include_pnr_for_logsums,
+            orig_col_name="home_zone_id",
+            dest_col_name=dest_col_name,
         )
 
         # - locals_dict
@@ -369,7 +332,6 @@ def compute_tour_scheduling_logsums(
     tours_merged,
     tour_purpose,
     model_settings: TourSchedulingSettings,
-    skims,
     trace_label,
     *,
     chunk_sizer: chunk.ChunkSizer,
@@ -415,7 +377,6 @@ def compute_tour_scheduling_logsums(
                 tour_purpose,
                 model_settings,
                 network_los,
-                skims,
                 trace_label,
             )
             return logsums
@@ -443,7 +404,6 @@ def compute_tour_scheduling_logsums(
             tour_purpose,
             model_settings,
             network_los,
-            skims,
             trace_label,
         )
 
@@ -487,7 +447,6 @@ def compute_tour_scheduling_logsums(
                 tour_purpose,
                 model_settings,
                 network_los,
-                skims,
                 trace_label,
             )
             state.tracing.trace_df(
@@ -703,7 +662,6 @@ def _schedule_tours(
     spec,
     logsum_tour_purpose,
     model_settings: TourSchedulingSettings,
-    skims,
     timetable,
     window_id_col,
     previous_tour,
@@ -802,7 +760,6 @@ def _schedule_tours(
             tours,
             logsum_tour_purpose,
             model_settings,
-            skims,
             tour_trace_label,
             chunk_sizer=chunk_sizer,
         )
@@ -918,14 +875,6 @@ def schedule_tours(
     else:
         assert not tours[timetable_window_id_col].duplicated().any()
 
-    if model_settings.LOGSUM_SETTINGS:
-        # we need skims to calculate tvpb skim overhead in 3_ZONE systems for use by calc_rows_per_chunk
-        skims = skims_for_logsums(
-            state, logsum_tour_purpose, model_settings, tour_trace_label
-        )
-    else:
-        skims = None
-
     result_list = []
     for (
         _i,
@@ -947,7 +896,6 @@ def schedule_tours(
             spec,
             logsum_tour_purpose,
             model_settings,
-            skims,
             timetable,
             timetable_window_id_col,
             previous_tour,

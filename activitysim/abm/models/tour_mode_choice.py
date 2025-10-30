@@ -324,13 +324,14 @@ def tour_mode_choice_simulate(
 
     choosers = primary_tours_merged
     final_choices = None
+    base_trace_label = trace_label
 
     # iterating tour mode choice with park-and-ride lot choice
     # the first iteration includes all tours
     # subsequent iterations only includes tours that selected a capacitated park-and-ride lot
     for i in range(max_iterations):
         if max_iterations > 1:
-            trace_label = tracing.extend_trace_label(trace_label, f"i{i}")
+            trace_label = tracing.extend_trace_label(base_trace_label, f"i{i}")
 
         choices_list = []
         for tour_purpose, tours_segment in choosers.groupby(

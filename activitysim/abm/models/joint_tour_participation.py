@@ -457,7 +457,9 @@ def joint_tour_participation(
         # leader, so the joint tour in the tour table will be associated with the tour
         # leader's person_id. We merge participant_num from survey data using the
         # participant_id as the join key to ensure the correct tour leader is identified.
-        participants["participant_num"] = survey_participants_df.reindex(participants.index)["participant_num"]
+        participants["participant_num"] = survey_participants_df.reindex(
+            participants.index
+        )["participant_num"]
     else:
         # assign participant_num
         # FIXME do we want something smarter than the participant with the lowest person_id?

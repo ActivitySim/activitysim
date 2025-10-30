@@ -46,6 +46,7 @@ class ParkAndRideCapacity:
             columns=["pnr_occupancy"], index=state.get_dataframe("land_use").index
         )
         self.shared_pnr_occupancy_df["pnr_occupancy"] = 0
+        self.capacity_snapshot = None
 
         self.scale_pnr_capacity(state)
 
@@ -390,10 +391,20 @@ class ParkAndRideCapacity:
             )
         df["over_by"] = (df.pnr_occupancy - df.pnr_capacity).clip(lower=0)
         df["capacitated"] = capacitated_zones_mask
-        self.capacity_snapshot = df
+
+        capacity_snapshot = df[df.pnr_capacity > 0].copy()
+        capacity_snapshot.columns = df.columns + "_" + f"i{self.iteration}"
+        capacity_snapshot.loc["Total"] = capacity_snapshot.sum(axis=0)
+
+        if self.capacity_snapshot is None:
+            self.capacity_snapshot = capacity_snapshot
+        else:
+            self.capacity_snapshot = pd.concat(
+                [self.capacity_snapshot, capacity_snapshot], axis=1
+            )
 
         # writing snapshot to output trace folder
-        if state.settings.trace_hh_id:
+        if self.model_settings.TRACE_PNR_CAPACITIES_PER_ITERATION:
             state.tracing.trace_df(
                 df=self.capacity_snapshot,
                 label=f"pnr_capacity_snapshot_i{self.iteration}",

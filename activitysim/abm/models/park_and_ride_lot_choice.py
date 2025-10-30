@@ -73,10 +73,14 @@ class ParkAndRideLotChoiceSettings(LogitComponentSettings, extra="forbid"):
     Should correspond to the columns in the tour mode choice specification file.
     """
 
+    TRACE_PNR_CAPACITIES_PER_ITERATION: bool = True
+    """If True, output park-and-ride lot occupancy at each iteration to the trace folder."""
+
 
 def filter_chooser_to_transit_accessible_destinations(
     state: workflow.State,
     choosers: pd.DataFrame,
+    land_use: pd.DataFrame,
     pnr_alts: pd.DataFrame,
     network_los: los.Network_LOS,
     model_settings: ParkAndRideLotChoiceSettings,
@@ -92,14 +96,14 @@ def filter_chooser_to_transit_accessible_destinations(
     if model_settings.LANDUSE_COL_FOR_PNR_ELIGIBLE_DEST is not None:
         col = model_settings.LANDUSE_COL_FOR_PNR_ELIGIBLE_DEST
         assert (
-            col in pnr_alts.columns
+            col in land_use.columns
         ), f"{col} not in landuse table, check LANDUSE_COL_FOR_PNR_ELIGIBLE_DEST setting in park_and_ride_lot_choice.yaml"
-        available_dests = pnr_alts[pnr_alts[col]].index
+        available_dests = land_use[land_use[col]].index
         filtered_choosers = choosers[
-            choosers[choosers[choosers_dest_col_name].isin(available_dests)]
+            choosers[choosers_dest_col_name].isin(available_dests)
         ]
 
-    elif model_settings.TRANSIT_SKIMS_FOR_ELIGIBILITY is None:
+    elif model_settings.TRANSIT_SKIMS_FOR_ELIGIBILITY is not None:
 
         skim_dict = network_los.get_default_skim_dict()
         unique_destinations = choosers[choosers_dest_col_name].unique()
@@ -224,6 +228,7 @@ def run_park_and_ride_lot_choice(
     trn_accessible_choosers = filter_chooser_to_transit_accessible_destinations(
         state,
         choosers,
+        land_use,
         pnr_alts,
         network_los,
         model_settings,
@@ -236,7 +241,8 @@ def run_park_and_ride_lot_choice(
         )
         # need to drop rng channel that we created before trn_accessible_choosers
         state.get_rn_generator().drop_channel("pnr_lot_choice")
-        return pd.Series(data=-1, index=choosers.index)
+        index = choosers.index if original_index is None else original_index
+        return pd.Series(data=-1, index=index)
 
     add_periods = False if "in_period" in trn_accessible_choosers.columns else True
     skims = logsums.setup_skims(

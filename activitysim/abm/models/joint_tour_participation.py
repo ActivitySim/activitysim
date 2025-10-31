@@ -452,14 +452,24 @@ def joint_tour_participation(
     PARTICIPANT_COLS = ["tour_id", "household_id", "person_id"]
     participants = candidates[participate][PARTICIPANT_COLS].copy()
 
-    # assign participant_num
-    # FIXME do we want something smarter than the participant with the lowest person_id?
-    participants["participant_num"] = (
-        participants.sort_values(by=["tour_id", "person_id"])
-        .groupby("tour_id")
-        .cumcount()
-        + 1
-    )
+    if estimator:
+        # In estimation mode, use participant_num from survey data to preserve consistency
+        # with the original survey data. ActivitySim treats participant_num=1 as the tour
+        # leader, so the joint tour in the tour table will be associated with the tour
+        # leader's person_id. We merge participant_num from survey data using the
+        # participant_id as the join key to ensure the correct tour leader is identified.
+        participants["participant_num"] = survey_participants_df.reindex(
+            participants.index
+        )["participant_num"]
+    else:
+        # assign participant_num
+        # FIXME do we want something smarter than the participant with the lowest person_id?
+        participants["participant_num"] = (
+            participants.sort_values(by=["tour_id", "person_id"])
+            .groupby("tour_id")
+            .cumcount()
+            + 1
+        )
 
     state.add_table("joint_tour_participants", participants)
 

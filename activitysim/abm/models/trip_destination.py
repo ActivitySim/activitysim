@@ -1515,7 +1515,8 @@ def run_trip_destination(
                     )
                 except KeyError as err:
                     if err.args[0] == "purpose_index_num":
-                        logger.error("""
+                        logger.error(
+                            """
                         
                         When using the trip destination model with sharrow, it is necessary
                         to set a value for `purpose_index_num` in the trip destination 
@@ -1527,7 +1528,8 @@ def run_trip_destination(
                         "size_terms.get_cols(df.purpose)" unless some unusual transform of 
                         size terms has been employed.
                         
-                        """)
+                        """
+                        )
                     raise
 
                 choices_list.append(choices)

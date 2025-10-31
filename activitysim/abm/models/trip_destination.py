@@ -1517,7 +1517,7 @@ def run_trip_destination(
                     if err.args[0] == "purpose_index_num":
                         logger.error(
                             """
-                        
+
                         When using the trip destination model with sharrow, it is necessary
                         to set a value for `purpose_index_num` in the trip destination 
                         annotate trips preprocessor.  This allows for an optimized compiled 
@@ -1527,7 +1527,7 @@ def run_trip_destination(
                         column is zero).  The preprocessor expression most likely needs to be
                         "size_terms.get_cols(df.purpose)" unless some unusual transform of 
                         size terms has been employed.
-                        
+
                         """
                         )
                     raise

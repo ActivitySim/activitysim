@@ -7,7 +7,7 @@ Traceback (most recent call last):
     return just_run(coro(*args, **kwargs))
   File "/home/runner/work/activitysim/activitysim/.venv/lib/python3.10/site-packages/nbclient/util.py", line 60, in just_run
     return loop.run_until_complete(coro)
-  File "/opt/hostedtoolcache/Python/3.10.18/x64/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+  File "/opt/hostedtoolcache/Python/3.10.19/x64/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
     return future.result()
   File "/home/runner/work/activitysim/activitysim/.venv/lib/python3.10/site-packages/nbclient/client.py", line 707, in async_execute
     await self.async_execute_cell(

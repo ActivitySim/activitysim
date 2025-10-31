@@ -139,8 +139,10 @@ Install UV
 We recommend installing UV as an independent tool on your machine, separate from any existing package managers you may have such as conda or pip.
 
 For Windows users, run the following command in PowerShell to install *uv*. It does not require administrator privileges and installs *uv* for the current user only.
-by default, uv is installed to `~/.local/bin` directory. Usually, this is `C:/Users/<username>/.local/bin`.
+By default, uv is installed to `~/.local/bin` directory. Usually, this is `C:/Users/<username>/.local/bin`.
+
 ::
+
   # Run the installer. Please review the printed message after installation.
   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 
@@ -148,7 +150,9 @@ by default, uv is installed to `~/.local/bin` directory. Usually, this is `C:/Us
   $env:PATH = "$env:USERPROFILE\.local\bin;$env:Path"
 
 If an agency wants to install *uv* globally for all users on Windows, run PowerShell as Administrator and run the following command.
+
 ::
+
   # Run the installer with a custom install directory
   powershell -ExecutionPolicy ByPass -c {$env:UV_INSTALL_DIR = "C:\custom\install\directory";irm https://astral.sh/uv/install.ps1 | iex}
 
@@ -158,6 +162,7 @@ If an agency wants to install *uv* globally for all users on Windows, run PowerS
 For more instructions on installing *uv* on Windows, MacOS, or Linux, please visit https://docs.astral.sh/uv/getting-started/installation/.
 
 To verify that *uv* is installed correctly, open a new Command Prompt (not Anaconda Prompt) and run the following command.
+
 ::
 
   uv --version
@@ -165,6 +170,7 @@ To verify that *uv* is installed correctly, open a new Command Prompt (not Anaco
 .. note::
   If you already have *uv* installed from an older project and you encounter errors
   such as 
+  
   ::
 
     error: Failed to parse uv.lock... missing field version...
@@ -172,6 +178,7 @@ To verify that *uv* is installed correctly, open a new Command Prompt (not Anaco
   later in the process, you may need to update *uv* to the latest version by reinstalling it via the official
   installation script: https://docs.astral.sh/uv/getting-started/installation/#standalone-installer.
   You can check the version of *uv* you have installed by running
+  
   ::
 
     uv --version
@@ -187,9 +194,9 @@ The first is to use *uv* to install an official ActivitySim release from the Pyt
 The second is to use *uv* to install ActivitySim from the source code repository and use the dependency lockfile.
 
 .. note::
-  The first option (:ref:`From PyPI`) is the quickest way to install ActivitySim from an official release and is recommended for users who do not wish to change the Python code. 
+  The first option (:ref:`Option 1: From PyPI`) is the quickest way to install ActivitySim from an official release and is recommended for users who do not wish to change the Python code. 
   However, they may end up using different deep dependencies than those tested by the developers. 
-  The second option (:ref:`From Source with Lockfile`) is recommended for users who may want to customize the Python code, and/or who want to run ActivitySim 
+  The second option (:ref:`Option 2: From Source with Lockfile`) is recommended for users who may want to customize the Python code, and/or who want to run ActivitySim 
   exactly as it was tested by the developers using the dependency lockfile which results in the exact same deep dependencies.
 
 The steps involved are described as follows.
@@ -286,7 +293,9 @@ Run ActivitySim with UV
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Activate the virtual environment created by *uv*. This option is similar to using Python's classic venv or Conda env.
+
 ::
+
   # cd into the project directory if not already there
   ## if you used the From PyPI option
   cd asim_project
@@ -299,11 +308,13 @@ Activate the virtual environment created by *uv*. This option is similar to usin
 Once the virtual environment is activated, you can run ActivitySim commands directly using the `activitysim` command.
 For example, run the ActivitySim commandline using the following. More information about the commandline interface is available in 
 the :ref:`Ways to Run the Model` section.
+
 ::
 
   activitysim run -c configs -o output -d data
 
 Alternatively, you can run ActivitySim commands directly using *uv* without activating the virtual environment.
+
 ::
 
   uv run activitysim run -c configs -o output -d data
@@ -314,26 +325,33 @@ My travel demand model requires additional Python packages not included with Act
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You can add additional packages to your *uv* project by using the `uv add` command. For example, to add the `geopandas` package, 
 run the following command within your existing *uv* project directory.
+
 ::
+
   # cd into your project directory
   cd asim_project
 
   # Add geopandas package
   uv add geopandas
+
 This will add the package to your virtual environment and update the `pyproject.toml` and the `uv.lock` file to include the new package and its dependencies.
 
 If you envision having a version of Python packages that is different from the one used by ActivitySim, e.g., you need pandas 1.x for visualization (for some reason), 
 we recommend creating a separate *uv* project for your custom packages and managing them independently from ActivitySim.
+
 ::
+
   # Open Command Prompt
   mkdir viz_project
   cd viz_project
   uv init
   uv add pandas==1.5.3
 
-Many agencies use commerical software that have Python APIs and dependencies that may conflict with ActivitySim dependencies. 
-In such cases, we also recommend creating a separate *uv* project for the commerical software and managing them independently from ActivitySim.
+Many agencies use commercial software that have Python APIs and dependencies that may conflict with ActivitySim dependencies. 
+In such cases, we also recommend creating a separate *uv* project for the commercial software and managing them independently from ActivitySim.
+
 ::
+
   # Open Command Prompt
   mkdir emme_project
   cd emme_project
@@ -342,21 +360,34 @@ In such cases, we also recommend creating a separate *uv* project for the commer
 
 How to share my working environment with others?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-You can share your working environment with others by sharing the `uv.lock` file located in your project directory. 
-This file contains the exact versions of all packages and dependencies used in your project. 
-Others can recreate the same environment by running the `uv sync --locked` command in a new project directory containing the shared `uv.lock` file.
+You can share your working environment with others by sharing the `uv.lock` file and the `pyproject.toml` file located in your project directory. 
+The `uv.lock` file contains the exact versions of all packages and dependencies used in your project. 
+Others can recreate the same environment by running the `uv sync --locked` command in a new project directory containing the shared files.
+
 ::
+
+  # Initialize a new project directory
+  mkdir new_asim_project
+  cd new_asim_project
+
+  # Copy .python-version file to new project directory (if exists)
+  copy path\to\shared\.python-version .
+  # Copy pyproject.toml file to new project directory
+  copy path\to\shared\pyproject.toml .
   # Copy uv.lock file to new project directory
+  copy path\to\shared\uv.lock .
+
+  # Recreate the same environment
   uv sync --locked
 
 If I use the From PyPI option to install ActivitySim, would I run into dependency issues?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Using the :ref:`From PyPI` option to install ActivitySim may result in different versions of deep dependencies than those tested by ActivitySim developers.
-This is because the :ref:`From PyPI` option installs only the direct dependencies listed in ActivitySim's `pyproject.toml` file,
+Using the :ref:`Option 1: From PyPI` option to install ActivitySim may result in different versions of deep dependencies than those tested by ActivitySim developers.
+This is because the :ref:`Option 1: From PyPI` option installs only the direct dependencies listed in ActivitySim's `pyproject.toml` file,
 and relies on *uv* to resolve and install the deep dependencies. It is likely that a newer version of ActivitySim deep dependencies
 may cause compatibility issues. For example, see this recent update with `numexpr`: https://github.com/pydata/numexpr/issues/540
 
-When that happens, we recommend using the :ref:`From Source with Lockfile` option to install ActivitySim, which ensures that
+When that happens, we recommend using the :ref:`Option 2: From Source with Lockfile` option to install ActivitySim, which ensures that
 you are using the exact same deep dependencies as those tested by ActivitySim developers. In the meantime, you can also
 report the compatibility issues to the ActivitySim development team via GitHub Issues, so that they can address them in future releases.
 

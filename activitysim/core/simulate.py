@@ -1006,6 +1006,11 @@ def set_skim_wrapper_targets(df, skims, allow_partial_success: bool = True):
         dataframe that comes back from interacting choosers with
         alternatives.  See the skims module for more documentation on how
         the skims object is intended to be used.
+    allow_partial_success : bool, optional
+        If True (default), failures to set skim targets for some skim objects
+        (for example due to missing required columns in `df`) will be collected
+        and logged as warnings but will not raise an exception. If False, any
+        such failure will be raised immediately, preventing partial success.
     """
 
     skims = (

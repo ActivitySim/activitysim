@@ -16,6 +16,8 @@ SPEC: trip_scheduling_choice.csv
 
 compute_settings: 
   protect_columns: 
+    - origin
+    - destination
     - schedule_id
 
 preprocessor:

@@ -98,6 +98,10 @@ input_table_list:
 # assume enough RAM to not chunk
 chunk_training_mode: disabled
 
+households_sample_size: 100
+
+check_model_settings: False
+
 models:
   - initialize_landuse
   - initialize_households
@@ -129,14 +133,15 @@ models:
   - trip_scheduling_choice
   - trip_departure_choice
   - trip_mode_choice
-  - parking_location
+# - parking_location
   - write_data_dictionary
   - track_skim_usage
   - write_trip_matrices
   - write_tables
 
-# resume_after:
+#resume_after: trip_purpose_and_destination
 
+num_processes: 2
 multiprocess: False
 fail_fast: True
 

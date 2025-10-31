@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.14'",
@@ -121,7 +121,7 @@ requires-dist = [
     { name = "requests", specifier = ">=2.7" },
     { name = "scikit-learn", specifier = ">=1.2" },
     { name = "setuptools", specifier = ">=80.9.0" },
-    { name = "sharrow", specifier = ">=2.9.1" },
+    { name = "sharrow", specifier = ">=2.15" },
     { name = "sparse" },
     { name = "tables", specifier = ">=3.9" },
     { name = "xarray", specifier = ">=2024.5" },
@@ -5051,7 +5051,7 @@ wheels = [
 
 [[package]]
 name = "sharrow"
-version = "2.14.0"
+version = "2.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dask" },
@@ -5066,9 +5066,9 @@ dependencies = [
     { name = "pyarrow" },
     { name = "xarray" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3d/ad/9fb609c6cfdd39fb976024fccd2dfa663a5310a4df1a392a80d21605b4cb/sharrow-2.14.0.tar.gz", hash = "sha256:d0d2afadd0b6a9f6c0b3ef6e602262c5f6c31bf33090865db555bae566217df4", size = 2138901, upload-time = "2025-05-29T14:17:12.878Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b1/2b/cd163ad3fc6ad48b650cd472bd161f99bcc7cc4befe2b1b04188084c9f9d/sharrow-2.15.0.tar.gz", hash = "sha256:d4e6881f8abfe0719b009963c491285d14c61226c64382ded16b3ce3d6f232fe", size = 2344691, upload-time = "2025-10-31T00:35:35.171Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/75/b9/b460fbaf2213f1406d1b5537f50852671e203e1ad92b06d5048f5a132471/sharrow-2.14.0-py3-none-any.whl", hash = "sha256:5879481139297708234f796158b9c81333d01d024aab078452ccd8753de88167", size = 2224745, upload-time = "2025-05-29T14:17:11.543Z" },
+    { url = "https://files.pythonhosted.org/packages/81/93/ff7835535a690a38c9bb3142e3c5b4b2512de09230bf9a20456e6f3db06f/sharrow-2.15.0-py3-none-any.whl", hash = "sha256:8b76bbe1f1ac941711d151cd84b7bc4aec6d2b44d62b56c831ead79eb533aad0", size = 2241380, upload-time = "2025-10-31T00:35:33.473Z" },
 ]
 
 [[package]]

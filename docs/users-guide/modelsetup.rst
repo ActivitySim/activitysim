@@ -240,15 +240,15 @@ instructions can be found `here <https://git-scm.com/downloads>`_.)
   git clone https://github.com/ActivitySim/activitysim.git  
   cd activitysim
 
-Run the `uv sync` command to create a virtual environment using the lockfile. It will initialize a virtual environment within the `activitysim` directory
+Run the `uv sync --locked` command to create a virtual environment using the lockfile. It will initialize a virtual environment within the `activitysim` directory
 and install ActivitySim and all its dependencies exactly as specified in the `uv.lock` file. 
 The virtual environment is a hidden folder within the current directory called 
 `.venv` and operates the same way as Python's classic *venv*.
 
 ::
 
-  uv sync
-  # or uv sync --no-editable
+  uv sync --locked
+  # or uv sync --locked --no-editable
 
 It is worth pointing out that by default, *uv* installs projects in 
 editable mode, such that changes to the source code are immediately reflected 
@@ -344,10 +344,10 @@ How to share my working environment with others?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You can share your working environment with others by sharing the `uv.lock` file located in your project directory. 
 This file contains the exact versions of all packages and dependencies used in your project. 
-Others can recreate the same environment by running the `uv sync` command in a new project directory containing the shared `uv.lock` file.
+Others can recreate the same environment by running the `uv sync --locked` command in a new project directory containing the shared `uv.lock` file.
 ::
   # Copy uv.lock file to new project directory
-  uv sync
+  uv sync --locked
 
 If I use the From PyPI option to install ActivitySim, would I run into dependency issues?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

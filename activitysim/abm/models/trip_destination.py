@@ -35,6 +35,7 @@ from activitysim.core.interaction_sample_simulate import interaction_sample_simu
 from activitysim.core.skim_dictionary import DataFrameMatrix
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place, reindex
+from activitysim.core.exceptions import InvalidTravelError, DuplicateWorkflowTableError
 
 logger = logging.getLogger(__name__)
 
@@ -1668,7 +1669,7 @@ def trip_destination(
     # testing feature t0 make sure at least one trip fails so trip_purpose_and_destination model is run
     if state.settings.testing_fail_trip_destination and not trips_df.failed.any():
         if (trips_df.trip_num < trips_df.trip_count).sum() == 0:
-            raise RuntimeError(
+            raise InvalidTravelError(
                 "can't honor 'testing_fail_trip_destination' setting because no intermediate trips"
             )
 
@@ -1749,7 +1750,9 @@ def trip_destination(
 
         # lest they try to put tour samples into the same table
         if state.is_table(sample_table_name):
-            raise RuntimeError("sample table %s already exists" % sample_table_name)
+            raise DuplicateWorkflowTableError(
+                "sample table %s already exists" % sample_table_name
+            )
         state.extend_table(sample_table_name, save_sample_df)
 
     expressions.annotate_tables(

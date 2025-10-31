@@ -21,6 +21,7 @@ from activitysim.core.simulate import (
     eval_nest_coefficients,
     read_model_coefficient_template,
 )
+from activitysim.core.exceptions import ModelConfigurationError
 
 # import model settings
 from activitysim.abm.models.accessibility import AccessibilitySettings
@@ -760,7 +761,7 @@ def check_model_settings(
         for e in all_errors:
             logger.error(f"\t{str(e)}")
             file_logger.error(f"\t{str(e)}")
-        raise RuntimeError(
+        raise ModelConfigurationError(
             f"Encountered one or more errors in settings checker. See f{log_file} for details."
         )
     msg = f"Setting Checker Complete. No runtime errors were raised. Check f{log_file} for warnings. These *may* prevent model from successfully running."

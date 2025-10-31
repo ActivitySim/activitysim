@@ -10,7 +10,10 @@ import pandas as pd
 
 from activitysim.core import util, workflow
 from activitysim.core.configuration import InputTable
-from activitysim.core.exceptions import MissingInputTableDefinition
+from activitysim.core.exceptions import (
+    MissingInputTableDefinition,
+    ModelConfigurationError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -204,7 +207,9 @@ def read_from_table_info(table_info: InputTable, state):
                 f"index_col '{index_col}' specified in configs but not in {tablename} table!"
             )
             logger.error(f"{tablename} columns are: {list(df.columns)}")
-            raise RuntimeError(f"index_col '{index_col}' not in {tablename} table!")
+            raise ModelConfigurationError(
+                f"index_col '{index_col}' not in {tablename} table!"
+            )
 
     if keep_columns:
         logger.debug("keeping columns: %s" % keep_columns)
@@ -214,7 +219,9 @@ def read_from_table_info(table_info: InputTable, state):
                 f"{list(set(keep_columns).difference(set(df.columns)))}"
             )
             logger.error(f"{tablename} table has columns: {list(df.columns)}")
-            raise RuntimeError(f"Required columns missing from {tablename} table")
+            raise ModelConfigurationError(
+                f"Required columns missing from {tablename} table"
+            )
 
         df = df[keep_columns]
 

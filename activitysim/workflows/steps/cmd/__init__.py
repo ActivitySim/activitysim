@@ -4,6 +4,7 @@ You cannot use things like exit, return, shell pipes, filename wildcards,
 environment,variable expansion, and expansion of ~ to a user’s home
 directory.
 """
+
 import logging
 
 from .dsl import CmdStep

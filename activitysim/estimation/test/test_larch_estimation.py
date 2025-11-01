@@ -44,7 +44,7 @@ def _regression_check(dataframe_regression, df, basename=None, rtol=None):
         # pandas 1.3 handles int8 dtypes as actual numbers, so holdfast needs to be dropped manually
         # we're dropping it not adding to the regression check so older pandas will also work.
         basename=basename,
-        default_tolerance=dict(atol=1e-6, rtol=rtol)
+        default_tolerance=dict(atol=1e-6, rtol=rtol),
         # can set a little loose, as there is sometimes a little variance in these
         # results when switching backend implementations. We're checking all
         # the parameters and the log likelihood, so modest variance in individual
@@ -129,7 +129,7 @@ def test_location_model(
     dataframe_regression.check(
         size_spec,
         basename=f"test_loc_{name}_{method}_size_spec",
-        default_tolerance=dict(atol=1e-6, rtol=5e-2)
+        default_tolerance=dict(atol=1e-6, rtol=5e-2),
         # set a little loose, as there is sometimes a little variance in these
         # results when switching backend implementations.
     )

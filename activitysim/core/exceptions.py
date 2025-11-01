@@ -56,3 +56,39 @@ class ReadOnlyError(IOError):
 
 class MissingInputTableDefinition(RuntimeError):
     """An input table definition was expected but not found."""
+
+
+class SystemConfigurationError(RuntimeError):
+    """An error in the system configuration (possibly in settings.yaml) was found."""
+
+
+class ModelConfigurationError(RuntimeError):
+    """An error in the model configuration was found."""
+
+
+class InvalidTravelError(RuntimeError):
+    """Travel behavior could not be completed in a valid way."""
+
+
+class TableSlicingError(RuntimeError):
+    """An error occurred trying to slice a table."""
+
+
+class InputTableError(RuntimeError):
+    """An issue with the input population was found."""
+
+
+class SubprocessError(RuntimeError):
+    """An error occurred in a subprocess."""
+
+
+class SegmentedSpecificationError(RuntimeError):
+    """An error was caused by creating an invalid spec table for a segmented model component."""
+
+
+class TableIndexError(RuntimeError):
+    """An error related to the index of a table in the pipeline."""
+
+
+class EstimationDataError(RuntimeError):
+    """An error related to estimation data."""

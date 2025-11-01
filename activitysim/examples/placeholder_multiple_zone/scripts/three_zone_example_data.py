@@ -149,13 +149,15 @@ tap_df = pd.DataFrame({"TAP": tap_zone_labels, "MAZ": maz_zone_labels})
 tap_df.to_csv(os.path.join(output_data, "tap.csv"), index=False)
 
 # create taz_z3 and tap skims
-with omx.open_file(
-    os.path.join(input_data, "skims.omx"), "r"
-) as ur_skims, omx.open_file(
-    os.path.join(output_data, "taz_skims.omx"), "w"
-) as output_taz_skims_file, omx.open_file(
-    os.path.join(output_data, "tap_skims.omx"), "w"
-) as output_tap_skims_file:
+with (
+    omx.open_file(os.path.join(input_data, "skims.omx"), "r") as ur_skims,
+    omx.open_file(
+        os.path.join(output_data, "taz_skims.omx"), "w"
+    ) as output_taz_skims_file,
+    omx.open_file(
+        os.path.join(output_data, "tap_skims.omx"), "w"
+    ) as output_tap_skims_file,
+):
     for skim_name in ur_skims.list_matrices():
         ur_skim = ur_skims[skim_name][:]
         new_skim = ur_skim[taz_zone_indexes, :][:, taz_zone_indexes]

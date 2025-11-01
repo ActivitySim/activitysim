@@ -1078,7 +1078,7 @@ class ChunkSizer:
             if mem_monitor is not None:
                 if not mem_monitor.is_alive():
                     logger.error(f"mem_monitor for {self.trace_label} died!")
-                    raise RuntimeError("bug")
+                    raise RuntimeError("mem_monitor for {self.trace_label} died!")
 
                 if stop_snooping is not None:
                     stop_snooping.set()

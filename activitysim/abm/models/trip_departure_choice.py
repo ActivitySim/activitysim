@@ -27,6 +27,7 @@ from activitysim.core.configuration.base import (
 from activitysim.core.skim_dataset import SkimDataset
 from activitysim.core.skim_dictionary import SkimDict
 from activitysim.core.util import reindex
+from activitysim.core.exceptions import SegmentedSpecificationError
 
 logger = logging.getLogger(__name__)
 
@@ -219,7 +220,7 @@ def choose_tour_leg_pattern(
         )
 
     if len(spec.columns) > 1:
-        raise RuntimeError("spec must have only one column")
+        raise SegmentedSpecificationError("spec must have only one column")
 
     # - join choosers and alts
     # in vanilla interaction_simulate interaction_df is cross join of choosers and alternatives

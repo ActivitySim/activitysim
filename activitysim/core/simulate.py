@@ -40,6 +40,7 @@ from activitysim.core.simulate_consts import (
     SPEC_EXPRESSION_NAME,
     SPEC_LABEL_NAME,
 )
+from activitysim.core.exceptions import ModelConfigurationError
 
 logger = logging.getLogger(__name__)
 
@@ -187,13 +188,13 @@ def read_model_coefficients(
             f"duplicate coefficients in {file_path}\n"
             f"{coefficients[coefficients.index.duplicated(keep=False)]}"
         )
-        raise RuntimeError(f"duplicate coefficients in {file_path}")
+        raise ModelConfigurationError(f"duplicate coefficients in {file_path}")
 
     if coefficients.value.isnull().any():
         logger.warning(
             f"null coefficients in {file_path}\n{coefficients[coefficients.value.isnull()]}"
         )
-        raise RuntimeError(f"null coefficients in {file_path}")
+        raise ModelConfigurationError(f"null coefficients in {file_path}")
 
     return coefficients
 
@@ -250,7 +251,7 @@ def spec_for_segment(
         try:
             assert (spec.astype(float) == spec).all(axis=None)
         except (ValueError, AssertionError):
-            raise RuntimeError(
+            raise ModelConfigurationError(
                 f"No coefficient file specified for {spec_file_name} "
                 f"but not all spec column values are numeric"
             ) from None
@@ -395,7 +396,7 @@ def get_segment_coefficients(
             FutureWarning,
         )
     else:
-        raise RuntimeError("No COEFFICIENTS setting in model_settings")
+        raise ModelConfigurationError("No COEFFICIENTS setting in model_settings")
 
     if legacy:
         constants = config.get_model_constants(model_settings)
@@ -1661,11 +1662,13 @@ def tvpb_skims(skims):
         return (
             skims
             if isinstance(skims, list)
-            else skims.values()
-            if isinstance(skims, dict)
-            else [skims]
-            if skims is not None
-            else []
+            else (
+                skims.values()
+                if isinstance(skims, dict)
+                else [skims]
+                if skims is not None
+                else []
+            )
         )
 
     return [

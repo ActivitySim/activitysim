@@ -2,13 +2,13 @@ from __future__ import annotations
 
 # ActivitySim
 # See full license in LICENSE.txt.
+import importlib.resources
 import os
 import subprocess
 from shutil import copytree
 
 import pandas as pd
 import pandas.testing as pdt
-import pkg_resources
 import yaml
 
 
@@ -35,7 +35,7 @@ def run_test_random_seed():
 
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_mtc", dirname)
-        return pkg_resources.resource_filename("activitysim", resource)
+        return str(importlib.resources.files("activitysim").joinpath(resource))
 
     def test_path(dirname):
         return os.path.join(os.path.dirname(__file__), dirname)

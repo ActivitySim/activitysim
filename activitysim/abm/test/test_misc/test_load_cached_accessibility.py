@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 from __future__ import annotations
 
+import importlib.resources
 import logging
 import os
 
@@ -10,7 +11,6 @@ import numpy.testing as npt
 import openmatrix as omx
 import pandas as pd
 import pandas.testing as pdt
-import pkg_resources
 import pytest
 import yaml
 
@@ -34,7 +34,7 @@ SKIP_FULL_RUN = False
 
 def example_path(dirname):
     resource = os.path.join("examples", "prototype_mtc", dirname)
-    return pkg_resources.resource_filename("activitysim", resource)
+    return str(importlib.resources.files("activitysim").joinpath(resource))
 
 
 def close_handlers():

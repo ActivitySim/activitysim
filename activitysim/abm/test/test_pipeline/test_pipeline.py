@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 from __future__ import annotations
 
+import importlib.resources
 import logging
 import os
 
@@ -9,7 +10,6 @@ import numpy as np
 import openmatrix as omx
 import pandas as pd
 import pandas.testing as pdt
-import pkg_resources
 import pytest
 
 from activitysim.core import random, tracing, workflow
@@ -34,7 +34,7 @@ SKIP_FULL_RUN = False
 
 def example_path(dirname):
     resource = os.path.join("examples", "prototype_mtc", dirname)
-    return pkg_resources.resource_filename("activitysim", resource)
+    return str(importlib.resources.files("activitysim").joinpath(resource))
 
 
 def setup_dirs(ancillary_configs_dir=None, data_dir=None):

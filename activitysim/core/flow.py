@@ -77,7 +77,7 @@ class TimeLogger:
             self._time_log.append((tag, timedelta(seconds=elapsed)))
             self._time_point = now
             if logger is not None:
-                logger.info(
+                logger.debug(
                     "elapsed time {0} {1} {2}".format(
                         tag,
                         timedelta(seconds=elapsed),
@@ -94,7 +94,7 @@ class TimeLogger:
         else:
             self.aggregate_timing[tag] += elapsed
 
-    def summary(self, logger, tag, level=20, suffix=None):
+    def summary(self, logger, tag, level=10, suffix=None):
         gross_elaspsed = time.time() - self._time_start
         if suffix:
             msg = f"{tag} in {timedelta(seconds=gross_elaspsed)}: ({suffix})\n"

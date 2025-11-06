@@ -2,6 +2,7 @@ from __future__ import annotations
 
 # ActivitySim
 # See full license in LICENSE.txt.
+import importlib.resources
 import os
 import subprocess
 import sys
@@ -9,7 +10,6 @@ from pathlib import Path
 
 import pandas as pd
 import pandas.testing as pdt
-import pkg_resources
 
 from activitysim.core import workflow
 from activitysim.core.test import run_if_exists
@@ -18,7 +18,7 @@ from activitysim.core.test import run_if_exists
 def _test_sandag_xborder(sharrow=False, mp=True):
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_sandag_xborder", dirname)
-        return pkg_resources.resource_filename("activitysim", resource)
+        return str(importlib.resources.files("activitysim").joinpath(resource))
 
     def test_path(dirname):
         return os.path.join(os.path.dirname(__file__), dirname)

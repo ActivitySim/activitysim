@@ -2,13 +2,13 @@ from __future__ import annotations
 
 # ActivitySim
 # See full license in LICENSE.txt.
+import importlib.resources
 import os
 import subprocess
 import sys
 from pathlib import Path
 
 import pandas as pd
-import pkg_resources
 import pytest
 
 from activitysim.core import test, workflow
@@ -16,12 +16,12 @@ from activitysim.core import test, workflow
 
 def example_path(dirname):
     resource = os.path.join("examples", "placeholder_multiple_zone", dirname)
-    return pkg_resources.resource_filename("activitysim", resource)
+    return str(importlib.resources.files("activitysim").joinpath(resource))
 
 
 def mtc_example_path(dirname):
     resource = os.path.join("examples", "prototype_mtc", dirname)
-    return pkg_resources.resource_filename("activitysim", resource)
+    return str(importlib.resources.files("activitysim").joinpath(resource))
 
 
 def build_data():

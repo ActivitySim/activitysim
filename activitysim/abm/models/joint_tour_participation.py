@@ -21,6 +21,7 @@ from activitysim.core import (
 from activitysim.core.configuration.base import ComputeSettings, PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.util import assign_in_place, reindex
+from activitysim.core.exceptions import InvalidTravelError
 
 logger = logging.getLogger(__name__)
 
@@ -218,11 +219,11 @@ def participants_chooser(
                 non_choice_col = [col for col in probs.columns if col != choice_col][0]
                 probs[non_choice_col] = 1 - probs[choice_col]
                 if iter > MAX_ITERATIONS + 1:
-                    raise RuntimeError(
+                    raise InvalidTravelError(
                         f"{num_tours_remaining} tours could not be satisfied even with forcing participation"
                     )
             else:
-                raise RuntimeError(
+                raise InvalidTravelError(
                     f"{num_tours_remaining} tours could not be satisfied after {iter} iterations"
                 )
 

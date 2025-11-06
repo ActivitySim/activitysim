@@ -265,7 +265,7 @@ class Runner(StateAccessor):
         if model_name in checkpointed_models:
             if self._obj.settings.duplicate_step_execution == "error":
                 checkpointed_model_bullets = "\n - ".join(checkpointed_models)
-                raise RuntimeError(
+                raise DuplicateWorkflowNameError(
                     f"Checkpointed Models:\n - {checkpointed_model_bullets}\n"
                     f"Cannot run model '{model_name}' more than once"
                 )

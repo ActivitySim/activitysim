@@ -26,6 +26,7 @@ from activitysim.core.workflow.checkpoint import (
     NON_TABLE_COLUMNS,
     ParquetStore,
 )
+from activitysim.core.exceptions import *
 
 logger = logging.getLogger(__name__)
 
@@ -440,7 +441,9 @@ def build_slice_rules(state: workflow.State, slice_info, pipeline_tables):
         tables[table_name] = pipeline_tables[table_name]
 
     if primary_slicer not in tables:
-        raise RuntimeError("primary slice table '%s' not in pipeline" % primary_slicer)
+        raise SystemConfigurationError(
+            "primary slice table '%s' not in pipeline" % primary_slicer
+        )
 
     # allow wildcard 'True' to avoid slicing (or coalescing) any tables no explicitly listed in slice_info.tables
     # populationsim uses slice.except wildcards to avoid listing control tables (etc) that should not be sliced,
@@ -532,7 +535,7 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
     """
     slice_info = step_info.get("slice", None)
     if slice_info is None:
-        raise RuntimeError("missing slice_info.slice")
+        raise SystemConfigurationError("missing slice_info.slice")
     multiprocess_step_name = step_info.get("name", None)
 
     pipeline_file_name = state.get_injectable("pipeline_file_name")
@@ -542,14 +545,16 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
         "last_checkpoint_in_previous_multiprocess_step", None
     )
     if last_checkpoint_in_previous_multiprocess_step is None:
-        raise RuntimeError("missing last_checkpoint_in_previous_multiprocess_step")
+        raise CheckpointNameNotFoundError(
+            "missing last_checkpoint_in_previous_multiprocess_step"
+        )
     state.checkpoint.restore(resume_after=last_checkpoint_in_previous_multiprocess_step)
 
     # ensure all tables are in the pipeline
     checkpointed_tables = state.checkpoint.list_tables()
     for table_name in slice_info["tables"]:
         if table_name not in checkpointed_tables:
-            raise RuntimeError(f"slicer table {table_name} not found in pipeline")
+            raise StateAccessError(f"slicer table {table_name} not found in pipeline")
 
     checkpoints_df = state.checkpoint.get_inventory()
 
@@ -601,7 +606,7 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
 
                     if rule["slice_by"] is not None and num_sub_procs > len(df):
                         # almost certainly a configuration error
-                        raise RuntimeError(
+                        raise SystemConfigurationError(
                             f"apportion_pipeline: multiprocess step {multiprocess_step_name} "
                             f"slice table {table_name} has fewer rows {df.shape} "
                             f"than num_processes ({num_sub_procs})."
@@ -634,7 +639,7 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
                         # don't slice mirrored tables
                         sliced_tables[table_name] = df
                     else:
-                        raise RuntimeError(
+                        raise TableSlicingError(
                             "Unrecognized slice rule '%s' for table %s"
                             % (rule["slice_by"], table_name)
                         )
@@ -678,7 +683,7 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
 
                 if rule["slice_by"] is not None and num_sub_procs > len(df):
                     # almost certainly a configuration error
-                    raise RuntimeError(
+                    raise SystemConfigurationError(
                         f"apportion_pipeline: multiprocess step {multiprocess_step_name} "
                         f"slice table {table_name} has fewer rows {df.shape} "
                         f"than num_processes ({num_sub_procs})."
@@ -711,7 +716,7 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
                     # don't slice mirrored tables
                     sliced_tables[table_name] = df
                 else:
-                    raise RuntimeError(
+                    raise TableSlicingError(
                         "Unrecognized slice rule '%s' for table %s"
                         % (rule["slice_by"], table_name)
                     )
@@ -970,7 +975,7 @@ def adjust_chunk_size_for_shared_memory(chunk_size, data_buffers, num_processes)
     )
 
     if adjusted_chunk_size <= 0:
-        raise RuntimeError(
+        raise SystemConfigurationError(
             f"adjust_chunk_size_for_shared_memory: chunk_size too small for shared memory.  "
             f"adjusted_chunk_size: {adjusted_chunk_size}"
         )
@@ -1366,7 +1371,7 @@ def run_sub_simulations(
                                         state,
                                         f"error terminating process {op.name}: {e}",
                                     )
-                        raise RuntimeError("Process %s failed" % (p.name,))
+                        raise SubprocessError("Process %s failed" % (p.name,))
 
     step_name = step_info["name"]
 
@@ -1531,7 +1536,7 @@ def run_sub_task(state: workflow.State, p):
 
     if p.exitcode:
         error(state, f"Process {p.name} returned exitcode {p.exitcode}")
-        raise RuntimeError("Process %s returned exitcode %s" % (p.name, p.exitcode))
+        raise SubprocessError("Process %s returned exitcode %s" % (p.name, p.exitcode))
 
 
 def drop_breadcrumb(state: workflow.State, step_name, crumb, value=True):
@@ -1596,7 +1601,7 @@ def run_multiprocess(state: workflow.State, injectables):
     run_list = get_run_list(state)
 
     if not run_list["multiprocess"]:
-        raise RuntimeError(
+        raise SubprocessError(
             "run_multiprocess called but multiprocess flag is %s"
             % run_list["multiprocess"]
         )
@@ -1719,7 +1724,7 @@ def run_multiprocess(state: workflow.State, injectables):
             )
 
             if len(completed) != num_processes:
-                raise RuntimeError(
+                raise SubprocessError(
                     "%s processes failed in step %s"
                     % (num_processes - len(completed), step_name)
                 )
@@ -1787,7 +1792,9 @@ def get_breadcrumbs(state: workflow.State, run_list):
     # - can't resume multiprocess without breadcrumbs file
     if not breadcrumbs:
         error(state, f"empty breadcrumbs for resume_after '{resume_after}'")
-        raise RuntimeError("empty breadcrumbs for resume_after '%s'" % resume_after)
+        raise CheckpointNameNotFoundError(
+            "empty breadcrumbs for resume_after '%s'" % resume_after
+        )
 
     # if resume_after is specified by name
     if resume_after != LAST_CHECKPOINT:
@@ -1808,7 +1815,7 @@ def get_breadcrumbs(state: workflow.State, run_list):
 
         if resume_step_name not in previous_steps:
             error(state, f"resume_after model '{resume_after}' not in breadcrumbs")
-            raise RuntimeError(
+            raise CheckpointNameNotFoundError(
                 "resume_after model '%s' not in breadcrumbs" % resume_after
             )
 
@@ -1826,7 +1833,7 @@ def get_breadcrumbs(state: workflow.State, run_list):
 
     multiprocess_step_names = [step["name"] for step in run_list["multiprocess_steps"]]
     if list(breadcrumbs.keys()) != multiprocess_step_names[: len(breadcrumbs)]:
-        raise RuntimeError(
+        raise CheckpointNameNotFoundError(
             "last run steps don't match run list: %s" % list(breadcrumbs.keys())
         )
 
@@ -1911,15 +1918,15 @@ def get_run_list(state: workflow.State):
     }
 
     if not models or not isinstance(models, list):
-        raise RuntimeError("No models list in settings file")
+        raise SystemConfigurationError("No models list in settings file")
     if resume_after == models[-1]:
-        raise RuntimeError(
+        raise SystemConfigurationError(
             "resume_after '%s' is last model in models list" % resume_after
         )
 
     if multiprocess:
         if not multiprocess_steps:
-            raise RuntimeError(
+            raise SystemConfigurationError(
                 "multiprocess setting is %s but no multiprocess_steps setting"
                 % multiprocess
             )
@@ -1935,15 +1942,15 @@ def get_run_list(state: workflow.State):
             # - validate step name
             name = step.get("name", None)
             if not name:
-                raise RuntimeError(
+                raise SystemConfigurationError(
                     "missing name for step %s" " in multiprocess_steps" % istep
                 )
             if name in step_names:
-                raise RuntimeError(
+                raise SystemConfigurationError(
                     "duplicate step name %s" " in multiprocess_steps" % name
                 )
             if name in models:
-                raise RuntimeError(
+                raise SystemConfigurationError(
                     f"multiprocess_steps step name '{name}' cannot also be a model name"
                 )
 
@@ -1953,7 +1960,7 @@ def get_run_list(state: workflow.State):
             num_processes = step.get("num_processes", 0) or 0
 
             if not isinstance(num_processes, int) or num_processes < 0:
-                raise RuntimeError(
+                raise SystemConfigurationError(
                     "bad value (%s) for num_processes for step %s"
                     " in multiprocess_steps" % (num_processes, name)
                 )
@@ -1975,7 +1982,7 @@ def get_run_list(state: workflow.State):
                 if num_processes == 0:
                     num_processes = 1
                 if num_processes > 1:
-                    raise RuntimeError(
+                    raise SystemConfigurationError(
                         "num_processes > 1 but no slice info for step %s"
                         " in multiprocess_steps" % name
                     )
@@ -2004,19 +2011,19 @@ def get_run_list(state: workflow.State):
             slice = step.get("slice", None)
             if slice:
                 if "tables" not in slice:
-                    raise RuntimeError(
+                    raise SystemConfigurationError(
                         "missing tables list for step %s"
                         " in multiprocess_steps" % istep
                     )
 
             start = step.get(start_tag, None)
             if not name:
-                raise RuntimeError(
+                raise SystemConfigurationError(
                     "missing %s tag for step '%s' (%s)"
                     " in multiprocess_steps" % (start_tag, name, istep)
                 )
             if start not in models:
-                raise RuntimeError(
+                raise SystemConfigurationError(
                     "%s tag '%s' for step '%s' (%s) not in models list"
                     % (start_tag, start, name, istep)
                 )
@@ -2024,14 +2031,14 @@ def get_run_list(state: workflow.State):
             starts[istep] = models.index(start)
 
             if istep == 0 and starts[istep] != 0:
-                raise RuntimeError(
+                raise SystemConfigurationError(
                     "%s tag '%s' for first step '%s' (%s)"
                     " is not first model in models list"
                     % (start_tag, start, name, istep)
                 )
 
             if istep > 0 and starts[istep] <= starts[istep - 1]:
-                raise RuntimeError(
+                raise SystemConfigurationError(
                     "%s tag '%s' for step '%s' (%s)"
                     " falls before that of prior step in models list"
                     % (start_tag, start, name, istep)
@@ -2048,7 +2055,7 @@ def get_run_list(state: workflow.State):
             step_models = models[starts[istep] : starts[istep + 1]]
 
             if step_models[-1][0] == LAST_CHECKPOINT:
-                raise RuntimeError(
+                raise CheckpointNameNotFoundError(
                     "Final model '%s' in step %s models list not checkpointed"
                     % (step_models[-1], name)
                 )

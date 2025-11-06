@@ -20,7 +20,7 @@ from sharrow.dataset import construct as _dataset_construct
 
 import activitysim.core.random
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
-from activitysim.core.exceptions import StateAccessError
+from activitysim.core.exceptions import StateAccessError, CheckpointNameNotFoundError
 from activitysim.core.workflow.checkpoint import LAST_CHECKPOINT, Checkpoints
 from activitysim.core.workflow.chunking import Chunking
 from activitysim.core.workflow.dataset import Datasets
@@ -1017,7 +1017,7 @@ class State:
             table_name
         ):
             if checkpoint_name is not None:
-                raise RuntimeError(
+                raise CheckpointNameNotFoundError(
                     f"get_table: checkpoint_name ({checkpoint_name!r}) not "
                     f"supported for non-checkpointed table {table_name!r}"
                 )
@@ -1027,10 +1027,14 @@ class State:
         # if they want current version of table, no need to read from pipeline store
         if checkpoint_name is None:
             if table_name not in self.checkpoint.last_checkpoint:
-                raise RuntimeError("table '%s' never checkpointed." % table_name)
+                raise CheckpointNameNotFoundError(
+                    "table '%s' never checkpointed." % table_name
+                )
 
             if not self.checkpoint.last_checkpoint[table_name]:
-                raise RuntimeError("table '%s' was dropped." % table_name)
+                raise CheckpointNameNotFoundError(
+                    "table '%s' was dropped." % table_name
+                )
 
             return self._context.get(table_name)
 
@@ -1044,13 +1048,15 @@ class State:
             None,
         )
         if checkpoint is None:
-            raise RuntimeError("checkpoint '%s' not in checkpoints." % checkpoint_name)
+            raise CheckpointNameNotFoundError(
+                "checkpoint '%s' not in checkpoints." % checkpoint_name
+            )
 
         # find the checkpoint that table was written to store
         last_checkpoint_name = checkpoint.get(table_name, None)
 
         if not last_checkpoint_name:
-            raise RuntimeError(
+            raise CheckpointNameNotFoundError(
                 "table '%s' not in checkpoint '%s'." % (table_name, checkpoint_name)
             )
 

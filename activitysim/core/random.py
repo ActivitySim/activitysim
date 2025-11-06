@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core.util import reindex
+from activitysim.core.exceptions import DuplicateLoadableObjectError, TableIndexError
 
 from .tracing import print_elapsed_time
 
@@ -395,7 +396,7 @@ class Random(object):
 
         channel_name = self.index_to_channel.get(df.index.name, None)
         if channel_name is None:
-            raise RuntimeError("No channel with index name '%s'" % df.index.name)
+            raise TableIndexError("No channel with index name '%s'" % df.index.name)
         return self.channels[channel_name]
 
     # step handling
@@ -528,7 +529,9 @@ class Random(object):
         """
 
         if self.step_name is not None or self.channels:
-            raise RuntimeError("Can only call set_base_seed before the first step.")
+            raise DuplicateLoadableObjectError(
+                "Can only call set_base_seed before the first step."
+            )
 
         assert len(list(self.channels.keys())) == 0
 

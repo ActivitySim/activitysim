@@ -63,7 +63,7 @@ def run_step(context: Context) -> None:
                     1
                 ),
                 index=dtypes_table.index,
-            ).apply(lambda x: "" if x else "\u2B05")
+            ).apply(lambda x: "" if x else "\u2b05")
             report << dtypes_table
 
     with report:

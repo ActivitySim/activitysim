@@ -139,7 +139,7 @@ Install UV
 We recommend installing UV as an independent tool on your machine, separate from any existing package managers you may have such as conda or pip.
 
 For Windows users, run the following command in PowerShell to install *uv*. It does not require administrator privileges and installs *uv* for the current user only.
-By default, uv is installed to `~/.local/bin` directory. Usually, this is `C:/Users/<username>/.local/bin`.
+By default, uv is installed to ``~/.local/bin`` directory. Usually, this is ``C:/Users/<username>/.local/bin``.
 
 ::
 
@@ -153,11 +153,11 @@ If an agency wants to install *uv* globally for all users on Windows, run PowerS
 
 ::
 
-  # Run the installer with a custom install directory
-  powershell -ExecutionPolicy ByPass -c {$env:UV_INSTALL_DIR = "C:\custom\install\directory";irm https://astral.sh/uv/install.ps1 | iex}
+  # Run the installer with a custom install directory (e.g., C:\shared\uv) that is accessible to all users
+  powershell -ExecutionPolicy ByPass -c {$env:UV_INSTALL_DIR = "C:\shared\uv";irm https://astral.sh/uv/install.ps1 | iex}
 
   # Add uv to PATH for all users (requires administrator privileges)
-  [Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";C:\custom\install\directory", [EnvironmentVariableTarget]::Machine)
+  [Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";C:\shared\uv", [EnvironmentVariableTarget]::Machine)
 
 For more instructions on installing *uv* on Windows, MacOS, or Linux, please visit https://docs.astral.sh/uv/getting-started/installation/.
 
@@ -221,16 +221,16 @@ Open Command Prompt (not Anaconda Prompt), and run the following commands.
   # add ActivitySim package from the latest release on PyPI
   uv add activitysim
 
-*uv* will create a new virtual environment within the `asim_project` project folder 
+*uv* will create a new virtual environment within the ``asim_project`` project folder 
 and install ActivitySim and its dependencies. The virtual environment is a hidden folder 
-within the `asim_project` directory called `.venv` and operates the same way as Python's classic *venv*. You will notice 
-two new files created in the `asim_project` directory: `pyproject.toml` and `uv.lock`. These files
-are automatically created, updated, and used by *uv* to manage your `asim_project` project and its dependencies. 
-You can share these files with others to recreate the same environment for your `asim_project` project. For more guidance on sharing your working environment, 
+within the ``asim_project`` directory called ``.venv`` and operates the same way as Python's classic *venv*. You will notice 
+two new files created in the ``asim_project`` directory: ``pyproject.toml`` and ``uv.lock``. These files
+are automatically created, updated, and used by *uv* to manage your ``asim_project`` project and its dependencies. 
+You can share these files with others to recreate the same environment for your ``asim_project`` project. For more guidance on sharing your working environment, 
 see the Common Q&A :ref:`How to share my working environment with others?` section below.
 
-By running the command `uv add activitysim`, you install the official release of ActivitySim from PyPI and its direct dependencies 
-listed in ActivitySim's `pyproject.toml` file. This approach is the quickest
+By running the command ``uv add activitysim``, you install the official release of ActivitySim from PyPI and its direct dependencies 
+listed in ActivitySim's ``pyproject.toml`` file. This approach is the quickest
 for getting started but it does not rely on ActivitySim's own lockfile to install deep dependencies so you may
 end up with different versions of deep dependencies than those tested by ActivitySim developers. 
 If you want to ensure exact versions of ActivitySim's deep dependencies, you should install ActivitySim using Option 2: From Source with Lockfile.
@@ -247,10 +247,10 @@ instructions can be found `here <https://git-scm.com/downloads>`_.)
   git clone https://github.com/ActivitySim/activitysim.git  
   cd activitysim
 
-Run the `uv sync --locked` command to create a virtual environment using the lockfile. It will initialize a virtual environment within the `activitysim` directory
-and install ActivitySim and all its dependencies exactly as specified in the `uv.lock` file. 
+Run the ``uv sync --locked`` command to create a virtual environment using the lockfile. It will initialize a virtual environment within the ``activitysim`` directory
+and install ActivitySim and all its dependencies exactly as specified in the ``uv.lock`` file. 
 The virtual environment is a hidden folder within the current directory called 
-`.venv` and operates the same way as Python's classic *venv*.
+``.venv`` and operates the same way as Python's classic *venv*.
 
 ::
 
@@ -259,16 +259,16 @@ The virtual environment is a hidden folder within the current directory called
 
 It is worth pointing out that by default, *uv* installs projects in 
 editable mode, such that changes to the source code are immediately reflected 
-in the environment. `uv sync` accepts a `--no-editable` 
+in the environment. ``uv sync`` accepts a ``--no-editable`` 
 flag, which instructs *uv* to install the project in non-editable mode, 
 removing any dependency on the source code.
 
-Also, `uv sync` automatically installs the dependencies listed in `pyproject.toml`
-under `dependencies` under `[project]`, and it also installs those listed 
-under `dev` under `[dependency-groups]`. If you want to
+Also, ``uv sync`` automatically installs the dependencies listed in ``pyproject.toml``
+under ``dependencies`` under ``[project]``, and it also installs those listed 
+under ``dev`` under ``[dependency-groups]``. If you want to
 skip the dependency groups entirely with a *uv* install (and only install those
-that would install via `pip` from 'pypi`), use the `--no-default-groups` flag 
-with `uv sync`.
+that would install via ``pip`` from ``pypi``), use the ``--no-default-groups`` flag 
+with ``uv sync``.
 
 
 Which Option Should I Use?
@@ -305,7 +305,7 @@ Activate the virtual environment created by *uv*. This option is similar to usin
   # Activate the virtual environment
   .venv\Scripts\activate
 
-Once the virtual environment is activated, you can run ActivitySim commands directly using the `activitysim` command.
+Once the virtual environment is activated, you can run ActivitySim commands directly using the ``activitysim`` command.
 For example, run the ActivitySim commandline using the following. More information about the commandline interface is available in 
 the :ref:`Ways to Run the Model` section.
 
@@ -323,7 +323,7 @@ Common Q&A
 ^^^^^^^^^^^^^^^^
 My travel demand model requires additional Python packages not included with ActivitySim. How do I add them?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-You can add additional packages to your *uv* project by using the `uv add` command. For example, to add the `geopandas` package, 
+You can add additional packages to your *uv* project by using the ``uv add`` command. For example, to add the ``geopandas`` package, 
 run the following command within your existing *uv* project directory.
 
 ::
@@ -334,7 +334,7 @@ run the following command within your existing *uv* project directory.
   # Add geopandas package
   uv add geopandas
 
-This will add the package to your virtual environment and update the `pyproject.toml` and the `uv.lock` file to include the new package and its dependencies.
+This will add the package to your virtual environment and update the ``pyproject.toml`` and the ``uv.lock`` file to include the new package and its dependencies.
 
 If you envision having a version of Python packages that is different from the one used by ActivitySim, e.g., you need pandas 1.x for visualization (for some reason), 
 we recommend creating a separate *uv* project for your custom packages and managing them independently from ActivitySim.
@@ -358,11 +358,23 @@ In such cases, we also recommend creating a separate *uv* project for the commer
   uv init --python 2.7
   # Then copy the emme.pth file (provides EMME API handshakes) from the Emme installation directory to emme_project/.venv/Lib/site-packages/
 
+When having multiple *uv* projects, you can switch between them by activating the respective virtual environments.
+
+::
+
+  # Activate visualization project
+  # Open Command Prompt
+  cd path\to\viz_project
+  .venv\Scripts\activate
+
+  # Deactivate visualization project
+  deactivate
+
 How to share my working environment with others?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-You can share your working environment with others by sharing the `uv.lock` file and the `pyproject.toml` file located in your project directory. 
-The `uv.lock` file contains the exact versions of all packages and dependencies used in your project. 
-Others can recreate the same environment by running the `uv sync --locked` command in a new project directory containing the shared files.
+You can share your working environment with others by sharing the ``uv.lock`` file and the ``pyproject.toml`` file located in your project directory (and ``.python-version`` file if it exists). 
+The ``uv.lock`` file contains the exact versions of all packages and dependencies used in your project. 
+Others can recreate the same environment by running the ``uv sync --locked`` command in a new project directory containing the shared files.
 
 ::
 
@@ -380,19 +392,62 @@ Others can recreate the same environment by running the `uv sync --locked` comma
   # Recreate the same environment
   uv sync --locked
 
+Can other users on the same server or machine use my already created virtual environment?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This is doable but it requires additional setup and admin rights - therefore we do not generally recommend it. We recommend following the practice in :ref:`How to share my working environment with others?`. 
+
+If you'd still like to proceed, here are the recommended steps to follow (proceed with caution!):
+
+1. Ensure that you installed UV globally (requires admin rights) on the server/machine for all users. :ref:`Install UV` section above provides instructions on how to do this.
+
+2. Assuming you installed UV globally in ``C:\shared\uv\``, ensure that all users have read and execute permissions to this directory.
+
+3. Create a directory under ``C:\shared\uv\`` to install Python globally for UV. For example, open Command Prompt, create a directory named ``uv_python`` under ``C:\shared\uv\``.
+
+::
+
+  cd C:\shared\uv\
+  mkdir uv_python
+
+4. Under Environment Variables > System variables (requires Admin), create a new system environment variable named ``UV_PYTHON_INSTALL_DIR`` and set its value to the Python directory created in step 3 ``C:\shared\uv\uv_python\``.
+
+5. Run the following command to install Python globally for UV. This should install Python executables globally in the ``UV_PYTHON_INSTALL_DIR`` directory.
+
+::
+
+  uv python install 3.10
+
+6. Under Environment Variables > System variables (requires Admin), create a new system environment variable named ``UV_PYTHON`` and set its value to the ``python.exe`` created in step 5.
+
+7. Create a directory to host UV projects under ``C:\shared\uv\``
+
+::
+
+  cd C:\shared\uv\
+  mkdir uv_projects
+  cd uv_projects
+
+8. Create a new *uv* project and install ActivitySim using either :ref:`Option 1: From PyPI` or :ref:`Option 2: From Source with Lockfile` as described above.
+
+9. Ensure that all users have read and execute permissions to the shared uv directory.
+
+::
+
+  icacls C:\shared\uv /reset /T
+
 If I use the From PyPI option to install ActivitySim, would I run into dependency issues?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Using the :ref:`Option 1: From PyPI` option to install ActivitySim may result in different versions of deep dependencies than those tested by ActivitySim developers.
-This is because the :ref:`Option 1: From PyPI` option installs only the direct dependencies listed in ActivitySim's `pyproject.toml` file,
+This is because the :ref:`Option 1: From PyPI` option installs only the direct dependencies listed in ActivitySim's ``pyproject.toml`` file,
 and relies on *uv* to resolve and install the deep dependencies. It is likely that a newer version of ActivitySim deep dependencies
-may cause compatibility issues. For example, see this recent update with `numexpr`: https://github.com/pydata/numexpr/issues/540
+may cause compatibility issues. For example, see this recent update with ``numexpr``: https://github.com/pydata/numexpr/issues/540
 
 When that happens, we recommend using the :ref:`Option 2: From Source with Lockfile` option to install ActivitySim, which ensures that
 you are using the exact same deep dependencies as those tested by ActivitySim developers. In the meantime, you can also
 report the compatibility issues to the ActivitySim development team via GitHub Issues, so that they can address them in future releases.
 
-If I want to use `uv run` to run ActivitySim commands, do I still need to activate the virtual environment?
+If I want to use ``uv run`` to run ActivitySim commands, do I still need to activate the virtual environment?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-No, if you use `uv run` to run ActivitySim commands, you do not need to activate the virtual environment first.
-However, you will need to call `uv run` in the project directory where the virtual environment is located. Also, like `uv sync`, 
-`uv run` automatically updates the lockfile and installs any missing dependencies before running the command.
+No, if you use ``uv run`` to run ActivitySim commands, you do not need to activate the virtual environment first.
+However, you will need to call ``uv run`` in the project directory where the virtual environment is located. Also, like ``uv sync``, 
+``uv run`` automatically updates the lockfile and installs any missing dependencies before running the command.

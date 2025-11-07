@@ -306,7 +306,9 @@ class ParkAndRideCapacity:
 
             # sort tours by order arriving at each pnr zone
             tours_in_cap_zones.sort_values(
-                by=["pnr_zone_id", "start"], ascending=[True, False], inplace=True
+                by=["pnr_zone_id", "start", "tour_id"],
+                ascending=[True, False, True],
+                inplace=True,
             )
             # counting tours in each pnr zone numbered by reverse arrival order
             tours_in_cap_zones["arrival_num_latest"] = (
@@ -325,7 +327,16 @@ class ParkAndRideCapacity:
                 <= tours_in_cap_zones["num_over_limit"]
             ]
 
+            # filtering choosers to only those tours selected for resimulation in this subprocess
             choosers = choosers[choosers.index.isin(over_capacitated_tours.index)]
+
+            # count the total number of pnr choices being resimulated
+            pnr_counts = (
+                over_capacitated_tours.pnr_zone_id.value_counts()
+                .reindex(self.shared_pnr_occupancy_df.index)
+                .fillna(0)
+                .astype(int)
+            )
 
         elif self.model_settings.RESAMPLE_STRATEGY == "random":
             # first determine sample rate for each zone
@@ -348,15 +359,19 @@ class ParkAndRideCapacity:
             current_sample, rands = logit.make_choices(state, probs)
             current_sample = current_sample[current_sample == 1]
 
+            # filtering choosers to only those tours selected for resimulation in this subprocess
             choosers = choosers[choosers.index.isin(current_sample.index)]
 
-        # subtract the number of selected tours from the occupancy counts since they are getting resimulated
-        pnr_counts = (
-            choosers.pnr_zone_id.value_counts()
-            .reindex(self.shared_pnr_occupancy_df.index)
-            .fillna(0)
-            .astype(int)
-        )
+            # count the total number of pnr choices being resimulated
+            pnr_counts = (
+                current_sample.pnr_zone_id.value_counts()
+                .reindex(self.shared_pnr_occupancy_df.index)
+                .fillna(0)
+                .astype(int)
+            )
+
+        # subtract the counts of the resimulated tours from the occupancy
+        # the pnr_counts here contains all tours across all processes
         self.shared_pnr_occupancy_df["pnr_occupancy"].values[:] -= pnr_counts.values
 
         return choosers
@@ -388,7 +403,7 @@ class ParkAndRideCapacity:
         with np.errstate(divide="ignore", invalid="ignore"):
             df["pct_utilized"] = np.where(
                 df.pnr_capacity > 0, df.pnr_occupancy / df.pnr_capacity * 100, np.nan
-            )
+            ).round(2)
         df["over_by"] = (df.pnr_occupancy - df.pnr_capacity).clip(lower=0)
         df["capacitated"] = capacitated_zones_mask
 

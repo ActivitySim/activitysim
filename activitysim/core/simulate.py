@@ -78,7 +78,21 @@ def read_model_alts(state: workflow.State, file_name, set_index=None):
     file_path = state.filesystem.get_config_file_path(file_name)
     df = pd.read_csv(file_path, comment="#")
     if set_index:
+        if "Alt" in df.columns:
+            # Handle deprecated ALTS index
+            warnings.warn(
+                "Support for 'Alt' column name in alternatives files will be removed."
+                " Use 'alt' (lowercase) instead.",
+                DeprecationWarning,
+            )
+            logger.warning(
+                "Support for 'Alt' column name in alternatives files will be removed."
+                " Use 'alt' (lowercase) instead."
+            )
+            df.rename(columns={"Alt": "alt"}, inplace=True)
+
         df.set_index(set_index, inplace=True)
+        
     return df
 
 

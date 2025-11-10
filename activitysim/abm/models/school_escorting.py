@@ -308,7 +308,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
         bundles["chauf_id"],
     )
 
-    bundles["Alt"] = choosers["Alt"]
+    bundles["alt"] = choosers["alt"]
     bundles["Description"] = choosers["Description"]
 
     return bundles
@@ -411,12 +411,8 @@ def school_escorting(
         )
 
     trace_hh_id = state.settings.trace_hh_id
-
-    # FIXME setting index as "Alt" causes crash in estimation mode...
-    # happens in joint_tour_frequency_composition too!
-    # alts = simulate.read_model_alts(state, model_settings.ALTS, set_index="Alt")
-    alts = simulate.read_model_alts(state, model_settings.ALTS, set_index=None)
-    alts.index = alts["Alt"].values
+    
+    alts = simulate.read_model_alts(state, model_settings.ALTS, set_index="alt")
 
     choosers, participant_columns = determine_escorting_participants(
         households_merged, persons, model_settings
@@ -565,10 +561,10 @@ def school_escorting(
             )
 
         if stage_num >= 1:
-            choosers["Alt"] = choices
-            choosers = choosers.join(alts.set_index("Alt"), how="left", on="Alt")
+            choosers["alt"] = choices
+            choosers = choosers.join(alts, how="left", on="alt")
             bundles = create_school_escorting_bundles_table(
-                choosers[choosers["Alt"] > 1], tours, stage
+                choosers[choosers["alt"] > 1], tours, stage
             )
             escort_bundles.append(bundles)
 

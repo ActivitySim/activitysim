@@ -46,9 +46,9 @@ def joint_tour_frequency_composition(
 
     # FIXME setting index as "alt" causes crash in estimation mode...
     alts = simulate.read_model_alts(
-        state, "joint_tour_frequency_composition_alternatives.csv", set_index=None
+        state, "joint_tour_frequency_composition_alternatives.csv", set_index="alt"
     )
-    alts.index = alts["alt"].values
+    #alts.index = alts["alt"].values
 
     # - only interested in households with more than one cdap travel_active person and
     # - at least one non-preschooler

@@ -92,7 +92,7 @@ def read_model_alts(state: workflow.State, file_name, set_index=None):
             df.rename(columns={"Alt": "alt"}, inplace=True)
 
         df.set_index(set_index, inplace=True)
-        
+
     return df
 
 

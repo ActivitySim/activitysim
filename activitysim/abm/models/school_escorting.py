@@ -411,7 +411,7 @@ def school_escorting(
         )
 
     trace_hh_id = state.settings.trace_hh_id
-    
+
     alts = simulate.read_model_alts(state, model_settings.ALTS, set_index="alt")
 
     choosers, participant_columns = determine_escorting_participants(

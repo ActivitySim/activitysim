@@ -18,6 +18,7 @@ from activitysim.core.configuration.logit import (
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
+from activitysim.core.exceptions import DuplicateWorkflowTableError
 
 """
 The school/workplace location model predicts the zones in which various people will
@@ -1125,7 +1126,7 @@ def iterate_location_choice(
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
         # lest they try to put school and workplace samples into the same table
         if state.is_table(sample_table_name):
-            raise RuntimeError(
+            raise DuplicateWorkflowTableError(
                 "dest choice sample table %s already exists" % sample_table_name
             )
         state.extend_table(sample_table_name, save_sample_df)

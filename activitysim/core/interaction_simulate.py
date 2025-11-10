@@ -16,6 +16,7 @@ import pandas as pd
 from activitysim.core import chunk, logit, simulate, timing, tracing, util, workflow
 from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.fast_eval import fast_eval
+from activitysim.core.exceptions import SegmentedSpecificationError
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +84,7 @@ def eval_interaction_utilities(
     start_time = time.time()
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utils")
-    logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
+    logger.debug("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
     sharrow_enabled = state.settings.sharrow
     if compute_settings is None:
@@ -91,7 +92,7 @@ def eval_interaction_utilities(
     if compute_settings.sharrow_skip:
         sharrow_enabled = False
 
-    logger.info(f"{trace_label} sharrow_enabled is {sharrow_enabled}")
+    logger.debug(f"{trace_label} sharrow_enabled is {sharrow_enabled}")
 
     trace_eval_results = None
 
@@ -633,11 +634,11 @@ def eval_interaction_utilities(
                         raise  # enter debugger now to see what's up
             timelogger.mark("sharrow interact test", True, logger, trace_label)
 
-    logger.info(f"utilities.dtypes {trace_label}\n{utilities.dtypes}")
+    logger.debug(f"utilities.dtypes {trace_label}\n{utilities.dtypes}")
     end_time = time.time()
 
     timelogger.summary(logger, "TIMING interact_simulate.eval_utils")
-    logger.info(
+    logger.debug(
         f"interact_simulate.eval_utils runtime: {timedelta(seconds=end_time - start_time)} {trace_label}"
     )
 
@@ -722,7 +723,7 @@ def _interaction_simulate(
         )
 
     if len(spec.columns) > 1:
-        raise RuntimeError("spec must have only one column")
+        raise SegmentedSpecificationError("spec must have only one column")
 
     sample_size = sample_size or len(alternatives)
 

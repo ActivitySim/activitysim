@@ -1078,7 +1078,7 @@ class ChunkSizer:
             if mem_monitor is not None:
                 if not mem_monitor.is_alive():
                     logger.error(f"mem_monitor for {self.trace_label} died!")
-                    raise RuntimeError("bug")
+                    raise RuntimeError("mem_monitor for {self.trace_label} died!")
 
                 if stop_snooping is not None:
                     stop_snooping.set()
@@ -1224,7 +1224,7 @@ def adaptive_chunked_choosers(
         # The adaptive chunking logic is expensive and sometimes results
         # in needless data copying.  So we short circuit it entirely
         # when chunking is disabled.
-        logger.info(f"Running chunkless with {len(choosers)} choosers")
+        logger.debug(f"Running chunkless with {len(choosers)} choosers")
         yield 0, choosers, trace_label, ChunkSizer(
             state, "chunkless", trace_label, 0, 0, state.settings.chunk_training_mode
         )
@@ -1234,18 +1234,23 @@ def adaptive_chunked_choosers(
 
     num_choosers = len(choosers.index)
 
+    if state.settings.multiprocess:
+        num_processes = state.get_injectable("num_processes", 1)
+    else:
+        num_processes = 1
+
     if state.settings.chunk_training_mode == MODE_EXPLICIT:
         if explicit_chunk_size < 1:
             chunk_size = math.ceil(num_choosers * explicit_chunk_size)
         else:
-            chunk_size = int(explicit_chunk_size)
+            chunk_size = math.ceil(explicit_chunk_size / num_processes)
     elif chunk_size is None:
         chunk_size = state.settings.chunk_size
 
     assert num_choosers > 0
     assert chunk_size >= 0
 
-    logger.info(
+    logger.debug(
         f"{trace_label} Running adaptive_chunked_choosers with {num_choosers} choosers"
     )
 
@@ -1270,7 +1275,7 @@ def adaptive_chunked_choosers(
             # grab the next chunk based on current rows_per_chunk
             chooser_chunk = choosers[offset : offset + rows_per_chunk]
 
-            logger.info(
+            logger.debug(
                 f"Running chunk {i} of {estimated_number_of_chunks or '?'} "
                 f"with {len(chooser_chunk)} of {num_choosers} choosers"
             )
@@ -1337,7 +1342,7 @@ def adaptive_chunked_choosers_and_alts(
         # The adaptive chunking logic is expensive and sometimes results
         # in needless data copying.  So we short circuit it entirely
         # when chunking is disabled.
-        logger.info(f"Running chunkless with {len(choosers)} choosers")
+        logger.debug(f"Running chunkless with {len(choosers)} choosers")
         chunk_sizer = ChunkSizer(
             state, "chunkless", trace_label, 0, 0, state.settings.chunk_training_mode
         )
@@ -1367,16 +1372,21 @@ def adaptive_chunked_choosers_and_alts(
             alternatives.index[last_repeat]
         )
 
-    logger.info(
+    logger.debug(
         f"{trace_label} Running adaptive_chunked_choosers_and_alts "
         f"with {num_choosers} choosers and {num_alternatives} alternatives"
     )
+
+    if state.settings.multiprocess:
+        num_processes = state.get_injectable("num_processes", 1)
+    else:
+        num_processes = 1
 
     if state.settings.chunk_training_mode == MODE_EXPLICIT:
         if explicit_chunk_size < 1:
             chunk_size = math.ceil(num_choosers * explicit_chunk_size)
         else:
-            chunk_size = int(explicit_chunk_size)
+            chunk_size = int(explicit_chunk_size / num_processes)
     elif chunk_size is None:
         chunk_size = state.settings.chunk_size
 
@@ -1389,7 +1399,14 @@ def adaptive_chunked_choosers_and_alts(
         chunk_training_mode=state.settings.chunk_training_mode,
     )
     rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()
-    assert (rows_per_chunk > 0) and (rows_per_chunk <= num_choosers)
+    assert (rows_per_chunk > 0) and (
+        (rows_per_chunk <= num_choosers)
+        or (
+            (rows_per_chunk >= num_choosers)
+            and (estimated_number_of_chunks == 1)
+            and (state.settings.chunk_training_mode == MODE_EXPLICIT)
+        )
+    )
 
     # alt chunks boundaries are where index changes
     alt_ids = alternatives.index.values
@@ -1425,7 +1442,7 @@ def adaptive_chunked_choosers_and_alts(
                     chooser_chunk.index == np.unique(alternative_chunk.index.values)
                 ).all()
 
-            logger.info(
+            logger.debug(
                 f"Running chunk {i} of {estimated_number_of_chunks or '?'} "
                 f"with {len(chooser_chunk)} of {num_choosers} choosers"
             )
@@ -1464,7 +1481,7 @@ def adaptive_chunked_choosers_by_chunk_id(
         # The adaptive chunking logic is expensive and sometimes results
         # in needless data copying.  So we short circuit it entirely
         # when chunking is disabled.
-        logger.info(f"Running chunkless with {len(choosers)} choosers")
+        logger.debug(f"Running chunkless with {len(choosers)} choosers")
         chunk_sizer = ChunkSizer(
             state, "chunkless", trace_label, 0, 0, state.settings.chunk_training_mode
         )
@@ -1502,7 +1519,7 @@ def adaptive_chunked_choosers_by_chunk_id(
                 choosers["chunk_id"].between(offset, offset + rows_per_chunk - 1)
             ]
 
-            logger.info(
+            logger.debug(
                 f"{trace_label} Running chunk {i} of {estimated_number_of_chunks or '?'} "
                 f"with {rows_per_chunk} of {num_choosers} choosers"
             )

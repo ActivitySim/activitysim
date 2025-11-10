@@ -69,3 +69,67 @@ handlers:
       if_sub_task: WARNING
       if_not_sub_task: NOTSET
 ```
+
+## Logging levels
+Python's built-in `logging` module that includes five levels of logging, which are (in order
+of increasing severity): `DEBUG`, `INFO`, `WARNING`, `ERROR`, and `CRITICAL`. One can set the
+minimum level to display messages in both the console window as well as the output logfile
+within `logging.yaml` in the model settings. For example, if the block of code below were
+inside the `logging.yaml` file, than the console window and output activitysim.log file would
+print every logging message at the level of `INFO` and above:
+
+```yaml
+loggers:
+  activitysim:
+    level: INFO
+    handlers: [console, logfile]
+    propogate: false
+```
+
+However, if a model run were to crash and the user wanted to print all of the `DEBUG` messages
+in order to diagnose what was causing the crash, they would need to change the `level` within
+the logging settings:
+
+```yaml
+loggers:
+  activitysim:
+    level: DEBUG
+    handlers: [console, logfile]
+    propogate: false
+```
+
+The following guidelines demonstrate how each level is used within ActivitySim:
+
+### Debug (Level 10)
+The `DEBUG` message indicates detailed information that would be of interest to a user while
+debugging a model. The information reported at this level can include:
+- Runtimes of specific steps of model components, such as the time to run each of sampling,
+  logsum computation, and simulation in destination choice
+- Table attributes at various stages of processing, such as the size or columns
+- Evaluations of preprocessor or specification expressions
+- General repetitive messages that can be used to narrow down exactly where an error is occuring
+
+### Info (Level 20)
+The `INFO` message gives reports general information about how the status of the model run,
+particularly where in the model flow the system is at. The information reported at this level
+can include:
+- Beginning and ending of a model step
+- Intermediate stages of a longer step. For example, in trip destination, the trip number and
+  segment will be reported at this level.
+
+### Warning (Level 30)
+The `WARNING` message notifies the user of a potential issue that they should be aware of,
+but doesn't result in the model system failing. The information reported at this level can include:
+- Future changes to dependencies
+- ActivitySim needing to force certain travel behavior due to such behavior not working
+
+### Error (Level 40)
+The `ERROR` message gives the user information that is causing an error in a model step. The
+information reported at this level can include:
+- More detailed issues on what could be causing an error message that wouldn't be shown in the
+  traceback message
+
+## Critical (Level 50)
+The `CRITICAL` message gives the user information that is causing a critical error in a model step.
+The information reported at this level can include:
+- Reporting to the user on the teardown of a subprocess

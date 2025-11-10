@@ -23,6 +23,7 @@ from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place, drop_unused_columns
+from activitysim.core.exceptions import DuplicateWorkflowTableError
 
 logger = logging.getLogger(__name__)
 
@@ -500,7 +501,9 @@ def parking_location(
 
         # lest they try to put tour samples into the same table
         if state.is_table(sample_table_name):
-            raise RuntimeError("sample table %s already exists" % sample_table_name)
+            raise DuplicateWorkflowTableError(
+                "sample table %s already exists" % sample_table_name
+            )
         state.extend_table(sample_table_name, save_sample_df)
 
     expressions.annotate_tables(

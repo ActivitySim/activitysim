@@ -11,7 +11,6 @@ import tarfile
 import zipfile
 from pathlib import Path
 
-import pkg_resources
 import requests
 import yaml
 

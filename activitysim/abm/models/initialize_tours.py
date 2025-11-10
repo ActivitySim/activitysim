@@ -10,6 +10,7 @@ from activitysim.abm.models.util import tour_frequency as tf
 from activitysim.core import expressions, tracing, workflow
 from activitysim.core.configuration import PydanticReadable
 from activitysim.core.configuration.base import PreprocessorSettings
+from activitysim.core.exceptions import InputTableError
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
@@ -140,7 +141,7 @@ def initialize_tours(
             f"{tours_without_persons.sum()} tours out of {len(persons)} without persons\n"
             f"{pd.Series({'person_id': tours_without_persons.index.values})}"
         )
-        raise RuntimeError(f"{tours_without_persons.sum()} tours with bad person_id")
+        raise InputTableError(f"{tours_without_persons.sum()} tours with bad person_id")
 
     if trace_hh_id:
         state.tracing.trace_df(tours, label="initialize_tours", warn_if_empty=True)

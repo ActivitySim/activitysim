@@ -2,20 +2,20 @@ from __future__ import annotations
 
 # ActivitySim
 # See full license in LICENSE.txt.
+import importlib.resources
 import os
 import subprocess
 from pathlib import Path
 
 import pandas as pd
 import pandas.testing as pdt
-import pkg_resources
 
 from activitysim.core import test, workflow
 
 
 def example_path(dirname):
     resource = os.path.join("examples", "prototype_marin", dirname)
-    return pkg_resources.resource_filename("activitysim", resource)
+    return str(importlib.resources.files("activitysim").joinpath(resource))
 
 
 def _test_path(dirname):

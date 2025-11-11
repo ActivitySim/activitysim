@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.1" />
-    <meta name="docbuild:last-update" content="Nov 03, 2025"/>
+    <meta name="docbuild:last-update" content="Nov 11, 2025"/>
   </head>
   
   
@@ -478,8 +478,9 @@ scripts, and runtimes are in the &lt;todo: cross-ref&gt; <code class="docutils l
 <li><p>Using a <a class="reference internal" href="#pre-packaged-installer"><span class="std std-ref">Pre-packaged Installer</span></a></p></li>
 <li><p>Using the <a class="reference internal" href="#uv-package-and-project-manager"><span class="std std-ref">UV Package and Project Manager</span></a></p></li>
 </ol>
-<p>The first is recommended for users who do not need to change the Python code and are on Windows,
-and the second is recommended for users who need to change/customize the Python code.</p>
+<p>The first is recommended for users who are new to Python and use Windows, do not actively create and manage Python virtual environments,
+and do not need to change the ActivitySim code. The second is recommended for users who actively create and manage Python virtual environments,
+and/or want to change/customize the ActivitySim code.</p>
 <section id="pre-packaged-installer">
 <h3>Pre-packaged Installer<a class="headerlink" href="#pre-packaged-installer" title="Permalink to this heading">#</a></h3>
 <p>Beginning with version 1.2, ActivitySim is now available for Windows via a
@@ -504,82 +505,37 @@ prompt by running <cite>&lt;install_location&gt;/Scripts/ActivitySim.exe</cite>.
 <section id="uv-package-and-project-manager">
 <h3>UV Package and Project Manager<a class="headerlink" href="#uv-package-and-project-manager" title="Permalink to this heading">#</a></h3>
 <p>This method is recommended for ActivitySim users who are familiar with
-Python and optionally wish to customize the Python code to run their models.
+Python, create and manage ActivitySim Python virtual environments, and optionally wish to customize ActivitySim code to run their models.
 UV is a free open source cross-platform package and project manager that runs
 on Windows, OS X, and Linux. It is 10-100x faster than conda, and pip itself, which is
 the standard Python package manager. The <em>uv</em> features include automatic
 environment management including installation and management of Python
 versions and dependency locking.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>There are two options for using <em>uv</em> to install ActivitySim.</p>
-</div>
-<p>The first is to use <em>uv</em> to install an official ActivitySim release from the Python Package Index (PyPI).
-The second is to use <em>uv</em> to install ActivitySim from a local directory, which should be the cloned ActivitySim repository.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The first <em>uv</em> option is recommended for users who want to install ActivitySim from an official release and do not wish to change the Python code.
-However, they may end up using different deep dependencies than those tested by the developers.
-The second <em>uv</em> option is recommended for users who may want to customize the Python code, and who want to run ActivitySim
-exactly as it was tested by the developers using the dependency lockfile which results in the exact same deep dependencies.</p>
-</div>
-<p>The steps involved are described as follows.</p>
-<section id="option-1-install-activitysim-from-pypi">
-<h4>Option 1: Install ActivitySim from PyPI<a class="headerlink" href="#option-1-install-activitysim-from-pypi" title="Permalink to this heading">#</a></h4>
-<p>(Note: This step may fail at the moment because the ActivitySim version available on PyPI has dependency conflicts.
-This step should work when ActivitySim release <em>&lt;placeholder for version number&gt;</em> which is built with <em>uv</em> is available on PyPI.
-In the meantime, use Option 2 below to install ActivitySim from the lockfile.)</p>
-<p>1. Install <em>uv</em>. Instructions can be found
-<a class="reference external" href="https://docs.astral.sh/uv/getting-started/installation/">here</a>.</p>
-<p>2. Create a new project and virtual environment to work from and add ActivitySim. (Warning: This approach is quickest
-for getting started but does not rely on the lockfile to install dependencies so you may
-end up with different versions. If you want to use the lockfile, see Option 2 below.)</p>
-<p>Open a terminal, such as Command Prompt (note: not Anaconda Prompt), and run the following commands.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mkdir</span> <span class="n">asim_project</span>
-<span class="n">cd</span> <span class="n">asim_project</span>
-<span class="n">echo</span> <span class="mf">3.10</span> <span class="o">&gt;</span> <span class="o">.</span><span class="n">python</span><span class="o">-</span><span class="n">version</span> <span class="c1"># This sets the Python version to 3.10, which is currently used for ActivitySim development.</span>
-<span class="n">uv</span> <span class="n">init</span>
-<span class="n">uv</span> <span class="n">add</span> <span class="n">activitysim</span>
+<section id="install-uv">
+<h4>Install UV<a class="headerlink" href="#install-uv" title="Permalink to this heading">#</a></h4>
+<p>We recommend installing UV as an independent tool on your machine, separate from any existing package managers you may have such as conda or pip.</p>
+<p>For Windows users, run the following command in PowerShell to install <em>uv</em>. It does not require administrator privileges and installs <em>uv</em> for the current user only.
+By default, uv is installed to <code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code> directory. Usually, this is <code class="docutils literal notranslate"><span class="pre">C:/Users/&lt;username&gt;/.local/bin</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Run the installer. Please review the printed message after installation.
+powershell -ExecutionPolicy ByPass -c &quot;irm https://astral.sh/uv/install.ps1 | iex&quot;
+
+# Add uv to PATH
+$env:PATH = &quot;$env:USERPROFILE\.local\bin;$env:Path&quot;
 </pre></div>
 </div>
-<p><em>uv</em> will create a new virtual environment within the <cite>asim_project</cite> project folder
-and install ActivitySim and its dependencies. The virtual environment is a hidden folder
-within the <cite>asim_project</cite> directory called <cite>.venv</cite> and operates the same way as Python’s classic <em>venv</em>.</p>
-<ol class="arabic simple" start="3">
-<li><p>Run an ActivitySim command using the following.</p></li>
-</ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="o">...</span>
+<p>If an agency wants to install <em>uv</em> globally for all users on Windows, run PowerShell as Administrator and run the following command.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Run the installer with a custom install directory (e.g., C:\shared\uv) that is accessible to all users
+powershell -ExecutionPolicy ByPass -c {$env:UV_INSTALL_DIR = &quot;C:\shared\uv&quot;;irm https://astral.sh/uv/install.ps1 | iex}
+
+# Add uv to PATH for all users (requires administrator privileges)
+[Environment]::SetEnvironmentVariable(&quot;PATH&quot;, $env:PATH + &quot;;C:\shared\uv&quot;, [EnvironmentVariableTarget]::Machine)
 </pre></div>
 </div>
-<p>For example, run the ActivitySim commandline using the following.
-More information about the commandline interface is available in
-the <a class="reference internal" href="ways_to_run.html#ways-to-run-the-model"><span class="std std-ref">Ways to Run the Model</span></a> section.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span> <span class="o">-</span><span class="n">d</span> <span class="n">data</span>
+<p>For more instructions on installing <em>uv</em> on Windows, MacOS, or Linux, please visit <a class="reference external" href="https://docs.astral.sh/uv/getting-started/installation/">https://docs.astral.sh/uv/getting-started/installation/</a>.</p>
+<p>To verify that <em>uv</em> is installed correctly, open a new Command Prompt (not Anaconda Prompt) and run the following command.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="o">--</span><span class="n">version</span>
 </pre></div>
 </div>
-<section id="run-activitysim-from-a-different-directory">
-<h5>Run ActivitySim from a Different Directory<a class="headerlink" href="#run-activitysim-from-a-different-directory" title="Permalink to this heading">#</a></h5>
-<p>If you want to run ActivitySim from a directory different than where the code lives,
-use the <cite>project</cite> option to point <em>uv</em> to this project using relative paths:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="o">--</span><span class="n">project</span> <span class="n">relative</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">asim_project</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span> <span class="o">-</span><span class="n">d</span> <span class="n">data</span>
-</pre></div>
-</div>
-<p>You could also activate the virtual environment created by <em>uv</em> and run ActivitySim from any directory.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">.</span><span class="n">venv</span>\<span class="n">Scripts</span>\<span class="n">activate</span>
-</pre></div>
-</div>
-<p>With this command, you have activated the virtual environment created by <em>uv</em> and can run ActivitySim commands from any directory.</p>
-<p>For more on <em>uv</em>, visit <a class="reference external" href="https://docs.astral.sh/uv/">https://docs.astral.sh/uv/</a>.</p>
-</section>
-</section>
-<section id="option-2-install-activitysim-from-the-lockfile">
-<h4>Option 2: Install ActivitySim from the lockfile<a class="headerlink" href="#option-2-install-activitysim-from-the-lockfile" title="Permalink to this heading">#</a></h4>
-<p>To install dependencies from the lockfile and run ActivitySim exactly how
-its developers tested it, after installing <em>uv</em> clone the code repository
-and then run code.</p>
-<p>1. Install <em>uv</em>. Instructions can be found
-<a class="reference external" href="https://docs.astral.sh/uv/getting-started/installation/">here</a>. (Skip
-if already installed above. It only needs to be installed once per machine.)</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If you already have <em>uv</em> installed from an older project and you encounter errors
@@ -594,52 +550,253 @@ You can check the version of <em>uv</em> you have installed by running</p>
 </pre></div>
 </div>
 </div>
-<p>1. Clone the ActivitySim project using Git. (If Git is not installed,
+</section>
+<section id="install-activitysim-with-uv">
+<h4>Install ActivitySim with UV<a class="headerlink" href="#install-activitysim-with-uv" title="Permalink to this heading">#</a></h4>
+<p>There are two options to install ActivitySim using <em>uv</em>.</p>
+<p>The first is to use <em>uv</em> to install an official ActivitySim release from the Python Package Index (PyPI).
+The second is to use <em>uv</em> to install ActivitySim from the source code repository and use the dependency lockfile.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The first option (<a class="reference internal" href="#option-1-from-pypi"><span class="std std-ref">Option 1: From PyPI</span></a>) is the quickest way to install ActivitySim from an official release and is recommended for users who do not wish to change the Python code.
+However, they may end up using different deep dependencies than those tested by the developers.
+The second option (<a class="reference internal" href="#option-2-from-source-with-lockfile"><span class="std std-ref">Option 2: From Source with Lockfile</span></a>) is recommended for users who may want to customize the Python code, and/or who want to run ActivitySim
+exactly as it was tested by the developers using the dependency lockfile which results in the exact same deep dependencies.</p>
+</div>
+<p>The steps involved are described as follows.</p>
+<section id="option-1-from-pypi">
+<h5>Option 1: From PyPI<a class="headerlink" href="#option-1-from-pypi" title="Permalink to this heading">#</a></h5>
+<p>You will use <em>uv</em> to create a project and virtual environment to work from and add ActivitySim.</p>
+<p>Open Command Prompt (not Anaconda Prompt), and run the following commands.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># create a new project directory and cd into it</span>
+<span class="n">mkdir</span> <span class="n">asim_project</span>
+<span class="n">cd</span> <span class="n">asim_project</span>
+
+<span class="c1"># initialize a virtual environment</span>
+<span class="c1"># This sets the Python version to 3.10, which is currently fully tested for ActivitySim development</span>
+<span class="n">uv</span> <span class="n">init</span> <span class="o">--</span><span class="n">python</span> <span class="mf">3.10</span>
+
+<span class="c1"># add ActivitySim package from the latest release on PyPI</span>
+<span class="n">uv</span> <span class="n">add</span> <span class="n">activitysim</span>
+</pre></div>
+</div>
+<p><em>uv</em> will create a new virtual environment within the <code class="docutils literal notranslate"><span class="pre">asim_project</span></code> project folder
+and install ActivitySim and its dependencies. The virtual environment is a hidden folder
+within the <code class="docutils literal notranslate"><span class="pre">asim_project</span></code> directory called <code class="docutils literal notranslate"><span class="pre">.venv</span></code> and operates the same way as Python’s classic <em>venv</em>. You will notice
+two new files created in the <code class="docutils literal notranslate"><span class="pre">asim_project</span></code> directory: <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> and <code class="docutils literal notranslate"><span class="pre">uv.lock</span></code>. These files
+are automatically created, updated, and used by <em>uv</em> to manage your <code class="docutils literal notranslate"><span class="pre">asim_project</span></code> project and its dependencies.
+You can share these files with others to recreate the same environment for your <code class="docutils literal notranslate"><span class="pre">asim_project</span></code> project. For more guidance on sharing your working environment,
+see the Common Q&amp;A <a class="reference internal" href="#how-to-share-my-working-environment-with-others"><span class="std std-ref">How to share my working environment with others?</span></a> section below.</p>
+<p>By running the command <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">add</span> <span class="pre">activitysim</span></code>, you install the official release of ActivitySim from PyPI and its direct dependencies
+listed in ActivitySim’s <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file. This approach is the quickest
+for getting started but it does not rely on ActivitySim’s own lockfile to install deep dependencies so you may
+end up with different versions of deep dependencies than those tested by ActivitySim developers.
+If you want to ensure exact versions of ActivitySim’s deep dependencies, you should install ActivitySim using Option 2: From Source with Lockfile.</p>
+</section>
+<section id="option-2-from-source-with-lockfile">
+<h5>Option 2: From Source with Lockfile<a class="headerlink" href="#option-2-from-source-with-lockfile" title="Permalink to this heading">#</a></h5>
+<p>To install dependencies from the lockfile and run ActivitySim exactly how
+its developers tested it, after installing <em>uv</em>, open Command Prompt, clone the ActivitySim project using Git. (If Git is not installed,
 instructions can be found <a class="reference external" href="https://git-scm.com/downloads">here</a>.)</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ActivitySim</span><span class="o">/</span><span class="n">activitysim</span><span class="o">.</span><span class="n">git</span>
 <span class="n">cd</span> <span class="n">activitysim</span>
 </pre></div>
 </div>
-<p>3. Optionally create the virtual environment. This is created automatically
-when running code in the next step, but manually syncing is an option too.
-This step creates a hidden folder within the current directory called
-<cite>.venv</cite> and operates the same way as Python’s classic <em>venv</em>. (If you
-want to install the project in a non-editable mode so that users on
-your machine cannot accidentally change the source code, use the
-<cite>–no-editable</cite> option.)</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">sync</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">editable</span>
-</pre></div>
-</div>
-<p>4. Run an ActivitySim command using the following. (This will automatically
-create a virtual environment from the lockfile, if it does not already
-exist.)</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="o">...</span>
+<p>Run the <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span> <span class="pre">--locked</span></code> command to create a virtual environment using the lockfile. It will initialize a virtual environment within the <code class="docutils literal notranslate"><span class="pre">activitysim</span></code> directory
+and install ActivitySim and all its dependencies exactly as specified in the <code class="docutils literal notranslate"><span class="pre">uv.lock</span></code> file.
+The virtual environment is a hidden folder within the current directory called
+<code class="docutils literal notranslate"><span class="pre">.venv</span></code> and operates the same way as Python’s classic <em>venv</em>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">sync</span> <span class="o">--</span><span class="n">locked</span>
+<span class="c1"># or uv sync --locked --no-editable</span>
 </pre></div>
 </div>
 <p>It is worth pointing out that by default, <em>uv</em> installs projects in
 editable mode, such that changes to the source code are immediately reflected
-in the environment. <cite>uv sync</cite> and <cite>uv run</cite> both accept a <cite>–no-editable</cite>
+in the environment. <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span></code> accepts a <code class="docutils literal notranslate"><span class="pre">--no-editable</span></code>
 flag, which instructs <em>uv</em> to install the project in non-editable mode,
 removing any dependency on the source code.</p>
-<p>Also, <cite>uv run</cite> automatically installs the dependencies listed in <cite>pyproject.toml</cite>
-under <cite>dependencies</cite> under <cite>[project]</cite>, and it also installs those listed
-under <cite>dev</cite> under <cite>[dependency-groups]</cite>. If you want to
+<p>Also, <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span></code> automatically installs the dependencies listed in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>
+under <code class="docutils literal notranslate"><span class="pre">dependencies</span></code> under <code class="docutils literal notranslate"><span class="pre">[project]</span></code>, and it also installs those listed
+under <code class="docutils literal notranslate"><span class="pre">dev</span></code> under <code class="docutils literal notranslate"><span class="pre">[dependency-groups]</span></code>. If you want to
 skip the dependency groups entirely with a <em>uv</em> install (and only install those
-that would install via <cite>pip</cite> from ‘pypi`), use the <cite>–no-default-groups</cite> flag
-with <cite>uv sync</cite>.</p>
-<section id="id4">
-<h5>Run ActivitySim from a Different Directory<a class="headerlink" href="#id4" title="Permalink to this heading">#</a></h5>
-<p>If you want to run ActivitySim from a directory different than where the code lives,
-use the <cite>project</cite> option to point <em>uv</em> to this project using relative paths:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="o">--</span><span class="n">project</span> <span class="n">relative</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">asim_project</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span> <span class="o">-</span><span class="n">d</span> <span class="n">data</span>
+that would install via <code class="docutils literal notranslate"><span class="pre">pip</span></code> from <code class="docutils literal notranslate"><span class="pre">pypi</span></code>), use the <code class="docutils literal notranslate"><span class="pre">--no-default-groups</span></code> flag
+with <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span></code>.</p>
+</section>
+<section id="which-option-should-i-use">
+<h5>Which Option Should I Use?<a class="headerlink" href="#which-option-should-i-use" title="Permalink to this heading">#</a></h5>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>If I want to …</p></th>
+<th class="head"><p>From PyPI</p></th>
+<th class="head"><p>From Source with Lockfile</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Install an official release of ActivitySim.</p></td>
+<td><p>Yes</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>Install a development version of ActivitySim.</p></td>
+<td></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>Install ActivitySim quickly to run models without changing the code.</p></td>
+<td><p>Yes</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>Do ActivitySim code development.</p></td>
+<td></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>Run ActivitySim with deep dependencies exactly as tested by the developers.</p></td>
+<td></td>
+<td><p>Yes</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="run-activitysim-with-uv">
+<h4>Run ActivitySim with UV<a class="headerlink" href="#run-activitysim-with-uv" title="Permalink to this heading">#</a></h4>
+<p>Activate the virtual environment created by <em>uv</em>. This option is similar to using Python’s classic venv or Conda env.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># cd into the project directory if not already there</span>
+<span class="c1">## if you used the From PyPI option</span>
+<span class="n">cd</span> <span class="n">asim_project</span>
+<span class="c1">## if you used the From Source with Lockfile option</span>
+<span class="n">cd</span> <span class="n">activitysim</span>
+
+<span class="c1"># Activate the virtual environment</span>
+<span class="o">.</span><span class="n">venv</span>\<span class="n">Scripts</span>\<span class="n">activate</span>
 </pre></div>
 </div>
-<p>You could also activate the virtual environment created by <em>uv</em> and run ActivitySim from any directory.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">.</span><span class="n">venv</span>\<span class="n">Scripts</span>\<span class="n">activate</span>
+<p>Once the virtual environment is activated, you can run ActivitySim commands directly using the <code class="docutils literal notranslate"><span class="pre">activitysim</span></code> command.
+For example, run the ActivitySim commandline using the following. More information about the commandline interface is available in
+the <a class="reference internal" href="ways_to_run.html#ways-to-run-the-model"><span class="std std-ref">Ways to Run the Model</span></a> section.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span> <span class="o">-</span><span class="n">d</span> <span class="n">data</span>
 </pre></div>
 </div>
-<p>With this command, you have activated the virtual environment created by <em>uv</em> and can run ActivitySim commands from any directory.</p>
-<p>For more on <em>uv</em>, visit <a class="reference external" href="https://docs.astral.sh/uv/">https://docs.astral.sh/uv/</a>.</p>
+<p>Alternatively, you can run ActivitySim commands directly using <em>uv</em> without activating the virtual environment.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span> <span class="o">-</span><span class="n">d</span> <span class="n">data</span>
+</pre></div>
+</div>
+</section>
+<section id="common-q-a">
+<h4>Common Q&amp;A<a class="headerlink" href="#common-q-a" title="Permalink to this heading">#</a></h4>
+<section id="my-travel-demand-model-requires-additional-python-packages-not-included-with-activitysim-how-do-i-add-them">
+<h5>My travel demand model requires additional Python packages not included with ActivitySim. How do I add them?<a class="headerlink" href="#my-travel-demand-model-requires-additional-python-packages-not-included-with-activitysim-how-do-i-add-them" title="Permalink to this heading">#</a></h5>
+<p>You can add additional packages to your <em>uv</em> project by using the <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">add</span></code> command. For example, to add the <code class="docutils literal notranslate"><span class="pre">geopandas</span></code> package,
+run the following command within your existing <em>uv</em> project directory.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># cd into your project directory</span>
+<span class="n">cd</span> <span class="n">asim_project</span>
+
+<span class="c1"># Add geopandas package</span>
+<span class="n">uv</span> <span class="n">add</span> <span class="n">geopandas</span>
+</pre></div>
+</div>
+<p>This will add the package to your virtual environment and update the <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> and the <code class="docutils literal notranslate"><span class="pre">uv.lock</span></code> file to include the new package and its dependencies.</p>
+<p>If you envision having a version of Python packages that is different from the one used by ActivitySim, e.g., you need pandas 1.x for visualization (for some reason),
+we recommend creating a separate <em>uv</em> project for your custom packages and managing them independently from ActivitySim.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Open Command Prompt</span>
+<span class="n">mkdir</span> <span class="n">viz_project</span>
+<span class="n">cd</span> <span class="n">viz_project</span>
+<span class="n">uv</span> <span class="n">init</span>
+<span class="n">uv</span> <span class="n">add</span> <span class="n">pandas</span><span class="o">==</span><span class="mf">1.5.3</span>
+</pre></div>
+</div>
+<p>Many agencies use commercial software that have Python APIs and dependencies that may conflict with ActivitySim dependencies.
+In such cases, we also recommend creating a separate <em>uv</em> project for the commercial software and managing them independently from ActivitySim.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Open Command Prompt</span>
+<span class="n">mkdir</span> <span class="n">emme_project</span>
+<span class="n">cd</span> <span class="n">emme_project</span>
+<span class="n">uv</span> <span class="n">init</span> <span class="o">--</span><span class="n">python</span> <span class="mf">2.7</span>
+<span class="c1"># Then copy the emme.pth file (provides EMME API handshakes) from the Emme installation directory to emme_project/.venv/Lib/site-packages/</span>
+</pre></div>
+</div>
+<p>When having multiple <em>uv</em> projects, you can switch between them by activating the respective virtual environments.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Activate visualization project</span>
+<span class="c1"># Open Command Prompt</span>
+<span class="n">cd</span> <span class="n">path</span>\<span class="n">to</span>\<span class="n">viz_project</span>
+<span class="o">.</span><span class="n">venv</span>\<span class="n">Scripts</span>\<span class="n">activate</span>
+
+<span class="c1"># Deactivate visualization project</span>
+<span class="n">deactivate</span>
+</pre></div>
+</div>
+</section>
+<section id="how-to-share-my-working-environment-with-others">
+<h5>How to share my working environment with others?<a class="headerlink" href="#how-to-share-my-working-environment-with-others" title="Permalink to this heading">#</a></h5>
+<p>You can share your working environment with others by sharing the <code class="docutils literal notranslate"><span class="pre">uv.lock</span></code> file and the <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file located in your project directory (and <code class="docutils literal notranslate"><span class="pre">.python-version</span></code> file if it exists).
+The <code class="docutils literal notranslate"><span class="pre">uv.lock</span></code> file contains the exact versions of all packages and dependencies used in your project.
+Others can recreate the same environment by running the <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span> <span class="pre">--locked</span></code> command in a new project directory containing the shared files.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize a new project directory</span>
+<span class="n">mkdir</span> <span class="n">new_asim_project</span>
+<span class="n">cd</span> <span class="n">new_asim_project</span>
+
+<span class="c1"># Copy .python-version file to new project directory (if exists)</span>
+<span class="n">copy</span> <span class="n">path</span>\<span class="n">to</span>\<span class="n">shared</span>\<span class="o">.</span><span class="n">python</span><span class="o">-</span><span class="n">version</span> <span class="o">.</span>
+<span class="c1"># Copy pyproject.toml file to new project directory</span>
+<span class="n">copy</span> <span class="n">path</span>\<span class="n">to</span>\<span class="n">shared</span>\<span class="n">pyproject</span><span class="o">.</span><span class="n">toml</span> <span class="o">.</span>
+<span class="c1"># Copy uv.lock file to new project directory</span>
+<span class="n">copy</span> <span class="n">path</span>\<span class="n">to</span>\<span class="n">shared</span>\<span class="n">uv</span><span class="o">.</span><span class="n">lock</span> <span class="o">.</span>
+
+<span class="c1"># Recreate the same environment</span>
+<span class="n">uv</span> <span class="n">sync</span> <span class="o">--</span><span class="n">locked</span>
+</pre></div>
+</div>
+</section>
+<section id="can-other-users-on-the-same-server-or-machine-use-my-already-created-virtual-environment">
+<h5>Can other users on the same server or machine use my already created virtual environment?<a class="headerlink" href="#can-other-users-on-the-same-server-or-machine-use-my-already-created-virtual-environment" title="Permalink to this heading">#</a></h5>
+<p>This is doable but it requires additional setup and admin rights - therefore we do not generally recommend it. We recommend following the practice in <a class="reference internal" href="#how-to-share-my-working-environment-with-others"><span class="std std-ref">How to share my working environment with others?</span></a>.</p>
+<p>If you’d still like to proceed, here are the recommended steps to follow (proceed with caution!):</p>
+<ol class="arabic simple">
+<li><p>Ensure that you installed UV globally (requires admin rights) on the server/machine for all users. <a class="reference internal" href="#install-uv"><span class="std std-ref">Install UV</span></a> section above provides instructions on how to do this.</p></li>
+<li><p>Assuming you installed UV globally in <code class="docutils literal notranslate"><span class="pre">C:\shared\uv\</span></code>, ensure that all users have read and execute permissions to this directory.</p></li>
+<li><p>Create a directory under <code class="docutils literal notranslate"><span class="pre">C:\shared\uv\</span></code> to install Python globally for UV. For example, open Command Prompt, create a directory named <code class="docutils literal notranslate"><span class="pre">uv_python</span></code> under <code class="docutils literal notranslate"><span class="pre">C:\shared\uv\</span></code>.</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">C</span><span class="p">:</span>\<span class="n">shared</span>\<span class="n">uv</span>\
+<span class="n">mkdir</span> <span class="n">uv_python</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Under Environment Variables &gt; System variables (requires Admin), create a new system environment variable named <code class="docutils literal notranslate"><span class="pre">UV_PYTHON_INSTALL_DIR</span></code> and set its value to the Python directory created in step 3 <code class="docutils literal notranslate"><span class="pre">C:\shared\uv\uv_python\</span></code>.</p></li>
+<li><p>Run the following command to install Python globally for UV. This should install Python executables globally in the <code class="docutils literal notranslate"><span class="pre">UV_PYTHON_INSTALL_DIR</span></code> directory.</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">python</span> <span class="n">install</span> <span class="mf">3.10</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="6">
+<li><p>Under Environment Variables &gt; System variables (requires Admin), create a new system environment variable named <code class="docutils literal notranslate"><span class="pre">UV_PYTHON</span></code> and set its value to the <code class="docutils literal notranslate"><span class="pre">python.exe</span></code> created in step 5.</p></li>
+<li><p>Create a directory to host UV projects under <code class="docutils literal notranslate"><span class="pre">C:\shared\uv\</span></code></p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">C</span><span class="p">:</span>\<span class="n">shared</span>\<span class="n">uv</span>\
+<span class="n">mkdir</span> <span class="n">uv_projects</span>
+<span class="n">cd</span> <span class="n">uv_projects</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="8">
+<li><p>Create a new <em>uv</em> project and install ActivitySim using either <a class="reference internal" href="#option-1-from-pypi"><span class="std std-ref">Option 1: From PyPI</span></a> or <a class="reference internal" href="#option-2-from-source-with-lockfile"><span class="std std-ref">Option 2: From Source with Lockfile</span></a> as described above.</p></li>
+<li><p>Ensure that all users have read and execute permissions to the shared uv directory.</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">icacls</span> <span class="n">C</span><span class="p">:</span>\<span class="n">shared</span>\<span class="n">uv</span> <span class="o">/</span><span class="n">reset</span> <span class="o">/</span><span class="n">T</span>
+</pre></div>
+</div>
+</section>
+<section id="if-i-use-the-from-pypi-option-to-install-activitysim-would-i-run-into-dependency-issues">
+<h5>If I use the From PyPI option to install ActivitySim, would I run into dependency issues?<a class="headerlink" href="#if-i-use-the-from-pypi-option-to-install-activitysim-would-i-run-into-dependency-issues" title="Permalink to this heading">#</a></h5>
+<p>Using the <a class="reference internal" href="#option-1-from-pypi"><span class="std std-ref">Option 1: From PyPI</span></a> option to install ActivitySim may result in different versions of deep dependencies than those tested by ActivitySim developers.
+This is because the <a class="reference internal" href="#option-1-from-pypi"><span class="std std-ref">Option 1: From PyPI</span></a> option installs only the direct dependencies listed in ActivitySim’s <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file,
+and relies on <em>uv</em> to resolve and install the deep dependencies. It is likely that a newer version of ActivitySim deep dependencies
+may cause compatibility issues. For example, see this recent update with <code class="docutils literal notranslate"><span class="pre">numexpr</span></code>: <a class="github reference external" href="https://github.com/pydata/numexpr/issues/540">pydata/numexpr#540</a></p>
+<p>When that happens, we recommend using the <a class="reference internal" href="#option-2-from-source-with-lockfile"><span class="std std-ref">Option 2: From Source with Lockfile</span></a> option to install ActivitySim, which ensures that
+you are using the exact same deep dependencies as those tested by ActivitySim developers. In the meantime, you can also
+report the compatibility issues to the ActivitySim development team via GitHub Issues, so that they can address them in future releases.</p>
+</section>
+<section id="if-i-want-to-use-uv-run-to-run-activitysim-commands-do-i-still-need-to-activate-the-virtual-environment">
+<h5>If I want to use <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span></code> to run ActivitySim commands, do I still need to activate the virtual environment?<a class="headerlink" href="#if-i-want-to-use-uv-run-to-run-activitysim-commands-do-i-still-need-to-activate-the-virtual-environment" title="Permalink to this heading">#</a></h5>
+<p>No, if you use <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span></code> to run ActivitySim commands, you do not need to activate the virtual environment first.
+However, you will need to call <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span></code> in the project directory where the virtual environment is located. Also, like <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span></code>,
+<code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span></code> automatically updates the lockfile and installs any missing dependencies before running the command.</p>
 </section>
 </section>
 </section>
@@ -702,12 +859,20 @@ use the <cite>project</cite> option to point <em>uv</em> to this project using r
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installing-activitysim">Installing ActivitySim</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pre-packaged-installer">Pre-packaged Installer</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#uv-package-and-project-manager">UV Package and Project Manager</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#option-1-install-activitysim-from-pypi">Option 1: Install ActivitySim from PyPI</a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#run-activitysim-from-a-different-directory">Run ActivitySim from a Different Directory</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#install-uv">Install UV</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#install-activitysim-with-uv">Install ActivitySim with UV</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#option-1-from-pypi">Option 1: From PyPI</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#option-2-from-source-with-lockfile">Option 2: From Source with Lockfile</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#which-option-should-i-use">Which Option Should I Use?</a></li>
 </ul>
 </li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#option-2-install-activitysim-from-the-lockfile">Option 2: Install ActivitySim from the lockfile</a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">Run ActivitySim from a Different Directory</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#run-activitysim-with-uv">Run ActivitySim with UV</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#common-q-a">Common Q&amp;A</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#my-travel-demand-model-requires-additional-python-packages-not-included-with-activitysim-how-do-i-add-them">My travel demand model requires additional Python packages not included with ActivitySim. How do I add them?</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#how-to-share-my-working-environment-with-others">How to share my working environment with others?</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#can-other-users-on-the-same-server-or-machine-use-my-already-created-virtual-environment">Can other users on the same server or machine use my already created virtual environment?</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#if-i-use-the-from-pypi-option-to-install-activitysim-would-i-run-into-dependency-issues">If I use the From PyPI option to install ActivitySim, would I run into dependency issues?</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#if-i-want-to-use-uv-run-to-run-activitysim-commands-do-i-still-need-to-activate-the-virtual-environment">If I want to use <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span></code> to run ActivitySim commands, do I still need to activate the virtual environment?</a></li>
 </ul>
 </li>
 </ul>
@@ -749,7 +914,7 @@ use the <cite>project</cite> option to point <em>uv</em> to this project using r
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.1.dev5+g009d64ab6, documentation last updated Nov 03, 2025.<br/>
+ActivitySim 1.5.1.dev6+ged44a4061, documentation last updated Nov 11, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.1" />
-    <meta name="docbuild:last-update" content="Nov 11, 2025"/>
+    <meta name="docbuild:last-update" content="Nov 12, 2025"/>
   </head>
   
   
@@ -3166,7 +3166,7 @@ expression values are set as the table index.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.simulate.set_skim_wrapper_targets">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.simulate.</span></span><span class="sig-name descname"><span class="pre">set_skim_wrapper_targets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skims</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.set_skim_wrapper_targets" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.simulate.</span></span><span class="sig-name descname"><span class="pre">set_skim_wrapper_targets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_partial_success</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.set_skim_wrapper_targets" title="Permalink to this definition">#</a></dt>
 <dd><p>Add the dataframe to the SkimWrapper object so that it can be dereferenced
 using the parameters of the skims object.</p>
 <dl class="field-list simple">
@@ -3182,6 +3182,11 @@ of this method in regards to skims is to call set_df with the
 dataframe that comes back from interacting choosers with
 alternatives.  See the skims module for more documentation on how
 the skims object is intended to be used.</p>
+</dd>
+<dt><strong>allow_partial_success</strong><span class="classifier">bool, optional</span></dt><dd><p>If True (default), failures to set skim targets for some skim objects
+(for example due to missing required columns in <cite>df</cite>) will be collected
+and logged as warnings but will not raise an exception. If False, any
+such failure will be raised immediately, preventing partial success.</p>
 </dd>
 </dl>
 </dd>
@@ -5748,7 +5753,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.1.dev7+gc57e032c2, documentation last updated Nov 11, 2025.<br/>
+ActivitySim 1.5.1.dev8+g7e5202e96, documentation last updated Nov 12, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

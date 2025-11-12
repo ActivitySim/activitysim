@@ -24,24 +24,6 @@ def run_tour_scheduling(
     trace_label: str,
 ):
 
-    if model_settings.LOGSUM_SETTINGS:
-        logsum_settings = TourModeComponentSettings.read_settings_file(
-            state.filesystem,
-            str(model_settings.LOGSUM_SETTINGS),
-            mandatory=False,
-        )
-        logsum_columns = logsum_settings.LOGSUM_CHOOSER_COLUMNS
-    else:
-        logsum_columns = []
-
-    # - filter chooser columns for both logsums and simulate
-    model_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-    chooser_columns = logsum_columns + [
-        c for c in model_columns if c not in logsum_columns
-    ]
-
-    persons_merged = expressions.filter_chooser_columns(persons_merged, chooser_columns)
-
     timetable = state.get_injectable("timetable")
 
     # - run preprocessor to annotate choosers

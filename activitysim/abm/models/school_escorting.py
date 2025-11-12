@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from typing import Any, Literal
 
 import numpy as np
@@ -335,8 +336,6 @@ class SchoolEscortSettings(BaseLogitComponentSettings, extra="forbid"):
     GENDER_WEIGHT: float = 10.0
     AGE_WEIGHT: float = 1.0
 
-    SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
-
     SPEC: None = None
     """The school escort model does not use this setting."""
 
@@ -368,6 +367,21 @@ class SchoolEscortSettings(BaseLogitComponentSettings, extra="forbid"):
     * "MNL"
         Multinomial logit model.
     """
+
+    @property
+    def SIMULATE_CHOOSER_COLUMNS(self) -> None:
+        """Was used to help reduce the memory needed for the model.
+        Setting is now obsolete and doesn't do anything.
+        Functionality was replaced by util.drop_unused_columns
+
+        .. deprecated:: 1.4
+        """
+        warnings.warn(
+            "SIMULATE_CHOOSER_COLUMNS is deprecated and replaced by util.drop_unused_columns",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return None
 
 
 @workflow.step
@@ -468,12 +482,6 @@ def school_escorting(
         #     locals_dict["_sharrow_skip"] = True
         # else:
         #     locals_dict.pop("_sharrow_skip", None)
-
-        # reduce memory by limiting columns if selected columns are supplied
-        chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-        if chooser_columns is not None:
-            chooser_columns = chooser_columns + participant_columns
-            choosers = choosers[chooser_columns]
 
         # add previous data to stage
         if stage_num >= 1:

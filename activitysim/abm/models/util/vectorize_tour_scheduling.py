@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any
@@ -42,7 +43,6 @@ class TourSchedulingSettings(LogitComponentSettings, extra="forbid"):
     it is assumed to be an unsegmented preprocessor.  Otherwise, the dict keys
     give the segements.
     """
-    SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
 
     SPEC_SEGMENTS: dict[str, LogitComponentSettings] = {}
 
@@ -62,6 +62,21 @@ class TourSchedulingSettings(LogitComponentSettings, extra="forbid"):
     If > 0, use this chunk size instead of adaptive chunking.
     If less than 1, use this fraction of the total number of rows.
     """
+
+    @property
+    def SIMULATE_CHOOSER_COLUMNS(self) -> None:
+        """Was used to help reduce the memory needed for the model.
+        Setting is now obsolete and doesn't do anything.
+        Functionality was replaced by util.drop_unused_columns
+
+        .. deprecated:: 1.4
+        """
+        warnings.warn(
+            "SIMULATE_CHOOSER_COLUMNS is deprecated and replaced by util.drop_unused_columns",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return None
 
 
 def skims_for_logsums(
@@ -822,6 +837,7 @@ def _schedule_tours(
 
     # - make choices
     locals_d = {"tt": timetable.attach_state(state)}
+    locals_d.update(state.get_global_constants())
     constants = config.get_model_constants(model_settings)
     if constants is not None:
         locals_d.update(constants)

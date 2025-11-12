@@ -261,7 +261,6 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     SEGMENT_IDS: dict[str, int] | dict[str, str] | dict[str, bool] | None = None
     SHADOW_PRICE_TABLE: str | None = None
     MODELED_SIZE_TABLE: str | None = None
-    SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
     ALT_DEST_COL_NAME: str
     LOGSUM_TOUR_PURPOSE: str | dict[str, str] | None = None
     MODEL_SELECTOR: str | None = None
@@ -270,6 +269,21 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
 
     ORIG_ZONE_ID: str | None = None
     """This setting appears to do nothing..."""
+
+    @property
+    def SIMULATE_CHOOSER_COLUMNS(self) -> None:
+        """Was used to help reduce the memory needed for the model.
+        Setting is now obsolete and doesn't do anything.
+        Functionality was replaced by util.drop_unused_columns
+
+        .. deprecated:: 1.4
+        """
+        warnings.warn(
+            "SIMULATE_CHOOSER_COLUMNS is deprecated and replaced by util.drop_unused_columns",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return None
 
 
 class TourModeComponentSettings(TemplatedLogitComponentSettings, extra="forbid"):
@@ -281,4 +295,18 @@ class TourModeComponentSettings(TemplatedLogitComponentSettings, extra="forbid")
     nontour_preprocessor: PreprocessorSettings | list[
         PreprocessorSettings
     ] | None = None
-    LOGSUM_CHOOSER_COLUMNS: list[str] = []
+
+    @property
+    def LOGSUM_CHOOSER_COLUMNS(self) -> None:
+        """Was used to help reduce the memory needed for the model.
+        Setting is now obsolete and doesn't do anything.
+        Functionality was replaced by util.drop_unused_columns
+
+        .. deprecated:: 1.4
+        """
+        warnings.warn(
+            "LOGSUM_CHOOSER_COLUMNS is deprecated and replaced by util.drop_unused_columns",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return None

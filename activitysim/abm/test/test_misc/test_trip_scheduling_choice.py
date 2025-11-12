@@ -37,11 +37,6 @@ def tours():
 
 
 @pytest.fixture(scope="module")
-def settings():
-    return {"skims_file": "skims.omx", "skim_time_periods": {"labels": ["MD"]}}
-
-
-@pytest.fixture(scope="module")
 def model_spec():
     index = [
         "@(df['main_leg_duration']>df['duration']).astype(int)",
@@ -75,7 +70,7 @@ def model_spec():
 def add_canonical_dirs(configs_dir_name):
     state = workflow.State()
     configs_dir = os.path.join(os.path.dirname(__file__), f"{configs_dir_name}")
-    data_dir = os.path.join(os.path.dirname(__file__), f"data")
+    data_dir = os.path.join(os.path.dirname(__file__), "data")
     output_dir = os.path.join(os.path.dirname(__file__), "output")
     state.initialize_filesystem(
         working_dir=os.path.dirname(__file__),
@@ -87,7 +82,7 @@ def add_canonical_dirs(configs_dir_name):
 
 
 @pytest.fixture(scope="module")
-def skims(settings):
+def skims():
     state = add_canonical_dirs("configs_test_misc").default_settings()
     nw_los = los.Network_LOS(state, los_settings_file_name="settings_60_min.yaml")
     nw_los.load_data()
@@ -233,21 +228,29 @@ def test_two_way_stop_patterns(tours):
     assert set(output_columns).issubset(windows.columns)
 
 
-def test_run_trip_scheduling_choice(model_spec, tours, skims, locals_dict, settings):
-    configs_dir = os.path.join(os.path.dirname(__file__), "configs_test_misc")
-    data_dir = os.path.join(os.path.dirname(__file__), "data")
+def test_run_trip_scheduling_choice(model_spec, tours, skims, locals_dict):
+    # create a temporary workflow state with no content
+    state = workflow.State.make_temp()
 
-    state = workflow.State().initialize_filesystem(
-        configs_dir=configs_dir,
-        data_dir=data_dir,
+    # Define model settings for this test.
+    # The settings for this model requires a filename for the spec, but in this test we
+    # are passing the spec dataframe directly, so the filename is just a placeholder.
+    # In non-testing use cases, the SPEC would actually be read from the yaml file
+    # instead of being passed directly as a dataframe.
+    model_settings = tsc.TripSchedulingChoiceSettings(
+        **{
+            "SPEC": "placeholder.csv",
+            "compute_settings": {
+                "protect_columns": ["origin", "destination", "schedule_id"]
+            },
+        }
     )
 
-    state.load_settings()
-    model_settings = tsc.TripSchedulingChoiceSettings.read_settings_file(
-        state.filesystem,
-        "trip_scheduling_choice.yaml",
-    )
+    # As is common in ActivitySim the component will modify the input dataframe in-place.
+    # For testing we make a copy of the input tours to compare against after running the model.
+    in_tours = tours.copy(deep=True)
 
+    # run the trip scheduling choice model
     out_tours = tsc.run_trip_scheduling_choice(
         state,
         model_spec,
@@ -258,17 +261,29 @@ def test_run_trip_scheduling_choice(model_spec, tours, skims, locals_dict, setti
         model_settings=model_settings,
     )
 
-    assert len(tours) == len(out_tours)
+    # check that the number of tours is unchanged
+    assert len(in_tours) == len(out_tours)
     pd.testing.assert_index_equal(
-        tours.sort_index().index, out_tours.sort_index().index
+        in_tours.sort_index().index, out_tours.sort_index().index
     )
 
+    # check that the expected output columns are not present in input tours
     output_columns = [tsc.MAIN_LEG_DURATION, tsc.OB_DURATION, tsc.IB_DURATION]
+    for col in output_columns:
+        assert col not in in_tours.columns
 
+    # check that the expected output columns *are* present in output tours
     assert set(output_columns).issubset(out_tours.columns)
 
+    # check that the sum of the output durations equals the tour duration
     assert len(
         out_tours[
             out_tours[output_columns].sum(axis=1) == out_tours[tsc.TOUR_DURATION_COLUMN]
         ]
-    ) == len(tours)
+    ) == len(in_tours)
+
+    # check that tours with no outbound stops have zero outbound duration
+    assert out_tours[tsc.OB_DURATION].mask(in_tours[tsc.HAS_OB_STOPS], 0).sum() == 0
+
+    # check that tours with no inbound stops have zero inbound duration
+    assert out_tours[tsc.IB_DURATION].mask(in_tours[tsc.HAS_IB_STOPS], 0).sum() == 0

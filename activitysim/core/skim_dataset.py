@@ -253,7 +253,7 @@ class DatasetWrapper:
                 and np.issubdtype(df[self.time_key].dtype, np.integer)
                 and df[self.time_key].max() < self.dataset.dims["time_period"]
             ):
-                logger.info(f"natural use for time_period={self.time_key}")
+                logger.debug(f"natural use for time_period={self.time_key}")
                 positions["time_period"] = df[self.time_key]
             elif (
                 df[self.time_key].dtype == "category"
@@ -261,7 +261,7 @@ class DatasetWrapper:
             ):
                 positions["time_period"] = df[self.time_key].cat.codes
             else:
-                logger.info(f"vectorize lookup for time_period={self.time_key}")
+                logger.debug(f"vectorize lookup for time_period={self.time_key}")
                 positions["time_period"] = pd.Series(
                     np.vectorize(self.time_map.get, "I")(df[self.time_key], 0),
                     index=df.index,

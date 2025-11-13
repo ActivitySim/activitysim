@@ -16,41 +16,6 @@ from activitysim.core.configuration.logit import (
 logger = logging.getLogger(__name__)
 
 
-def filter_chooser_columns(
-    choosers, logsum_settings: dict | PydanticBase, model_settings: dict | PydanticBase
-):
-    try:
-        chooser_columns = logsum_settings.LOGSUM_CHOOSER_COLUMNS
-    except AttributeError:
-        chooser_columns = logsum_settings.get("LOGSUM_CHOOSER_COLUMNS", [])
-
-    if (
-        isinstance(model_settings, dict)
-        and "CHOOSER_ORIG_COL_NAME" in model_settings
-        and model_settings["CHOOSER_ORIG_COL_NAME"] not in chooser_columns
-    ):
-        chooser_columns.append(model_settings["CHOOSER_ORIG_COL_NAME"])
-    if (
-        isinstance(model_settings, PydanticBase)
-        and hasattr(model_settings, "CHOOSER_ORIG_COL_NAME")
-        and model_settings.CHOOSER_ORIG_COL_NAME
-        and model_settings.CHOOSER_ORIG_COL_NAME not in chooser_columns
-    ):
-        chooser_columns.append(model_settings.CHOOSER_ORIG_COL_NAME)
-
-    missing_columns = [c for c in chooser_columns if c not in choosers]
-    if missing_columns:
-        logger.debug(
-            "logsum.filter_chooser_columns missing_columns %s" % missing_columns
-        )
-
-    # ignore any columns not appearing in choosers df
-    chooser_columns = [c for c in chooser_columns if c in choosers]
-
-    choosers = choosers[chooser_columns]
-    return choosers
-
-
 def compute_location_choice_logsums(
     state: workflow.State,
     choosers: pd.DataFrame,

@@ -161,6 +161,7 @@ def _location_sample(
         "reindex": reindex,
         "land_use": state.get_dataframe("land_use"),
     }
+    locals_d.update(state.get_global_constants())
     locals_d.update(model_settings.CONSTANTS or {})
 
     # preprocess choosers table
@@ -232,9 +233,7 @@ def location_sample(
     chunk_tag,
     trace_label,
 ):
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-    choosers = persons_merged[chooser_columns]
+    choosers = persons_merged
 
     # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
     # and a zone_id in the alternatives which get merged during interaction
@@ -385,12 +384,7 @@ def location_presample(
         HOME_TAZ in persons_merged
     )  # 'TAZ' should already be in persons_merged from land_use
 
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    # FIXME we don't actually require that land_use provide a TAZ crosswalk
-    # FIXME maybe we should add it for multi-zone (from maz_taz) if missing?
-    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-    chooser_columns = [HOME_TAZ if c == HOME_MAZ else c for c in chooser_columns]
-    choosers = persons_merged[chooser_columns]
+    choosers = persons_merged
 
     # create wrapper with keys for this lookup - in this case there is a HOME_TAZ in the choosers
     # and a DEST_TAZ in the alternatives which get merged during interaction
@@ -555,11 +549,6 @@ def run_location_logsums(
         mandatory=False,
     )
 
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    persons_merged_df = logsum.filter_chooser_columns(
-        persons_merged_df, logsum_settings, model_settings
-    )
-
     logger.info(f"Running {trace_label} with {len(location_sample_df.index)} rows")
 
     choosers = location_sample_df.join(persons_merged_df, how="left")
@@ -618,9 +607,7 @@ def run_location_simulate(
     """
     assert not persons_merged.empty
 
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-    choosers = persons_merged[chooser_columns]
+    choosers = persons_merged
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
@@ -651,6 +638,7 @@ def run_location_simulate(
         "reindex": reindex,
         "land_use": state.get_dataframe("land_use"),
     }
+    locals_d.update(state.get_global_constants())
     locals_d.update(model_settings.CONSTANTS or {})
 
     # preprocess choosers table

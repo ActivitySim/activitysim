@@ -1003,7 +1003,7 @@ def eval_variables(
 #     return utilities
 
 
-def set_skim_wrapper_targets(df, skims):
+def set_skim_wrapper_targets(df, skims, allow_partial_success: bool = True):
     """
     Add the dataframe to the SkimWrapper object so that it can be dereferenced
     using the parameters of the skims object.
@@ -1021,6 +1021,11 @@ def set_skim_wrapper_targets(df, skims):
         dataframe that comes back from interacting choosers with
         alternatives.  See the skims module for more documentation on how
         the skims object is intended to be used.
+    allow_partial_success : bool, optional
+        If True (default), failures to set skim targets for some skim objects
+        (for example due to missing required columns in `df`) will be collected
+        and logged as warnings but will not raise an exception. If False, any
+        such failure will be raised immediately, preventing partial success.
     """
 
     skims = (
@@ -1030,13 +1035,31 @@ def set_skim_wrapper_targets(df, skims):
         if isinstance(skims, dict)
         else [skims]
     )
+    problems = []
 
     # assume any object in skims can be treated as a skim
     for skim in skims:
         try:
             skim.set_df(df)
         except AttributeError:
+            # sometimes when passed as a dict, the skims have a few keys given as
+            # settings or constants, which are not actually "skim" objects and have
+            # no `set_df` attribute.  This is fine and we just let them pass.
             pass
+        except AssertionError as e:
+            # An assertion error will get triggered if the columns of `df` are
+            # missing one of the required keys needed to look up values in the
+            # skims.  This may not be a problem, if this particular set of skims
+            # is not actually used in this model component.  So we'll warn about
+            # it but usually not raise a showstopping error.
+            problems.append(e)
+            if not allow_partial_success:
+                raise
+
+    if problems:
+        # if problems were discovered, log them as warnings
+        for problem in problems:
+            logger.warning(str(problem))
 
 
 #

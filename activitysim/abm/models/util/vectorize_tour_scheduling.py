@@ -7,6 +7,7 @@ import warnings
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any
+from pydantic import field_validator
 
 import numpy as np
 import pandas as pd
@@ -63,19 +64,23 @@ class TourSchedulingSettings(LogitComponentSettings, extra="forbid"):
     If less than 1, use this fraction of the total number of rows.
     """
 
-    @property
-    def SIMULATE_CHOOSER_COLUMNS(self) -> None:
-        """Was used to help reduce the memory needed for the model.
-        Setting is now obsolete and doesn't do anything.
-        Functionality was replaced by util.drop_unused_columns
+    SIMULATE_CHOOSER_COLUMNS: Any | None = None
+    """Was used to help reduce the memory needed for the model.
+    Setting is now obsolete and doesn't do anything.
+    Functionality was replaced by util.drop_unused_columns
 
-        .. deprecated:: 1.4
-        """
-        warnings.warn(
-            "SIMULATE_CHOOSER_COLUMNS is deprecated and replaced by util.drop_unused_columns",
-            DeprecationWarning,
-            stacklevel=2,
-        )
+    .. deprecated:: 1.4
+    """
+
+    @field_validator("SIMULATE_CHOOSER_COLUMNS", mode="before")
+    @classmethod
+    def _warn_simulate_chooser_columns(cls, v):
+        if v is not None:
+            warnings.warn(
+                "SIMULATE_CHOOSER_COLUMNS is deprecated and replaced by util.drop_unused_columns; value will be ignored.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         return None
 
 

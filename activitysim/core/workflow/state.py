@@ -939,6 +939,60 @@ class State:
             # at some later time if desired.
             self.existing_table_status[name] = True
         self.set(name, content)
+        # TODO: do not update tables if no new households were skipped
+        # right now it is updating every time which is inefficient
+        if self.get("num_skipped_households", 0) > 0:
+            self.update_table()
+
+    def update_table(self, name: str = None):
+        """
+        Go through existing tables in the state and
+        get rid of any rows that correspond to skipped households. 
+        """
+        skipped_hh_ids = self.get("skipped_household_ids", set())
+        if not skipped_hh_ids:
+            return
+        
+        # get existing tables in the current state context
+        existing_tables = self.registered_tables()
+
+        for table_name in existing_tables:
+            if not self.is_table(table_name):
+                continue
+            df = self.get_dataframe(table_name, as_copy=False)
+            # get the initial length of the dataframe
+            initial_len = len(df)
+            # check if household_id is in index or columns
+            if "household_id" in df.index.names:
+                df.drop(
+                    index=df.loc[df.index.get_level_values("household_id").isin(skipped_hh_ids)].index,
+                    inplace=True,
+                )
+            elif "household_id" in df.columns:
+                df.drop(
+                    index=df[df["household_id"].isin(skipped_hh_ids)].index,
+                    inplace=True,
+                )
+            else:
+                continue
+            # get the length of the dataframe after dropping rows
+            final_len = len(df)
+            logger.debug(
+                f"update_table: dropped {initial_len - final_len} rows from {table_name} "
+                f"corresponding to skipped households"
+            )
+            # mark this table as edited if we dropped any rows
+            if final_len < initial_len:
+                self.existing_table_status[table_name] = True
+            # terminate the run if we dropped all rows
+            # and raise an error
+            if final_len == 0:
+                raise RuntimeError(
+                    f"update_table: all rows dropped from {table_name} "
+                    f"corresponding to skipped households, terminating run"
+                )
+            # set the updated dataframe back to the state
+            self.set(table_name, df)
 
     def is_table(self, name: str):
         """

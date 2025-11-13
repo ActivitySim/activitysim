@@ -30,6 +30,7 @@ def report_bad_choices(
     state: workflow.State,
     bad_row_map,
     df,
+    skip_failed_choices,
     trace_label,
     msg,
     trace_choosers=None,
@@ -86,6 +87,25 @@ def report_bad_choices(
         )
 
         logger.warning(row_msg)
+    
+    if skip_failed_choices:
+        # update counter in state
+        num_skipped_households = state.get("num_skipped_households", 0)
+        skipped_household_ids = state.get("skipped_household_ids", set())
+        for hh_id in df[trace_col].unique():
+            if hh_id not in skipped_household_ids:
+                skipped_household_ids.add(hh_id)
+                num_skipped_households += 1
+            else:
+                continue
+        state.set("num_skipped_households", num_skipped_households)
+        state.set("skipped_household_ids", skipped_household_ids)
+
+        logger.debug(
+            f"Skipping {bad_row_map.sum()} bad choices. Total skipped households so far: {num_skipped_households}. Skipped household IDs: {skipped_household_ids}"
+        )
+
+        return
 
     if raise_error:
         raise InvalidTravelError(msg_with_count)
@@ -136,6 +156,7 @@ def utils_to_probs(
     allow_zero_probs=False,
     trace_choosers=None,
     overflow_protection: bool = True,
+    skip_failed_choices: bool = True,
     return_logsums: bool = False,
 ):
     """
@@ -175,6 +196,16 @@ def utils_to_probs(
         If utility values are certain to be well-behaved and non-extreme, enabling
         overflow_protection will have no benefit but impose a modest computational
         overhead cost.
+    
+    skip_failed_choices : bool, default True
+        If True, when bad choices are detected (all zero probabilities or infinite
+        probabilities), the entire household that's causing bad choices will be skipped instead of 
+        being masked by overflow protection or causing an error. 
+        A counter will be incremented for each skipped household. This is useful when running large
+        simulations where occasional bad choices are encountered and should not halt the process.
+        The counter can be accessed via `state.counters["num_skipped_households"]`.
+        The number of skipped households and their IDs will be logged at the end of the simulation.
+        When `skip_failed_choices` is True, `overflow_protection` will be reverted to False to avoid conflicts.
 
     Returns
     -------
@@ -202,6 +233,13 @@ def utils_to_probs(
         overflow_protection = overflow_protection or (
             utils_arr.dtype == np.float32 and utils_arr.max() > 85
         )
+    
+    if state.settings.skip_failed_choices is not None:
+        skip_failed_choices = state.settings.skip_failed_choices
+        # when skipping failed choices, we cannot use overflow protection
+        # because it would mask the underlying issue causing bad choices
+        if skip_failed_choices:
+            overflow_protection = False
 
     if overflow_protection:
         # exponentiated utils will overflow, downshift them
@@ -240,6 +278,7 @@ def utils_to_probs(
                 state,
                 zero_probs,
                 utils,
+                skip_failed_choices,
                 trace_label=tracing.extend_trace_label(trace_label, "zero_prob_utils"),
                 msg="all probabilities are zero",
                 trace_choosers=trace_choosers,
@@ -251,6 +290,7 @@ def utils_to_probs(
             state,
             inf_utils,
             utils,
+            skip_failed_choices,
             trace_label=tracing.extend_trace_label(trace_label, "inf_exp_utils"),
             msg="infinite exponentiated utilities",
             trace_choosers=trace_choosers,
@@ -281,6 +321,7 @@ def make_choices(
     trace_label: str = None,
     trace_choosers=None,
     allow_bad_probs=False,
+    skip_failed_choices=True,
 ) -> tuple[pd.Series, pd.Series]:
     """
     Make choices for each chooser from among a set of alternatives.
@@ -316,11 +357,15 @@ def make_choices(
         np.ones(len(probs.index))
     ).abs() > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
 
+    if state.settings.skip_failed_choices is not None:
+        skip_failed_choices = state.settings.skip_failed_choices
+
     if bad_probs.any() and not allow_bad_probs:
         report_bad_choices(
             state,
             bad_probs,
             probs,
+            skip_failed_choices,
             trace_label=tracing.extend_trace_label(trace_label, "bad_probs"),
             msg="probabilities do not add up to 1",
             trace_choosers=trace_choosers,
@@ -329,6 +374,8 @@ def make_choices(
     rands = state.get_rn_generator().random_for_df(probs)
 
     choices = pd.Series(choice_maker(probs.values, rands), index=probs.index)
+    # mark bad choices with -99
+    choices[bad_probs] = -99
 
     rands = pd.Series(np.asanyarray(rands).flatten(), index=probs.index)
 

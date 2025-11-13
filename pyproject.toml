@@ -26,7 +26,7 @@ dependencies = [
     "requests >= 2.7",
     "scikit-learn >= 1.2",
     "setuptools>=80.9.0",
-    "sharrow >= 2.9.1",
+    "sharrow>=2.15",
     "sparse",
     "tables >= 3.9",  # pytables is tables in pypi
     "xarray >= 2024.05",

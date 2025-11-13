@@ -9,8 +9,6 @@ from activitysim.abm.models import trip_scheduling_choice as tsc
 from activitysim.abm.tables.skims import skim_dict
 from activitysim.core import los, workflow
 
-from .setup_utils import setup_dirs
-
 
 @pytest.fixture(scope="module")
 def tours():
@@ -114,8 +112,8 @@ def base_dir() -> Path:
 @pytest.fixture(scope="module")
 def module() -> str:
     """
-    A pytest fixture that returns the data folder location.
-    :return: folder location for any necessary data to initialize the tests
+    A pytest fixture that returns the module name string used in test setup.
+    :return: module name string ("summarize")
     """
     return "summarize"
 

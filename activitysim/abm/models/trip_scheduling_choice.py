@@ -82,6 +82,7 @@ def generate_schedule_alternatives(tours):
 
     schedules = pd.concat([no_stops, one_way, two_way], sort=True)
     schedules[SCHEDULE_ID] = np.arange(1, schedules.shape[0] + 1)
+    # this sort is necessary to keep single process and multiprocess results the same!
     schedules.sort_values(by=["tour_id", SCHEDULE_ID], inplace=True)
 
     return schedules

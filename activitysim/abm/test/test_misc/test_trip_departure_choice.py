@@ -12,8 +12,6 @@ from .setup_utils import setup_dirs
 
 @pytest.fixture(scope="module")
 def trips():
-    outbound_array = [True, True, False, False, False, True, True, False, False, True]
-
     trips = pd.DataFrame(
         data={
             "tour_id": [1, 1, 2, 2, 2, 2, 2, 3, 3, 4],
@@ -23,7 +21,18 @@ def trips():
             "outbound_duration": [2, 2, 0, 0, 0, 12, 12, 0, 0, 5],
             "trip_count": [2, 2, 3, 3, 3, 2, 2, 2, 2, 1],
             "trip_num": [1, 2, 1, 2, 3, 1, 2, 1, 2, 1],
-            "outbound": outbound_array,
+            "outbound": [
+                True,
+                True,
+                False,
+                False,
+                False,
+                True,
+                True,
+                False,
+                False,
+                True,
+            ],
             "chunk_id": [1, 1, 2, 2, 2, 2, 2, 3, 3, 4],
             "is_work": [
                 True,
@@ -159,10 +168,13 @@ def test_generate_alternative(trips):
 def test_apply_stage_two_model(model_spec, trips):
     setup_dirs()
     state = add_canonical_dirs("configs_test_misc").default_settings()
-    model_settings = tdc.TripDepartureChoiceSettings.read_settings_file(
-        state.filesystem,
-        "trip_departure_choice.yaml",
-    )
+
+    # A settings object is needed to pass to the model application function,
+    # but for testing we can just use the default settings.
+    # In non-testing use cases, the SPEC would actually be read from the yaml file
+    # instead of being passed directly as a dataframe.
+    model_settings = tdc.TripDepartureChoiceSettings()
+
     departures = tdc.apply_stage_two_model(
         state,
         model_spec,

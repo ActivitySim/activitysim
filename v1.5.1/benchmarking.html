@@ -1,0 +1,817 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Benchmarking &#8212; ActivitySim</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script src="_static/design-tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'benchmarking';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.5.1';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Documentation" href="dev-guide/build-docs.html" />
+    <link rel="prev" title="Core Components" href="core.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.5.1" />
+    <meta name="docbuild:last-update" content="Nov 13, 2025"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">ActivitySim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="users-guide/index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="users-guide/index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="dev-guide/index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/install.html">Developer Installation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="dev-guide/core-workflow.html">Workflow State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="dev-guide/core-workflow-api.html">State API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.__init__.html">State.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.make_default.html">State.make_default</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.make_temp.html">State.make_temp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.create_example.html">create_example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.run.heading_level.html">State.run.heading_level</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.checkpoint.last_checkpoint.html">State.checkpoint.last_checkpoint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.checkpoint.checkpoints.html">State.checkpoint.checkpoints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.checkpoint.store.html">State.checkpoint.store</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.tracing.initialize.html">State.tracing.initialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.tracing.register_traceable_table.html">State.tracing.register_traceable_table</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.tracing.deregister_traceable_table.html">State.tracing.deregister_traceable_table</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.tracing.write_csv.html">State.tracing.write_csv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.tracing.trace_df.html">State.tracing.trace_df</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.tracing.trace_interaction_eval_results.html">State.tracing.trace_interaction_eval_results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.tracing.get_trace_target.html">State.tracing.get_trace_target</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.tracing.trace_targets.html">State.tracing.trace_targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.tracing.has_trace_targets.html">State.tracing.has_trace_targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.tracing.dump_df.html">State.tracing.dump_df</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.tracing.delete_output_files.html">State.tracing.delete_output_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.tracing.delete_trace_files.html">State.tracing.delete_trace_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.extend.declare_table.html">State.extend.declare_table</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/core-workflow-steps.html">Workflow Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/core-workflow-table.html">Workflow Tables</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/using-sharrow.html">Using Sharrow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/skim-dataset.html">Using Skim Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/checkpointing.html">Checkpointing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/workflows.html">Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Software Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/component-configs.html">Component Configuration</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="dev-guide/components/index.html">Components</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/input_checker.html">Input Checker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/initialize.html">Initialize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/initialize_los.html">Initialize LOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/initialize_tours.html">Initialize Tours</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/accessibility.html">Accessibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/auto_ownership.html">Auto Ownership</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/vehicle_type_choice.html">Vehicle Type Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/telecommute_frequency.html">Telecommute Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/cdap.html">Coordinated Daily Activity Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/mandatory_tour_frequency.html">Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/school_escorting.html">School Escorting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/joint_tour_composition.html">Joint Tour Composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/joint_tour_participation.html">Joint Tour Participation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/joint_tour_destination.html">Joint Tour Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/joint_tour_scheduling.html">Joint Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/non_mandatory_tour_frequency.html">Non-Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/non_mandatory_destination.html">Non-Mandatory Destination Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/non_mandatory_scheduling.html">Non-Mandatory Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/mandatory_scheduling.html">Mandatory Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/disaggregate_accessibility.html">Disaggregate Accessibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/free_parking.html">Free Parking Eligibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/school_location_choice.html">School Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/transit_pass_ownership.html">Transit Pass Ownership</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/transit_pass_subsidy.html">Transit Pass Subsidy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/trip_destination.html">Trip Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/work_from_home.html">Work from Home</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/work_location_choice.html">Work Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/tour_mode_choice.html">Tour Mode Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/atwork_subtour_frequency.html">At-work Subtours Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/atwork_subtour_destination.html">At-work Subtours Destination Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/atwork_subtour_scheduling.html">At-work Subtour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/atwork_subtour_mode_choice.html">At-work Subtour Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/stop_frequency.html">Stop Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/trip_purpose.html">Trip Purpose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/trip_destination.html">Trip Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/trip_purpose_and_destination.html">Trip Purpose and Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/trip_scheduling_choice.html">Trip Scheduling Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/trip_departure_choice.html">Trip Departure Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/trip_mode_choice.html">Trip Mode Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/parking_location_choice.html">Parking Location Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/write_trip_matrices.html">Write Trip Matrices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Benchmarking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/build-docs.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/changes.html">Change Log</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="dev-guide/index.html" class="nav-link">Developers</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Benchmarking</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="benchmarking">
+<span id="id1"></span><h1>Benchmarking<a class="headerlink" href="#benchmarking" title="Permalink to this heading">#</a></h1>
+<p>A key focus of the ActivitySim project is <em>performance</em>.  It’s not enough
+to build a new modeling platform that’s mathematically sound and simulates
+travel behavior as expected.  It’s also required that it do so quickly.
+It’s not too hard to run performance tests manually on individual models, and
+doing so after making changes that are expected to <em>improve</em> performance is
+typical. But monitoring performance regularly and automatically can help ensure
+that new features do not introduce unexpected performance regressions (i.e.
+models run slower than before). Developing an extensive set of automatic
+performance benchmarks can streamline the former problem and solve the latter.</p>
+<p>ActivitySim includes the ability to run performance benchmarks using a tool
+called <a class="reference external" href="https://asv.readthedocs.io/en/stable/">airspeed velocity</a>.</p>
+<p>The benchmarking process is closely tied to ActivitySim’s <em>git</em> repository,
+so it is recommended that you use Git to clone the repository from GitHub.</p>
+<section id="benchmarking-setup">
+<h2>Benchmarking Setup<a class="headerlink" href="#benchmarking-setup" title="Permalink to this heading">#</a></h2>
+<p>The first step in running benchmarks is to have a conda environment for
+benchmarking, as well as a local clone of the main ActivitySim repository,
+plus one of the <code class="docutils literal notranslate"><span class="pre">asim-benchmarks</span></code> repository. If you plan to submit your
+benchmarking results to the common repository of results, you’ll want to
+also make sure that your <code class="docutils literal notranslate"><span class="pre">asim-benchmarks</span></code> repository is using a fork of the
+common repository to which you have write-access.</p>
+<p>If this isn’t already set up on your performance benchmarking machine, you can
+do all of this setup by following these steps:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">ASIM</span><span class="o">-</span><span class="n">BENCH</span> <span class="n">mamba</span> <span class="n">git</span> <span class="n">gh</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">ASIM</span><span class="o">-</span><span class="n">BENCH</span>
+<span class="n">gh</span> <span class="n">auth</span> <span class="n">login</span>  <span class="c1"># &lt;--- (only needed if gh is not logged in)</span>
+<span class="n">gh</span> <span class="n">repo</span> <span class="n">clone</span> <span class="n">ActivitySim</span><span class="o">/</span><span class="n">activitysim</span>          <span class="c1"># TEMPORARY: use jpn--/activitysim</span>
+<span class="n">cd</span> <span class="n">activitysim</span>
+<span class="n">git</span> <span class="n">switch</span> <span class="n">develop</span>                             <span class="c1"># TEMPORARY: use performance1 branch</span>
+<span class="n">mamba</span> <span class="n">env</span> <span class="n">update</span> <span class="o">--</span><span class="n">file</span><span class="o">=</span><span class="n">conda</span><span class="o">-</span><span class="n">environments</span><span class="o">/</span><span class="n">activitysim</span><span class="o">-</span><span class="n">dev</span><span class="o">.</span><span class="n">yml</span>
+<span class="n">cd</span> <span class="o">..</span>
+<span class="n">gh</span> <span class="n">repo</span> <span class="n">fork</span> <span class="n">ActivitySim</span><span class="o">/</span><span class="n">asim</span><span class="o">-</span><span class="n">benchmarks</span> <span class="o">--</span><span class="n">remote</span>
+<span class="n">cd</span> <span class="n">asim</span><span class="o">-</span><span class="n">benchmarks</span>
+<span class="n">python</span> <span class="n">initialize</span><span class="o">-</span><span class="n">hooks</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>For non-Windows users, you can then actually activate the pre-commit hooks like
+this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pre</span><span class="o">-</span><span class="n">commit</span> <span class="n">install</span>     <span class="c1"># macOS/Linux only, do not run this line on Windows</span>
+</pre></div>
+</div>
+<p>Windows users should not attempt to use installed pre-commit hooks with conda
+(see note below).  Instead, you must manually <code class="docutils literal notranslate"><span class="pre">pre-commit</span> <span class="pre">run</span></code> inside the correct
+conda environment before committing.</p>
+<p>If this environment is set up but it’s been a while since you last used it,
+consider updating the environment like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">activate</span> <span class="n">ASIM</span><span class="o">-</span><span class="n">BENCH</span>
+<span class="n">cd</span> <span class="n">activitysim</span>
+<span class="n">git</span> <span class="n">switch</span> <span class="n">develop</span>                             <span class="c1"># TEMPORARY: use performance1 branch</span>
+<span class="n">mamba</span> <span class="n">env</span> <span class="n">update</span> <span class="o">--</span><span class="n">file</span><span class="o">=</span><span class="n">conda</span><span class="o">-</span><span class="n">environments</span><span class="o">/</span><span class="n">activitysim</span><span class="o">-</span><span class="n">dev</span><span class="o">.</span><span class="n">yml</span>
+<span class="n">cd</span> <span class="o">..</span>
+<span class="n">cd</span> <span class="n">asim</span><span class="o">-</span><span class="n">benchmarks</span>
+<span class="n">git</span> <span class="n">pull</span>
+</pre></div>
+</div>
+<p>Next, we’ll want to declare the specs of our benchmarking machine.  Some of
+these can be determined quasi-automatically, but we want to confirm the specs
+we’ll use as they are written with our benchmark results into the database.
+Define machine specs by running this command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">activitysim</span> <span class="n">benchmark</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>This will start an interactive questions and answer session to describe your
+computer.  Don’t be afraid, just answer the questions.  The tool may make
+suggestions, but they are not always correct, so check them first and don’t just
+accept all.  For example, under “arch” it may suggest “AMD64”, but for consistency
+you can change that to “x86_64”, which is the same thing by a different name.</p>
+</section>
+<section id="running-benchmarks">
+<h2>Running Benchmarks<a class="headerlink" href="#running-benchmarks" title="Permalink to this heading">#</a></h2>
+<p>ActivitySim automates the process of running many benchmarks. It can also easily
+accumulate and analyze benchmark results across many different machines, as long as the
+benchmarks are all run in the same (relative) place. So before running benchmarks,
+change your working directory (at the command prompt) into the top directory of
+the <cite>asim-benchmarks</cite> repository, if you’re not already there.</p>
+<p>To run all of the benchmarks on the most recent commit in the main ActivitySim repo:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">activitysim</span> <span class="n">benchmark</span> <span class="n">latest</span>
+</pre></div>
+</div>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>The benchmarks do not currently use ActivitySim’s dynamic chunking features,
+as these require manual configuration and training on a per-machine basis
+to ensure good performance.</p>
+<p>Running the complete suite of benchmarks currently includes downloading and
+running full-region model data for several different SANDAG zone systems.
+Ideally you should have at least 50 GB of free disk space and 120 GB of RAM
+to attempt this process on any given machine.  For a smaller machine, consider
+benchmarking only the “test” sized examples, by adding <cite>–bench sandag.example</cite>
+to this command, as discussed below.</p>
+</div>
+<p>This will run the benchmarks only on the “HEAD” commit of the main activitysim git
+repository.  To run on some other historical commit[s] from the git history, you can
+specify an individual commit or a range, in the same way you would do so for the
+<cite>git log</cite> command. For example, to run benchmarks on the commits to develop since
+it was branched off main, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">activitysim</span> <span class="n">benchmark</span> <span class="n">run</span> <span class="n">main</span><span class="o">..</span><span class="n">develop</span>
+</pre></div>
+</div>
+<p>or to run only on the latest commit in develop, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">activitysim</span> <span class="n">benchmark</span> <span class="n">run</span> <span class="s2">&quot;develop^!&quot;</span>
+</pre></div>
+</div>
+<p>Note that the literal quotation marks are necessary on Windows, as the carat character
+preceding the exclamation mark is otherwise interpreted as an escape character.
+In most other shells (e.g. on Linux or macOS) the literal quotation marks are unnecessary.</p>
+<p>To run only benchmarks from a certain example, we can
+use the <cite>–bench</cite> argument, which allows us to write a “regular expression” that
+filters the benchmarks actually executed.  This is handy if you are interested in
+benchmarking a particular model or component, as running <em>all</em> the benchmarks can
+take a very long time, and the larger benchmarks (e.g. on the full SANDAG model)
+will need a lot of disk space and RAM.  For example, to run only the mandatory
+tour frequency benchmark for the SANDAG 1-Zone example-sized system, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">activitysim</span> <span class="n">benchmark</span> <span class="n">latest</span> <span class="o">--</span><span class="n">bench</span> <span class="n">sandag1example</span><span class="o">.</span><span class="n">time_mandatory_tour_frequency</span>
+</pre></div>
+</div>
+<p>The “.” character here means a literal dot, but since this is a regex expression,
+it is also a single-character wildcard.  Thus, you can run all the example-sized
+SANDAG benchmarks with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">activitysim</span> <span class="n">benchmark</span> <span class="n">latest</span> <span class="o">--</span><span class="n">bench</span> <span class="n">sandag</span><span class="o">.</span><span class="n">example</span>
+</pre></div>
+</div>
+<p>You can also repeat the <cite>–bench</cite> argument to give multiple different expressions.
+So, you can run just the 1- and 2-zone examples, without the 3-zone example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">activitysim</span> <span class="n">benchmark</span> <span class="n">latest</span> <span class="o">--</span><span class="n">bench</span> <span class="n">sandag1example</span> <span class="o">--</span><span class="n">bench</span> <span class="n">sandag2example</span>
+</pre></div>
+</div>
+<p>If you want to run several different benchmarking commmands together, for example
+to run a custom curated subset of interesting benchmarks, the benchmark tool also
+includes a <cite>batch</cite> mode.  You can assemble the various commands you would run
+(i.e. everything you would type on the command line after “activitysim benchmark”)
+into a text file, and then point to that file using the <cite>batch</cite> command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">activitysim</span> <span class="n">benchmark</span> <span class="n">batch</span> <span class="n">my_interesting_benchmarks</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+</section>
+<section id="threading-limits">
+<h2>Threading Limits<a class="headerlink" href="#threading-limits" title="Permalink to this heading">#</a></h2>
+<p>When you run benchmarking using the <cite>activitysim benchmark</cite> command, the
+following environment variable are set automatically before benchmarking begins:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MKL_NUM_THREADS</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">OMP_NUM_THREADS</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">OPENBLAS_NUM_THREADS</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">NUMBA_NUM_THREADS</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">VECLIB_MAXIMUM_THREADS</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">NUMEXPR_NUM_THREADS</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>This ensures that all benchmarking operations run processes in single-threaded
+mode.  This still allows ActivitySim itself to spin up multiple processes if the
+item being timed is a multiprocess benchmark.</p>
+</section>
+<section id="submitting-benchmarks">
+<h2>Submitting Benchmarks<a class="headerlink" href="#submitting-benchmarks" title="Permalink to this heading">#</a></h2>
+<p>One of the useful features of the airspeed velocity benchmarking engine is the
+opportunity to compare performance benchmarks across different machines. The
+ActivitySim community is interested in aggregating such results from a number
+of participants, so once you have successfully run a set of benchmarks, you
+should submit those results to our repository.</p>
+<p>To do so, assuming you have run the benchmark tool inside the <code class="docutils literal notranslate"><span class="pre">asim-benchmarks</span></code>
+repository as noted above, you simply need to commit any new or changed files
+in the <code class="docutils literal notranslate"><span class="pre">asim-benchmarks/results</span></code> directory.  You can then open a pull request
+against the community <code class="docutils literal notranslate"><span class="pre">asim-benchmarks</span></code> to submit those results.</p>
+<p>Assuming you are in (or first <code class="docutils literal notranslate"><span class="pre">cd</span></code> into) the <code class="docutils literal notranslate"><span class="pre">asim-benchmarks</span></code> directory, You can
+do this from the command line using the following steps:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">add</span> <span class="n">results</span>
+<span class="n">pre</span><span class="o">-</span><span class="n">commit</span> <span class="n">run</span>    <span class="c1"># required on Windows only, see note</span>
+<span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">m</span> <span class="s2">&quot;adding benchmark results&quot;</span>
+<span class="n">git</span> <span class="n">push</span>
+<span class="n">gh</span> <span class="n">pr</span> <span class="n">create</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>On Windows, the process for automatically running pre-commit hooks when
+making a Git a commit is not compatible with conda, see
+<cite>here &lt;https://github.com/pre-commit/pre-commit/issues/1329&gt;</cite>. This will
+probably never be fixed, as the developers of pre-commit and conda each
+feel that the “bug” is in the other library.  So, manually running the
+pre-commit step is required.</p>
+</div>
+<p>Users may find it simpler to skip the last step on the command line, and simply
+visit their fork on GitHub.com to use the web interface to open a pull request.</p>
+</section>
+<section id="publishing-to-github-pages">
+<h2>Publishing to Github Pages<a class="headerlink" href="#publishing-to-github-pages" title="Permalink to this heading">#</a></h2>
+<p>Publishing the standard airspeed velocity content to GitHub pages is a built-in
+feature of the command line tool, available to users who have write-access to the
+asim-benchmarks GitHub repository.  Be sure you have all the relevant branches
+tracked locally (especially main and develop) and then run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">activitysim</span> <span class="n">benchmark</span> <span class="n">gh</span><span class="o">-</span><span class="n">pages</span>
+</pre></div>
+</div>
+</section>
+<section id="profiling">
+<h2>Profiling<a class="headerlink" href="#profiling" title="Permalink to this heading">#</a></h2>
+<p>The benchmarking tool can also be used for profiling, which allows a developer to
+inspect the timings for various commands <em>inside</em> a particular benchmark. This is
+most conveniently accomplished using the <code class="docutils literal notranslate"><span class="pre">snakeviz</span></code> tool, which should be installed
+in the developer tools environment (<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">snakeviz</span> <span class="pre">-c</span> <span class="pre">conda-forge</span></code>).
+Then, the developer needs to run two commands to compute and view the component
+profile.</p>
+<p>To create a profile record when benchmarking, add the <code class="docutils literal notranslate"><span class="pre">--profile</span></code> option when
+running the benchmarks.  For example, to create profile records for the SANDAG
+example-sized model’s non-mandatory tour scheduling component across all three
+zone systems, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">activitysim</span> <span class="n">benchmark</span> <span class="n">latest</span> <span class="o">--</span><span class="n">bench</span> <span class="n">sandag</span><span class="o">.</span><span class="n">example</span><span class="o">.</span><span class="n">non_mandatory_tour_scheduling</span> <span class="o">--</span><span class="n">profile</span>
+</pre></div>
+</div>
+<p>This command will save the profiling data directly into the json file that stores
+the benchmark timings.  This is a lot of extra data, so it’s not advised to
+save profiling data for every benchmark, but only for benchmarks of particular
+interest.</p>
+<p>Once this data has been saved, you can access it using the <code class="docutils literal notranslate"><span class="pre">snakeviz</span></code> tool.  This
+visualization requires pointing to a specific profiled benchmark in a specific
+json result file.  For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">activitysim</span> <span class="n">benchmark</span> <span class="n">snakeviz</span> <span class="n">results</span><span class="o">/</span><span class="n">LUMBERJACK</span><span class="o">/</span><span class="mi">241</span><span class="n">ddb64</span><span class="o">-</span><span class="n">env</span><span class="o">-</span><span class="n">c87ac846ee78e51351a06682de5adcb5</span><span class="o">.</span><span class="n">json</span> <span class="n">sandag3example</span><span class="o">.</span><span class="n">non_mandatory_tour_scheduling</span><span class="o">.</span><span class="n">time_component</span>
+</pre></div>
+</div>
+<p>On running this command, a web browser should pop open to display the snakeviz
+interface.</p>
+</section>
+<section id="writing-new-benchmarks">
+<h2>Writing New Benchmarks<a class="headerlink" href="#writing-new-benchmarks" title="Permalink to this heading">#</a></h2>
+<p>New benchmarks for other model examples can be added to
+<code class="docutils literal notranslate"><span class="pre">activitysim/benchmarking/benchmarks</span></code>. A basic template structure has been used,
+so that it should be relatively straight-forward to implement component-level
+single thread benchmarks for any model that is available using the
+<code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span></code> tool.</p>
+<p>A basic framework for multi-processing benchmarks has been implemented and is
+demonstrated in the <code class="docutils literal notranslate"><span class="pre">mtc1mp4</span></code> benchmark file. However, work remains to write
+a stable process to execute chunking training for each machine prior to running
+the production-version benchmarks that will be meaningful for users.</p>
+</section>
+<section id="running-benchmarks-for-pull-requests">
+<h2>Running Benchmarks for Pull Requests<a class="headerlink" href="#running-benchmarks-for-pull-requests" title="Permalink to this heading">#</a></h2>
+<p>The complete set of performance benchmarks is too large to include in ActivitySim’s
+automatic continuous integration (CI) testing, both by compute time and by memory usage.
+However, it is valuable to run these tests once against the final version of
+each PR before merging into the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch, to ensure there are no
+unexpected performance regressions. The airspeed velocity tools include a special
+CI mode, which runs the same benchmarks on the same machine with the same settings,
+giving developers a fair shot at a strict apples-to-apples comparison of performance.</p>
+<p>This mode can be activated to check the performance of code on a git branch called
+<code class="docutils literal notranslate"><span class="pre">my-new-feature-branch</span></code>, and compare against the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">activitysim</span> <span class="n">benchmark</span> <span class="n">continuous</span> <span class="n">develop</span> <span class="n">my</span><span class="o">-</span><span class="n">new</span><span class="o">-</span><span class="n">feature</span><span class="o">-</span><span class="n">branch</span>
+</pre></div>
+</div>
+<p>Unlike other tests for mathematical correctness, it is not always necessary that
+new PR’s must “pass” this testing, as new features or capabilities may justify a
+performance degradation.  But developers should always run these tests on new PR’s
+so that the community is aware of the trade offs (if any) and can take steps to
+mitigate problems promptly if desired.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="core.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Core Components</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="dev-guide/build-docs.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Documentation</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#benchmarking-setup">Benchmarking Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-benchmarks">Running Benchmarks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#threading-limits">Threading Limits</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submitting-benchmarks">Submitting Benchmarks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#publishing-to-github-pages">Publishing to Github Pages</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#profiling">Profiling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#writing-new-benchmarks">Writing New Benchmarks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-benchmarks-for-pull-requests">Running Benchmarks for Pull Requests</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/benchmarking.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><!-- This will display the version of the docs -->
+<p class="last-updated">
+ActivitySim 1.5.1, documentation last updated Nov 13, 2025.<br/>
+</p></div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

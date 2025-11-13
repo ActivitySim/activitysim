@@ -19,6 +19,7 @@ import yaml
 
 from activitysim.core import config, mem, tracing, util, workflow
 from activitysim.core.configuration import FileSystem, Settings
+from activitysim.core.run_id import RunId
 from activitysim.core.workflow.checkpoint import (
     CHECKPOINT_NAME,
     CHECKPOINT_TABLE_NAME,
@@ -890,7 +891,10 @@ def setup_injectables_and_logging(injectables, locutor: bool = True) -> workflow
     injects injectables
     """
     state = workflow.State()
-    state.run_id = injectables.get("run_id", None)
+    _run_id = injectables.get("run_id", None)
+    if _run_id:
+        state.tracing.run_id = RunId(_run_id)
+
     state = state.initialize_filesystem(**injectables)
     state.settings = injectables.get("settings", Settings())
     state.filesystem.parse_settings(state.settings)

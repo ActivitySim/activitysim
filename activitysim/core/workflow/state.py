@@ -258,7 +258,6 @@ class State:
     report = Reporting()
     dataset = Datasets()
     chunk = Chunking()
-    run_id = None # To be initialized when the run starts
 
     @property
     def this_step(self):

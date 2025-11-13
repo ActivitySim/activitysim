@@ -298,7 +298,7 @@ def quick_loc_series(loc_list, target_series):
     elif isinstance(loc_list, np.ndarray) or isinstance(loc_list, list):
         left_df = pd.DataFrame({left_on: loc_list})
     else:
-        raise RuntimeError(
+        raise TypeError(
             "quick_loc_series loc_list of unexpected type %s" % type(loc_list)
         )
 
@@ -722,9 +722,9 @@ def drop_unused_columns(
         custom_chooser_lines = inspect.getsource(custom_chooser)
         unique_variables_in_spec.update(re.findall(pattern, custom_chooser_lines))
 
-    logger.info("Dropping unused variables in chooser table")
+    logger.debug("Dropping unused variables in chooser table")
 
-    logger.info(
+    logger.debug(
         "before dropping, the choosers table has {} columns: {}".format(
             len(choosers.columns), choosers.columns
         )
@@ -733,7 +733,7 @@ def drop_unused_columns(
     # keep only variables needed for spec
     choosers = choosers[[c for c in choosers.columns if c in unique_variables_in_spec]]
 
-    logger.info(
+    logger.debug(
         "after dropping, the choosers table has {} columns: {}".format(
             len(choosers.columns), choosers.columns
         )

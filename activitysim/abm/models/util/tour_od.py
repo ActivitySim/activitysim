@@ -155,7 +155,7 @@ def _od_sample(
     else:
         alt_col_name = alt_od_col_name
 
-    logger.info("running %s with %d tours", trace_label, len(choosers))
+    logger.debug("running %s with %d tours", trace_label, len(choosers))
 
     sample_size = model_settings.SAMPLE_SIZE
     if state.settings.disable_destination_sampling or (
@@ -163,7 +163,7 @@ def _od_sample(
     ):
         # FIXME interaction_sample will return unsampled complete alternatives
         # with probs and pick_count
-        logger.info(
+        logger.debug(
             (
                 "Estimation mode for %s using unsampled alternatives "
                 "short_circuit_choices"
@@ -607,7 +607,7 @@ def od_presample(
     trace_label = tracing.extend_trace_label(trace_label, "presample")
     chunk_tag = "tour_od.presample"
 
-    logger.info(f"{trace_label} od_presample")
+    logger.debug(f"{trace_label} od_presample")
 
     alt_od_col_name = get_od_id_col(ORIG_MAZ, DEST_TAZ)
 
@@ -711,7 +711,7 @@ def run_od_sample(
         )
 
     if pre_sample_taz:
-        logger.info(
+        logger.debug(
             "Running %s destination_presample with %d tours" % (trace_label, len(tours))
         )
 
@@ -780,7 +780,7 @@ def run_od_logsums(
         choosers[origin_id_col].astype(str) + "_" + choosers[dest_id_col].astype(str)
     )
 
-    logger.info("Running %s with %s rows", trace_label, len(choosers))
+    logger.debug("Running %s with %s rows", trace_label, len(choosers))
 
     state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
@@ -989,7 +989,7 @@ def run_od_simulate(
 
     constants = model_settings.CONSTANTS
 
-    logger.info("Running tour_destination_simulate with %d persons", len(choosers))
+    logger.debug("Running tour_destination_simulate with %d persons", len(choosers))
 
     # create wrapper with keys for this lookup - in this case there is an origin ID
     # column and a destination ID columns in the alternatives table.

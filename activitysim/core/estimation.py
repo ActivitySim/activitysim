@@ -16,6 +16,11 @@ from activitysim.core.configuration import PydanticReadable
 from activitysim.core.configuration.base import PydanticBase
 from activitysim.core.util import reindex
 from activitysim.core.yaml_tools import safe_dump
+from activitysim.core.exceptions import (
+    DuplicateWorkflowTableError,
+    DuplicateLoadableObjectError,
+    EstimationDataError,
+)
 
 logger = logging.getLogger("estimation")
 
@@ -433,7 +438,7 @@ class Estimator:
 
         def cache_table(df, table_name, append):
             if table_name in self.tables and not append:
-                raise RuntimeError(
+                raise DuplicateWorkflowTableError(
                     "cache_table %s append=False and table exists" % (table_name,)
                 )
             if table_name in self.tables:
@@ -450,7 +455,7 @@ class Estimator:
             # check if file exists
             file_exists = os.path.isfile(file_path)
             if file_exists and not append:
-                raise RuntimeError(
+                raise DuplicateLoadableObjectError(
                     "write_table %s append=False and file exists: %s"
                     % (table_name, file_path)
                 )
@@ -470,7 +475,7 @@ class Estimator:
             elif filetype == "pkl":
                 self.write_pickle(df, file_path, index, append)
             else:
-                raise RuntimeError(
+                raise IOError(
                     f"Unsupported filetype: {filetype}, allowed options are csv, parquet, pkl"
                 )
 
@@ -536,7 +541,7 @@ class Estimator:
                 elif "household_id" in df.columns:
                     df.set_index("household_id", inplace=True)
                 else:
-                    RuntimeError(
+                    EstimationDataError(
                         f"No index column found in omnibus table {omnibus_table}: {df}"
                     )
 
@@ -564,7 +569,7 @@ class Estimator:
                 self.write_pickle(df, file_path, index=True, append=False)
 
             else:
-                raise RuntimeError(f"Unsupported filetype: {filetype}")
+                raise IOError(f"Unsupported filetype: {filetype}")
 
             self.debug("wrote_omnibus_choosers: %s" % file_path)
 
@@ -945,7 +950,7 @@ class EstimationManager(object):
                 % (missing_columns, table_name)
             )
             print("survey table columns: %s" % (survey_df.columns,))
-            raise RuntimeError(
+            raise EstimationDataError(
                 "missing columns (%s) in survey table %s"
                 % (missing_columns, table_name)
             )
@@ -998,7 +1003,7 @@ class EstimationManager(object):
                 logger.error(
                     "couldn't get_survey_values for %s in %s\n" % (c, table_name)
                 )
-                raise RuntimeError(
+                raise EstimationDataError(
                     "couldn't get_survey_values for %s in %s\n" % (c, table_name)
                 )
 

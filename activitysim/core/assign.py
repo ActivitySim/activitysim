@@ -360,7 +360,7 @@ def assign_variables(
             )
 
         if trace_label:
-            logger.info(f"{trace_label}.assign_variables {target} = {expression}")
+            logger.debug(f"{trace_label}.assign_variables {target} = {expression}")
 
         if is_temp_singular(target) or is_throwaway(target):
             try:

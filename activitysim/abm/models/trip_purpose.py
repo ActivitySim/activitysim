@@ -22,6 +22,7 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.util import reindex
+from activitysim.core.exceptions import InvalidTravelError
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +135,7 @@ def choose_intermediate_trip_purpose(
             state.tracing.write_csv(
                 unmatched_choosers, file_name=file_name, transpose=False
             )
-            raise RuntimeError(
+            raise InvalidTravelError(
                 "Some trips could not be matched to probs based on join columns %s."
                 % probs_join_cols
             )

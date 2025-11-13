@@ -101,11 +101,10 @@ print("taz.csv\n%s" % (taz_df.head(6),))
 
 # ### Create taz skims
 
-with omx.open_file(
-    os.path.join(input_data, "skims.omx"), "r"
-) as skims_file, omx.open_file(
-    os.path.join(output_data, "taz_skims.omx"), "w"
-) as output_skims_file:
+with (
+    omx.open_file(os.path.join(input_data, "skims.omx"), "r") as skims_file,
+    omx.open_file(os.path.join(output_data, "taz_skims.omx"), "w") as output_skims_file,
+):
     skims = skims_file.list_matrices()
     num_zones = skims_file.shape()[0]
 

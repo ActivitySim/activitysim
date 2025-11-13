@@ -10,6 +10,7 @@ import pandas as pd
 
 from activitysim.core import chunk, logit, simulate, tracing, workflow
 from activitysim.core.configuration.base import ComputeSettings
+from activitysim.core.exceptions import ModelConfigurationError
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +49,7 @@ def add_pn(col, pnum):
     elif isinstance(col, (list, tuple)):
         return [c if c == _hh_id_ else "%s_p%s" % (c, pnum) for c in col]
     else:
-        raise RuntimeError("add_pn col not list or str")
+        raise TypeError("add_pn col not list or str")
 
 
 def assign_cdap_rank(
@@ -270,7 +271,7 @@ def preprocess_interaction_coefficients(interaction_coefficients):
             "Error in cdap_interaction_coefficients at row %s. Expect only M, N, or H!"
             % coefficients[~coefficients["activity"].isin(["M", "N", "H"])].index.values
         )
-        raise RuntimeError(msg)
+        raise ModelConfigurationError(msg)
 
     coefficients["cardinality"] = (
         coefficients["interaction_ptypes"].astype(str).str.len()
@@ -470,8 +471,9 @@ def build_cdap_spec(
             continue
 
         if not (0 <= row.cardinality <= MAX_INTERACTION_CARDINALITY):
-            raise RuntimeError(
-                "Bad row cardinality %d for %s" % (row.cardinality, row.slug)
+            raise ModelConfigurationError(
+                "Bad row cardinality %d for %s. Try checking that all interaction terms include 3 or fewer person types."
+                % (row.cardinality, row.slug)
             )
 
         # for all other interaction rules, we need to generate a row in the spec for each

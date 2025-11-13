@@ -40,6 +40,7 @@ from activitysim.core.simulate_consts import (
     SPEC_EXPRESSION_NAME,
     SPEC_LABEL_NAME,
 )
+from activitysim.core.exceptions import ModelConfigurationError
 
 logger = logging.getLogger(__name__)
 
@@ -187,13 +188,13 @@ def read_model_coefficients(
             f"duplicate coefficients in {file_path}\n"
             f"{coefficients[coefficients.index.duplicated(keep=False)]}"
         )
-        raise RuntimeError(f"duplicate coefficients in {file_path}")
+        raise ModelConfigurationError(f"duplicate coefficients in {file_path}")
 
     if coefficients.value.isnull().any():
         logger.warning(
             f"null coefficients in {file_path}\n{coefficients[coefficients.value.isnull()]}"
         )
-        raise RuntimeError(f"null coefficients in {file_path}")
+        raise ModelConfigurationError(f"null coefficients in {file_path}")
 
     return coefficients
 
@@ -250,7 +251,7 @@ def spec_for_segment(
         try:
             assert (spec.astype(float) == spec).all(axis=None)
         except (ValueError, AssertionError):
-            raise RuntimeError(
+            raise ModelConfigurationError(
                 f"No coefficient file specified for {spec_file_name} "
                 f"but not all spec column values are numeric"
             ) from None
@@ -395,7 +396,7 @@ def get_segment_coefficients(
             FutureWarning,
         )
     else:
-        raise RuntimeError("No COEFFICIENTS setting in model_settings")
+        raise ModelConfigurationError("No COEFFICIENTS setting in model_settings")
 
     if legacy:
         constants = config.get_model_constants(model_settings)
@@ -861,7 +862,7 @@ def eval_utilities(
     chunk_sizer.log_df(trace_label, "utilities", None)
 
     end_time = time.time()
-    logger.info(
+    logger.debug(
         f"simulate.eval_utils runtime: {timedelta(seconds=end_time - start_time)} {trace_label}"
     )
     timelogger.summary(logger, "simulate.eval_utils timing")
@@ -988,7 +989,7 @@ def eval_variables(
 #     return utilities
 
 
-def set_skim_wrapper_targets(df, skims):
+def set_skim_wrapper_targets(df, skims, allow_partial_success: bool = True):
     """
     Add the dataframe to the SkimWrapper object so that it can be dereferenced
     using the parameters of the skims object.
@@ -1006,6 +1007,11 @@ def set_skim_wrapper_targets(df, skims):
         dataframe that comes back from interacting choosers with
         alternatives.  See the skims module for more documentation on how
         the skims object is intended to be used.
+    allow_partial_success : bool, optional
+        If True (default), failures to set skim targets for some skim objects
+        (for example due to missing required columns in `df`) will be collected
+        and logged as warnings but will not raise an exception. If False, any
+        such failure will be raised immediately, preventing partial success.
     """
 
     skims = (
@@ -1015,13 +1021,31 @@ def set_skim_wrapper_targets(df, skims):
         if isinstance(skims, dict)
         else [skims]
     )
+    problems = []
 
     # assume any object in skims can be treated as a skim
     for skim in skims:
         try:
             skim.set_df(df)
         except AttributeError:
+            # sometimes when passed as a dict, the skims have a few keys given as
+            # settings or constants, which are not actually "skim" objects and have
+            # no `set_df` attribute.  This is fine and we just let them pass.
             pass
+        except AssertionError as e:
+            # An assertion error will get triggered if the columns of `df` are
+            # missing one of the required keys needed to look up values in the
+            # skims.  This may not be a problem, if this particular set of skims
+            # is not actually used in this model component.  So we'll warn about
+            # it but usually not raise a showstopping error.
+            problems.append(e)
+            if not allow_partial_success:
+                raise
+
+    if problems:
+        # if problems were discovered, log them as warnings
+        for problem in problems:
+            logger.warning(str(problem))
 
 
 #
@@ -1638,11 +1662,13 @@ def tvpb_skims(skims):
         return (
             skims
             if isinstance(skims, list)
-            else skims.values()
-            if isinstance(skims, dict)
-            else [skims]
-            if skims is not None
-            else []
+            else (
+                skims.values()
+                if isinstance(skims, dict)
+                else [skims]
+                if skims is not None
+                else []
+            )
         )
 
     return [

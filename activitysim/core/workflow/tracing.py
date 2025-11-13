@@ -19,6 +19,7 @@ import yaml
 from activitysim.core import tracing
 from activitysim.core.test import assert_equal, assert_frame_substantively_equal
 from activitysim.core.workflow.accessor import FromState, StateAccessor
+from activitysim.core.exceptions import TableSlicingError
 
 logger = logging.getLogger(__name__)
 
@@ -536,7 +537,7 @@ class Tracing(StateAccessor):
             targets = traceable_table_ids["proto_tours"]
         else:
             print(choosers.columns)
-            raise RuntimeError(
+            raise TableSlicingError(
                 "interaction_trace_rows don't know how to slice index '%s'"
                 % choosers.index.name
             )
@@ -617,7 +618,7 @@ class Tracing(StateAccessor):
                 column = slicer
 
         if column is None and df.index.name != slicer:
-            raise RuntimeError(
+            raise TableSlicingError(
                 "bad slicer '%s' for df with index '%s'" % (slicer, df.index.name)
             )
 

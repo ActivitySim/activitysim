@@ -92,18 +92,18 @@ def _destination_sample(
         coefficients_file_name=model_settings.COEFFICIENTS,
     )
 
-    logger.info("running %s with %d tours", trace_label, len(choosers))
+    logger.debug("running %s with %d tours", trace_label, len(choosers))
 
     sample_size = model_settings.SAMPLE_SIZE
     if estimator and model_settings.ESTIMATION_SAMPLE_SIZE >= 0:
         sample_size = model_settings.ESTIMATION_SAMPLE_SIZE
-        logger.info(
+        logger.debug(
             f"Estimation mode for {trace_label} using sample size of {sample_size}"
         )
 
     if state.settings.disable_destination_sampling:
         sample_size = 0
-        logger.info(
+        logger.debug(
             f"SAMPLE_SIZE set to 0 for {trace_label} because disable_destination_sampling is set"
         )
 
@@ -562,7 +562,7 @@ def destination_presample(
     trace_label = tracing.extend_trace_label(trace_label, "presample")
     chunk_tag = "tour_destination.presample"
 
-    logger.info(f"{trace_label} location_presample")
+    logger.debug(f"{trace_label} location_presample")
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
     assert DEST_TAZ != alt_dest_col_name
@@ -652,7 +652,7 @@ def run_destination_sample(
         )
 
     if pre_sample_taz:
-        logger.info(
+        logger.debug(
             "Running %s destination_presample with %d tours" % (trace_label, len(tours))
         )
 
@@ -740,7 +740,7 @@ def run_destination_logsums(
         how="left",
     )
 
-    logger.info("Running %s with %s rows", trace_label, len(choosers))
+    logger.debug("Running %s with %s rows", trace_label, len(choosers))
 
     state.tracing.dump_df(DUMP, persons_merged, trace_label, "persons_merged")
     state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
@@ -832,7 +832,7 @@ def run_destination_simulate(
 
     constants = model_settings.CONSTANTS
 
-    logger.info("Running tour_destination_simulate with %d persons", len(choosers))
+    logger.debug("Running tour_destination_simulate with %d persons", len(choosers))
 
     # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
     # and a zone_id in the alternatives which get merged during interaction

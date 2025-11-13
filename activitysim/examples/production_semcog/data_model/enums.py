@@ -3,6 +3,7 @@ Data Model Enumerated Variables
 
 Instructions: modify these enumerated variables as needed for your ActivitySim implementation.
 """
+
 from enum import IntEnum
 
 

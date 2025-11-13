@@ -1,4 +1,5 @@
 """Naive custom loader without any error handling."""
+
 from __future__ import annotations
 
 import os

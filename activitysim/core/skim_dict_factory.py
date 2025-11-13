@@ -14,6 +14,7 @@ import numpy as np
 import openmatrix as omx
 
 from activitysim.core import skim_dictionary, util
+from activitysim.core.exceptions import TableTypeError
 
 logger = logging.getLogger(__name__)
 
@@ -462,7 +463,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
             elif dtype_name == "float32":
                 typecode = "f"
             else:
-                raise RuntimeError(
+                raise TableTypeError(
                     "allocate_skim_buffer unrecognized dtype %s" % dtype_name
                 )
 

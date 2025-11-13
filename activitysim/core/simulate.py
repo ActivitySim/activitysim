@@ -86,6 +86,7 @@ def read_model_alts(state: workflow.State, file_name, set_index=None):
                 " Use 'alt' (lowercase) instead.",
                 DeprecationWarning,
             )
+            # warning above does not actually output to logger, so also log it
             logger.warning(
                 "Support for 'Alt' column name in alternatives files will be removed."
                 " Use 'alt' (lowercase) instead."

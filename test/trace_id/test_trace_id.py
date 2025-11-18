@@ -22,7 +22,7 @@ def update_settings(settings_file, key, value):
         yaml.safe_dump(settings, f)
         f.close()
 
-def run_test_trace_id():
+def test_trace_ids_have_same_hash():
 
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_mtc", dirname)
@@ -76,4 +76,4 @@ def run_test_trace_id():
     check_csv_suffix(os.path.join(test_path("output"), "trace"))
 
 if __name__ == "__main__":
-    run_test_trace_id()
+    test_trace_ids_have_same_hash()

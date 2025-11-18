@@ -790,4 +790,3 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
             return getattr(self, attr)
         except AttributeError:
             return self.other_settings.get(attr)
-

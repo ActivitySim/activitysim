@@ -1,6 +1,7 @@
 import struct
 import time
 
+
 class RunId(str):
     def __new__(cls, x=None):
         if x is None:

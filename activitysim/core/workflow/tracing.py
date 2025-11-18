@@ -35,6 +35,7 @@ DEFAULT_TRACEABLE_TABLES = [
     "vehicles",
 ]
 
+
 class Tracing(StateAccessor):
     """
     Methods to provide the tracing capabilities of ActivitySim.

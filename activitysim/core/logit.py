@@ -93,6 +93,8 @@ def report_bad_choices(
         num_skipped_households = state.get("num_skipped_households", 0)
         skipped_household_ids = state.get("skipped_household_ids", set())
         for hh_id in df[trace_col].unique():
+            if hh_id is None:
+                continue
             if hh_id not in skipped_household_ids:
                 skipped_household_ids.add(hh_id)
                 num_skipped_households += 1

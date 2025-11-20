@@ -472,6 +472,9 @@ def school_escorting(
         # reduce memory by limiting columns if selected columns are supplied
         chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
         if chooser_columns is not None:
+            # Drop this when PR #1017 is merged
+            if ("household_id" not in chooser_columns) and ("household_id" in choosers.columns):
+                chooser_columns = chooser_columns + ["household_id"]
             chooser_columns = chooser_columns + participant_columns
             choosers = choosers[chooser_columns]
 

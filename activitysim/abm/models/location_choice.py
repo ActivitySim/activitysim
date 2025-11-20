@@ -234,6 +234,9 @@ def location_sample(
 ):
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
+    # Drop this when PR #1017 is merged
+    if ("household_id" not in chooser_columns) and ("household_id" in persons_merged.columns):
+        chooser_columns = chooser_columns + ["household_id"]
     choosers = persons_merged[chooser_columns]
 
     # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
@@ -390,6 +393,9 @@ def location_presample(
     # FIXME maybe we should add it for multi-zone (from maz_taz) if missing?
     chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
     chooser_columns = [HOME_TAZ if c == HOME_MAZ else c for c in chooser_columns]
+    # Drop this when PR #1017 is merged
+    if ("household_id" not in chooser_columns) and ("household_id" in persons_merged.columns):
+        chooser_columns = chooser_columns + ["household_id"]
     choosers = persons_merged[chooser_columns]
 
     # create wrapper with keys for this lookup - in this case there is a HOME_TAZ in the choosers
@@ -620,6 +626,9 @@ def run_location_simulate(
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
+    # Drop this when PR #1017 is merged
+    if ("household_id" not in chooser_columns) and ("household_id" in persons_merged.columns):
+        chooser_columns = chooser_columns + ["household_id"]
     choosers = persons_merged[chooser_columns]
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME

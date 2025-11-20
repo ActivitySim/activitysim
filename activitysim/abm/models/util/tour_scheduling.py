@@ -41,7 +41,9 @@ def run_tour_scheduling(
     ]
 
     # Drop this when PR #1017 is merged
-    if ("household_id" not in chooser_columns) and ("household_id" in persons_merged.columns):
+    if ("household_id" not in chooser_columns) and (
+        "household_id" in persons_merged.columns
+    ):
         chooser_columns = chooser_columns + ["household_id"]
 
     persons_merged = expressions.filter_chooser_columns(persons_merged, chooser_columns)

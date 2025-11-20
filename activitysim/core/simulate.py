@@ -1325,7 +1325,9 @@ def eval_mnl(
     if custom_chooser:
         choices, rands = custom_chooser(state, probs, choosers, spec, trace_label)
     else:
-        choices, rands = logit.make_choices(state, probs, trace_label=trace_label, trace_choosers=choosers)
+        choices, rands = logit.make_choices(
+            state, probs, trace_label=trace_label, trace_choosers=choosers
+        )
 
     del probs
     chunk_sizer.log_df(trace_label, "probs", None)

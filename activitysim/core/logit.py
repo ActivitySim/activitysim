@@ -87,7 +87,7 @@ def report_bad_choices(
         )
 
         logger.warning(row_msg)
-    
+
     if skip_failed_choices:
         # update counter in state
         num_skipped_households = state.get("num_skipped_households", 0)
@@ -198,11 +198,11 @@ def utils_to_probs(
         If utility values are certain to be well-behaved and non-extreme, enabling
         overflow_protection will have no benefit but impose a modest computational
         overhead cost.
-    
+
     skip_failed_choices : bool, default True
         If True, when bad choices are detected (all zero probabilities or infinite
-        probabilities), the entire household that's causing bad choices will be skipped instead of 
-        being masked by overflow protection or causing an error. 
+        probabilities), the entire household that's causing bad choices will be skipped instead of
+        being masked by overflow protection or causing an error.
         A counter will be incremented for each skipped household. This is useful when running large
         simulations where occasional bad choices are encountered and should not halt the process.
         The counter can be accessed via `state.counters["num_skipped_households"]`.
@@ -235,7 +235,7 @@ def utils_to_probs(
         overflow_protection = overflow_protection or (
             utils_arr.dtype == np.float32 and utils_arr.max() > 85
         )
-    
+
     if state.settings.skip_failed_choices is not None:
         skip_failed_choices = state.settings.skip_failed_choices
         # when skipping failed choices, we cannot use overflow protection

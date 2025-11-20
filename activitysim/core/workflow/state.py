@@ -947,12 +947,12 @@ class State:
     def update_table(self, name: str = None):
         """
         Go through existing tables in the state and
-        get rid of any rows that correspond to skipped households. 
+        get rid of any rows that correspond to skipped households.
         """
         skipped_hh_ids = self.get("skipped_household_ids", set())
         if not skipped_hh_ids:
             return
-        
+
         # get existing tables in the current state context
         existing_tables = self.registered_tables()
 
@@ -965,7 +965,9 @@ class State:
             # check if household_id is in index or columns
             if "household_id" in df.index.names:
                 df.drop(
-                    index=df.loc[df.index.get_level_values("household_id").isin(skipped_hh_ids)].index,
+                    index=df.loc[
+                        df.index.get_level_values("household_id").isin(skipped_hh_ids)
+                    ].index,
                     inplace=True,
                 )
             elif "household_id" in df.columns:

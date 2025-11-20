@@ -683,6 +683,9 @@ def drop_unused_columns(
 
     unique_variables_in_spec |= set(additional_columns or [])
 
+    # always keep household_id
+    unique_variables_in_spec.add("household_id")
+
     if locals_d:
         unique_variables_in_spec.add(locals_d.get("orig_col_name", None))
         unique_variables_in_spec.add(locals_d.get("dest_col_name", None))

@@ -54,7 +54,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.5.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1000.dev1.gb91a64a00';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -63,8 +63,8 @@
     <link rel="prev" title="Documentation" href="build-docs.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="1.5.1" />
-    <meta name="docbuild:last-update" content="Nov 13, 2025"/>
+  <meta name="docsearch:version" content="1000.dev1.gb91a64a00" />
+    <meta name="docbuild:last-update" content="Dec 02, 2025"/>
   </head>
   
   
@@ -442,6 +442,98 @@
 major new features that may require modifications to existing model configurations
 or code to utilize, as well as breaking changes that may cause existing model
 configurations or code to fail to run correctly.</p>
+<section id="upcoming-changes">
+<h2>Upcoming Changes<a class="headerlink" href="#upcoming-changes" title="Permalink to this heading">#</a></h2>
+<p>This section describes changes that are implemented in current development
+branch (i.e., the main branch on GitHub), but not yet released in a stable version
+of ActivitySim.  See below under the various version headings for changes in
+released versions.</p>
+</section>
+<section id="v1-5-1">
+<h2>v1.5.1<a class="headerlink" href="#v1-5-1" title="Permalink to this heading">#</a></h2>
+<p>This release includes a handful of minor updates and fixes, as well as enhancements
+to the ActivtySim documentation. Users should generally not expect any breaking
+changes relative to v1.5.0, except that when running a simulation there will be a
+significant reduction in logging messages displayed on screen and written to the run log.</p>
+</section>
+<section id="v1-5">
+<h2>v1.5<a class="headerlink" href="#v1-5" title="Permalink to this heading">#</a></h2>
+<p>This release includes most of the new features and enhancements developed as part
+of the Phase 10 work.</p>
+<section id="preprocessing-annotation">
+<h3>Preprocessing &amp; Annotation<a class="headerlink" href="#preprocessing-annotation" title="Permalink to this heading">#</a></h3>
+<p>We have expanded preprocessing &amp; annotation functionality, which is now standardized
+in formatting and available on most model components.  Existing model implementations
+may need to make minor upgrades to model configuration files to conform with the new
+standardized formatting.</p>
+</section>
+<section id="estimation-mode">
+<h3>Estimation Mode<a class="headerlink" href="#estimation-mode" title="Permalink to this heading">#</a></h3>
+<p>Estimation mode has been updated to work with Larch v6.  This new version of Larch
+is modernized and more stable across platforms, and is more consistent with ActivitySim
+spec files (as both are now built on Sharrow).  The overall workflow for re-estimating
+model parameters is very similar to before, but users will need to use Larch v6 instead
+of Larch v5.  In addition, some new capabilities have been added for modifying model
+specifications in Larch (instead of re-running ActivitySim).</p>
+</section>
+<section id="using-uv-for-dependency-management">
+<h3>Using UV for Dependency Management<a class="headerlink" href="#using-uv-for-dependency-management" title="Permalink to this heading">#</a></h3>
+<p>Beginning with version 1.5, ActivitySim uses <a class="reference external" href="https://uv.dev/">UV</a> for dependency
+management.  UV is a modern dependency management tool that is designed to be
+simple to use and easy to understand.  See <a class="reference internal" href="#Installing-ActivitySim"><span class="xref myst">Installing ActivitySim</span></a>
+for details on how to install ActivitySim using UV.</p>
+</section>
+<section id="skim-naming-conflict-resolution">
+<h3>Skim Naming Conflict Resolution<a class="headerlink" href="#skim-naming-conflict-resolution" title="Permalink to this heading">#</a></h3>
+<p>The SkimDataset structure (required when using sharrow, optional in legacy mode)
+requires every skim variable to have a unique name. It also merges OMX variables
+based on time period, so that e.g. <code class="docutils literal notranslate"><span class="pre">BIKETIME__AM</span></code> and <code class="docutils literal notranslate"><span class="pre">BIKETIME__PM</span></code>, which would
+be 2-d arrays in the OMX file, become just two different parts of a 3-d array
+called <code class="docutils literal notranslate"><span class="pre">BIKETIME</span></code> in the SkimDataset. This is problematic when the skims also
+contain a 2-d array called <code class="docutils literal notranslate"><span class="pre">BIKETIME</span></code>, as that has no temporal dimension, and it
+gets loaded into a 2-d array in the SkimDataset, with the same name as the 3-d array,
+and thus one is overwritten and lost.</p>
+<p>ActivitySim now includes a skims input check to identify this overwriting condition,
+and raise an error if it is happening, so that the user can correct the condition
+via (1) the <code class="docutils literal notranslate"><span class="pre">omx_ignore_patterns</span></code> setting, (2) revising the skim generation process
+to not create the overlapping named skims in the file in the first place,
+or (3) renaming one or both skims if the users actually wants both skims variables
+in the model. The error message generated includes a link to instructions and
+discussion of these alternatives.</p>
+</section>
+<section id="settings-checker">
+<h3>Settings Checker<a class="headerlink" href="#settings-checker" title="Permalink to this heading">#</a></h3>
+<p>A new settings checker has been added to validate model configuration files
+before running the model.  This tool checks for common configuration errors,
+such as missing required settings, incorrect data types, and invalid values.
+This can help users identify and fix configuration issues before running
+the model, which can save time and effort.  In prior versions, configuration
+errors would often only be discovered when the model was run, which could
+lead to long run times before the error was encountered.</p>
+</section>
+<section id="expression-profiling-legacy-mode-only">
+<h3>Expression Profiling (legacy mode only)<a class="headerlink" href="#expression-profiling-legacy-mode-only" title="Permalink to this heading">#</a></h3>
+<p>ActivitySim now includes a new performance profiling feature for expression evaluation
+in the ActivitySim framework. The feature allows developers to track and log the
+runtime of individual expressions, providing insights into potential bottlenecks
+in complex models. Key changes include the integration of a performance timer,
+updates to various core functions to support profiling, and new configuration
+settings for controlling profiling behavior.
+See <a class="reference internal" href="#Expression-Profiling"><span class="xref myst">Expression Profiling</span></a> for details.</p>
+</section>
+<section id="telecommute-status-model">
+<h3>Telecommute Status Model<a class="headerlink" href="#telecommute-status-model" title="Permalink to this heading">#</a></h3>
+<p>A new telecommute status model component has been added to ActivitySim. This component
+models the telecommute status of workers, which can be used to determine
+whether a worker telecommutes full-time, part-time, or not at all. A simple
+implementation of the telecommute status model can be based on the worker’s telecommute
+frequency. For example, if a worker telecommutes 4 days a week, then there is
+a 80% probability for them to telecommute on the simulation day. The telecommute
+status model software can accommodate more complex model forms if needed. An example
+telecommute status model specification can be found in
+<a class="reference external" href="https://github.com/ActivitySim/sandag-abm3-example/pull/30">ActivitySim/sandag-abm3-example#30</a>.</p>
+</section>
+</section>
 <section id="v1-4">
 <h2>v1.4<a class="headerlink" href="#v1-4" title="Permalink to this heading">#</a></h2>
 <section id="improved-estimation-mode">
@@ -750,6 +842,18 @@ development cycle, including:</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upcoming-changes">Upcoming Changes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-5-1">v1.5.1</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-5">v1.5</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessing-annotation">Preprocessing &amp; Annotation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#estimation-mode">Estimation Mode</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-uv-for-dependency-management">Using UV for Dependency Management</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skim-naming-conflict-resolution">Skim Naming Conflict Resolution</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#settings-checker">Settings Checker</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#expression-profiling-legacy-mode-only">Expression Profiling (legacy mode only)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#telecommute-status-model">Telecommute Status Model</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-4">v1.4</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#improved-estimation-mode">Improved Estimation Mode</a></li>
 </ul>
@@ -803,7 +907,7 @@ development cycle, including:</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.1, documentation last updated Nov 13, 2025.<br/>
+ActivitySim 1000.dev1+gb91a64a00, documentation last updated Dec 02, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

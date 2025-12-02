@@ -462,7 +462,7 @@ main components of a tour.</p>
 <dl class="py class pydantic_model">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings">
 <em class="property"><span class="pre">settings</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.trip_scheduling_choice.</span></span><span class="sig-name descname"><span class="pre">TripSchedulingChoiceSettings</span></span><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="../_generated/activitysim.core.configuration.base.PydanticReadable.html#activitysim.core.configuration.base.PydanticReadable" title="activitysim.core.configuration.base.PydanticReadable"><code class="xref py py-class docutils literal notranslate"><span class="pre">PydanticReadable</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="../_generated/activitysim.core.configuration.logit.LogitComponentSettings.html#activitysim.core.configuration.logit.LogitComponentSettings" title="activitysim.core.configuration.logit.LogitComponentSettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogitComponentSettings</span></code></a></p>
 <p>Settings for the <cite>trip_scheduling_choice</cite> component.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Config<span class="colon">:</span></dt>
@@ -472,37 +472,257 @@ main components of a tour.</p>
 </dd>
 <dt class="field-even">Fields<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.PREPROCESSOR" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.PREPROCESSOR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PREPROCESSOR</span> <span class="pre">(PreprocessorSettings</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPECIFICATION" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPECIFICATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPECIFICATION</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.alts_preprocessor" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.alts_preprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">alts_preprocessor</span> <span class="pre">(PreprocessorSettings</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_settings</span> <span class="pre">(ComputeSettings)</span></code></a></p></li>
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">()</span></code></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.COEFFICIENTS" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.COEFFICIENTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">COEFFICIENTS</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.CONSTANTS" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.CONSTANTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CONSTANTS</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.LOGIT_TYPE" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.LOGIT_TYPE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGIT_TYPE</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.NESTS" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.NESTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NESTS</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPEC" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPEC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPEC</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_households" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_households"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_households</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_persons" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_persons"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_persons</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_tours" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_tours"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_tours</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_trips" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_trips"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_trips</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_vehicles" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_vehicles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_vehicles</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_settings</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.preprocessor" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.preprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocessor</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.source_file_paths" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.source_file_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">()</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-odd">Validators<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code> » <code class="xref py py-obj docutils literal notranslate"><span class="pre">all</span> <span class="pre">fields</span></code></p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.PREPROCESSOR">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PREPROCESSOR</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.PREPROCESSOR" title="Permalink to this definition">#</a></dt>
-<dd><p>Setting for the preprocessor.</p>
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.COEFFICIENTS">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">COEFFICIENTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.COEFFICIENTS" title="Permalink to this definition">#</a></dt>
+<dd><p>Coefficients filename.</p>
+<p>This is a CSV file giving named parameters for use in the utility expression.
+If it is not provided, then it is assumed that all model coefficients are
+given explicitly in the <cite>SPEC</cite> as numerical values instead of named parameters.
+This is perfectly acceptable for use with ActivitySim for typical simulation
+applications, but may be problematic if used with “estimation mode”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPECIFICATION">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SPECIFICATION</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPECIFICATION" title="Permalink to this definition">#</a></dt>
-<dd><p>file name of specification file</p>
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.CONSTANTS">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CONSTANTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.CONSTANTS" title="Permalink to this definition">#</a></dt>
+<dd><p>Named constants usable in the utility expressions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.alts_preprocessor">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">alts_preprocessor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.alts_preprocessor" title="Permalink to this definition">#</a></dt>
-<dd><p>Setting for the alternatives preprocessor.</p>
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.LOGIT_TYPE">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LOGIT_TYPE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'MNL'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'NL'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'MNL'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.LOGIT_TYPE" title="Permalink to this definition">#</a></dt>
+<dd><p>Logit model mathematical form.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>“MNL”</dt><dd><p>Multinomial logit model.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>“NL”</dt><dd><p>Nested multinomial logit model.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.NESTS">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NESTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.logit.LogitNestSpec.html#activitysim.core.configuration.logit.LogitNestSpec" title="activitysim.core.configuration.logit.LogitNestSpec"><span class="pre">LogitNestSpec</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.NESTS" title="Permalink to this definition">#</a></dt>
+<dd><p>Nesting structure for a nested logit model.</p>
+<p>The nesting structure is specified heirarchically from the top, so the
+value of this field should be the “root” level nest of the nested logit
+tree, which should contain references to lower level nests and/or the
+actual alternatives.</p>
+<p>For example, this YAML defines a simple nesting structure for four
+alternatives (DRIVE, WALK, WALK_TO_TRANSIT, DRIVE_TO_TRANSIT) with the two
+transit alternatives grouped together in a nest:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">NESTS</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">root</span>
+<span class="w">  </span><span class="nt">coefficient</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coef_nest_root</span>
+<span class="w">  </span><span class="nt">alternatives</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DRIVE</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">WALK</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TRANSIT</span>
+<span class="w">      </span><span class="nt">coefficient</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coef_nest_transit</span>
+<span class="w">      </span><span class="nt">alternatives</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">WALK_TO_TRANSIT</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DRIVE_TO_TRANSIT</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPEC">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SPEC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Path</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPEC" title="Permalink to this definition">#</a></dt>
+<dd><p>Utility specification filename.</p>
+<p>This is sometimes alternatively called the utility expressions calculator
+(UEC). It is a CSV file giving all the functions for the terms of a
+linear-in-parameters utility expression.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_households">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">annotate_households</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_households" title="Permalink to this definition">#</a></dt>
+<dd><p>Annotate households output tables with additional columns.</p>
+<p>These settings are used to add additional columns to the output tables
+after the logit model is run. They are typically used to add
+additional attributes that are derived from the model results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_persons">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">annotate_persons</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_persons" title="Permalink to this definition">#</a></dt>
+<dd><p>Annotate persons output tables with additional columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_tours">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">annotate_tours</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_tours" title="Permalink to this definition">#</a></dt>
+<dd><p>Annotate tours output tables with additional columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_trips">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">annotate_trips</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_trips" title="Permalink to this definition">#</a></dt>
+<dd><p>Annotate trips output tables with additional columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_vehicles">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">annotate_vehicles</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_vehicles" title="Permalink to this definition">#</a></dt>
+<dd><p>Annotate vehicles output tables with additional columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_settings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ComputeSettings</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">ComputeSettings(sharrow_skip=False,</span> <span class="pre">fastmath=True,</span> <span class="pre">use_bottleneck=None,</span> <span class="pre">use_numexpr=None,</span> <span class="pre">use_numba=None,</span> <span class="pre">drop_unused_columns=True,</span> <span class="pre">protect_columns=[],</span> <span class="pre">performance_log=None)</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings" title="Permalink to this definition">#</a></dt>
-<dd><p>Compute settings for this component.</p>
+<dd><p>Sharrow settings for this component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.preprocessor">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">preprocessor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.preprocessor" title="Permalink to this definition">#</a></dt>
+<dd><p>Chooser preprocessor settings.</p>
+<p>This is a set of expressions to be evaluated on the choosers
+before the logit model is run. It is used to prepare the choosers
+for the logit model by adding columns that are used in the
+utility expressions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.source_file_paths">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">source_file_paths</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Path</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.source_file_paths" title="Permalink to this definition">#</a></dt>
+<dd><p>A list of source files from which these settings were loaded.</p>
+<p>This value should not be set by the user within the YAML settings files,
+instead it is populated as those files are loaded.  It is primarily
+provided for debugging purposes, and does not actually affect the operation
+of any model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.nests_are_for_nl">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nests_are_for_nl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nests</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.nests_are_for_nl" title="Permalink to this definition">#</a></dt>
+<dd><p>Checks that nests are provided if (and only if) <cite>LOGIT_TYPE</cite> is NL.</p>
+</dd></dl>
+
+<dl class="py method pydantic_validator">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.update_sharrow_skip">
+<em class="property"><span class="pre">validator</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">update_sharrow_skip</span></span><em class="autodoc_pydantic_validator_arrow property">&#160; <span class="pre">»</span>&#160; </em><em class="xref py py-obj"><span class="pre">all</span> <span class="pre">fields</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.update_sharrow_skip" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -677,10 +897,21 @@ np.array: array with the number of patterns for each tour</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#structure">Structure</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.PREPROCESSOR"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.PREPROCESSOR</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPECIFICATION"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.SPECIFICATION</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.alts_preprocessor"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.alts_preprocessor</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.COEFFICIENTS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.CONSTANTS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.LOGIT_TYPE"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.LOGIT_TYPE</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.NESTS"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.NESTS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPEC"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.SPEC</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_households"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.annotate_households</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_persons"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.annotate_persons</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_tours"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.annotate_tours</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_trips"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.annotate_trips</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_vehicles"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.annotate_vehicles</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.compute_settings</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.preprocessor</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.source_file_paths</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.nests_are_for_nl()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.update_sharrow_skip"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.update_sharrow_skip</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
@@ -731,7 +962,7 @@ np.array: array with the number of patterns for each tour</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev1+gb91a64a00, documentation last updated Dec 02, 2025.<br/>
+ActivitySim 1.5.2.dev2+g3b597256a, documentation last updated Dec 02, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

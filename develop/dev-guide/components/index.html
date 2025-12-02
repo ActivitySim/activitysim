@@ -1503,10 +1503,21 @@
 <li class="toctree-l2"><a class="reference internal" href="trip_scheduling_choice.html#structure">Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trip_scheduling_choice.html#configuration">Configuration</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.PREPROCESSOR"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.PREPROCESSOR</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPECIFICATION"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.SPECIFICATION</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.alts_preprocessor"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.alts_preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.COEFFICIENTS"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.COEFFICIENTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.CONSTANTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.LOGIT_TYPE"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.LOGIT_TYPE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.NESTS"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.NESTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.SPEC"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.SPEC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_households"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.annotate_households</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_persons"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.annotate_persons</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_tours"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.annotate_tours</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_trips"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.annotate_trips</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_vehicles"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.annotate_vehicles</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.compute_settings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.source_file_paths</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.nests_are_for_nl()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="trip_scheduling_choice.html#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.update_sharrow_skip"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.update_sharrow_skip</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="trip_scheduling_choice.html#examples">Examples</a></li>
@@ -1734,7 +1745,7 @@ section. See <a class="reference internal" href="../../development.html#models">
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev1+gb91a64a00, documentation last updated Dec 02, 2025.<br/>
+ActivitySim 1.5.2.dev2+g3b597256a, documentation last updated Dec 02, 2025.<br/>
 </p></div>
       
         <div class="footer-item">

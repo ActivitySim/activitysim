@@ -137,7 +137,15 @@ def joint_tour_frequency(
     # - but we don't know the tour participants yet
     # - so we arbitrarily choose the first person in the household
     # - to be point person for the purpose of generating an index and setting origin
-    temp_point_persons = persons.loc[persons.PNUM == 1]
+    if "PNUM" in persons.columns:
+        temp_point_persons = persons.loc[persons.PNUM == 1]
+    else:
+        # if PNUM is not available, we can still get the first person in the household
+        temp_point_persons = (
+            persons.sort_index()  # ensure stable ordering
+            .groupby("household_id", as_index=False)
+            .first()
+        )
     temp_point_persons["person_id"] = temp_point_persons.index
     temp_point_persons = temp_point_persons.set_index("household_id")
     temp_point_persons = temp_point_persons[["person_id", "home_zone_id"]]

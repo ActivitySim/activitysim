@@ -3,6 +3,7 @@ Data Model for ActivitySim Inputs
 
 Instructions: customize these example values for your own ActivitySim implementation
 """
+
 from typing import List, Optional
 import os, sys, logging
 

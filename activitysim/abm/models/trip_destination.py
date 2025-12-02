@@ -35,6 +35,7 @@ from activitysim.core.interaction_sample_simulate import interaction_sample_simu
 from activitysim.core.skim_dictionary import DataFrameMatrix
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place, reindex
+from activitysim.core.exceptions import InvalidTravelError, DuplicateWorkflowTableError
 
 logger = logging.getLogger(__name__)
 
@@ -820,7 +821,7 @@ def compute_logsums(
         adds od_logsum and dp_logsum columns to trips (in place)
     """
     trace_label = tracing.extend_trace_label(trace_label, "compute_logsums")
-    logger.info("Running %s with %d samples", trace_label, destination_sample.shape[0])
+    logger.debug("Running %s with %d samples", trace_label, destination_sample.shape[0])
 
     # chunk usage is uniform so better to combine
     chunk_tag = "trip_destination.compute_logsums"
@@ -977,7 +978,7 @@ def trip_destination_simulate(
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
-    logger.info("Running trip_destination_simulate with %d trips", len(trips))
+    logger.debug("Running trip_destination_simulate with %d trips", len(trips))
 
     skims = skim_hotel.sample_skims(presample=False)
 
@@ -1102,7 +1103,7 @@ def choose_trip_destination(
         )
         trips = trips[~dropped_trips]
 
-    t0 = print_elapsed_time("%s.trip_destination_sample" % trace_label, t0)
+    t0 = print_elapsed_time("%s.trip_destination_sample" % trace_label, t0, debug=True)
 
     if trips.empty:
         return pd.Series(index=trips.index).to_frame("choice"), None
@@ -1124,7 +1125,7 @@ def choose_trip_destination(
         destination_sample["od_logsum"] = 0.0
         destination_sample["dp_logsum"] = 0.0
 
-    t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0)
+    t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0, debug=True)
 
     destinations = trip_destination_simulate(
         state,
@@ -1155,7 +1156,9 @@ def choose_trip_destination(
     else:
         destination_sample = None
 
-    t0 = print_elapsed_time("%s.trip_destination_simulate" % trace_label, t0)
+    t0 = print_elapsed_time(
+        "%s.trip_destination_simulate" % trace_label, t0, debug=True
+    )
 
     return destinations, destination_sample
 
@@ -1484,30 +1487,51 @@ def run_trip_destination(
             else:
                 None
 
-            logger.info("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])
+            logger.debug(
+                "Running %s with %d trips", nth_trace_label, nth_trips.shape[0]
+            )
 
             # - choose destination for nth_trips, segmented by primary_purpose
             choices_list = []
             for primary_purpose, trips_segment in nth_trips.groupby(
                 "primary_purpose", observed=True
             ):
-                choices, destination_sample = choose_trip_destination(
-                    state,
-                    primary_purpose,
-                    trips_segment,
-                    alternatives,
-                    tours_merged,
-                    model_settings,
-                    want_logsums,
-                    want_sample_table,
-                    size_term_matrix,
-                    skim_hotel,
-                    estimator,
-                    chunk_size,
-                    trace_label=tracing.extend_trace_label(
-                        nth_trace_label, primary_purpose
-                    ),
-                )
+                try:
+                    choices, destination_sample = choose_trip_destination(
+                        state,
+                        primary_purpose,
+                        trips_segment,
+                        alternatives,
+                        tours_merged,
+                        model_settings,
+                        want_logsums,
+                        want_sample_table,
+                        size_term_matrix,
+                        skim_hotel,
+                        estimator,
+                        chunk_size,
+                        trace_label=tracing.extend_trace_label(
+                            nth_trace_label, primary_purpose
+                        ),
+                    )
+                except KeyError as err:
+                    if err.args[0] == "purpose_index_num":
+                        logger.error(
+                            """
+
+                        When using the trip destination model with sharrow, it is necessary
+                        to set a value for `purpose_index_num` in the trip destination 
+                        annotate trips preprocessor.  This allows for an optimized compiled 
+                        lookup of the size term from the array of size terms.  The value of
+                        `purpose_index_num` should be the integer column position in the size 
+                        matrix, with usual zero-based numpy indexing semantics (i.e. the first 
+                        column is zero).  The preprocessor expression most likely needs to be
+                        "size_terms.get_cols(df.purpose)" unless some unusual transform of 
+                        size terms has been employed.
+
+                        """
+                        )
+                    raise
 
                 choices_list.append(choices)
                 if want_sample_table:
@@ -1649,7 +1673,7 @@ def trip_destination(
         estimator.write_table(state.get_dataframe("land_use"), "landuse", append=False)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
-    logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
+    logger.debug("Running %s with %d trips", trace_label, trips_df.shape[0])
 
     trips_df, save_sample_df = run_trip_destination(
         state,
@@ -1664,7 +1688,7 @@ def trip_destination(
     # testing feature t0 make sure at least one trip fails so trip_purpose_and_destination model is run
     if state.settings.testing_fail_trip_destination and not trips_df.failed.any():
         if (trips_df.trip_num < trips_df.trip_count).sum() == 0:
-            raise RuntimeError(
+            raise InvalidTravelError(
                 "can't honor 'testing_fail_trip_destination' setting because no intermediate trips"
             )
 
@@ -1745,7 +1769,9 @@ def trip_destination(
 
         # lest they try to put tour samples into the same table
         if state.is_table(sample_table_name):
-            raise RuntimeError("sample table %s already exists" % sample_table_name)
+            raise DuplicateWorkflowTableError(
+                "sample table %s already exists" % sample_table_name
+            )
         state.extend_table(sample_table_name, save_sample_df)
 
     expressions.annotate_tables(

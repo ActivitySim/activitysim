@@ -622,9 +622,11 @@ class ProtoPop:
 
         # Create ID columns, defaults to "%tablename%_id"
         hhid, perid, tourid = (
-            self.params[x]["index_col"]
-            if len(self.params[x]["index_col"]) > 0
-            else x + "_id"
+            (
+                self.params[x]["index_col"]
+                if len(self.params[x]["index_col"]) > 0
+                else x + "_id"
+            )
             for x in klist
         )
 

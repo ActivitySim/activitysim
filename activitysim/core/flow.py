@@ -51,7 +51,7 @@ if os.environ.get("TRAVIS") == "true":
 
 @contextlib.contextmanager
 def logtime(tag, tag2=""):
-    logger.info(f"begin {tag} {tag2}")
+    logger.debug(f"begin {tag} {tag2}")
     t0 = time.time()
     try:
         yield
@@ -59,7 +59,7 @@ def logtime(tag, tag2=""):
         logger.error(f"error in {tag} after {timedelta(seconds=time.time()-t0)} {tag2}")
         raise
     else:
-        logger.info(f"completed {tag} in {timedelta(seconds=time.time()-t0)} {tag2}")
+        logger.debug(f"completed {tag} in {timedelta(seconds=time.time()-t0)} {tag2}")
 
 
 class TimeLogger:
@@ -77,7 +77,7 @@ class TimeLogger:
             self._time_log.append((tag, timedelta(seconds=elapsed)))
             self._time_point = now
             if logger is not None:
-                logger.info(
+                logger.debug(
                     "elapsed time {0} {1} {2}".format(
                         tag,
                         timedelta(seconds=elapsed),
@@ -94,7 +94,7 @@ class TimeLogger:
         else:
             self.aggregate_timing[tag] += elapsed
 
-    def summary(self, logger, tag, level=20, suffix=None):
+    def summary(self, logger, tag, level=10, suffix=None):
         gross_elaspsed = time.time() - self._time_start
         if suffix:
             msg = f"{tag} in {timedelta(seconds=gross_elaspsed)}: ({suffix})\n"
@@ -271,11 +271,11 @@ def skims_mapping(
     primary_origin_col_name=None,
     predigitized_time_periods=False,
 ):
-    logger.info("loading skims_mapping")
-    logger.info(f"- orig_col_name: {orig_col_name}")
-    logger.info(f"- dest_col_name: {dest_col_name}")
-    logger.info(f"- stop_col_name: {stop_col_name}")
-    logger.info(f"- primary_origin_col_name: {primary_origin_col_name}")
+    logger.debug("loading skims_mapping")
+    logger.debug(f"- orig_col_name: {orig_col_name}")
+    logger.debug(f"- dest_col_name: {dest_col_name}")
+    logger.debug(f"- stop_col_name: {stop_col_name}")
+    logger.debug(f"- primary_origin_col_name: {primary_origin_col_name}")
     skim_dataset = state.get_injectable("skim_dataset")
     if zone_layer == "maz" or zone_layer is None:
         odim = "omaz" if "omaz" in skim_dataset.dims else "otaz"
@@ -297,7 +297,7 @@ def skims_mapping(
     else:
         raise ValueError(f"unknown zone layer {zone_layer!r}")
     if zone_layer:
-        logger.info(f"- zone_layer: {zone_layer}")
+        logger.debug(f"- zone_layer: {zone_layer}")
     if (
         orig_col_name is not None
         and dest_col_name is not None
@@ -574,7 +574,7 @@ def new_flow(
             if choosers is None:
                 logger.info(f"empty flow on {trace_label}")
             else:
-                logger.info(f"{len(choosers)} chooser rows on {trace_label}")
+                logger.debug(f"{len(choosers)} chooser rows on {trace_label}")
             flow_tree = sh.DataTree(df=[] if choosers is None else choosers)
             idx_name = choosers.index.name or "index"
             rename_dataset_cols = [
@@ -598,7 +598,7 @@ def new_flow(
             )
             flow_tree.root_dataset = flow_tree.root_dataset  # apply the filter
         else:
-            logger.info(
+            logger.debug(
                 f"{len(choosers)} chooser rows and {len(interacts)} interact rows on {trace_label}"
             )
             top = sh.dataset.from_named_objects(
@@ -697,7 +697,7 @@ def new_flow(
             for i, v in extra_vars.items():
                 readme += f"\n            - {i}: {v}"
 
-        logger.info(f"setting up sharrow flow {trace_label}")
+        logger.debug(f"setting up sharrow flow {trace_label}")
         extra_hash_data = ()
         if zone_layer:
             extra_hash_data += (zone_layer,)

@@ -3,6 +3,7 @@ Data Model for ActivitySim Inputs
 
 Instructions: customize these example values for your own ActivitySim implementation
 """
+
 from __future__ import annotations
 
 import csv

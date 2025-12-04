@@ -78,6 +78,7 @@ def test_utils_to_probs(utilities, test_data):
 
 def test_utils_to_probs_raises():
     state = workflow.State().default_settings()
+    state.settings.skip_failed_choices = False
     idx = pd.Index(name="household_id", data=[1])
     with pytest.raises(RuntimeError) as excinfo:
         logit.utils_to_probs(

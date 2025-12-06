@@ -9,11 +9,14 @@ import os
 import sys
 import warnings
 from datetime import datetime
+import struct
+import time
 
 import numpy as np
 
 from activitysim.core import chunk, config, mem, timing, tracing, workflow
 from activitysim.core.configuration import FileSystem, Settings
+from activitysim.core.run_id import RunId
 
 from activitysim.abm.models.settings_checker import check_model_settings
 
@@ -29,6 +32,7 @@ INJECTABLES = [
     "settings_file_name",
     "imported_extensions",
     "run_timestamp",
+    "run_id",
 ]
 
 
@@ -161,6 +165,8 @@ def handle_standard_args(state: workflow.State, args, multiprocess=True):
         # 'configs', 'data', and 'output' folders by default
         os.chdir(args.working_dir)
 
+    inject_arg("run_id", state.tracing.run_id)
+
     if args.ext:
         for e in args.ext:
             basepath, extpath = os.path.split(e)
@@ -268,6 +274,7 @@ def run(args):
     """
 
     state = workflow.State()
+    _init_run_id = state.tracing.run_id
 
     # register abm steps and other abm-specific injectables
     # by default, assume we are running activitysim.abm

@@ -130,6 +130,7 @@ jobs:
 
       - run: uv run pytest test/test_skim_name_conflicts.py
       - run: uv run pytest test/random_seed/test_random_seed.py
+      - run: uv run pytest test/trace_id/test_trace_id.py
 
   builtin_regional_models:
     needs: foundation

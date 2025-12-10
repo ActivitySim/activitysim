@@ -307,6 +307,12 @@ def write_trip_matrices(
                 .TAZ.tolist()
             )
 
+    # print out number of households skipped due to failed choices
+    if state.settings.skip_failed_choices:
+        logger.info(
+            f"\n!!!\nATTENTION: Skipped households with failed choices during simulation. Number of households skipped: {state.get('num_skipped_households', 0)}.\n!!!"
+        )
+
 
 def annotate_trips(
     state: workflow.State,

@@ -1087,6 +1087,23 @@ def iterate_location_choice(
         else:
             choices_df = choices_df_
 
+        # drop choices that belong to the failed households: state.skipped_household_ids
+        # so that their choices are not considered in shadow price calculations
+        # first append household_id to choices_df
+        choices_df = choices_df.merge(
+            persons_merged_df[["household_id"]],
+            left_index=True,
+            right_index=True,
+            how="left",
+        )
+        if len(choices_df) > 0:
+            choices_df = choices_df[
+                ~choices_df["household_id"].isin(
+                    state.get("skipped_household_ids", set())
+                )
+            ]
+        choices_df = choices_df.drop(columns=["household_id"])
+
         spc.set_choices(
             choices=choices_df["choice"],
             segment_ids=persons_merged_df[chooser_segment_column].reindex(

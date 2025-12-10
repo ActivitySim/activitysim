@@ -307,6 +307,12 @@ def write_trip_matrices(
                 .TAZ.tolist()
             )
 
+    # print out number of households skipped due to failed choices
+    if state.settings.skip_failed_choices:
+        logger.info(
+            f"\n!!!\nATTENTION: Skipped households with failed choices during simulation. Number of households skipped: {state.get('num_skipped_households', 0)}.\n!!!"
+        )
+
 
 def annotate_trips(
     state: workflow.State,
@@ -392,6 +398,21 @@ def write_matrices(
 
     if not matrix_settings:
         logger.error("Missing MATRICES setting in write_trip_matrices.yaml")
+
+    hh_weight_col = model_settings.HH_EXPANSION_WEIGHT_COL
+    if hh_weight_col:
+        if state.get("num_skipped_households", 0) > 0:
+            logger.info(
+                f"Adjusting household expansion weights in {hh_weight_col} to account for {state.get('num_skipped_households', 0)} skipped households."
+            )
+            # adjust the hh expansion weights to account for skipped households
+            adjustment_factor = state.get_dataframe("households").shape[0] / (
+                state.get_dataframe("households").shape[0]
+                + state.get("num_skipped_households", 0)
+            )
+            aggregate_trips[hh_weight_col] = (
+                aggregate_trips[hh_weight_col] * adjustment_factor
+            )
 
     for matrix in matrix_settings:
         matrix_is_tap = matrix.is_tap

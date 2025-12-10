@@ -1325,7 +1325,9 @@ def eval_mnl(
     if custom_chooser:
         choices, rands = custom_chooser(state, probs, choosers, spec, trace_label)
     else:
-        choices, rands = logit.make_choices(state, probs, trace_label=trace_label)
+        choices, rands = logit.make_choices(
+            state, probs, trace_label=trace_label, trace_choosers=choosers
+        )
 
     del probs
     chunk_sizer.log_df(trace_label, "probs", None)
@@ -1485,11 +1487,15 @@ def eval_nl(
     BAD_PROB_THRESHOLD = 0.001
     no_choices = (base_probabilities.sum(axis=1) - 1).abs() > BAD_PROB_THRESHOLD
 
+    if state.settings.skip_failed_choices is not None:
+        skip_failed_choices = state.settings.skip_failed_choices
+
     if no_choices.any():
         logit.report_bad_choices(
             state,
             no_choices,
             base_probabilities,
+            skip_failed_choices,
             trace_label=tracing.extend_trace_label(trace_label, "bad_probs"),
             trace_choosers=choosers,
             msg="base_probabilities do not sum to one",

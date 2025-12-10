@@ -781,6 +781,13 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     should catch many common errors early, including missing required configurations or specified coefficient labels without defined values.  
     """
 
+    skip_failed_choices: bool = True
+    """
+    Skip households that cause errors during processing instead of failing the model run.
+
+    .. versionadded:: 1.6
+    """
+
     other_settings: dict[str, Any] = None
 
     def _get_attr(self, attr):

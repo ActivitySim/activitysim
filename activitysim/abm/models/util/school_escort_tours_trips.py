@@ -1043,6 +1043,10 @@ def force_escortee_trip_modes_to_match_chauffeur(state: workflow.State, trips):
         f"Changed {diff.sum()} trip modes of school escortees to match their chauffeur"
     )
 
+    # trip_mode can be na if the run allows skipping failed choices and the trip mode choice has failed
+    if state.settings.skip_failed_choices:
+        return trips
+
     assert (
         ~trips.trip_mode.isna()
     ).all(), f"Missing trip mode for {trips[trips.trip_mode.isna()]}"

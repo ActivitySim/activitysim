@@ -205,7 +205,7 @@ def utils_to_probs(
         being masked by overflow protection or causing an error.
         A counter will be incremented for each skipped household. This is useful when running large
         simulations where occasional bad choices are encountered and should not halt the process.
-        The counter can be accessed via `state.counters["num_skipped_households"]`.
+        The counter can be accessed via `state.get("num_skipped_households", 0)`.
         The number of skipped households and their IDs will be logged at the end of the simulation.
         When `skip_failed_choices` is True, `overflow_protection` will be reverted to False to avoid conflicts.
 

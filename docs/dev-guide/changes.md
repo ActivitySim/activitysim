@@ -13,6 +13,15 @@ branch (i.e., the main branch on GitHub), but not yet released in a stable versi
 of ActivitySim.  See below under the various version headings for changes in 
 released versions.
 
+## v1.5.2
+
+### Alternative file naming consistency
+
+We have enforced a naming scheme for alterntive config files to have the index name
+be 'alt' instead of 'Alt'. This is to maintain consistency across all config files.
+The code will handle this for you, but you will get a deprecation warning if you
+are using 'Alt' in your config files. Please update your config files to use 'alt'.
+See ActivitySim issue [#846](https://github.com/ActivitySim/activitysim/issues/846)
 
 ## v1.5.1
 

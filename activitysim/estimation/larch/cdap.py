@@ -164,7 +164,32 @@ def interact_pattern(n_persons, select_persons, tag):
     return re.compile(pattern)
 
 
-def cdap_interaction_utility(model, n_persons, alts, interaction_coef, coefficients):
+def cdap_interaction_utility(
+    model: lx.Model,
+    n_persons: int,
+    alts: dict,
+    interaction_coef: pd.DataFrame,
+    coefficients: pd.DataFrame,
+):
+    """
+    Build the interaction utility for each pattern.
+
+    Parameters
+    ----------
+    model : larch.Model
+    n_persons : int
+    alts : dict
+        The keys are the names of the patterns, and
+        the values are the alternative code numbers,
+        as created by `generate_alternatives`.
+    interaction_coef : pandas.DataFrame
+        The interaction coefficients provided by
+        the ActivitySim framework.  Should include columns
+        "cardinality", "activity", "interaction_ptypes", and "coefficient".
+    coefficients : pandas.DataFrame
+        The full set of coefficients provided by
+        the ActivitySim framework.
+    """
     person_numbers = list(range(1, n_persons + 1))
 
     matcher = re.compile("coef_[HMN]_.*")
@@ -174,8 +199,11 @@ def cdap_interaction_utility(model, n_persons, alts, interaction_coef, coefficie
             c_split = c.split("_")
             for j in c_split[2:]:
                 interact_coef_map[(c_split[1], j)] = c
-                if all((i == "x" for i in j)):  # wildcards also map to empty
-                    interact_coef_map[(c_split[1], "")] = c
+                # previously, wildcards also mapped empty here, but this caused a clash
+                # as all wildcards would map to the same coefficient name not matter the
+                # cardinality, so instead we only map the exact wildcard case, and later
+                # check that empty interaction_ptypes maps to the correct coefficient name
+                # based on cardinality.
 
     for (cardinality, activity), coefs in interaction_coef.groupby(
         ["cardinality", "activity"]
@@ -194,17 +222,21 @@ def cdap_interaction_utility(model, n_persons, alts, interaction_coef, coefficie
                     for (p, t) in zip(person_numbers, row.interaction_ptypes)
                     if t != "*"
                 )
+                row_interaction_ptypes = row.interaction_ptypes
+                if not row_interaction_ptypes:
+                    # empty interaction_ptypes means all wildcards, but it needs to be the correct length
+                    row_interaction_ptypes = "x" * n_persons
                 if expression:
-                    if (activity, row.interaction_ptypes) in interact_coef_map:
+                    if (activity, row_interaction_ptypes) in interact_coef_map:
                         linear_component = X(expression) * P(
-                            interact_coef_map[(activity, row.interaction_ptypes)]
+                            interact_coef_map[(activity, row_interaction_ptypes)]
                         )
                     else:
                         linear_component = X(expression) * P(row.coefficient)
                 else:
-                    if (activity, row.interaction_ptypes) in interact_coef_map:
+                    if (activity, row_interaction_ptypes) in interact_coef_map:
                         linear_component = P(
-                            interact_coef_map[(activity, row.interaction_ptypes)]
+                            interact_coef_map[(activity, row_interaction_ptypes)]
                         )
                     else:
                         linear_component = P(row.coefficient)
@@ -377,7 +409,7 @@ def cdap_data(
     if not os.path.exists(edb_directory):
         raise FileNotFoundError(edb_directory)
 
-    def read_csv(filename, **kwargs):
+    def read_csv(filename, **kwargs) -> pd.DataFrame:
         filename = Path(edb_directory).joinpath(filename.format(name=name)).resolve()
         if filename.with_suffix(".parquet").exists():
             if "comment" in kwargs:

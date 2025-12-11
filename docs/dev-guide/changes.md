@@ -8,39 +8,56 @@ configurations or code to fail to run correctly.
 
 ## Upcoming Changes
 
-This section describes changes that are implemented in current development 
-branch (i.e., the main branch on GitHub), but not yet released in a stable version 
-of ActivitySim.  See below under the various version headings for changes in 
+This section describes changes that are implemented in current development
+branch (i.e., the main branch on GitHub), but not yet released in a stable version
+of ActivitySim.  See below under the various version headings for changes in
 released versions.
+
+### CDAP Estimation Mode
+
+A bug has been fixed in the Larch portion of code for the re-estimation of CDAP
+parameters.  Prior to this fix, interaction terms for 3 and 4 person households
+were not being correctly specified in the Larch model.  Each of these household
+sizes is supposed to have three unique interaction terms, one each for the
+entire household adopting the same daily activity pattern (M, N or H).  However,
+due to a coding error, the same parameter was being used across all three household
+sizes.  This has now been fixed, and the correct interaction terms are now specified
+for each household size.  Users who re-estimated CDAP parameters using Larch with
+prior versions of ActivitySim may want to review and/or re-estimate any CDAP
+parameters to ensure that they are correct.  It is not expected that this error
+will have a significant impact on simulated travel behavior outcomes, as it is only
+a few parameters with a large and complex model, and the overall behavioral
+characteristics of 3, 4, and 5-person households are expected to be somewhat
+similar to each other in any case.
 
 
 ## v1.5.1
 
-This release includes a handful of minor updates and fixes, as well as enhancements 
-to the ActivtySim documentation. Users should generally not expect any breaking 
-changes relative to v1.5.0, except that when running a simulation there will be a 
+This release includes a handful of minor updates and fixes, as well as enhancements
+to the ActivtySim documentation. Users should generally not expect any breaking
+changes relative to v1.5.0, except that when running a simulation there will be a
 significant reduction in logging messages displayed on screen and written to the run log.
 
 
 ## v1.5
 
-This release includes most of the new features and enhancements developed as part 
+This release includes most of the new features and enhancements developed as part
 of the Phase 10 work.
 
 ### Preprocessing & Annotation
 
-We have expanded preprocessing & annotation functionality, which is now standardized 
-in formatting and available on most model components.  Existing model implementations 
-may need to make minor upgrades to model configuration files to conform with the new 
-standardized formatting. 
+We have expanded preprocessing & annotation functionality, which is now standardized
+in formatting and available on most model components.  Existing model implementations
+may need to make minor upgrades to model configuration files to conform with the new
+standardized formatting.
 
 ### Estimation Mode
 
-Estimation mode has been updated to work with Larch v6.  This new version of Larch 
-is modernized and more stable across platforms, and is more consistent with ActivitySim 
-spec files (as both are now built on Sharrow).  The overall workflow for re-estimating 
-model parameters is very similar to before, but users will need to use Larch v6 instead 
-of Larch v5.  In addition, some new capabilities have been added for modifying model 
+Estimation mode has been updated to work with Larch v6.  This new version of Larch
+is modernized and more stable across platforms, and is more consistent with ActivitySim
+spec files (as both are now built on Sharrow).  The overall workflow for re-estimating
+model parameters is very similar to before, but users will need to use Larch v6 instead
+of Larch v5.  In addition, some new capabilities have been added for modifying model
 specifications in Larch (instead of re-running ActivitySim).
 
 ### Using UV for Dependency Management
@@ -52,21 +69,21 @@ for details on how to install ActivitySim using UV.
 
 ### Skim Naming Conflict Resolution
 
-The SkimDataset structure (required when using sharrow, optional in legacy mode) 
-requires every skim variable to have a unique name. It also merges OMX variables 
-based on time period, so that e.g. `BIKETIME__AM` and `BIKETIME__PM`, which would 
-be 2-d arrays in the OMX file, become just two different parts of a 3-d array 
-called `BIKETIME` in the SkimDataset. This is problematic when the skims also 
-contain a 2-d array called `BIKETIME`, as that has no temporal dimension, and it 
-gets loaded into a 2-d array in the SkimDataset, with the same name as the 3-d array, 
+The SkimDataset structure (required when using sharrow, optional in legacy mode)
+requires every skim variable to have a unique name. It also merges OMX variables
+based on time period, so that e.g. `BIKETIME__AM` and `BIKETIME__PM`, which would
+be 2-d arrays in the OMX file, become just two different parts of a 3-d array
+called `BIKETIME` in the SkimDataset. This is problematic when the skims also
+contain a 2-d array called `BIKETIME`, as that has no temporal dimension, and it
+gets loaded into a 2-d array in the SkimDataset, with the same name as the 3-d array,
 and thus one is overwritten and lost.
 
-ActivitySim now includes a skims input check to identify this overwriting condition, 
-and raise an error if it is happening, so that the user can correct the condition 
-via (1) the `omx_ignore_patterns` setting, (2) revising the skim generation process 
-to not create the overlapping named skims in the file in the first place, 
-or (3) renaming one or both skims if the users actually wants both skims variables 
-in the model. The error message generated includes a link to instructions and 
+ActivitySim now includes a skims input check to identify this overwriting condition,
+and raise an error if it is happening, so that the user can correct the condition
+via (1) the `omx_ignore_patterns` setting, (2) revising the skim generation process
+to not create the overlapping named skims in the file in the first place,
+or (3) renaming one or both skims if the users actually wants both skims variables
+in the model. The error message generated includes a link to instructions and
 discussion of these alternatives.
 
 ### Settings Checker
@@ -93,12 +110,12 @@ See [Expression Profiling](Expression-Profiling) for details.
 
 A new telecommute status model component has been added to ActivitySim. This component
 models the telecommute status of workers, which can be used to determine
-whether a worker telecommutes full-time, part-time, or not at all. A simple 
-implementation of the telecommute status model can be based on the worker's telecommute 
-frequency. For example, if a worker telecommutes 4 days a week, then there is 
-a 80% probability for them to telecommute on the simulation day. The telecommute 
-status model software can accommodate more complex model forms if needed. An example 
-telecommute status model specification can be found in 
+whether a worker telecommutes full-time, part-time, or not at all. A simple
+implementation of the telecommute status model can be based on the worker's telecommute
+frequency. For example, if a worker telecommutes 4 days a week, then there is
+a 80% probability for them to telecommute on the simulation day. The telecommute
+status model software can accommodate more complex model forms if needed. An example
+telecommute status model specification can be found in
 [ActivitySim/sandag-abm3-example#30](https://github.com/ActivitySim/sandag-abm3-example/pull/30).
 
 

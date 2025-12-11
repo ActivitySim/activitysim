@@ -226,9 +226,25 @@ def test_school_location(est_data, num_regression, dataframe_regression):
 
 
 def test_cdap_model(est_data, num_regression, dataframe_regression):
+    from larch import P
+
     from activitysim.estimation.larch.cdap import cdap_model
 
     m = cdap_model()
+
+    assert len(m) == 5
+    assert len(m[0].utility_co) == 3
+    assert len(m[1].utility_co) == 9
+    assert len(m[2].utility_co) == 27
+    assert len(m[3].utility_co) == 81
+    assert len(m[4].utility_co) == 243
+
+    # check that interaction parameters are assigned correctly
+    assert P.coef_M_xxx in m[2].utility_co[1]
+    assert P.coef_M_xxxxx not in m[2].utility_co[1]
+    assert P.coef_M_xxx not in m[4].utility_co[1]
+    assert P.coef_M_xxxxx in m[4].utility_co[1]
+
     m.load_data()
     loglike_prior = m.loglike()
     r = m.maximize_loglike(method="SLSQP", options={"maxiter": 1000, "ftol": 1.0e-7})

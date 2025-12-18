@@ -17,7 +17,7 @@ released versions.
 
 ### Alternative file naming consistency
 
-We have enforced a naming scheme for alterntive config files to have the index name
+We have enforced a naming scheme for alternative config files to have the index name
 be 'alt' instead of 'Alt'. This is to maintain consistency across all config files.
 The code will handle this for you, but you will get a deprecation warning if you
 are using 'Alt' in your config files. Please update your config files to use 'alt'.

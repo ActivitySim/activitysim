@@ -497,7 +497,8 @@ class Network_LOS(object):
             else:  # SkimDataset
                 assert len(skims.dataset.indexes["otaz"]) == len(
                     self.state.get_dataframe("land_use_taz")
-                )
+                ), f"land_use_taz table length {len(self.state.get_dataframe('land_use_taz'))} does not match " \
+                f"taz skim length {len(skims.dataset.indexes['otaz'])}"
 
     def create_skim_dict(self, skim_tag, _override_offset_int=None):
         """

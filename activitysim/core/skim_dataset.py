@@ -594,6 +594,7 @@ def load_sparse_maz_skims(
     maz_to_maz_tables=(),
     max_blend_distance=None,
     data_file_resolver=None,
+    max_float_precision:int = 32,
 ):
     """
     Load sparse MAZ data on top of TAZ skim data.
@@ -677,11 +678,19 @@ def load_sparse_maz_skims(
                 max_blend_distance_i = max_blend_distance.get(
                     colname, max_blend_distance_i
                 )
+                current_data = df[colname]
+                if max_float_precision:
+                    # if current data is a float dtype of higher precision than `max_float_precision`, downcast it.
+                    if np.issubdtype(current_data.dtype, np.floating):
+                        if current_data.dtype.itemsize > (max_float_precision // 8):
+                            current_data = current_data.astype(
+                                f"float{max_float_precision}"
+                            )
                 dataset.redirection.sparse_blender(
                     colname,
                     df.OMAZ,
                     df.DMAZ,
-                    df[colname],
+                    current_data,
                     max_blend_distance=max_blend_distance_i,
                     index=land_use_index,
                 )

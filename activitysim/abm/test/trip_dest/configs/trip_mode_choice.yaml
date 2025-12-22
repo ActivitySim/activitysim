@@ -1,0 +1,52 @@
+# trip_mode_choice.yaml
+
+compute_settings:
+  fastmath: false  # use of isnan in utility functions requires fastmath=False
+
+SPEC: trip_mode_choice.csv
+COEFFICIENTS: trip_mode_choice_coefficients.csv
+COEFFICIENT_TEMPLATE: trip_mode_choice_coefficients_template.csv
+
+LOGIT_TYPE: NL
+
+NESTS:
+  name: root
+  coefficient: coef_nest_root
+  alternatives:
+      - name: AUTO
+        coefficient: coef_nest_AUTO
+        alternatives:
+          - DRIVEALONEFREE
+          - SHAREDRIDE
+      - name: NONMOTORIZED
+        coefficient: coef_nest_NONMOTORIZED
+        alternatives:
+          - WALK
+
+CONSTANTS:
+  orig_col_name: origin
+  dest_col_name: destination
+  I_MODE_MAP:
+    DRIVEALONEFREE: 1
+    SHAREDRIDE: 2
+    WALK: 3
+  I_SOV_MODES: 1
+  I_AUTO_MODES: [1,2]
+  I_WALK_MODE: 3
+
+# so far, we can use the same spec as for non-joint tours
+preprocessor:
+  SPEC: trip_mode_choice_annotate_trips_preprocessor
+  DF: df
+  TABLES:
+    - land_use
+    - tours
+
+MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum
+
+TOURS_MERGED_CHOOSER_COLUMNS:
+  - tour_category
+  - tour_mode
+  - start
+  - end
+  - age

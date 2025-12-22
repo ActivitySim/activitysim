@@ -1,0 +1,6 @@
+Label,Description,Expression,DRIVEALONEFREE,SHAREDRIDE,WALK
+#,Drive alone ,,,,
+util_DRIVEALONEFREE_Unavailable_for_persons_less_than_16,DRIVEALONEFREE - Unavailable for persons less than 16,age < 16,-999,,
+util_DRIVEALONEFREE_Person_is_between_16_and_19_years_old,DRIVEALONEFREE - Person is between 16 and 19 years old,@(df.age >= 16) & (df.age <= 19),coef_age1619_da,,
+util_SHARED2FREE_In_vehicle_time,SHARED2FREE - In-vehicle time,@odt_skims['meat'],,coef_ivt,
+util_WALK_Time_short,WALK - Time up to 1.5 miles,@od_skims['distwalk'],,,coef_walktime_short

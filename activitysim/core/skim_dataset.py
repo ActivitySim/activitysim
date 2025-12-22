@@ -594,7 +594,7 @@ def load_sparse_maz_skims(
     maz_to_maz_tables=(),
     max_blend_distance=None,
     data_file_resolver=None,
-    max_float_precision:int = 32,
+    max_float_precision: int = 32,
 ):
     """
     Load sparse MAZ data on top of TAZ skim data.

@@ -1,0 +1,10 @@
+Description,Expression,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
+size term,"@np.log1p(size_terms.get(df.alt_dest, df.purpose)) # sharrow: np.log1p(size_terms['sizearray'])",1,1,1,1,1,1,1,1,1,1
+no attractions,"@size_terms.get(df.alt_dest, df.purpose) == 0 # sharrow: size_terms['sizearray'] == 0",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+stop proximity to home (outbound),@df.outbound * od_skims['distwalk'],-0.3800,0,0,0,0,0,0,0,0,0
+stop proximity to home (inbound),@~df.outbound * dp_skims['distwalk'],-0.1500,0,0,0,0,0,0,0,0,0
+stop proximity to main destination (outbound),@df.outbound * dp_skims['distwalk'],-0.26,,,,,,,,,
+"Sample of alternatives correction factor","@np.minimum(np.log(df.pick_count/df.prob), 60)",1,1,1,1,1,1,1,1,1,1
+Mode choice logsum from origin to stop,od_logsum,1.821,1.821,1.821,1.821,1.821,1.821,1.821,1.821,1.821,1.821
+Mode choice logsum from stop to destination,dp_logsum,1.821,1.821,1.821,1.821,1.821,1.821,1.821,1.821,1.821,1.821
+meaty,@odt_skims['meat'],-0.01,-0.01,-0.01,-0.01,-0.01,-0.01,-0.01,-0.01,-0.01,-0.01

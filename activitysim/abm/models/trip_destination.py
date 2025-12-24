@@ -30,12 +30,12 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LocationComponentSettings
+from activitysim.core.exceptions import DuplicateWorkflowTableError, InvalidTravelError
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.skim_dictionary import DataFrameMatrix
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place, reindex
-from activitysim.core.exceptions import InvalidTravelError, DuplicateWorkflowTableError
 
 logger = logging.getLogger(__name__)
 
@@ -273,12 +273,16 @@ def destination_sample(
     return choices
 
 
-def aggregate_size_term_matrix(maz_size_term_matrix, network_los):
+def aggregate_size_term_matrix(maz_size_term_matrix, network_los, all_tazs=None):
     df = maz_size_term_matrix.df
     assert ALT_DEST_TAZ not in df
 
     dest_taz = network_los.map_maz_to_taz(df.index)
     taz_size_term_matrix = df.groupby(dest_taz).sum()
+    if all_tazs is not None:
+        taz_size_term_matrix = taz_size_term_matrix.reindex(
+            all_tazs, fill_value=0
+        ).rename_axis(taz_size_term_matrix.index.name, axis=0)
 
     taz_size_term_matrix = DataFrameMatrix(taz_size_term_matrix)
 
@@ -612,7 +616,16 @@ def destination_presample(
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
-    TAZ_size_term_matrix = aggregate_size_term_matrix(size_term_matrix, network_los)
+    if state.settings.sharrow:
+        # when using sharrow, we use the skim_dataset structure, and need to ensure
+        # that all TAZs are represented in the size_term_matrix, even those with no MAZs
+        all_tazs = state.get_dataframe("land_use_taz").index
+    else:
+        all_tazs = None
+
+    TAZ_size_term_matrix = aggregate_size_term_matrix(
+        size_term_matrix, network_los, all_tazs
+    )
 
     TRIP_ORIGIN = model_settings.TRIP_ORIGIN
     PRIMARY_DEST = model_settings.PRIMARY_DEST
@@ -626,6 +639,17 @@ def destination_presample(
     alternatives = alternatives.groupby(
         network_los.map_maz_to_taz(alternatives.index)
     ).sum()
+
+    # We now have aggregated alternatives indexed by TAZ instead of MAZ.
+    # For sharrow, we need the TAZ indexing to be "complete", i.e. include all TAZ ids,
+    # even those that had no MAZs (and so were missing from the aggregation result).
+    # this is needed because we are going to taking the entire set of TAZ alternatives
+    # as a vector which will need to align with the TAZ skims.
+    if state.settings.sharrow:
+        all_tazs = state.get_dataframe("land_use_taz").index
+        alternatives = alternatives.reindex(all_tazs, fill_value=0).rename_axis(
+            alternatives.index.name, axis=0
+        )
 
     # # i did this but after changing alt_dest_col_name to 'trip_dest' it
     # # shouldn't be needed anymore
@@ -1520,13 +1544,13 @@ def run_trip_destination(
                             """
 
                         When using the trip destination model with sharrow, it is necessary
-                        to set a value for `purpose_index_num` in the trip destination 
-                        annotate trips preprocessor.  This allows for an optimized compiled 
+                        to set a value for `purpose_index_num` in the trip destination
+                        annotate trips preprocessor.  This allows for an optimized compiled
                         lookup of the size term from the array of size terms.  The value of
-                        `purpose_index_num` should be the integer column position in the size 
-                        matrix, with usual zero-based numpy indexing semantics (i.e. the first 
+                        `purpose_index_num` should be the integer column position in the size
+                        matrix, with usual zero-based numpy indexing semantics (i.e. the first
                         column is zero).  The preprocessor expression most likely needs to be
-                        "size_terms.get_cols(df.purpose)" unless some unusual transform of 
+                        "size_terms.get_cols(df.purpose)" unless some unusual transform of
                         size terms has been employed.
 
                         """

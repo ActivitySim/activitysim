@@ -8,39 +8,49 @@ configurations or code to fail to run correctly.
 
 ## Upcoming Changes
 
-This section describes changes that are implemented in current development 
-branch (i.e., the main branch on GitHub), but not yet released in a stable version 
-of ActivitySim.  See below under the various version headings for changes in 
+This section describes changes that are implemented in current development
+branch (i.e., the main branch on GitHub), but not yet released in a stable version
+of ActivitySim.  See below under the various version headings for changes in
 released versions.
+
+### Changed Default for Sharrow "Fastmath" Optimization
+
+The default setting for the "fastmath" optimization in sharrow has been changed
+from `True` to `False`.  This optimization can improve performance in some cases,
+but can also cause subtle and hard to diagnose bugs, particularly when the
+data being processed contains `NaN` or `Inf` values.  By defaulting to
+`False`, we aim to improve platform stability for most users.  Users who wish
+to enable the "fastmath" optimization can do so by setting the `fastmath` option
+to `True` in the `compute_settings` for each model component where it is desired.
 
 
 ## v1.5.1
 
-This release includes a handful of minor updates and fixes, as well as enhancements 
-to the ActivtySim documentation. Users should generally not expect any breaking 
-changes relative to v1.5.0, except that when running a simulation there will be a 
+This release includes a handful of minor updates and fixes, as well as enhancements
+to the ActivtySim documentation. Users should generally not expect any breaking
+changes relative to v1.5.0, except that when running a simulation there will be a
 significant reduction in logging messages displayed on screen and written to the run log.
 
 
 ## v1.5
 
-This release includes most of the new features and enhancements developed as part 
+This release includes most of the new features and enhancements developed as part
 of the Phase 10 work.
 
 ### Preprocessing & Annotation
 
-We have expanded preprocessing & annotation functionality, which is now standardized 
-in formatting and available on most model components.  Existing model implementations 
-may need to make minor upgrades to model configuration files to conform with the new 
-standardized formatting. 
+We have expanded preprocessing & annotation functionality, which is now standardized
+in formatting and available on most model components.  Existing model implementations
+may need to make minor upgrades to model configuration files to conform with the new
+standardized formatting.
 
 ### Estimation Mode
 
-Estimation mode has been updated to work with Larch v6.  This new version of Larch 
-is modernized and more stable across platforms, and is more consistent with ActivitySim 
-spec files (as both are now built on Sharrow).  The overall workflow for re-estimating 
-model parameters is very similar to before, but users will need to use Larch v6 instead 
-of Larch v5.  In addition, some new capabilities have been added for modifying model 
+Estimation mode has been updated to work with Larch v6.  This new version of Larch
+is modernized and more stable across platforms, and is more consistent with ActivitySim
+spec files (as both are now built on Sharrow).  The overall workflow for re-estimating
+model parameters is very similar to before, but users will need to use Larch v6 instead
+of Larch v5.  In addition, some new capabilities have been added for modifying model
 specifications in Larch (instead of re-running ActivitySim).
 
 ### Using UV for Dependency Management
@@ -52,21 +62,21 @@ for details on how to install ActivitySim using UV.
 
 ### Skim Naming Conflict Resolution
 
-The SkimDataset structure (required when using sharrow, optional in legacy mode) 
-requires every skim variable to have a unique name. It also merges OMX variables 
-based on time period, so that e.g. `BIKETIME__AM` and `BIKETIME__PM`, which would 
-be 2-d arrays in the OMX file, become just two different parts of a 3-d array 
-called `BIKETIME` in the SkimDataset. This is problematic when the skims also 
-contain a 2-d array called `BIKETIME`, as that has no temporal dimension, and it 
-gets loaded into a 2-d array in the SkimDataset, with the same name as the 3-d array, 
+The SkimDataset structure (required when using sharrow, optional in legacy mode)
+requires every skim variable to have a unique name. It also merges OMX variables
+based on time period, so that e.g. `BIKETIME__AM` and `BIKETIME__PM`, which would
+be 2-d arrays in the OMX file, become just two different parts of a 3-d array
+called `BIKETIME` in the SkimDataset. This is problematic when the skims also
+contain a 2-d array called `BIKETIME`, as that has no temporal dimension, and it
+gets loaded into a 2-d array in the SkimDataset, with the same name as the 3-d array,
 and thus one is overwritten and lost.
 
-ActivitySim now includes a skims input check to identify this overwriting condition, 
-and raise an error if it is happening, so that the user can correct the condition 
-via (1) the `omx_ignore_patterns` setting, (2) revising the skim generation process 
-to not create the overlapping named skims in the file in the first place, 
-or (3) renaming one or both skims if the users actually wants both skims variables 
-in the model. The error message generated includes a link to instructions and 
+ActivitySim now includes a skims input check to identify this overwriting condition,
+and raise an error if it is happening, so that the user can correct the condition
+via (1) the `omx_ignore_patterns` setting, (2) revising the skim generation process
+to not create the overlapping named skims in the file in the first place,
+or (3) renaming one or both skims if the users actually wants both skims variables
+in the model. The error message generated includes a link to instructions and
 discussion of these alternatives.
 
 ### Settings Checker
@@ -93,12 +103,12 @@ See [Expression Profiling](Expression-Profiling) for details.
 
 A new telecommute status model component has been added to ActivitySim. This component
 models the telecommute status of workers, which can be used to determine
-whether a worker telecommutes full-time, part-time, or not at all. A simple 
-implementation of the telecommute status model can be based on the worker's telecommute 
-frequency. For example, if a worker telecommutes 4 days a week, then there is 
-a 80% probability for them to telecommute on the simulation day. The telecommute 
-status model software can accommodate more complex model forms if needed. An example 
-telecommute status model specification can be found in 
+whether a worker telecommutes full-time, part-time, or not at all. A simple
+implementation of the telecommute status model can be based on the worker's telecommute
+frequency. For example, if a worker telecommutes 4 days a week, then there is
+a 80% probability for them to telecommute on the simulation day. The telecommute
+status model software can accommodate more complex model forms if needed. An example
+telecommute status model specification can be found in
 [ActivitySim/sandag-abm3-example#30](https://github.com/ActivitySim/sandag-abm3-example/pull/30).
 
 

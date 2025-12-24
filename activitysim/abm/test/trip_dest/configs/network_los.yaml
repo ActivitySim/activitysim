@@ -1,0 +1,14 @@
+read_skim_cache: False
+write_skim_cache: False
+zone_system: 2
+taz_skims: 
+  omx: min*.omx
+maz: maz.csv
+maz_to_maz:
+  tables:
+   - maz_to_maz_walk.csv
+skim_time_periods:
+    time_window: 1440
+    period_minutes: 60
+    periods: [0, 5, 9, 15, 18, 20, 24]
+    labels: ['EA', 'AM', 'MD', 'PM', 'EV', 'EA']

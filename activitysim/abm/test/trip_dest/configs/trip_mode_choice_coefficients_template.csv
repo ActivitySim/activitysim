@@ -1,0 +1,17 @@
+coefficient_name,eatout,escort,othdiscr,othmaint,school,shopping,social,univ,work,atwork
+coef_one,,,,,,,,,,
+coef_nest_root,,,,,,,,,,
+coef_nest_AUTO,,,,,,,,,,
+coef_nest_AUTO_DRIVEALONE,,,,,,,,,,
+coef_nest_AUTO_SHAREDRIDE2,,,,,,,,,,
+coef_nest_AUTO_SHAREDRIDE3,,,,,,,,,,
+coef_nest_NONMOTORIZED,,,,,,,,,,
+coef_nest_TRANSIT,,,,,,,,,,
+coef_nest_TRANSIT_WALKACCESS,,,,,,,,,,
+coef_nest_TRANSIT_DRIVEACCESS,,,,,,,,,,
+coef_nest_RIDEHAIL,,,,,,,,,,
+coef_nest_SCHOOL_BUS,,,,,,,,,,
+#,,,,,,,,,,
+coef_ivt,coef_ivt_disc,coef_ivt_maint,coef_ivt_disc,coef_ivt_maint,coef_ivt_school,coef_ivt_maint,coef_ivt_disc,coef_ivt_univ,coef_ivt_work,coef_ivt_atwork
+coef_walktime_short,coef_walktime_short_disc,coef_walktime_short_maint,coef_walktime_short_disc,coef_walktime_short_maint,coef_walktime_short_school,coef_walktime_short_maint,coef_walktime_short_disc,coef_walktime_short_univ,coef_walktime_short_work,coef_walktime_short_atwork
+coef_age1619_da,coef_age1619_da_disc,coef_age1619_da_maint,coef_age1619_da_disc,coef_age1619_da_maint,coef_age1619_da_school,coef_age1619_da_maint,coef_age1619_da_disc,coef_age1619_da_univ,coef_age1619_da_work,coef_age1619_da_atwork

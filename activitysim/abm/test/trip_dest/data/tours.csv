@@ -1,0 +1,3 @@
+tour_id,person_id,tour_mode,start,end,origin,destination,tour_category,purpose
+500,1,DA,10,20,0,3,mandatory,work
+501,4,WALK,15,22,2,8,non_mandatory,social

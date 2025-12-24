@@ -864,12 +864,14 @@ class ShadowPriceCalculator:
                 new_shadow_prices = np.where(
                     (sprice <= 1 + percent_tolerance / 100), -999, 0
                 )
-                
+
                 # the conditions above allow for zones to be reopened, but we want to prevent such behavior
                 new_shadow_prices = np.where(
-                    (old_shadow_prices == -999) & (new_shadow_prices != -999), old_shadow_prices, new_shadow_prices
-                    )
-                
+                    (old_shadow_prices == -999) & (new_shadow_prices != -999),
+                    old_shadow_prices,
+                    new_shadow_prices,
+                )
+
                 self.shadow_prices[segment] = new_shadow_prices
 
                 zonal_sample_rate = 1 - sprice

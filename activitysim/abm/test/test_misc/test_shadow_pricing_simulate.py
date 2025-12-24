@@ -13,10 +13,27 @@ from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.abm.models.location_choice import run_location_choice
 
 
-LAND_USE_FIELDS = ['e01_nrm', 'e02_constr', 'e03_manuf', 'e04_whole', 'e05_retail', 
-                        'e06_trans', 'e07_utility', 'e08_infor', 'e09_finan', 'e10_pstsvc', 
-                        'e11_compmgt', 'e12_admsvc', 'e13_edusvc', 'e14_medfac', 'e15_hospit', 
-                        'e16_leisure', 'e17_othsvc', 'e18_pubadm']
+LAND_USE_FIELDS = [
+    "e01_nrm",
+    "e02_constr",
+    "e03_manuf",
+    "e04_whole",
+    "e05_retail",
+    "e06_trans",
+    "e07_utility",
+    "e08_infor",
+    "e09_finan",
+    "e10_pstsvc",
+    "e11_compmgt",
+    "e12_admsvc",
+    "e13_edusvc",
+    "e14_medfac",
+    "e15_hospit",
+    "e16_leisure",
+    "e17_othsvc",
+    "e18_pubadm",
+]
+
 
 @pytest.fixture(scope="session")
 def example_root(tmp_path_factory):
@@ -29,15 +46,21 @@ def example_root(tmp_path_factory):
 
     return root
 
+
 @pytest.fixture(scope="module")
 def model_settings(example_root, state):
-    
-    model_settings = TourLocationComponentSettings.read_settings_file(state.filesystem, "school_location.yaml")
+
+    model_settings = TourLocationComponentSettings.read_settings_file(
+        state.filesystem, "school_location.yaml"
+    )
 
     return model_settings
 
+
 @pytest.fixture(scope="module")
-def state(example_root, location_coeffs_configs_csv, location_sample_configs_csv) -> workflow.State:
+def state(
+    example_root, location_coeffs_configs_csv, location_sample_configs_csv
+) -> workflow.State:
 
     settings = """
         input_table_list:
@@ -73,23 +96,27 @@ def state(example_root, location_coeffs_configs_csv, location_sample_configs_csv
 util_mode_choice_logsum,Mode choice logsum,mode_choice_logsum,coef_mode_logsum_uni,coef_mode_logsum,coef_mode_logsum
 util_sample_of_corrections_factor,Sample of alternatives correction factor,"@np.minimum(np.log(df.pick_count/df.prob), 60)",1,1,1
 """
-    
-    skim_matrix = np.array([
-        [ 0.42,  0.89,  4.33, 10.31,  9.98],
-        [ 0.89,  0.39,  3.76, 10.05,  9.72],
-        [ 4.19,  3.61,  0.85, 10.02,  9.69],
-        [10.57,  9.99,  9.81,  0.16,  0.37],
-        [10.19,  9.61,  9.43,  0.37,  0.16]])
-    
-    
-    choice_sizes = pd.DataFrame({
-        "model_selector": ["school", "school", "school"],
-        "segment": ["university", "gradeschool", "highschool"],
-        "tot_hhs": [0, 0, 0],
-        "K_8": [0, 1, 0],
-        "G9_12": [0, 0, 1],
-        "Univ_Enrollment": [1, 0, 0],
-    })
+
+    skim_matrix = np.array(
+        [
+            [0.42, 0.89, 4.33, 10.31, 9.98],
+            [0.89, 0.39, 3.76, 10.05, 9.72],
+            [4.19, 3.61, 0.85, 10.02, 9.69],
+            [10.57, 9.99, 9.81, 0.16, 0.37],
+            [10.19, 9.61, 9.43, 0.37, 0.16],
+        ]
+    )
+
+    choice_sizes = pd.DataFrame(
+        {
+            "model_selector": ["school", "school", "school"],
+            "segment": ["university", "gradeschool", "highschool"],
+            "tot_hhs": [0, 0, 0],
+            "K_8": [0, 1, 0],
+            "G9_12": [0, 0, 1],
+            "Univ_Enrollment": [1, 0, 0],
+        }
+    )
 
     for col in LAND_USE_FIELDS:
         choice_sizes[col] = 0
@@ -123,13 +150,13 @@ util_sample_of_corrections_factor,Sample of alternatives correction factor,"@np.
         SHADOW_PRICE_TABLE: school_shadow_prices
         MODELED_SIZE_TABLE: school_modeled_size
             """
-    
+
     school_loc_yaml = example_root / "configs" / "school_location.yaml"
     school_loc_yaml.write_text(school_location_settings)
 
     taz_equivs = [2103, 2104, 2115, 2142, 2144]
 
-    #example_root = tmp_path_factory.mktemp("example")
+    # example_root = tmp_path_factory.mktemp("example")
 
     settings_file = example_root / "configs" / "settings.yaml"
     settings_file.write_text(settings)
@@ -140,7 +167,9 @@ util_sample_of_corrections_factor,Sample of alternatives correction factor,"@np.
     sp_yaml = example_root / "configs" / "shadow_pricing.yaml"
     sp_yaml.write_text(shadow_pricing_settings)
 
-    choice_sizes.to_csv(example_root / "configs" / "destination_choice_size_terms.csv", index=False)
+    choice_sizes.to_csv(
+        example_root / "configs" / "destination_choice_size_terms.csv", index=False
+    )
 
     location_coeffs = example_root / "configs" / "school_location_coeffs.csv"
     location_coeffs.write_text(location_coeffs_configs_csv)
@@ -151,79 +180,206 @@ util_sample_of_corrections_factor,Sample of alternatives correction factor,"@np.
     school_location = example_root / "configs" / "school_location.csv"
     school_location.write_text(school_location_csv)
 
-
-    skims = omx.open_file(example_root / "data" / "skims.omx",'w') 
+    skims = omx.open_file(example_root / "data" / "skims.omx", "w")
     skims["DIST"] = skim_matrix
-    skims.create_mapping('zone_number', taz_equivs)
+    skims.create_mapping("zone_number", taz_equivs)
     skims.close()
 
     state = workflow.State.make_default(example_root)
 
     return state
 
+
 @pytest.fixture(scope="module")
 def persons() -> pd.DataFrame:
-    persons = pd.DataFrame({
-        "person_id": [2664688, 2664689, 2668012, 2668013, 2701577, 2701578, 2860810, 2860811, 2865544, 2865545, 2865546],
-        "age": [13.0, 12.0, 13.0, 12.0, 11.0, 10.0, 15.0, 14.0, 10.0, 14.0, 15.0],
-        "household_id": [1080351,1080351,1081684,1081684,1094369,1094369,1156249,1156249,1158612,1158612, 1158612],
-        "member_id": [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3],
-        "sex": [1, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2],
-        "relate": [0, 1, 0, 1, 0, 1, 0, 12, 0, 2, 13],
-        "race_id": [1, 1, 2, 2, 4, 4, 4, 4, 1, 1, 1],
-        "esr": [6.0, 6.0, 2.0, 6.0, 1.0, 6.0, 1.0, 6.0, 1.0, 1.0, 1.0],
-        "wkhp": [-9.0, -9.0, 3.0, -9.0, 50.0, -9.0, 40.0, -9.0, 50.0, 37.0, 40.0],
-        "wkw": [-9.0, -9.0, 3.0, -9.0, 1.0, -9.0, 3.0, -9.0, 1.0, 1.0, 1.0],
-        "schg": [-9.0, -9.0, -9.0, -9.0, -9.0, -9.0, 16.0, 16.0, -9.0, -9.0, -9.0],
-        "mil": [4.0, 4.0, 4.0, 2.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0],
-        "naicsp": ["-9", "-9", "5121", "-9", "8139Z", "-9", "611M1", "-9", "7112", "6241", "5417"],
-        "industry": [0.0, 0.0, 8.0, 0.0, 17.0, 0.0, 13.0, 0.0, 16.0, 14.0, 10.0],
-        "maz_seqid": [22660.0, 22660.0, 22670.0, 22670.0, 22734.0, 22734.0, 22803.0, 22803.0, 22799.0, 22799.0, 22799.0],
-        "zone_id": [2103.0, 2103.0, 2104.0, 2104.0, 2115.0, 2115.0, 2144.0, 2144.0, 2142.0, 2142.0, 2142.0],
-        "school_segment": [1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2],
-        "age_0_to_5": [False, False, False, False, False, False, False, False, False, False, False],
-        "age_6_to_12": [False, True, False, True, True, True, False, False, True, False, False],
-        "pemploy": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-        "value_of_time": [3.729377, 3.729377, 33.35, 33.35, 3.030231, 3.030231, 4.512599, 4.512599, 11.620478, 11.620478, 11.620478],
-        "is_student": [True, True, True, True, True, True, True, True, True, True, True],
-        "home_zone_id": [22660.0, 22660.0, 22670.0, 22670.0, 22734.0, 22734.0, 22803.0, 22803.0, 22799.0, 22799.0, 22799.0],
-        "school_zone_id": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
-    })
+    persons = pd.DataFrame(
+        {
+            "person_id": [
+                2664688,
+                2664689,
+                2668012,
+                2668013,
+                2701577,
+                2701578,
+                2860810,
+                2860811,
+                2865544,
+                2865545,
+                2865546,
+            ],
+            "age": [13.0, 12.0, 13.0, 12.0, 11.0, 10.0, 15.0, 14.0, 10.0, 14.0, 15.0],
+            "household_id": [
+                1080351,
+                1080351,
+                1081684,
+                1081684,
+                1094369,
+                1094369,
+                1156249,
+                1156249,
+                1158612,
+                1158612,
+                1158612,
+            ],
+            "member_id": [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3],
+            "sex": [1, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2],
+            "relate": [0, 1, 0, 1, 0, 1, 0, 12, 0, 2, 13],
+            "race_id": [1, 1, 2, 2, 4, 4, 4, 4, 1, 1, 1],
+            "esr": [6.0, 6.0, 2.0, 6.0, 1.0, 6.0, 1.0, 6.0, 1.0, 1.0, 1.0],
+            "wkhp": [-9.0, -9.0, 3.0, -9.0, 50.0, -9.0, 40.0, -9.0, 50.0, 37.0, 40.0],
+            "wkw": [-9.0, -9.0, 3.0, -9.0, 1.0, -9.0, 3.0, -9.0, 1.0, 1.0, 1.0],
+            "schg": [-9.0, -9.0, -9.0, -9.0, -9.0, -9.0, 16.0, 16.0, -9.0, -9.0, -9.0],
+            "mil": [4.0, 4.0, 4.0, 2.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0],
+            "naicsp": [
+                "-9",
+                "-9",
+                "5121",
+                "-9",
+                "8139Z",
+                "-9",
+                "611M1",
+                "-9",
+                "7112",
+                "6241",
+                "5417",
+            ],
+            "industry": [0.0, 0.0, 8.0, 0.0, 17.0, 0.0, 13.0, 0.0, 16.0, 14.0, 10.0],
+            "maz_seqid": [
+                22660.0,
+                22660.0,
+                22670.0,
+                22670.0,
+                22734.0,
+                22734.0,
+                22803.0,
+                22803.0,
+                22799.0,
+                22799.0,
+                22799.0,
+            ],
+            "zone_id": [
+                2103.0,
+                2103.0,
+                2104.0,
+                2104.0,
+                2115.0,
+                2115.0,
+                2144.0,
+                2144.0,
+                2142.0,
+                2142.0,
+                2142.0,
+            ],
+            "school_segment": [1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2],
+            "age_0_to_5": [
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+            ],
+            "age_6_to_12": [
+                False,
+                True,
+                False,
+                True,
+                True,
+                True,
+                False,
+                False,
+                True,
+                False,
+                False,
+            ],
+            "pemploy": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+            "value_of_time": [
+                3.729377,
+                3.729377,
+                33.35,
+                33.35,
+                3.030231,
+                3.030231,
+                4.512599,
+                4.512599,
+                11.620478,
+                11.620478,
+                11.620478,
+            ],
+            "is_student": [
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+            ],
+            "home_zone_id": [
+                22660.0,
+                22660.0,
+                22670.0,
+                22670.0,
+                22734.0,
+                22734.0,
+                22803.0,
+                22803.0,
+                22799.0,
+                22799.0,
+                22799.0,
+            ],
+            "school_zone_id": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        }
+    )
 
     return persons
 
+
 @pytest.fixture(scope="module")
 def households() -> pd.DataFrame:
-    households = pd.DataFrame({
-        "household_id": [1156249, 1080351, 1094369, 1081684, 1158612],
-        "persons": [2, 2, 2, 2, 3],
-        "age_of_head": [26.0, 67.0, 68.0, 72.0, 66.0],
-        "race_id": [4.0, 1.0, 4.0, 2.0, 1.0],
-        "cars": [2.0, 2.0, 2.0, 2.0, 2.0],
-        "children": [0.0, 0.0, 0.0, 0.0, 0.0],
-        "type": [1, 1, 1, 1, 1],
-        "hincp": [96200.0, 93100.0, 153000.0, 89000.0, 114280.0],
-        "adjinc": [1010145, 1054606, 1073449, 1031452, 1080470],
-        "hht": [7.0, 1.0, 1.0, 1.0, 2.0],
-        "maz": [22803.0, 22660.0, 22734.0, 22670.0, 22799.0],
-        "taz": [2144.0, 2103.0, 2115.0, 2104.0, 2142.0],
-        "auto_ownership": [2, 2, 2, 2, 2],
-        "home_zone_id": [22803.0, 22660.0, 22734.0, 22670.0, 22799.0],
-    })
+    households = pd.DataFrame(
+        {
+            "household_id": [1156249, 1080351, 1094369, 1081684, 1158612],
+            "persons": [2, 2, 2, 2, 3],
+            "age_of_head": [26.0, 67.0, 68.0, 72.0, 66.0],
+            "race_id": [4.0, 1.0, 4.0, 2.0, 1.0],
+            "cars": [2.0, 2.0, 2.0, 2.0, 2.0],
+            "children": [0.0, 0.0, 0.0, 0.0, 0.0],
+            "type": [1, 1, 1, 1, 1],
+            "hincp": [96200.0, 93100.0, 153000.0, 89000.0, 114280.0],
+            "adjinc": [1010145, 1054606, 1073449, 1031452, 1080470],
+            "hht": [7.0, 1.0, 1.0, 1.0, 2.0],
+            "maz": [22803.0, 22660.0, 22734.0, 22670.0, 22799.0],
+            "taz": [2144.0, 2103.0, 2115.0, 2104.0, 2142.0],
+            "auto_ownership": [2, 2, 2, 2, 2],
+            "home_zone_id": [22803.0, 22660.0, 22734.0, 22670.0, 22799.0],
+        }
+    )
 
     return households
 
+
 @pytest.fixture(scope="module")
 def land_use() -> pd.DataFrame:
-    land_use = pd.DataFrame({
-        "MAZ": [22660, 22670, 22734, 22799, 22803],
-        "TAZ": [2103, 2104, 2115, 2142, 2144],
-        "hhs_pop": [2, 2, 2, 3, 2],
-        "K_8": [150, 100, 200, 300, 250],
-        "G9_12": [150, 100, 200, 300, 250],
-        "Univ_Enrollment": [0, 0, 0, 0, 0],
-        "tot_pop": [2, 2, 2, 3, 2],
-        "tot_hhs": [1, 1, 1, 1, 1],
+    land_use = pd.DataFrame(
+        {
+            "MAZ": [22660, 22670, 22734, 22799, 22803],
+            "TAZ": [2103, 2104, 2115, 2142, 2144],
+            "hhs_pop": [2, 2, 2, 3, 2],
+            "K_8": [150, 100, 200, 300, 250],
+            "G9_12": [150, 100, 200, 300, 250],
+            "Univ_Enrollment": [0, 0, 0, 0, 0],
+            "tot_pop": [2, 2, 2, 3, 2],
+            "tot_hhs": [1, 1, 1, 1, 1],
         }
     )
 
@@ -231,6 +387,7 @@ def land_use() -> pd.DataFrame:
         land_use[col] = 0
 
     return land_use
+
 
 @pytest.fixture(scope="module")
 def location_sample_configs_csv():
@@ -254,6 +411,7 @@ util_dist_child_6_12,"Distance,child 6 to 12",@(df['age_6_to_12']==True) * _DIST
 """
     return csv_content
 
+
 @pytest.fixture(scope="module")
 def location_coeffs_configs_csv():
     csv_content = """coefficient_name,value,constrain
@@ -275,12 +433,11 @@ coef_mode_logsum,0.4,F
     return csv_content
 
 
-
 @pytest.fixture(scope="module")
-def network_los(state, persons, households, land_use) -> los.Network_LOS: 
+def network_los(state, persons, households, land_use) -> los.Network_LOS:
 
     persons["is_student"] = True
-    land_use["zone_id"] = land_use["MAZ"] 
+    land_use["zone_id"] = land_use["MAZ"]
     land_use.set_index("zone_id", inplace=True)
     households["home_zone_id"] = households["maz"]
 
@@ -289,7 +446,9 @@ def network_los(state, persons, households, land_use) -> los.Network_LOS:
     state.add_table("land_use", land_use)
 
     persons_merged = pd.merge(persons, households, on="household_id")
-    persons_merged = pd.merge(persons_merged, land_use.rename(columns={"TAZ": "taz"}), on="taz")
+    persons_merged = pd.merge(
+        persons_merged, land_use.rename(columns={"TAZ": "taz"}), on="taz"
+    )
 
     persons_merged["home_zone_id"] = persons_merged["MAZ"]
     persons_merged["TAZ"] = persons_merged["taz"]
@@ -309,11 +468,11 @@ def network_los(state, persons, households, land_use) -> los.Network_LOS:
 
     return network_los
 
-    
+
 def test_shadow_pricing_simulate(state, model_settings, network_los):
     """
     We iterate the location choice algorithm with shadow pricing and check if any closed zone
-    is repoening after they are updated. 
+    is repoening after they are updated.
     """
     model_settings.LOGSUM_SETTINGS = None
 
@@ -323,15 +482,14 @@ def test_shadow_pricing_simulate(state, model_settings, network_los):
 
     chooser_segment_column = "school_segment"
 
-    save_sample_df = (choices_df) = None 
+    save_sample_df = choices_df = None
 
     persons_merged = state.get_dataframe("persons_merged")
-
 
     for iteration in range(1, MAX_ITERATIONS + 1):
 
         old_shadow_prices = spc.shadow_prices["highschool"].values
-        
+
         persons_merged_df_ = persons_merged.copy()
 
         if spc.use_shadow_pricing and iteration > 1:
@@ -344,20 +502,19 @@ def test_shadow_pricing_simulate(state, model_settings, network_los):
                 ]
                 persons_merged_df_ = persons_merged_df_.sort_index()
 
-
         choices_df_, save_sample_df = run_location_choice(
-                    state,
-                    persons_merged_df_,
-                    network_los,
-                    shadow_price_calculator=spc,
-                    want_logsums=False,
-                    want_sample_table=False,
-                    estimator=None,
-                    model_settings=model_settings,
-                    chunk_size=0,
-                    chunk_tag="school_location",
-                    trace_label=f"school_location_{iteration}",
-                )
+            state,
+            persons_merged_df_,
+            network_los,
+            shadow_price_calculator=spc,
+            want_logsums=False,
+            want_sample_table=False,
+            estimator=None,
+            model_settings=model_settings,
+            chunk_size=0,
+            chunk_tag="school_location",
+            trace_label=f"school_location_{iteration}",
+        )
         if spc.use_shadow_pricing:
             # handle simulation method
             if (
@@ -381,12 +538,10 @@ def test_shadow_pricing_simulate(state, model_settings, network_los):
         new_shadow_prices = spc.shadow_prices["highschool"].values
 
         assert not any((old_shadow_prices == -999) & (new_shadow_prices != -999))
-        
+
         spc.set_choices(
-                choices=choices_df["choice"],
-                segment_ids=persons_merged[chooser_segment_column].reindex(
-                    choices_df.index
-                ),
-            )
-        
-        
+            choices=choices_df["choice"],
+            segment_ids=persons_merged[chooser_segment_column].reindex(
+                choices_df.index
+            ),
+        )

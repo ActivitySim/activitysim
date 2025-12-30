@@ -469,6 +469,38 @@ def network_los(state, persons, households, land_use) -> los.Network_LOS:
     return network_los
 
 
+def check_shadow_prices(spc, iteration):
+    """
+    Check shadow prices against expected values for each iteration.
+    Only checking the highschool segment here as an example.
+    Highschool segment was chosen because it has some zones that had
+    shadow prices change from open to closed to open over the iterations.
+    (See ActivitySim Issue #820)
+    """
+    if iteration == 1:
+        # initial iteration, all shadow prices should be zero
+        assert (spc.shadow_prices["highschool"] == 0).all()
+    elif iteration == 2:
+        highschool_expected = pd.Series(
+            index=[22660, 22670, 22734, 22799, 22803],
+            data=[0.0, -999.0, 0.0, 0.0, -999.0],
+        )
+        assert (spc.shadow_prices["highschool"] == highschool_expected).all()
+    elif iteration == 3:
+        highschool_expected = pd.Series(
+            index=[22660, 22670, 22734, 22799, 22803],
+            data=[-999.0, -999.0, -999.0, 0.0, -999.0],
+        )
+        assert (spc.shadow_prices["highschool"] == highschool_expected).all()
+    elif iteration == 4:
+        # converged from here onward
+        assert (spc.shadow_prices["highschool"] == -999).all()
+    elif iteration == 5:
+        assert (spc.shadow_prices["highschool"] == -999).all()
+    else:
+        assert False, "Unexpected iteration number in shadow pricing test"
+
+
 def test_shadow_pricing_simulate(state, model_settings, network_los):
     """
     We iterate the location choice algorithm with shadow pricing and check if any closed zone
@@ -538,6 +570,7 @@ def test_shadow_pricing_simulate(state, model_settings, network_los):
         new_shadow_prices = spc.shadow_prices["highschool"].values
 
         assert not any((old_shadow_prices == -999) & (new_shadow_prices != -999))
+        check_shadow_prices(spc, iteration)
 
         spc.set_choices(
             choices=choices_df["choice"],

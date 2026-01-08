@@ -64,7 +64,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Dec 11, 2025"/>
+    <meta name="docbuild:last-update" content="Jan 08, 2026"/>
   </head>
   
   
@@ -448,6 +448,30 @@ configurations or code to fail to run correctly.</p>
 branch (i.e., the main branch on GitHub), but not yet released in a stable version
 of ActivitySim.  See below under the various version headings for changes in
 released versions.</p>
+<section id="cdap-estimation-mode">
+<h3>CDAP Estimation Mode<a class="headerlink" href="#cdap-estimation-mode" title="Permalink to this heading">#</a></h3>
+<p>A bug has been fixed in the Larch portion of code for the re-estimation of CDAP
+parameters.  Prior to this fix, interaction terms for 3 and 4 person households
+were not being correctly specified in the Larch model.  Each of these household
+sizes is supposed to have three unique interaction terms, one each for the
+entire household adopting the same daily activity pattern (M, N or H).  However,
+due to a coding error, the same parameter was being used across all three household
+sizes.  This has now been fixed, and the correct interaction terms are now specified
+for each household size.  Users who re-estimated CDAP parameters using Larch with
+prior versions of ActivitySim may want to review and/or re-estimate any CDAP
+parameters to ensure that they are correct.  It is not expected that this error
+will have a significant impact on simulated travel behavior outcomes, as it is only
+a few parameters with a large and complex model, and the overall behavioral
+characteristics of 3, 4, and 5-person households are expected to be somewhat
+similar to each other in any case.  If users wish to formally correct their model
+to reflect the mathematical formulation that was actually estimated in prior
+versions of ActivitySim without re-estimating the entire model, they can set
+<code class="docutils literal notranslate"><span class="pre">coef_[M,N,H]_xxx</span> </code>and <code class="docutils literal notranslate"><span class="pre">coef_[M,N,H]_xxxx</span></code> to have the same value as
+<code class="docutils literal notranslate"><span class="pre">coef_[M,N,H]_xxxxx</span></code>. This change may impact model calibration, so it is recommended
+to proceed with caution if choosing this option. For an existing well calibrated model,
+the calibration may have already compensated for this error in the estimation,
+so changing the coefficients may lead to degraded model quality.</p>
+</section>
 </section>
 <section id="v1-5-1">
 <h2>v1.5.1<a class="headerlink" href="#v1-5-1" title="Permalink to this heading">#</a></h2>
@@ -842,7 +866,10 @@ development cycle, including:</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upcoming-changes">Upcoming Changes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upcoming-changes">Upcoming Changes</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cdap-estimation-mode">CDAP Estimation Mode</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-5-1">v1.5.1</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-5">v1.5</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessing-annotation">Preprocessing &amp; Annotation</a></li>
@@ -907,7 +934,7 @@ development cycle, including:</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev3+g61078c719, documentation last updated Dec 11, 2025.<br/>
+ActivitySim 1.5.2.dev4+g0811191c8, documentation last updated Jan 08, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

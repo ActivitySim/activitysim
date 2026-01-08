@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Dec 11, 2025"/>
+    <meta name="docbuild:last-update" content="Jan 08, 2026"/>
   </head>
   
   
@@ -822,6 +822,31 @@ from the estimation data bundle.  Only used when
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.cdap_interaction_utility">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">cdap_interaction_utility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_persons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">interaction_coef</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.3)"><span class="pre">DataFrame</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficients</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.3)"><span class="pre">DataFrame</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.cdap_interaction_utility" title="Permalink to this definition">#</a></dt>
+<dd><p>Build the interaction utility for each pattern.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model</strong><span class="classifier">larch.Model</span></dt><dd></dd>
+<dt><strong>n_persons</strong><span class="classifier">int</span></dt><dd></dd>
+<dt><strong>alts</strong><span class="classifier">dict</span></dt><dd><p>The keys are the names of the patterns, and
+the values are the alternative code numbers,
+as created by <cite>generate_alternatives</cite>.</p>
+</dd>
+<dt><strong>interaction_coef</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>The interaction coefficients provided by
+the ActivitySim framework.  Should include columns
+“cardinality”, “activity”, “interaction_ptypes”, and “coefficient”.</p>
+</dd>
+<dt><strong>coefficients</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>The full set of coefficients provided by
+the ActivitySim framework.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.cdap_joint_tour_utility">
 <span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">cdap_joint_tour_utility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.cdap_joint_tour_utility" title="Permalink to this definition">#</a></dt>
 <dd><p>FIXME: Not fully implemented!!!!</p>
@@ -1123,6 +1148,7 @@ have the same initial value are converted to have the same name
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-activitysim.estimation.larch.cdap">activitysim.estimation.larch.cdap</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.estimation.larch.cdap.apply_replacements"><code class="docutils literal notranslate"><span class="pre">apply_replacements()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.estimation.larch.cdap.cdap_base_utility_by_person"><code class="docutils literal notranslate"><span class="pre">cdap_base_utility_by_person()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.estimation.larch.cdap.cdap_interaction_utility"><code class="docutils literal notranslate"><span class="pre">cdap_interaction_utility()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.estimation.larch.cdap.cdap_joint_tour_utility"><code class="docutils literal notranslate"><span class="pre">cdap_joint_tour_utility()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.estimation.larch.cdap.generate_alternatives"><code class="docutils literal notranslate"><span class="pre">generate_alternatives()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.estimation.larch.cdap.interact_pattern"><code class="docutils literal notranslate"><span class="pre">interact_pattern()</span></code></a></li>
@@ -1182,7 +1208,7 @@ have the same initial value are converted to have the same name
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev3+g61078c719, documentation last updated Dec 11, 2025.<br/>
+ActivitySim 1.5.2.dev4+g0811191c8, documentation last updated Jan 08, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

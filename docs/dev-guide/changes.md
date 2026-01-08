@@ -5,6 +5,17 @@ major new features that may require modifications to existing model configuratio
 or code to utilize, as well as breaking changes that may cause existing model
 configurations or code to fail to run correctly.
 
+## v1.5
+
+### Shadow Price Zones Reopening
+
+A bug fix in version 1.5 addresses an issue with reopening work and school zones during iterative
+shadow pricing using the simulation-based constraint mechanism. Now, when zones are closed, they
+remained closed. See ActivitySim [Issue #820](https://github.com/ActivitySim/activitysim/issues/820)
+for more details. There is nothing for the user to do to take advantage of this fix, but it may
+slightly change results for models that use shadow pricing. Aggregate level outputs should remain
+very stable, but some individual choices of school and work locations may change due to the fix.
+
 ## v1.4
 
 ### Improved Estimation Mode

@@ -6,12 +6,22 @@ or code to utilize, as well as breaking changes that may cause existing model
 configurations or code to fail to run correctly.
 
 
+
 ## Upcoming Changes
 
 This section describes changes that are implemented in current development
 branch (i.e., the main branch on GitHub), but not yet released in a stable version
 of ActivitySim.  See below under the various version headings for changes in
 released versions.
+
+### Shadow Price Zones Reopening
+
+We fixed an issue with reopening work and school zones during iterative shadow pricing using the
+simulation-based constraint mechanism. Now, when zones are closed, they remained closed. (See
+ActivitySim [Issue #820](https://github.com/ActivitySim/activitysim/issues/820) for more details.)
+There is nothing for the user to do to take advantage of this fix, but it may slightly change
+results for models that use shadow pricing. Aggregate level outputs should remain very stable, but
+some individual choices of school and work locations may change due to the fix.
 
 ### Alternative file naming consistency
 

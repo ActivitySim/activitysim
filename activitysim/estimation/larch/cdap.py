@@ -200,7 +200,7 @@ def cdap_interaction_utility(
             for j in c_split[2:]:
                 interact_coef_map[(c_split[1], j)] = c
                 # previously, wildcards also mapped empty here, but this caused a clash
-                # as all wildcards would map to the same coefficient name not matter the
+                # as all wildcards would map to the same coefficient name no matter the
                 # cardinality, so instead we only map the exact wildcard case, and later
                 # check that empty interaction_ptypes maps to the correct coefficient name
                 # based on cardinality.

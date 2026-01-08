@@ -28,8 +28,14 @@ parameters to ensure that they are correct.  It is not expected that this error
 will have a significant impact on simulated travel behavior outcomes, as it is only
 a few parameters with a large and complex model, and the overall behavioral
 characteristics of 3, 4, and 5-person households are expected to be somewhat
-similar to each other in any case.
-
+similar to each other in any case.  If users wish to formally correct their model
+to reflect the mathematical formulation that was actually estimated in prior
+versions of ActivitySim without re-estimating the entire model, they can set
+`coef_[M,N,H]_xxx `and `coef_[M,N,H]_xxxx` to have the same value as
+`coef_[M,N,H]_xxxxx`. This change may impact model calibration, so it is recommended
+to proceed with caution if choosing this option. For an existing well calibrated model,
+the calibration may have already compensated for this error in the estimation,
+so changing the coefficients may lead to degraded model quality.
 
 ## v1.5.1
 

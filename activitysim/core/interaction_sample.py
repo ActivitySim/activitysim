@@ -111,13 +111,12 @@ def make_sample_choices_utility_based(
     chunk_sizer.log_df(trace_label, "chooser_idx", None)
     del chosen_destinations
     chunk_sizer.log_df(trace_label, "chosen_destinations", None)
-    del probs
-    chunk_sizer.log_df(trace_label, "probs", None)
 
     # handing this off to caller
+    chunk_sizer.log_df(trace_label, "probs", None)
     chunk_sizer.log_df(trace_label, "choices_df", None)
 
-    return choices_df
+    return choices_df, probs
 
 
 def make_sample_choices(
@@ -581,7 +580,7 @@ def _interaction_sample(
             trace_choosers=choosers,
         )
 
-        choices_df = make_sample_choices_utility_based(
+        choices_df, probs = make_sample_choices_utility_based(
             state,
             choosers,
             utilities,
@@ -593,13 +592,24 @@ def _interaction_sample(
             trace_label=trace_label,
             chunk_sizer=chunk_sizer,
         )
+
         del utilities
         chunk_sizer.log_df(trace_label, "utilities", None)
 
         if estimation.manager.enabled and sample_size > 0:
-            raise NotImplementedError(
-                "estimation.manager.enabled and sample_size > 0 needs probs, not in EET case here"
+
+            choices_df = _ensure_chosen_alts_in_sample(
+                alt_col_name,
+                alternatives,
+                choices_df,
+                choosers,
+                probs,
+                state,
+                trace_label,
             )
+
+        del probs
+        chunk_sizer.log_df(trace_label, "probs", None)
 
     else:
         # convert to probabilities (utilities exponentiated and normalized to probs)

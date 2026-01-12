@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import logging
 import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-from activitysim.core import expressions, workflow
+from activitysim.core import expressions, timing, workflow
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.los import Network_LOS
 
@@ -234,7 +235,7 @@ def summarize(
     trace_label: str = "summarize",
 ) -> None:
     """
-    A standard model that uses expression files to summarize pipeline tables for vizualization.
+    A standard model that uses expression files to summarize pipeline tables for visualization.
 
     Summaries are configured in `summarize.yaml`, including specification of the
     expression file (`summarize.csv` by default).
@@ -242,7 +243,7 @@ def summarize(
     Columns in pipeline tables can also be sliced and aggregated prior to summarization.
     This preprocessing is configured in `summarize.yaml`.
 
-    Outputs a seperate csv summary file for each expression;
+    Outputs a separate csv summary file for each expression;
     outputs starting with '_' are saved as temporary local variables.
     """
 
@@ -353,6 +354,12 @@ def summarize(
         }
     )
 
+    if state.settings.expression_profile:
+        perf_log_file = Path(trace_label + ".log")
+    else:
+        perf_log_file = None
+    performance_timer = timing.EvalTiming(perf_log_file)
+
     for i, row in spec.iterrows():
         out_file = row["Output"]
         expr = row["Expression"]
@@ -361,15 +368,19 @@ def summarize(
         if out_file.startswith("_"):
             logger.debug(f"Temp Variable: {expr} -> {out_file}")
 
-            locals_d[out_file] = eval(expr, globals(), locals_d)
+            with performance_timer.time_expression(expr):
+                locals_d[out_file] = eval(expr, globals(), locals_d)
             continue
 
         logger.debug(f"Summary: {expr} -> {out_file}.csv")
 
-        resultset = eval(expr, globals(), locals_d)
+        with performance_timer.time_expression(expr):
+            resultset = eval(expr, globals(), locals_d)
         resultset.to_csv(
             state.get_output_file_path(
                 os.path.join(output_location, f"{out_file}.csv")
             ),
             index=False,
         )
+
+    performance_timer.write_log(state)

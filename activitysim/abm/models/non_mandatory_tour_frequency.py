@@ -10,7 +10,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util import annotate
 from activitysim.abm.models.util.overlap import (
     person_available_periods,
     person_max_window,
@@ -28,7 +27,7 @@ from activitysim.core import (
     tracing,
     workflow,
 )
-from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.base import PydanticReadable, PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_simulate import interaction_simulate
 
@@ -166,26 +165,20 @@ class NonMandatoryTourFrequencySettings(LogitComponentSettings, extra="forbid"):
     Settings for the `non_mandatory_tour_frequency` component.
     """
 
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
-
     SEGMENT_COL: str = "ptype"
     # not used anymore TODO remove if needed
 
     SPEC_SEGMENTS: list[NonMandatoryTourSpecSegment] = []
     # check the above
 
-    annotate_persons: PreprocessorSettings | None = None
-    """Preprocessor settings to annotate persons"""
-
-    annotate_tours: PreprocessorSettings | None = None
-    """Preprocessor settings to annotate tours"""
-
     explicit_chunk: float = 0
     """
     If > 0, use this chunk size instead of adaptive chunking.
     If less than 1, use this fraction of the total number of rows.
     """
+
+    alts_preprocessor: PreprocessorSettings | None = None
+    """Settings for the alternatives preprocessor."""
 
 
 @workflow.step
@@ -233,27 +226,36 @@ def non_mandatory_tour_frequency(
     choosers = persons_merged
     choosers = choosers[choosers.cdap_activity.isin(["M", "N"])]
 
-    # - preprocessor
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        locals_dict = {
-            "person_max_window": lambda x: person_max_window(state, x),
-            "person_available_periods": lambda persons, start_bin, end_bin, continuous: person_available_periods(
-                state, persons, start_bin, end_bin, continuous
-            ),
-        }
-
-        expressions.assign_columns(
-            state,
-            df=choosers,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label,
-        )
-
     logger.info("Running non_mandatory_tour_frequency with %d persons", len(choosers))
-
+    # preprocessing choosers
     constants = config.get_model_constants(model_settings)
+    locals_dict = {
+        "person_max_window": lambda x: person_max_window(state, x),
+        "person_available_periods": lambda persons, start_bin, end_bin, continuous: person_available_periods(
+            state, persons, start_bin, end_bin, continuous
+        ),
+    }
+    locals_dict.update(constants)
+
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
+    # preprocessing alternatives
+    expressions.annotate_preprocessors(
+        state,
+        df=alternatives,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor",
+    )
 
     model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     spec_segments = model_settings.SPEC_SEGMENTS
@@ -287,14 +289,22 @@ def non_mandatory_tour_frequency(
         )
 
         if estimator:
-            estimator.write_spec(model_settings, bundle_directory=True)
+            bundle_directory = True
+            # writing to separte subdirectory for each segment if multiprocessing
+            if state.settings.multiprocess:
+                bundle_directory = False
+            estimator.write_spec(model_settings, bundle_directory=bundle_directory)
             estimator.write_model_settings(
-                model_settings, model_settings_file_name, bundle_directory=True
+                model_settings,
+                model_settings_file_name,
+                bundle_directory=bundle_directory,
             )
             # preserving coefficients file name makes bringing back updated coefficients more straightforward
             estimator.write_coefficients(coefficients_df, segment_settings)
             estimator.write_choosers(chooser_segment)
-            estimator.write_alternatives(alternatives, bundle_directory=True)
+            estimator.write_alternatives(
+                alternatives, bundle_directory=bundle_directory
+            )
 
             # FIXME #interaction_simulate_estimation_requires_chooser_id_in_df_column
             #  shuold we do it here or have interaction_simulate do it?
@@ -433,8 +443,10 @@ def non_mandatory_tour_frequency(
     if estimator:
         # make sure they created the right tours
         survey_tours = estimation.manager.get_survey_table("tours").sort_index()
+        # need the household_id check below incase household_sample_size != 0
         non_mandatory_survey_tours = survey_tours[
-            survey_tours.tour_category == "non_mandatory"
+            (survey_tours.tour_category == "non_mandatory")
+            & survey_tours.household_id.isin(persons.household_id)
         ]
         # need to remove the pure-escort tours from the survey tours table for comparison below
         if state.is_table("school_escort_tours"):
@@ -479,16 +491,6 @@ def non_mandatory_tour_frequency(
         # need to re-compute tour frequency statistics to account for school escort tours
         recompute_tour_count_statistics(state)
 
-    if model_settings.annotate_tours:
-        annotate.annotate_tours(state, model_settings, trace_label)
-
-    expressions.assign_columns(
-        state,
-        df=persons,
-        model_settings=model_settings.annotate_persons,
-        trace_label=trace_label,
-    )
-
     state.add_table("persons", persons)
 
     tracing.print_summary(
@@ -513,3 +515,11 @@ def non_mandatory_tour_frequency(
             label="non_mandatory_tour_frequency.annotated_persons",
             warn_if_empty=True,
         )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

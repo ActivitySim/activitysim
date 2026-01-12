@@ -47,7 +47,6 @@ class TourODSettings(TourLocationComponentSettings):
     ORIGIN_ATTR_COLS_TO_USE: list[str] = []
     ORIG_COL_NAME: str
     ORIG_FILTER: str | None = None
-    preprocessor: PreprocessorSettings | None = None
 
 
 def get_od_id_col(origin_col, destination_col):
@@ -156,7 +155,7 @@ def _od_sample(
     else:
         alt_col_name = alt_od_col_name
 
-    logger.info("running %s with %d tours", trace_label, len(choosers))
+    logger.debug("running %s with %d tours", trace_label, len(choosers))
 
     sample_size = model_settings.SAMPLE_SIZE
     if state.settings.disable_destination_sampling or (
@@ -164,7 +163,7 @@ def _od_sample(
     ):
         # FIXME interaction_sample will return unsampled complete alternatives
         # with probs and pick_count
-        logger.info(
+        logger.debug(
             (
                 "Estimation mode for %s using unsampled alternatives "
                 "short_circuit_choices"
@@ -202,6 +201,17 @@ def _od_sample(
 
     elif skims.orig_key not in od_alts_df:
         logger.error("Alts df is missing origin skim key column.")
+
+    # preprocessing alternatives
+    expressions.annotate_preprocessors(
+        state,
+        df=od_alts_df,
+        locals_dict=locals_d,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_sample",
+    )
 
     choices = interaction_sample(
         state,
@@ -597,7 +607,7 @@ def od_presample(
     trace_label = tracing.extend_trace_label(trace_label, "presample")
     chunk_tag = "tour_od.presample"
 
-    logger.info(f"{trace_label} od_presample")
+    logger.debug(f"{trace_label} od_presample")
 
     alt_od_col_name = get_od_id_col(ORIG_MAZ, DEST_TAZ)
 
@@ -658,54 +668,6 @@ def od_presample(
     return maz_choices
 
 
-# class SizeTermCalculatorOD:  # class SizeTermCalculator
-#     """
-#     convenience object to provide size_terms for a selector (e.g.
-#     non_mandatory) for various segments (e.g. tour_type or purpose)
-#     returns size terms for specified segment in df or series form.
-#     """
-#
-#     def __init__(self, size_term_selector):
-#         # do this once so they can request size_terms for various segments (tour_type or purpose)
-#         land_use = state.checkpoint.load_dataframe("land_use")
-#         self.land_use = land_use
-#         size_terms = state.get_injectable("size_terms")
-#         self.destination_size_terms = tour_destination_size_terms(
-#             self.land_use, size_terms, size_term_selector
-#         )
-#
-#         assert not self.destination_size_terms.isna().any(axis=None)
-#
-#     def omnibus_size_terms_df(self):
-#         return self.destination_size_terms
-#
-#     def dest_size_terms_df(self, segment_name, trace_label):
-#         # return size terms as df with one column named 'size_term'
-#         # convenient if creating or merging with alts
-#
-#         size_terms = self.destination_size_terms[[segment_name]].copy()
-#         size_terms.columns = ["size_term"]
-#
-#         # FIXME - no point in considering impossible alternatives (where dest size term is zero)
-#         logger.debug(
-#             f"SizeTermCalculator dropping {(~(size_terms.size_term > 0)).sum()} "
-#             f"of {len(size_terms)} rows where size_term is zero for {segment_name}"
-#         )
-#         size_terms = size_terms[size_terms.size_term > 0]
-#
-#         if len(size_terms) == 0:
-#             logger.warning(
-#                 f"SizeTermCalculator: no zones with non-zero size terms for {segment_name} in {trace_label}"
-#             )
-#
-#         return size_terms
-#
-#     def dest_size_terms_series(self, segment_name):
-#         # return size terms as as series
-#         # convenient (and no copy overhead) if reindexing and assigning into alts column
-#         return self.destination_size_terms[segment_name]
-
-
 def run_od_sample(
     state,
     spec_segment_name,
@@ -749,7 +711,7 @@ def run_od_sample(
         )
 
     if pre_sample_taz:
-        logger.info(
+        logger.debug(
             "Running %s destination_presample with %d tours" % (trace_label, len(tours))
         )
 
@@ -818,7 +780,7 @@ def run_od_logsums(
         choosers[origin_id_col].astype(str) + "_" + choosers[dest_id_col].astype(str)
     )
 
-    logger.info("Running %s with %s rows", trace_label, len(choosers))
+    logger.debug("Running %s with %s rows", trace_label, len(choosers))
 
     state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
@@ -1027,7 +989,7 @@ def run_od_simulate(
 
     constants = model_settings.CONSTANTS
 
-    logger.info("Running tour_destination_simulate with %d persons", len(choosers))
+    logger.debug("Running tour_destination_simulate with %d persons", len(choosers))
 
     # create wrapper with keys for this lookup - in this case there is an origin ID
     # column and a destination ID columns in the alternatives table.
@@ -1043,6 +1005,17 @@ def run_od_simulate(
     }
     if constants is not None:
         locals_d.update(constants)
+
+    # preprocessing alternatives
+    expressions.annotate_preprocessors(
+        state,
+        df=od_sample,
+        locals_dict=locals_d,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_simulate",
+    )
 
     state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
     choices = interaction_sample_simulate(
@@ -1085,7 +1058,6 @@ def run_tour_od(
     trace_label,
 ):
     size_term_calculator = SizeTermCalculator(state, model_settings.SIZE_TERM_SELECTOR)
-    preprocessor_settings = model_settings.preprocessor
     origin_col_name = model_settings.ORIG_COL_NAME
 
     chooser_segment_column = model_settings.CHOOSER_SEGMENT_COLUMN_NAME
@@ -1108,15 +1080,15 @@ def run_tour_od(
             right_index=True,
         )
 
-        # - annotate choosers
-        if preprocessor_settings:
-            expressions.assign_columns(
-                state,
-                df=choosers,
-                model_settings=preprocessor_settings,
-                trace_label=trace_label,
-            )
-
+        # preprocessing choosers
+        expressions.annotate_preprocessors(
+            state,
+            df=choosers,
+            locals_dict={},
+            skims=None,
+            model_settings=model_settings,
+            trace_label=trace_label,
+        )
         # size_term segment is segment_name
         segment_destination_size_terms = size_term_calculator.dest_size_terms_df(
             segment_name, trace_label
@@ -1160,20 +1132,24 @@ def run_tour_od(
             )
 
         # - destination_logsums
-        od_sample_df = run_od_logsums(
-            state,
-            spec_segment_name,
-            choosers,
-            od_sample_df,
-            model_settings,
-            network_los,
-            estimator,
-            chunk_size=chunk_size,
-            trace_hh_id=trace_hh_id,
-            trace_label=tracing.extend_trace_label(
-                trace_label, f"logsums.{segment_name}"
-            ),
-        )
+        # Skip logsum calculation step if LOGSUM_SETTINGS is None
+        if model_settings.LOGSUM_SETTINGS:
+            od_sample_df = run_od_logsums(
+                state,
+                spec_segment_name,
+                choosers,
+                od_sample_df,
+                model_settings,
+                network_los,
+                estimator,
+                chunk_size=chunk_size,
+                trace_hh_id=trace_hh_id,
+                trace_label=tracing.extend_trace_label(
+                    trace_label, f"logsums.{segment_name}"
+                ),
+            )
+        else:
+            od_sample_df["tour_mode_choice_logsum"] = 0.0
 
         # - od_simulate
         choices = run_od_simulate(

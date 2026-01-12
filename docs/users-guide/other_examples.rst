@@ -50,8 +50,6 @@ Some available examples include those listed in the table below.
 +-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | placeholder_psrc                          | PSRC agency example                                       | 2            | Future development   |
 +-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| placeholder_sandag                        | SANDAG agency example                                     | 3            | Future development   |
-+-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | prototype_sandag_xborder                  | SANDAG agency example                                     | 3            | In development       |
 +-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | prototype_mwcog                           | MWCOG agency example                                      | 2            | In development       |
@@ -100,10 +98,8 @@ has essentially the same configuration as the simpler three zone example above.
 
 *Example*
 
-
 To run prototype_marin, do the following:
 
-* Activate the correct conda environment if needed
 * Create a local copy of the example
 
 ::
@@ -117,7 +113,7 @@ To run prototype_marin, do the following:
 ::
 
   # Marin TM2 work tour mode choice for the MTC region
-  activitysim run -c configs -d data -o output -s settings_mp.yaml
+  uv run activitysim run -c configs -d data -o output -s settings_mp.yaml
 
 * For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
@@ -196,25 +192,6 @@ prototype_mtc model design.  It uses PSRC zones, land use, synthetic population,
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running placeholder_psrc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
-
-.. _placeholder_sandag :
-
-**placeholder_sandag**
-
-
-.. note::
-
-  This example is in development
-
-
-The placeholder_sandag is a multi-part model, containing one-, two-, and three- zone system (MAZs, TAZs, and TAPs) implementation of the
-prototype_mtc model design.  It uses SANDAG zones, land use, synthetic population, and network LOS (skims).
-
-*Example*
-
-
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
-for running placeholder_sandag.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _prototype_sandag_xborder :
 

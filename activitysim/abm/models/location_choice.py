@@ -18,7 +18,7 @@ from activitysim.core.configuration.logit import (
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
-
+from activitysim.core.exceptions import DuplicateWorkflowTableError
 
 """
 The school/workplace location model predicts the zones in which various people will
@@ -140,7 +140,7 @@ def _location_sample(
 
     sample_size = model_settings.SAMPLE_SIZE
 
-    if estimator:
+    if estimator and model_settings.ESTIMATION_SAMPLE_SIZE >= 0:
         sample_size = model_settings.ESTIMATION_SAMPLE_SIZE
         logger.info(
             f"Estimation mode for {trace_label} using sample size of {sample_size}"
@@ -162,6 +162,27 @@ def _location_sample(
         "land_use": state.get_dataframe("land_use"),
     }
     locals_d.update(model_settings.CONSTANTS or {})
+
+    # preprocess choosers table
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=locals_d,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
+    # preprocess alternatives table
+    expressions.annotate_preprocessors(
+        state,
+        df=alternatives,
+        locals_dict=locals_d,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_sample",
+    )
 
     spec = simulate.spec_for_segment(
         state,
@@ -402,7 +423,7 @@ def location_presample(
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
     maz_choices = tour_destination.choose_MAZ_for_TAZ(
-        state, taz_sample, MAZ_size_terms, trace_label
+        state, taz_sample, MAZ_size_terms, trace_label, model_settings
     )
 
     assert DEST_MAZ in maz_choices
@@ -490,38 +511,6 @@ def run_location_sample(
             chunk_tag=f"{chunk_tag}.sample",
             trace_label=trace_label,
         )
-
-    # adding observed choice to alt set when running in estimation mode
-    if estimator:
-        # grabbing survey values
-        survey_persons = estimation.manager.get_survey_table("persons")
-        if "school_location" in trace_label:
-            survey_choices = survey_persons["school_zone_id"].reset_index()
-        elif ("workplace_location" in trace_label) and ("external" not in trace_label):
-            survey_choices = survey_persons["workplace_zone_id"].reset_index()
-        else:
-            return choices
-        survey_choices.columns = ["person_id", "alt_dest"]
-        survey_choices = survey_choices[
-            survey_choices["person_id"].isin(choices.index)
-            & (survey_choices.alt_dest > 0)
-        ]
-        # merging survey destination into table if not available
-        joined_data = survey_choices.merge(
-            choices, on=["person_id", "alt_dest"], how="left", indicator=True
-        )
-        missing_rows = joined_data[joined_data["_merge"] == "left_only"]
-        missing_rows["pick_count"] = 1
-        if len(missing_rows) > 0:
-            new_choices = missing_rows[
-                ["person_id", "alt_dest", "prob", "pick_count"]
-            ].set_index("person_id")
-            choices = choices.append(new_choices, ignore_index=False).sort_index()
-            # making probability the mean of all other sampled destinations by person
-            # FIXME is there a better way to do this? Does this even matter for estimation?
-            choices["prob"] = choices["prob"].fillna(
-                choices.groupby("person_id")["prob"].transform("mean")
-            )
 
     return choices
 
@@ -664,6 +653,27 @@ def run_location_simulate(
     }
     locals_d.update(model_settings.CONSTANTS or {})
 
+    # preprocess choosers table
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=locals_d,
+        skims=None,  # skims included in locals_d
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
+    # preprocess alternatives table
+    expressions.annotate_preprocessors(
+        state,
+        df=alternatives,
+        locals_dict=locals_d,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_simulate",
+    )
+
     if estimator:
         # write choosers after annotation
         estimator.write_choosers(choosers)
@@ -796,19 +806,23 @@ def run_location_choice(
         )
 
         # - location_logsums
-        location_sample_df = run_location_logsums(
-            state,
-            segment_name,
-            choosers,
-            network_los,
-            location_sample_df,
-            model_settings,
-            chunk_size,
-            chunk_tag=f"{chunk_tag}.logsums",
-            trace_label=tracing.extend_trace_label(
-                trace_label, "logsums.%s" % segment_name
-            ),
-        )
+        # skip logsum calculations if LOGSUM_SETTINGS is None
+        if model_settings.LOGSUM_SETTINGS:
+            location_sample_df = run_location_logsums(
+                state,
+                segment_name,
+                choosers,
+                network_los,
+                location_sample_df,
+                model_settings,
+                chunk_size,
+                chunk_tag=f"{chunk_tag}.logsums",
+                trace_label=tracing.extend_trace_label(
+                    trace_label, "logsums.%s" % segment_name
+                ),
+            )
+        else:
+            location_sample_df[ALT_LOGSUM] = 0.0
 
         # - location_simulate
         choices_df = run_location_simulate(
@@ -1112,38 +1126,23 @@ def iterate_location_choice(
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
         # lest they try to put school and workplace samples into the same table
         if state.is_table(sample_table_name):
-            raise RuntimeError(
+            raise DuplicateWorkflowTableError(
                 "dest choice sample table %s already exists" % sample_table_name
             )
         state.extend_table(sample_table_name, save_sample_df)
 
-    # - annotate persons table
-    if model_settings.annotate_persons:
-        expressions.assign_columns(
-            state,
-            df=persons_df,
-            model_settings=model_settings.annotate_persons,
-            trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
-        )
+    state.add_table("persons", persons_df)
 
-        state.add_table("persons", persons_df)
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(persons_df, label=trace_label, warn_if_empty=True)
 
-        if state.settings.trace_hh_id:
-            state.tracing.trace_df(persons_df, label=trace_label, warn_if_empty=True)
-
-    # - annotate households table
-    if model_settings.annotate_households:
-        households_df = households
-        expressions.assign_columns(
-            state,
-            df=households_df,
-            model_settings=model_settings.annotate_households,
-            trace_label=tracing.extend_trace_label(trace_label, "annotate_households"),
-        )
-        state.add_table("households", households_df)
-
-        if state.settings.trace_hh_id:
-            state.tracing.trace_df(households_df, label=trace_label, warn_if_empty=True)
+    expressions.annotate_tables(
+        state,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     if dc_logsum_column_name:
         tracing.print_summary(

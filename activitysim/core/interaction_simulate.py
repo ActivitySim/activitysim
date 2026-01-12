@@ -7,14 +7,16 @@ import time
 from builtins import zip
 from collections import OrderedDict
 from datetime import timedelta
+from pathlib import Path
 from typing import Mapping
 
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, logit, simulate, tracing, util, workflow
+from activitysim.core import chunk, logit, simulate, timing, tracing, util, workflow
 from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.fast_eval import fast_eval
+from activitysim.core.exceptions import SegmentedSpecificationError
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +84,7 @@ def eval_interaction_utilities(
     start_time = time.time()
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utils")
-    logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
+    logger.debug("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
     sharrow_enabled = state.settings.sharrow
     if compute_settings is None:
@@ -90,7 +92,7 @@ def eval_interaction_utilities(
     if compute_settings.sharrow_skip:
         sharrow_enabled = False
 
-    logger.info(f"{trace_label} sharrow_enabled is {sharrow_enabled}")
+    logger.debug(f"{trace_label} sharrow_enabled is {sharrow_enabled}")
 
     trace_eval_results = None
 
@@ -263,6 +265,23 @@ def eval_interaction_utilities(
                 exprs = spec.index
                 labels = spec.index
 
+            # init a performance timer if needed
+            if (
+                state.settings.expression_profile
+                and compute_settings.performance_log is None
+            ):
+                perf_log_file = Path(trace_label + ".log")
+            elif (
+                state.settings.expression_profile is False
+                or compute_settings.performance_log is False
+            ):
+                perf_log_file = None
+            elif compute_settings.performance_log is True:
+                perf_log_file = Path(trace_label + ".log")
+            else:
+                perf_log_file = compute_settings.performance_log
+            performance_timer = timing.EvalTiming(perf_log_file)
+
             with compute_settings.pandas_option_context():
                 for expr, label, coefficient in zip(exprs, labels, spec.iloc[:, 0]):
                     try:
@@ -270,7 +289,8 @@ def eval_interaction_utilities(
                         if expr.startswith("_"):
                             target = expr[: expr.index("@")]
                             rhs = expr[expr.index("@") + 1 :]
-                            v = to_series(eval(rhs, globals(), locals_d))
+                            with performance_timer.time_expression(expr):
+                                v = to_series(eval(rhs, globals(), locals_d))
 
                             # update locals to allows us to ref previously assigned targets
                             locals_d[target] = v
@@ -285,10 +305,11 @@ def eval_interaction_utilities(
                             # they have a non-zero dummy coefficient to avoid being removed from spec as NOPs
                             continue
 
-                        if expr.startswith("@"):
-                            v = to_series(eval(expr[1:], globals(), locals_d))
-                        else:
-                            v = fast_eval(df, expr, resolvers=[locals_d])
+                        with performance_timer.time_expression(expr):
+                            if expr.startswith("@"):
+                                v = to_series(eval(expr[1:], globals(), locals_d))
+                            else:
+                                v = fast_eval(df, expr, resolvers=[locals_d])
 
                         if check_for_variability and v.std() == 0:
                             logger.info(
@@ -403,6 +424,7 @@ def eval_interaction_utilities(
                     trace_label, "eval.trace_eval_results", trace_eval_results
                 )
 
+            performance_timer.write_log(state)
             chunk_sizer.log_df(trace_label, "v", None)
             chunk_sizer.log_df(
                 trace_label, "eval.utilities", None
@@ -612,11 +634,11 @@ def eval_interaction_utilities(
                         raise  # enter debugger now to see what's up
             timelogger.mark("sharrow interact test", True, logger, trace_label)
 
-    logger.info(f"utilities.dtypes {trace_label}\n{utilities.dtypes}")
+    logger.debug(f"utilities.dtypes {trace_label}\n{utilities.dtypes}")
     end_time = time.time()
 
     timelogger.summary(logger, "TIMING interact_simulate.eval_utils")
-    logger.info(
+    logger.debug(
         f"interact_simulate.eval_utils runtime: {timedelta(seconds=end_time - start_time)} {trace_label}"
     )
 
@@ -701,7 +723,7 @@ def _interaction_simulate(
         )
 
     if len(spec.columns) > 1:
-        raise RuntimeError("spec must have only one column")
+        raise SegmentedSpecificationError("spec must have only one column")
 
     sample_size = sample_size or len(alternatives)
 

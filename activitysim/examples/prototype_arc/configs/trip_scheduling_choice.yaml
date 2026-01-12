@@ -9,12 +9,16 @@
 #      - start_period
 #      - end_period
 
-SPECIFICATION: trip_scheduling_choice.csv
+SPEC: trip_scheduling_choice.csv
 #COEFFICIENTS: trip_scheduling_choice_coeff.csv
 
 #SAMPLE_ALTERNATIVES: trip_departure_sample_patterns.csv
 
-PREPROCESSOR:
+compute_settings: 
+  protect_columns: 
+    - schedule_id
+
+preprocessor:
   SPEC: trip_scheduling_choice_preprocessor
   DF: tours
   TABLES:

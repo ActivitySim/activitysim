@@ -6,7 +6,7 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import assign, simulate, tracing, workflow
+from activitysim.core import config, assign, simulate, tracing, workflow
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticBase
 from activitysim.core.util import (
     assign_in_place,
@@ -139,6 +139,7 @@ def compute_columns(
         df,
         _locals_dict,
         trace_rows=state.tracing.trace_targets(df),
+        trace_label=trace_label,
     )
 
     if trace_results is not None:
@@ -184,26 +185,65 @@ def assign_columns(
 def annotate_preprocessors(
     state: workflow.State,
     df: pd.DataFrame,
-    locals_dict,
-    skims,
+    locals_dict: dict,
+    skims: dict | None,
     model_settings: PydanticBase | dict,
     trace_label: str,
+    preprocessor_setting_name: str = "preprocessor",
 ):
-    locals_d = {}
-    locals_d.update(locals_dict)
-    locals_d.update(skims)
+    """
+    Look through the preprocessor settings and apply the calculations to the dataframe.
+    This is generally called before the main model calculations to prepare the data.
 
-    try:
-        preprocessor_settings = model_settings.preprocessor
-    except AttributeError:
-        preprocessor_settings = model_settings.get("preprocessor", [])
-    if preprocessor_settings is None:
-        preprocessor_settings = []
+    Parameters
+    ----------
+    state : workflow.State
+        The current state of the workflow.
+    df : pd.DataFrame
+        DataFrame to which the preprocessor settings will be applied.
+    locals_dict : dict
+        Dictionary of local variables to be used in the expressions.
+    skims : dict | None
+        Dictionary of skims to be used in the expressions.
+    model_settings : PydanticBase | dict
+        Model settings containing the preprocessor settings.
+    trace_label : str
+        Label for tracing the operations.
+    preprocessor_setting_name : str
+        Name of the preprocessor settings key in the model settings.
+
+    Returns
+    -------
+    None -- dataframe is modified in place
+
+    """
+    if isinstance(model_settings, PydanticBase):
+        preprocessor_settings = getattr(model_settings, preprocessor_setting_name, [])
+    elif isinstance(model_settings, dict):
+        preprocessor_settings = model_settings.get(preprocessor_setting_name, [])
+    else:
+        raise ValueError(
+            f"Expected model_settings to be PydanticBase or dict, got {type(model_settings)}"
+        )
+
+    if not preprocessor_settings or preprocessor_settings == []:
+        return
+
     if not isinstance(preprocessor_settings, list):
         assert isinstance(preprocessor_settings, dict | PreprocessorSettings)
         preprocessor_settings = [preprocessor_settings]
 
-    simulate.set_skim_wrapper_targets(df, skims)
+    locals_d = {}
+    locals_d.update(locals_dict)
+    if skims:
+        try:
+            simulate.set_skim_wrapper_targets(df, skims)
+            locals_d.update(skims)
+        except AssertionError as e:
+            logger.warning(
+                "Failed to set skim wrapper targets: %s. Skims wrappers may not be used in expressions.",
+                e,
+            )
 
     for preproc_settings in preprocessor_settings:
         results = compute_columns(
@@ -211,12 +251,93 @@ def annotate_preprocessors(
             df=df,
             model_settings=preproc_settings,
             locals_dict=locals_d,
-            trace_label=trace_label,
+            trace_label=tracing.extend_trace_label(
+                trace_label, preprocessor_setting_name
+            ),
         )
 
         assign_in_place(
             df, results, state.settings.downcast_int, state.settings.downcast_float
         )
+
+
+def annotate_tables(
+    state: workflow.State,
+    model_settings: PydanticBase | dict,
+    trace_label: str,
+    skims: dict | None = None,
+    locals_dict: dict | None = None,
+):
+    """
+    Look through the annotate settings and apply the calculations to the tables.
+    This is generally called after the main model calculations to add data to output tables.
+
+    Parameters
+    ----------
+    state : workflow.State
+        The current state of the workflow.
+    model_settings : PydanticBase | dict
+        Model settings containing the annotation settings for various tables.
+    trace_label : str
+        Label for tracing the operations.
+    skims : dict | None
+        Dictionary of skims to be used in the expressions, if applicable.
+    locals_dict : dict | None
+        Dictionary of local variables to be used in the expressions, if applicable.
+
+    Returns
+    -------
+    None -- tables are modified in place
+    """
+
+    # process tables in least to most aggregated order
+    tables = ["trips", "tours", "vehicles", "persons", "households"]
+
+    for table_name in tables:
+        if isinstance(model_settings, PydanticBase):
+            annotate_settings = getattr(model_settings, f"annotate_{table_name}", None)
+        elif isinstance(model_settings, dict):
+            annotate_settings = model_settings.get(f"annotate_{table_name}", None)
+        else:
+            raise ValueError(
+                f"Expected model_settings to be PydanticBase or dict, got {type(model_settings)}"
+            )
+
+        if annotate_settings is None:
+            continue
+        assert isinstance(
+            annotate_settings, (dict, PreprocessorSettings)
+        ), f"Expected annotate_{table_name} to be dict or PreprocessorSettings, got {type(annotate_settings)}"
+
+        df = state.get_dataframe(table_name)
+
+        locals_d = {}
+        if skims:
+            try:
+                simulate.set_skim_wrapper_targets(df, skims)
+                locals_d.update(skims)
+            except AssertionError as e:
+                logger.warning(
+                    "Failed to set skim wrapper targets: %s. Skims wrappers may not be used in expressions.",
+                    e,
+                )
+        if locals_dict:
+            locals_d.update(locals_dict)
+
+        results = compute_columns(
+            state,
+            df=df,
+            model_settings=annotate_settings,
+            locals_dict=locals_d,
+            trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
+        )
+
+        assign_in_place(
+            df, results, state.settings.downcast_int, state.settings.downcast_float
+        )
+
+        # write table with new columns back to state
+        state.add_table(table_name, df)
 
 
 def filter_chooser_columns(choosers, chooser_columns):

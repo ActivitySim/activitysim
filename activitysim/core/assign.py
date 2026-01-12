@@ -5,11 +5,12 @@ from __future__ import annotations
 import logging
 from builtins import object, zip
 from collections import OrderedDict
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, util, workflow
+from activitysim.core import chunk, timing, util, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -275,6 +276,12 @@ def assign_variables(
 
     assert assignment_expressions.shape[0] > 0
 
+    if state.settings.expression_profile:
+        perf_log_file = Path(trace_label + ".log")
+    else:
+        perf_log_file = None
+    performance_timer = timing.EvalTiming(perf_log_file)
+
     trace_assigned_locals = trace_results = None
     if trace_rows is not None:
         # convert to numpy array so we can slice ndarrays as well as series
@@ -311,24 +318,25 @@ def assign_variables(
             n_randoms += 1
             assignment_expressions.loc[expression_idx, "expression"] = expression
     if n_randoms:
-        try:
-            random_draws = state.get_rn_generator().normal_for_df(
-                df, broadcast=True, size=n_randoms
-            )
-        except RuntimeError:
-            pass
-        else:
-            _locals_dict["random_draws"] = random_draws
+        with performance_timer.time_expression("<RANDOM DRAWS>"):
+            try:
+                random_draws = state.get_rn_generator().normal_for_df(
+                    df, broadcast=True, size=n_randoms
+                )
+            except RuntimeError:
+                pass
+            else:
+                _locals_dict["random_draws"] = random_draws
 
-            def rng_lognormal(random_draws, mu, sigma, broadcast=True, scale=False):
-                if scale:
-                    x = 1 + ((sigma * sigma) / (mu * mu))
-                    mu = np.log(mu / (np.sqrt(x)))
-                    sigma = np.sqrt(np.log(x))
-                assert broadcast
-                return np.exp(random_draws * sigma + mu)
+                def rng_lognormal(random_draws, mu, sigma, broadcast=True, scale=False):
+                    if scale:
+                        x = 1 + ((sigma * sigma) / (mu * mu))
+                        mu = np.log(mu / (np.sqrt(x)))
+                        sigma = np.sqrt(np.log(x))
+                    assert broadcast
+                    return np.exp(random_draws * sigma + mu)
 
-            _locals_dict["rng_lognormal"] = rng_lognormal
+                _locals_dict["rng_lognormal"] = rng_lognormal
 
     sharrow_enabled = state.settings.sharrow
 
@@ -352,11 +360,12 @@ def assign_variables(
             )
 
         if trace_label:
-            logger.info(f"{trace_label}.assign_variables {target} = {expression}")
+            logger.debug(f"{trace_label}.assign_variables {target} = {expression}")
 
         if is_temp_singular(target) or is_throwaway(target):
             try:
-                x = eval(expression, globals(), _locals_dict)
+                with performance_timer.time_expression(expression):
+                    x = eval(expression, globals(), _locals_dict)
             except Exception as err:
                 logger.error(
                     "assign_variables error: %s: %s", type(err).__name__, str(err)
@@ -384,7 +393,8 @@ def assign_variables(
 
             # FIXME should whitelist globals for security?
             globals_dict = {}
-            expr_values = to_series(eval(expression, globals_dict, _locals_dict))
+            with performance_timer.time_expression(expression):
+                expr_values = to_series(eval(expression, globals_dict, _locals_dict))
 
             if sharrow_enabled:
                 if isinstance(expr_values.dtype, pd.api.types.CategoricalDtype):
@@ -459,4 +469,5 @@ def assign_variables(
         inplace=True,
     )
 
+    performance_timer.write_log(state)
     return variables, trace_results, trace_assigned_locals

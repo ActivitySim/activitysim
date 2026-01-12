@@ -5,11 +5,15 @@ from __future__ import annotations
 import logging
 import os
 
+import numpy as np
 import pandas as pd
 
 from activitysim.core import util, workflow
 from activitysim.core.configuration import InputTable
-from activitysim.core.exceptions import MissingInputTableDefinition
+from activitysim.core.exceptions import (
+    MissingInputTableDefinition,
+    ModelConfigurationError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +198,7 @@ def read_from_table_info(table_info: InputTable, state):
                 assert (
                     df[index_col] == df[index_col].astype(int)
                 ).all(), f"Index col '{index_col}' has non-integer values"
-                df[index_col] = df[index_col].astype(int)
+                df[index_col] = df[index_col].astype(np.int64)
             df.set_index(index_col, inplace=True)
         else:
             # FIXME not sure we want to do this. More likely they omitted index col than that they want to name it?
@@ -203,7 +207,9 @@ def read_from_table_info(table_info: InputTable, state):
                 f"index_col '{index_col}' specified in configs but not in {tablename} table!"
             )
             logger.error(f"{tablename} columns are: {list(df.columns)}")
-            raise RuntimeError(f"index_col '{index_col}' not in {tablename} table!")
+            raise ModelConfigurationError(
+                f"index_col '{index_col}' not in {tablename} table!"
+            )
 
     if keep_columns:
         logger.debug("keeping columns: %s" % keep_columns)
@@ -213,7 +219,9 @@ def read_from_table_info(table_info: InputTable, state):
                 f"{list(set(keep_columns).difference(set(df.columns)))}"
             )
             logger.error(f"{tablename} table has columns: {list(df.columns)}")
-            raise RuntimeError(f"Required columns missing from {tablename} table")
+            raise ModelConfigurationError(
+                f"Required columns missing from {tablename} table"
+            )
 
         df = df[keep_columns]
 

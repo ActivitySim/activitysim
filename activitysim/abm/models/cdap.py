@@ -36,11 +36,16 @@ class CdapSettings(PydanticReadable, extra="forbid"):
     JOINT_TOUR_COEFFICIENTS: str = "cdap_joint_tour_coefficients.csv"
     JOINT_TOUR_USEFUL_COLUMNS: list[str] | None = None
     """Columns to include from the persons table that will be need to calculate household joint tour utility."""
-    annotate_persons: PreprocessorSettings | None = None
-    annotate_households: PreprocessorSettings | None = None
     COEFFICIENTS: Path
     CONSTANTS: dict[str, Any] = {}
     compute_settings: ComputeSettings | None = None
+
+    preprocessor: PreprocessorSettings | None = None
+    """Preprocess choosers tables before running the model."""
+    annotate_persons: PreprocessorSettings | None = None
+    """Postprocess persons table after model completion."""
+    annotate_households: PreprocessorSettings | None = None
+    """Postprocess households table after model completion."""
 
 
 @workflow.step
@@ -171,6 +176,16 @@ def cdap_simulate(
                     index=True,
                 )
 
+    # preprocess choosers
+    expressions.annotate_preprocessors(
+        state,
+        df=persons_merged,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
     if estimator:
         estimator.write_model_settings(model_settings, "cdap.yaml")
         estimator.write_spec(model_settings, tag="INDIV_AND_HHSIZE1_SPEC")
@@ -180,7 +195,7 @@ def cdap_simulate(
         estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_table(
             cdap_interaction_coefficients,
-            "interaction_coefficients",
+            "cdap_interaction_coefficients",
             index=False,
             append=False,
         )
@@ -189,7 +204,7 @@ def cdap_simulate(
             spec = cdap.get_cached_spec(state, hhsize)
             estimator.write_table(spec, "spec_%s" % hhsize, append=False)
             if add_joint_tour_utility:
-                joint_spec = cdap.get_cached_joint_spec(hhsize)
+                joint_spec = cdap.get_cached_joint_spec(state, hhsize)
                 estimator.write_table(
                     joint_spec, "joint_spec_%s" % hhsize, append=False
                 )
@@ -241,14 +256,6 @@ def cdap_simulate(
     cap_cat_type = pd.api.types.CategoricalDtype(["", "M", "N", "H"], ordered=False)
     choices = choices.astype(cap_cat_type)
     persons["cdap_activity"] = choices
-
-    expressions.assign_columns(
-        state,
-        df=persons,
-        model_settings=model_settings.annotate_persons,
-        trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
-    )
-
     state.add_table("persons", persons)
 
     # - annotate households table
@@ -256,16 +263,18 @@ def cdap_simulate(
         hh_joint = hh_joint.reindex(households.index)
         households["has_joint_tour"] = hh_joint
 
-    expressions.assign_columns(
-        state,
-        df=households,
-        model_settings=model_settings.annotate_households,
-        trace_label=tracing.extend_trace_label(trace_label, "annotate_households"),
-    )
     state.add_table("households", households)
 
     tracing.print_summary("cdap_activity", persons.cdap_activity, value_counts=True)
     logger.info(
         "cdap crosstabs:\n%s"
         % pd.crosstab(persons.ptype, persons.cdap_activity, margins=True)
+    )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
     )

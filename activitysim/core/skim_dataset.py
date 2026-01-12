@@ -3,6 +3,7 @@ from __future__ import annotations
 import glob
 import logging
 import os
+import re
 import time
 from functools import partial
 from pathlib import Path
@@ -252,7 +253,7 @@ class DatasetWrapper:
                 and np.issubdtype(df[self.time_key].dtype, np.integer)
                 and df[self.time_key].max() < self.dataset.dims["time_period"]
             ):
-                logger.info(f"natural use for time_period={self.time_key}")
+                logger.debug(f"natural use for time_period={self.time_key}")
                 positions["time_period"] = df[self.time_key]
             elif (
                 df[self.time_key].dtype == "category"
@@ -260,7 +261,7 @@ class DatasetWrapper:
             ):
                 positions["time_period"] = df[self.time_key].cat.codes
             else:
-                logger.info(f"vectorize lookup for time_period={self.time_key}")
+                logger.debug(f"vectorize lookup for time_period={self.time_key}")
                 positions["time_period"] = pd.Series(
                     np.vectorize(self.time_map.get, "I")(df[self.time_key], 0),
                     index=df.index,
@@ -499,8 +500,6 @@ def _apply_digital_encoding(dataset, digital_encodings):
         As modified
     """
     if digital_encodings:
-        import re
-
         # apply once, before saving to zarr, will stick around in cache
         for encoding in digital_encodings:
             logger.info(f"applying zarr digital-encoding: {encoding}")
@@ -752,6 +751,68 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
     else:
         d = None  # skims are not stored in shared memory, so we need to load them
     do_not_save_zarr = False
+
+    potential_conflicts = network_los_preload.skims_info.get(skim_tag).skim_conflicts
+    if potential_conflicts:
+        # There are some conflicts in the skims, where both time-dependent
+        # and time-agnostic skim with the same name are present.  We need
+        # to check we have sufficient ignore rules in place to correct this
+        # condition.
+
+        def _should_ignore(ignore, x):
+            if isinstance(ignore, str):
+                ignore = [ignore]
+            if ignore is not None:
+                for i in ignore:
+                    if re.match(i, x):
+                        return True
+            return False
+
+        ignore = state.settings.omx_ignore_patterns
+        problems = []
+        for time_agnostic, time_dependent in potential_conflicts.items():
+            # option 1, ignore all the time-dependent skims
+            # if this is fulfilled, we are ok and can proceed
+            if all((_should_ignore(ignore, i)) for i in time_dependent):
+                continue
+            # option 2, ignore the time-agnostic skim
+            # if this is fulfilled, we are ok and can proceed
+            if _should_ignore(ignore, time_agnostic):
+                continue
+            # otherwise, we have a problem.  collect all the problems
+            # and raise an error at the end listing all of them
+            problems.append(time_agnostic)
+        if problems:
+            solution_1 = "__.+'\n  - '^".join(problems)
+            solution_2 = "$'\n  - '^".join(problems)
+            # we have a problem, raise an error
+            error_message = (
+                f"skims {problems} are present in both time-dependent and time-agnostic formats.\n"
+                "Please add ignore rules to the omx_ignore_patterns setting to resolve this issue.\n"
+                "To ignore the time dependent skims, add the following to your settings file:\n"
+                "\n"
+                "omx_ignore_patterns:\n"
+                f"  - '^{solution_1}__.+'\n"
+                "\n"
+                "To ignore the time agnostic skims, add the following to your settings file:\n"
+                "\n"
+                "omx_ignore_patterns:\n"
+                f"  - '^{solution_2}$'\n"
+                "\n"
+                "You can also do some variation or combination of the two, as long as you resolve\n"
+                "the conflict(s). In addition, note that minor edits to model spec files may be\n"
+                "needed to accommodate these changes in how skim data is represented (e.g. changing\n"
+                "`odt_skims` to `od_skims`, or similar modifications wherever the offending variable\n"
+                "names are used).  Alternatively, you can modify the skim data in the source files to\n"
+                "remove the naming conflicts, which is typically done upstream of ActivitySim in\n"
+                "whatever tool you are using to create the skims in the first place.\n"
+                "\n"
+                "See [https://activitysim.github.io/?q=skims] for more information.\n"
+            )
+            # write the error message to the log
+            logger.error(error_message)
+            # raise an error to stop the run, put the entire error message there also
+            raise ValueError(error_message)
 
     if d is None:
         time_periods = _dedupe_time_periods(network_los_preload)

@@ -18,6 +18,7 @@ from activitysim.core.configuration.base import (
     PreprocessorSettings,
     PydanticReadable,
 )
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import _interaction_sample_simulate
 from activitysim.core.skim_dataset import SkimDataset
 from activitysim.core.skim_dictionary import SkimDict
@@ -81,6 +82,8 @@ def generate_schedule_alternatives(tours):
 
     schedules = pd.concat([no_stops, one_way, two_way], sort=True)
     schedules[SCHEDULE_ID] = np.arange(1, schedules.shape[0] + 1)
+    # this sort is necessary to keep single process and multiprocess results the same!
+    schedules.sort_values(by=["tour_id", SCHEDULE_ID], inplace=True)
 
     return schedules
 
@@ -207,9 +210,7 @@ def get_spec_for_segment(
     :return: array of utility equations
     """
 
-    omnibus_spec = state.filesystem.read_model_spec(
-        file_name=model_settings.SPECIFICATION
-    )
+    omnibus_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
 
     spec = omnibus_spec[[segment]]
 
@@ -280,6 +281,17 @@ def run_trip_scheduling_choice(
             choosers = choosers.sort_index()
             schedules = generate_schedule_alternatives(choosers).sort_index()
 
+            # preprocessing alternatives
+            expressions.annotate_preprocessors(
+                state,
+                df=schedules,
+                locals_dict=locals_dict,
+                skims=None,
+                model_settings=model_settings,
+                trace_label=trace_label,
+                preprocessor_setting_name="alts_preprocessor",
+            )
+
             # Assuming we did the max_alt_size calculation correctly,
             # we should get the same sizes here.
             assert choosers[NUM_ALTERNATIVES].sum() == schedules.shape[0]
@@ -333,19 +345,12 @@ def run_trip_scheduling_choice(
     return tours
 
 
-class TripSchedulingChoiceSettings(PydanticReadable, extra="forbid"):
+class TripSchedulingChoiceSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `trip_scheduling_choice` component.
     """
 
-    PREPROCESSOR: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
-
-    SPECIFICATION: str
-    """file name of specification file"""
-
-    compute_settings: ComputeSettings = ComputeSettings()
-    """Compute settings for this component."""
+    pass
 
 
 @workflow.step
@@ -396,34 +401,32 @@ def trip_scheduling_choice(
         .reindex(tours.index)
     )
 
-    preprocessor_settings = model_settings.PREPROCESSOR
-
     # hack: preprocessor adds origin column in place if it does not exist already
     od_skim_stack_wrapper = skim_dict.wrap("origin", "destination")
     do_skim_stack_wrapper = skim_dict.wrap("destination", "origin")
     obib_skim_stack_wrapper = skim_dict.wrap(LAST_OB_STOP, FIRST_IB_STOP)
 
-    skims = [od_skim_stack_wrapper, do_skim_stack_wrapper, obib_skim_stack_wrapper]
-
-    locals_dict = {
+    skims = {
         "od_skims": od_skim_stack_wrapper,
         "do_skims": do_skim_stack_wrapper,
         "obib_skims": obib_skim_stack_wrapper,
+    }
+    locals_dict = {
         "orig_col_name": "origin",
         "dest_col_name": "destination",
         "timeframe": "timeless_directional",
     }
+    locals_dict.update(skims)
 
-    if preprocessor_settings:
-        simulate.set_skim_wrapper_targets(tours_df, skims)
-
-        expressions.assign_columns(
-            state,
-            df=tours_df,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label,
-        )
+    # preprocess choosers
+    expressions.annotate_preprocessors(
+        state,
+        df=tours_df,
+        locals_dict=locals_dict,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     tours_df = run_trip_scheduling_choice(
         state,
@@ -436,3 +439,11 @@ def trip_scheduling_choice(
     )
 
     state.add_table("tours", tours_df)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=locals_dict,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

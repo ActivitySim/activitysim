@@ -18,6 +18,7 @@ from activitysim.abm.models.util.trip import cleanup_failed_trips, failed_trip_c
 from activitysim.core import chunk, config, estimation, expressions, tracing, workflow
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.util import reindex
+from activitysim.core.exceptions import InvalidTravelError, PipelineError
 
 logger = logging.getLogger(__name__)
 
@@ -224,7 +225,6 @@ def schedule_trips_in_leg(
     failfix = model_settings.FAILFIX
     depart_alt_base = model_settings.DEPART_ALT_BASE
     scheduling_mode = model_settings.scheduling_mode
-    preprocessor_settings = model_settings.preprocessor
 
     probs_join_cols = model_settings.probs_join_cols
     if probs_join_cols is None:
@@ -286,14 +286,14 @@ def schedule_trips_in_leg(
         nth_trace_label = tracing.extend_trace_label(trace_label, "num_%s" % i)
 
         # - annotate trips
-        if preprocessor_settings:
-            expressions.assign_columns(
-                state,
-                df=trips,
-                model_settings=preprocessor_settings,
-                locals_dict=locals_dict,
-                trace_label=nth_trace_label,
-            )
+        expressions.annotate_preprocessors(
+            state,
+            df=trips,
+            locals_dict=locals_dict,
+            skims=None,
+            model_settings=model_settings,
+            trace_label=trace_label,
+        )
 
         if (
             outbound
@@ -585,9 +585,11 @@ def trip_scheduling(
         i = 0
         while (i < max_iterations) and not trips_chunk.empty:
             # only chunk log first iteration since memory use declines with each iteration
-            with chunk.chunk_log(
-                state, trace_label
-            ) if i == 0 else chunk.chunk_log_skip():
+            with (
+                chunk.chunk_log(state, trace_label)
+                if i == 0
+                else chunk.chunk_log_skip()
+            ):
                 i += 1
                 is_last_iteration = i == max_iterations
 
@@ -616,7 +618,9 @@ def trip_scheduling(
                 logger.info("%s %s failed", trace_label_i, failed.sum())
 
                 if (failed.sum() > 0) & (model_settings.scheduling_mode == "relative"):
-                    raise RuntimeError("failed trips with relative scheduling mode")
+                    raise InvalidTravelError(
+                        "failed trips with relative scheduling mode"
+                    )
 
                 if not is_last_iteration:
                     # boolean series of trips whose leg scheduling failed
@@ -654,7 +658,7 @@ def trip_scheduling(
         )
 
         if failfix != FAILFIX_DROP_AND_CLEANUP:
-            raise RuntimeError(
+            raise PipelineError(
                 "%s setting '%s' not enabled in settings"
                 % (FAILFIX, FAILFIX_DROP_AND_CLEANUP)
             )
@@ -682,3 +686,11 @@ def trip_scheduling(
     assert not trips_df.depart.isnull().any()
 
     state.add_table("trips", trips_df)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

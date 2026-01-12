@@ -67,7 +67,9 @@ def test_df_from_dict():
     df = pd.DataFrame({"attrib": [1, 2, 2, 3, 1]}, index=index)
 
     # scramble index order for one expression and not the other
-    sorted = df.eval("attrib.sort_values()")
+    # use mergesort to ensure stable sort, if not specified the default is to
+    # use quicksort which is unstable and will cause this test to fail intermittently
+    sorted = df.eval("attrib.sort_values(kind='mergesort')")
     not_sorted = df.eval("attrib * 1")
 
     # check above expressions

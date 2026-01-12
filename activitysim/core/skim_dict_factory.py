@@ -8,11 +8,13 @@ import multiprocessing
 import os
 import warnings
 from abc import ABC
+from collections import defaultdict
 
 import numpy as np
 import openmatrix as omx
 
 from activitysim.core import skim_dictionary, util
+from activitysim.core.exceptions import TableTypeError
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +88,7 @@ class SkimInfo(object):
         self.offset_map_name = None
         self.offset_map = None
         self.omx_keys = None
+        self.skim_conflicts = None
         self.base_keys = None
         self.block_offsets = None
 
@@ -117,7 +120,12 @@ class SkimInfo(object):
             logger.debug(f"load_skim_info {skim_tag} reading {omx_file_path}")
 
             with omx.open_file(omx_file_path, mode="r") as omx_file:
-                # fixme call to omx_file.shape() failing in windows p3.5
+
+                # Check the shape of the skims. All skim files loaded within this
+                # loop need to have the same shape.   For the first file, the
+                # shape is set to the omx_shape attribute, so we know what shape
+                # to expect.  For subsequent files, we check that the shape is the
+                # same as the first file.  If not, we raise an error.
                 if self.omx_shape is None:
                     self.omx_shape = tuple(
                         int(i) for i in omx_file.shape()
@@ -127,6 +135,12 @@ class SkimInfo(object):
                         int(i) for i in omx_file.shape()
                     ), f"Mismatch shape {self.omx_shape} != {omx_file.shape()}"
 
+                # Check that all the matrix names are unique across all the
+                # omx files. This check is only looking at the name as stored in
+                # the file, and is not processing any time period transformations.
+                # If duplicate names are found, a warning is issued. This is not
+                # a fatal error, but it is inefficient and may be symptom of a
+                # deeper problem.
                 for skim_name in omx_file.listMatrices():
                     if skim_name in self.omx_manifest:
                         warnings.warn(
@@ -134,6 +148,11 @@ class SkimInfo(object):
                         )
                     self.omx_manifest[skim_name] = omx_file_path
 
+                # We load the offset map if it exists. This is expected to be
+                # a 1D array of integers that that gives ID values for each TAZ
+                # in the skims. ActivitySim expects there to be only one such
+                # mapping, although it can appear multiple times (e.g. once in
+                # each file).
                 for m in omx_file.listMappings():
                     if self.offset_map is None:
                         self.offset_map_name = m
@@ -146,21 +165,54 @@ class SkimInfo(object):
                                 f"Multiple mappings in omx file: {self.offset_map_name} != {m}"
                             )
 
-        # - omx_keys dict maps skim key to omx_key
-        # DISTWALK: DISTWALK
-        # ('DRV_COM_WLK_BOARDS', 'AM'): DRV_COM_WLK_BOARDS__AM, ...
+        # Create the `omx_keys` mapping, which connects skim key to omx_key.
+        # The skim key is either a single string that names a skim that is not
+        # time-dependent, or a 2-tuple of strings which names a skim and a time
+        # period. The omx_key is the original name of the skim in the omx file.
+        # For non-time-dependent skims, the omx_key is the same as the skim key,
+        # e.g. DISTWALK: DISTWALK.  For time-dependent skims, the omx_key is the
+        # skim key with the time period appended,
+        # e.g. ('DRV_COM_WLK_BOARDS', 'AM'): DRV_COM_WLK_BOARDS__AM.
         self.omx_keys = dict()
         for skim_name in self.omx_manifest.keys():
             key1, sep, key2 = skim_name.partition("__")
-
             # - ignore composite tags not in dim3_tags_to_load
             if dim3_tags_to_load and sep and key2 not in dim3_tags_to_load:
+                # If a skim is found that has a time period that is not one of
+                # the known named time periods, a warning is issued, and that
+                # skim is ignored. This is not a fatal error, but it may be a
+                # symptom of a deeper problem.
+                warnings.warn(f"skim '{key1}' has unknown time period '{key2}'")
                 continue
-
             skim_key = (key1, key2) if sep else key1
-
             self.omx_keys[skim_key] = skim_name
 
+        # Create a skim_conflicts set, which identifies any skims that have both
+        # time-dependent and time-agnostic versions. This condition in and of
+        # itself is not a fatal error, as it is possible to have both types of skims
+        # in the same data when using the legacy codebase. When using skim_dataset
+        # instead of skim_dictionary (the former is required when using sharrow) this
+        # condition is no longer allowed, although we can potentially recover if
+        # the user has specified instructions that certain skim variables are not
+        # to be loaded. The recovery option is checked later, in the skim_dataset
+        # module, as that is where the skim variables are actually loaded.
+        time_dependent_skims = defaultdict(set)
+        time_agnostic_skims = set()
+        for k, v in self.omx_keys.items():
+            if isinstance(k, tuple):
+                time_dependent_skims[k[0]].add(v)
+            else:
+                time_agnostic_skims.add(k)
+        self.skim_conflicts = {
+            k: v for k, v in time_dependent_skims.items() if k in time_agnostic_skims
+        }
+        if self.skim_conflicts:
+            msg = "some skims have both time-dependent and time-agnostic versions:"
+            for k in self.skim_conflicts:
+                msg += f"\n- {k}"
+            warnings.warn(msg)
+
+        # Count the number of skims in the omx file
         self.num_skims = len(self.omx_keys)
 
         # - key1_subkeys dict maps key1 to dict of subkeys with that key1
@@ -411,7 +463,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
             elif dtype_name == "float32":
                 typecode = "f"
             else:
-                raise RuntimeError(
+                raise TableTypeError(
                     "allocate_skim_buffer unrecognized dtype %s" % dtype_name
                 )
 

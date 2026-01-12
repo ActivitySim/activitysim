@@ -255,7 +255,7 @@ def canonical_tours(state: workflow.State):
     )
     non_mandatory_channels = enumerate_tour_types(non_mandatory_tour_flavors)
 
-    logger.info(f"Non-Mandatory tour flavors used are {non_mandatory_tour_flavors}")
+    logger.debug(f"Non-Mandatory tour flavors used are {non_mandatory_tour_flavors}")
 
     # ---- mandatory_channels
     mtf_model_settings_file_name = "mandatory_tour_frequency.yaml"
@@ -271,7 +271,7 @@ def canonical_tours(state: workflow.State):
     )
     mandatory_channels = enumerate_tour_types(mandatory_tour_flavors)
 
-    logger.info(f"Mandatory tour flavors used are {mandatory_tour_flavors}")
+    logger.debug(f"Mandatory tour flavors used are {mandatory_tour_flavors}")
 
     # ---- atwork_subtour_channels
     atwork_model_settings_file_name = "atwork_subtour_frequency.yaml"
@@ -288,7 +288,7 @@ def canonical_tours(state: workflow.State):
     )
     atwork_subtour_channels = enumerate_tour_types(atwork_subtour_flavors)
 
-    logger.info(f"Atwork subtour flavors used are {atwork_subtour_flavors}")
+    logger.debug(f"Atwork subtour flavors used are {atwork_subtour_flavors}")
 
     # we need to distinguish between subtours of different work tours
     # (e.g. eat1_1 is eat subtour for parent work tour 1 and eat1_2 is for work tour 2)
@@ -317,7 +317,7 @@ def canonical_tours(state: workflow.State):
     joint_tour_flavors = determine_flavors_from_alts_file(
         jtf_alts, provided_joint_flavors, default_joint_flavors
     )
-    logger.info(f"Joint tour flavors used are {joint_tour_flavors}")
+    logger.debug(f"Joint tour flavors used are {joint_tour_flavors}")
 
     joint_tour_channels = enumerate_tour_types(joint_tour_flavors)
     joint_tour_channels = ["j_%s" % c for c in joint_tour_channels]
@@ -343,7 +343,7 @@ def canonical_tours(state: workflow.State):
         school_escort_flavors = {"escort": 2 * num_escortees}
         school_escort_channels = enumerate_tour_types(school_escort_flavors)
         school_escort_channels = ["se_%s" % c for c in school_escort_channels]
-        logger.info(f"School escort tour flavors used are {school_escort_flavors}")
+        logger.debug(f"School escort tour flavors used are {school_escort_flavors}")
 
         sub_channels = sub_channels + school_escort_channels
 

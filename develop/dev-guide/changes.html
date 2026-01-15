@@ -64,7 +64,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Jan 08, 2026"/>
+    <meta name="docbuild:last-update" content="Jan 15, 2026"/>
   </head>
   
   
@@ -448,6 +448,15 @@ configurations or code to fail to run correctly.</p>
 branch (i.e., the main branch on GitHub), but not yet released in a stable version
 of ActivitySim.  See below under the various version headings for changes in
 released versions.</p>
+<section id="shadow-price-zones-reopening">
+<h3>Shadow Price Zones Reopening<a class="headerlink" href="#shadow-price-zones-reopening" title="Permalink to this heading">#</a></h3>
+<p>We fixed an issue with reopening work and school zones during iterative shadow pricing using the
+simulation-based constraint mechanism. Now, when zones are closed, they remained closed. (See
+ActivitySim <a class="reference external" href="https://github.com/ActivitySim/activitysim/issues/820">Issue #820</a> for more details.)
+There is nothing for the user to do to take advantage of this fix, but it may slightly change
+results for models that use shadow pricing. Aggregate level outputs should remain very stable, but
+some individual choices of school and work locations may change due to the fix.</p>
+</section>
 <section id="alternative-file-naming-consistency">
 <h3>Alternative file naming consistency<a class="headerlink" href="#alternative-file-naming-consistency" title="Permalink to this heading">#</a></h3>
 <p>We have enforced a naming scheme for alternative config files to have the index name
@@ -875,6 +884,7 @@ development cycle, including:</p>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upcoming-changes">Upcoming Changes</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shadow-price-zones-reopening">Shadow Price Zones Reopening</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#alternative-file-naming-consistency">Alternative file naming consistency</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cdap-estimation-mode">CDAP Estimation Mode</a></li>
 </ul>
@@ -943,7 +953,7 @@ development cycle, including:</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev5+g6266ce4e5, documentation last updated Jan 08, 2026.<br/>
+ActivitySim 1.5.2.dev6+gaa58cc453, documentation last updated Jan 15, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

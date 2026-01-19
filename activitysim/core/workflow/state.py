@@ -938,11 +938,51 @@ class State:
             # mark this salient table as edited, so it can be checkpointed
             # at some later time if desired.
             self.existing_table_status[name] = True
+
+        # Set the new table content
         self.set(name, content)
-        # TODO: do not update tables if no new households were skipped
-        # right now it is updating every time which is inefficient
-        if self.get("num_skipped_households", 0) > 0:
-            self.update_table()
+
+        # Check if we need to update tables for skipped households
+        skipped_household_ids_dict = self.get("skipped_household_ids", dict())
+        if (
+            skipped_household_ids_dict
+        ):  # only proceed if there are any skipped households
+            current_skipped_count = sum(
+                len(hh_list) for hh_list in skipped_household_ids_dict.values()
+            )
+            # make sure this is consistent with number of skipped households tracked
+            assert current_skipped_count == self.get("num_skipped_households", 0)
+
+            # Only update this specific table if it actually contains skipped household data
+            import itertools
+
+            skipped_household_ids = set(
+                itertools.chain.from_iterable(skipped_household_ids_dict.values())
+            )
+
+            # Check if the new content contains any skipped households
+            content_needs_cleaning = False
+            if hasattr(content, "index") and "household_id" in content.index.names:
+                content_needs_cleaning = (
+                    content.index.get_level_values("household_id")
+                    .isin(skipped_household_ids)
+                    .any()
+                )
+            elif hasattr(content, "columns") and "household_id" in content.columns:
+                content_needs_cleaning = (
+                    content["household_id"].isin(skipped_household_ids).any()
+                )
+
+            if content_needs_cleaning:
+                self.update_table(name)
+
+            # Check if there are newly skipped households and update all tables if needed
+            last_updated_count = self.get("_last_updated_skipped_count", 0)
+            if current_skipped_count > last_updated_count:
+                # update all tables to remove newly skipped households
+                self.update_table(name=None)
+                # Track the number of skipped households at the time of last update
+                self.set("_last_updated_skipped_count", current_skipped_count)
 
     def update_table(self, name: str = None):
         """
@@ -968,7 +1008,7 @@ class State:
             return
 
         # get existing tables in the current state context
-        existing_tables = self.registered_tables()
+        existing_tables = self.registered_tables() if name is None else [name]
 
         for table_name in existing_tables:
             if not self.is_table(table_name):
@@ -979,48 +1019,39 @@ class State:
             # we do not drop rows from households_skipped table
             if table_name == "households_skipped":
                 continue
-            # save skipped household records in state before dropping
+
+            # determine which column/index contains household_id and create mask
+            mask = None
+            if "household_id" in df.index.names:
+                mask = df.index.get_level_values("household_id").isin(
+                    skipped_household_ids
+                )
+            elif "household_id" in df.columns:
+                mask = df["household_id"].isin(skipped_household_ids)
+            else:
+                continue  # skip tables without household_id
+
+            # early exit if no matches found
+            if not mask.any():
+                continue
+
+            # save skipped household records for households table only
             if table_name == "households":
-                if "household_id" in df.index.names:
-                    newly_skipped_hh_df = df.loc[
-                        df.index.get_level_values("household_id").isin(
-                            skipped_household_ids
-                        )
-                    ].copy()
-                elif "household_id" in df.columns:
-                    newly_skipped_hh_df = df.loc[
-                        df["household_id"].isin(skipped_household_ids)
-                    ].copy()
-                else:
-                    logger.error(
-                        "update_table: household_id not found in households table"
-                    )
+                newly_skipped_hh_df = df.loc[mask].copy()
                 skipped_hh_df = self.get("households_skipped", pd.DataFrame())
                 skipped_hh_df = pd.concat(
                     [skipped_hh_df, newly_skipped_hh_df], join="inner"
                 )
                 # make sure household_id is unique in skipped households
-                assert skipped_hh_df.index.get_level_values(
-                    "household_id"
-                ).is_unique, "household_id is not unique in households_skipped"
+                if "household_id" in skipped_hh_df.index.names:
+                    assert skipped_hh_df.index.get_level_values(
+                        "household_id"
+                    ).is_unique, "household_id is not unique in households_skipped"
                 self.set("households_skipped", skipped_hh_df)
-            # check if household_id is in index or columns
-            if "household_id" in df.index.names:
-                df.drop(
-                    index=df.loc[
-                        df.index.get_level_values("household_id").isin(
-                            skipped_household_ids
-                        )
-                    ].index,
-                    inplace=True,
-                )
-            elif "household_id" in df.columns:
-                df.drop(
-                    index=df[df["household_id"].isin(skipped_household_ids)].index,
-                    inplace=True,
-                )
-            else:
-                continue
+
+            # drop the matching rows using the same mask
+            df.drop(index=df.index[mask], inplace=True)
+
             # get the length of the dataframe after dropping rows
             final_len = len(df)
             logger.debug(

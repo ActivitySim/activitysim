@@ -948,9 +948,23 @@ class State:
         """
         Go through existing tables in the state and
         get rid of any rows that correspond to skipped households.
+        Save skipped household records in state under households_skipped
+        Parameters
+        ----------
+        name : str, optional
+            Name of table to update. If None, update all tables.
+        Returns
+        -------
+        None
         """
-        skipped_hh_ids = self.get("skipped_household_ids", set())
-        if not skipped_hh_ids:
+        import itertools
+
+        skipped_household_ids_dict = self.get("skipped_household_ids", dict())
+        skipped_household_ids = set(
+            itertools.chain.from_iterable(skipped_household_ids_dict.values())
+        )
+
+        if not skipped_household_ids:
             return
 
         # get existing tables in the current state context
@@ -962,17 +976,47 @@ class State:
             df = self.get_dataframe(table_name, as_copy=False)
             # get the initial length of the dataframe
             initial_len = len(df)
+            # we do not drop rows from households_skipped table
+            if table_name == "households_skipped":
+                continue
+            # save skipped household records in state before dropping
+            if table_name == "households":
+                if "household_id" in df.index.names:
+                    newly_skipped_hh_df = df.loc[
+                        df.index.get_level_values("household_id").isin(
+                            skipped_household_ids
+                        )
+                    ].copy()
+                elif "household_id" in df.columns:
+                    newly_skipped_hh_df = df.loc[
+                        df["household_id"].isin(skipped_household_ids)
+                    ].copy()
+                else:
+                    logger.error(
+                        "update_table: household_id not found in households table"
+                    )
+                skipped_hh_df = self.get("households_skipped", pd.DataFrame())
+                skipped_hh_df = pd.concat(
+                    [skipped_hh_df, newly_skipped_hh_df], join="inner"
+                )
+                # make sure household_id is unique in skipped households
+                assert skipped_hh_df.index.get_level_values(
+                    "household_id"
+                ).is_unique, "household_id is not unique in households_skipped"
+                self.set("households_skipped", skipped_hh_df)
             # check if household_id is in index or columns
             if "household_id" in df.index.names:
                 df.drop(
                     index=df.loc[
-                        df.index.get_level_values("household_id").isin(skipped_hh_ids)
+                        df.index.get_level_values("household_id").isin(
+                            skipped_household_ids
+                        )
                     ].index,
                     inplace=True,
                 )
             elif "household_id" in df.columns:
                 df.drop(
-                    index=df[df["household_id"].isin(skipped_hh_ids)].index,
+                    index=df[df["household_id"].isin(skipped_household_ids)].index,
                     inplace=True,
                 )
             else:

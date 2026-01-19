@@ -91,19 +91,37 @@ def report_bad_choices(
     if skip_failed_choices:
         # update counter in state
         num_skipped_households = state.get("num_skipped_households", 0)
-        skipped_household_ids = state.get("skipped_household_ids", set())
-        for hh_id in df[trace_col].unique():
-            if hh_id is None:
-                continue
-            if hh_id not in skipped_household_ids:
-                skipped_household_ids.add(hh_id)
-                num_skipped_households += 1
-            else:
-                continue
+        skipped_household_ids = state.get("skipped_household_ids", dict())
+
+        # Get current household IDs and filter out None values
+        current_hh_ids = set(df[trace_col].dropna().unique())
+
+        # Get all previously skipped household IDs across all trace_labels
+        import itertools
+
+        already_skipped = set(
+            itertools.chain.from_iterable(skipped_household_ids.values())
+        )
+
+        # Find truly new household IDs that haven't been skipped before
+        new_skipped_hh_ids = current_hh_ids - already_skipped
+
+        # Only process if there are new households to skip
+        if new_skipped_hh_ids:
+            # Initialize list for this trace_label if it doesn't exist
+            if trace_label not in skipped_household_ids:
+                skipped_household_ids[trace_label] = []
+            skipped_household_ids[trace_label].extend(new_skipped_hh_ids)
+            num_skipped_households += len(new_skipped_hh_ids)
+
+        # make sure the number of skipped households is consistent with the ids recorded
+        assert num_skipped_households == sum(
+            len(hh_list) for hh_list in skipped_household_ids.values()
+        ), "Inconsistent number of skipped households and recorded ids"
         state.set("num_skipped_households", num_skipped_households)
         state.set("skipped_household_ids", skipped_household_ids)
 
-        logger.debug(
+        logger.warning(
             f"Skipping {bad_row_map.sum()} bad choices. Total skipped households so far: {num_skipped_households}. Skipped household IDs: {skipped_household_ids}"
         )
 
@@ -207,7 +225,7 @@ def utils_to_probs(
         simulations where occasional bad choices are encountered and should not halt the process.
         The counter can be accessed via `state.get("num_skipped_households", 0)`.
         The number of skipped households and their IDs will be logged at the end of the simulation.
-        When `skip_failed_choices` is True, `overflow_protection` will be reverted to False to avoid conflicts.
+        When `skip_failed_choices` is True, `overflow_protection` will be forced to False to avoid conflicts.
 
     Returns
     -------
@@ -236,12 +254,12 @@ def utils_to_probs(
             utils_arr.dtype == np.float32 and utils_arr.max() > 85
         )
 
-    if state.settings.skip_failed_choices is not None:
-        skip_failed_choices = state.settings.skip_failed_choices
-        # when skipping failed choices, we cannot use overflow protection
-        # because it would mask the underlying issue causing bad choices
-        if skip_failed_choices:
-            overflow_protection = False
+    # get skip_failed_choices from state
+    skip_failed_choices = state.settings.skip_failed_choices
+    # when skipping failed choices, we cannot use overflow protection
+    # because it would mask the underlying issue causing bad choices
+    if skip_failed_choices:
+        overflow_protection = False
 
     if overflow_protection:
         # exponentiated utils will overflow, downshift them
@@ -323,7 +341,6 @@ def make_choices(
     trace_label: str = None,
     trace_choosers=None,
     allow_bad_probs=False,
-    skip_failed_choices=True,
 ) -> tuple[pd.Series, pd.Series]:
     """
     Make choices for each chooser from among a set of alternatives.
@@ -359,8 +376,7 @@ def make_choices(
         np.ones(len(probs.index))
     ).abs() > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
 
-    if state.settings.skip_failed_choices is not None:
-        skip_failed_choices = state.settings.skip_failed_choices
+    skip_failed_choices = state.settings.skip_failed_choices
 
     if bad_probs.any() and not allow_bad_probs:
         report_bad_choices(

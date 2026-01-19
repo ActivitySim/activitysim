@@ -469,6 +469,24 @@ def run(args):
     if memory_sidecar_process:
         memory_sidecar_process.stop()
 
+    # print out a summary of households skipped due to failed choices
+    # we want to see number of unique households skipped by trace_label
+    if state.settings.skip_failed_choices:
+        skipped_household_ids_dict = state.get("skipped_household_ids", dict())
+        for trace_label, hh_id_set in skipped_household_ids_dict.items():
+            logger.warning(
+                f"Number of unique households skipped for trace_label '{trace_label}': {len(hh_id_set)}. They are: {sorted(hh_id_set)}"
+            )
+        # also log the total number of unique households skipped across all trace_labels
+        import itertools
+
+        all_skipped_hh_ids = set(
+            itertools.chain.from_iterable(skipped_household_ids_dict.values())
+        )
+        logger.warning(
+            f"Total number of unique households skipped across all trace_labels: {len(all_skipped_hh_ids)}."
+        )
+
     if state.settings.expression_profile:
         # generate a summary of slower expression evaluation times
         # across all models and write to a file

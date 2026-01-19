@@ -1044,8 +1044,39 @@ def force_escortee_trip_modes_to_match_chauffeur(state: workflow.State, trips):
     )
 
     # trip_mode can be na if the run allows skipping failed choices and the trip mode choice has failed
+    # in that case we can't assert that all trip modes are filled
+    # instead, we throw a warning about how many are missing, and return early
     if state.settings.skip_failed_choices:
-        return trips
+        missing_count = trips.trip_mode.isna().sum()
+        if missing_count > 0:
+            # check if the missing trip modes are all because of simulation failures
+            # i.e., they are from households that are in the skipped_household_ids set
+            import itertools
+
+            skipped_household_ids_dict = state.get("skipped_household_ids", dict())
+            skipped_household_ids = set(
+                itertools.chain.from_iterable(skipped_household_ids_dict.values())
+            )
+            missing_household_ids = set(
+                trips[trips.trip_mode.isna()]["household_id"].unique()
+            )
+            # log a warning about the missing trip modes for skipped households
+            missing_count_due_to_sim_fail = len(
+                trips[
+                    trips.trip_mode.isna()
+                    & trips.household_id.isin(skipped_household_ids)
+                ]
+            )
+            logger.warning(
+                f"Missing trip mode for {missing_count_due_to_sim_fail} trips due to simulation failures in trip mode choice, "
+                f"these records and their corresponding households are being skipped: {missing_household_ids}"
+            )
+            # throw assertion error if there are missing trip modes for households that were not skipped
+            assert missing_household_ids.issubset(skipped_household_ids), (
+                f"Missing trip modes for households that were not skipped: {missing_household_ids - skipped_household_ids}. "
+                f"Missing trip modes for: {trips[trips.trip_mode.isna() & ~trips.household_id.isin(skipped_household_ids)]}"
+            )
+            return trips
 
     assert (
         ~trips.trip_mode.isna()

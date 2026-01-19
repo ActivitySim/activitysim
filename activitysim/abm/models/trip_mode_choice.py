@@ -368,9 +368,15 @@ def trip_mode_choice(
 
     # if we're skipping failed choices, the trip modes for failed simulations will be null
     if state.settings.skip_failed_choices:
-        mask_skipped = trips_df["household_id"].isin(
-            state.get("skipped_household_ids", set())
+        # Get all household IDs from all trace_labels in the dictionary - more efficient flattening
+        import itertools
+
+        skipped_household_ids_dict = state.get("skipped_household_ids", dict())
+        all_skipped_hh_ids = set(
+            itertools.chain.from_iterable(skipped_household_ids_dict.values())
         )
+
+        mask_skipped = trips_df["household_id"].isin(all_skipped_hh_ids)
         assert not trips_df.loc[~mask_skipped, mode_column_name].isnull().any()
     else:
         assert not trips_df[mode_column_name].isnull().any()
@@ -390,9 +396,6 @@ def trip_mode_choice(
     locals_dict = {}
     locals_dict.update(constants)
     if state.settings.skip_failed_choices:
-        mask_skipped = trips_merged["household_id"].isin(
-            state.get("skipped_household_ids", set())
-        )
         trips_merged = trips_merged.loc[~mask_skipped]
     simulate.set_skim_wrapper_targets(trips_merged, skims)
     locals_dict.update(skims)

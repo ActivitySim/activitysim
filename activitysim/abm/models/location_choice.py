@@ -1087,22 +1087,32 @@ def iterate_location_choice(
         else:
             choices_df = choices_df_
 
-        # drop choices that belong to the failed households: state.skipped_household_ids
-        # so that their choices are not considered in shadow price calculations
-        # first append household_id to choices_df
-        choices_df = choices_df.merge(
-            persons_merged_df[["household_id"]],
-            left_index=True,
-            right_index=True,
-            how="left",
-        )
-        if len(choices_df) > 0:
-            choices_df = choices_df[
-                ~choices_df["household_id"].isin(
-                    state.get("skipped_household_ids", set())
+        if (
+            state.settings.skip_failed_choices
+            and state.get("num_skipped_households", 0) > 0
+        ):
+            # drop choices that belong to the failed households: state.skipped_household_ids
+            # so that their choices are not considered in shadow price calculations
+            # first append household_id to choices_df
+            choices_df = choices_df.merge(
+                persons_merged_df[["household_id"]],
+                left_index=True,
+                right_index=True,
+                how="left",
+            )
+            if len(choices_df) > 0:
+                # Get all household IDs from all trace_labels in the dictionary
+                import itertools
+
+                skipped_household_ids_dict = state.get("skipped_household_ids", dict())
+                all_skipped_hh_ids = set(
+                    itertools.chain.from_iterable(skipped_household_ids_dict.values())
                 )
-            ]
-        choices_df = choices_df.drop(columns=["household_id"])
+
+                choices_df = choices_df[
+                    ~choices_df["household_id"].isin(all_skipped_hh_ids)
+                ]
+            choices_df = choices_df.drop(columns=["household_id"])
 
         spc.set_choices(
             choices=choices_df["choice"],

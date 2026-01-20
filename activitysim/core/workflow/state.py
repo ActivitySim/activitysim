@@ -1049,6 +1049,46 @@ class State:
                     ).is_unique, "household_id is not unique in households_skipped"
                 self.set("households_skipped", skipped_hh_df)
 
+                # Check if we've exceeded the allowed fraction of skipped households
+                # Use weighted households if expansion weight column exists, otherwise use counts
+                if "sample_rate" in df.columns:
+                    # Use weighted calculation
+                    skipped_household_weights = (1 / skipped_hh_df["sample_rate"]).sum()
+                    remaining_household_weights = (
+                        1 / df.loc[~mask, "sample_rate"]
+                    ).sum()
+                    total_household_weights = (
+                        skipped_household_weights + remaining_household_weights
+                    )
+
+                    if total_household_weights > 0:
+                        skipped_fraction = (
+                            skipped_household_weights / total_household_weights
+                        )
+                        metric_name = "weighted households"
+                    else:
+                        # Fallback to count-based if weights are zero
+                        skipped_fraction = len(skipped_hh_df) / (
+                            len(skipped_hh_df) + len(df.loc[~mask])
+                        )
+                        metric_name = "households"
+                else:
+                    # Use count-based calculation
+                    skipped_fraction = len(skipped_hh_df) / (
+                        len(skipped_hh_df) + len(df.loc[~mask])
+                    )
+                    metric_name = "households"
+
+                max_allowed_fraction = self.settings.fraction_of_failed_choices_allowed
+
+                if skipped_fraction > max_allowed_fraction:
+                    raise RuntimeError(
+                        f"Too many {metric_name} skipped: {skipped_fraction:.2%} exceeds the allowed threshold of "
+                        f"{max_allowed_fraction:.2%}. This indicates a systematic problem with the model "
+                        f"simulation. Adjust 'fraction_of_failed_choices_allowed' setting "
+                        f"if this is expected."
+                    )
+
             # drop the matching rows using the same mask
             df.drop(index=df.index[mask], inplace=True)
 

@@ -134,19 +134,13 @@ def stop_frequency(
         simulate.set_skim_wrapper_targets(tours_merged, skims)
 
         # this should be pre-slice as some expressions may count tours by type
-        annotations = expressions.compute_columns(
+        expressions.annotate_preprocessors(
             state,
             df=tours_merged,
-            model_settings=preprocessor_settings,
             locals_dict=locals_dict,
+            skims=None,  # skims are already set on tours_merged above
+            model_settings=model_settings,
             trace_label=trace_label,
-        )
-
-        assign_in_place(
-            tours_merged,
-            annotations,
-            state.settings.downcast_int,
-            state.settings.downcast_float,
         )
 
     tracing.print_summary(
@@ -197,9 +191,15 @@ def stop_frequency(
 
         if estimator:
             estimator.write_spec(segment_settings, bundle_directory=False)
-            estimator.write_model_settings(
-                model_settings, model_settings_file_name, bundle_directory=True
-            )
+            # writing to separte subdirectory for each segment if multiprocessing
+            if state.settings.multiprocess:
+                estimator.write_model_settings(
+                    model_settings, model_settings_file_name, bundle_directory=False
+                )
+            else:
+                estimator.write_model_settings(
+                    model_settings, model_settings_file_name, bundle_directory=True
+                )
             estimator.write_coefficients(coefficients_df, segment_settings)
             estimator.write_choosers(chooser_segment)
 
@@ -271,7 +271,11 @@ def stop_frequency(
 
         survey_trips = estimation.manager.get_survey_table(table_name="trips")
         different = False
-        survey_trips_not_in_trips = survey_trips[~survey_trips.index.isin(trips.index)]
+        # need the check below on household_id incase household_sample_size != 0
+        survey_trips_not_in_trips = survey_trips[
+            ~survey_trips.index.isin(trips.index)
+            & survey_trips.household_id.isin(trips.household_id)
+        ]
         if len(survey_trips_not_in_trips) > 0:
             print(f"survey_trips_not_in_trips\n{survey_trips_not_in_trips}")
             different = True
@@ -305,10 +309,6 @@ def stop_frequency(
         )
 
         state.tracing.trace_df(
-            annotations, label="stop_frequency.annotations", columns=None
-        )
-
-        state.tracing.trace_df(
             tours_merged,
             label="stop_frequency.tours_merged",
             slicer="person_id",
@@ -317,3 +317,11 @@ def stop_frequency(
 
     if state.is_table("school_escort_trips"):
         school_escort_tours_trips.merge_school_escort_trips_into_pipeline(state)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

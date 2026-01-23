@@ -21,39 +21,21 @@ jobs:
         with:
           fetch-depth: 0  # get all tags, lets setuptools_scm do its thing
 
-      - name: Setup Miniforge
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          miniforge-version: latest
-          python-version: "3.10"
-          activate-environment: docbuild
-          auto-activate-base: false
-          auto-update-conda: false
+          version: "0.7.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-      - name: Set cache date for year and month
-        run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
-
-      - uses: actions/cache@v3
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
         with:
-          path: /usr/share/miniconda3/envs/docbuild
-          key: linux-64-conda-${{ hashFiles('conda-environments/docbuild.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
-        id: cache
-
-      - name: Update environment
-        run: conda env update --verbose -n docbuild -f conda-environments/docbuild.yml
-        if: steps.cache.outputs.cache-hit != 'true'
+          python-version-file: ".python-version"
 
       - name: Install activitysim
         run: |
-          python -m pip install .
-
-      - name: Conda checkup
-        run: |
-          conda info -a
-          conda list
-          echo REPOSITORY ${{ github.repository }}
-          echo REF ${{ github.ref }}
-          echo REF_NAME ${{ github.ref_name }}
+          uv sync --locked --dev
 
       - name: Build the docs
         run: |

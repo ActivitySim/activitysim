@@ -25,11 +25,11 @@ logger = logging.getLogger(__name__)
 
 class JointTourFrequencySettings(LogitComponentSettings, extra="forbid"):
     """
-    Settings for the `free_parking` component.
+    Settings for the `joint_tour_frequency` component.
     """
 
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
+    # no additional settings are required for this model
+    pass
 
 
 @workflow.step
@@ -72,22 +72,6 @@ def joint_tour_frequency(
         % multi_person_households.shape[0]
     )
 
-    # - preprocessor
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        locals_dict = {
-            "persons": persons,
-            "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
-        }
-
-        expressions.assign_columns(
-            state,
-            df=multi_person_households,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label,
-        )
-
     model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
@@ -96,6 +80,22 @@ def joint_tour_frequency(
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
+
+    # - preprocess choosers table
+    locals_dict = {
+        "persons": persons,
+        "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
+    }
+    locals_dict.update(constants)
+
+    expressions.annotate_preprocessors(
+        state,
+        df=multi_person_households,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     if estimator:
         estimator.write_spec(model_settings)
@@ -137,7 +137,15 @@ def joint_tour_frequency(
     # - but we don't know the tour participants yet
     # - so we arbitrarily choose the first person in the household
     # - to be point person for the purpose of generating an index and setting origin
-    temp_point_persons = persons.loc[persons.PNUM == 1]
+    if "PNUM" in persons.columns:
+        temp_point_persons = persons.loc[persons.PNUM == 1]
+    else:
+        # if PNUM is not available, we can still get the first person in the household
+        temp_point_persons = (
+            persons.sort_index()  # ensure stable ordering
+            .groupby("household_id", as_index=False)
+            .first()
+        )
     temp_point_persons["person_id"] = temp_point_persons.index
     temp_point_persons = temp_point_persons.set_index("household_id")
     temp_point_persons = temp_point_persons[["person_id", "home_zone_id"]]
@@ -192,8 +200,11 @@ def joint_tour_frequency(
         print(f"len(joint_tours) {len(joint_tours)}")
 
         different = False
+        # need to check households as well because the full survey sample may not be used
+        # (e.g. if we set household_sample_size in settings.yaml)
         survey_tours_not_in_tours = survey_tours[
             ~survey_tours.index.isin(joint_tours.index)
+            & survey_tours.household_id.isin(households.index)
         ]
         if len(survey_tours_not_in_tours) > 0:
             print(f"survey_tours_not_in_tours\n{survey_tours_not_in_tours}")
@@ -201,7 +212,15 @@ def joint_tour_frequency(
         tours_not_in_survey_tours = joint_tours[
             ~joint_tours.index.isin(survey_tours.index)
         ]
-        if len(survey_tours_not_in_tours) > 0:
+        if len(tours_not_in_survey_tours) > 0:
             print(f"tours_not_in_survey_tours\n{tours_not_in_survey_tours}")
             different = True
         assert not different
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=locals_dict,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

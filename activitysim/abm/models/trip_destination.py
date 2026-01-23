@@ -35,6 +35,7 @@ from activitysim.core.interaction_sample_simulate import interaction_sample_simu
 from activitysim.core.skim_dictionary import DataFrameMatrix
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place, reindex
+from activitysim.core.exceptions import InvalidTravelError, DuplicateWorkflowTableError
 
 logger = logging.getLogger(__name__)
 
@@ -59,9 +60,6 @@ class TripDestinationSettings(LocationComponentSettings, extra="forbid"):
     PRIMARY_ORIGIN: str = "origin"
     PRIMARY_DEST: str = "tour_leg_dest"  # must be created in preprocessor
     REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS: list[str] | None = None
-    preprocessor: PreprocessorSettings | None = None
-    alts_preprocessor_sample: PreprocessorSettings | None = None
-    alts_preprocessor_simulate: PreprocessorSettings | None = None
     CLEANUP: bool
     fail_some_trips_for_testing: bool = False
     """This setting is used by testing code to force failed trip_destination."""
@@ -173,15 +171,17 @@ def _destination_sample(
     )
 
     sample_size = model_settings.SAMPLE_SIZE
-    if state.settings.disable_destination_sampling or (
-        estimator and estimator.want_unsampled_alternatives
-    ):
-        # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
+    if estimator and model_settings.ESTIMATION_SAMPLE_SIZE >= 0:
+        sample_size = model_settings.ESTIMATION_SAMPLE_SIZE
         logger.info(
-            f"Estimation mode for {trace_label} using "
-            f"unsampled alternatives short_circuit_choices"
+            f"Estimation mode for {trace_label} using sample size of {sample_size}"
         )
+
+    if state.settings.disable_destination_sampling:
         sample_size = 0
+        logger.info(
+            f"SAMPLE_SIZE set to 0 for {trace_label} because disable_destination_sampling is set"
+        )
 
     locals_dict = state.get_global_constants().copy()
     locals_dict.update(model_settings.CONSTANTS)
@@ -203,14 +203,16 @@ def _destination_sample(
 
     log_alt_losers = state.settings.log_alt_losers
 
-    if model_settings.alts_preprocessor_sample:
-        expressions.assign_columns(
-            state,
-            df=alternatives,
-            model_settings=model_settings.alts_preprocessor_sample,
-            locals_dict=locals_dict,
-            trace_label=tracing.extend_trace_label(trace_label, "alts"),
-        )
+    # preprocessing alternatives
+    expressions.annotate_preprocessors(
+        state,
+        df=alternatives,
+        locals_dict=locals_dict,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_sample",
+    )
 
     choices = interaction_sample(
         state,
@@ -291,6 +293,7 @@ def choose_MAZ_for_TAZ(
     network_los,
     alt_dest_col_name,
     trace_label,
+    model_settings,
 ):
     """
     Convert taz_sample table with TAZ zone sample choices to a table with a MAZ zone chosen for each TAZ
@@ -530,6 +533,57 @@ def choose_MAZ_for_TAZ(
             transpose=False,
         )
 
+    if estimation.manager.enabled and (
+        model_settings.ESTIMATION_SAMPLE_SIZE > 0
+        or (
+            model_settings.ESTIMATION_SAMPLE_SIZE < 0 and model_settings.SAMPLE_SIZE > 0
+        )
+    ):
+        # want to ensure the override choice is in the choice set
+        survey_choices = estimation.manager.get_survey_destination_choices(
+            state, chooser_df, trace_label
+        )
+        if survey_choices is not None:
+            assert (
+                chooser_df.index == survey_choices.index
+            ).all(), "survey_choices index should match chooser_df index"
+            survey_choices.name = DEST_MAZ
+            survey_choices = survey_choices.dropna().astype(taz_choices[DEST_MAZ].dtype)
+            # merge maz_sizes onto survey choices
+            maz_sizes["MAZ_prob"] = maz_sizes.groupby(DEST_TAZ)["size_term"].transform(
+                lambda x: x / x.sum()
+            )
+            survey_choices = pd.merge(
+                survey_choices.reset_index(),
+                maz_sizes[[DEST_MAZ, DEST_TAZ, "MAZ_prob"]],
+                on=[DEST_MAZ],
+                how="left",
+            )
+            # merge TAZ_prob from taz_choices onto survey choices
+            survey_choices = pd.merge(
+                survey_choices,
+                # dropping duplicates to avoid duplicate rows as the same TAZ can be chosen multiple times
+                taz_choices[[chooser_id_col, DEST_TAZ, "TAZ_prob"]].drop_duplicates(
+                    subset=[chooser_id_col, DEST_TAZ]
+                ),
+                on=[chooser_id_col, DEST_TAZ],
+                how="left",
+            )
+            survey_choices["prob"] = (
+                survey_choices["TAZ_prob"] * survey_choices["MAZ_prob"]
+            )
+
+            # Don't care about getting dest_TAZ correct as it gets dropped later
+            survey_choices.fillna(0, inplace=True)
+
+            # merge survey choices back into choices_df and sort by chooser
+            taz_choices = pd.concat(
+                [taz_choices, survey_choices[taz_choices.columns]], ignore_index=True
+            )
+            taz_choices.sort_values(
+                by=[chooser_id_col, DEST_TAZ], inplace=True, ignore_index=True
+            )
+
     taz_choices = taz_choices.drop(columns=["TAZ_prob", "MAZ_prob"])
     taz_choices = taz_choices.groupby([chooser_id_col, DEST_MAZ]).agg(
         prob=("prob", "max"), pick_count=("prob", "count")
@@ -603,6 +657,7 @@ def destination_presample(
         network_los,
         alt_dest_col_name,
         trace_label,
+        model_settings,
     )
 
     assert alt_dest_col_name in maz_sample
@@ -766,7 +821,7 @@ def compute_logsums(
         adds od_logsum and dp_logsum columns to trips (in place)
     """
     trace_label = tracing.extend_trace_label(trace_label, "compute_logsums")
-    logger.info("Running %s with %d samples", trace_label, destination_sample.shape[0])
+    logger.debug("Running %s with %d samples", trace_label, destination_sample.shape[0])
 
     # chunk usage is uniform so better to combine
     chunk_tag = "trip_destination.compute_logsums"
@@ -923,7 +978,7 @@ def trip_destination_simulate(
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
-    logger.info("Running trip_destination_simulate with %d trips", len(trips))
+    logger.debug("Running trip_destination_simulate with %d trips", len(trips))
 
     skims = skim_hotel.sample_skims(presample=False)
 
@@ -951,14 +1006,16 @@ def trip_destination_simulate(
     )
     locals_dict.update(skims)
 
-    if model_settings.alts_preprocessor_simulate:
-        expressions.assign_columns(
-            state,
-            df=destination_sample,
-            model_settings=model_settings.alts_preprocessor_simulate,
-            locals_dict=locals_dict,
-            trace_label=tracing.extend_trace_label(trace_label, "alts"),
-        )
+    # preprocessing alternatives
+    expressions.annotate_preprocessors(
+        state,
+        df=destination_sample,
+        locals_dict=locals_dict,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_simulate",
+    )
 
     log_alt_losers = state.settings.log_alt_losers
     destinations = interaction_sample_simulate(
@@ -1046,24 +1103,29 @@ def choose_trip_destination(
         )
         trips = trips[~dropped_trips]
 
-    t0 = print_elapsed_time("%s.trip_destination_sample" % trace_label, t0)
+    t0 = print_elapsed_time("%s.trip_destination_sample" % trace_label, t0, debug=True)
 
     if trips.empty:
         return pd.Series(index=trips.index).to_frame("choice"), None
 
     # - compute logsums
-    destination_sample = compute_logsums(
-        state,
-        primary_purpose=primary_purpose,
-        trips=trips,
-        destination_sample=destination_sample,
-        tours_merged=tours_merged,
-        model_settings=model_settings,
-        skim_hotel=skim_hotel,
-        trace_label=trace_label,
-    )
+    # If LOGSUM_SETTINGS is set to None, we don't want to compute logsums
+    if model_settings.LOGSUM_SETTINGS:
+        destination_sample = compute_logsums(
+            state,
+            primary_purpose=primary_purpose,
+            trips=trips,
+            destination_sample=destination_sample,
+            tours_merged=tours_merged,
+            model_settings=model_settings,
+            skim_hotel=skim_hotel,
+            trace_label=trace_label,
+        )
+    else:
+        destination_sample["od_logsum"] = 0.0
+        destination_sample["dp_logsum"] = 0.0
 
-    t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0)
+    t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0, debug=True)
 
     destinations = trip_destination_simulate(
         state,
@@ -1094,7 +1156,9 @@ def choose_trip_destination(
     else:
         destination_sample = None
 
-    t0 = print_elapsed_time("%s.trip_destination_simulate" % trace_label, t0)
+    t0 = print_elapsed_time(
+        "%s.trip_destination_simulate" % trace_label, t0, debug=True
+    )
 
     return destinations, destination_sample
 
@@ -1271,9 +1335,14 @@ def run_trip_destination(
             state.filesystem, model_settings_file_name
         )
     preprocessor_settings = model_settings.preprocessor
-    logsum_settings = state.filesystem.read_model_settings(
-        model_settings.LOGSUM_SETTINGS
-    )
+
+    # read in logsum settings if they exist, otherwise logsum calculations are skipped
+    if model_settings.LOGSUM_SETTINGS:
+        logsum_settings = state.filesystem.read_model_settings(
+            model_settings.LOGSUM_SETTINGS
+        )
+    else:
+        logsum_settings = None
 
     logsum_column_name = model_settings.DEST_CHOICE_LOGSUM_COLUMN_NAME
     want_logsums = logsum_column_name is not None
@@ -1312,6 +1381,8 @@ def run_trip_destination(
 
         # expect all the same trips
         survey_trips = estimator.get_survey_table("trips").sort_index()
+        # need to check household_id incase household_sample_size != 0
+        survey_trips = survey_trips[survey_trips.household_id.isin(trips.household_id)]
         assert survey_trips.index.equals(trips.index)
 
         first = survey_trips.trip_num == 1
@@ -1341,7 +1412,9 @@ def run_trip_destination(
 
     # - filter tours_merged (AFTER copying destination and origin columns to trips)
     # tours_merged is used for logsums, we filter it here upfront to save space and time
-    tours_merged_cols = logsum_settings["TOURS_MERGED_CHOOSER_COLUMNS"]
+    tours_merged_cols = (
+        logsum_settings["TOURS_MERGED_CHOOSER_COLUMNS"] if logsum_settings else []
+    )
     redundant_cols = model_settings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS or []
     if redundant_cols:
         tours_merged_cols = [c for c in tours_merged_cols if c not in redundant_cols]
@@ -1383,15 +1456,15 @@ def run_trip_destination(
             }
             locals_dict.update(model_settings.CONSTANTS)
 
-            # - annotate nth_trips
-            if preprocessor_settings:
-                expressions.assign_columns(
-                    state,
-                    df=nth_trips,
-                    model_settings=preprocessor_settings,
-                    locals_dict=locals_dict,
-                    trace_label=nth_trace_label,
-                )
+            # preprocessing choosers
+            expressions.annotate_preprocessors(
+                state,
+                df=nth_trips,
+                locals_dict=locals_dict,
+                skims=None,
+                model_settings=model_settings,
+                trace_label=trace_label,
+            )
 
             if isinstance(
                 nth_trips["trip_period"].dtype, pd.api.types.CategoricalDtype
@@ -1414,30 +1487,51 @@ def run_trip_destination(
             else:
                 None
 
-            logger.info("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])
+            logger.debug(
+                "Running %s with %d trips", nth_trace_label, nth_trips.shape[0]
+            )
 
             # - choose destination for nth_trips, segmented by primary_purpose
             choices_list = []
             for primary_purpose, trips_segment in nth_trips.groupby(
                 "primary_purpose", observed=True
             ):
-                choices, destination_sample = choose_trip_destination(
-                    state,
-                    primary_purpose,
-                    trips_segment,
-                    alternatives,
-                    tours_merged,
-                    model_settings,
-                    want_logsums,
-                    want_sample_table,
-                    size_term_matrix,
-                    skim_hotel,
-                    estimator,
-                    chunk_size,
-                    trace_label=tracing.extend_trace_label(
-                        nth_trace_label, primary_purpose
-                    ),
-                )
+                try:
+                    choices, destination_sample = choose_trip_destination(
+                        state,
+                        primary_purpose,
+                        trips_segment,
+                        alternatives,
+                        tours_merged,
+                        model_settings,
+                        want_logsums,
+                        want_sample_table,
+                        size_term_matrix,
+                        skim_hotel,
+                        estimator,
+                        chunk_size,
+                        trace_label=tracing.extend_trace_label(
+                            nth_trace_label, primary_purpose
+                        ),
+                    )
+                except KeyError as err:
+                    if err.args[0] == "purpose_index_num":
+                        logger.error(
+                            """
+
+                        When using the trip destination model with sharrow, it is necessary
+                        to set a value for `purpose_index_num` in the trip destination 
+                        annotate trips preprocessor.  This allows for an optimized compiled 
+                        lookup of the size term from the array of size terms.  The value of
+                        `purpose_index_num` should be the integer column position in the size 
+                        matrix, with usual zero-based numpy indexing semantics (i.e. the first 
+                        column is zero).  The preprocessor expression most likely needs to be
+                        "size_terms.get_cols(df.purpose)" unless some unusual transform of 
+                        size terms has been employed.
+
+                        """
+                        )
+                    raise
 
                 choices_list.append(choices)
                 if want_sample_table:
@@ -1579,7 +1673,7 @@ def trip_destination(
         estimator.write_table(state.get_dataframe("land_use"), "landuse", append=False)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
-    logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
+    logger.debug("Running %s with %d trips", trace_label, trips_df.shape[0])
 
     trips_df, save_sample_df = run_trip_destination(
         state,
@@ -1594,7 +1688,7 @@ def trip_destination(
     # testing feature t0 make sure at least one trip fails so trip_purpose_and_destination model is run
     if state.settings.testing_fail_trip_destination and not trips_df.failed.any():
         if (trips_df.trip_num < trips_df.trip_count).sum() == 0:
-            raise RuntimeError(
+            raise InvalidTravelError(
                 "can't honor 'testing_fail_trip_destination' setting because no intermediate trips"
             )
 
@@ -1675,5 +1769,15 @@ def trip_destination(
 
         # lest they try to put tour samples into the same table
         if state.is_table(sample_table_name):
-            raise RuntimeError("sample table %s already exists" % sample_table_name)
+            raise DuplicateWorkflowTableError(
+                "sample table %s already exists" % sample_table_name
+            )
         state.extend_table(sample_table_name, save_sample_df)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

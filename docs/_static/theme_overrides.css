@@ -8,3 +8,7 @@ div.sd-card-header {
     font-weight: 800;
     var(--pst-font-family-base);
 }
+
+div.sd-card {
+    margin-bottom: 20px;
+}

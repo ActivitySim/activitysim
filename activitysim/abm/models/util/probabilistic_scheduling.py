@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core import chunk, logit, tracing, workflow
+from activitysim.core.exceptions import InvalidTravelError
 
 logger = logging.getLogger(__name__)
 
@@ -210,7 +211,7 @@ def _postprocess_scheduling_choices(
 
     if scheduling_mode == "relative":
         if failed.any():
-            RuntimeError(
+            InvalidTravelError(
                 f"Failed trips in realtive mode for {failed.sum()} trips: {choosers[failed]}"
             )
 

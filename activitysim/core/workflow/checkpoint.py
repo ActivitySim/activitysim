@@ -18,6 +18,7 @@ from activitysim.core.exceptions import (
     TableNameNotFound,
 )
 from activitysim.core.workflow.accessor import FromState, StateAccessor
+from activitysim.core.exceptions import CheckpointNameNotFoundError, PipelineError
 
 logger = logging.getLogger(__name__)
 
@@ -565,7 +566,7 @@ class Checkpoints(StateAccessor):
         """
 
         if self._checkpoint_store is not None:
-            raise RuntimeError("Pipeline store is already open!")
+            raise PipelineError("Pipeline store is already open!")
 
         if pipeline_file_name is None:
             pipeline_file_path = self.default_pipeline_file_path()
@@ -775,7 +776,7 @@ class Checkpoints(StateAccessor):
             msg = f"Couldn't find checkpoint '{checkpoint_name}' in checkpoints"
             print(checkpoints[CHECKPOINT_NAME])
             logger.error(msg)
-            raise RuntimeError(msg) from None
+            raise CheckpointNameNotFoundError(msg) from None
 
         # convert pandas dataframe back to array of checkpoint dicts
         checkpoints = checkpoints.to_dict(orient="records")
@@ -1201,7 +1202,7 @@ class Checkpoints(StateAccessor):
 
         if table_name not in self.last_checkpoint and self._obj.is_table(table_name):
             if checkpoint_name is not None:
-                raise RuntimeError(
+                raise CheckpointNameNotFoundError(
                     f"checkpoint.dataframe: checkpoint_name ({checkpoint_name!r}) not "
                     f"supported for non-checkpointed table {table_name!r}"
                 )
@@ -1211,10 +1212,14 @@ class Checkpoints(StateAccessor):
         # if there is no checkpoint name given, do not attempt to read from store
         if checkpoint_name is None:
             if table_name not in self.last_checkpoint:
-                raise RuntimeError("table '%s' never checkpointed." % table_name)
+                raise CheckpointNameNotFoundError(
+                    "table '%s' never checkpointed." % table_name
+                )
 
             if not self.last_checkpoint[table_name]:
-                raise RuntimeError("table '%s' was dropped." % table_name)
+                raise CheckpointNameNotFoundError(
+                    "table '%s' was dropped." % table_name
+                )
 
             return self._obj.get_dataframe(table_name)
 
@@ -1224,13 +1229,15 @@ class Checkpoints(StateAccessor):
             None,
         )
         if checkpoint is None:
-            raise RuntimeError("checkpoint '%s' not in checkpoints." % checkpoint_name)
+            raise CheckpointNameNotFoundError(
+                "checkpoint '%s' not in checkpoints." % checkpoint_name
+            )
 
         # find the checkpoint that table was written to store
         last_checkpoint_name = checkpoint.get(table_name, None)
 
         if not last_checkpoint_name:
-            raise RuntimeError(
+            raise CheckpointNameNotFoundError(
                 "table '%s' not in checkpoint '%s'." % (table_name, checkpoint_name)
             )
 

@@ -16,7 +16,10 @@ from pydantic import DirectoryPath, validator
 
 from activitysim.core.configuration.base import PydanticBase
 from activitysim.core.configuration.logit import LogitComponentSettings
-from activitysim.core.exceptions import SettingsFileNotFoundError
+from activitysim.core.exceptions import (
+    SettingsFileNotFoundError,
+    SystemConfigurationError,
+)
 from activitysim.core.util import parse_suffix_args, suffix_tables_in_settings
 
 logger = logging.getLogger(__name__)
@@ -169,7 +172,8 @@ class FileSystem(PydanticBase, validate_assignment=True):
         if subdir is not None:
             out = out.joinpath(subdir)
         if not out.exists():
-            out.mkdir(parents=True)
+            out.mkdir(parents=True, exist_ok=True)
+            # we set exist_ok=True so we avoid multiprocess race conditions
         return out
 
     def get_output_file_path(self, file_name) -> Path:
@@ -767,7 +771,7 @@ class FileSystem(PydanticBase, validate_assignment=True):
                         logger.error(
                             f"Unexpected additional settings: {additional_settings}"
                         )
-                        raise RuntimeError(
+                        raise SystemConfigurationError(
                             "'include_settings' must appear alone in settings file."
                         )
 

@@ -9,6 +9,7 @@ import pandas as pd
 
 from activitysim.core import (
     chunk,
+    estimation,
     interaction_simulate,
     logit,
     simulate,
@@ -17,8 +18,10 @@ from activitysim.core import (
     workflow,
 )
 from activitysim.core.configuration.base import ComputeSettings
+from activitysim.core.exceptions import SegmentedSpecificationError
 from activitysim.core.skim_dataset import DatasetWrapper
 from activitysim.core.skim_dictionary import SkimWrapper
+from activitysim.core.workflow import State
 
 logger = logging.getLogger(__name__)
 
@@ -108,13 +111,12 @@ def make_sample_choices_utility_based(
     chunk_sizer.log_df(trace_label, "chooser_idx", None)
     del chosen_destinations
     chunk_sizer.log_df(trace_label, "chosen_destinations", None)
-    del probs
-    chunk_sizer.log_df(trace_label, "probs", None)
 
     # handing this off to caller
+    chunk_sizer.log_df(trace_label, "probs", None)
     chunk_sizer.log_df(trace_label, "choices_df", None)
 
-    return choices_df
+    return choices_df, probs
 
 
 def make_sample_choices(
@@ -310,7 +312,7 @@ def _interaction_sample(
         )
 
     if len(spec.columns) > 1:
-        raise RuntimeError("spec must have only one column")
+        raise SegmentedSpecificationError("spec must have only one column")
 
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for set_skim_wrapper_targets
@@ -578,7 +580,7 @@ def _interaction_sample(
             trace_choosers=choosers,
         )
 
-        choices_df = make_sample_choices_utility_based(
+        choices_df, probs = make_sample_choices_utility_based(
             state,
             choosers,
             utilities,
@@ -590,8 +592,25 @@ def _interaction_sample(
             trace_label=trace_label,
             chunk_sizer=chunk_sizer,
         )
+
         del utilities
         chunk_sizer.log_df(trace_label, "utilities", None)
+
+        if estimation.manager.enabled and sample_size > 0:
+
+            choices_df = _ensure_chosen_alts_in_sample(
+                alt_col_name,
+                alternatives,
+                choices_df,
+                choosers,
+                probs,
+                state,
+                trace_label,
+            )
+
+        del probs
+        chunk_sizer.log_df(trace_label, "probs", None)
+
     else:
         # convert to probabilities (utilities exponentiated and normalized to probs)
         # probs is same shape as utilities, one row per chooser and one column for alternative
@@ -627,6 +646,19 @@ def _interaction_sample(
             trace_label=trace_label,
             chunk_sizer=chunk_sizer,
         )
+
+        chunk_sizer.log_df(trace_label, "choices_df", choices_df)
+
+        if estimation.manager.enabled and sample_size > 0:
+            choices_df = _ensure_chosen_alts_in_sample(
+                alt_col_name,
+                alternatives,
+                choices_df,
+                choosers,
+                probs,
+                state,
+                trace_label,
+            )
 
         del probs
         chunk_sizer.log_df(trace_label, "probs", None)
@@ -674,6 +706,49 @@ def _interaction_sample(
     assert (choices_df["pick_count"].max() < 4294967295) or (choices_df.empty)
     choices_df["pick_count"] = choices_df["pick_count"].astype(np.uint32)
 
+    return choices_df
+
+
+def _ensure_chosen_alts_in_sample(
+    alt_col_name,
+    alternatives: pd.DataFrame,
+    choices_df: pd.DataFrame,
+    choosers: pd.DataFrame,
+    probs: pd.DataFrame,
+    state: State,
+    trace_label,
+) -> pd.DataFrame:
+    # we need to ensure chosen alternative is included in the sample
+    survey_choices = estimation.manager.get_survey_destination_choices(
+        state, choosers, trace_label
+    )
+    if survey_choices is not None:
+        assert (
+            survey_choices.index == choosers.index
+        ).all(), "survey_choices and choosers must have the same index"
+        survey_choices.name = alt_col_name
+        survey_choices = survey_choices.dropna().astype(choices_df[alt_col_name].dtype)
+
+        # merge all survey choices onto choices_df
+        probs_df = probs.reset_index().melt(
+            id_vars=[choosers.index.name],
+            var_name=alt_col_name,
+            value_name="prob",
+        )
+        # probs are numbered 0..n-1 so we need to map back to alt ids
+        zone_map = pd.Series(alternatives.index).to_dict()
+        probs_df[alt_col_name] = probs_df[alt_col_name].map(zone_map)
+
+        survey_choices = pd.merge(
+            survey_choices,
+            probs_df,
+            on=[choosers.index.name, alt_col_name],
+            how="left",
+        )
+        survey_choices["rand"] = 0
+        survey_choices["prob"].fillna(0, inplace=True)
+        choices_df = pd.concat([choices_df, survey_choices], ignore_index=True)
+        choices_df.sort_values(by=[choosers.index.name], inplace=True)
     return choices_df
 
 

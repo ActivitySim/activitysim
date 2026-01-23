@@ -22,6 +22,7 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.util import reindex
+from activitysim.core.exceptions import InvalidTravelError
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +135,7 @@ def choose_intermediate_trip_purpose(
             state.tracing.write_csv(
                 unmatched_choosers, file_name=file_name, transpose=False
             )
-            raise RuntimeError(
+            raise InvalidTravelError(
                 "Some trips could not be matched to probs based on join columns %s."
                 % probs_join_cols
             )
@@ -253,16 +254,14 @@ def run_trip_purpose(
     trips_df = trips_df[~last_trip]
     logger.info("assign purpose to %s intermediate trips", trips_df.shape[0])
 
-    preprocessor_settings = model_settings.preprocessor
-    if preprocessor_settings:
-        locals_dict = config.get_model_constants(model_settings)
-        expressions.assign_columns(
-            state,
-            df=trips_df,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label,
-        )
+    expressions.annotate_preprocessors(
+        state,
+        df=trips_df,
+        locals_dict=config.get_model_constants(model_settings),
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
 
     use_depart_time = model_settings.use_depart_time
 
@@ -303,6 +302,10 @@ def trip_purpose(state: workflow.State, trips: pd.DataFrame) -> None:
     """
     trace_label = "trip_purpose"
 
+    model_settings = TripPurposeSettings.read_settings_file(
+        state.filesystem, "trip_purpose.yaml"
+    )
+
     trips_df = trips
 
     if state.is_table("school_escort_trips"):
@@ -326,6 +329,7 @@ def trip_purpose(state: workflow.State, trips: pd.DataFrame) -> None:
         state,
         trips_df,
         estimator,
+        model_settings,
         trace_label=trace_label,
     )
 
@@ -359,3 +363,11 @@ def trip_purpose(state: workflow.State, trips: pd.DataFrame) -> None:
             index_label="trip_id",
             warn_if_empty=True,
         )
+
+    expressions.annotate_tables(
+        state,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

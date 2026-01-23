@@ -601,9 +601,11 @@ class ProtoPop:
         for col, fill in col_filler.items():
             df_ids[col] = df_ids[col].str.zfill(fill)
 
-        ex_table["proto_person_id"] = df_ids[cols].apply("".join, axis=1).astype(int)
+        ex_table["proto_person_id"] = (
+            df_ids[cols].apply("".join, axis=1).astype(np.int64)
+        )
         ex_table["proto_household_id"] = (
-            df_ids[cols[:-1]].apply("".join, axis=1).astype(int)
+            df_ids[cols[:-1]].apply("".join, axis=1).astype(np.int64)
         )
 
         # Separate out into households, persons, tours
@@ -626,9 +628,11 @@ class ProtoPop:
 
         # Create ID columns, defaults to "%tablename%_id"
         hhid, perid, tourid = (
-            self.params[x]["index_col"]
-            if len(self.params[x]["index_col"]) > 0
-            else x + "_id"
+            (
+                self.params[x]["index_col"]
+                if len(self.params[x]["index_col"]) > 0
+                else x + "_id"
+            )
             for x in klist
         )
 
@@ -768,11 +772,12 @@ def get_disaggregate_logsums(
             state.filesystem, model_name + ".yaml"
         )
         model_settings.SAMPLE_SIZE = disagg_model_settings.DESTINATION_SAMPLE_SIZE
-        estimator = estimation.manager.begin_estimation(state, trace_label)
-        if estimator:
-            location_choice.write_estimation_specs(
-                state, estimator, model_settings, model_name + ".yaml"
-            )
+        # estimator = estimation.manager.begin_estimation(state, trace_label)
+        # if estimator:
+        #     location_choice.write_estimation_specs(
+        #         state, estimator, model_settings, model_name + ".yaml"
+        #     )
+        estimator = None
 
         # Append table references in settings with "proto_"
         # This avoids having to make duplicate copies of config files for disagg accessibilities

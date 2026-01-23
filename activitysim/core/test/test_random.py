@@ -8,6 +8,7 @@ import pandas as pd
 import pytest
 
 from activitysim.core import random
+from activitysim.core.exceptions import DuplicateLoadableObjectError
 
 
 def test_basic():
@@ -27,7 +28,7 @@ def test_basic():
     assert "Arrays are not almost equal" in str(excinfo.value)
 
     # second call should return something different
-    with pytest.raises(RuntimeError) as excinfo:
+    with pytest.raises(DuplicateLoadableObjectError) as excinfo:
         rng.set_base_seed(1)
     assert "call set_base_seed before the first step" in str(excinfo.value)
 

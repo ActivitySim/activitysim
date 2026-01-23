@@ -319,9 +319,6 @@ class SchoolEscortSettings(BaseLogitComponentSettings, extra="forbid"):
     Settings for the `telecommute_frequency` component.
     """
 
-    preprocessor: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
-
     ALTS: Any
 
     NUM_ESCORTEES: int = 3
@@ -353,6 +350,8 @@ class SchoolEscortSettings(BaseLogitComponentSettings, extra="forbid"):
     preprocessor_outbound: PreprocessorSettings | None = None
     preprocessor_inbound: PreprocessorSettings | None = None
     preprocessor_outbound_cond: PreprocessorSettings | None = None
+    alts_preprocessor: PreprocessorSettings | None = None
+    """Preprocessor settings for the school escorting model alternatives."""
 
     no_escorting_alterative: int = 1
     """The alternative number for no escorting. Used to set the choice for households with no escortees."""
@@ -428,6 +427,16 @@ def school_escorting(
     constants = config.get_model_constants(model_settings)
     locals_dict = {}
     locals_dict.update(constants)
+    # alternatives preprocessor
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor",
+    )
 
     school_escorting_stages = ["outbound", "inbound", "outbound_cond"]
     escort_bundles = []
@@ -476,15 +485,16 @@ def school_escorting(
 
         logger.info("Running %s with %d households", stage_trace_label, len(choosers))
 
-        preprocessor_settings = getattr(model_settings, "preprocessor_" + stage, None)
-        if preprocessor_settings:
-            expressions.assign_columns(
-                state,
-                df=choosers,
-                model_settings=preprocessor_settings,
-                locals_dict=locals_dict,
-                trace_label=stage_trace_label,
-            )
+        preprocessor_setting_name = "preprocessor_" + stage
+        expressions.annotate_preprocessors(
+            state,
+            df=choosers,
+            locals_dict=locals_dict,
+            skims=None,
+            model_settings=model_settings,
+            trace_label=trace_label,
+            preprocessor_setting_name=preprocessor_setting_name,
+        )
 
         if estimator:
             estimator.write_model_settings(model_settings, model_settings_file_name)
@@ -493,7 +503,10 @@ def school_escorting(
                 coefficients_df, file_name=stage.upper() + "_COEFFICIENTS"
             )
             estimator.write_choosers(choosers)
-            estimator.write_alternatives(alts, bundle_directory=True)
+            if state.settings.multiprocess:
+                estimator.write_alternatives(alts, bundle_directory=False)
+            else:
+                estimator.write_alternatives(alts, bundle_directory=True)
 
             # FIXME #interaction_simulate_estimation_requires_chooser_id_in_df_column
             #  shuold we do it here or have interaction_simulate do it?
@@ -655,3 +668,11 @@ def school_escorting(
             )
 
     timetable.replace_table(state)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict=constants,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

@@ -5,11 +5,9 @@ import csv
 import logging
 import logging.config
 import os
-import struct
 import sys
 import tarfile
 import tempfile
-import time
 from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
 from typing import Any, Optional
@@ -21,6 +19,8 @@ import yaml
 from activitysim.core import tracing
 from activitysim.core.test import assert_equal, assert_frame_substantively_equal
 from activitysim.core.workflow.accessor import FromState, StateAccessor
+from activitysim.core.exceptions import TableSlicingError
+from activitysim.core.run_id import RunId
 
 logger = logging.getLogger(__name__)
 
@@ -34,15 +34,6 @@ DEFAULT_TRACEABLE_TABLES = [
     "trips",
     "vehicles",
 ]
-
-
-class RunId(str):
-    def __new__(cls, x=None):
-        if x is None:
-            return cls(
-                hex(struct.unpack("<Q", struct.pack("<d", time.time()))[0])[-6:].lower()
-            )
-        return super().__new__(cls, x)
 
 
 class Tracing(StateAccessor):
@@ -548,7 +539,7 @@ class Tracing(StateAccessor):
             targets = traceable_table_ids["proto_tours"]
         else:
             print(choosers.columns)
-            raise RuntimeError(
+            raise TableSlicingError(
                 "interaction_trace_rows don't know how to slice index '%s'"
                 % choosers.index.name
             )
@@ -629,7 +620,7 @@ class Tracing(StateAccessor):
                 column = slicer
 
         if column is None and df.index.name != slicer:
-            raise RuntimeError(
+            raise TableSlicingError(
                 "bad slicer '%s' for df with index '%s'" % (slicer, df.index.name)
             )
 

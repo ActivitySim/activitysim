@@ -27,6 +27,7 @@ from activitysim.core.configuration.base import (
 from activitysim.core.skim_dataset import SkimDataset
 from activitysim.core.skim_dictionary import SkimDict
 from activitysim.core.util import reindex
+from activitysim.core.exceptions import SegmentedSpecificationError
 
 logger = logging.getLogger(__name__)
 
@@ -191,9 +192,21 @@ def choose_tour_leg_pattern(
     trace_label="trace_label",
     *,
     chunk_sizer: chunk.ChunkSizer,
-    compute_settings: ComputeSettings | None = None,
+    model_settings: TripDepartureChoiceSettings,
 ):
     alternatives = generate_alternatives(trip_segment, STOP_TIME_DURATION).sort_index()
+
+    # preprocessing alternatives
+    expressions.annotate_preprocessors(
+        state,
+        df=alternatives,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor",
+    )
+
     have_trace_targets = state.tracing.has_trace_targets(trip_segment)
 
     if have_trace_targets:
@@ -207,7 +220,7 @@ def choose_tour_leg_pattern(
         )
 
     if len(spec.columns) > 1:
-        raise RuntimeError("spec must have only one column")
+        raise SegmentedSpecificationError("spec must have only one column")
 
     # - join choosers and alts
     # in vanilla interaction_simulate interaction_df is cross join of choosers and alternatives
@@ -245,7 +258,7 @@ def choose_tour_leg_pattern(
         trace_label,
         trace_rows,
         estimator=None,
-        compute_settings=compute_settings,
+        compute_settings=model_settings.compute_settings,
     )
 
     interaction_utilities = pd.concat(
@@ -416,7 +429,7 @@ def apply_stage_two_model(
     trips,
     chunk_size,
     trace_label: str,
-    compute_settings: ComputeSettings | None = None,
+    model_settings: TripDepartureChoiceSettings,
 ):
     if not trips.index.is_monotonic_increasing:
         trips = trips.sort_index()
@@ -487,7 +500,7 @@ def apply_stage_two_model(
                 spec,
                 trace_label=segment_trace_label,
                 chunk_sizer=chunk_sizer,
-                compute_settings=compute_settings,
+                model_settings=model_settings,
             )
 
             choices = pd.merge(
@@ -522,6 +535,9 @@ class TripDepartureChoiceSettings(PydanticCompute, extra="forbid"):
 
     PREPROCESSOR: PreprocessorSettings | None = None
     """Setting for the preprocessor."""
+
+    alts_preprocessor: PreprocessorSettings | None = None
+    """Setting for the alternatives preprocessor."""
 
     SPECIFICATION: str = "trip_departure_choice.csv"
     """Filename for the trip departure choice (.csv) file."""
@@ -594,7 +610,7 @@ def trip_departure_choice(
         trips_merged_df,
         state.settings.chunk_size,
         trace_label,
-        compute_settings=model_settings.compute_settings,
+        model_settings=model_settings,
     )
 
     trips_df = trips
@@ -604,3 +620,11 @@ def trip_departure_choice(
     assert trips_df[trips_df["depart"].isnull()].empty
 
     state.add_table("trips", trips_df)
+
+    expressions.annotate_tables(
+        state,
+        locals_dict={},
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )

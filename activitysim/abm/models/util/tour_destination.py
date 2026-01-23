@@ -9,7 +9,15 @@ import pandas as pd
 
 from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
-from activitysim.core import config, los, simulate, tracing, workflow
+from activitysim.core import (
+    config,
+    estimation,
+    los,
+    simulate,
+    tracing,
+    workflow,
+    expressions,
+)
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
@@ -84,18 +92,20 @@ def _destination_sample(
         coefficients_file_name=model_settings.COEFFICIENTS,
     )
 
-    logger.info("running %s with %d tours", trace_label, len(choosers))
+    logger.debug("running %s with %d tours", trace_label, len(choosers))
 
     sample_size = model_settings.SAMPLE_SIZE
-    if state.settings.disable_destination_sampling or (
-        estimator and estimator.want_unsampled_alternatives
-    ):
-        # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
-        logger.info(
-            "Estimation mode for %s using unsampled alternatives short_circuit_choices"
-            % (trace_label,)
+    if estimator and model_settings.ESTIMATION_SAMPLE_SIZE >= 0:
+        sample_size = model_settings.ESTIMATION_SAMPLE_SIZE
+        logger.debug(
+            f"Estimation mode for {trace_label} using sample size of {sample_size}"
         )
+
+    if state.settings.disable_destination_sampling:
         sample_size = 0
+        logger.debug(
+            f"SAMPLE_SIZE set to 0 for {trace_label} because disable_destination_sampling is set"
+        )
 
     locals_d = {
         "skims": skims,
@@ -108,6 +118,27 @@ def _destination_sample(
         locals_d.update(constants)
 
     log_alt_losers = state.settings.log_alt_losers
+
+    # preprocess choosers table
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=locals_d,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
+    # preprocess alternatives table
+    expressions.annotate_preprocessors(
+        state,
+        df=destination_size_terms,
+        locals_dict=locals_d,
+        skims=None,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_sample",
+    )
 
     choices = interaction_sample(
         state,
@@ -232,7 +263,9 @@ def aggregate_size_terms(dest_size_terms, network_los):
     return MAZ_size_terms, TAZ_size_terms
 
 
-def choose_MAZ_for_TAZ(state: workflow.State, taz_sample, MAZ_size_terms, trace_label):
+def choose_MAZ_for_TAZ(
+    state: workflow.State, taz_sample, MAZ_size_terms, trace_label, model_settings
+):
     """
     Convert taz_sample table with TAZ zone sample choices to a table with a MAZ zone chosen for each TAZ
     choose MAZ probabilistically (proportionally by size_term) from set of MAZ zones in parent TAZ
@@ -308,7 +341,7 @@ def choose_MAZ_for_TAZ(state: workflow.State, taz_sample, MAZ_size_terms, trace_
 
     # taz_choices index values should be contiguous
     assert (
-        taz_choices[chooser_id_col] == np.repeat(chooser_df.index, taz_sample_size)
+        (taz_choices[chooser_id_col] == np.repeat(chooser_df.index, taz_sample_size))
     ).all()
 
     # we need to choose a MAZ for each DEST_TAZ choice
@@ -453,6 +486,59 @@ def choose_MAZ_for_TAZ(state: workflow.State, taz_sample, MAZ_size_terms, trace_
             transpose=False,
         )
 
+    if estimation.manager.enabled and (
+        model_settings.ESTIMATION_SAMPLE_SIZE > 0
+        or (
+            model_settings.ESTIMATION_SAMPLE_SIZE < 0 and model_settings.SAMPLE_SIZE > 0
+        )
+    ):
+        # want to ensure the override choice is in the choice set
+        survey_choices = estimation.manager.get_survey_destination_choices(
+            state, chooser_df, trace_label
+        )
+
+        if survey_choices is not None:
+            assert (
+                chooser_df.index == survey_choices.index
+            ).all(), "survey_choices index should match chooser_df index"
+            survey_choices.name = DEST_MAZ
+            survey_choices = survey_choices.dropna().astype(taz_choices[DEST_MAZ].dtype)
+            # merge maz_sizes onto survey choices
+            MAZ_size_terms["MAZ_prob"] = MAZ_size_terms.groupby("dest_TAZ")[
+                "size_term"
+            ].transform(lambda x: x / x.sum())
+            survey_choices = pd.merge(
+                survey_choices.reset_index(),
+                MAZ_size_terms.rename(columns={"zone_id": DEST_MAZ}),
+                on=[DEST_MAZ],
+                how="left",
+            )
+            # merge TAZ_prob from taz_choices onto survey choices
+            survey_choices = pd.merge(
+                survey_choices,
+                # dropping duplicates to avoid duplicate rows as the same TAZ can be chosen multiple times
+                taz_choices[[chooser_id_col, "dest_TAZ", "TAZ_prob"]].drop_duplicates(
+                    subset=[chooser_id_col, "dest_TAZ"]
+                ),
+                on=[chooser_id_col, "dest_TAZ"],
+                how="left",
+            )
+
+            survey_choices["prob"] = (
+                survey_choices["TAZ_prob"] * survey_choices["MAZ_prob"]
+            )
+
+            # Don't care about getting dest_TAZ correct as it gets dropped later
+            survey_choices.fillna(0, inplace=True)
+
+            # merge survey choices back into choices_df and sort by chooser
+            taz_choices = pd.concat(
+                [taz_choices, survey_choices[taz_choices.columns]], ignore_index=True
+            )
+            taz_choices.sort_values(
+                by=[chooser_id_col, "dest_TAZ"], inplace=True, ignore_index=True
+            )
+
     taz_choices = taz_choices.drop(columns=["TAZ_prob", "MAZ_prob"])
     taz_choices = taz_choices.groupby([chooser_id_col, DEST_MAZ]).agg(
         prob=("prob", "max"), pick_count=("prob", "count")
@@ -476,7 +562,7 @@ def destination_presample(
     trace_label = tracing.extend_trace_label(trace_label, "presample")
     chunk_tag = "tour_destination.presample"
 
-    logger.info(f"{trace_label} location_presample")
+    logger.debug(f"{trace_label} location_presample")
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
     assert DEST_TAZ != alt_dest_col_name
@@ -511,7 +597,9 @@ def destination_presample(
     )
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
-    maz_choices = choose_MAZ_for_TAZ(state, taz_sample, MAZ_size_terms, trace_label)
+    maz_choices = choose_MAZ_for_TAZ(
+        state, taz_sample, MAZ_size_terms, trace_label, model_settings
+    )
 
     assert DEST_MAZ in maz_choices
     maz_choices = maz_choices.rename(columns={DEST_MAZ: alt_dest_col_name})
@@ -564,7 +652,7 @@ def run_destination_sample(
         )
 
     if pre_sample_taz:
-        logger.info(
+        logger.debug(
             "Running %s destination_presample with %d tours" % (trace_label, len(tours))
         )
 
@@ -652,7 +740,7 @@ def run_destination_logsums(
         how="left",
     )
 
-    logger.info("Running %s with %s rows", trace_label, len(choosers))
+    logger.debug("Running %s with %s rows", trace_label, len(choosers))
 
     state.tracing.dump_df(DUMP, persons_merged, trace_label, "persons_merged")
     state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
@@ -744,7 +832,7 @@ def run_destination_simulate(
 
     constants = model_settings.CONSTANTS
 
-    logger.info("Running tour_destination_simulate with %d persons", len(choosers))
+    logger.debug("Running tour_destination_simulate with %d persons", len(choosers))
 
     # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
     # and a zone_id in the alternatives which get merged during interaction
@@ -760,6 +848,27 @@ def run_destination_simulate(
     }
     if constants is not None:
         locals_d.update(constants)
+
+    # preprocess choosers table
+    expressions.annotate_preprocessors(
+        state,
+        df=choosers,
+        locals_dict=locals_d,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+    )
+
+    # preprocess alternatives table
+    expressions.annotate_preprocessors(
+        state,
+        df=destination_sample,
+        locals_dict=locals_d,
+        skims=skims,
+        model_settings=model_settings,
+        trace_label=trace_label,
+        preprocessor_setting_name="alts_preprocessor_simulate",
+    )
 
     state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
@@ -852,17 +961,21 @@ def run_tour_destination(
         )
 
         # - destination_logsums
-        tour_purpose = segment_name  # tour_purpose is segment_name
-        location_sample_df = run_destination_logsums(
-            state,
-            tour_purpose,
-            persons_merged,
-            location_sample_df,
-            model_settings,
-            network_los,
-            chunk_size=state.settings.chunk_size,
-            trace_label=tracing.extend_trace_label(segment_trace_label, "logsums"),
-        )
+        # if LOGSUM_SETTINGS is set to 'None', we skip this step
+        if model_settings.LOGSUM_SETTINGS:
+            tour_purpose = segment_name  # tour_purpose is segment_name
+            location_sample_df = run_destination_logsums(
+                state,
+                tour_purpose,
+                persons_merged,
+                location_sample_df,
+                model_settings,
+                network_los,
+                chunk_size=state.settings.chunk_size,
+                trace_label=tracing.extend_trace_label(segment_trace_label, "logsums"),
+            )
+        else:
+            location_sample_df["mode_choice_logsum"] = 0
 
         # - destination_simulate
         spec_segment_name = segment_name  # spec_segment_name is segment_name

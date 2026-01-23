@@ -1,4 +1,5 @@
 """pypyr step yaml definition for commands - domain specific language."""
+
 import logging
 import os
 import shlex

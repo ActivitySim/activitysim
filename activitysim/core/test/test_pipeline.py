@@ -9,6 +9,7 @@ import pytest
 import tables
 
 from activitysim.core import workflow
+from activitysim.core.exceptions import CheckpointNameNotFoundError
 from activitysim.core.test.extensions import steps
 
 # set the max households for all tests (this is to limit memory use on travis)
@@ -70,17 +71,17 @@ def test_pipeline_run(state):
     state.checkpoint.load_dataframe("table1", checkpoint_name="step3")
 
     # try to get a table from a step before it was checkpointed
-    with pytest.raises(RuntimeError) as excinfo:
+    with pytest.raises(CheckpointNameNotFoundError) as excinfo:
         state.checkpoint.load_dataframe("table2", checkpoint_name="step1")
     assert "not in checkpoint 'step1'" in str(excinfo.value)
 
     # try to get a non-existant table
-    with pytest.raises(RuntimeError) as excinfo:
+    with pytest.raises(CheckpointNameNotFoundError) as excinfo:
         state.checkpoint.load_dataframe("bogus")
     assert "never checkpointed" in str(excinfo.value)
 
     # try to get an existing table from a non-existant checkpoint
-    with pytest.raises(RuntimeError) as excinfo:
+    with pytest.raises(CheckpointNameNotFoundError) as excinfo:
         state.checkpoint.load_dataframe("table1", checkpoint_name="bogus")
     assert "not in checkpoints" in str(excinfo.value)
 
@@ -111,12 +112,12 @@ def test_pipeline_checkpoint_drop(state):
 
     state.checkpoint.load_dataframe("table1")
 
-    with pytest.raises(RuntimeError) as excinfo:
+    with pytest.raises(CheckpointNameNotFoundError) as excinfo:
         state.checkpoint.load_dataframe("table2")
     # assert "never checkpointed" in str(excinfo.value)
 
     # can't get a dropped table from current checkpoint
-    with pytest.raises(RuntimeError) as excinfo:
+    with pytest.raises(CheckpointNameNotFoundError) as excinfo:
         state.checkpoint.load_dataframe("table3")
     # assert "was dropped" in str(excinfo.value)
 

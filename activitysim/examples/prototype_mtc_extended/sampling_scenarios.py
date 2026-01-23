@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import importlib.resources
 import os
 import shutil
 
 import pandas as pd
-import pkg_resources
 import yaml
 
 from activitysim.cli.run import add_run_args, run
@@ -35,12 +35,12 @@ def integer_params(params):
 
 def base_path(dirname):
     resource = os.path.join("examples", "placeholder_sandag_2_zone", dirname)
-    return pkg_resources.resource_filename("activitysim", resource)
+    return str(importlib.resources.files("activitysim").joinpath(resource))
 
 
 def extended_path(dirname):
     resource = os.path.join("examples", "placeholder_sandag_2_zone_extended", dirname)
-    return pkg_resources.resource_filename("activitysim", resource)
+    return str(importlib.resources.files("activitysim").joinpath(resource))
 
 
 def run_model():

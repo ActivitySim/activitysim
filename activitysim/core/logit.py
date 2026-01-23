@@ -316,6 +316,19 @@ def utils_to_probs(
             trace_choosers=trace_choosers,
         )
 
+    # check if any values are nan
+    nan_utils = np.isnan(arr_sum)
+    if nan_utils.any():
+        report_bad_choices(
+            state,
+            nan_utils,
+            utils,
+            skip_failed_choices,
+            trace_label=tracing.extend_trace_label(trace_label, "nan_exp_utils"),
+            msg="nan exponentiated utilities",
+            trace_choosers=trace_choosers,
+        )
+
     # if allow_zero_probs, this may cause a RuntimeWarning: invalid value encountered in divide
     with np.errstate(
         invalid="ignore" if allow_zero_probs else "warn",

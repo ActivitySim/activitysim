@@ -1048,6 +1048,8 @@ class State:
                         "household_id"
                     ).is_unique, "household_id is not unique in households_skipped"
                 self.set("households_skipped", skipped_hh_df)
+                # mark households_skipped table as salient and edited
+                self.existing_table_status["households_skipped"] = True
 
                 # Check if we've exceeded the allowed fraction of skipped households
                 # Use weighted households if expansion weight column exists, otherwise use counts

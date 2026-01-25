@@ -18,6 +18,7 @@ from activitysim.core.configuration.base import (
     PreprocessorSettings,
     PydanticReadable,
 )
+from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import _interaction_sample_simulate
 from activitysim.core.skim_dataset import SkimDataset
 from activitysim.core.skim_dictionary import SkimDict
@@ -81,6 +82,8 @@ def generate_schedule_alternatives(tours):
 
     schedules = pd.concat([no_stops, one_way, two_way], sort=True)
     schedules[SCHEDULE_ID] = np.arange(1, schedules.shape[0] + 1)
+    # this sort is necessary to keep single process and multiprocess results the same!
+    schedules.sort_values(by=["tour_id", SCHEDULE_ID], inplace=True)
 
     return schedules
 
@@ -207,9 +210,7 @@ def get_spec_for_segment(
     :return: array of utility equations
     """
 
-    omnibus_spec = state.filesystem.read_model_spec(
-        file_name=model_settings.SPECIFICATION
-    )
+    omnibus_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
 
     spec = omnibus_spec[[segment]]
 
@@ -344,21 +345,12 @@ def run_trip_scheduling_choice(
     return tours
 
 
-class TripSchedulingChoiceSettings(PydanticReadable, extra="forbid"):
+class TripSchedulingChoiceSettings(LogitComponentSettings, extra="forbid"):
     """
     Settings for the `trip_scheduling_choice` component.
     """
 
-    PREPROCESSOR: PreprocessorSettings | None = None
-    """Setting for the preprocessor."""
-    alts_preprocessor: PreprocessorSettings | None = None
-    """Setting for the alternatives preprocessor."""
-
-    SPECIFICATION: str
-    """file name of specification file"""
-
-    compute_settings: ComputeSettings = ComputeSettings()
-    """Compute settings for this component."""
+    pass
 
 
 @workflow.step

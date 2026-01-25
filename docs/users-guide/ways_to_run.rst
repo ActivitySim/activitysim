@@ -283,3 +283,35 @@ With the set of output CSV files, the user can trace ActivitySim calculations in
 help debug data and/or logic errors.
 
 Refer to :ref:`trace` for more details on configuring tracing and the various output files.
+
+.. _skip_failed_choices_ways_to_run :
+
+Skip Failed Choices
+______________________
+
+By default, ActivitySim will skip any failed choices during model execution, i.e., ``skip_failed_choices`` is set to ``True``. 
+A failed choice occurs when the computed utilities for all alternatives are zero, or infinite, or nan, which can happen due to 
+data issues or model specification problems. A warning message is logged when a failed choice is encountered, 
+and the corresponding household (along with its persons, vehicles, tours, trips, etc) will be excluded from further model steps.
+At the end of the model run, a summary of all skipped households is provided in the log file for user reference. This feature 
+helps to ensure that the model can continue running even in the presence of data or specification issues, 
+while also providing visibility into any potential problems that need to be addressed.
+
+Users can optionally set a ``fraction_of_failed_choices_allowed`` parameter in the settings file to specify a threshold for the 
+maximum allowable fraction of failed households, this value is expected to be between 0 and 1. 
+If the fraction of failed households exceeds this threshold, ActivitySim will raise a RuntimeError and terminate the model run.
+If the fraction is within the allowable limit, the model will proceed with the skipped households as described above. This threshold
+provides an additional layer of control for users to skip problems when they are small, and stop the model when they are large.
+
+When ``skip_failed_choices`` is enabled, ActivitySim will automatically perform debug tracing for one of the failed households within each 
+model step where failed choices occur. The trace files will be saved in the output/trace directory with folders suffixed by 
+``_resimulate``. This automatic tracing feature allows users to easily investigate the reasons behind the failed choices without needing to 
+manually specify trace IDs. This feature is partially implemented for simple simulate models, and is not yet available for interaction_simulate models.
+For interaction_simulate models, users can manually specify trace IDs to perform tracing of failed choices.
+
+Users can configure ActivitySim to not skip failed choices by setting the 
+``skip_failed_choices`` option to ``False`` in the settings file. When this option is disabled, the system will fall back to
+using the legacy ``overflow_protection`` mechanism to handle such cases. Specifically, if the computed utilities lead to zero or infinite exponentiated values, 
+overflow protection will adjust the utilities to prevent numerical overflow during exponentiation and arbitarily making a choice. 
+No loggings will be made for these cases. When ``skip_failed_choices`` is enabled, 
+ActivitySim will not use the legacy ``overflow_protection`` mechanism to handle failed choices.

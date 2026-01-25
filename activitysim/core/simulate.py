@@ -1326,6 +1326,22 @@ def eval_mnl(
     )
     chunk_sizer.log_df(trace_label, "probs", probs)
 
+    # resimulate one of the failed households for tracing
+    if state.settings.skip_failed_choices:
+        _resimulate_failed_choice_for_tracing(
+            state=state,
+            choosers=choosers,
+            spec=spec,
+            locals_d=locals_d,
+            log_alt_losers=log_alt_losers,
+            trace_label=trace_label,
+            have_trace_targets=have_trace_targets,
+            estimator=estimator,
+            trace_column_names=trace_column_names,
+            chunk_sizer=chunk_sizer,
+            compute_settings=compute_settings,
+        )
+
     del utilities
     chunk_sizer.log_df(trace_label, "utilities", None)
 
@@ -1340,7 +1356,9 @@ def eval_mnl(
     if custom_chooser:
         choices, rands = custom_chooser(state, probs, choosers, spec, trace_label)
     else:
-        choices, rands = logit.make_choices(state, probs, trace_label=trace_label)
+        choices, rands = logit.make_choices(
+            state, probs, trace_label=trace_label, trace_choosers=choosers
+        )
 
     del probs
     chunk_sizer.log_df(trace_label, "probs", None)
@@ -1505,10 +1523,27 @@ def eval_nl(
             state,
             no_choices,
             base_probabilities,
+            state.settings.skip_failed_choices,
             trace_label=tracing.extend_trace_label(trace_label, "bad_probs"),
             trace_choosers=choosers,
             msg="base_probabilities do not sum to one",
         )
+
+        if state.settings.skip_failed_choices:
+            _resimulate_failed_choice_for_tracing(
+                state=state,
+                choosers=choosers,
+                spec=spec_sh,
+                locals_d=locals_d,
+                log_alt_losers=log_alt_losers,
+                trace_label=trace_label,
+                have_trace_targets=have_trace_targets,
+                estimator=estimator,
+                trace_column_names=trace_column_names,
+                spec_sh=spec_sh,
+                chunk_sizer=chunk_sizer,
+                compute_settings=compute_settings,
+            )
 
     if custom_chooser:
         choices, rands = custom_chooser(
@@ -2164,3 +2199,113 @@ def simple_simulate_logsums(
     assert len(logsums.index == len(choosers.index))
 
     return logsums
+
+
+def _resimulate_failed_choice_for_tracing(
+    state: workflow.State,
+    choosers,
+    spec,
+    locals_d,
+    log_alt_losers,
+    trace_label,
+    have_trace_targets,
+    estimator,
+    trace_column_names,
+    chunk_sizer,
+    compute_settings,
+    spec_sh=None,
+):
+    """
+    Helper function to resimulate one of the failed choices for tracing purposes.
+
+    This function handles the logic for finding and retracing skipped households
+    when skip_failed_choices is enabled.
+    """
+    skipped_household_ids_dict = state.get("skipped_household_ids", dict())
+
+    # check if there are any skipped households to process
+    if not skipped_household_ids_dict:
+        return
+
+    # calculate current skipped household count efficiently
+    current_skipped_count = sum(
+        len(hh_list) for hh_list in skipped_household_ids_dict.values()
+    )
+    # check if there are newly skipped households
+    last_updated_count = state.get("_last_updated_skipped_count", 0)
+    if current_skipped_count <= last_updated_count:
+        return
+
+    # find the last household ID
+    last_household_id = None
+    for hh_list in reversed(list(skipped_household_ids_dict.values())):
+        if hh_list:  # Check if list is not empty
+            last_household_id = hh_list[-1]
+            break
+    if last_household_id is None:
+        return
+
+    # get failed choosers based on household_id location
+    failed_choosers = None
+    if "household_id" in choosers.columns:
+        failed_choosers = choosers.loc[choosers["household_id"] == last_household_id]
+    elif "household_id" in choosers.index.names:
+        failed_choosers = choosers.loc[
+            choosers.index.get_level_values("household_id") == last_household_id
+        ]
+    else:
+        logger.warning(
+            f"{trace_label} - cannot resimulate skipped household_id {last_household_id} "
+            "because no household_id column or index level found in choosers"
+        )
+        return
+
+    # resimulate failed choosers if found
+    if failed_choosers is None or len(failed_choosers) == 0:
+        return
+    # set up tracing for this chooser
+    existing_trace_hh_id = state.settings.trace_hh_id
+    existing_traceable_table_indexes = state.tracing.traceable_table_indexes
+    # find corresponding traceable name based on choosers index
+    traceable_table_name = existing_traceable_table_indexes.get(
+        choosers.index.name, None
+    )
+    if traceable_table_name is None:
+        return
+
+    # temporarily set trace settings for this household
+    state.settings.trace_hh_id = last_household_id
+    if "households" not in state.tracing.traceable_table_ids:
+        state.tracing.traceable_table_ids["households"] = []
+    state.tracing.traceable_table_ids["households"] = state.tracing.traceable_table_ids[
+        "households"
+    ] + [last_household_id]
+    state.tracing.register_traceable_table(traceable_table_name, failed_choosers)
+    try:
+        # update the SkimWrapper and Skim3dWrapper objects in the locals_d based on index of failed_choosers
+        from activitysim.core.skim_dictionary import SkimWrapper, Skim3dWrapper
+
+        for local_key, local_value in locals_d.items():
+            if isinstance(local_value, SkimWrapper):
+                local_value.set_df(failed_choosers)
+            elif isinstance(local_value, Skim3dWrapper):
+                local_value.set_df(failed_choosers)
+
+        # rerun eval_utilities for the failed chooser
+        _failed_utilities = eval_utilities(
+            state,
+            spec,
+            failed_choosers,
+            locals_d,
+            log_alt_losers=log_alt_losers,
+            trace_label=trace_label + "_resimulate",
+            have_trace_targets=True,
+            estimator=estimator,
+            trace_column_names=trace_column_names,
+            spec_sh=spec_sh,
+            chunk_sizer=chunk_sizer,
+            compute_settings=compute_settings,
+        )
+    finally:
+        # restore original trace settings
+        state.settings.trace_hh_id = existing_trace_hh_id

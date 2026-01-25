@@ -938,7 +938,180 @@ class State:
             # mark this salient table as edited, so it can be checkpointed
             # at some later time if desired.
             self.existing_table_status[name] = True
+
+        # Set the new table content
         self.set(name, content)
+
+        # Check if we need to update tables for skipped households
+        skipped_household_ids_dict = self.get("skipped_household_ids", dict())
+        if (
+            skipped_household_ids_dict
+        ):  # only proceed if there are any skipped households
+            current_skipped_count = sum(
+                len(hh_list) for hh_list in skipped_household_ids_dict.values()
+            )
+            # make sure this is consistent with number of skipped households tracked
+            assert current_skipped_count == self.get("num_skipped_households", 0)
+
+            # Only update this specific table if it actually contains skipped household data
+            import itertools
+
+            skipped_household_ids = set(
+                itertools.chain.from_iterable(skipped_household_ids_dict.values())
+            )
+
+            # Check if the new content contains any skipped households
+            content_needs_cleaning = False
+            if hasattr(content, "index") and "household_id" in content.index.names:
+                content_needs_cleaning = (
+                    content.index.get_level_values("household_id")
+                    .isin(skipped_household_ids)
+                    .any()
+                )
+            elif hasattr(content, "columns") and "household_id" in content.columns:
+                content_needs_cleaning = (
+                    content["household_id"].isin(skipped_household_ids).any()
+                )
+
+            if content_needs_cleaning:
+                self.update_table(name)
+
+            # Check if there are newly skipped households and update all tables if needed
+            last_updated_count = self.get("_last_updated_skipped_count", 0)
+            if current_skipped_count > last_updated_count:
+                # update all tables to remove newly skipped households
+                self.update_table(name=None)
+                # Track the number of skipped households at the time of last update
+                self.set("_last_updated_skipped_count", current_skipped_count)
+
+    def update_table(self, name: str = None):
+        """
+        Go through existing tables in the state and
+        get rid of any rows that correspond to skipped households.
+        Save skipped household records in state under households_skipped
+        Parameters
+        ----------
+        name : str, optional
+            Name of table to update. If None, update all tables.
+        Returns
+        -------
+        None
+        """
+        import itertools
+
+        skipped_household_ids_dict = self.get("skipped_household_ids", dict())
+        skipped_household_ids = set(
+            itertools.chain.from_iterable(skipped_household_ids_dict.values())
+        )
+
+        if not skipped_household_ids:
+            return
+
+        # get existing tables in the current state context
+        existing_tables = self.registered_tables() if name is None else [name]
+
+        for table_name in existing_tables:
+            if not self.is_table(table_name):
+                continue
+            df = self.get_dataframe(table_name, as_copy=False)
+            # get the initial length of the dataframe
+            initial_len = len(df)
+            # we do not drop rows from households_skipped table
+            if table_name == "households_skipped":
+                continue
+
+            # determine which column/index contains household_id and create mask
+            mask = None
+            if "household_id" in df.index.names:
+                mask = df.index.get_level_values("household_id").isin(
+                    skipped_household_ids
+                )
+            elif "household_id" in df.columns:
+                mask = df["household_id"].isin(skipped_household_ids)
+            else:
+                continue  # skip tables without household_id
+
+            # early exit if no matches found
+            if not mask.any():
+                continue
+
+            # save skipped household records for households table only
+            if table_name == "households":
+                newly_skipped_hh_df = df.loc[mask].copy()
+                skipped_hh_df = self.get("households_skipped", pd.DataFrame())
+                skipped_hh_df = pd.concat(
+                    [skipped_hh_df, newly_skipped_hh_df], join="inner"
+                )
+                # make sure household_id is unique in skipped households
+                if "household_id" in skipped_hh_df.index.names:
+                    assert skipped_hh_df.index.get_level_values(
+                        "household_id"
+                    ).is_unique, "household_id is not unique in households_skipped"
+                self.set("households_skipped", skipped_hh_df)
+                # mark households_skipped table as salient and edited
+                self.existing_table_status["households_skipped"] = True
+
+                # Check if we've exceeded the allowed fraction of skipped households
+                # Use weighted households if expansion weight column exists, otherwise use counts
+                if "sample_rate" in df.columns:
+                    # Use weighted calculation
+                    skipped_household_weights = (1 / skipped_hh_df["sample_rate"]).sum()
+                    remaining_household_weights = (
+                        1 / df.loc[~mask, "sample_rate"]
+                    ).sum()
+                    total_household_weights = (
+                        skipped_household_weights + remaining_household_weights
+                    )
+
+                    if total_household_weights > 0:
+                        skipped_fraction = (
+                            skipped_household_weights / total_household_weights
+                        )
+                        metric_name = "weighted households"
+                    else:
+                        # Fallback to count-based if weights are zero
+                        skipped_fraction = len(skipped_hh_df) / (
+                            len(skipped_hh_df) + len(df.loc[~mask])
+                        )
+                        metric_name = "households"
+                else:
+                    # Use count-based calculation
+                    skipped_fraction = len(skipped_hh_df) / (
+                        len(skipped_hh_df) + len(df.loc[~mask])
+                    )
+                    metric_name = "households"
+
+                max_allowed_fraction = self.settings.fraction_of_failed_choices_allowed
+
+                if skipped_fraction > max_allowed_fraction:
+                    raise RuntimeError(
+                        f"Too many {metric_name} skipped: {skipped_fraction:.2%} exceeds the allowed threshold of "
+                        f"{max_allowed_fraction:.2%}. This indicates a systematic problem with the model "
+                        f"simulation. Adjust 'fraction_of_failed_choices_allowed' setting "
+                        f"if this is expected."
+                    )
+
+            # drop the matching rows using the same mask
+            df.drop(index=df.index[mask], inplace=True)
+
+            # get the length of the dataframe after dropping rows
+            final_len = len(df)
+            logger.debug(
+                f"update_table: dropped {initial_len - final_len} rows from {table_name} "
+                f"corresponding to skipped households"
+            )
+            # mark this table as edited if we dropped any rows
+            if final_len < initial_len:
+                self.existing_table_status[table_name] = True
+            # terminate the run if we dropped all rows
+            # and raise an error
+            if final_len == 0:
+                raise RuntimeError(
+                    f"update_table: all rows dropped from {table_name} "
+                    f"corresponding to skipped households, terminating run"
+                )
+            # set the updated dataframe back to the state
+            self.set(table_name, df)
 
     def is_table(self, name: str):
         """

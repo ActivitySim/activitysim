@@ -90,6 +90,34 @@ def write_trip_matrices(
 
     trips_df = annotate_trips(state, trips, network_los, model_settings)
 
+    # This block adjusts household sample rate column to account for skipped households.
+    # Note: the `HH_EXPANSION_WEIGHT_COL` is pointing to the `sample_rate` column in the households table.
+    # Based on the calculation in write_matrices() function, the sample_rate is used to calculate the expansion weight as 1 / sample_rate.
+    # A sample_rate of 0.01 means the sample household should be expanded 1/0.01 = 100 times in the actual population households.
+    # In simulation, the `sample_rate` is calculated and added to the synthetic households
+    # based on household_sample_size / total_household_count, and therefore is the same for all households.
+    # In estimation, the `sample_rate` may vary by household, but weights are not used in estimation, and write_trip_matrices is not called during estimation.
+    # But we still try to cover both cases (when rates are the same vs when they vary) here for consistency.
+    hh_weight_col = model_settings.HH_EXPANSION_WEIGHT_COL
+    if state.get("num_skipped_households", 0) > 0:
+        logger.info(
+            f"Adjusting household sample rate in {hh_weight_col} to account for {state.get('num_skipped_households', 0)} skipped households."
+        )
+        # adjust the hh sample rates to account for skipped households
+        # first get the total expansion weight of the skipped households, which will be the sum of inverse of their sample rates
+        skipped_household_weights = (
+            1 / state.get_dataframe("households_skipped")[hh_weight_col]
+        ).sum()
+        # next get the total expansion weight of the remaining households
+        remaining_household_weights = (
+            1 / state.get_dataframe("households")[hh_weight_col]
+        ).sum()
+        # the adjustment factor is the remaining household weight / (remaining household weight + skipped household weight)
+        adjustment_factor = remaining_household_weights / (
+            remaining_household_weights + skipped_household_weights
+        )
+        trips_df[hh_weight_col] = trips_df[hh_weight_col] * adjustment_factor
+
     if model_settings.SAVE_TRIPS_TABLE:
         state.add_table("trips", trips_df)
 

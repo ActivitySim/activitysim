@@ -30,6 +30,7 @@ def report_bad_choices(
     state: workflow.State,
     bad_row_map,
     df,
+    skip_failed_choices,
     trace_label,
     msg,
     trace_choosers=None,
@@ -87,6 +88,45 @@ def report_bad_choices(
 
         logger.warning(row_msg)
 
+    if skip_failed_choices:
+        # update counter in state
+        num_skipped_households = state.get("num_skipped_households", 0)
+        skipped_household_ids = state.get("skipped_household_ids", dict())
+
+        # Get current household IDs and filter out None values
+        current_hh_ids = set(df[trace_col].dropna().unique())
+
+        # Get all previously skipped household IDs across all trace_labels
+        import itertools
+
+        already_skipped = set(
+            itertools.chain.from_iterable(skipped_household_ids.values())
+        )
+
+        # Find truly new household IDs that haven't been skipped before
+        new_skipped_hh_ids = current_hh_ids - already_skipped
+
+        # Only process if there are new households to skip
+        if new_skipped_hh_ids:
+            # Initialize list for this trace_label if it doesn't exist
+            if trace_label not in skipped_household_ids:
+                skipped_household_ids[trace_label] = []
+            skipped_household_ids[trace_label].extend(new_skipped_hh_ids)
+            num_skipped_households += len(new_skipped_hh_ids)
+
+        # make sure the number of skipped households is consistent with the ids recorded
+        assert num_skipped_households == sum(
+            len(hh_list) for hh_list in skipped_household_ids.values()
+        ), "Inconsistent number of skipped households and recorded ids"
+        state.set("num_skipped_households", num_skipped_households)
+        state.set("skipped_household_ids", skipped_household_ids)
+
+        logger.warning(
+            f"Skipping {bad_row_map.sum()} bad choices. Total skipped households so far: {num_skipped_households}. Skipped household IDs: {skipped_household_ids}"
+        )
+
+        return
+
     if raise_error:
         raise InvalidTravelError(msg_with_count)
 
@@ -136,6 +176,7 @@ def utils_to_probs(
     allow_zero_probs=False,
     trace_choosers=None,
     overflow_protection: bool = True,
+    skip_failed_choices: bool = True,
     return_logsums: bool = False,
 ):
     """
@@ -176,6 +217,16 @@ def utils_to_probs(
         overflow_protection will have no benefit but impose a modest computational
         overhead cost.
 
+    skip_failed_choices : bool, default True
+        If True, when bad choices are detected (all zero probabilities or infinite
+        probabilities), the entire household that's causing bad choices will be skipped instead of
+        being masked by overflow protection or causing an error.
+        A counter will be incremented for each skipped household. This is useful when running large
+        simulations where occasional bad choices are encountered and should not halt the process.
+        The counter can be accessed via `state.get("num_skipped_households", 0)`.
+        The number of skipped households and their IDs will be logged at the end of the simulation.
+        When `skip_failed_choices` is True, `overflow_protection` will be forced to False to avoid conflicts.
+
     Returns
     -------
     probs : pandas.DataFrame
@@ -202,6 +253,13 @@ def utils_to_probs(
         overflow_protection = overflow_protection or (
             utils_arr.dtype == np.float32 and utils_arr.max() > 85
         )
+
+    # get skip_failed_choices from state
+    skip_failed_choices = state.settings.skip_failed_choices
+    # when skipping failed choices, we cannot use overflow protection
+    # because it would mask the underlying issue causing bad choices
+    if skip_failed_choices:
+        overflow_protection = False
 
     if overflow_protection:
         # exponentiated utils will overflow, downshift them
@@ -240,6 +298,7 @@ def utils_to_probs(
                 state,
                 zero_probs,
                 utils,
+                skip_failed_choices,
                 trace_label=tracing.extend_trace_label(trace_label, "zero_prob_utils"),
                 msg="all probabilities are zero",
                 trace_choosers=trace_choosers,
@@ -251,8 +310,22 @@ def utils_to_probs(
             state,
             inf_utils,
             utils,
+            skip_failed_choices,
             trace_label=tracing.extend_trace_label(trace_label, "inf_exp_utils"),
             msg="infinite exponentiated utilities",
+            trace_choosers=trace_choosers,
+        )
+
+    # check if any values are nan
+    nan_utils = np.isnan(arr_sum)
+    if nan_utils.any():
+        report_bad_choices(
+            state,
+            nan_utils,
+            utils,
+            skip_failed_choices,
+            trace_label=tracing.extend_trace_label(trace_label, "nan_exp_utils"),
+            msg="nan exponentiated utilities",
             trace_choosers=trace_choosers,
         )
 
@@ -316,11 +389,14 @@ def make_choices(
         np.ones(len(probs.index))
     ).abs() > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
 
+    skip_failed_choices = state.settings.skip_failed_choices
+
     if bad_probs.any() and not allow_bad_probs:
         report_bad_choices(
             state,
             bad_probs,
             probs,
+            skip_failed_choices,
             trace_label=tracing.extend_trace_label(trace_label, "bad_probs"),
             msg="probabilities do not add up to 1",
             trace_choosers=trace_choosers,
@@ -329,6 +405,8 @@ def make_choices(
     rands = state.get_rn_generator().random_for_df(probs)
 
     choices = pd.Series(choice_maker(probs.values, rands), index=probs.index)
+    # mark bad choices with -99
+    choices[bad_probs] = -99
 
     rands = pd.Series(np.asanyarray(rands).flatten(), index=probs.index)
 

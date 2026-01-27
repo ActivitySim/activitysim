@@ -27,13 +27,31 @@ def find_nearest_accessibility_zone(
     def weighted_average(df, values, weights):
         return df[values].T.dot(df[weights]) / df[weights].sum()
 
-    def nearest_skim(oz, zones):
-        # need to pass equal # of origins and destinations to skim_dict
-        orig_zones = np.full(shape=len(zones), fill_value=oz, dtype=int)
-        return (
-            oz,
-            zones[np.argmin(skim_dict.lookup(orig_zones, zones, "DIST"))],
-        )
+    def find_nearest_zones_via_skims(origin_zones, dest_zones, skim_dict):
+        """
+        Vectorized lookup to find nearest destination zone for each origin zone.
+        Performs a single batched skim lookup instead of one per origin zone.
+        """
+        origin_zones = np.asarray(origin_zones)
+        dest_zones = np.asarray(dest_zones)
+        n_origins = len(origin_zones)
+        n_dests = len(dest_zones)
+
+        # Create all origin-destination pairs in one go
+        # all_orig: [o1, o1, o1, ..., o2, o2, o2, ..., oN, oN, oN, ...]
+        # all_dest: [d1, d2, d3, ..., d1, d2, d3, ..., d1, d2, d3, ...]
+        all_orig = np.repeat(origin_zones, n_dests)
+        all_dest = np.tile(dest_zones, n_origins)
+
+        # Single skim lookup for all pairs
+        all_dists = skim_dict.lookup(all_orig, all_dest, "DIST")
+
+        # Reshape to (n_origins, n_dests) and find argmin per origin
+        dist_matrix = np.asarray(all_dists).reshape(n_origins, n_dests)
+        nearest_indices = np.argmin(dist_matrix, axis=1)
+
+        # Return list of (origin, nearest_dest) tuples
+        return list(zip(origin_zones, dest_zones[nearest_indices]))
 
     def nearest_node(oz, zones_df):
         _idx = util.nearest_node_index(_centroids.loc[oz].XY, zones_df.to_list())
@@ -70,7 +88,10 @@ def find_nearest_accessibility_zone(
 
     else:
         skim_dict = state.get_injectable("skim_dict")
-        nearest = [nearest_skim(Oz, accessibility_zones) for Oz in unmatched_zones]
+        # Vectorized lookup: single skim call for all origin-destination pairs
+        nearest = find_nearest_zones_via_skims(
+            unmatched_zones, accessibility_zones, skim_dict
+        )
 
     # Add the nearest zones to the matched zones
     matched = [(x, x) for x in matched_zones]

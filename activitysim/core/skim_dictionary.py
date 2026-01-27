@@ -85,9 +85,9 @@ class OffsetMapper(object):
                 self._offset_array = np.full(
                     max_zone + 1, NOT_IN_SKIM_ZONE_ID, dtype=np.int32
                 )
-                self._offset_array[index_vals.astype(int)] = offset_series.values.astype(
-                    np.int32
-                )
+                self._offset_array[
+                    index_vals.astype(int)
+                ] = offset_series.values.astype(np.int32)
             else:
                 self._offset_array = None
         else:

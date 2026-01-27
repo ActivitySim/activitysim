@@ -37,6 +37,10 @@ def find_nearest_accessibility_zone(
         n_origins = len(origin_zones)
         n_dests = len(dest_zones)
 
+        # handle empty input case
+        if n_origins == 0 or n_dests == 0:
+            return []
+
         # Create all origin-destination pairs in one go
         # all_orig: [o1, o1, o1, ..., o2, o2, o2, ..., oN, oN, oN, ...]
         # all_dest: [d1, d2, d3, ..., d1, d2, d3, ..., d1, d2, d3, ...]

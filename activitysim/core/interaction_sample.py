@@ -51,9 +51,11 @@ def make_sample_choices_utility_based(
             utilities.sum(axis=1) <= utilities.shape[1] * logit.UTIL_UNAVAILABLE
         )
         if zero_probs.all():
-            return pd.DataFrame(
+            utils = pd.DataFrame(
                 columns=[alt_col_name, "rand", "prob", choosers.index.name]
             )
+            probs = pd.DataFrame(0.0, index=utils.index, columns=utils.columns)
+            return utils, probs
         if zero_probs.any():
             # remove from sample
             utilities = utilities[~zero_probs]

@@ -428,7 +428,7 @@ def make_choices_utility_based(
     utilities: pd.DataFrame,
     name_mapping=None,
     nest_spec=None,
-    trace_label: str = None,
+    trace_label: str | None = None,
     trace_choosers=None,
     allow_bad_probs=False,
 ) -> tuple[pd.Series, pd.Series]:

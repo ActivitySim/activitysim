@@ -33,6 +33,7 @@ from activitysim.core.configuration.logit import (
     TemplatedLogitComponentSettings,
 )
 from activitysim.core.estimation import Estimator
+from activitysim.core.exceptions import ModelConfigurationError
 from activitysim.core.fast_eval import fast_eval
 from activitysim.core.simulate_consts import (
     ALT_LOSER_UTIL,
@@ -40,7 +41,6 @@ from activitysim.core.simulate_consts import (
     SPEC_EXPRESSION_NAME,
     SPEC_LABEL_NAME,
 )
-from activitysim.core.exceptions import ModelConfigurationError
 
 logger = logging.getLogger(__name__)
 
@@ -1262,7 +1262,7 @@ def eval_mnl(
     choosers,
     spec,
     locals_d,
-    custom_chooser: CustomChooser_T,
+    custom_chooser: CustomChooser_T | None,
     estimator,
     log_alt_losers=False,
     want_logsums=False,

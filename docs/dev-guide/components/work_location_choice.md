@@ -2,7 +2,7 @@
 # Work Location
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.location_choice.workplace_location
+.. currentmodule:: activitysim.abm.models.location_choice
 ```
 
 The usual work location choice models assign a usual work location for the primary

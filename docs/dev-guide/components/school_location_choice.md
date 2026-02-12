@@ -2,7 +2,7 @@
 # School Location
 
 ```{eval-rst}
-.. currentmodule:: activitysim.abm.models.location_choice.school_location
+.. currentmodule:: activitysim.abm.models.location_choice
 ```
 
 The usual school location choice models assign a usual school location for the primary

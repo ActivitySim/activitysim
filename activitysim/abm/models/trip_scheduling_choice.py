@@ -20,6 +20,7 @@ from activitysim.core.configuration.base import (
 )
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import _interaction_sample_simulate
+from activitysim.core.logit import AltsContext
 from activitysim.core.skim_dataset import SkimDataset
 from activitysim.core.skim_dictionary import SkimDict
 
@@ -314,6 +315,7 @@ def run_trip_scheduling_choice(
                 estimator=None,
                 chunk_sizer=chunk_sizer,
                 compute_settings=model_settings.compute_settings,
+                alts_context= AltsContext(schedules[SCHEDULE_ID].min(), schedules[SCHEDULE_ID].max()),
             )
 
             assert len(choices.index) == len(choosers.index)

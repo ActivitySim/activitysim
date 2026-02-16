@@ -12,7 +12,7 @@ import pytest
 
 
 from activitysim.core import logit, workflow, random
-from activitysim.core.logit import add_ev1_random
+from activitysim.core.logit import add_ev1_random, AltsContext
 from activitysim.core.simulate import eval_variables
 
 
@@ -172,13 +172,14 @@ def test_make_choices_utility_based_sampled_alts():
     # revised approach
     reset_step(state)
     alt_nrs_df = pd.DataFrame({0:0, 1:1, 2:2}, index=utils_project_raw.index)
-    utils_project_with_rands = add_ev1_random(state, utils_project, n_alts=3, alt_nrs_df=alt_nrs_df)
+    alt_info = AltsContext.from_num_alts(3, zero_based=True)
+    utils_project_with_rands = add_ev1_random(state, utils_project, alt_info=alt_info, alt_nrs_df=alt_nrs_df)
     rands_project = utils_project_with_rands - utils_project
     reset_step(state)
 
     # alt "b" is missing from the sampled choice set, alt_nrs_df is set to reflect that
     alt_nrs_df = pd.DataFrame({0: 0, 1: 2}, index=utils_project_raw.index)
-    utils_base_with_rands = add_ev1_random(state, utils_base, n_alts=3, alt_nrs_df=alt_nrs_df)
+    utils_base_with_rands = add_ev1_random(state, utils_base, alt_info=alt_info, alt_nrs_df=alt_nrs_df)
     rands_base = utils_base_with_rands - utils_base
     rands_base_labeled = rands_base.rename(columns={0: "a", 1: "c"})
     rands_project_labeled = rands_project.rename(columns={0: "a", 1: "b", 2: "c"})

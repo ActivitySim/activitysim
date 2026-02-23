@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import os.path
+import re
 
 import numpy as np
 import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-from activitysim.core import logit, workflow
+
+from activitysim.core import logit, workflow, random
+from activitysim.core.logit import add_ev1_random
 from activitysim.core.simulate import eval_variables
 
 
@@ -129,6 +132,38 @@ def test_make_choices_only_one():
     pdt.assert_series_equal(
         choices, pd.Series([0, 1], index=["x", "y"]), check_dtype=False
     )
+
+def test_make_choices_utility_based_sampled_alts():
+    # TODO should these tests go in test_random?
+    state = workflow.State().default_settings()
+    # Make explicit that there's two indexing schemes - the raw alts, and the 0 based internals
+    utils_project_raw = pd.DataFrame({"a":10.582999, "b":10.680792, "c":10.710443}, index=pd.Index([0], name='person_id'))
+    # zero based indexes
+    utils_project = utils_project_raw.rename(columns={"a":0, "b":1, "c":2})
+    utils_base = utils_project_raw[["a", "c"]].rename(columns={"a":0, "c":1})
+
+    assert utils_project.index.name == "person_id"
+    state.get_rn_generator().add_channel("persons", utils_project)
+    state.get_rn_generator().begin_step("test_step")
+    # mock base case, where alt 1 is omitted (it was improved in the project)
+    # this situation is quite common with poisson sampling with a variable choice set size,
+    # but it can also happen in with-replacement EET sampling e.g. if alt 2 had a pick_count of 2 in the base case.
+    # In principle, it can also be problematic for non-sampled choices where there is a base project difference in the
+    # availability of alternatives .e.g a new mode was introduced in the project case
+
+    utils_project_with_rands = add_ev1_random(state, utils_project)
+    rands_project = utils_project_with_rands - utils_project
+    state.get_rn_generator().end_step("test_step")
+    state.get_rn_generator().begin_step("test_step")
+    utils_base_with_rands = add_ev1_random(state, utils_base)
+    rands_base = utils_base_with_rands - utils_base
+    rands_base_labeled = rands_base.rename(columns={0:"a", 1:"c"})
+    rands_project_labeled = rands_project.rename(columns={0:"a", 1:"b", 2:"c"})
+    with pytest.raises(AssertionError, match=re.escape('(column name="c") are different')):
+        # TODO this should pass
+        pdt.assert_frame_equal(rands_base_labeled, rands_project_labeled.loc[:, rands_base_labeled.columns])
+    # document incorrect invariant - first two columns have the same random numbers:
+    pdt.assert_frame_equal(rands_base, rands_project.iloc[:, :2])
 
 
 def test_make_choices_real_probs(utilities):

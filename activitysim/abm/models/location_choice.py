@@ -1019,6 +1019,10 @@ def iterate_location_choice(
     ) = None  # initialize to None, will be populated in first iteration
 
     for iteration in range(1, max_iterations + 1):
+        # Force reset the setting at the start of each shadow price iteration for consistency
+        logger.info("Resetting random number seeds for iteration {}".format(iteration))
+        state.get_rn_generator().end_step(trace_label)
+        state.get_rn_generator().begin_step(trace_label)
         persons_merged_df_ = persons_merged_df.copy()
 
         if spc.use_shadow_pricing and iteration > 1:

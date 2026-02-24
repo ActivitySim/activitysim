@@ -171,6 +171,7 @@ class ShadowPriceCalculator:
 
         self.num_processes = num_processes
         self.use_shadow_pricing = bool(state.settings.use_shadow_pricing)
+        logger.info("Use shadow pricing: %s", self.use_shadow_pricing)
         self.saved_shadow_price_file_path = (
             None  # set by read_saved_shadow_prices if loaded
         )

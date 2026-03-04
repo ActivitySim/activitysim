@@ -1244,6 +1244,7 @@ def adaptive_chunked_choosers(
             chunk_size = math.ceil(num_choosers * explicit_chunk_size)
         else:
             chunk_size = math.ceil(explicit_chunk_size / num_processes)
+        logger.info(f"Running {trace_label} with {chunk_size} choosers")
     elif chunk_size is None:
         chunk_size = state.settings.chunk_size
 

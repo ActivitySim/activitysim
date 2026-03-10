@@ -4,6 +4,7 @@ import pytest
 import os
 from pathlib import Path
 
+from pandas.testing import assert_frame_equal
 
 from activitysim.abm.models import trip_scheduling_choice as tsc
 from activitysim.abm.tables.skims import skim_dict
@@ -285,3 +286,24 @@ def test_run_trip_scheduling_choice(model_spec, tours, skims, locals_dict):
 
     # check that tours with no inbound stops have zero inbound duration
     assert out_tours[tsc.IB_DURATION].mask(in_tours[tsc.HAS_IB_STOPS], 0).sum() == 0
+
+    # confirm explicit chunking is supported and doesn't affect results
+    model_settings_explicit_chunk = tsc.TripSchedulingChoiceSettings(
+        **{
+            "SPEC": "placeholder.csv",
+            "compute_settings": {
+                "protect_columns": ["origin", "destination", "schedule_id"]
+            },
+        }
+    )
+    out_tours_chunked = tsc.run_trip_scheduling_choice(
+        state,
+        model_spec,
+        tours,
+        skims,
+        locals_dict,
+        trace_label="PyTest Trip Scheduling",
+        model_settings=model_settings_explicit_chunk,
+    )
+    assert_frame_equal(out_tours, out_tours_chunked)
+

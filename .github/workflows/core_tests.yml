@@ -211,7 +211,7 @@ jobs:
           - region: Standard 1-Zone Example (MTC)
             region-org: ActivitySim
             region-repo: activitysim-prototype-mtc
-            region-branch: pandas2
+            region-branch: extended
           - region: Standard 2-Zone Example (SANDAG)
             region-org: ActivitySim
             region-repo: sandag-abm3-example
@@ -355,14 +355,14 @@ jobs:
 
       - name: Create Estimation Data
         run: >
-          uv run python activitysim/examples/example_estimation/notebooks/est_mode_setup.py 
+          uv run python activitysim/examples/example_estimation/notebooks/est_mode_setup.py
           --household_sample_size 5000
 
       - name: Test Estimation Notebooks
         run: >
-          uv run pytest activitysim/examples/example_estimation/notebooks 
-          --nbmake-timeout=3000 
-          --ignore=activitysim/examples/example_estimation/notebooks/01_estimation_mode.ipynb 
+          uv run pytest activitysim/examples/example_estimation/notebooks
+          --nbmake-timeout=3000
+          --ignore=activitysim/examples/example_estimation/notebooks/01_estimation_mode.ipynb
           --ignore-glob=activitysim/examples/example_estimation/notebooks/test-estimation-data/**
 
   estimation_edb_creation:

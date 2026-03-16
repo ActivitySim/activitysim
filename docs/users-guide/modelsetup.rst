@@ -235,6 +235,9 @@ for getting started but it does not rely on ActivitySim's own lockfile to instal
 end up with different versions of deep dependencies than those tested by ActivitySim developers. 
 If you want to ensure exact versions of ActivitySim's deep dependencies, you should install ActivitySim using Option 2: From Source with Lockfile.
 
+The command ``uv add activitysim`` installs the latest version of ActivitySim. To install a specific version, run the command ``uv add activitysim==[VERSION NUMBER]``.
+For example, running the command ``uv add activitysim==1.2.1`` installs ActivitySim version 1.2.1.
+
 Option 2: From Source with Lockfile
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

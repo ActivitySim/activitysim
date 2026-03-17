@@ -105,7 +105,7 @@ dev = [
     "altair",
     "autodoc_pydantic",
     "asv",  # for benchmarking
-    "black==22.12.0",
+    "black==26.3.1",
     "bump2version",  # for making a release
     "coveralls>=3.3.1",
     "dask==2023.11",

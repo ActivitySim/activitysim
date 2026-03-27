@@ -32,6 +32,11 @@ class ParkAndRideCapacity:
             self.shared_pnr_choice_idx = data_buffers["shared_pnr_choice_idx"]
             self.shared_pnr_choice_start = data_buffers["shared_pnr_choice_start"]
             self.pnr_mp_tally = data_buffers["pnr_mp_tally"]
+            # pnr_mp_tally layout: [0] = arrival_count, [1] = generation
+            # Each logical barrier call advances the generation by 1.
+            # The _local_phase tracker ensures each process waits on the
+            # correct generation for its current barrier invocation.
+            self._local_phase = self.pnr_mp_tally[1]
         else:
             assert (
                 self.num_processes == 1
@@ -40,6 +45,7 @@ class ParkAndRideCapacity:
             self.shared_pnr_choice_idx = None
             self.shared_pnr_choice_start = None
             self.pnr_mp_tally = None
+            self._local_phase = 0
 
         # occupancy counts for pnr zones is populated from choices synced across processes
         self.shared_pnr_occupancy_df = pd.DataFrame(
@@ -119,33 +125,7 @@ class ParkAndRideCapacity:
         ), "shared_pnr_choice_idx is not set"
         assert self.num_processes > 1, "num_processes must be greater than 1"
 
-        # barrier implemented with arrival count (idx 0) and generation (idx 1)
-        # cannot just use mp.barrier() because we do not know how many processes
-        # there will be when the tour mode choice iteration with pnr begins
-        def barrier(reset_callback=None):
-            while True:
-                with self.pnr_mp_tally.get_lock():
-                    gen = self.pnr_mp_tally[1]
-                    self.pnr_mp_tally[0] += 1  # arrived
-                    if self.pnr_mp_tally[0] == self.num_processes:
-                        # last to arrive
-                        if reset_callback is not None:
-                            reset_callback()
-                        # release all waiters by advancing generation and resetting arrival count
-                        self.pnr_mp_tally[0] = 0
-                        self.pnr_mp_tally[1] = gen + 1
-                        return
-                    # not last; remember current generation to wait on
-                    wait_gen = gen
-                # spin until generation changes
-                while True:
-                    with self.pnr_mp_tally.get_lock():
-                        if self.pnr_mp_tally[1] != wait_gen:
-                            break
-                    time.sleep(1)
-                return
-
-        # can send in empty chocies to ensure all subprocesses will hit the barrier
+        # can send in empty choices to ensure all subprocesses will hit the barrier
         if not choices.empty:
             with self.shared_pnr_choice.get_lock():
                 # first_in = self.pnr_mp_tally[0] == 0
@@ -202,7 +182,7 @@ class ParkAndRideCapacity:
                 self.shared_pnr_choice_start[:] = new_arr_start.tolist()
 
         # Wait for all processes to finish writing
-        barrier()
+        self._barrier()
 
         # need to create the final synced_choices again since other processes may have written to the shared memory
         # don't need the lock since we are only reading at this stage
@@ -232,9 +212,36 @@ class ParkAndRideCapacity:
                 len(self.shared_pnr_choice_start), dtype=np.int64
             ).tolist()
 
-        barrier(reset_callback=reset_arrays)
+        self._barrier(reset_callback=reset_arrays)
 
         return synced_choices
+
+    def _barrier(self, reset_callback=None):
+        """
+        Generation-based barrier that is safe for repeated invocations.
+
+        Each process tracks its own expected phase (_local_phase).
+        The shared counter advances monotonically, so sequential barrier
+        calls from different logical synchronization points cannot collide.
+        """
+        expected_gen = self._local_phase
+        with self.pnr_mp_tally.get_lock():
+            self.pnr_mp_tally[0] += 1  # arrive
+            if self.pnr_mp_tally[0] == self.num_processes:
+                # last to arrive — release everyone
+                if reset_callback is not None:
+                    reset_callback()
+                self.pnr_mp_tally[0] = 0
+                self.pnr_mp_tally[1] = expected_gen + 1
+                self._local_phase = expected_gen + 1
+                return
+        # not last — spin until generation advances past expected_gen
+        while True:
+            with self.pnr_mp_tally.get_lock():
+                if self.pnr_mp_tally[1] > expected_gen:
+                    self._local_phase = expected_gen + 1
+                    return
+            time.sleep(0.01)
 
     def scale_pnr_capacity(self, state):
         """

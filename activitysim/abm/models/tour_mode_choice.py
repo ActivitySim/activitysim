@@ -391,7 +391,9 @@ def tour_mode_choice_simulate(
                 )
                 if pnr_capacity_cls.num_processes > 1:
                     # need to have this subprocess check-in still to satisfy barrier in synchronize_choices
-                    for j in range(i, max_iterations):
+                    # start at i+1 because iteration i's set_choices was already called above
+                    # stop at max_iterations-1 because the last iteration never enters this if-block
+                    for j in range(i + 1, max_iterations - 1):
                         dummy_choices = pd.DataFrame(columns=choices_i.columns)
                         pnr_capacity_cls.set_choices(dummy_choices)
                 break

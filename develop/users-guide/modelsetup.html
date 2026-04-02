@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Mar 17, 2026"/>
+    <meta name="docbuild:last-update" content="Apr 02, 2026"/>
   </head>
   
   
@@ -456,6 +456,7 @@ data access time in order to minimize runtime.</p>
 </dd>
 </dl>
 </li>
+<li><p><a class="reference internal" href="ways_to_run.html#skip-failed-choices-ways-to-run"><span class="std std-ref">Skip Failed Choices</span></a> allows the user to skip over households that encounter errors during model execution. This feature helps to ensure that the model can continue running even in the presence of data or specification issues, while also providing visibility into any potential problems that need to be addressed.</p></li>
 </ul>
 <p>Steps for enabling/disabling these options are included in the <a class="reference internal" href="ways_to_run.html#advanced-configuration"><span class="std std-ref">Advanced Configuration</span></a> sub-section, under <a class="reference internal" href="ways_to_run.html#ways-to-run-the-model"><span class="std std-ref">Ways to Run the Model</span></a> page of this Users’ Guide.</p>
 <div class="admonition note">
@@ -592,6 +593,8 @@ listed in ActivitySim’s <code class="docutils literal notranslate"><span class
 for getting started but it does not rely on ActivitySim’s own lockfile to install deep dependencies so you may
 end up with different versions of deep dependencies than those tested by ActivitySim developers.
 If you want to ensure exact versions of ActivitySim’s deep dependencies, you should install ActivitySim using Option 2: From Source with Lockfile.</p>
+<p>The command <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">add</span> <span class="pre">activitysim</span></code> installs the latest version of ActivitySim. To install a specific version, run the command <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">add</span> <span class="pre">activitysim==[VERSION</span> <span class="pre">NUMBER]</span></code>.
+For example, running the command <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">add</span> <span class="pre">activitysim==1.2.1</span></code> installs ActivitySim version 1.2.1.</p>
 </section>
 <section id="option-2-from-source-with-lockfile">
 <h5>Option 2: From Source with Lockfile<a class="headerlink" href="#option-2-from-source-with-lockfile" title="Permalink to this heading">#</a></h5>
@@ -914,7 +917,7 @@ However, you will need to call <code class="docutils literal notranslate"><span 
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev11+g67f4e196c, documentation last updated Mar 17, 2026.<br/>
+ActivitySim 1.5.2.dev13+g82cbefd50, documentation last updated Apr 02, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

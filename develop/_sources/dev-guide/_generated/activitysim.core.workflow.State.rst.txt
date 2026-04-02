@@ -54,6 +54,7 @@
       ~State.should_save_checkpoint
       ~State.trace_memory_info
       ~State.uncheckpointed_table_names
+      ~State.update_table
    
    
 

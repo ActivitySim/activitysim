@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Mar 17, 2026"/>
+    <meta name="docbuild:last-update" content="Apr 02, 2026"/>
   </head>
   
   
@@ -705,6 +705,32 @@ file:</p>
 help debug data and/or logic errors.</p>
 <p>Refer to <a class="reference internal" href="../core.html#trace"><span class="std std-ref">Tracing</span></a> for more details on configuring tracing and the various output files.</p>
 </section>
+<section id="skip-failed-choices">
+<span id="skip-failed-choices-ways-to-run"></span><h3>Skip Failed Choices<a class="headerlink" href="#skip-failed-choices" title="Permalink to this heading">#</a></h3>
+<p>By default, ActivitySim will skip any failed choices during model execution, i.e., <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>.
+A failed choice occurs when the computed utilities for all alternatives are zero, or infinite, or nan, which can happen due to
+data issues or model specification problems. A warning message is logged when a failed choice is encountered,
+and the corresponding household (along with its persons, vehicles, tours, trips, etc) will be excluded from further model steps.
+At the end of the model run, a summary of all skipped households is provided in the log file for user reference. This feature
+helps to ensure that the model can continue running even in the presence of data or specification issues,
+while also providing visibility into any potential problems that need to be addressed.</p>
+<p>Users can optionally set a <code class="docutils literal notranslate"><span class="pre">fraction_of_failed_choices_allowed</span></code> parameter in the settings file to specify a threshold for the
+maximum allowable fraction of failed households, this value is expected to be between 0 and 1.
+If the fraction of failed households exceeds this threshold, ActivitySim will raise a RuntimeError and terminate the model run.
+If the fraction is within the allowable limit, the model will proceed with the skipped households as described above. This threshold
+provides an additional layer of control for users to skip problems when they are small, and stop the model when they are large.</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> is enabled, ActivitySim will automatically perform debug tracing for one of the failed households within each
+model step where failed choices occur. The trace files will be saved in the output/trace directory with folders suffixed by
+<code class="docutils literal notranslate"><span class="pre">_resimulate</span></code>. This automatic tracing feature allows users to easily investigate the reasons behind the failed choices without needing to
+manually specify trace IDs. This feature is implemented for simple simulate models only, and is not yet available for interaction_simulate models.
+For interaction_simulate models, users can manually specify trace IDs to perform tracing of failed choices.</p>
+<p>Users can configure ActivitySim to not skip failed choices by setting the
+<code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> option to <code class="docutils literal notranslate"><span class="pre">False</span></code> in the settings file. When this option is disabled, the system will fall back to
+using the legacy <code class="docutils literal notranslate"><span class="pre">overflow_protection</span></code> mechanism to handle such cases. Specifically, if the computed utilities lead to zero or infinite exponentiated values,
+overflow protection will adjust the utilities to prevent numerical overflow during exponentiation and arbitarily making a choice.
+No loggings will be made for these cases. When <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> is enabled,
+ActivitySim will not use the legacy <code class="docutils literal notranslate"><span class="pre">overflow_protection</span></code> mechanism to handle failed choices.</p>
+</section>
 </section>
 </section>
 
@@ -788,6 +814,7 @@ help debug data and/or logic errors.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multiprocessing">Multiprocessing</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sharrow">Sharrow</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracing">Tracing</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skip-failed-choices">Skip Failed Choices</a></li>
 </ul>
 </li>
 </ul>
@@ -825,7 +852,7 @@ help debug data and/or logic errors.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev11+g67f4e196c, documentation last updated Mar 17, 2026.<br/>
+ActivitySim 1.5.2.dev13+g82cbefd50, documentation last updated Apr 02, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

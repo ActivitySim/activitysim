@@ -345,11 +345,14 @@ def utils_to_probs(
         return probs, logsums
     return probs
 
+
 FREEZE_RANDOM_NUMBERS_FOR_DENSE_ALTERNATIVE_SET = True
+
 
 @dataclass
 class AltsContext:
     """Representation of the alternatives without carrying around that full array."""
+
     min_alt_id: int
     max_alt_id: int
 
@@ -359,55 +362,67 @@ class AltsContext:
         self.n_rands_to_sample = max(self.max_alt_id, self.n_alts_to_cover_max_id)
 
     @classmethod
-    def from_series(cls, ser:Union[pd.Series,pd.Index])->"AltsContext":
+    def from_series(cls, ser: Union[pd.Series, pd.Index]) -> "AltsContext":
         min_alt_id = ser.min()
         max_alt_id = ser.max()
         return cls(min_alt_id, max_alt_id)
 
     @classmethod
-    def from_num_alts(cls, num_alts:int, zero_based:bool=True)->"AltsContext":
+    def from_num_alts(cls, num_alts: int, zero_based: bool = True) -> "AltsContext":
         if zero_based:
             offset = -1
         else:
-            offset =0
-        return cls(min_alt_id=1+offset, max_alt_id=num_alts+offset )
-
+            offset = 0
+        return cls(min_alt_id=1 + offset, max_alt_id=num_alts + offset)
 
     @property
     def n_alts_to_cover_max_id(self) -> int:
         """If zones were non-consecutive, this could be a big over-estimate."""
-        return self.max_alt_id+1
+        return self.max_alt_id + 1
 
 
 # TODO-EET: add doc string, tracing
-def add_ev1_random(state: workflow.State, df: pd.DataFrame, alt_info: AltsContext | None = None,
-                   alt_nrs_df: pd.DataFrame | None = None, ):
+def add_ev1_random(
+    state: workflow.State,
+    df: pd.DataFrame,
+    alt_info: AltsContext | None = None,
+    alt_nrs_df: pd.DataFrame | None = None,
+):
 
     nest_utils_for_choice = df.copy()
     assert (alt_info is None) == (
-            alt_nrs_df is None), "n_zones and alt_nrs_df must both be provided or omitted together"
+        alt_nrs_df is None
+    ), "n_zones and alt_nrs_df must both be provided or omitted together"
 
     if alt_nrs_df is not None and FREEZE_RANDOM_NUMBERS_FOR_DENSE_ALTERNATIVE_SET:
-        assert alt_info is not None # narrowing for mypy
+        assert alt_info is not None  # narrowing for mypy
 
         idx_array = alt_nrs_df.values
         mask = idx_array == -999
-        safe_idx = np.where(mask, 1, idx_array)  # replace -999 with a temp value inbounds
+        safe_idx = np.where(
+            mask, 1, idx_array
+        )  # replace -999 with a temp value inbounds
         # generate random number for all alts - this is wasteful, but ensures that the same zone
         #  gets the same random number if the sampled choice set changes between base and project
         # (alternatively, one could seed a channel for (persons x zones) and use the zone seed to ensure consistency.
         # Trade off is needing to seed (persons x zones) rows and multiindex channels to
         # avoid extra random numbers generated here. Quick benchmark suggests seeding per row is likely slower
-        rands_dense = state.get_rn_generator().gumbel_for_df(nest_utils_for_choice, n=alt_info.n_alts_to_cover_max_id)
+        rands_dense = state.get_rn_generator().gumbel_for_df(
+            nest_utils_for_choice, n=alt_info.n_alts_to_cover_max_id
+        )
         # generate n=alt_info.max_alt_id+1 rather than n_alts so that indexing works
         # (this is drawing a random number for a redundant zeroth zone in 1 based zoning systems)
         # TODO deal with non 0->n-1 indexed land use more efficiently? ideally do where alt_nrs_df is constructed,
         #  not on the fly here. Potentially via state.get_injectable('network_los').get_skim_dict('taz').zone_ids
         rands = np.take_along_axis(rands_dense, safe_idx, axis=1)
-        rands[mask] = 0 # zero out the masked zones so they don't have the util adjustment of alt 0
+        rands[
+            mask
+        ] = 0  # zero out the masked zones so they don't have the util adjustment of alt 0
     else:
         # old behaviour, to remove
-        rands = state.get_rn_generator().gumbel_for_df(nest_utils_for_choice, n=nest_utils_for_choice.shape[1])
+        rands = state.get_rn_generator().gumbel_for_df(
+            nest_utils_for_choice, n=nest_utils_for_choice.shape[1]
+        )
 
     nest_utils_for_choice += rands
     return nest_utils_for_choice
@@ -461,10 +476,13 @@ def make_choices_explicit_error_term_nl(
 
 
 # TODO-EET: add doc string, tracing
-def make_choices_explicit_error_term_mnl(state, utilities, trace_label,
-                                         alts_context: AltsContext | None = None,
-                                         alt_nrs_df: pd.DataFrame | None = None,
-                                         ):
+def make_choices_explicit_error_term_mnl(
+    state,
+    utilities,
+    trace_label,
+    alts_context: AltsContext | None = None,
+    alt_nrs_df: pd.DataFrame | None = None,
+):
     utilities_incl_unobs = add_ev1_random(state, utilities, alts_context, alt_nrs_df)
     choices = np.argmax(utilities_incl_unobs.to_numpy(), axis=1)
     # TODO-EET: reporting like for zero probs
@@ -474,13 +492,19 @@ def make_choices_explicit_error_term_mnl(state, utilities, trace_label,
 
 
 def make_choices_explicit_error_term(
-    state, utilities, alt_order_array, nest_spec=None, trace_label=None,
-        alts_context: AltsContext | None = None,
-        alt_nrs_df: pd.DataFrame | None = None,
+    state,
+    utilities,
+    alt_order_array,
+    nest_spec=None,
+    trace_label=None,
+    alts_context: AltsContext | None = None,
+    alt_nrs_df: pd.DataFrame | None = None,
 ):
     trace_label = tracing.extend_trace_label(trace_label, "make_choices_eet")
     if nest_spec is None:
-        choices = make_choices_explicit_error_term_mnl(state, utilities, trace_label, alts_context, alt_nrs_df)
+        choices = make_choices_explicit_error_term_mnl(
+            state, utilities, trace_label, alts_context, alt_nrs_df
+        )
     else:
         choices = make_choices_explicit_error_term_nl(
             state, utilities, alt_order_array, nest_spec, trace_label

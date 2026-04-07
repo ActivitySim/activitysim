@@ -42,6 +42,7 @@ from activitysim.core.simulate_consts import (
     SPEC_EXPRESSION_NAME,
     SPEC_LABEL_NAME,
 )
+
 if typing.TYPE_CHECKING:
     from activitysim.core.estimation import Estimator
 

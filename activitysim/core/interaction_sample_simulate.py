@@ -283,7 +283,7 @@ def _interaction_sample_simulate(
     if alts_context is not None:
         alt_nrs_df = pd.DataFrame(padded_alt_nrs, index=choosers.index)
     else:
-        alt_nrs_df = None # if we don't provide the number of dense alternatives, assume that we'll use the old approach
+        alt_nrs_df = None  # if we don't provide the number of dense alternatives, assume that we'll use the old approach
     chunk_sizer.log_df(trace_label, "utilities_df", utilities_df)
 
     del padded_utilities
@@ -330,8 +330,12 @@ def _interaction_sample_simulate(
         # positions is series with the chosen alternative represented as a column index in utilities_df
         # which is an integer between zero and num alternatives in the alternative sample
         positions, rands = logit.make_choices_utility_based(
-            state, utilities_df, trace_label=trace_label, trace_choosers=choosers, alts_context=alts_context,
-            alt_nrs_df=alt_nrs_df
+            state,
+            utilities_df,
+            trace_label=trace_label,
+            trace_choosers=choosers,
+            alts_context=alts_context,
+            alt_nrs_df=alt_nrs_df,
         )
 
         del utilities_df

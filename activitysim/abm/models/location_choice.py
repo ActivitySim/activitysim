@@ -793,7 +793,9 @@ def run_location_choice(
             continue
         # using land use rather than size terms in case something goes 0 base -> nonzero project, double
         # check if that would be in dest_size_terms as a zero
-        alts_context = AltsContext.from_series(dest_size_terms.index) # index zone_id, not ALT_DEST_COL_NAME
+        alts_context = AltsContext.from_series(
+            dest_size_terms.index
+        )  # index zone_id, not ALT_DEST_COL_NAME
         # assumes that dest_size_terms will always contain zeros for non-attractive zones, i.e. it will have the
         # same length as land_use
 

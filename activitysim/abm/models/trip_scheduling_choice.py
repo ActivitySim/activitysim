@@ -315,7 +315,9 @@ def run_trip_scheduling_choice(
                 estimator=None,
                 chunk_sizer=chunk_sizer,
                 compute_settings=model_settings.compute_settings,
-                alts_context= AltsContext(schedules[SCHEDULE_ID].min(), schedules[SCHEDULE_ID].max()),
+                alts_context=AltsContext(
+                    schedules[SCHEDULE_ID].min(), schedules[SCHEDULE_ID].max()
+                ),
             )
 
             assert len(choices.index) == len(choosers.index)

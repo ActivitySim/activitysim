@@ -229,7 +229,7 @@ def choose_parking_location(
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label,
-        alts_context=alts_context
+        alts_context=alts_context,
     )
 
     if want_sample_table:

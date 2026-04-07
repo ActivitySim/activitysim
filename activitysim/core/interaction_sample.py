@@ -22,6 +22,7 @@ from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.exceptions import SegmentedSpecificationError
 from activitysim.core.skim_dataset import DatasetWrapper
 from activitysim.core.skim_dictionary import SkimWrapper
+
 if typing.TYPE_CHECKING:
     from activitysim.core.random import Random
 
@@ -36,7 +37,7 @@ def _poisson_sample_alternatives_inner(
     poisson_inclusion_probs: pd.DataFrame,
     rng: Random,
     trace_label: str | None,
-    chunk_sizer:ChunkSizer,
+    chunk_sizer: ChunkSizer,
 ) -> pd.DataFrame:
     rands = rng.random_for_df(probs, n=alternative_count)
     chunk_sizer.log_df(trace_label, "rands", rands)
@@ -54,8 +55,8 @@ def make_sample_choices_utility_based(
     alternative_count,
     alt_col_name,
     allow_zero_probs,
-    trace_label:str,
-    chunk_sizer:ChunkSizer,
+    trace_label: str,
+    chunk_sizer: ChunkSizer,
 ):
     assert isinstance(utilities, pd.DataFrame)
     assert utilities.shape == (len(choosers), alternative_count)
@@ -87,8 +88,9 @@ def make_sample_choices_utility_based(
         overflow_protection=not allow_zero_probs,
         trace_choosers=choosers,
     )
-    inclusion_probs, sampled_alternatives = _poisson_sample_alternatives(alternative_count, chunk_sizer, probs,
-                                                                         sample_size, state, trace_label)
+    inclusion_probs, sampled_alternatives = _poisson_sample_alternatives(
+        alternative_count, chunk_sizer, probs, sample_size, state, trace_label
+    )
 
     # Stack removes the NaNs (the ones that weren't sampled)
     # and gives us a multi-index of (person_id, alt_id)
@@ -109,8 +111,14 @@ def make_sample_choices_utility_based(
     return choices_df, inclusion_probs
 
 
-def _poisson_sample_alternatives(alternative_count, chunk_sizer: ChunkSizer, probs: pd.DataFrame, sample_size,
-                                 state: workflow.State, trace_label: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+def _poisson_sample_alternatives(
+    alternative_count,
+    chunk_sizer: ChunkSizer,
+    probs: pd.DataFrame,
+    sample_size,
+    state: workflow.State,
+    trace_label: str,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     # compute the inclusion probability as the reciprocal of alt never being drawn
     #  -- these are common, so compute once upfront
     exclusion_probs = (1 - probs) ** sample_size
@@ -119,21 +127,31 @@ def _poisson_sample_alternatives(alternative_count, chunk_sizer: ChunkSizer, pro
     n = 0
     probs_subset = probs
     inclusion_probs_subset = inclusion_probs
-    sampled_alternatives = pd.DataFrame(0.0, index=inclusion_probs.index, columns=inclusion_probs.columns)
+    sampled_alternatives = pd.DataFrame(
+        0.0, index=inclusion_probs.index, columns=inclusion_probs.columns
+    )
     while True:
         sampled_results_subset = _poisson_sample_alternatives_inner(
-            alternative_count, probs_subset, inclusion_probs_subset, state.get_rn_generator(), trace_label, chunk_sizer
+            alternative_count,
+            probs_subset,
+            inclusion_probs_subset,
+            state.get_rn_generator(),
+            trace_label,
+            chunk_sizer,
         )
         no_alts_sampled_mask = sampled_results_subset.isna().all(axis=1)
         alts_with_sampled_alternatives = sampled_results_subset[~no_alts_sampled_mask]
-        sampled_alternatives.loc[alts_with_sampled_alternatives.index, :] = alts_with_sampled_alternatives
+        sampled_alternatives.loc[
+            alts_with_sampled_alternatives.index, :
+        ] = alts_with_sampled_alternatives
         if no_alts_sampled_mask.any():
             # TODO if this happens in base but the project case is such that something is picked, random numbers won't
             #  be consistent - we're asserting that this is very rare models where the sample size is not too small
             logger.info(f"Poisson sampling of alternatives failed with {n=}, retrying")
             # TODO put this behind a debug guard, because it will be slow
             logger.info(
-                f"Sampled size was {sample_size}, poisson method mean expected sample size was {inclusion_probs.sum(axis=1).mean():.1f}, actual sampled mean was {(sampled_alternatives > 0).sum(axis=1).mean():.1f} and highest zero selection prob was {(exclusion_probs).product(axis=1).max():.2g}")
+                f"Sampled size was {sample_size}, poisson method mean expected sample size was {inclusion_probs.sum(axis=1).mean():.1f}, actual sampled mean was {(sampled_alternatives > 0).sum(axis=1).mean():.1f} and highest zero selection prob was {(exclusion_probs).product(axis=1).max():.2g}"
+            )
             probs_subset = probs[no_alts_sampled_mask]
             inclusion_probs_subset = inclusion_probs[no_alts_sampled_mask]
 
@@ -143,8 +161,10 @@ def _poisson_sample_alternatives(alternative_count, chunk_sizer: ChunkSizer, pro
         n += 1
         if n == 10:
             choosers_no_alts_sampled = sampled_results_subset[no_alts_sampled_mask]
-            msg = (f"Poisson choice set sampling failed after 10 attempts for these cases:\n"
-                   f"{choosers_no_alts_sampled}\n{probs_subset}")
+            msg = (
+                f"Poisson choice set sampling failed after 10 attempts for these cases:\n"
+                f"{choosers_no_alts_sampled}\n{probs_subset}"
+            )
             raise ValueError(msg)
 
     chunk_sizer.log_df(trace_label, "sampled_alternatives", sampled_alternatives)
@@ -260,7 +280,7 @@ def _interaction_sample(
     locals_d=None,
     trace_label=None,
     zone_layer=None,
-    chunk_sizer: ChunkSizer|None=None,
+    chunk_sizer: ChunkSizer | None = None,
     compute_settings: ComputeSettings | None = None,
 ):
     """
@@ -325,7 +345,9 @@ def _interaction_sample(
         pick_count : int
             number of duplicate picks for chooser, alt
     """
-    assert chunk_sizer is not None, "chunk_sizer cannot be None but old nullable signature is preserved"
+    assert (
+        chunk_sizer is not None
+    ), "chunk_sizer cannot be None but old nullable signature is preserved"
     # TODO it's probably safe to reorder these arguments to make chunk_sizer mandatory since
     #   _interaction_sample is private?
 

@@ -133,19 +133,24 @@ def test_make_choices_only_one():
         choices, pd.Series([0, 1], index=["x", "y"]), check_dtype=False
     )
 
-def reset_step(state, name='test_step'):
+
+def reset_step(state, name="test_step"):
     state.get_rn_generator().end_step(name)
     state.get_rn_generator().begin_step(name)
+
 
 def test_make_choices_utility_based_sampled_alts():
     """Test the situation of making choices from a sampled choice set"""
     # TODO should these tests go in test_random?
     state = workflow.State().default_settings()
     # Make explicit that there's two indexing schemes - the raw alts, and the 0 based internals
-    utils_project_raw = pd.DataFrame({"a":10.582999, "b":10.680792, "c":10.710443}, index=pd.Index([0], name='person_id'))
+    utils_project_raw = pd.DataFrame(
+        {"a": 10.582999, "b": 10.680792, "c": 10.710443},
+        index=pd.Index([0], name="person_id"),
+    )
     # zero based indexes
-    utils_project = utils_project_raw.rename(columns={"a":0, "b":1, "c":2})
-    utils_base = utils_project_raw[["a", "c"]].rename(columns={"a":0, "c":1})
+    utils_project = utils_project_raw.rename(columns={"a": 0, "b": 1, "c": 2})
+    utils_base = utils_project_raw[["a", "c"]].rename(columns={"a": 0, "c": 1})
 
     assert utils_project.index.name == "person_id"
     state.get_rn_generator().add_channel("persons", utils_project)
@@ -161,36 +166,41 @@ def test_make_choices_utility_based_sampled_alts():
     reset_step(state)
     utils_base_with_rands = add_ev1_random(state, utils_base)
     rands_base = utils_base_with_rands - utils_base
-    rands_base_labeled = rands_base.rename(columns={0:"a", 1:"c"})
-    rands_project_labeled = rands_project.rename(columns={0:"a", 1:"b", 2:"c"})
-    with pytest.raises(AssertionError, match=re.escape('(column name="c") are different')):
+    rands_base_labeled = rands_base.rename(columns={0: "a", 1: "c"})
+    rands_project_labeled = rands_project.rename(columns={0: "a", 1: "b", 2: "c"})
+    with pytest.raises(
+        AssertionError, match=re.escape('(column name="c") are different')
+    ):
         # TODO this should pass
-        pdt.assert_frame_equal(rands_base_labeled, rands_project_labeled.loc[:, rands_base_labeled.columns])
+        pdt.assert_frame_equal(
+            rands_base_labeled, rands_project_labeled.loc[:, rands_base_labeled.columns]
+        )
     # document incorrect invariant - first two columns have the same random numbers:
     pdt.assert_frame_equal(rands_base, rands_project.iloc[:, :2])
 
     # revised approach
     reset_step(state)
-    alt_nrs_df = pd.DataFrame({0:0, 1:1, 2:2}, index=utils_project_raw.index)
+    alt_nrs_df = pd.DataFrame({0: 0, 1: 1, 2: 2}, index=utils_project_raw.index)
     alt_info = AltsContext.from_num_alts(3, zero_based=True)
-    utils_project_with_rands = add_ev1_random(state, utils_project, alt_info=alt_info, alt_nrs_df=alt_nrs_df)
+    utils_project_with_rands = add_ev1_random(
+        state, utils_project, alt_info=alt_info, alt_nrs_df=alt_nrs_df
+    )
     rands_project = utils_project_with_rands - utils_project
     reset_step(state)
 
     # alt "b" is missing from the sampled choice set, alt_nrs_df is set to reflect that
     alt_nrs_df = pd.DataFrame({0: 0, 1: 2}, index=utils_project_raw.index)
-    utils_base_with_rands = add_ev1_random(state, utils_base, alt_info=alt_info, alt_nrs_df=alt_nrs_df)
+    utils_base_with_rands = add_ev1_random(
+        state, utils_base, alt_info=alt_info, alt_nrs_df=alt_nrs_df
+    )
     rands_base = utils_base_with_rands - utils_base
     rands_base_labeled = rands_base.rename(columns={0: "a", 1: "c"})
     rands_project_labeled = rands_project.rename(columns={0: "a", 1: "b", 2: "c"})
 
     # Corrected invariant holds true
-    pdt.assert_frame_equal(rands_base_labeled, rands_project_labeled.loc[:, rands_base_labeled.columns])
-
-
-
-
-
+    pdt.assert_frame_equal(
+        rands_base_labeled, rands_project_labeled.loc[:, rands_base_labeled.columns]
+    )
 
 
 def test_make_choices_real_probs(utilities):

@@ -72,7 +72,7 @@ def make_sample_choices_utility_based(
         if zero_probs.all():
             return pd.DataFrame(
                 columns=[alt_col_name, "rand", "prob", choosers.index.name]
-            )
+            ), pd.DataFrame(columns=["prob"])
         if zero_probs.any():
             # remove from sample
             utilities = utilities[~zero_probs]

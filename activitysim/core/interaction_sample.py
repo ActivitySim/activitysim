@@ -645,7 +645,7 @@ def _interaction_sample(
             trace_choosers=choosers,
         )
 
-        choices_df = make_sample_choices_utility_based(
+        choices_df, probs = make_sample_choices_utility_based(
             state,
             choosers,
             utilities,
@@ -730,8 +730,8 @@ def _interaction_sample(
                 choices_df = pd.concat([choices_df, survey_choices], ignore_index=True)
                 choices_df.sort_values(by=[choosers.index.name], inplace=True)
 
-        del probs
-        chunk_sizer.log_df(trace_label, "probs", None)
+    del probs
+    chunk_sizer.log_df(trace_label, "probs", None)
 
     chunk_sizer.log_df(trace_label, "choices_df", choices_df)
 

@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Apr 02, 2026"/>
+    <meta name="docbuild:last-update" content="Apr 16, 2026"/>
   </head>
   
   
@@ -432,34 +432,24 @@ strongly cautioned not to use them for any policy or planning purpose.</p></li>
 <td><p>Mature</p></td>
 </tr>
 <tr class="row-odd"><td><p>placeholder_multiple_zone</p></td>
-<td><p>2 or 3 zone system example using MTC data</p></td>
-<td><p>2 or 3</p></td>
+<td><p>2 zone system example using MTC data</p></td>
+<td><p>2</p></td>
 <td><p>Simple test example</p></td>
 </tr>
-<tr class="row-even"><td><p>prototype_marin</p></td>
-<td><p>3 zone system example using Marin tour mode choice model</p></td>
-<td><p>3</p></td>
-<td><p>Mature</p></td>
-</tr>
-<tr class="row-odd"><td><p>prototype_arc</p></td>
+<tr class="row-even"><td><p>prototype_arc</p></td>
 <td><p>ARC agency example</p></td>
 <td><p>1</p></td>
 <td><p>In development</p></td>
 </tr>
-<tr class="row-even"><td><p><span class="xref std std-ref">prototype_semcog</span></p></td>
+<tr class="row-odd"><td><p><span class="xref std std-ref">prototype_semcog</span></p></td>
 <td><p>SEMCOG agency example</p></td>
 <td><p>1</p></td>
 <td><p>In production</p></td>
 </tr>
-<tr class="row-odd"><td><p>placeholder_psrc</p></td>
+<tr class="row-even"><td><p>placeholder_psrc</p></td>
 <td><p>PSRC agency example</p></td>
 <td><p>2</p></td>
 <td><p>Future development</p></td>
-</tr>
-<tr class="row-even"><td><p>prototype_sandag_xborder</p></td>
-<td><p>SANDAG agency example</p></td>
-<td><p>3</p></td>
-<td><p>In development</p></td>
 </tr>
 <tr class="row-odd"><td><p>prototype_mwcog</p></td>
 <td><p>MWCOG agency example</p></td>
@@ -496,41 +486,6 @@ included as part of the stop_frequency_othdiscr.csv specification with an added 
 Because an additional trip may now happen in the outbound direction, the trip scheduling probabilities table was extended for the
 other discretionary tour purpose where the fourth outbound trip rows were copied for the now availabile fifth trip.</p></li>
 </ul>
-<p id="prototype-marin"><strong>prototype_marin</strong></p>
-<p>To finalize development and verification of the multiple zone system and transit virtual path building components, the
-<a class="reference external" href="https://www.tam.ca.gov/">Transportation Authority of Marin County</a> version of MTC travel model two (TM2) work
-tour mode choice model was implemented.  This example was also developed to test multiprocessed runtime performance.
-The complete runnable setup is available from the ActivitySim command line interface as <cite>prototype_3_marin_full</cite>.  This example
-has essentially the same configuration as the simpler three zone example above.</p>
-<p><em>Example</em></p>
-<p>To run prototype_marin, do the following:</p>
-<ul class="simple">
-<li><p>Create a local copy of the example</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Marin TM2 work tour mode choice for the MTC region</span>
-<span class="n">activitysim</span> <span class="n">create</span> <span class="o">-</span><span class="n">e</span> <span class="n">prototype_3_marin_full</span> <span class="o">-</span><span class="n">d</span> <span class="n">test_prototype_3_marin_full</span>
-</pre></div>
-</div>
-<ul class="simple">
-<li><p>Change to the example directory</p></li>
-<li><p>Run the example</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Marin TM2 work tour mode choice for the MTC region</span>
-<span class="n">uv</span> <span class="n">run</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span> <span class="o">-</span><span class="n">s</span> <span class="n">settings_mp</span><span class="o">.</span><span class="n">yaml</span>
-</pre></div>
-</div>
-<ul class="simple">
-<li><p>For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p></li>
-</ul>
-<p><em>Settings</em></p>
-<p>Additional settings for running the Marin TM2 tour mode choice example are in the <code class="docutils literal notranslate"><span class="pre">network_los.yaml</span></code> file.  The
-only additional notable setting is the <code class="docutils literal notranslate"><span class="pre">tap_lines</span></code> setting, which identifies a table of transit line names
-served for each TAP.  This file is used to trimmed the set of nearby TAP for each MAZ so only TAPs that are
-further away and serve new service are included in the TAP set for consideration.  It is a very important
-file to include as it can considerably reduce runtimes.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tap_lines</span><span class="p">:</span> <span class="n">tap_lines</span><span class="o">.</span><span class="n">csv</span>
-</pre></div>
-</div>
 <p id="prototype-arc"><strong>prototype_arc</strong></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -588,22 +543,6 @@ prototype_mtc model design.  It uses PSRC zones, land use, synthetic population,
 <p><em>Example</em></p>
 <p>See example commands in <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
 for running placeholder_psrc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
-<p id="prototype-sandag-xborder"><strong>prototype_sandag_xborder</strong></p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This example is in development</p>
-</div>
-<p>The prototype_sandag_xborder is a three zone system (MAZs, TAZs, and TAPs) that
-generates cross-border activities for a tour-based population of Mexican residents.
-In addition to the normal SANDAG zones, there are external MAZs and TAZs defined for
-each border crossing station (Port of Entry). Because the model is tour-based, there
-are no household or person-level attributes in the synthetic population. The
-principal difference between this and the standard 3-zone implementation is that
-since household do not have a default tour origin (home zones), a tour OD choice
-model is required to assign tour origins and destinations simultaneously.</p>
-<p><em>Example</em></p>
-<p>See example commands in <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
-for running prototype_sandag_xborder.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
 <p id="prototype-mwcog"><strong>prototype_mwcog</strong></p>
 <p>The prototype_mwcog is a one zone system (TAZs only).</p>
 <p><em>Example</em></p>
@@ -682,7 +621,7 @@ for running prototype_mwcog.  For optimal performance, configure multiprocessing
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev13+g82cbefd50, documentation last updated Apr 02, 2026.<br/>
+ActivitySim 1.5.2.dev15+g90c829045, documentation last updated Apr 16, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Apr 02, 2026"/>
+    <meta name="docbuild:last-update" content="Apr 16, 2026"/>
   </head>
   
   
@@ -332,7 +332,6 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="components/index.html">Components</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="components/input_checker.html">Input Checker</a></li>
 <li class="toctree-l2"><a class="reference internal" href="components/initialize.html">Initialize</a></li>
-<li class="toctree-l2"><a class="reference internal" href="components/initialize_los.html">Initialize LOS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="components/initialize_tours.html">Initialize Tours</a></li>
 <li class="toctree-l2"><a class="reference internal" href="components/accessibility.html">Accessibility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="components/auto_ownership.html">Auto Ownership</a></li>
@@ -620,7 +619,7 @@ with the same index as df</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.skim_dataset.load_skim_dataset_to_shared_memory">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dataset.</span></span><span class="sig-name descname"><span class="pre">load_skim_dataset_to_shared_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'taz'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2026.2.0)"><span class="pre">Dataset</span></a></span></span><a class="headerlink" href="#activitysim.core.skim_dataset.load_skim_dataset_to_shared_memory" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dataset.</span></span><span class="sig-name descname"><span class="pre">load_skim_dataset_to_shared_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'taz'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2026.4.0)"><span class="pre">Dataset</span></a></span></span><a class="headerlink" href="#activitysim.core.skim_dataset.load_skim_dataset_to_shared_memory" title="Permalink to this definition">#</a></dt>
 <dd><p>Load skims from disk into shared memory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -646,14 +645,14 @@ with the same index as df</p>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>dataset</strong><span class="classifier">xarray.Dataset</span></dt><dd><p>The existing dataset at TAZ resolution only.</p>
 </dd>
-<dt><strong>land_use_index</strong><span class="classifier">pandas.Index</span></dt><dd><p>The index of the land use table.  For two and three zone systems,
+<dt><strong>land_use_index</strong><span class="classifier">pandas.Index</span></dt><dd><p>The index of the land use table.  For two zone systems,
 these index values should be MAZ identifiers.</p>
 </dd>
 <dt><strong>remapper</strong><span class="classifier">dict, optional</span></dt><dd><p>A dictionary mapping where the keys are the original (nominal) zone
 id’s, and the values are the recoded (typically zero-based contiguous)
 zone id’s.  Recoding improves runtime efficiency.</p>
 </dd>
-<dt><strong>zone_system</strong><span class="classifier">int</span></dt><dd><p>Currently 1, 2 and 3 are supported.</p>
+<dt><strong>zone_system</strong><span class="classifier">int</span></dt><dd><p>Currently 1 and 2 are supported.</p>
 </dd>
 <dt><strong>maz2taz_file_name</strong><span class="classifier">str</span></dt><dd></dd>
 <dt><strong>maz_to_maz_tables</strong><span class="classifier">Collection[]</span></dt><dd></dd>
@@ -774,7 +773,7 @@ zone id’s.  Recoding improves runtime efficiency.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev13+g82cbefd50, documentation last updated Apr 02, 2026.<br/>
+ActivitySim 1.5.2.dev15+g90c829045, documentation last updated Apr 16, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

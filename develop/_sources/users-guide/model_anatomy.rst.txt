@@ -79,17 +79,11 @@ The three versions of multiple zone systems are one-zone, two-zone, and three-zo
     access and egress times are also calculated between the MAZ and the TAP, and total
     transit path utilities are assembled from their respective components - from MAZ to
     first boarding TAP, from first boarding to final alighting TAP, and from alighting
-    TAP to destination MAZ. This assembling is done via the
-    :ref:`transit_virtual_path_builder` (TVPB), which considers all possible
-    combinations of nearby boarding and alighting TAPs for each origin destination MAZ
-    pair.
+    TAP to destination MAZ.
 
 ..  caution::
     The ActivitySim consortium is moving away from the three-zone approach, in favor of
-    to the one- or two-zone approaches.  The code for the three-zone approach remains
-    available for users who have already implemented it, but it is recommended that
-    users consider the one- or two-zone approaches for new implementations.
-    The three-zone system may be formally deprecated and removed in the future.
+    to the one- or two-zone approaches. The three-zone system has been removed as of version 1.5.2.
 
 Regions that have an interest in more precise transit and non-motorized forecasts
 may wish to adopt the two-zone approach, while other regions may adopt the one or two-zone approach.  The
@@ -268,153 +262,14 @@ MAZ data, MAZ to MAZ impedances, and TAZ to TAZ impedances.
 Three Zone
 ^^^^^^^^^^
 
-In addition to the extra two zone system settings and inputs above, the following additional settings and inputs are required for a three zone system model.  Examples values are illustrated below.
-
-In ``settings.yaml``:
-
-* ``models`` - add initialize_los and initialize_tvpb to load network LOS inputs / skims and pre-compute TAP to TAP utilities for TVPB.  See :ref:`initialize_los`.
-* ``want_dest_choice_presampling`` - enable presampling for multizone systems, which means first select a TAZ using the sampling model and then select a microzone within the TAZ based on the microzone share of TAZ size term.
-
-::
-
-  models:
-    - initialize_landuse
-    - compute_accessibility
-    - initialize_households
-    # ---
-    - initialize_los
-    - initialize_tvpb
-    # ---
-    - school_location
-    - workplace_location
-
-In ``network_los.yaml``:
-
-* ``zone_system`` - set to 3 for three zone system
-* ``rebuild_tvpb_cache`` - rebuild and overwrite existing pre-computed TAP to TAP utilities cache
-* ``trace_tvpb_cache_as_csv`` - write a CSV version of TVPB cache for tracing
-* ``tap_skims`` - TAP to TAP skims OMX file name. The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM).
-* ``tap`` - TAPs table
-* ``tap_lines`` - table of transit line names served for each TAP.  This file is used to trimmed the set of nearby TAP for each MAZ so only TAPs that are further away and serve new service are included in the TAP set for consideration.  It is a very important file to include as it can considerably reduce runtimes.
-* ``maz_to_tap`` - list of MAZ to TAP access/egress impedance files by user defined mode.  Examples include walk and drive.  The file also includes MAZ to TAP impedances.
-* ``maz_to_tap:{walk}:max_dist`` - max distance from MAZ to TAP to consider TAP
-* ``maz_to_tap:{walk}:tap_line_distance_col`` - MAZ to TAP data field to use for TAP lines distance filter
-* ``demographic_segments`` - list of user defined demographic_segments for pre-computed TVPB impedances.  Each chooser is coded with a user defined demographic segment.
-* ``TVPB_SETTINGS:units`` - specify the units for calculations, e.g. utility or time.
-* ``TVPB_SETTINGS:path_types`` - user defined set of TVPB path types to be calculated and available to the mode choice models.  Examples include walk transit walk (WTW), drive transit walk (DTW), and walk transit drive (WTD).
-* ``TVPB_SETTINGS:path_types:{WTW}:access`` - access mode for the path type
-* ``TVPB_SETTINGS:path_types:{WTW}:egress`` - egress mode for the path type
-* ``TVPB_SETTINGS:path_types:{WTW}:max_paths_across_tap_sets`` - max paths to keep across all skim sets, for example, 3 TAP to TAP pairs per origin MAZ destination MAZ pair
-* ``TVPB_SETTINGS:path_types:{WTW}:max_paths_per_tap_set`` - max paths to keep per skim set, for example 1 per skim set - all transit submodes, local bus only, etc.
-
-Unlike the one and two zone system approach, the three zone system approach requires additional expression files for the TVPB.  The additional expression files for the TVPB are:
-
-* ``TVPB_SETTINGS:tap_tap_settings:SPEC`` - TAP to TAP expressions, e.g. tvpb_utility_tap_tap.csv
-* ``TVPB_SETTINGS:tap_tap_settings:PREPROCESSOR:SPEC`` - TAP to TAP chooser preprocessor, e.g. tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv
-* ``TVPB_SETTINGS:maz_tap_settings:walk:SPEC`` - MAZ to TAP {walk} expressions, e.g. tvpb_utility_walk_maz_tap.csv
-* ``TVPB_SETTINGS:maz_tap_settings:drive:SPEC`` - MAZ to TAP {drive} expressions, e.g. tvpb_utility_drive_maz_tap.csv
-* ``TVPB_SETTINGS:accessibility:tap_tap_settings:SPEC`` - TAP to TAP expressions for the accessibility calculator, e.g. tvpb_accessibility_tap_tap.csv
-* ``TVPB_SETTINGS:accessibility:maz_tap_settings:walk:SPEC`` - MAz to TAP {walk} expressions for the accessibility calculator, e.g. tvpb_accessibility_walk_maz_tap.csv
-
-Additional settings to configure the TVPB are:
-
-* ``TVPB_SETTINGS:tap_tap_settings:attribute_segments:demographic_segment`` - TVPB pre-computes TAP to TAP total utilities for demographic segments.  These are defined using the attribute_segments keyword.  In the example below, the segments are demographic_segment (household income bin), tod (time-of-day), and access_mode (drive, walk).
-* ``TVPB_SETTINGS:maz_tap_settings:{walk}:CHOOSER_COLUMNS`` - input impedance columns to expose for TVPB calculations.
-* ``TVPB_SETTINGS:maz_tap_settings:{walk}:CONSTANTS`` - constants for TVPB calculations.
-* ``accessibility:...`` - for the accessibility model step, the same basic set of TVPB configurations are available.
-
-::
-
-  zone_system: 3
-
-  rebuild_tvpb_cache: False
-  trace_tvpb_cache_as_csv: False
-  tap_skims: tap_skims.omx
-  tap: tap.csv
-  maz_to_tap:
-    walk:
-      table: maz_to_tap_walk.csv
-    drive:
-      table: maz_to_tap_drive.csv
-
-  demographic_segments: &demographic_segments
-  - &low_income_segment_id 0
-  - &high_income_segment_id 1
-
-  TVPB_SETTINGS:
-    tour_mode_choice:
-      units: utility
-      path_types:
-        WTW:
-          access: walk
-          egress: walk
-          max_paths_across_tap_sets: 3
-          max_paths_per_tap_set: 1
-        DTW:
-          access: drive
-          egress: walk
-          max_paths_across_tap_sets: 3
-          max_paths_per_tap_set: 1
-        WTD:
-          access: walk
-          egress: drive
-          max_paths_across_tap_sets: 3
-          max_paths_per_tap_set: 1
-      tap_tap_settings:
-        SPEC: tvpb_utility_tap_tap.csv
-        PREPROCESSOR:
-          SPEC: tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv
-          DF: df
-        attribute_segments:
-          demographic_segment: *demographic_segments
-          tod: *skim_time_period_labels
-          access_mode: ['drive', 'walk']
-        attributes_as_columns:
-          - demographic_segment
-          - tod
-      maz_tap_settings:
-        walk:
-          SPEC: tvpb_utility_walk_maz_tap.csv
-          CHOOSER_COLUMNS:
-            - walk_time
-        drive:
-          SPEC: tvpb_utility_drive_maz_tap.csv
-          CHOOSER_COLUMNS:
-            - drive_time
-            - DIST
-      CONSTANTS:
-        c_ivt_high_income: -0.028
-        ...
-
-    accessibility:
-      units: time
-      path_types:
-        WTW:
-          access: walk
-          egress: walk
-          max_paths_across_tap_sets: 1
-          max_paths_per_tap_set: 1
-      tap_tap_settings:
-        SPEC: tvpb_accessibility_tap_tap_.csv
-      maz_tap_settings:
-          walk:
-            SPEC: tvpb_accessibility_walk_maz_tap.csv
-            CHOOSER_COLUMNS:
-              - walk_time
-      CONSTANTS:
-          out_of_vehicle_walk_time_weight: 1.5
-          out_of_vehicle_wait_time_weight: 2.0
+Three zone systems (TAZ, MAZ, TAP) are no longer supported in ActivitySim as of version 1.5.2.
 
 Outputs
 ~~~~~~~
 
-Essentially the same set of outputs is created for a two or three zone system
-model as for a one zone system model.  However, the one key additional bit of
-information for a three zone system model is the boarding TAP, alighting TAP, and
-transit skim set is added to the relevant chooser table (e.g. tours and trips) when the
-chosen mode is transit.  Logging and tracing also work for two and three zone models,
-including tracing of the TVPB calculations. The :ref:`write_trip_matrices` step writes
-both TAZ and TAP level matrices depending on the configured number of zone systems.
+Essentially the same set of outputs is created for a two zone system model as
+for a one zone system model. Logging and tracing also work for two zone models.
+The :ref:`write_trip_matrices` step writes TAZ level matrices.
 
 .. _presampling :
 

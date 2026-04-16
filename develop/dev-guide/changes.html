@@ -64,7 +64,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Apr 02, 2026"/>
+    <meta name="docbuild:last-update" content="Apr 16, 2026"/>
   </head>
   
   
@@ -331,7 +331,6 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="components/index.html">Components</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="components/input_checker.html">Input Checker</a></li>
 <li class="toctree-l2"><a class="reference internal" href="components/initialize.html">Initialize</a></li>
-<li class="toctree-l2"><a class="reference internal" href="components/initialize_los.html">Initialize LOS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="components/initialize_tours.html">Initialize Tours</a></li>
 <li class="toctree-l2"><a class="reference internal" href="components/accessibility.html">Accessibility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="components/auto_ownership.html">Auto Ownership</a></li>
@@ -448,6 +447,30 @@ configurations or code to fail to run correctly.</p>
 branch (i.e., the main branch on GitHub), but not yet released in a stable version
 of ActivitySim.  See below under the various version headings for changes in
 released versions.</p>
+<section id="skipping-failed-choices">
+<h3>Skipping Failed Choices<a class="headerlink" href="#skipping-failed-choices" title="Permalink to this heading">#</a></h3>
+<p>A new feature is introduced to ActivitySim to skip failed choices during model execution.
+By default, ActivitySim will skip any failed choices during a model run, i.e., <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>.
+A failed choice occurs when the computed utilities for all alternatives are zero, or infinite, or nan, which can happen due to
+data issues or model specification problems. A warning message is logged when a failed choice is encountered,
+and the corresponding household (along with its persons, vehicles, tours, trips, etc) will be excluded from further model steps.
+At the end of the model run, a summary of all skipped households is provided in the log file for user reference. Users can set
+a threshold for the maximum allowed percentage of skipped households <code class="docutils literal notranslate"><span class="pre">fraction_of_failed_choices_allowed</span></code>,
+and if the percentage of skipped households exceeds this threshold,
+the model run will be terminated with an error. The default threshold is set to <code class="docutils literal notranslate"><span class="pre">0.001</span></code>, 0.1% of households.</p>
+<p>This feature helps to ensure that the model can continue running even in the presence of data or specification issues,
+while also providing visibility into such issues that need to be addressed.
+See more information in ActivitySim’s users guide “Skip Failed Choices” and code updates in <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1023">PR #1023</a></p>
+<section id="potential-impact-on-existing-model-runs">
+<h4>Potential Impact on Existing Model Runs:<a class="headerlink" href="#potential-impact-on-existing-model-runs" title="Permalink to this heading">#</a></h4>
+<p>With <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> defaulted to <code class="docutils literal notranslate"><span class="pre">True</span></code> and an allowed failure threshold defaulted as 0.1% of households,
+failures that were previously silently masked will now generate warnings, be explicitly skipped, and counted toward the threshold.
+As a result, model runs that previously completed “successfully” may now fail earlier,
+surfacing underlying specification or data issues that require attention rather than being silently absorbed. If an agency does not
+want to address the underlying issues immediately, they can set <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> to maintain the previous model results,
+but it is recommended to review the log file for any warnings about failed choices and address them as soon as possible to ensure model quality.</p>
+</section>
+</section>
 <section id="shadow-price-zones-reopening">
 <h3>Shadow Price Zones Reopening<a class="headerlink" href="#shadow-price-zones-reopening" title="Permalink to this heading">#</a></h3>
 <p>We fixed an issue with reopening work and school zones during iterative shadow pricing using the
@@ -884,6 +907,10 @@ development cycle, including:</p>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upcoming-changes">Upcoming Changes</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skipping-failed-choices">Skipping Failed Choices</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#potential-impact-on-existing-model-runs">Potential Impact on Existing Model Runs:</a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shadow-price-zones-reopening">Shadow Price Zones Reopening</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#alternative-file-naming-consistency">Alternative file naming consistency</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cdap-estimation-mode">CDAP Estimation Mode</a></li>
@@ -953,7 +980,7 @@ development cycle, including:</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev13+g82cbefd50, documentation last updated Apr 02, 2026.<br/>
+ActivitySim 1.5.2.dev15+g90c829045, documentation last updated Apr 16, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

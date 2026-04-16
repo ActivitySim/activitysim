@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Apr 02, 2026"/>
+    <meta name="docbuild:last-update" content="Apr 16, 2026"/>
   </head>
   
   
@@ -332,7 +332,6 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Components</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="input_checker.html">Input Checker</a></li>
 <li class="toctree-l2"><a class="reference internal" href="initialize.html">Initialize</a></li>
-<li class="toctree-l2"><a class="reference internal" href="initialize_los.html">Initialize LOS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="initialize_tours.html">Initialize Tours</a></li>
 <li class="toctree-l2"><a class="reference internal" href="accessibility.html">Accessibility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="auto_ownership.html">Auto Ownership</a></li>
@@ -493,7 +492,6 @@ is registered as an Inject step in the example Pipeline.</p>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS" title="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS</span> <span class="pre">(list[str]</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.SPEC" title="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.SPEC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPEC</span> <span class="pre">()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.TOURS_MERGED_CHOOSER_COLUMNS" title="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.TOURS_MERGED_CHOOSER_COLUMNS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TOURS_MERGED_CHOOSER_COLUMNS</span> <span class="pre">(list[str]</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.TVPB_recipe" title="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.TVPB_recipe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TVPB_recipe</span> <span class="pre">(str)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_households" title="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_households"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_households</span> <span class="pre">()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_persons" title="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_persons"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_persons</span> <span class="pre">()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_tours" title="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_tours"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_tours</span> <span class="pre">()</span></code></a></p></li>
@@ -502,8 +500,6 @@ is registered as an Inject step in the example Pipeline.</p>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.compute_settings" title="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.compute_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_settings</span> <span class="pre">()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.preprocessor" title="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.preprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocessor</span> <span class="pre">()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.source_file_paths" title="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.source_file_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">()</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.tvpb_mode_path_types" title="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.tvpb_mode_path_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tvpb_mode_path_types</span> <span class="pre">(dict[str,</span> <span class="pre">Any])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.use_TVPB_constants" title="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.use_TVPB_constants"><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_TVPB_constants</span> <span class="pre">(bool)</span></code></a></p></li>
 </ul>
 </dd>
 <dt class="field-odd">Validators<span class="colon">:</span></dt>
@@ -711,18 +707,6 @@ needs filter chooser table to these fields</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.TVPB_recipe">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TVPB_recipe</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'tour_mode_choice'</span></em><a class="headerlink" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.TVPB_recipe" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Validated by<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_households">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">annotate_households</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../_generated/activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_households" title="Permalink to this definition">#</a></dt>
 <dd><p>Annotate households output tables with additional columns.</p>
@@ -837,30 +821,6 @@ of any model.</p>
 </dl>
 </dd></dl>
 
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.tvpb_mode_path_types">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tvpb_mode_path_types</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.tvpb_mode_path_types" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Validated by<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.use_TVPB_constants">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">use_TVPB_constants</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.use_TVPB_constants" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Validated by<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.nests_are_for_nl">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nests_are_for_nl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nests</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.nests_are_for_nl" title="Permalink to this definition">#</a></dt>
@@ -958,7 +918,6 @@ coefficient values (stored in trip_mode_choice_coefficients.csv coefficient file
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.SPEC"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.SPEC</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.TOURS_MERGED_CHOOSER_COLUMNS"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.TOURS_MERGED_CHOOSER_COLUMNS</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.TVPB_recipe"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.TVPB_recipe</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_households"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.annotate_households</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_persons"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.annotate_persons</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_tours"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.annotate_tours</span></code></a></li>
@@ -967,8 +926,6 @@ coefficient values (stored in trip_mode_choice_coefficients.csv coefficient file
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.compute_settings"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.compute_settings</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.preprocessor</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.source_file_paths</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.tvpb_mode_path_types"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.tvpb_mode_path_types</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.use_TVPB_constants"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.use_TVPB_constants</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.nests_are_for_nl()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.update_sharrow_skip"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.update_sharrow_skip</span></code></a></li>
 </ul>
@@ -1015,7 +972,7 @@ coefficient values (stored in trip_mode_choice_coefficients.csv coefficient file
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev13+g82cbefd50, documentation last updated Apr 02, 2026.<br/>
+ActivitySim 1.5.2.dev15+g90c829045, documentation last updated Apr 16, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

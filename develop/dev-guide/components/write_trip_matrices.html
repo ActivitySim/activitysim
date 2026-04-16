@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Apr 02, 2026"/>
+    <meta name="docbuild:last-update" content="Apr 16, 2026"/>
   </head>
   
   
@@ -332,7 +332,6 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Components</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="input_checker.html">Input Checker</a></li>
 <li class="toctree-l2"><a class="reference internal" href="initialize.html">Initialize</a></li>
-<li class="toctree-l2"><a class="reference internal" href="initialize_los.html">Initialize LOS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="initialize_tours.html">Initialize Tours</a></li>
 <li class="toctree-l2"><a class="reference internal" href="accessibility.html">Accessibility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="auto_ownership.html">Auto Ownership</a></li>
@@ -523,13 +522,12 @@ logit model.</p>
 <p>Adds boolean columns to local trips table via annotation expressions,
 then aggregates trip counts and writes OD matrices to OMX.  Save annotated
 trips table to pipeline if desired.</p>
-<p>Writes taz trip tables for one and two zone system.  Writes taz and tap
-trip tables for three zone system.  Add <code class="docutils literal notranslate"><span class="pre">is_tap:True</span></code> to the settings file
-to identify an output matrix as tap level trips as opposed to taz level trips.</p>
+<p>Writes taz trip tables for one and two zone system.  Add <code class="docutils literal notranslate"><span class="pre">is_tap:True</span></code> to
+the settings file to identify an output matrix as tap level trips as opposed
+to taz level trips.</p>
 <p>For one zone system, uses the land use table for the set of possible tazs.
-For two zone system, uses the taz skim zone names for the set of possible tazs.
-For three zone system, uses the taz skim zone names for the set of possible tazs
-and uses the tap skim zone names for the set of possible taps.</p>
+For two zone system, uses the taz skim zone names for the set of possible
+tazs.</p>
 </dd></dl>
 
 </section>
@@ -634,7 +632,7 @@ and uses the tap skim zone names for the set of possible taps.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev13+g82cbefd50, documentation last updated Apr 02, 2026.<br/>
+ActivitySim 1.5.2.dev15+g90c829045, documentation last updated Apr 16, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

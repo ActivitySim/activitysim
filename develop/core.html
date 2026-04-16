@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Apr 02, 2026"/>
+    <meta name="docbuild:last-update" content="Apr 16, 2026"/>
   </head>
   
   
@@ -332,7 +332,6 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="dev-guide/components/index.html">Components</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="dev-guide/components/input_checker.html">Input Checker</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dev-guide/components/initialize.html">Initialize</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/initialize_los.html">Initialize LOS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dev-guide/components/initialize_tours.html">Initialize Tours</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dev-guide/components/accessibility.html">Accessibility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dev-guide/components/auto_ownership.html">Auto Ownership</a></li>
@@ -1222,28 +1221,19 @@ the locutor flag indicates that this sub process is the designated singleton spo
 <span class="n">skim_dtype_name</span><span class="p">:</span><span class="nb">str</span>                 <span class="c1"># e.g. &#39;float32&#39;</span>
 
 <span class="n">dict_factory_name</span><span class="p">:</span> <span class="nb">str</span>              <span class="c1"># e.g. &#39;NumpyArraySkimFactory&#39;</span>
-<span class="n">zone_system</span><span class="p">:</span> <span class="nb">str</span>                    <span class="c1"># str (ONE_ZONE, TWO_ZONE, or THREE_ZONE)</span>
+<span class="n">zone_system</span><span class="p">:</span> <span class="nb">str</span>                    <span class="c1"># str (ONE_ZONE or TWO_ZONE)</span>
 <span class="n">skim_time_periods</span> <span class="o">=</span> <span class="kc">None</span>            <span class="c1"># list of str e.g. [&#39;AM&#39;, &#39;MD&#39;, &#39;PM&#39;&#39;</span>
 
 <span class="n">skims_info</span><span class="p">:</span> <span class="nb">dict</span>                    <span class="c1"># dict of SkimInfo keyed by skim_tag</span>
 <span class="n">skim_buffers</span><span class="p">:</span> <span class="nb">dict</span>                  <span class="c1"># if multiprocessing, dict of multiprocessing.Array buffers keyed by skim_tag</span>
 <span class="n">skim_dicts</span><span class="p">:</span> <span class="n">dice</span>                    <span class="c1"># dict of SkimDict keyed by skim_tag</span>
 
-<span class="c1"># TWO_ZONE and THREE_ZONE</span>
+<span class="c1"># TWO_ZONE</span>
 <span class="n">maz_taz_df</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span>        <span class="c1"># DataFrame with two columns, MAZ and TAZ, mapping MAZ to containing TAZ</span>
 <span class="n">maz_to_maz_df</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span>     <span class="c1"># maz_to_maz attributes for MazSkimDict sparse skims</span>
                                     <span class="c1"># indexed by synthetic omaz/dmaz index for faster get_mazpairs lookup)</span>
 <span class="n">maz_ceiling</span><span class="p">:</span> <span class="nb">int</span>                    <span class="c1"># max maz_id + 1 (to compute synthetic omaz/dmaz index by get_mazpairs)</span>
 <span class="n">max_blend_distance</span><span class="p">:</span> <span class="nb">dict</span>            <span class="c1"># dict of int maz_to_maz max_blend_distance values keyed by skim_tag</span>
-
-<span class="c1"># THREE_ZONE only</span>
-<span class="n">tap_df</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span>
-<span class="n">tap_lines_df</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span>      <span class="c1"># if specified in settings, list of transit lines served, indexed by TAP</span>
-                                    <span class="c1"># use to prune maz_to_tap_dfs to drop more distant TAPS with redundant service</span>
-                                    <span class="c1"># since a TAP can serve multiple lines, tap_lines_df TAP index is not unique</span>
-<span class="n">maz_to_tap_dfs</span><span class="p">:</span> <span class="nb">dict</span>                <span class="c1"># dict of maz_to_tap DataFrames indexed by access mode (e.g. &#39;walk&#39;, &#39;drive&#39;)</span>
-                                    <span class="c1"># maz_to_tap dfs have OMAZ and DMAZ columns plus additional attribute columns</span>
-<span class="n">tap_tap_uid</span><span class="p">:</span> <span class="n">TapTapUidCalculator</span>
 </pre></div>
 </div>
 <dl class="py method">
@@ -1266,7 +1256,7 @@ to be shared with subprocesses.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.los.Network_LOS.create_skim_dict">
 <span class="sig-name descname"><span class="pre">create_skim_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_override_offset_int</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.create_skim_dict" title="Permalink to this definition">#</a></dt>
-<dd><p>Create a new SkimDict of type specified by skim_tag (e.g. ‘taz’, ‘maz’ or ‘tap’)</p>
+<dd><p>Create a new SkimDict of type specified by skim_tag (e.g. ‘taz’, or ‘maz’)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1292,7 +1282,7 @@ contiguous integers.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt>TAZ SkimDict for ONE_ZONE, MazSkimDict for TWO_ZONE and THREE_ZONE</dt><dd></dd>
+<dt>TAZ SkimDict for ONE_ZONE, MazSkimDict for TWO_ZONE</dt><dd></dd>
 </dl>
 </dd>
 </dl>
@@ -1327,37 +1317,11 @@ contiguous integers.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.los.Network_LOS.get_skim_dict">
 <span class="sig-name descname"><span class="pre">get_skim_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.get_skim_dict" title="Permalink to this definition">#</a></dt>
-<dd><p>Get SkimDict for the specified skim_tag (e.g. ‘taz’, ‘maz’, or ‘tap’)</p>
+<dd><p>Get SkimDict for the specified skim_tag (e.g. ‘taz’, or ‘maz’)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt>SkimDict or subclass (e.g. MazSkimDict) or SkimDataset</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="activitysim.core.los.Network_LOS.get_tappairs3d">
-<span class="sig-name descname"><span class="pre">get_tappairs3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">otap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.get_tappairs3d" title="Permalink to this definition">#</a></dt>
-<dd><p>TAP skim lookup</p>
-<p>FIXME - why do we provide this for taps, but use skim wrappers for TAZ?</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>otap: pandas.Series</strong></dt><dd><p>origin (boarding tap) zone_ids</p>
-</dd>
-<dt><strong>dtap: pandas.Series</strong></dt><dd><p>dest (aligting tap) zone_ids</p>
-</dd>
-<dt><strong>dim3: pandas.Series or str</strong></dt><dd><p>dim3 (e.g. tod) str</p>
-</dd>
-<dt><strong>key</strong></dt><dd><p>skim key (e.g. ‘IWAIT_SET1’)</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>Numpy.ndarray: list of tap skim values for odt tuples</dt><dd></dd>
 </dl>
 </dd>
 </dl>
@@ -1393,8 +1357,7 @@ Only called when multiprocessing - BEFORE any models are run or any call to load
 <dt class="sig sig-object py" id="activitysim.core.los.Network_LOS.load_skim_info">
 <span class="sig-name descname"><span class="pre">load_skim_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.load_skim_info" title="Permalink to this definition">#</a></dt>
 <dd><p>read skim info from omx files into SkimInfo, and store in self.skims_info dict keyed by skim_tag</p>
-<p>ONE_ZONE and TWO_ZONE systems have only TAZ skims
-THREE_ZONE systems have both TAZ and TAP skims</p>
+<p>ONE_ZONE and TWO_ZONE systems have only TAZ skims</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2747,7 +2710,7 @@ when household tracing enabled. No tracing occurs if label is empty or None.</p>
 </dd>
 <dt><strong>zone_layer</strong><span class="classifier">{‘taz’, ‘maz’}, default ‘taz’</span></dt><dd><p>Specify which zone layer of the skims is to be used.  You cannot use the
 ‘maz’ zone layer in a one-zone model, but you can use the ‘taz’ layer in
-a two- or three-zone model (e.g. for destination pre-sampling).</p>
+a two-zone model (e.g. for destination pre-sampling).</p>
 </dd>
 <dt><strong>explicit_chunk_size</strong><span class="classifier">float, optional</span></dt><dd><p>If &gt; 0, specifies the chunk size to use when chunking the interaction
 simulation. If &lt; 1, specifies the fraction of the total number of choosers.</p>
@@ -3272,7 +3235,7 @@ having the same index as interaction_df (non-unique values from alternatives df)
 </dd>
 <dt>zone_layer<span class="classifier">{‘taz’, ‘maz’}, default ‘taz’</span></dt><dd><p>Specify which zone layer of the skims is to be used.  You cannot use the
 ‘maz’ zone layer in a one-zone model, but you can use the ‘taz’ layer in
-a two- or three-zone model (e.g. for destination pre-sampling).</p>
+a two-zone model (e.g. for destination pre-sampling).</p>
 </dd>
 </dl>
 <dl class="field-list simple">
@@ -4222,203 +4185,9 @@ calculations.  Thus, it is important to be mindful of your approach to your netw
 accessible to each MAZ, which is the key determinant of runtime.</p>
 <section id="id16">
 <h3>API<a class="headerlink" href="#id16" title="Permalink to this heading">#</a></h3>
-<span class="target" id="module-activitysim.core.pathbuilder"></span><dl class="py class">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder.TransitVirtualPathBuilder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.pathbuilder.</span></span><span class="sig-name descname"><span class="pre">TransitVirtualPathBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.TransitVirtualPathBuilder" title="Permalink to this definition">#</a></dt>
-<dd><p>Transit virtual path builder for three zone systems</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder.TransitVirtualPathBuilder.compute_tap_tap_utilities">
-<span class="sig-name descname"><span class="pre">compute_tap_tap_utilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recipe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">access_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">egress_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.TransitVirtualPathBuilder.compute_tap_tap_utilities" title="Permalink to this definition">#</a></dt>
-<dd><p>create transit_df and compute utilities for all atap-btap pairs between omaz in access and dmaz in egress_df
-compute the utilities using the tap_tap utility expressions file specified in tap_tap_settings</p>
-<p>transit_df contains all possible access omaz/btap to egress dmaz/atap transit path pairs for each chooser</p>
-<p>trace should be True as we don’t encourage/support dynamic utility computation except when tracing
-(precompute being fairly fast)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>recipe: str</strong></dt><dd><p>‘recipe’ key in network_los.yaml TVPB_SETTINGS e.g. tour_mode_choice</p>
-</dd>
-<dt><strong>access_df: pandas.DataFrame</strong></dt><dd><p>dataframe with ‘idx’ and ‘omaz’ columns</p>
-</dd>
-<dt><strong>egress_df: pandas.DataFrame</strong></dt><dd><p>dataframe with ‘idx’ and ‘dmaz’ columns</p>
-</dd>
-<dt><strong>chooser_attributes: pandas.DataFrame</strong></dt><dd></dd>
-<dt><strong>path_info</strong></dt><dd></dd>
-<dt><strong>trace_label: str</strong></dt><dd></dd>
-<dt><strong>trace: boolean</strong></dt><dd></dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>transit_df: pandas.dataframe</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder.TransitVirtualPathBuilder.lookup_tap_tap_utilities">
-<span class="sig-name descname"><span class="pre">lookup_tap_tap_utilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recipe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maz_od_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">access_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">egress_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.TransitVirtualPathBuilder.lookup_tap_tap_utilities" title="Permalink to this definition">#</a></dt>
-<dd><p>create transit_df and compute utilities for all atap-btap pairs between omaz in access and dmaz in egress_df
-look up the utilities in the precomputed tap_cache data (which is indexed by uid_calculator unique_ids)
-(unique_id can used as a zero-based index into the data array)</p>
-<p>transit_df contains all possible access omaz/btap to egress dmaz/atap transit path pairs for each chooser</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>recipe</strong></dt><dd></dd>
-<dt><strong>maz_od_df</strong></dt><dd></dd>
-<dt><strong>access_df</strong></dt><dd></dd>
-<dt><strong>egress_df</strong></dt><dd></dd>
-<dt><strong>chooser_attributes</strong></dt><dd></dd>
-<dt><strong>path_info</strong></dt><dd></dd>
-<dt><strong>trace_label</strong></dt><dd></dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"></dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder.TransitVirtualPathLogsumWrapper">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.pathbuilder.</span></span><span class="sig-name descname"><span class="pre">TransitVirtualPathLogsumWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pathbuilder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tod_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segment_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recipe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_choices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.TransitVirtualPathLogsumWrapper" title="Permalink to this definition">#</a></dt>
-<dd><p>Transit virtual path builder logsum wrapper for three zone systems</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder.TransitVirtualPathLogsumWrapper.set_df">
-<span class="sig-name descname"><span class="pre">set_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.TransitVirtualPathLogsumWrapper.set_df" title="Permalink to this definition">#</a></dt>
-<dd><p>Set the dataframe</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>df</strong><span class="classifier">DataFrame</span></dt><dd><p>The dataframe which contains the origin and destination ids</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>self (to facilitiate chaining)</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder.compute_utilities">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.pathbuilder.</span></span><span class="sig-name descname"><span class="pre">compute_utilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_constants</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_column_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.compute_utilities" title="Permalink to this definition">#</a></dt>
-<dd><p>Compute utilities</p>
-</dd></dl>
-
 </section>
-<section id="module-activitysim.core.pathbuilder_cache">
-<span id="cache-api"></span><h3>Cache API<a class="headerlink" href="#module-activitysim.core.pathbuilder_cache" title="Permalink to this heading">#</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder_cache.TVPBCache">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.pathbuilder_cache.</span></span><span class="sig-name descname"><span class="pre">TVPBCache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.core.los.Network_LOS" title="activitysim.core.los.Network_LOS"><span class="pre">Network_LOS</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid_calculator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TVPBCache" title="Permalink to this definition">#</a></dt>
-<dd><p>Transit virtual path builder cache for three zone systems</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder_cache.TVPBCache.allocate_data_buffer">
-<span class="sig-name descname"><span class="pre">allocate_data_buffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shared</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TVPBCache.allocate_data_buffer" title="Permalink to this definition">#</a></dt>
-<dd><p>allocate fully_populated_shape data buffer for cached data</p>
-<p>if shared, return a multiprocessing.Array that can be shared across subprocesses
-if not shared, return a numpy ndarrray</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>shared: boolean</strong></dt><dd></dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>multiprocessing.Array or numpy ndarray sized to hole fully_populated utility array</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder_cache.TVPBCache.cleanup">
-<span class="sig-name descname"><span class="pre">cleanup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TVPBCache.cleanup" title="Permalink to this definition">#</a></dt>
-<dd><p>Called prior to</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder_cache.TVPBCache.close">
-<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TVPBCache.close" title="Permalink to this definition">#</a></dt>
-<dd><p>write any changes, free data, and mark as closed</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder_cache.TVPBCache.get_data_and_lock_from_buffers">
-<span class="sig-name descname"><span class="pre">get_data_and_lock_from_buffers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TVPBCache.get_data_and_lock_from_buffers" title="Permalink to this definition">#</a></dt>
-<dd><p>return shared data buffer previously allocated by allocate_data_buffer and injected mp_tasks.run_simulation
-Returns
-——-
-either multiprocessing.Array and lock or multiprocessing.RawArray and None according to RAWARRAY</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder_cache.TVPBCache.open">
-<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TVPBCache.open" title="Permalink to this definition">#</a></dt>
-<dd><p>open STATIC cache and populate with cached data</p>
-<dl class="simple">
-<dt>if multiprocessing</dt><dd><p>always STATIC cache with data fully_populated preloaded shared data buffer</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder_cache.TapTapUidCalculator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.pathbuilder_cache.</span></span><span class="sig-name descname"><span class="pre">TapTapUidCalculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TapTapUidCalculator" title="Permalink to this definition">#</a></dt>
-<dd><p>Transit virtual path builder TAP to TAP unique ID calculator for three zone systems</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder_cache.TapTapUidCalculator.get_od_dataframe">
-<span class="sig-name descname"><span class="pre">get_od_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar_attributes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TapTapUidCalculator.get_od_dataframe" title="Permalink to this definition">#</a></dt>
-<dd><p>return tap-tap od dataframe with unique_id index for ‘skim_offset’ for scalar_attributes</p>
-<p>i.e. a dataframe which may be used to compute utilities, together with scalar or column attributes</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>scalar_attributes: dict of scalar attribute name:value pairs</strong></dt><dd></dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>pandas.Dataframe</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="activitysim.core.pathbuilder_cache.TapTapUidCalculator.get_unique_ids">
-<span class="sig-name descname"><span class="pre">get_unique_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scalar_attributes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TapTapUidCalculator.get_unique_ids" title="Permalink to this definition">#</a></dt>
-<dd><p>compute canonical unique_id for each row in df
-btap and atap will be in dataframe, but the other attributes may be either df columns or scalar_attributes</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>df: pandas DataFrame</strong></dt><dd><p>with btap, atap, and optionally additional attribute columns</p>
-</dd>
-<dt><strong>scalar_attributes: dict</strong></dt><dd><p>dict of scalar attributes e.g. {‘tod’: ‘AM’, ‘demographic_segment’: 0}</p>
-</dd>
-<dt><strong>Returns</strong></dt><dd></dd>
-<dt><strong>——-</strong></dt><dd></dd>
-<dt><strong>ndarray of integer uids</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+<section id="cache-api">
+<h3>Cache API<a class="headerlink" href="#cache-api" title="Permalink to this heading">#</a></h3>
 </section>
 </section>
 <section id="visualization">
@@ -5387,7 +5156,6 @@ if no output_tables list is specified, then all checkpointed tables will be writ
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.los.Network_LOS.get_maz_to_taz_series"><code class="docutils literal notranslate"><span class="pre">Network_LOS.get_maz_to_taz_series()</span></code></a></li>
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.los.Network_LOS.get_mazpairs"><code class="docutils literal notranslate"><span class="pre">Network_LOS.get_mazpairs()</span></code></a></li>
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.los.Network_LOS.get_skim_dict"><code class="docutils literal notranslate"><span class="pre">Network_LOS.get_skim_dict()</span></code></a></li>
-<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.los.Network_LOS.get_tappairs3d"><code class="docutils literal notranslate"><span class="pre">Network_LOS.get_tappairs3d()</span></code></a></li>
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.los.Network_LOS.load_data"><code class="docutils literal notranslate"><span class="pre">Network_LOS.load_data()</span></code></a></li>
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.los.Network_LOS.load_settings"><code class="docutils literal notranslate"><span class="pre">Network_LOS.load_settings()</span></code></a></li>
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.los.Network_LOS.load_shared_data"><code class="docutils literal notranslate"><span class="pre">Network_LOS.load_shared_data()</span></code></a></li>
@@ -5622,35 +5390,8 @@ if no output_tables list is specified, then all checkpointed tables will be writ
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transit-virtual-path-builder">Transit Virtual Path Builder</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">API</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder.TransitVirtualPathBuilder"><code class="docutils literal notranslate"><span class="pre">TransitVirtualPathBuilder</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder.TransitVirtualPathBuilder.compute_tap_tap_utilities"><code class="docutils literal notranslate"><span class="pre">TransitVirtualPathBuilder.compute_tap_tap_utilities()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder.TransitVirtualPathBuilder.lookup_tap_tap_utilities"><code class="docutils literal notranslate"><span class="pre">TransitVirtualPathBuilder.lookup_tap_tap_utilities()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder.TransitVirtualPathLogsumWrapper"><code class="docutils literal notranslate"><span class="pre">TransitVirtualPathLogsumWrapper</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder.TransitVirtualPathLogsumWrapper.set_df"><code class="docutils literal notranslate"><span class="pre">TransitVirtualPathLogsumWrapper.set_df()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder.compute_utilities"><code class="docutils literal notranslate"><span class="pre">compute_utilities()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-activitysim.core.pathbuilder_cache">Cache API</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder_cache.TVPBCache"><code class="docutils literal notranslate"><span class="pre">TVPBCache</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder_cache.TVPBCache.allocate_data_buffer"><code class="docutils literal notranslate"><span class="pre">TVPBCache.allocate_data_buffer()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder_cache.TVPBCache.cleanup"><code class="docutils literal notranslate"><span class="pre">TVPBCache.cleanup()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder_cache.TVPBCache.close"><code class="docutils literal notranslate"><span class="pre">TVPBCache.close()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder_cache.TVPBCache.get_data_and_lock_from_buffers"><code class="docutils literal notranslate"><span class="pre">TVPBCache.get_data_and_lock_from_buffers()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder_cache.TVPBCache.open"><code class="docutils literal notranslate"><span class="pre">TVPBCache.open()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder_cache.TapTapUidCalculator"><code class="docutils literal notranslate"><span class="pre">TapTapUidCalculator</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder_cache.TapTapUidCalculator.get_od_dataframe"><code class="docutils literal notranslate"><span class="pre">TapTapUidCalculator.get_od_dataframe()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.pathbuilder_cache.TapTapUidCalculator.get_unique_ids"><code class="docutils literal notranslate"><span class="pre">TapTapUidCalculator.get_unique_ids()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">API</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cache-api">Cache API</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualization">Visualization</a><ul class="nav section-nav flex-column">
@@ -5769,7 +5510,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev13+g82cbefd50, documentation last updated Apr 02, 2026.<br/>
+ActivitySim 1.5.2.dev15+g90c829045, documentation last updated Apr 16, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

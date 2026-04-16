@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Apr 02, 2026"/>
+    <meta name="docbuild:last-update" content="Apr 16, 2026"/>
   </head>
   
   
@@ -437,18 +437,12 @@ all modes, etc.) are created and input to the demand model for consideration.  W
 access and egress times are also calculated between the MAZ and the TAP, and total
 transit path utilities are assembled from their respective components - from MAZ to
 first boarding TAP, from first boarding to final alighting TAP, and from alighting
-TAP to destination MAZ. This assembling is done via the
-<a class="reference internal" href="../core.html#transit-virtual-path-builder"><span class="std std-ref">Transit Virtual Path Builder</span></a> (TVPB), which considers all possible
-combinations of nearby boarding and alighting TAPs for each origin destination MAZ
-pair.</p></li>
+TAP to destination MAZ.</p></li>
 </ul>
 <div class="admonition caution">
 <p class="admonition-title">Caution</p>
 <p>The ActivitySim consortium is moving away from the three-zone approach, in favor of
-to the one- or two-zone approaches.  The code for the three-zone approach remains
-available for users who have already implemented it, but it is recommended that
-users consider the one- or two-zone approaches for new implementations.
-The three-zone system may be formally deprecated and removed in the future.</p>
+to the one- or two-zone approaches. The three-zone system has been removed as of version 1.5.2.</p>
 </div>
 <p>Regions that have an interest in more precise transit and non-motorized forecasts
 may wish to adopt the two-zone approach, while other regions may adopt the one or two-zone approach.  The
@@ -610,151 +604,14 @@ same so the blending can happen on-the-fly or else a value of 0 is returned.</p>
 </section>
 <section id="three-zone">
 <h4>Three Zone<a class="headerlink" href="#three-zone" title="Permalink to this heading">#</a></h4>
-<p>In addition to the extra two zone system settings and inputs above, the following additional settings and inputs are required for a three zone system model.  Examples values are illustrated below.</p>
-<p>In <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">models</span></code> - add initialize_los and initialize_tvpb to load network LOS inputs / skims and pre-compute TAP to TAP utilities for TVPB.  See <span class="xref std std-ref">initialize_los</span>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">want_dest_choice_presampling</span></code> - enable presampling for multizone systems, which means first select a TAZ using the sampling model and then select a microzone within the TAZ based on the microzone share of TAZ size term.</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">models</span><span class="p">:</span>
-  <span class="o">-</span> <span class="n">initialize_landuse</span>
-  <span class="o">-</span> <span class="n">compute_accessibility</span>
-  <span class="o">-</span> <span class="n">initialize_households</span>
-  <span class="c1"># ---</span>
-  <span class="o">-</span> <span class="n">initialize_los</span>
-  <span class="o">-</span> <span class="n">initialize_tvpb</span>
-  <span class="c1"># ---</span>
-  <span class="o">-</span> <span class="n">school_location</span>
-  <span class="o">-</span> <span class="n">workplace_location</span>
-</pre></div>
-</div>
-<p>In <code class="docutils literal notranslate"><span class="pre">network_los.yaml</span></code>:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">zone_system</span></code> - set to 3 for three zone system</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rebuild_tvpb_cache</span></code> - rebuild and overwrite existing pre-computed TAP to TAP utilities cache</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">trace_tvpb_cache_as_csv</span></code> - write a CSV version of TVPB cache for tracing</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tap_skims</span></code> - TAP to TAP skims OMX file name. The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tap</span></code> - TAPs table</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tap_lines</span></code> - table of transit line names served for each TAP.  This file is used to trimmed the set of nearby TAP for each MAZ so only TAPs that are further away and serve new service are included in the TAP set for consideration.  It is a very important file to include as it can considerably reduce runtimes.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_tap</span></code> - list of MAZ to TAP access/egress impedance files by user defined mode.  Examples include walk and drive.  The file also includes MAZ to TAP impedances.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_tap:{walk}:max_dist</span></code> - max distance from MAZ to TAP to consider TAP</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_tap:{walk}:tap_line_distance_col</span></code> - MAZ to TAP data field to use for TAP lines distance filter</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">demographic_segments</span></code> - list of user defined demographic_segments for pre-computed TVPB impedances.  Each chooser is coded with a user defined demographic segment.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:units</span></code> - specify the units for calculations, e.g. utility or time.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types</span></code> - user defined set of TVPB path types to be calculated and available to the mode choice models.  Examples include walk transit walk (WTW), drive transit walk (DTW), and walk transit drive (WTD).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types:{WTW}:access</span></code> - access mode for the path type</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types:{WTW}:egress</span></code> - egress mode for the path type</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types:{WTW}:max_paths_across_tap_sets</span></code> - max paths to keep across all skim sets, for example, 3 TAP to TAP pairs per origin MAZ destination MAZ pair</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types:{WTW}:max_paths_per_tap_set</span></code> - max paths to keep per skim set, for example 1 per skim set - all transit submodes, local bus only, etc.</p></li>
-</ul>
-<p>Unlike the one and two zone system approach, the three zone system approach requires additional expression files for the TVPB.  The additional expression files for the TVPB are:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:tap_tap_settings:SPEC</span></code> - TAP to TAP expressions, e.g. tvpb_utility_tap_tap.csv</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:tap_tap_settings:PREPROCESSOR:SPEC</span></code> - TAP to TAP chooser preprocessor, e.g. tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:maz_tap_settings:walk:SPEC</span></code> - MAZ to TAP {walk} expressions, e.g. tvpb_utility_walk_maz_tap.csv</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:maz_tap_settings:drive:SPEC</span></code> - MAZ to TAP {drive} expressions, e.g. tvpb_utility_drive_maz_tap.csv</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:accessibility:tap_tap_settings:SPEC</span></code> - TAP to TAP expressions for the accessibility calculator, e.g. tvpb_accessibility_tap_tap.csv</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:accessibility:maz_tap_settings:walk:SPEC</span></code> - MAz to TAP {walk} expressions for the accessibility calculator, e.g. tvpb_accessibility_walk_maz_tap.csv</p></li>
-</ul>
-<p>Additional settings to configure the TVPB are:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:tap_tap_settings:attribute_segments:demographic_segment</span></code> - TVPB pre-computes TAP to TAP total utilities for demographic segments.  These are defined using the attribute_segments keyword.  In the example below, the segments are demographic_segment (household income bin), tod (time-of-day), and access_mode (drive, walk).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:maz_tap_settings:{walk}:CHOOSER_COLUMNS</span></code> - input impedance columns to expose for TVPB calculations.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:maz_tap_settings:{walk}:CONSTANTS</span></code> - constants for TVPB calculations.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">accessibility:...</span></code> - for the accessibility model step, the same basic set of TVPB configurations are available.</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">zone_system</span><span class="p">:</span> <span class="mi">3</span>
-
-<span class="n">rebuild_tvpb_cache</span><span class="p">:</span> <span class="kc">False</span>
-<span class="n">trace_tvpb_cache_as_csv</span><span class="p">:</span> <span class="kc">False</span>
-<span class="n">tap_skims</span><span class="p">:</span> <span class="n">tap_skims</span><span class="o">.</span><span class="n">omx</span>
-<span class="n">tap</span><span class="p">:</span> <span class="n">tap</span><span class="o">.</span><span class="n">csv</span>
-<span class="n">maz_to_tap</span><span class="p">:</span>
-  <span class="n">walk</span><span class="p">:</span>
-    <span class="n">table</span><span class="p">:</span> <span class="n">maz_to_tap_walk</span><span class="o">.</span><span class="n">csv</span>
-  <span class="n">drive</span><span class="p">:</span>
-    <span class="n">table</span><span class="p">:</span> <span class="n">maz_to_tap_drive</span><span class="o">.</span><span class="n">csv</span>
-
-<span class="n">demographic_segments</span><span class="p">:</span> <span class="o">&amp;</span><span class="n">demographic_segments</span>
-<span class="o">-</span> <span class="o">&amp;</span><span class="n">low_income_segment_id</span> <span class="mi">0</span>
-<span class="o">-</span> <span class="o">&amp;</span><span class="n">high_income_segment_id</span> <span class="mi">1</span>
-
-<span class="n">TVPB_SETTINGS</span><span class="p">:</span>
-  <span class="n">tour_mode_choice</span><span class="p">:</span>
-    <span class="n">units</span><span class="p">:</span> <span class="n">utility</span>
-    <span class="n">path_types</span><span class="p">:</span>
-      <span class="n">WTW</span><span class="p">:</span>
-        <span class="n">access</span><span class="p">:</span> <span class="n">walk</span>
-        <span class="n">egress</span><span class="p">:</span> <span class="n">walk</span>
-        <span class="n">max_paths_across_tap_sets</span><span class="p">:</span> <span class="mi">3</span>
-        <span class="n">max_paths_per_tap_set</span><span class="p">:</span> <span class="mi">1</span>
-      <span class="n">DTW</span><span class="p">:</span>
-        <span class="n">access</span><span class="p">:</span> <span class="n">drive</span>
-        <span class="n">egress</span><span class="p">:</span> <span class="n">walk</span>
-        <span class="n">max_paths_across_tap_sets</span><span class="p">:</span> <span class="mi">3</span>
-        <span class="n">max_paths_per_tap_set</span><span class="p">:</span> <span class="mi">1</span>
-      <span class="n">WTD</span><span class="p">:</span>
-        <span class="n">access</span><span class="p">:</span> <span class="n">walk</span>
-        <span class="n">egress</span><span class="p">:</span> <span class="n">drive</span>
-        <span class="n">max_paths_across_tap_sets</span><span class="p">:</span> <span class="mi">3</span>
-        <span class="n">max_paths_per_tap_set</span><span class="p">:</span> <span class="mi">1</span>
-    <span class="n">tap_tap_settings</span><span class="p">:</span>
-      <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_utility_tap_tap</span><span class="o">.</span><span class="n">csv</span>
-      <span class="n">PREPROCESSOR</span><span class="p">:</span>
-        <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_utility_tap_tap_annotate_choosers_preprocessor</span><span class="o">.</span><span class="n">csv</span>
-        <span class="n">DF</span><span class="p">:</span> <span class="n">df</span>
-      <span class="n">attribute_segments</span><span class="p">:</span>
-        <span class="n">demographic_segment</span><span class="p">:</span> <span class="o">*</span><span class="n">demographic_segments</span>
-        <span class="n">tod</span><span class="p">:</span> <span class="o">*</span><span class="n">skim_time_period_labels</span>
-        <span class="n">access_mode</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;drive&#39;</span><span class="p">,</span> <span class="s1">&#39;walk&#39;</span><span class="p">]</span>
-      <span class="n">attributes_as_columns</span><span class="p">:</span>
-        <span class="o">-</span> <span class="n">demographic_segment</span>
-        <span class="o">-</span> <span class="n">tod</span>
-    <span class="n">maz_tap_settings</span><span class="p">:</span>
-      <span class="n">walk</span><span class="p">:</span>
-        <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_utility_walk_maz_tap</span><span class="o">.</span><span class="n">csv</span>
-        <span class="n">CHOOSER_COLUMNS</span><span class="p">:</span>
-          <span class="o">-</span> <span class="n">walk_time</span>
-      <span class="n">drive</span><span class="p">:</span>
-        <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_utility_drive_maz_tap</span><span class="o">.</span><span class="n">csv</span>
-        <span class="n">CHOOSER_COLUMNS</span><span class="p">:</span>
-          <span class="o">-</span> <span class="n">drive_time</span>
-          <span class="o">-</span> <span class="n">DIST</span>
-    <span class="n">CONSTANTS</span><span class="p">:</span>
-      <span class="n">c_ivt_high_income</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.028</span>
-      <span class="o">...</span>
-
-  <span class="n">accessibility</span><span class="p">:</span>
-    <span class="n">units</span><span class="p">:</span> <span class="n">time</span>
-    <span class="n">path_types</span><span class="p">:</span>
-      <span class="n">WTW</span><span class="p">:</span>
-        <span class="n">access</span><span class="p">:</span> <span class="n">walk</span>
-        <span class="n">egress</span><span class="p">:</span> <span class="n">walk</span>
-        <span class="n">max_paths_across_tap_sets</span><span class="p">:</span> <span class="mi">1</span>
-        <span class="n">max_paths_per_tap_set</span><span class="p">:</span> <span class="mi">1</span>
-    <span class="n">tap_tap_settings</span><span class="p">:</span>
-      <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_accessibility_tap_tap_</span><span class="o">.</span><span class="n">csv</span>
-    <span class="n">maz_tap_settings</span><span class="p">:</span>
-        <span class="n">walk</span><span class="p">:</span>
-          <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_accessibility_walk_maz_tap</span><span class="o">.</span><span class="n">csv</span>
-          <span class="n">CHOOSER_COLUMNS</span><span class="p">:</span>
-            <span class="o">-</span> <span class="n">walk_time</span>
-    <span class="n">CONSTANTS</span><span class="p">:</span>
-        <span class="n">out_of_vehicle_walk_time_weight</span><span class="p">:</span> <span class="mf">1.5</span>
-        <span class="n">out_of_vehicle_wait_time_weight</span><span class="p">:</span> <span class="mf">2.0</span>
-</pre></div>
-</div>
+<p>Three zone systems (TAZ, MAZ, TAP) are no longer supported in ActivitySim as of version 1.5.2.</p>
 </section>
 </section>
 <section id="outputs">
 <h3>Outputs<a class="headerlink" href="#outputs" title="Permalink to this heading">#</a></h3>
-<p>Essentially the same set of outputs is created for a two or three zone system
-model as for a one zone system model.  However, the one key additional bit of
-information for a three zone system model is the boarding TAP, alighting TAP, and
-transit skim set is added to the relevant chooser table (e.g. tours and trips) when the
-chosen mode is transit.  Logging and tracing also work for two and three zone models,
-including tracing of the TVPB calculations. The <span class="xref std std-ref">write_trip_matrices</span> step writes
-both TAZ and TAP level matrices depending on the configured number of zone systems.</p>
+<p>Essentially the same set of outputs is created for a two zone system model as
+for a one zone system model. Logging and tracing also work for two zone models.
+The <span class="xref std std-ref">write_trip_matrices</span> step writes TAZ level matrices.</p>
 </section>
 <section id="presampling">
 <span id="id1"></span><h3>Presampling<a class="headerlink" href="#presampling" title="Permalink to this heading">#</a></h3>
@@ -951,7 +808,7 @@ library.  The following key log files are created with a model run:</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev13+g82cbefd50, documentation last updated Apr 02, 2026.<br/>
+ActivitySim 1.5.2.dev15+g90c829045, documentation last updated Apr 16, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

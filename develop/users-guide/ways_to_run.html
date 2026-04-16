@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Apr 02, 2026"/>
+    <meta name="docbuild:last-update" content="Apr 16, 2026"/>
   </head>
   
   
@@ -727,9 +727,15 @@ For interaction_simulate models, users can manually specify trace IDs to perform
 <p>Users can configure ActivitySim to not skip failed choices by setting the
 <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> option to <code class="docutils literal notranslate"><span class="pre">False</span></code> in the settings file. When this option is disabled, the system will fall back to
 using the legacy <code class="docutils literal notranslate"><span class="pre">overflow_protection</span></code> mechanism to handle such cases. Specifically, if the computed utilities lead to zero or infinite exponentiated values,
-overflow protection will adjust the utilities to prevent numerical overflow during exponentiation and arbitarily making a choice.
-No loggings will be made for these cases. When <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> is enabled,
-ActivitySim will not use the legacy <code class="docutils literal notranslate"><span class="pre">overflow_protection</span></code> mechanism to handle failed choices.</p>
+the legacy <code class="docutils literal notranslate"><span class="pre">overflow_protection</span></code> will adjust the utilities to prevent numerical overflow during exponentiation and arbitarily making a choice, however, no loggings will be made for these cases.
+When <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> is enabled, ActivitySim will not use the legacy <code class="docutils literal notranslate"><span class="pre">overflow_protection</span></code> mechanism to handle failed choices.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When an agency turns on <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> for the first time in an existing ActivitySim implementation,
+warning messages may appear in the log for failed choices that were previously handled silently by the legacy <code class="docutils literal notranslate"><span class="pre">overflow_protection</span></code> mechanism.
+These warnings are expected and reflect the change in behavior: failed choices are now explicitly skipped and traced rather than silently handled.
+In some cases, model runs may crash if the number of skipped failed choices exceeds the configured <code class="docutils literal notranslate"><span class="pre">fraction_of_failed_choices_allowed</span></code> threshold.</p>
+</div>
 </section>
 </section>
 </section>
@@ -852,7 +858,7 @@ ActivitySim will not use the legacy <code class="docutils literal notranslate"><
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev13+g82cbefd50, documentation last updated Apr 02, 2026.<br/>
+ActivitySim 1.5.2.dev15+g90c829045, documentation last updated Apr 16, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

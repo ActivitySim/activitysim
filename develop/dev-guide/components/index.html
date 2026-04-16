@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Apr 02, 2026"/>
+    <meta name="docbuild:last-update" content="Apr 16, 2026"/>
   </head>
   
   
@@ -332,7 +332,6 @@
 <li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Components</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="input_checker.html">Input Checker</a></li>
 <li class="toctree-l2"><a class="reference internal" href="initialize.html">Initialize</a></li>
-<li class="toctree-l2"><a class="reference internal" href="initialize_los.html">Initialize LOS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="initialize_tours.html">Initialize Tours</a></li>
 <li class="toctree-l2"><a class="reference internal" href="accessibility.html">Accessibility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="auto_ownership.html">Auto Ownership</a></li>
@@ -456,15 +455,6 @@
 <li class="toctree-l2"><a class="reference internal" href="initialize.html#implementation">Implementation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="initialize.html#activitysim.abm.models.initialize.initialize_landuse"><code class="docutils literal notranslate"><span class="pre">initialize_landuse()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="initialize.html#activitysim.abm.models.initialize.initialize_households"><code class="docutils literal notranslate"><span class="pre">initialize_households()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="initialize_los.html">Initialize LOS</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="initialize_los.html#implementation">Implementation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="initialize_los.html#activitysim.abm.models.initialize_los.initialize_los"><code class="docutils literal notranslate"><span class="pre">initialize_los()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="initialize_los.html#activitysim.abm.models.initialize_los.compute_utilities_for_attribute_tuple"><code class="docutils literal notranslate"><span class="pre">compute_utilities_for_attribute_tuple()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="initialize_los.html#activitysim.abm.models.initialize_los.initialize_tvpb"><code class="docutils literal notranslate"><span class="pre">initialize_tvpb()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -1314,8 +1304,6 @@
 <li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.nontour_preprocessor"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.nontour_preprocessor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.preprocessor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.source_file_paths</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.tvpb_mode_path_types"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.tvpb_mode_path_types</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.use_TVPB_constants"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.use_TVPB_constants</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.nests_are_for_nl()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tour_mode_choice.html#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.update_sharrow_skip"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.update_sharrow_skip</span></code></a></li>
 </ul>
@@ -1480,8 +1468,6 @@
 <li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.nontour_preprocessor"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.nontour_preprocessor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.preprocessor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.source_file_paths</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.tvpb_mode_path_types"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.tvpb_mode_path_types</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.use_TVPB_constants"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.use_TVPB_constants</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.nests_are_for_nl()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="atwork_subtour_mode_choice.html#activitysim.abm.models.atwork_subtour_mode_choice.TourModeComponentSettings.update_sharrow_skip"><code class="docutils literal notranslate"><span class="pre">TourModeComponentSettings.update_sharrow_skip</span></code></a></li>
 </ul>
@@ -1665,7 +1651,6 @@
 <li class="toctree-l4"><a class="reference internal" href="trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.SPEC"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.SPEC</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.TOURS_MERGED_CHOOSER_COLUMNS"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.TOURS_MERGED_CHOOSER_COLUMNS</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.TVPB_recipe"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.TVPB_recipe</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_households"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.annotate_households</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_persons"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.annotate_persons</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.annotate_tours"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.annotate_tours</span></code></a></li>
@@ -1674,8 +1659,6 @@
 <li class="toctree-l4"><a class="reference internal" href="trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.compute_settings"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.compute_settings</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.preprocessor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.source_file_paths</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.tvpb_mode_path_types"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.tvpb_mode_path_types</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.use_TVPB_constants"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.use_TVPB_constants</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.nests_are_for_nl()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="trip_mode_choice.html#activitysim.abm.models.trip_mode_choice.TripModeChoiceSettings.update_sharrow_skip"><code class="docutils literal notranslate"><span class="pre">TripModeChoiceSettings.update_sharrow_skip</span></code></a></li>
 </ul>
@@ -1839,7 +1822,7 @@ section. See <a class="reference internal" href="../../development.html#models">
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev13+g82cbefd50, documentation last updated Apr 02, 2026.<br/>
+ActivitySim 1.5.2.dev15+g90c829045, documentation last updated Apr 16, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

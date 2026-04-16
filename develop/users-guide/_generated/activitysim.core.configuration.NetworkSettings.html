@@ -63,7 +63,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Apr 02, 2026"/>
+    <meta name="docbuild:last-update" content="Apr 16, 2026"/>
   </head>
   
   
@@ -361,38 +361,20 @@ usually called <code class="docutils literal notranslate"><span class="pre">netw
 </dd>
 <dt class="field-even">Fields<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">TVPB_SETTINGS</span> <span class="pre">(Any)</span></code></p></li>
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">demographic_segments</span> <span class="pre">(Any)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">maz</span> <span class="pre">(str)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">maz_to_maz</span> <span class="pre">(MazToMazSettings</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">maz_to_tap</span> <span class="pre">(dict[str,</span> <span class="pre">Any])</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span> <span class="pre">(str)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">network_cache_dir</span> <span class="pre">(str)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_skim_cache</span> <span class="pre">(bool)</span></code></p></li>
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rebuild_tvpb_cache</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">skim_dict_factory</span> <span class="pre">(Literal['NumpyArraySkimFactory',</span> <span class="pre">'MemMapSkimFactory'])</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">skim_time_periods</span> <span class="pre">(TimeSettings)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">(list[Path])</span></code></p></li>
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">tap</span> <span class="pre">(str)</span></code></p></li>
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">tap_lines</span> <span class="pre">(str)</span></code></p></li>
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">tap_skims</span> <span class="pre">(Union[str,</span> <span class="pre">list[str]])</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">taz_skims</span> <span class="pre">(Union[str,</span> <span class="pre">list[str],</span> <span class="pre">TAZ_Settings])</span></code></p></li>
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_tvpb_cache_as_csv</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_skim_cache</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">zone_system</span> <span class="pre">(int)</span></code></p></li>
 </ul>
 </dd>
 </dl>
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.core.configuration.NetworkSettings.TVPB_SETTINGS">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TVPB_SETTINGS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings.TVPB_SETTINGS" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.core.configuration.NetworkSettings.demographic_segments">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">demographic_segments</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings.demographic_segments" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.NetworkSettings.maz">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">maz</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings.maz" title="Permalink to this definition">#</a></dt>
@@ -404,12 +386,6 @@ usually called <code class="docutils literal notranslate"><span class="pre">netw
 <dt class="sig sig-object py" id="activitysim.core.configuration.NetworkSettings.maz_to_maz">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">maz_to_maz</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">MazToMazSettings</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings.maz_to_maz" title="Permalink to this definition">#</a></dt>
 <dd><p>Settings to manage maz-to-maz level of service in 2- and 3-zone models.</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.core.configuration.NetworkSettings.maz_to_tap">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">maz_to_tap</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings.maz_to_tap" title="Permalink to this definition">#</a></dt>
-<dd><p>Settings to manage maz-to-tap level of service in 3-zone models.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
@@ -430,12 +406,6 @@ usually called <code class="docutils literal notranslate"><span class="pre">netw
 <dd><p>Read cached skims (using numpy memmap) from output directory.</p>
 <p>Reading from memmap is much faster than omx, but the memmap is a huge
 uncompressed file.</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.core.configuration.NetworkSettings.rebuild_tvpb_cache">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rebuild_tvpb_cache</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings.rebuild_tvpb_cache" title="Permalink to this definition">#</a></dt>
-<dd><p>rebuild and overwrite existing pre-computed TAP to TAP utilities cache</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
@@ -462,24 +432,6 @@ of the model.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.core.configuration.NetworkSettings.tap">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tap</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings.tap" title="Permalink to this definition">#</a></dt>
-<dd><p>Filename for the TAP data file.</p>
-<p>This file should contain the MAZ ID, TAZ, and land use and other MAZ attributes</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.core.configuration.NetworkSettings.tap_lines">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tap_lines</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings.tap_lines" title="Permalink to this definition">#</a></dt>
-<dd><p>TAP lines filename.</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.core.configuration.NetworkSettings.tap_skims">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tap_skims</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings.tap_skims" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.NetworkSettings.taz_skims">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">taz_skims</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="activitysim.core.configuration.TAZ_Settings.html#activitysim.core.configuration.TAZ_Settings" title="activitysim.core.configuration.TAZ_Settings"><span class="pre">TAZ_Settings</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings.taz_skims" title="Permalink to this definition">#</a></dt>
 <dd><p>Instructions for how to load and pre-process skim matrices.</p>
@@ -490,13 +442,6 @@ of the matrix name and be seperated by a double_underscore (e.g. <cite>BUS_IVT__
 indicates base skim BUS_IVT with a time period of AM.</p>
 <p>Alternatively, this can be given as a nested dictionary defined via the
 TAZ_Settings class, which allows for ZARR transformation and pre-processing.</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="activitysim.core.configuration.NetworkSettings.trace_tvpb_cache_as_csv">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">trace_tvpb_cache_as_csv</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings.trace_tvpb_cache_as_csv" title="Permalink to this definition">#</a></dt>
-<dd><p>Write a CSV version of TVPB cache for tracing</p>
-<p>Not currently implemented.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
@@ -514,7 +459,6 @@ runs.</p>
 <ul class="simple">
 <li><p>1 - TAZ only.</p></li>
 <li><p>2 - MAZ and TAZ.</p></li>
-<li><p>3 - MAZ, TAZ, and TAP</p></li>
 </ul>
 </dd></dl>
 
@@ -552,23 +496,15 @@ runs.</p>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings"><code class="docutils literal notranslate"><span class="pre">NetworkSettings</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.TVPB_SETTINGS"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.TVPB_SETTINGS</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.demographic_segments"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.demographic_segments</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.maz"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.maz</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.maz_to_maz"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.maz_to_maz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.maz_to_tap"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.maz_to_tap</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.name"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.name</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.network_cache_dir"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.network_cache_dir</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.read_skim_cache"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.read_skim_cache</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.rebuild_tvpb_cache"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.rebuild_tvpb_cache</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.skim_dict_factory"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.skim_dict_factory</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.skim_time_periods"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.skim_time_periods</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.source_file_paths</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.tap"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.tap</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.tap_lines"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.tap_lines</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.tap_skims"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.tap_skims</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.taz_skims"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.taz_skims</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.trace_tvpb_cache_as_csv"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.trace_tvpb_cache_as_csv</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.write_skim_cache"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.write_skim_cache</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.NetworkSettings.zone_system"><code class="docutils literal notranslate"><span class="pre">NetworkSettings.zone_system</span></code></a></li>
 </ul>
@@ -608,7 +544,7 @@ runs.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev13+g82cbefd50, documentation last updated Apr 02, 2026.<br/>
+ActivitySim 1.5.2.dev15+g90c829045, documentation last updated Apr 16, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

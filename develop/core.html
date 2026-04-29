@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Apr 16, 2026"/>
+    <meta name="docbuild:last-update" content="Apr 29, 2026"/>
   </head>
   
   
@@ -4157,41 +4157,8 @@ unavailable after scheduling this window.</p>
 
 </section>
 </section>
-<section id="transit-virtual-path-builder">
-<span id="id15"></span><h2>Transit Virtual Path Builder<a class="headerlink" href="#transit-virtual-path-builder" title="Permalink to this heading">#</a></h2>
-<p>Transit virtual path builder (TVPB) for three zone system (see <span class="xref std std-ref">multiple_zone_systems</span>) transit path utility calculations.
-TAP to TAP skims and walk access and egress times between MAZs and TAPs are input to the
-demand model.  ActivitySim then assembles the total transit path utility based on the user specified TVPB
-expression files for the respective components:</p>
-<ul class="simple">
-<li><p>from MAZ to first boarding TAP +</p></li>
-<li><p>from first boarding to final alighting TAP +</p></li>
-<li><p>from alighting TAP to destination MAZ</p></li>
-</ul>
-<p>This assembling is done via the TVPB, which considers all the possible combinations of nearby boarding and alighting TAPs for each origin
-destination MAZ pair and selects the user defined N best paths to represent the transit mode.  After selecting N best paths, the logsum across
-N best paths is calculated and exposed to the mode choice models and a random number is drawn and a path is chosen. The boarding TAP,
-alighting TAP, and TAP to TAP skim set for the chosen path is saved to the chooser table.</p>
-<p>The initialize TVPB submodel (see <span class="xref std std-ref">initialize_los</span>) pre-computes TAP to TAP total utilities for the user defined attribute_segments,
-which are typically demographic segment (for example household income bin), time-of-day, and access/egress mode.  This submodel can be
-run in both single process and multiprocess mode, with single process excellent for development/debugging and multiprocess excellent
-for application.  ActivitySim saves the pre-calculated TAP to TAP total utilities to a memory mapped cache file for reuse by downstream models
-such as tour mode choice.  In tour mode choice, the pre-computed TAP to TAP total utilities for the attribute_segment, along with the
-access and egress impedances, are used to evaluate the best N TAP pairs for each origin MAZ destination MAZ pair being evaluated.
-Assembling the total transit path impedance and then picking the best N is quick since it is done in a de-duplicated manner within
-each chunk of multiprocessed choosers.</p>
-<p>A model with TVPB can take considerably longer to run than a traditional TAZ based model since it does an order of magnitude more
-calculations.  Thus, it is important to be mindful of your approach to your network model as well, especially the number of TAPs
-accessible to each MAZ, which is the key determinant of runtime.</p>
-<section id="id16">
-<h3>API<a class="headerlink" href="#id16" title="Permalink to this heading">#</a></h3>
-</section>
-<section id="cache-api">
-<h3>Cache API<a class="headerlink" href="#cache-api" title="Permalink to this heading">#</a></h3>
-</section>
-</section>
 <section id="visualization">
-<span id="id17"></span><h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this heading">#</a></h2>
+<span id="id15"></span><h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this heading">#</a></h2>
 <p>Visualization capabilities are provided with SimWrapper, a standalone browser-based software that creates interactive, graphical visualizations of ActivitySim outputs. SimWrapper builds graphs and other visualization components from CSV summary tables that are produced by the <em>summarize</em> model step. Once the model run is complete, Simwrapper can be started and stopped at any time, independent of ActivitySim to visualize outputs. The tool currently allows users to view dashboards for multiple model runs side-by-side in the browser. The ability to compute and visualize the differences between two model runs is a planned future enhancement.</p>
 <p>To use set up the summarize model to produce tables for SimWrapper, add <code class="docutils literal notranslate"><span class="pre">summarize</span></code> to the list of models in <code class="docutils literal notranslate"><span class="pre">configs_mp/settings.yaml</span></code> and add the following files to the <cite>config</cite> directory:</p>
 <ul class="simple">
@@ -4346,7 +4313,7 @@ However, panning and zooming on any one map object controls all maps on both sid
 </section>
 </section>
 <section id="helpers">
-<span id="id18"></span><h2>Helpers<a class="headerlink" href="#helpers" title="Permalink to this heading">#</a></h2>
+<span id="id16"></span><h2>Helpers<a class="headerlink" href="#helpers" title="Permalink to this heading">#</a></h2>
 <section id="chunk">
 <span id="chunk-in-detail"></span><span id="chunk-size"></span><span id="index-0"></span><h3>Chunk<a class="headerlink" href="#chunk" title="Permalink to this heading">#</a></h3>
 <p>Chunking management.</p>
@@ -4425,8 +4392,8 @@ is therefore the default.</p>
 <li><p>keep_chunk_logs: True - whether to preserve or delete subprocess chunk logs when they are consolidated at end of multiprocess run</p></li>
 <li><p>keep_mem_logs: True - whether to preserve or delete subprocess mem logs when they are consolidated at end of multiprocess run</p></li>
 </ul>
-<section id="id19">
-<h4>API<a class="headerlink" href="#id19" title="Permalink to this heading">#</a></h4>
+<section id="id17">
+<h4>API<a class="headerlink" href="#id17" title="Permalink to this heading">#</a></h4>
 <span class="target" id="module-activitysim.core.chunk"></span><dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.chunk.ChunkHistorian">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.chunk.</span></span><span class="sig-name descname"><span class="pre">ChunkHistorian</span></span><a class="headerlink" href="#activitysim.core.chunk.ChunkHistorian" title="Permalink to this definition">#</a></dt>
@@ -4573,8 +4540,8 @@ as choosers, we can use cumulative pick_counts to identify boundaries of sets of
 <section id="utilities">
 <h3>Utilities<a class="headerlink" href="#utilities" title="Permalink to this heading">#</a></h3>
 <p>Vectorized helper functions</p>
-<section id="id20">
-<h4>API<a class="headerlink" href="#id20" title="Permalink to this heading">#</a></h4>
+<section id="id18">
+<h4>API<a class="headerlink" href="#id18" title="Permalink to this heading">#</a></h4>
 <span class="target" id="module-activitysim.core.util"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.util.assign_in_place">
 <span class="sig-prename descclassname"><span class="pre">activitysim.core.util.</span></span><span class="sig-name descname"><span class="pre">assign_in_place</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downcast_int</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downcast_float</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.assign_in_place" title="Permalink to this definition">#</a></dt>
@@ -4832,8 +4799,8 @@ helpful in expression files that compute counts (e.g. num_work_tours)</p>
 <section id="config">
 <h3>Config<a class="headerlink" href="#config" title="Permalink to this heading">#</a></h3>
 <p>Helper functions for configuring a model run</p>
-<section id="id21">
-<h4>API<a class="headerlink" href="#id21" title="Permalink to this heading">#</a></h4>
+<section id="id19">
+<h4>API<a class="headerlink" href="#id19" title="Permalink to this heading">#</a></h4>
 <span class="target" id="module-activitysim.core.config"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.config.filter_warnings">
 <span class="sig-prename descclassname"><span class="pre">activitysim.core.config.</span></span><span class="sig-name descname"><span class="pre">filter_warnings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.filter_warnings" title="Permalink to this definition">#</a></dt>
@@ -4915,8 +4882,8 @@ helpful in expression files that compute counts (e.g. num_work_tours)</p>
 <section id="mem">
 <h3>Mem<a class="headerlink" href="#mem" title="Permalink to this heading">#</a></h3>
 <p>Helper functions for tracking memory usage</p>
-<section id="id22">
-<h4>API<a class="headerlink" href="#id22" title="Permalink to this heading">#</a></h4>
+<section id="id20">
+<h4>API<a class="headerlink" href="#id20" title="Permalink to this heading">#</a></h4>
 <span class="target" id="module-activitysim.core.mem"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.mem.consolidate_logs">
 <span class="sig-prename descclassname"><span class="pre">activitysim.core.mem.</span></span><span class="sig-name descname"><span class="pre">consolidate_logs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mem.consolidate_logs" title="Permalink to this definition">#</a></dt>
@@ -4938,8 +4905,8 @@ helpful in expression files that compute counts (e.g. num_work_tours)</p>
 <section id="output">
 <h3>Output<a class="headerlink" href="#output" title="Permalink to this heading">#</a></h3>
 <p>Write output files and track skim usage.</p>
-<section id="id23">
-<h4>API<a class="headerlink" href="#id23" title="Permalink to this heading">#</a></h4>
+<section id="id21">
+<h4>API<a class="headerlink" href="#id21" title="Permalink to this heading">#</a></h4>
 <span class="target" id="module-activitysim.core.steps.output"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.steps.output.coalesce_estimation_data_bundles">
 <span class="sig-prename descclassname"><span class="pre">activitysim.core.steps.output.</span></span><span class="sig-name descname"><span class="pre">coalesce_estimation_data_bundles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#activitysim.core.steps.output.coalesce_estimation_data_bundles" title="Permalink to this definition">#</a></dt>
@@ -5389,11 +5356,6 @@ if no output_tables list is specified, then all checkpointed tables will be writ
 </li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transit-virtual-path-builder">Transit Virtual Path Builder</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">API</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cache-api">Cache API</a></li>
-</ul>
-</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualization">Visualization</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configure-the-summarize-model">Configure the Summarize Model</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-expressions">Summary Expressions</a></li>
@@ -5406,7 +5368,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#helpers">Helpers</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#chunk">Chunk</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">API</a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.chunk.ChunkHistorian"><code class="docutils literal notranslate"><span class="pre">ChunkHistorian</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.chunk.DEFAULT_CHUNK_METHOD"><code class="docutils literal notranslate"><span class="pre">DEFAULT_CHUNK_METHOD</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.chunk.MemMonitor"><code class="docutils literal notranslate"><span class="pre">MemMonitor</span></code></a><ul class="nav section-nav flex-column">
@@ -5421,7 +5383,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#utilities">Utilities</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">API</a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.util.assign_in_place"><code class="docutils literal notranslate"><span class="pre">assign_in_place()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.util.auto_opt_pd_dtypes"><code class="docutils literal notranslate"><span class="pre">auto_opt_pd_dtypes()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.util.drop_unused_columns"><code class="docutils literal notranslate"><span class="pre">drop_unused_columns()</span></code></a></li>
@@ -5443,7 +5405,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#config">Config</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">API</a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.config.filter_warnings"><code class="docutils literal notranslate"><span class="pre">filter_warnings()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.config.future_component_settings"><code class="docutils literal notranslate"><span class="pre">future_component_settings()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.config.future_model_settings"><code class="docutils literal notranslate"><span class="pre">future_model_settings()</span></code></a></li>
@@ -5454,7 +5416,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mem">Mem</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">API</a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.mem.consolidate_logs"><code class="docutils literal notranslate"><span class="pre">consolidate_logs()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.mem.shared_memory_size"><code class="docutils literal notranslate"><span class="pre">shared_memory_size()</span></code></a></li>
 </ul>
@@ -5462,7 +5424,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output">Output</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">API</a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.steps.output.coalesce_estimation_data_bundles"><code class="docutils literal notranslate"><span class="pre">coalesce_estimation_data_bundles()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.steps.output.previous_write_data_dictionary"><code class="docutils literal notranslate"><span class="pre">previous_write_data_dictionary()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.steps.output.track_skim_usage"><code class="docutils literal notranslate"><span class="pre">track_skim_usage()</span></code></a></li>
@@ -5510,7 +5472,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev15+g90c829045, documentation last updated Apr 16, 2026.<br/>
+ActivitySim 1.5.2.dev16+g3d4433f3a, documentation last updated Apr 29, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

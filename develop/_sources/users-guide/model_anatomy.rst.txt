@@ -52,7 +52,7 @@ indicators (e.g. skims), the model uses different spatial resolutions for differ
 modeling burden and model runtimes.  The typical multiple zone system setup is a TAZ zone system for auto travel, a MAZ zone
 system for non-motorized travel, and optionally a transit access points (TAPs) zone system for transit.
 
-The three versions of multiple zone systems are one-zone, two-zone, and three-zone.
+The two versions of zone systems are one-zone and two-zone.
 
 *   **One-zone**: This version is based on TM1 and supports only TAZs. All origins and
     destinations are represented at the TAZ level, and all skims including auto, transit,
@@ -65,45 +65,17 @@ The three versions of multiple zone systems are one-zone, two-zone, and three-zo
     walk access and egress times with times specified in the MAZ file by transit mode.
     Careful pre-calculation of the assumed transit walk access and egress time by MAZ
     and transit mode is required depending on the network scenario.
-*   **Three-zone**: This version is based on the SANDAG generation of CT-RAMP models.
-    Origins and destinations are represented at the MAZ level. Impedance for walk or
-    bike all-the-way from the origin to the destination can be specified at the MAZ
-    level for close together origins and destinations, and at the TAZ level for further
-    origins and destinations, just like the two-zone system. TAZs are used for auto
-    times and costs. The difference between this system and the two-zone system is that
-    transit times and costs are represented between Transit Access Points (TAPs), which
-    are essentially dummy zones that represent transit stops or clusters of stops.
-    Transit skims are built between TAPs, since there are typically too many MAZs to
-    build skims between them. Often multiple sets of TAP to TAP skims (local bus only,
-    all modes, etc.) are created and input to the demand model for consideration.  Walk
-    access and egress times are also calculated between the MAZ and the TAP, and total
-    transit path utilities are assembled from their respective components - from MAZ to
-    first boarding TAP, from first boarding to final alighting TAP, and from alighting
-    TAP to destination MAZ.
 
 ..  caution::
-    The ActivitySim consortium is moving away from the three-zone approach, in favor of
-    to the one- or two-zone approaches. The three-zone system has been removed as of version 1.5.2.
+    Historically, there was also a three-zone option. The three-zone system has been
+    removed as of version 1.5.2.
 
 Regions that have an interest in more precise transit and non-motorized forecasts
 may wish to adopt the two-zone approach, while other regions may adopt the one or two-zone approach.  The
 microzone version requires coding households and land use at the microzone level.
 Typically an all-streets network is used for representation of non-motorized impedances.
 This requires a routable all-streets network, with centroids and connectors for
-microzones.  If the three-zone system is adopted, procedures need to be developed to
-code TAPs from transit stops and populate the all-street network with TAP centroids
-and centroid connectors.  A model with transit virtual path building takes longer to
-run than a traditional TAZ only model, but it provides a much richer framework for
-transit modeling.
-
-.. note::
-   The two and three zone system test examples are simple test examples developed from the TM1 example.  To develop the two zone system
-   example, TM1 TAZs were labeled MAZs, each MAZ was assigned a TAZ, and MAZ to MAZ impedance files were created from the
-   TAZ to TAZ impedances.  To develop the three zone example system example, the TM1 TAZ model was further transformed
-   so select TAZs also became TAPs and TAP to TAP skims and MAZ to TAP impedances files were created.  While sufficient for
-   initial development, these examples were insufficient for validation and performance testing of the new software. As a result,
-   the :ref:`prototype_marin` example was created.
-
+microzones.
 
 .. _omx_skims :
 

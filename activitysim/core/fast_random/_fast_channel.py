@@ -241,6 +241,8 @@ class FastChannel:
         assert step_name is not None
         assert step_name == self.step_name
         selected_positions = self._check_valid_df(df)
+        if size is None:
+            size = 1
 
         mu = np.asarray(mu)
         sigma = np.asarray(sigma)

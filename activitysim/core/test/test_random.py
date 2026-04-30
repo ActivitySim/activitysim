@@ -33,7 +33,8 @@ def test_basic():
     assert "call set_base_seed before the first step" in str(excinfo.value)
 
 
-def test_channel():
+@pytest.mark.parametrize("fast", [False, True])
+def test_channel(fast: bool):
     channels = {
         "households": "household_id",
         "persons": "person_id",
@@ -58,20 +59,26 @@ def test_channel():
 
     rng.begin_step("test_step")
 
-    rng.add_channel("persons", persons)
-    rng.add_channel("households", households)
+    rng.add_channel("persons", persons, fast=fast)
+    rng.add_channel("households", households, fast=fast)
 
     rands = rng.random_for_df(persons)
 
     print("rands", np.asanyarray(rands).flatten())
 
     assert rands.shape == (5, 1)
-    test1_expected_rands = [0.1733218, 0.1255693, 0.7384256, 0.3485183, 0.9012387]
+    if fast:
+        test1_expected_rands = [0.4072658, 0.5591271, 0.0297283, 0.6235138, 0.6921163]
+    else:
+        test1_expected_rands = [0.1733218, 0.1255693, 0.7384256, 0.3485183, 0.9012387]
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), test1_expected_rands)
 
     # second call should return something different
     rands = rng.random_for_df(persons)
-    test1_expected_rands2 = [0.9105223, 0.5718418, 0.7222742, 0.9062284, 0.3929369]
+    if fast:
+        test1_expected_rands2 = [0.336963, 0.5420581, 0.4396565, 0.9702927, 0.0251327]
+    else:
+        test1_expected_rands2 = [0.9105223, 0.5718418, 0.7222742, 0.9062284, 0.3929369]
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), test1_expected_rands2)
 
     rng.end_step("test_step")
@@ -79,16 +86,25 @@ def test_channel():
     rng.begin_step("test_step2")
 
     rands = rng.random_for_df(households)
-    expected_rands = [0.417278, 0.2994774, 0.8653719, 0.4429748, 0.5101697]
+    if fast:
+        expected_rands = [0.1571023, 0.2709219, 0.2515827, 0.9444831, 0.6816792]
+    else:
+        expected_rands = [0.417278, 0.2994774, 0.8653719, 0.4429748, 0.5101697]
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), expected_rands)
 
     choices = rng.choice_for_df(households, [1, 2, 3, 4], 2, replace=True)
-    expected_choices = [2, 1, 3, 3, 4, 2, 4, 1, 4, 1]
+    if fast:
+        expected_choices = [4, 1, 4, 3, 2, 1, 3, 1, 1, 4]
+    else:
+        expected_choices = [2, 1, 3, 3, 4, 2, 4, 1, 4, 1]
     npt.assert_almost_equal(choices, expected_choices)
 
     # should be DIFFERENT the second time
     choices = rng.choice_for_df(households, [1, 2, 3, 4], 2, replace=True)
-    expected_choices = [3, 1, 4, 3, 3, 2, 2, 1, 4, 2]
+    if fast:
+        expected_choices = [1, 4, 2, 1, 2, 3, 1, 2, 2, 4]
+    else:
+        expected_choices = [3, 1, 4, 3, 3, 2, 2, 1, 4, 2]
     npt.assert_almost_equal(choices, expected_choices)
 
     rng.end_step("test_step2")
@@ -97,18 +113,32 @@ def test_channel():
 
     rands = rng.random_for_df(households, n=2)
 
-    expected_rands = [
-        0.3157928,
-        0.3321823,
-        0.5194067,
-        0.9340083,
-        0.9002048,
-        0.8754209,
-        0.3898816,
-        0.4101094,
-        0.7351484,
-        0.1741092,
-    ]
+    if fast:
+        expected_rands = [
+            0.0728735,
+            0.9764697,
+            0.6611142,
+            0.8802973,
+            0.0122184,
+            0.8770089,
+            0.9944639,
+            0.2064867,
+            0.6051138,
+            0.1666114,
+        ]
+    else:
+        expected_rands = [
+            0.3157928,
+            0.3321823,
+            0.5194067,
+            0.9340083,
+            0.9002048,
+            0.8754209,
+            0.3898816,
+            0.4101094,
+            0.7351484,
+            0.1741092,
+        ]
 
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), expected_rands)
 

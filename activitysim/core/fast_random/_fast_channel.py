@@ -70,13 +70,70 @@ class FastChannel:
         self.base_seed = base_seed
         self.channel_name = channel_name
         self.channel_seed = hash32(self.channel_name)
-        self.domain_index = domain_df.index.copy()
+        self.domain_index = domain_df.index[:0].copy()
         self.step_name = None
         self.step_seed = None
         self._fast_generator = FastGenerator()
         self._state_array = None
+        self.extend_domain(domain_df)
         if step_name:
             self.begin_step(step_name)
+
+    def extend_domain(self, domain_df: pd.DataFrame) -> None:
+        """
+        Extend the channel's domain by adding new rows from *domain_df*.
+
+        If a step is currently active, the per-row PCG64 state for the new rows
+        is initialised immediately (using the current ``step_seed``) and
+        appended to ``self._state_array`` so that random draws can be made for
+        the extended rows within the same step.
+
+        The index values of *domain_df* must be disjoint from the channel's
+        existing ``domain_index`` so there is no ambiguity / collision between
+        rows.
+
+        Parameters
+        ----------
+        domain_df : pandas.DataFrame
+            DataFrame whose index defines the new agents (rows) to add to the
+            channel.  Columns are ignored.
+
+        Raises
+        ------
+        AssertionError
+            If any index value in *domain_df* already exists in the channel's
+            domain.
+        """
+        new_index = domain_df.index
+
+        if new_index.empty:
+            return
+
+        # new rows must be disjoint from existing domain
+        assert (
+            len(self.domain_index.intersection(new_index)) == 0
+        ), "extend_domain: new domain_df index overlaps existing domain"
+
+        if self.step_name is not None:
+            # generate state for the new rows and append to existing state array
+            new_state = np.empty(shape=[len(new_index), 4], dtype=np.uint64)
+            for n, i in enumerate(new_index):
+                ss = np.random.SeedSequence(
+                    [self.base_seed, self.channel_seed, self.step_seed, i]
+                )
+                new_state[n, :] = self._fast_generator.get_state_array(ss)
+
+            if self._state_array is None:
+                self._state_array = new_state
+            else:
+                self._state_array = np.concatenate(
+                    [self._state_array, new_state], axis=0
+                )
+
+        if len(self.domain_index) == 0:
+            self.domain_index = new_index.copy()
+        else:
+            self.domain_index = self.domain_index.append(new_index)
 
     def begin_step(self, step_name: str) -> None:
         """
@@ -178,7 +235,8 @@ class FastChannel:
         selected_positions = self.domain_index.get_indexer(df.index)
 
         # check that all df.index values were found in self.domain_index
-        if selected_positions.min() < 0:
+        # (skip the check for empty input – min() on a zero-size array errors)
+        if selected_positions.size and selected_positions.min() < 0:
             raise ValueError("DataFrame has index values not found in the domain")
 
         if self._state_array is None:

@@ -37,7 +37,21 @@ def example_path(dirname):
     return str(importlib.resources.files("activitysim").joinpath(resource))
 
 
-def setup_dirs(ancillary_configs_dir=None, data_dir=None):
+# Run every parametrized test against both the legacy SimpleChannel and the
+# new FastChannel implementations.  Tests use ``channel_type`` to (a) inform
+# the workflow which channel implementation to use, (b) isolate per-type
+# output directories so checkpoint stores written by one channel type cannot
+# be read by the other, and (c) look up the appropriate regression-expected
+# values from per-channel-type tables defined below.
+CHANNEL_TYPES = ("simple", "fast")
+
+
+@pytest.fixture(params=CHANNEL_TYPES)
+def channel_type(request):
+    return request.param
+
+
+def setup_dirs(ancillary_configs_dir=None, data_dir=None, channel_type="fast"):
     # ancillary_configs_dir is used by run_mp to test multiprocess
 
     test_pipeline_configs_dir = os.path.join(os.path.dirname(__file__), "configs")
@@ -47,7 +61,13 @@ def setup_dirs(ancillary_configs_dir=None, data_dir=None):
     if ancillary_configs_dir is not None:
         configs_dir = [ancillary_configs_dir] + configs_dir
 
-    output_dir = os.path.join(os.path.dirname(__file__), "output")
+    # Use a per-channel-type output subdirectory so checkpoint stores and skim
+    # caches written under one channel implementation do not interfere with
+    # those written under the other.
+    output_dir = os.path.join(
+        os.path.dirname(__file__), "output", f"channel_{channel_type}"
+    )
+    os.makedirs(output_dir, exist_ok=True)
 
     if not data_dir:
         data_dir = example_path("data")
@@ -57,6 +77,9 @@ def setup_dirs(ancillary_configs_dir=None, data_dir=None):
         output_dir=output_dir,
         data_dir=data_dir,
     )
+
+    # Select the channel implementation requested by the test parameter.
+    state.settings.rng_channel_type = channel_type
 
     state.logging.config_logger()
 
@@ -77,8 +100,8 @@ def close_handlers():
         logger.setLevel(logging.NOTSET)
 
 
-def test_rng_access():
-    state = setup_dirs()
+def test_rng_access(channel_type):
+    state = setup_dirs(channel_type=channel_type)
     state.settings.rng_base_seed = 0
 
     state.checkpoint.restore()
@@ -86,15 +109,37 @@ def test_rng_access():
     rng = state.get_rn_generator()
 
     assert isinstance(rng, random.Random)
+    assert rng.channel_type == channel_type
 
     state.checkpoint.close_store()
 
 
-def regress_mini_auto(state: workflow.State):
+# Per-channel-type regression-expected values for the mini-pipeline tests.
+# The "simple" values are the long-standing reference values; the "fast"
+# values were captured from a clean run with the FastChannel implementation
+# and are checked here to guard against unintended drift in the new
+# vectorised PCG64 streams.
+_MINI_AUTO_HH_IDS = [1099626, 1173905, 1196298, 1286259]
+_MINI_AUTO_EXPECTED = {
+    "simple": [1, 1, 0, 0],
+    "fast": [0, 0, 1, 0],
+}
+
+_MINI_MTF_PER_IDS = {
+    "simple": [2566701, 2566702, 3061895],
+    "fast": [3188482, 3188483, 3188484],
+}
+_MINI_MTF_EXPECTED = {
+    "simple": ["school1", "school1", "work1"],
+    "fast": ["work1", "work1", "work_and_school"],
+}
+
+
+def regress_mini_auto(state: workflow.State, channel_type: str = "simple"):
     # regression test: these are among the middle households in households table
     # should be the same results as in run_mp (multiprocessing) test case
-    hh_ids = [1099626, 1173905, 1196298, 1286259]
-    choices = [1, 1, 0, 0]
+    hh_ids = _MINI_AUTO_HH_IDS
+    choices = _MINI_AUTO_EXPECTED[channel_type]
     expected_choice = pd.Series(
         choices, index=pd.Index(hh_ids, name="household_id"), name="auto_ownership"
     )
@@ -106,12 +151,15 @@ def regress_mini_auto(state: workflow.State):
     offset = (
         HOUSEHOLDS_SAMPLE_SIZE // 2
     )  # choose something midway as hh_id ordered by hh size
-    print("auto_choice\n%s" % auto_choice.head(offset).tail(4))
+    print(
+        "auto_choice (channel=%s)\n%s"
+        % (channel_type, auto_choice.head(offset).tail(4))
+    )
 
     auto_choice = auto_choice.reindex(hh_ids)
 
     """
-    auto_choice
+    auto_choice  (simple channel)
     household_id
     1099626    1
     1173905    1
@@ -122,14 +170,14 @@ def regress_mini_auto(state: workflow.State):
     pdt.assert_series_equal(auto_choice, expected_choice, check_dtype=False)
 
 
-def regress_mini_mtf(state: workflow.State):
+def regress_mini_mtf(state: workflow.State, channel_type: str = "simple"):
     mtf_choice = (
         state.checkpoint.load_dataframe("persons").sort_index().mandatory_tour_frequency
     )
 
     # these choices are for pure regression - their appropriateness has not been checked
-    per_ids = [2566701, 2566702, 3061895]
-    choices = ["school1", "school1", "work1"]
+    per_ids = _MINI_MTF_PER_IDS[channel_type]
+    choices = _MINI_MTF_EXPECTED[channel_type]
     expected_choice = pd.Series(
         choices,
         index=pd.Index(per_ids, name="person_id"),
@@ -139,10 +187,16 @@ def regress_mini_mtf(state: workflow.State):
     mtf_choice = mtf_choice[mtf_choice != ""]  # drop null (empty string) choices
 
     offset = len(mtf_choice) // 2  # choose something midway as hh_id ordered by hh size
-    print("mtf_choice\n%s" % mtf_choice.head(offset).tail(3))
+    print(
+        "mtf_choice (channel=%s)\n%s" % (channel_type, mtf_choice.head(offset).tail(3))
+    )
+    print(
+        "mtf_choice for regression per_ids (channel=%s):\n%s"
+        % (channel_type, mtf_choice.astype(str).reindex(per_ids))
+    )
 
     """
-    mtf_choice
+    mtf_choice  (simple channel)
     person_id
     2566701    school1
     2566702    school1
@@ -165,10 +219,10 @@ def regress_mini_location_choice_logsums(state: workflow.State):
     assert "workplace_location_logsum" not in persons
 
 
-def test_mini_pipeline_run():
+def test_mini_pipeline_run(channel_type):
     from activitysim.abm.tables.skims import network_los_preload
 
-    state = setup_dirs()
+    state = setup_dirs(channel_type=channel_type)
     state.get(network_los_preload)
 
     state.settings.households_sample_size = HOUSEHOLDS_SAMPLE_SIZE
@@ -185,12 +239,12 @@ def test_mini_pipeline_run():
 
     state.run(models=_MODELS, resume_after=None)
 
-    regress_mini_auto(state)
+    regress_mini_auto(state, channel_type=channel_type)
 
     state.run.by_name("cdap_simulate")
     state.run.by_name("mandatory_tour_frequency")
 
-    regress_mini_mtf(state)
+    regress_mini_mtf(state, channel_type=channel_type)
     regress_mini_location_choice_logsums(state)
 
     # try to get a non-existant table
@@ -213,12 +267,12 @@ def test_mini_pipeline_run():
     close_handlers()
 
 
-def test_mini_pipeline_run2():
+def test_mini_pipeline_run2(channel_type):
     # the important thing here is that we should get
     # exactly the same results as for test_mini_pipeline_run
     # when we restart pipeline
 
-    state = setup_dirs()
+    state = setup_dirs(channel_type=channel_type)
     from activitysim.abm.tables.skims import network_los_preload
 
     state.get(network_los_preload)
@@ -236,7 +290,7 @@ def test_mini_pipeline_run2():
 
     state.checkpoint.restore("auto_ownership_simulate")
 
-    regress_mini_auto(state)
+    regress_mini_auto(state, channel_type=channel_type)
 
     # try to run a model already in pipeline
     with pytest.raises(DuplicateWorkflowNameError) as excinfo:
@@ -247,7 +301,7 @@ def test_mini_pipeline_run2():
     state.run.by_name("cdap_simulate")
     state.run.by_name("mandatory_tour_frequency")
 
-    regress_mini_mtf(state)
+    regress_mini_mtf(state, channel_type=channel_type)
 
     # should be able to get this before pipeline is closed (from existing open store)
     checkpoints_df = state.checkpoint.get_inventory()
@@ -265,10 +319,10 @@ def test_mini_pipeline_run2():
     close_handlers()
 
 
-def test_mini_pipeline_run3():
+def test_mini_pipeline_run3(channel_type):
     # test that hh_ids setting overrides household sampling
 
-    state = setup_dirs()
+    state = setup_dirs(channel_type=channel_type)
     state.settings.hh_ids = "override_hh_ids.csv"
 
     households = state.get_dataframe("households")
@@ -294,8 +348,9 @@ def full_run(
     trace_hh_id=None,
     trace_od=None,
     check_for_variability=False,
+    channel_type="fast",
 ):
-    state = setup_dirs()
+    state = setup_dirs(channel_type=channel_type)
 
     state.settings.households_sample_size = households_sample_size
     state.settings.chunk_size = chunk_size
@@ -318,10 +373,32 @@ def full_run(
     return state, tour_count
 
 
-EXPECT_TOUR_COUNT = 121
+EXPECT_TOUR_COUNT = {
+    "simple": 121,
+    "fast": 108,
+}
 
 
-def regress_tour_modes(tours_df):
+# Per-channel-type expected per-tour values for HH_ID, sorted by
+# (person_id, tour_category, tour_num).  These were captured from clean
+# reference runs and are checked here to guard against unintended drift.
+_EXPECT_PERSON_IDS = {
+    "simple": [325051, 325051, 325051, 325052, 325052, 325052],
+    "fast": [325051, 325051, 325051, 325052],
+}
+
+_EXPECT_TOUR_TYPES = {
+    "simple": ["othdiscr", "work", "work", "business", "work", "othmaint"],
+    "fast": ["work", "escort", "eatout", "work"],
+}
+
+_EXPECT_MODES = {
+    "simple": ["WALK", "WALK", "SHARED3FREE", "WALK", "WALK_LOC", "WALK"],
+    "fast": ["WALK", "TNC_SHARED", "WALK", "WALK"],
+}
+
+
+def regress_tour_modes(tours_df, channel_type: str = "simple"):
     mode_cols = ["tour_mode", "person_id", "tour_type", "tour_num", "tour_category"]
 
     tours_df = tours_df[tours_df.household_id == HH_ID]
@@ -329,9 +406,10 @@ def regress_tour_modes(tours_df):
     tours_df.tour_category = tours_df.tour_category.astype(str)
     tours_df = tours_df.sort_values(by=["person_id", "tour_category", "tour_num"])
 
-    print("mode_df\n%s" % tours_df[mode_cols])
+    print("mode_df (channel=%s)\n%s" % (channel_type, tours_df[mode_cols]))
 
     """
+    simple channel:
                  tour_mode  person_id tour_type  tour_num  tour_category
     tour_id
     13327106         WALK     325051  othdiscr         1          joint
@@ -340,27 +418,19 @@ def regress_tour_modes(tours_df):
     13327132         WALK     325052  business         1         atwork
     13327171     WALK_LOC     325052      work         1      mandatory
     13327160         WALK     325052  othmaint         1  non_mandatory
+
+    fast channel:
+                 tour_mode  person_id tour_type  tour_num  tour_category
+    tour_id
+    13327130         WALK     325051      work         1      mandatory
+    13327100  TNC_SHARED     325051    escort         1  non_mandatory
+    13327097         WALK     325051    eatout         2  non_mandatory
+    13327171         WALK     325052      work         1      mandatory
     """
 
-    EXPECT_PERSON_IDS = [
-        325051,
-        325051,
-        325051,
-        325052,
-        325052,
-        325052,
-    ]
-
-    EXPECT_TOUR_TYPES = ["othdiscr", "work", "work", "business", "work", "othmaint"]
-
-    EXPECT_MODES = [
-        "WALK",
-        "WALK",
-        "SHARED3FREE",
-        "WALK",
-        "WALK_LOC",
-        "WALK",
-    ]
+    EXPECT_PERSON_IDS = _EXPECT_PERSON_IDS[channel_type]
+    EXPECT_TOUR_TYPES = _EXPECT_TOUR_TYPES[channel_type]
+    EXPECT_MODES = _EXPECT_MODES[channel_type]
 
     assert len(tours_df) == len(EXPECT_PERSON_IDS)
     assert (tours_df.person_id.values == EXPECT_PERSON_IDS).all()
@@ -368,7 +438,7 @@ def regress_tour_modes(tours_df):
     assert (tours_df.tour_mode.astype(str).values == EXPECT_MODES).all()
 
 
-def regress(state: workflow.State):
+def regress(state: workflow.State, channel_type: str = "simple"):
     persons_df = state.checkpoint.load_dataframe("persons")
     persons_df = persons_df[persons_df.household_id == HH_ID]
     print("persons_df\n%s" % persons_df[["value_of_time", "distance_to_work"]])
@@ -383,7 +453,7 @@ def regress(state: workflow.State):
 
     tours_df = state.checkpoint.load_dataframe("tours")
 
-    regress_tour_modes(tours_df)
+    regress_tour_modes(tours_df, channel_type=channel_type)
 
     assert tours_df.shape[0] > 0
     assert not tours_df.tour_mode.isnull().any()
@@ -434,7 +504,15 @@ def regress(state: workflow.State):
     trip_matrices.close()
 
 
-def test_full_run1():
+def _check_tour_count(channel_type, tour_count):
+    expect = EXPECT_TOUR_COUNT[channel_type]
+    assert tour_count == expect, "EXPECT_TOUR_COUNT %s but got tour_count %s" % (
+        expect,
+        tour_count,
+    )
+
+
+def test_full_run1(channel_type):
     if SKIP_FULL_RUN:
         return
 
@@ -442,39 +520,38 @@ def test_full_run1():
         trace_hh_id=HH_ID,
         check_for_variability=True,
         households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
+        channel_type=channel_type,
     )
 
     print("tour_count", tour_count)
 
-    assert (
-        tour_count == EXPECT_TOUR_COUNT
-    ), "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
+    _check_tour_count(channel_type, tour_count)
 
-    regress(state)
+    regress(state, channel_type=channel_type)
 
     state.checkpoint.close_store()
 
 
-def test_full_run2():
+def test_full_run2(channel_type):
     # resume_after should successfully load tours table and replicate results
 
     if SKIP_FULL_RUN:
         return
 
     state, tour_count = full_run(
-        resume_after="non_mandatory_tour_scheduling", trace_hh_id=HH_ID
+        resume_after="non_mandatory_tour_scheduling",
+        trace_hh_id=HH_ID,
+        channel_type=channel_type,
     )
 
-    assert (
-        tour_count == EXPECT_TOUR_COUNT
-    ), "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
+    _check_tour_count(channel_type, tour_count)
 
-    regress(state)
+    regress(state, channel_type=channel_type)
 
     state.checkpoint.close_store()
 
 
-def test_full_run3_with_chunks():
+def test_full_run3_with_chunks(channel_type):
     # should get the same result with different chunk size
 
     if SKIP_FULL_RUN:
@@ -484,33 +561,34 @@ def test_full_run3_with_chunks():
         trace_hh_id=HH_ID,
         households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
         chunk_size=500000,
+        channel_type=channel_type,
     )
 
-    assert (
-        tour_count == EXPECT_TOUR_COUNT
-    ), "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
+    _check_tour_count(channel_type, tour_count)
 
-    regress(state)
+    regress(state, channel_type=channel_type)
 
     state.checkpoint.close_store()
 
 
-def test_full_run4_stability():
+def test_full_run4_stability(channel_type):
     # hh should get the same result with different sample size
 
     if SKIP_FULL_RUN:
         return
 
     state, tour_count = full_run(
-        trace_hh_id=HH_ID, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE - 10
+        trace_hh_id=HH_ID,
+        households_sample_size=HOUSEHOLDS_SAMPLE_SIZE - 10,
+        channel_type=channel_type,
     )
 
-    regress(state)
+    regress(state, channel_type=channel_type)
 
     state.checkpoint.close_store()
 
 
-def test_full_run5_singleton():
+def test_full_run5_singleton(channel_type):
     # should work with only one hh
     # run with minimum chunk size to drive potential chunking errors in models
     # where choosers has multiple rows that all have to be included in the same chunk
@@ -519,15 +597,18 @@ def test_full_run5_singleton():
         return
 
     state, tour_count = full_run(
-        trace_hh_id=HH_ID, households_sample_size=1, chunk_size=1
+        trace_hh_id=HH_ID,
+        households_sample_size=1,
+        chunk_size=1,
+        channel_type=channel_type,
     )
 
-    regress(state)
+    regress(state, channel_type=channel_type)
 
     state.checkpoint.close_store()
 
 
 if __name__ == "__main__":
     print("running test_full_run1")
-    test_full_run1()
+    test_full_run1("simple")
     # teardown_function(None)

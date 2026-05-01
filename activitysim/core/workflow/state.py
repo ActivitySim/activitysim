@@ -20,7 +20,7 @@ from sharrow.dataset import construct as _dataset_construct
 
 import activitysim.core.random
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
-from activitysim.core.exceptions import StateAccessError, CheckpointNameNotFoundError
+from activitysim.core.exceptions import CheckpointNameNotFoundError, StateAccessError
 from activitysim.core.workflow.checkpoint import LAST_CHECKPOINT, Checkpoints
 from activitysim.core.workflow.chunking import Chunking
 from activitysim.core.workflow.dataset import Datasets
@@ -181,14 +181,17 @@ class State:
     def _initialize_prng(self, base_seed=None):
         from activitysim.core.random import Random
 
-        self._context["prng"] = Random()
-        if base_seed is None:
-            try:
-                self.settings
-            except StateAccessError:
+        try:
+            self.settings
+        except StateAccessError:
+            channel_type = "fast"
+            if base_seed is None:
                 base_seed = 0
-            else:
+        else:
+            channel_type = getattr(self.settings, "rng_channel_type", "fast")
+            if base_seed is None:
                 base_seed = self.settings.rng_base_seed
+        self._context["prng"] = Random(channel_type=channel_type)
         self._context["prng"].set_base_seed(base_seed)
 
     def import_extensions(self, ext: str | Iterable[str] = None, append=True) -> None:
@@ -858,7 +861,19 @@ class State:
     def rng(self) -> activitysim.core.random.Random:
         if "prng" not in self._context:
             self._initialize_prng()
-        return self._context["prng"]
+        prng = self._context["prng"]
+        # Allow channel_type to be picked up from settings even when prng was
+        # initialised before settings were loaded.  Safe to update as long as
+        # no channels have been registered yet.
+        try:
+            desired_channel_type = getattr(
+                self.settings, "rng_channel_type", prng.channel_type
+            )
+        except StateAccessError:
+            desired_channel_type = prng.channel_type
+        if desired_channel_type != prng.channel_type and not prng.channels:
+            prng.channel_type = desired_channel_type
+        return prng
 
     def pipeline_table_key(self, table_name, checkpoint_name):
         if checkpoint_name:

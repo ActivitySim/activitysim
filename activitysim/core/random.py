@@ -650,7 +650,7 @@ class SimpleChannel(object):
 
 
 class Random(object):
-    def __init__(self):
+    def __init__(self, channel_type: str = "fast"):
         self.channels = {}
 
         # dict mapping df index name to channel name
@@ -660,6 +660,12 @@ class Random(object):
         self.step_seed = None
         self.base_seed = 0
         self.global_rng = np.random.RandomState()
+
+        if channel_type not in ("fast", "simple"):
+            raise ValueError(
+                f"channel_type must be 'fast' or 'simple', got {channel_type!r}"
+            )
+        self.channel_type = channel_type
 
     def get_channel_for_df(self, df):
         """
@@ -759,7 +765,7 @@ class Random(object):
 
     # channel management
 
-    def add_channel(self, channel_name, domain_df, fast: bool = True):
+    def add_channel(self, channel_name, domain_df, fast: bool | None = None):
         """
         Create or extend a channel for generating random number streams for domain_df.
 
@@ -776,7 +782,14 @@ class Random(object):
         channel_name : str
             expected channel name provided as a consistency check
 
+        fast : bool, optional
+            If ``None`` (default), the channel implementation is selected
+            based on ``self.channel_type``.  Pass ``True`` / ``False`` to
+            force a specific implementation for this channel only.
         """
+
+        if fast is None:
+            fast = self.channel_type == "fast"
 
         if channel_name in self.channels:
             assert channel_name == self.index_to_channel[domain_df.index.name]

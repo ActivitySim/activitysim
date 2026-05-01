@@ -1822,7 +1822,9 @@ class FastGenerator:
             ``(n_selected, *shape)`` when *selected_positions* is given, or
             ``(n_agents, *shape)`` otherwise.
         """
-        if isinstance(shape, int):
+        if shape is None:
+            shape = 1
+        if isinstance(shape, (int, np.integer)):
             shape = (shape,)
         if selected_positions is not None:
             return _selected_vector_random_standard_normal(
@@ -1877,7 +1879,9 @@ class FastGenerator:
             ``(n_selected, *shape)`` when *selected_positions* is given, or
             ``(n_agents, *shape)`` otherwise; values drawn from U[0, 1).
         """
-        if isinstance(shape, int):
+        if shape is None:
+            shape = 1
+        if isinstance(shape, (int, np.integer)):
             shape = (shape,)
         if selected_positions is not None:
             return _selected_vector_random_standard_uniform(

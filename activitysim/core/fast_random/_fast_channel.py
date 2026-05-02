@@ -114,7 +114,8 @@ class FastChannel:
             len(self.domain_index.intersection(new_index)) == 0
         ), "extend_domain: new domain_df index overlaps existing domain"
 
-        if self.step_name is not None:
+        if self._state_array is not None:
+            # we already have state for some rows, so we also need to
             # generate state for the new rows and append to existing state array
             new_state = np.empty(shape=[len(new_index), 4], dtype=np.uint64)
             for n, i in enumerate(new_index):
@@ -122,18 +123,47 @@ class FastChannel:
                     [self.base_seed, self.channel_seed, self.step_seed, i]
                 )
                 new_state[n, :] = self._fast_generator.get_state_array(ss)
-
-            if self._state_array is None:
-                self._state_array = new_state
-            else:
-                self._state_array = np.concatenate(
-                    [self._state_array, new_state], axis=0
-                )
+            self._state_array = np.concatenate([self._state_array, new_state], axis=0)
 
         if len(self.domain_index) == 0:
             self.domain_index = new_index.copy()
         else:
             self.domain_index = self.domain_index.append(new_index)
+
+    def _reseed_step(self, force: bool = False) -> None:
+        """
+        Initialise (or re-initialise) the per-row PCG64 states for a new step.
+
+        Must be called before any random-number methods are used within a step.
+        The method seeds every row's bit-generator from the four-integer sequence
+        ``[base_seed, channel_seed, step_seed, row_index]`` via
+        :class:`numpy.random.SeedSequence`, ensuring that:
+
+        * the same step always produces the same stream (reproducibility), and
+        * different steps produce independent streams (no cross-step correlation).
+
+        Parameters
+        ----------
+        step_name : str
+            Name of the pipeline step being started (e.g. ``"auto_ownership"``).
+            Hashed into the seed so that different steps yield distinct streams.
+
+        Raises
+        ------
+        AssertionError
+            If a step is already active (``end_step`` was not called first).
+        """
+
+        if self._state_array is None or force:
+            # Seed the bit generators, extracting state along the way
+            state_array = np.empty(shape=[len(self.domain_index), 4], dtype=np.uint64)
+            for n, i in enumerate(self.domain_index):
+                ss = np.random.SeedSequence(
+                    [self.base_seed, self.channel_seed, self.step_seed, i]
+                )
+                state_array[n, :] = self._fast_generator.get_state_array(ss)
+
+            self._state_array = state_array
 
     def begin_step(self, step_name: str) -> None:
         """
@@ -164,15 +194,11 @@ class FastChannel:
         self.step_name = step_name
         self.step_seed = hash32(self.step_name)
 
-        # Seed the bit generators, extracting state along the way
-        state_array = np.empty(shape=[len(self.domain_index), 4], dtype=np.uint64)
-        for n, i in enumerate(self.domain_index):
-            ss = np.random.SeedSequence(
-                [self.base_seed, self.channel_seed, self.step_seed, i]
-            )
-            state_array[n, :] = self._fast_generator.get_state_array(ss)
-
-        self._state_array = state_array
+        # do NOT reseed immediately, defer until the first call to generate
+        # any random numbers using this channel.  There may not be any such
+        # calls (most ActivitySim steps only use one of many channels), and
+        # we want to avoid the overhead of seeding every channel in every
+        # step when many channels are unused.
 
     def end_step(self, step_name: str = "") -> None:
         """
@@ -239,7 +265,7 @@ class FastChannel:
         if selected_positions.size and selected_positions.min() < 0:
             raise ValueError("DataFrame has index values not found in the domain")
 
-        if self._state_array is None:
+        if self.step_name is None:
             raise ValueError("outside of a defined step")
 
         return selected_positions
@@ -299,6 +325,7 @@ class FastChannel:
         assert step_name is not None
         assert step_name == self.step_name
         selected_positions = self._check_valid_df(df)
+        self._reseed_step()
         if size is None:
             size = 1
 
@@ -352,6 +379,7 @@ class FastChannel:
         assert step_name is not None
         assert step_name == self.step_name
         selected_positions = self._check_valid_df(df)
+        self._reseed_step()
         return self._fast_generator.vector_random_standard_uniform(
             self._state_array, selected_positions=selected_positions, shape=n
         )
@@ -398,6 +426,7 @@ class FastChannel:
         assert step_name is not None
         assert step_name == self.step_name
         selected_positions = self._check_valid_df(df)
+        self._reseed_step()
 
         # total number of draws required per row
         if isinstance(size, (int, np.integer)):

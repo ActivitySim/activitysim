@@ -110,7 +110,7 @@ jobs:
         run: |
           set -o pipefail
           uv run python other_resources/performance-checks/${{ matrix.script }} \
-            2>&1 | tee perf-output-${{ matrix.script }}.txt
+            2>&1 | tee perf-output-${{ matrix.os }}-${{ matrix.script }}.txt
 
       - name: Upload output
         if: always()
@@ -118,5 +118,5 @@ jobs:
         with:
           # artifact names must be unique across the matrix, so include the OS
           name: perf-output-${{ matrix.os }}-${{ matrix.script }}
-          path: perf-output-${{ matrix.script }}.txt
+          path: perf-output-${{ matrix.os }}-${{ matrix.script }}.txt
           retention-days: 90

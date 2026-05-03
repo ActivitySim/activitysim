@@ -39,7 +39,7 @@ class FastChannel:
         base_seed: int,
         domain_df: pd.DataFrame,
         step_name: str = "",
-        bit_generator: Literal["PCG64", "SFC64"] = "SFC64",
+        bit_generator: Literal["PCG64", "SFC64"] = "PCG64",
         entropy_type: Literal[None, "robust", "quick"] = None,
     ) -> None:
         """

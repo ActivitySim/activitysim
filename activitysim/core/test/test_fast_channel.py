@@ -56,6 +56,8 @@ class TestInit:
     def test_step_started_when_step_name_given(self):
         ch = _make_channel(step_name="my_step")
         assert ch.step_name == "my_step"
+        assert ch._state_array is None
+        ch._reseed_step()  # ensure state is populated
         assert ch._state_array is not None
         assert ch._state_array.shape == (5, 4)
 
@@ -81,6 +83,8 @@ class TestBeginEndStep:
         ch = _make_channel()
         ch.begin_step("step1")
         assert ch.step_name == "step1"
+        assert ch._state_array is None  # no state before a draw
+        ch._reseed_step()  # ensure state is populated
         assert ch._state_array is not None
         assert ch._state_array.shape == (5, 4)
         assert ch._state_array.dtype == np.uint64
@@ -121,18 +125,22 @@ class TestBeginEndStep:
         """Re-running the same step name must reproduce the same state array."""
         ch = _make_channel()
         ch.begin_step("step1")
+        ch._reseed_step()  # ensure state is populated
         state1 = ch._state_array.copy()
         ch.end_step()
         ch.begin_step("step1")
+        ch._reseed_step()  # ensure state is populated
         state2 = ch._state_array.copy()
         npt.assert_array_equal(state1, state2)
 
     def test_begin_step_different_names_give_different_states(self):
         ch = _make_channel()
         ch.begin_step("step_a")
+        ch._reseed_step()  # ensure state is populated
         state_a = ch._state_array.copy()
         ch.end_step()
         ch.begin_step("step_b")
+        ch._reseed_step()  # ensure state is populated
         state_b = ch._state_array.copy()
         assert not np.array_equal(state_a, state_b)
 

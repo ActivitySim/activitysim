@@ -2,6 +2,8 @@
 # See full license in LICENSE.txt.
 from __future__ import annotations
 
+from typing import Literal
+
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
@@ -33,13 +35,13 @@ def test_basic():
     assert "call set_base_seed before the first step" in str(excinfo.value)
 
 
-@pytest.mark.parametrize("fast", [False, True])
-def test_channel(fast: bool):
+@pytest.mark.parametrize("channel_type", ["simple", "fast", "faster"])
+def test_channel(channel_type: Literal["simple", "fast", "faster"]):
     channels = {
         "households": "household_id",
         "persons": "person_id",
     }
-    rng = random.Random()
+    rng = random.Random(channel_type=channel_type)
 
     persons = pd.DataFrame(
         {
@@ -59,24 +61,28 @@ def test_channel(fast: bool):
 
     rng.begin_step("test_step")
 
-    rng.add_channel("persons", persons, fast=fast)
-    rng.add_channel("households", households, fast=fast)
+    rng.add_channel("persons", persons)
+    rng.add_channel("households", households)
 
     rands = rng.random_for_df(persons)
 
     print("rands", np.asanyarray(rands).flatten())
 
     assert rands.shape == (5, 1)
-    if fast:
-        test1_expected_rands = [0.4072658, 0.5591271, 0.0297283, 0.6235138, 0.6921163]
+    if channel_type == "fast":
+        test1_expected_rands = [0.162561, 0.0355962, 0.0295559, 0.2415235, 0.755611]
+    elif channel_type == "faster":
+        test1_expected_rands = [0.1461754, 0.3404831, 0.2687972, 0.5384345, 0.8583329]
     else:
         test1_expected_rands = [0.1733218, 0.1255693, 0.7384256, 0.3485183, 0.9012387]
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), test1_expected_rands)
 
     # second call should return something different
     rands = rng.random_for_df(persons)
-    if fast:
-        test1_expected_rands2 = [0.336963, 0.5420581, 0.4396565, 0.9702927, 0.0251327]
+    if channel_type == "fast":
+        test1_expected_rands2 = [0.7580942, 0.7115404, 0.2006981, 0.1460596, 0.5890839]
+    elif channel_type == "faster":
+        test1_expected_rands2 = [0.023297, 0.3941741, 0.2690284, 0.4423097, 0.9897082]
     else:
         test1_expected_rands2 = [0.9105223, 0.5718418, 0.7222742, 0.9062284, 0.3929369]
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), test1_expected_rands2)
@@ -86,23 +92,29 @@ def test_channel(fast: bool):
     rng.begin_step("test_step2")
 
     rands = rng.random_for_df(households)
-    if fast:
-        expected_rands = [0.1571023, 0.2709219, 0.2515827, 0.9444831, 0.6816792]
+    if channel_type == "fast":
+        expected_rands = [0.9603448, 0.2157038, 0.1521092, 0.1159168, 0.525709]
+    elif channel_type == "faster":
+        expected_rands = [0.8545137, 0.6644139, 0.0298825, 0.0820411, 0.5859529]
     else:
         expected_rands = [0.417278, 0.2994774, 0.8653719, 0.4429748, 0.5101697]
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), expected_rands)
 
     choices = rng.choice_for_df(households, [1, 2, 3, 4], 2, replace=True)
-    if fast:
-        expected_choices = [4, 1, 4, 3, 2, 1, 3, 1, 1, 4]
+    if channel_type == "fast":
+        expected_choices = [1, 3, 2, 2, 1, 3, 2, 1, 2, 2]
+    elif channel_type == "faster":
+        expected_choices = [2, 4, 1, 1, 3, 3, 3, 2, 3, 2]
     else:
         expected_choices = [2, 1, 3, 3, 4, 2, 4, 1, 4, 1]
     npt.assert_almost_equal(choices, expected_choices)
 
     # should be DIFFERENT the second time
     choices = rng.choice_for_df(households, [1, 2, 3, 4], 2, replace=True)
-    if fast:
-        expected_choices = [1, 4, 2, 1, 2, 3, 1, 2, 2, 4]
+    if channel_type == "fast":
+        expected_choices = [4, 2, 1, 3, 1, 3, 3, 1, 2, 3]
+    elif channel_type == "faster":
+        expected_choices = [3, 3, 3, 4, 3, 1, 4, 1, 1, 4]
     else:
         expected_choices = [3, 1, 4, 3, 3, 2, 2, 1, 4, 2]
     npt.assert_almost_equal(choices, expected_choices)
@@ -113,18 +125,31 @@ def test_channel(fast: bool):
 
     rands = rng.random_for_df(households, n=2)
 
-    if fast:
+    if channel_type == "fast":
         expected_rands = [
-            0.0728735,
-            0.9764697,
-            0.6611142,
-            0.8802973,
-            0.0122184,
-            0.8770089,
-            0.9944639,
-            0.2064867,
-            0.6051138,
-            0.1666114,
+            0.6475412,
+            0.2042014,
+            0.996377,
+            0.7417811,
+            0.3613508,
+            0.0233316,
+            0.1154262,
+            0.5316864,
+            0.0239487,
+            0.1951297,
+        ]
+    elif channel_type == "faster":
+        expected_rands = [
+            0.1904426,
+            0.5351702,
+            0.8730219,
+            0.959349,
+            0.7729186,
+            0.425713,
+            0.219114,
+            0.9312722,
+            0.0218454,
+            0.3462854,
         ]
     else:
         expected_rands = [

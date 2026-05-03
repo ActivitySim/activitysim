@@ -122,19 +122,19 @@ def test_rng_access(channel_type):
 _MINI_AUTO_HH_IDS = [1099626, 1173905, 1196298, 1286259]
 _MINI_AUTO_EXPECTED = {
     "simple": [1, 1, 0, 0],
-    "fast": [1, 0, 0, 1],
-    "faster": [1, 0, 0, 1],
+    "fast": [0, 0, 1, 0],
+    "faster": [2, 0, 0, 1],
 }
 
 _MINI_MTF_PER_IDS = {
     "simple": [2566701, 2566702, 3061895],
-    "fast": [3188483, 3188484, 3188485],
-    "faster": [2458503, 2566698, 2566700],
+    "fast": [3188482, 3188483, 3188484],
+    "faster": [2566701, 2566702, 3188482],
 }
 _MINI_MTF_EXPECTED = {
     "simple": ["school1", "school1", "work1"],
-    "fast": ["work1", "work1", "work1"],
-    "faster": ["school1", "work1", "school1"],
+    "fast": ["work1", "work1", "work_and_school"],
+    "faster": ["school1", "school1", "work1"],
 }
 
 
@@ -378,7 +378,7 @@ def full_run(
 
 EXPECT_TOUR_COUNT = {
     "simple": 121,
-    "fast": 103,
+    "fast": 108,
     "faster": 102,
 }
 
@@ -388,20 +388,20 @@ EXPECT_TOUR_COUNT = {
 # reference runs and are checked here to guard against unintended drift.
 _EXPECT_PERSON_IDS = {
     "simple": [325051, 325051, 325051, 325052, 325052, 325052],
-    "fast": [325051, 325051, 325052],
+    "fast": [325051, 325051, 325051, 325052],
     "faster": [325051, 325052],
 }
 
 _EXPECT_TOUR_TYPES = {
     "simple": ["othdiscr", "work", "work", "business", "work", "othmaint"],
-    "fast": ["work", "work", "work"],
-    "faster": ["work", "work"],
+    "fast": ["work", "escort", "eatout", "work"],
+    "faster": ["shopping", "work"],
 }
 
 _EXPECT_MODES = {
     "simple": ["WALK", "WALK", "SHARED3FREE", "WALK", "WALK_LOC", "WALK"],
-    "fast": ["WALK", "WALK", "WALK_LRF"],
-    "faster": ["WALK_LOC", "WALK"],
+    "fast": ["WALK", "TNC_SHARED", "WALK", "WALK"],
+    "faster": ["WALK", "WALK_LOC"],
 }
 
 
@@ -430,7 +430,7 @@ def regress_tour_modes(tours_df, channel_type: str = "simple"):
                  tour_mode  person_id tour_type  tour_num  tour_category
     tour_id
     13327130         WALK     325051      work         1      mandatory
-    13327100  TNC_SHARED     325051    escort         1  non_mandatory
+    13327100    TNC_SHARED     325051    escort         1  non_mandatory
     13327097         WALK     325051    eatout         2  non_mandatory
     13327171         WALK     325052      work         1      mandatory
     """

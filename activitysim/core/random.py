@@ -808,9 +808,9 @@ class Random(object):
 
             channel_class = FastChannel if fast else SimpleChannel
             channel_args = {}
-            if self.channel_type == "faster":
+            if fast and self.channel_type == "faster":
                 channel_args = {"bit_generator": "SFC64", "entropy_type": "quick"}
-            if self.channel_type == "fast":
+            if fast and self.channel_type == "fast":
                 channel_args = {"bit_generator": "PCG64", "entropy_type": "robust"}
             channel = channel_class(
                 channel_name, self.base_seed, domain_df, self.step_name, **channel_args

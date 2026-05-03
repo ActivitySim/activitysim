@@ -1,0 +1,113 @@
+name: Performance Checks
+
+# Runs performance benchmark scripts from other_resources/performance-checks/
+# manually on demand.  Use the `scripts` input to choose which scripts to run.
+
+on:
+  workflow_dispatch:
+    inputs:
+      scripts:
+        description: >-
+          Comma-separated list of script filenames to run from
+          other_resources/performance-checks/ (e.g.
+          "fast-channel-random.py" or "fast-channel-random.py,other-script.py").
+          Use "all" to run every *.py script found in that directory.
+        required: false
+        default: "all"
+        type: string
+      python-version:
+        description: >-
+          Python version to use (must be available via setup-python and
+          compatible with the uv.lock in this repo).
+        required: false
+        default: "3.11"
+        type: string
+
+jobs:
+  discover:
+    name: Discover scripts
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.build-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build script matrix
+        id: build-matrix
+        shell: python
+        run: |
+          import json, os, pathlib, sys
+
+          scripts_dir = pathlib.Path("other_resources/performance-checks")
+          requested = "${{ inputs.scripts }}".strip()
+
+          all_scripts = sorted(p.name for p in scripts_dir.glob("*.py"))
+
+          if not all_scripts:
+              print("::error::No *.py scripts found in other_resources/performance-checks/")
+              sys.exit(1)
+
+          if requested.lower() == "all":
+              selected = all_scripts
+          else:
+              candidates = [s.strip() for s in requested.split(",") if s.strip()]
+              missing = [c for c in candidates if c not in all_scripts]
+              if missing:
+                  print(f"::error::The following requested scripts were not found: {missing}")
+                  print(f"::error::Available scripts: {all_scripts}")
+                  sys.exit(1)
+              selected = candidates
+
+          matrix = {"script": selected}
+          print(f"Selected scripts: {selected}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              fh.write(f"matrix={json.dumps(matrix)}\n")
+
+  run-script:
+    name: "Run ${{ matrix.script }} (${{ matrix.os }})"
+    needs: discover
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        script: ${{ fromJson(needs.discover.outputs.matrix).script }}
+
+    defaults:
+      run:
+        # bash is available on all GitHub-hosted runners (Git Bash on Windows)
+        # and gives us consistent behaviour for tee, path separators, etc.
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python ${{ inputs.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Install activitysim
+        run: |
+          uv sync --locked
+
+      - name: Run ${{ matrix.script }}
+        run: |
+          uv run python other_resources/performance-checks/${{ matrix.script }} \
+            2>&1 | tee perf-output-${{ matrix.script }}.txt
+
+      - name: Upload output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          # artifact names must be unique across the matrix, so include the OS
+          name: perf-output-${{ matrix.os }}-${{ matrix.script }}
+          path: perf-output-${{ matrix.script }}.txt
+          retention-days: 90

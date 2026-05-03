@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from cffi import FFI
 
+from ._entropy import fast_entropy
 from ._fast_random import FastGenerator, quick_entropy
 
 # one more than 0xFFFFFFFF so we can wrap using: int64 % _MAX_SEED
@@ -40,7 +41,7 @@ class FastChannel:
         domain_df: pd.DataFrame,
         step_name: str = "",
         bit_generator: Literal["PCG64", "SFC64"] = "PCG64",
-        entropy_type: Literal[None, "robust", "quick"] = None,
+        entropy_type: Literal["robust", "quick"] = "quick",
     ) -> None:
         """
         Create a new FastChannel for vectorised PCG64-based random number generation.
@@ -73,9 +74,8 @@ class FastChannel:
             Which bit generator to use for the per-row streams. Defaults to
             SFC64, which supports using quick-hash random entropy for maximum
             speed at runtime.
-        entropy_type : {None, "robust", "quick"}, default: None
-            The type of entropy used to reseed the bit generators.  If ``None``,
-            the entropy will be selected automatically based on ``bit_generator``.
+        entropy_type : {"robust", "quick"}, default: "quick"
+            The type of entropy used to reseed the bit generators.
             Robust entropy uses the numpy SeedSequence tools to create entropy
             with strong statistical properties, but is slower to generate.  Quick
             entropy uses a custom hash-based method that is much faster to generate
@@ -109,25 +109,20 @@ class FastChannel:
         if step_name:
             self.begin_step(step_name)
 
-    def _init_states(self, *seeds):
-        if self._entropy_type == "robust":
-            return self._fast_generator.get_state_array(
-                np.random.SeedSequence(list(seeds))
+    def _batch_init_states(self, base_seeds, index_seeds):
+        if self._entropy_type == "quick":
+            return fast_entropy(
+                base_seeds, index_seeds, self._fast_generator._bit_gen_class
             )
-        elif self._entropy_type == "quick":
-            if self._fast_generator._bit_gen_class == "PCG64":
-                raise ValueError(
-                    "PCG64 random number generator does not support quick entropy"
+        elif self._entropy_type == "robust":
+            new_state = np.empty(shape=[len(index_seeds), 4], dtype=np.uint64)
+            for n, i in enumerate(index_seeds):
+                new_state[n, :] = self._fast_generator.get_state_array(
+                    np.random.SeedSequence([*base_seeds, i])
                 )
-            elif self._fast_generator._bit_gen_class == "SFC64":
-                q = quick_entropy(seeds).copy()
-                q[-1] = 1
-                # self._fast_generator.vector_random_standard_uniform(q.reshape(1, -1), shape=12)
-                return q
-            else:
-                raise ValueError(
-                    f"unsupported bit generator class: {self._fast_generator._bit_gen_class}"
-                )
+            return new_state
+        else:
+            raise ValueError("entropy_type must be 'robust' or 'quick'")
 
     def extend_domain(self, domain_df: pd.DataFrame) -> None:
         """
@@ -167,13 +162,9 @@ class FastChannel:
         if self._state_array is not None:
             # we already have state for some rows, so we also need to
             # generate state for the new rows and append to existing state array
-            new_state = np.empty(shape=[len(new_index), 4], dtype=np.uint64)
-            for n, i in enumerate(new_index):
-                new_state[n, :] = self._init_states(
-                    self.base_seed, self.channel_seed, self.step_seed, i
-                )
-            # if we are using quick entropy, make a few draws to properly mix
-            self._fast_generator.vector_random_standard_uniform(new_state, shape=12)
+            new_state = self._batch_init_states(
+                [self.base_seed, self.channel_seed, self.step_seed], new_index
+            )
             self._state_array = np.concatenate([self._state_array, new_state], axis=0)
 
         if len(self.domain_index) == 0:
@@ -207,14 +198,9 @@ class FastChannel:
 
         if self._state_array is None or force:
             # Seed the bit generators, extracting state along the way
-            state_array = np.empty(shape=[len(self.domain_index), 4], dtype=np.uint64)
-            for n, i in enumerate(self.domain_index):
-                state_array[n, :] = self._init_states(
-                    self.base_seed, self.channel_seed, self.step_seed, i
-                )
-            # if we are using quick entropy, make a few draws to properly mix
-            self._fast_generator.vector_random_standard_uniform(state_array, shape=12)
-            self._state_array = state_array
+            self._state_array = self._batch_init_states(
+                [self.base_seed, self.channel_seed, self.step_seed], self.domain_index
+            )
 
     def begin_step(self, step_name: str) -> None:
         """

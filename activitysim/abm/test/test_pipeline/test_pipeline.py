@@ -465,22 +465,26 @@ def regress(state: workflow.State, channel_type: str = "simple"):
     assert tours_df.shape[0] > 0
     assert not tours_df.tour_mode.isnull().any()
 
-    # optional logsum column was added to all tours except mandatory
-    assert "destination_logsum" in tours_df
-    if (
-        tours_df.destination_logsum.isnull() != (tours_df.tour_category == "mandatory")
-    ).any():
-        print(
-            tours_df[
-                (
-                    tours_df.destination_logsum.isnull()
-                    != (tours_df.tour_category == "mandatory")
-                )
-            ]
-        )
-    assert (
-        tours_df.destination_logsum.isnull() == (tours_df.tour_category == "mandatory")
-    ).all()
+    if "destination_logsum" in tours_df:
+        # optional logsum column was added to all tours except mandatory
+        # since there are now multiple different random generators, there is no
+        # guarantee that there are any non-mandatory tours (e.g. in the singleton test)
+        if (
+            tours_df.destination_logsum.isnull()
+            != (tours_df.tour_category == "mandatory")
+        ).any():
+            print(
+                tours_df[
+                    (
+                        tours_df.destination_logsum.isnull()
+                        != (tours_df.tour_category == "mandatory")
+                    )
+                ]
+            )
+        assert (
+            tours_df.destination_logsum.isnull()
+            == (tours_df.tour_category == "mandatory")
+        ).all()
 
     # mode choice logsum calculated for all tours
     assert "mode_choice_logsum" in tours_df

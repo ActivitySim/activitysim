@@ -32,7 +32,7 @@ jobs:
     outputs:
       matrix: ${{ steps.build-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build script matrix
         id: build-matrix
@@ -49,7 +49,9 @@ jobs:
               print("::error::No *.py scripts found in other_resources/performance-checks/")
               sys.exit(1)
 
-          if requested.lower() == "all":
+          # Empty string occurs on push/schedule triggers where inputs are not set;
+          # treat it the same as the explicit "all" keyword.
+          if not requested or requested.lower() == "all":
               selected = all_scripts
           else:
               candidates = [s.strip() for s in requested.split(",") if s.strip()]
@@ -91,10 +93,10 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
-      - name: Set up Python ${{ inputs.python-version }}
+      - name: Set up Python ${{ inputs.python-version || '3.11' }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ inputs.python-version }}
+          python-version: ${{ inputs.python-version || '3.11' }}
 
       - name: Install activitysim
         run: |

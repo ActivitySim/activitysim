@@ -748,13 +748,16 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     rng_base_seed: Union[int, None] = 0
     """Base seed for pseudo-random number generator."""
 
-    rng_channel_type: Literal["simple", "fast"] = "simple"
+    rng_channel_type: Literal["simple", "fast", "faster"] = "simple"
     """
     Which random-channel implementation to use for per-row RNG streams.
 
     * ``"fast"`` (default)
-        Use :class:`activitysim.core.fast_random.FastChannel`, a vectorised
-        PCG64-based implementation.
+        Use :class:`activitysim.core.fast_random.FastChannel`, with a
+        vectorised PCG64-based implementation.
+    * ``"faster"`` (default)
+        Use :class:`activitysim.core.fast_random.FastChannel`, with a
+        vectorised SFC64-based implementation and hash-based reseeding.
     * ``"simple"``
         Use the legacy :class:`activitysim.core.random.SimpleChannel`,
         which seeds a per-row :class:`numpy.random.RandomState` on the fly.

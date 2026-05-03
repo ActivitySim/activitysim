@@ -661,9 +661,9 @@ class Random(object):
         self.base_seed = 0
         self.global_rng = np.random.RandomState()
 
-        if channel_type not in ("fast", "simple"):
+        if channel_type not in ("fast", "faster", "simple"):
             raise ValueError(
-                f"channel_type must be 'fast' or 'simple', got {channel_type!r}"
+                f"channel_type must be 'fast', 'faster' or 'simple', got {channel_type!r}"
             )
         self.channel_type = channel_type
 
@@ -789,7 +789,7 @@ class Random(object):
         """
 
         if fast is None:
-            fast = self.channel_type == "fast"
+            fast = self.channel_type in {"fast", "faster"}
 
         if channel_name in self.channels:
             assert channel_name == self.index_to_channel[domain_df.index.name]
@@ -807,8 +807,13 @@ class Random(object):
             )
 
             channel_class = FastChannel if fast else SimpleChannel
+            channel_args = {}
+            if self.channel_type == "faster":
+                channel_args = {"bit_generator": "SFC64", "entropy_type": "quick"}
+            if self.channel_type == "fast":
+                channel_args = {"bit_generator": "PCG64", "entropy_type": "robust"}
             channel = channel_class(
-                channel_name, self.base_seed, domain_df, self.step_name
+                channel_name, self.base_seed, domain_df, self.step_name, **channel_args
             )
 
             self.channels[channel_name] = channel

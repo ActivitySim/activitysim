@@ -43,7 +43,7 @@ def example_path(dirname):
 # output directories so checkpoint stores written by one channel type cannot
 # be read by the other, and (c) look up the appropriate regression-expected
 # values from per-channel-type tables defined below.
-CHANNEL_TYPES = ("simple", "fast")
+CHANNEL_TYPES = ("simple", "fast", "faster")
 
 
 @pytest.fixture(params=CHANNEL_TYPES)

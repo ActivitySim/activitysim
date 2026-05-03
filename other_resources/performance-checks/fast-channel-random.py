@@ -11,6 +11,7 @@ Run this script from the activitysim repo root with:
 
 from __future__ import annotations
 
+import sys
 import textwrap
 import timeit
 
@@ -18,6 +19,16 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core.random import Random
+
+# Windows consoles default to a locale-specific encoding (e.g. cp1252) that
+# cannot represent the box-drawing characters used below.  Reconfiguring stdout
+# and stderr to UTF-8 here means the script works correctly regardless of the
+# active code page, without requiring the caller to set PYTHONUTF8=1.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 
 # ── helpers ────────────────────────────────────────────────────────────────────
 
@@ -346,6 +357,27 @@ note(
     "step.  Both channels are fully reproducible when the same step name "
     "is reused."
 )
+
+# ── sanity check ───────────────────────────────────────────────────────────────
+
+failures = [label for label, f, s in rows if s <= f]
+if failures:
+    print()
+    print(f"{INDENT}  !! PERFORMANCE REGRESSION DETECTED !!")
+    for label in failures:
+        print(
+            f"{INDENT}     · '{label}': slow channel was NOT slower than fast channel"
+        )
+    note(
+        "A 'slow' result that is faster than (or equal to) the corresponding "
+        "'fast' result indicates a regression in the fast-channel implementation "
+        "or an anomaly in the benchmark environment.  Investigate before merging."
+    )
+    print()
+    print(SEP_WIDE)
+    print()
+    sys.exit(1)
+
 print()
 print(SEP_WIDE)
 print()

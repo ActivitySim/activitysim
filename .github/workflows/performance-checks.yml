@@ -4,7 +4,7 @@ name: Performance Checks
 # manually on demand.  Use the `scripts` input to choose which scripts to run.
 
 on:
-  push:
+  push:  # TODO: consider running on a schedule (e.g. weekly) but not on every push
     branches: ["main", "reroll"]
   workflow_dispatch:
     inputs:
@@ -77,6 +77,11 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         script: ${{ fromJson(needs.discover.outputs.matrix).script }}
 
+    # Force UTF-8 I/O on Windows (default console encoding is cp1252 which
+    # cannot represent box-drawing characters used in benchmark output).
+    env:
+      PYTHONUTF8: "1"
+
     defaults:
       run:
         # bash is available on all GitHub-hosted runners (Git Bash on Windows)
@@ -84,17 +89,16 @@ jobs:
         shell: bash
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
-          version: "0.7.12"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
       - name: Set up Python ${{ inputs.python-version || '3.11' }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ inputs.python-version || '3.11' }}
 
@@ -104,12 +108,13 @@ jobs:
 
       - name: Run ${{ matrix.script }}
         run: |
+          set -o pipefail
           uv run python other_resources/performance-checks/${{ matrix.script }} \
             2>&1 | tee perf-output-${{ matrix.script }}.txt
 
       - name: Upload output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           # artifact names must be unique across the matrix, so include the OS
           name: perf-output-${{ matrix.os }}-${{ matrix.script }}

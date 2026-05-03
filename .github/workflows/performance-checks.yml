@@ -4,6 +4,8 @@ name: Performance Checks
 # manually on demand.  Use the `scripts` input to choose which scripts to run.
 
 on:
+  push:
+    branches: ["main", "reroll"]
   workflow_dispatch:
     inputs:
       scripts:

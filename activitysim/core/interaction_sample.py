@@ -108,7 +108,7 @@ def make_sample_choices_utility_based(
     # and the sampling correction factor np.log(df.pick_count/df.prob) is applied to the simulate utilities.
     # TODO is it safe change the meaning of df.prob, given it's referenced in expression csvs?
     #   (but the alternative is to update all the expression CSV for sampling?)
-    return choices_df, inclusion_probs
+    return choices_df
 
 
 def _poisson_sample_alternatives(

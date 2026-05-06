@@ -605,16 +605,16 @@ def make_choices_explicit_error_term_mnl(
     pandas.Series
         Choice indices aligned to the utilities columns order.
     """
-    utilities_incl_unobs = add_ev1_random(state, utilities, alts_context, alt_nrs_df)
+    if alts_context is None:
+        choices = state.get_rn_generator().gumbel_choice_positions_for_df(utilities)
+    else:
+        choices = state.get_rn_generator().gumbel_choice_positions_for_df(
+            utilities,
+            alt_nrs_df=alt_nrs_df,
+            n_rands=alts_context.n_alts_to_cover_max_id,
+        )
 
-    # if trace_label:
-    #     state.tracing.trace_df(
-    #         utilities_incl_unobs,
-    #         tracing.extend_trace_label(trace_label, "utilities_eet"),
-    #     )
-
-    choices = np.argmax(utilities_incl_unobs.to_numpy(), axis=1)
-    return pd.Series(choices, index=utilities_incl_unobs.index)
+    return pd.Series(choices, index=utilities.index)
 
 
 def make_choices_utility_based(

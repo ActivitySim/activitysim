@@ -411,22 +411,28 @@ def test_add_ev1_random_requires_paired_alt_context_args():
 # EET Choice Behavior Tests
 #
 def test_make_choices_eet_mnl(monkeypatch):
-    def fake_add_ev1_random(_state, _df, alt_info=None, alt_nrs_df=None):
-        return pd.DataFrame(
-            [[1.0, 3.0], [4.0, 2.0]],
-            index=[100, 101],
-            columns=["a", "b"],
-        )
+    class DummyRNG:
+        def gumbel_choice_positions_for_df(self, utilities, alt_nrs_df=None, n_rands=None):
+            assert alt_nrs_df is None
+            assert n_rands is None
+            assert list(utilities.columns) == ["a", "b"]
+            return np.array([1, 0], dtype=np.int32)
 
-    monkeypatch.setattr(logit, "add_ev1_random", fake_add_ev1_random)
+    class DummyState:
+        @staticmethod
+        def get_rn_generator():
+            return DummyRNG()
 
     choices = logit.make_choices_explicit_error_term_mnl(
-        workflow.State().default_settings(),
+        DummyState(),
         pd.DataFrame([[0.0, 0.0], [0.0, 0.0]], index=[100, 101], columns=["a", "b"]),
         trace_label=None,
     )
 
-    pdt.assert_series_equal(choices, pd.Series([1, 0], index=[100, 101]))
+    pdt.assert_series_equal(
+        choices,
+        pd.Series([1, 0], index=[100, 101], dtype=np.int32),
+    )
 
 
 def test_make_choices_eet_nl(monkeypatch):
@@ -529,14 +535,24 @@ def test_sample_nested_logit_exact_leaf_error_terms_accumulates_node_and_leaf_te
 
 
 def test_make_choices_utility_based_sets_zero_rands(monkeypatch):
-    def fake_add_ev1_random(_state, df, alt_info=None, alt_nrs_df=None):
-        return pd.DataFrame(
-            [[2.0, 1.0], [0.5, 2.5]],
-            index=df.index,
-            columns=df.columns,
-        )
+    def fake_make_choices_explicit_error_term_mnl(
+        _state,
+        utilities,
+        trace_label,
+        trace_choosers=None,
+        alts_context=None,
+        alt_nrs_df=None,
+    ):
+        assert trace_choosers is None
+        assert alts_context is None
+        assert alt_nrs_df is None
+        return pd.Series([0, 1], index=utilities.index)
 
-    monkeypatch.setattr(logit, "add_ev1_random", fake_add_ev1_random)
+    monkeypatch.setattr(
+        logit,
+        "make_choices_explicit_error_term_mnl",
+        fake_make_choices_explicit_error_term_mnl,
+    )
 
     utilities = pd.DataFrame([[3.0, 2.0], [1.0, 4.0]], index=[11, 12])
     choices, rands = logit.make_choices_utility_based(
@@ -593,6 +609,15 @@ def test_make_choices_vs_eet_same_distribution():
 
         def gumbel_for_df(self, df, n):
             return eet_rng.gumbel(size=(len(df), n))
+
+        def gumbel_choice_positions_for_df(self, utilities, alt_nrs_df=None, n_rands=None):
+            assert alt_nrs_df is None
+            assert n_rands is None
+            return np.argmax(
+                eet_rng.gumbel(size=(len(utilities), utilities.shape[1]))
+                + utilities.to_numpy(),
+                axis=1,
+            )
 
     class EETDummyState:
         @staticmethod

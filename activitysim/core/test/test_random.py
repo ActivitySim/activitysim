@@ -165,3 +165,81 @@ def test_gumbel_max_positions_for_df_matches_materialized_path_and_offsets():
 
     npt.assert_array_equal(observed_positions, expected_positions)
     npt.assert_allclose(next_random_after_fused, next_random_after_materialized)
+
+
+def test_gumbel_choice_positions_for_df_matches_materialized_path_and_offsets():
+    persons = pd.DataFrame(
+        {"household_id": [1, 1, 2]},
+        index=pd.Index([21, 22, 23], name="person_id"),
+    )
+    utilities = pd.DataFrame(
+        [[0.5, -0.2, 1.1], [0.1, 0.2, -0.3], [2.0, 1.0, 0.0]],
+        index=persons.index,
+    )
+
+    baseline_rng = random.Random()
+    baseline_rng.set_base_seed(0)
+    baseline_rng.begin_step("test_step")
+    baseline_rng.add_channel("persons", persons)
+
+    materialized = baseline_rng.gumbel_for_df(utilities, n=utilities.shape[1])
+    expected_positions = np.argmax(materialized + utilities.to_numpy(), axis=1)
+    next_random_after_materialized = baseline_rng.random_for_df(persons)
+    baseline_rng.end_step("test_step")
+
+    fused_rng = random.Random()
+    fused_rng.set_base_seed(0)
+    fused_rng.begin_step("test_step")
+    fused_rng.add_channel("persons", persons)
+
+    observed_positions = fused_rng.gumbel_choice_positions_for_df(utilities)
+    next_random_after_fused = fused_rng.random_for_df(persons)
+    fused_rng.end_step("test_step")
+
+    npt.assert_array_equal(observed_positions, expected_positions)
+    npt.assert_allclose(next_random_after_fused, next_random_after_materialized)
+
+
+def test_gumbel_choice_positions_for_df_matches_dense_alt_mapping():
+    persons = pd.DataFrame(
+        {"household_id": [1, 1]},
+        index=pd.Index([31, 32], name="person_id"),
+    )
+    utilities = pd.DataFrame(
+        [[2.0, 1.0], [0.3, 1.2]],
+        index=persons.index,
+    )
+    alt_nrs_df = pd.DataFrame(
+        [[0, 2], [1, 2]],
+        index=persons.index,
+    )
+    n_rands = 3
+
+    baseline_rng = random.Random()
+    baseline_rng.set_base_seed(0)
+    baseline_rng.begin_step("test_step")
+    baseline_rng.add_channel("persons", persons)
+
+    dense = baseline_rng.gumbel_for_df(utilities, n=n_rands)
+    expected_positions = np.argmax(
+        utilities.to_numpy() + np.take_along_axis(dense, alt_nrs_df.to_numpy(), axis=1),
+        axis=1,
+    )
+    next_random_after_materialized = baseline_rng.random_for_df(persons)
+    baseline_rng.end_step("test_step")
+
+    fused_rng = random.Random()
+    fused_rng.set_base_seed(0)
+    fused_rng.begin_step("test_step")
+    fused_rng.add_channel("persons", persons)
+
+    observed_positions = fused_rng.gumbel_choice_positions_for_df(
+        utilities,
+        alt_nrs_df=alt_nrs_df,
+        n_rands=n_rands,
+    )
+    next_random_after_fused = fused_rng.random_for_df(persons)
+    fused_rng.end_step("test_step")
+
+    npt.assert_array_equal(observed_positions, expected_positions)
+    npt.assert_allclose(next_random_after_fused, next_random_after_materialized)

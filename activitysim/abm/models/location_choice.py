@@ -117,6 +117,8 @@ def _location_sample(
     chunk_tag,
     trace_label,
     zone_layer=None,
+    stable_alt_positions=None,
+    n_total_alts=None,
 ):
     """
     select a sample of alternative locations.
@@ -216,6 +218,8 @@ def _location_sample(
         compute_settings=model_settings.compute_settings.subcomponent_settings(
             "sample"
         ),
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
     )
 
     return choices
@@ -232,6 +236,8 @@ def location_sample(
     chunk_size,
     chunk_tag,
     trace_label,
+    stable_alt_positions=None,
+    n_total_alts=None,
 ):
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
@@ -258,6 +264,8 @@ def location_sample(
         chunk_size,
         chunk_tag,
         trace_label,
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
     )
 
     return choices
@@ -367,6 +375,7 @@ def location_presample(
     chunk_size,
     chunk_tag,
     trace_label,
+    full_dest_size_terms=None,
 ):
     trace_label = tracing.extend_trace_label(trace_label, "presample")
 
@@ -378,6 +387,12 @@ def location_presample(
     MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(
         state, dest_size_terms, network_los, model_settings
     )
+    if full_dest_size_terms is None:
+        full_dest_size_terms = dest_size_terms
+    full_taz_index = pd.Index(
+        network_los.map_maz_to_taz(full_dest_size_terms.index), name=DEST_TAZ
+    ).unique().sort_values()
+    stable_taz_positions = full_taz_index.get_indexer(TAZ_size_terms.index)
 
     # convert MAZ zone_id to 'TAZ' in choosers (persons_merged)
     # persons_merged[HOME_TAZ] = persons_merged[HOME_MAZ].map(maz_to_taz)
@@ -412,6 +427,8 @@ def location_presample(
         chunk_tag,
         trace_label,
         zone_layer="taz",
+        stable_alt_positions=stable_taz_positions,
+        n_total_alts=len(full_taz_index),
     )
 
     # print(f"taz_sample\n{taz_sample}")
@@ -463,6 +480,8 @@ def run_location_sample(
     23751,      14,           0.972732479292,  2
     """
 
+    full_dest_size_terms = dest_size_terms
+
     logger.debug(
         f"dropping {(~(dest_size_terms.size_term > 0)).sum()} "
         f"of {len(dest_size_terms)} rows where size_term is zero"
@@ -497,9 +516,11 @@ def run_location_sample(
             chunk_size,
             chunk_tag=f"{chunk_tag}.presample",
             trace_label=trace_label,
+            full_dest_size_terms=full_dest_size_terms,
         )
 
     else:
+        stable_maz_positions = full_dest_size_terms.index.get_indexer(dest_size_terms.index)
         choices = location_sample(
             state,
             segment_name,
@@ -511,6 +532,8 @@ def run_location_sample(
             chunk_size,
             chunk_tag=f"{chunk_tag}.sample",
             trace_label=trace_label,
+            stable_alt_positions=stable_maz_positions,
+            n_total_alts=len(full_dest_size_terms.index),
         )
 
     return choices

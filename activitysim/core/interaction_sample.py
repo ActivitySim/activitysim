@@ -38,6 +38,8 @@ def make_sample_choices_utility_based(
     allow_zero_probs,
     trace_label,
     chunk_sizer,
+    stable_alt_positions=None,
+    n_total_alts=None,
 ):
     assert isinstance(utilities, pd.DataFrame)
     assert utilities.shape == (len(choosers), alternative_count)
@@ -59,7 +61,10 @@ def make_sample_choices_utility_based(
             choosers = choosers[~zero_probs]
 
     chosen_destinations = state.get_rn_generator().gumbel_max_positions_for_df(
-        utilities, sample_size
+        utilities,
+        sample_size,
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
     ).reshape(-1)
     chunk_sizer.log_df(trace_label, "chosen_destinations", chosen_destinations)
 
@@ -208,6 +213,8 @@ def _interaction_sample(
     zone_layer=None,
     chunk_sizer=None,
     compute_settings: ComputeSettings | None = None,
+    stable_alt_positions=None,
+    n_total_alts=None,
 ):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -576,6 +583,8 @@ def _interaction_sample(
             allow_zero_probs=allow_zero_probs,
             trace_label=trace_label,
             chunk_sizer=chunk_sizer,
+            stable_alt_positions=stable_alt_positions,
+            n_total_alts=n_total_alts,
         )
         del utilities
         chunk_sizer.log_df(trace_label, "utilities", None)
@@ -716,6 +725,8 @@ def interaction_sample(
     zone_layer: str | None = None,
     explicit_chunk_size: float = 0,
     compute_settings: ComputeSettings | None = None,
+    stable_alt_positions=None,
+    n_total_alts=None,
 ):
     """
     Run a simulation in the situation in which alternatives must
@@ -818,6 +829,8 @@ def interaction_sample(
             zone_layer=zone_layer,
             chunk_sizer=chunk_sizer,
             compute_settings=compute_settings,
+            stable_alt_positions=stable_alt_positions,
+            n_total_alts=n_total_alts,
         )
 
         if choices.shape[0] > 0:

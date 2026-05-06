@@ -291,7 +291,14 @@ class SimpleChannel(object):
         self.row_states.loc[df.index, "offset"] += n
         return rands
 
-    def gumbel_max_positions_for_df(self, utilities, step_name, sample_size):
+    def gumbel_max_positions_for_df(
+        self,
+        utilities,
+        step_name,
+        sample_size,
+        stable_alt_positions=None,
+        n_total_alts=None,
+    ):
         """
         Return the winning alternative position for each chooser/sample pair
         without materializing the full chooser-by-alternative-by-sample Gumbel array.
@@ -302,6 +309,11 @@ class SimpleChannel(object):
             DataFrame with one row per chooser and one column per alternative.
         sample_size : int
             Number of repeated sampled choices to make per chooser.
+        stable_alt_positions : 1-D ndarray, optional
+            Mapping from active utility columns to positions in a larger stable
+            alternative universe.
+        n_total_alts : int, optional
+            Number of alternatives in the larger stable universe.
 
         Returns
         -------
@@ -317,6 +329,24 @@ class SimpleChannel(object):
         n_rows, n_alts = utility_values.shape
         positions = np.empty((n_rows, sample_size), dtype=np.int32)
 
+        if stable_alt_positions is not None or n_total_alts is not None:
+            if stable_alt_positions is None or n_total_alts is None:
+                raise ValueError(
+                    "stable_alt_positions and n_total_alts must both be provided or omitted together"
+                )
+            stable_alt_positions = np.asarray(stable_alt_positions)
+            if stable_alt_positions.shape != (n_alts,):
+                raise ValueError(
+                    "stable_alt_positions must be a 1-D array aligned to utilities columns"
+                )
+            if stable_alt_positions.min() < 0 or stable_alt_positions.max() >= n_total_alts:
+                raise ValueError(
+                    "stable_alt_positions values must be within [0, n_total_alts)"
+                )
+            n_gumbels = n_total_alts
+        else:
+            n_gumbels = n_alts
+
         generators = self._generators_for_df(utilities)
 
         # for each chooser, generate the error terms for all samples at once. reshaping this
@@ -324,15 +354,17 @@ class SimpleChannel(object):
         # first sample, the next n_alts values are the gumbels for the second sample, etc.
         for row_num, prng in enumerate(generators):
             utility_row = utility_values[row_num]
-            row_gumbels = -np.log(-np.log(prng.rand(n_alts * sample_size))).reshape(
-                (sample_size, n_alts)
+            row_gumbels = -np.log(-np.log(prng.rand(n_gumbels * sample_size))).reshape(
+                (sample_size, n_gumbels)
             )
+            if stable_alt_positions is not None:
+                row_gumbels = row_gumbels[:, stable_alt_positions]
             positions[row_num, :] = np.argmax(
                 row_gumbels + utility_row[np.newaxis, :],
                 axis=1,
             )
 
-        self.row_states.loc[utilities.index, "offset"] += n_alts * sample_size
+        self.row_states.loc[utilities.index, "offset"] += n_gumbels * sample_size
         return positions
 
     def gumbel_choice_positions_for_df(
@@ -840,7 +872,13 @@ class Random(object):
         rands = channel.gumbel_for_df(df, self.step_name, n)
         return rands
 
-    def gumbel_max_positions_for_df(self, utilities, sample_size):
+    def gumbel_max_positions_for_df(
+        self,
+        utilities,
+        sample_size,
+        stable_alt_positions=None,
+        n_total_alts=None,
+    ):
         """
         Return the winning alternative position for each chooser/sample pair
         using the appropriate channel for each chooser row.
@@ -851,6 +889,11 @@ class Random(object):
             DataFrame with one row per chooser and one column per alternative.
         sample_size : int
             Number of repeated sampled choices to make per chooser.
+        stable_alt_positions : 1-D ndarray, optional
+            Mapping from active utility columns to positions in a larger stable
+            alternative universe.
+        n_total_alts : int, optional
+            Number of alternatives in the larger stable universe.
 
         Returns
         -------
@@ -858,9 +901,50 @@ class Random(object):
             Array with shape (len(utilities), sample_size) containing the column
             position of the winning alternative for each chooser/sample pair.
         """
+        if not self.channels:
+            utility_values = utilities.to_numpy()
+            n_rows, n_alts = utility_values.shape
+            positions = np.empty((n_rows, sample_size), dtype=np.int32)
+            rng = np.random.RandomState(0)
+
+            if stable_alt_positions is not None or n_total_alts is not None:
+                if stable_alt_positions is None or n_total_alts is None:
+                    raise ValueError(
+                        "stable_alt_positions and n_total_alts must both be provided or omitted together"
+                    )
+                stable_alt_positions = np.asarray(stable_alt_positions)
+                if stable_alt_positions.shape != (n_alts,):
+                    raise ValueError(
+                        "stable_alt_positions must be a 1-D array aligned to utilities columns"
+                    )
+                if stable_alt_positions.min() < 0 or stable_alt_positions.max() >= n_total_alts:
+                    raise ValueError(
+                        "stable_alt_positions values must be within [0, n_total_alts)"
+                    )
+                n_gumbels = n_total_alts
+            else:
+                n_gumbels = n_alts
+
+            for row_num, utility_row in enumerate(utility_values):
+                row_gumbels = -np.log(-np.log(rng.rand(n_gumbels * sample_size))).reshape(
+                    (sample_size, n_gumbels)
+                )
+                if stable_alt_positions is not None:
+                    row_gumbels = row_gumbels[:, stable_alt_positions]
+                positions[row_num, :] = np.argmax(
+                    row_gumbels + utility_row[np.newaxis, :],
+                    axis=1,
+                )
+
+            return positions
+
         channel = self.get_channel_for_df(utilities)
         return channel.gumbel_max_positions_for_df(
-            utilities, self.step_name, sample_size
+            utilities,
+            self.step_name,
+            sample_size,
+            stable_alt_positions=stable_alt_positions,
+            n_total_alts=n_total_alts,
         )
 
     def gumbel_choice_positions_for_df(self, utilities, alt_nrs_df=None, n_rands=None):

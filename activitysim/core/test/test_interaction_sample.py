@@ -228,10 +228,21 @@ class _DummyRngUtilityBased:
     def __init__(self, rands_3d):
         self.rands_3d = rands_3d
 
-    def gumbel_max_positions_for_df(self, utilities, sample_size):
+    def gumbel_max_positions_for_df(
+        self,
+        utilities,
+        sample_size,
+        stable_alt_positions=None,
+        n_total_alts=None,
+    ):
         assert sample_size == self.rands_3d.shape[2]
+        if stable_alt_positions is None:
+            active_rands = self.rands_3d
+        else:
+            assert n_total_alts == self.rands_3d.shape[1]
+            active_rands = self.rands_3d[:, stable_alt_positions, :]
         return np.argmax(
-            self.rands_3d + utilities.to_numpy()[:, :, np.newaxis],
+            active_rands + utilities.to_numpy()[:, :, np.newaxis],
             axis=1,
         )
 
@@ -344,6 +355,68 @@ def test_make_sample_choices_utility_based_fused_rng_matches_materialized_path()
         utilities,
         allow_zero_probs=False,
         trace_label="test_fused_rng_matches_materialized",
+        overflow_protection=True,
+        trace_choosers=choosers,
+    ).to_numpy()
+
+    expected = pd.DataFrame(
+        {
+            "alt_id": alternatives.index.values[chosen_flat],
+            "prob": probs[chooser_idx, chosen_flat],
+            "person_id": choosers.index.values[chooser_idx],
+        }
+    )
+
+    pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
+
+
+def test_make_sample_choices_utility_based_stable_alt_mapping_matches_materialized_path():
+    chooser_index = pd.Index([301, 302], name="person_id")
+    choosers = pd.DataFrame(index=chooser_index)
+    alternatives = pd.DataFrame(index=pd.Index([10, 12, 14], name="alt_id"))
+    utilities = pd.DataFrame(
+        [[0.0, 0.3, -0.2], [1.0, 0.2, 0.4]],
+        index=chooser_index,
+    )
+    sample_size = 2
+    stable_alt_positions = np.array([0, 2, 4], dtype=np.int64)
+    n_total_alts = 5
+    dense_rands_3d = np.array(
+        [
+            [[0.1, -0.3], [0.4, 0.2], [0.2, 0.4], [0.3, -0.2], [0.5, -0.1]],
+            [[-0.2, 0.3], [0.0, 0.5], [0.6, -0.5], [0.2, 0.1], [0.1, 0.7]],
+        ],
+        dtype=np.float64,
+    )
+    state = _DummyState(_DummyRngUtilityBased(dense_rands_3d))
+
+    out = interaction_sample.make_sample_choices_utility_based(
+        state=state,
+        choosers=choosers,
+        utilities=utilities,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alternative_count=len(alternatives),
+        alt_col_name="alt_id",
+        allow_zero_probs=False,
+        trace_label="test_stable_alt_mapping",
+        chunk_sizer=_DummyChunkSizer(),
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
+    )
+
+    active_rands = dense_rands_3d[:, stable_alt_positions, :]
+    chosen_positions = np.argmax(
+        active_rands + utilities.to_numpy()[:, :, np.newaxis],
+        axis=1,
+    )
+    chosen_flat = chosen_positions.reshape(-1)
+    chooser_idx = np.repeat(np.arange(len(choosers)), sample_size)
+    probs = interaction_sample.logit.utils_to_probs(
+        state,
+        utilities,
+        allow_zero_probs=False,
+        trace_label="test_stable_alt_mapping",
         overflow_protection=True,
         trace_choosers=choosers,
     ).to_numpy()

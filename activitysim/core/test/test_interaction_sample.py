@@ -228,9 +228,12 @@ class _DummyRngUtilityBased:
     def __init__(self, rands_3d):
         self.rands_3d = rands_3d
 
-    def gumbel_for_df(self, _utilities, n):
-        assert n == self.rands_3d.shape[1] * self.rands_3d.shape[2]
-        return self.rands_3d.reshape(-1)
+    def gumbel_max_positions_for_df(self, utilities, sample_size):
+        assert sample_size == self.rands_3d.shape[2]
+        return np.argmax(
+            self.rands_3d + utilities.to_numpy()[:, :, np.newaxis],
+            axis=1,
+        )
 
 
 def test_make_sample_choices_utility_based_repeat_alignment_chooser_dominant_heterogeneity():
@@ -295,3 +298,62 @@ def test_make_sample_choices_utility_based_repeat_alignment_chooser_dominant_het
 
     assert np.array_equal(out["prob"].to_numpy(), expected_prob_repeat)
     assert not np.array_equal(out["prob"].to_numpy(), wrong_prob_tile)
+
+
+def test_make_sample_choices_utility_based_fused_rng_matches_materialized_path():
+    chooser_index = pd.Index([201, 202, 203], name="person_id")
+    choosers = pd.DataFrame(index=chooser_index)
+    alternatives = pd.DataFrame(index=pd.Index([10, 11, 12, 13], name="alt_id"))
+    utilities = pd.DataFrame(
+        [[0.0, 0.3, -0.2, 0.1], [1.0, 0.2, 0.4, -0.5], [-0.1, 0.0, 0.8, 0.7]],
+        index=chooser_index,
+    )
+    sample_size = 2
+    n_alts = len(alternatives)
+    rands_3d = np.array(
+        [
+            [[0.1, -0.3], [0.2, 0.4], [0.5, -0.1], [0.0, 0.2]],
+            [[-0.2, 0.3], [0.6, -0.5], [0.1, 0.7], [0.4, 0.2]],
+            [[0.0, 0.1], [0.3, -0.4], [0.2, 0.5], [-0.3, 0.2]],
+        ],
+        dtype=np.float64,
+    )
+    state = _DummyState(_DummyRngUtilityBased(rands_3d))
+
+    out = interaction_sample.make_sample_choices_utility_based(
+        state=state,
+        choosers=choosers,
+        utilities=utilities,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alternative_count=n_alts,
+        alt_col_name="alt_id",
+        allow_zero_probs=False,
+        trace_label="test_fused_rng_matches_materialized",
+        chunk_sizer=_DummyChunkSizer(),
+    )
+
+    chosen_positions = np.argmax(
+        rands_3d + utilities.to_numpy()[:, :, np.newaxis],
+        axis=1,
+    )
+    chosen_flat = chosen_positions.reshape(-1)
+    chooser_idx = np.repeat(np.arange(len(choosers)), sample_size)
+    probs = interaction_sample.logit.utils_to_probs(
+        state,
+        utilities,
+        allow_zero_probs=False,
+        trace_label="test_fused_rng_matches_materialized",
+        overflow_protection=True,
+        trace_choosers=choosers,
+    ).to_numpy()
+
+    expected = pd.DataFrame(
+        {
+            "alt_id": alternatives.index.values[chosen_flat],
+            "prob": probs[chooser_idx, chosen_flat],
+            "person_id": choosers.index.values[chooser_idx],
+        }
+    )
+
+    pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)

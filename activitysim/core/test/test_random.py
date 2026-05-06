@@ -126,3 +126,42 @@ def test_channel():
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), test1_expected_rands2)
 
     rng.end_step("test_step")
+
+
+def test_gumbel_max_positions_for_df_matches_materialized_path_and_offsets():
+    persons = pd.DataFrame(
+        {"household_id": [1, 1, 2]},
+        index=pd.Index([11, 12, 13], name="person_id"),
+    )
+    utilities = pd.DataFrame(
+        [[0.5, -0.2, 1.1], [0.1, 0.2, -0.3], [2.0, 1.0, 0.0]],
+        index=persons.index,
+    )
+    sample_size = 4
+    n_alts = utilities.shape[1]
+
+    baseline_rng = random.Random()
+    baseline_rng.set_base_seed(0)
+    baseline_rng.begin_step("test_step")
+    baseline_rng.add_channel("persons", persons)
+
+    materialized = baseline_rng.gumbel_for_df(utilities, n=n_alts * sample_size)
+    expected_positions = np.argmax(
+        materialized.reshape((len(utilities), n_alts, sample_size))
+        + utilities.to_numpy()[:, :, np.newaxis],
+        axis=1,
+    )
+    next_random_after_materialized = baseline_rng.random_for_df(persons)
+    baseline_rng.end_step("test_step")
+
+    fused_rng = random.Random()
+    fused_rng.set_base_seed(0)
+    fused_rng.begin_step("test_step")
+    fused_rng.add_channel("persons", persons)
+
+    observed_positions = fused_rng.gumbel_max_positions_for_df(utilities, sample_size)
+    next_random_after_fused = fused_rng.random_for_df(persons)
+    fused_rng.end_step("test_step")
+
+    npt.assert_array_equal(observed_positions, expected_positions)
+    npt.assert_allclose(next_random_after_fused, next_random_after_materialized)

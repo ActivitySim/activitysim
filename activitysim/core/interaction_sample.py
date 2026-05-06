@@ -58,19 +58,10 @@ def make_sample_choices_utility_based(
             utilities = utilities[~zero_probs]
             choosers = choosers[~zero_probs]
 
-    rands = state.get_rn_generator().gumbel_for_df(
-        utilities, n=alternative_count * sample_size
-    )
-    chunk_sizer.log_df(trace_label, "rands", rands)
-
-    rands = rands.reshape((utilities.shape[0], alternative_count, sample_size))
-    rands += utilities.to_numpy()[:, :, np.newaxis]
-
-    # choose maximum along all alternatives (axis 1) for all choosers and samples
-    chosen_destinations = np.argmax(rands, axis=1).reshape(-1)
+    chosen_destinations = state.get_rn_generator().gumbel_max_positions_for_df(
+        utilities, sample_size
+    ).reshape(-1)
     chunk_sizer.log_df(trace_label, "chosen_destinations", chosen_destinations)
-    del rands
-    chunk_sizer.log_df(trace_label, "rands", None)
 
     chooser_idx = np.repeat(np.arange(utilities.shape[0]), sample_size)
     chunk_sizer.log_df(trace_label, "chooser_idx", chooser_idx)

@@ -291,6 +291,47 @@ class SimpleChannel(object):
         self.row_states.loc[df.index, "offset"] += n
         return rands
 
+    def gumbel_max_positions_for_df(self, utilities, step_name, sample_size):
+        """
+        Return the winning alternative position for each chooser/sample pair
+        without materializing the full chooser-by-alternative-by-sample Gumbel array.
+
+        Parameters
+        ----------
+        utilities : pandas.DataFrame
+            DataFrame with one row per chooser and one column per alternative.
+        sample_size : int
+            Number of repeated sampled choices to make per chooser.
+
+        Returns
+        -------
+        positions : 2-D ndarray of int32
+            Array with shape (len(utilities), sample_size) containing the column
+            position of the winning alternative for each chooser/sample pair.
+        """
+
+        assert self.step_name
+        assert self.step_name == step_name
+
+        utility_values = utilities.to_numpy()
+        n_rows, n_alts = utility_values.shape
+        positions = np.empty((n_rows, sample_size), dtype=np.int32)
+
+        generators = self._generators_for_df(utilities)
+
+        for row_num, prng in enumerate(generators):
+            utility_row = utility_values[row_num]
+            row_gumbels = -np.log(-np.log(prng.rand(n_alts * sample_size))).reshape(
+                (sample_size, n_alts), order="F"
+            )
+            positions[row_num, :] = np.argmax(
+                row_gumbels + utility_row[np.newaxis, :],
+                axis=1,
+            )
+
+        self.row_states.loc[utilities.index, "offset"] += n_alts * sample_size
+        return positions
+
     def normal_for_df(self, df, step_name, mu, sigma, lognormal=False, size=None):
         """
         Return a floating point random number in normal (or lognormal) distribution
@@ -729,6 +770,29 @@ class Random(object):
         channel = self.get_channel_for_df(df)
         rands = channel.gumbel_for_df(df, self.step_name, n)
         return rands
+
+    def gumbel_max_positions_for_df(self, utilities, sample_size):
+        """
+        Return the winning alternative position for each chooser/sample pair
+        using the appropriate channel for each chooser row.
+
+        Parameters
+        ----------
+        utilities : pandas.DataFrame
+            DataFrame with one row per chooser and one column per alternative.
+        sample_size : int
+            Number of repeated sampled choices to make per chooser.
+
+        Returns
+        -------
+        positions : 2-D ndarray of int32
+            Array with shape (len(utilities), sample_size) containing the column
+            position of the winning alternative for each chooser/sample pair.
+        """
+        channel = self.get_channel_for_df(utilities)
+        return channel.gumbel_max_positions_for_df(
+            utilities, self.step_name, sample_size
+        )
 
     def normal_for_df(self, df, mu=0, sigma=1, broadcast=False, size=None):
         """

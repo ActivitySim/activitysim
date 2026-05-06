@@ -251,14 +251,21 @@ def participants_chooser(
                     f"{num_tours_remaining} tours could not be satisfied after {iter} iterations"
                 )
 
-        choice_function = (
-            logit.make_choices_utility_based
-            if state.settings.use_explicit_error_terms
-            else logit.make_choices
-        )
-        choices, rands = choice_function(
-            state, probs_or_utils, trace_label=trace_label, trace_choosers=choosers, nest_spec=nest_spec,
-        )
+        if state.settings.use_explicit_error_terms:
+            choices, rands = logit.make_choices_utility_based(
+                state,
+                probs_or_utils,
+                trace_label=trace_label,
+                trace_choosers=choosers,
+                nest_spec=nest_spec,
+            )
+        else:
+            choices, rands = logit.make_choices(
+                state,
+                probs_or_utils,
+                trace_label=trace_label,
+                trace_choosers=choosers,
+            )
         participate = choices == PARTICIPATE_CHOICE
 
         # satisfaction indexed by tour_id

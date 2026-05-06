@@ -147,9 +147,9 @@ def test_gumbel_max_positions_for_df_matches_materialized_path_and_offsets():
 
     materialized = baseline_rng.gumbel_for_df(utilities, n=n_alts * sample_size)
     expected_positions = np.argmax(
-        materialized.reshape((len(utilities), n_alts, sample_size))
-        + utilities.to_numpy()[:, :, np.newaxis],
-        axis=1,
+        materialized.reshape((len(utilities), sample_size, n_alts))
+        + utilities.to_numpy()[:, np.newaxis, :],
+        axis=2,
     )
     next_random_after_materialized = baseline_rng.random_for_df(persons)
     baseline_rng.end_step("test_step")

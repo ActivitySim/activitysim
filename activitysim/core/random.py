@@ -319,10 +319,13 @@ class SimpleChannel(object):
 
         generators = self._generators_for_df(utilities)
 
+        # for each chooser, generate the error terms for all samples at once. reshaping this
+        # in (default) C order means that the the first n_alts values are the gumbels for the
+        # first sample, the next n_alts values are the gumbels for the second sample, etc.
         for row_num, prng in enumerate(generators):
             utility_row = utility_values[row_num]
             row_gumbels = -np.log(-np.log(prng.rand(n_alts * sample_size))).reshape(
-                (sample_size, n_alts), order="F"
+                (sample_size, n_alts)
             )
             positions[row_num, :] = np.argmax(
                 row_gumbels + utility_row[np.newaxis, :],

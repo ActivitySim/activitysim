@@ -7,7 +7,7 @@ interpretation as the standard method, but changes how the final simulated choic
 drawn. For details, see
 [this ATRF paper](https://australasiantransportresearchforum.org.au/frozen-randomness-at-the-individual-utility-level/).
 
-For user-facing guidance on when to use EET, see {ref}`explicit_error_terms_ways_to_run`.
+For user-facing guidance, see {ref}`explicit_error_terms_ways_to_run`.
 
 ## Enabling EET
 
@@ -41,10 +41,10 @@ With EET enabled, the final draw step changes:
 For multinomial logit, the error term distribution is i.i.d. Gumbel and draws are generated
 by inverting the cumulative density function. For nested logit, this method is not available
 due to correlations between error terms. Instead, ActivitySim makes use of recent advances
-regarding the [representation of nested logit models](https://doi.org/10.1017/S026646662000047X)
+in the [representation of nested logit models](https://doi.org/10.1017/S026646662000047X)
 and combines this with
 [exact numerical sampling methods](https://doi.org/10.1007/978-3-030-52915-4)
-to draw error terms of all fundamental alternatives (leafs).
+to draw error terms of all fundamental alternatives.
 
 ## Practical Effects
 
@@ -53,36 +53,27 @@ to draw error terms of all fundamental alternatives (leafs).
 For EET to reduce simulation noise, it is important that alternatives of a choice situation
 keep the same unobserved error term in different scenario runs. This is intimately tied
 to how random numbers are generated; see {ref}`random_in_detail` for the underlying
-random-number stream design and the `activitysim.core.random` API.
+random-number stream design and the `activitysim.core.random` API. In essence, keeping the
+global random number generator seed constant for comparison runs is essential. This also means
+that it is advisable to use the same setting in all runs. Comparing a baseline
+run with EET to a scenario run without EET mixes two simulation methods and can make differences
+harder to interpret. Aggregate choice patterns should remain statistically the same
+as for the default probability-based method.
+
 Because unchanged alternatives can keep the same unobserved draws, changes to choices between
 scenarios can only happen when the observed utility of an alternative increases. This is not
 the case for the Monte Carlo simulation method, where the draws are based on probabilities,
-which necessarily change for all alternatives if any observed utility changes.
+which necessarily change for all alternatives if any observed utility changes. This combined
+with sensitivity to small differences in the final CDF draw when comparing nearby scenarios
+means that EET is a good candidate to remove noise from scenario comparisons.
 
-This also means that it is advisable to use the same setting in all runs. Comparing a baseline
-run with EET to a scenario run without EET mixes two simulation methods and can make differences
-harder to interpret. Aggregate choice patterns should remain statistically the same
-as for the default probability-based method. The project test suite includes parity tests for
-MNL, NL, and interaction-based simulations.
 
-### Numerical and Debugging Behavior
+#### EET as a variance reduction method
+TODO: expand on this here.
 
-EET changes the final simulation step, not the utility calculation itself. Utility
-expressions, availability logic, nesting structure, and utility validation still matter in
-the same way as in the default method.
+Common random numbers. Stronger correlations for exptectation values of differences -> less
+variance in the estimator. So we need less model runs to be representative.
 
-In practice, EET can make some comparisons easier to interpret because the selected
-alternative is the one with the highest total utility after adding the explicit error term,
-rather than the one reached by a cumulative-probability threshold. That can reduce
-sensitivity to small differences in the final CDF draw when comparing nearby scenarios.
-It does not eliminate the need to inspect invalid or unavailable alternatives, and it does
-not guarantee identical results across different RNG seeds or different model
-configurations.
-
-For shadow-priced location choice, ActivitySim resets RNG offsets between iterations when
-EET is enabled so each shadow-pricing iteration uses the same sequence of random numbers.
-That keeps the comparison across iterations focused on the shadow price updates instead of
-changing random draws between iterations.
 
 ### Runtime
 
@@ -92,21 +83,12 @@ probabilities are computed. EET, however, does not need to compute probabilities
 
 Exact runtimes depend on the number of alternatives, nesting structure, interaction size, and
 sampling configuration. With default settings, current full-scale demand model runs with EET
-are about 100% higher than the default MC method. While the relative runtime increase
-of nested logit models is large, these typically contribute only a very small fraction to the
-overall runtime and virtually all of the increase is due to sampling in location choice. To
-avoid this penalty, it is possible to use MC for sampling only by adding the following to each
-model setting where sampling is used (currently all location and destination choice models as
-well as disaggregate accessibilities):
+are about
+%%% TODO: REVIEW THIS AND UPDATE
+100% higher than the default MC method. Most of this is due to sampling in location choice.
+%%% END TODO: REVIEW THIS AND UPDATE
 
-```yaml
-compute_settings:
-  use_explicit_error_terms:
-    sample: false
-```
-
-With this setting, model runtimes should be roughly equal. The influence of this change on
-sampling noise is under investigation.
+Memory usage should be comparable albeit slightly higher when running with EET.
 
 (explicit_error_terms_zone_encoding)=
 #### Zone ID encoding and runtime
@@ -126,32 +108,30 @@ the array must still cover `max_zone_id + 1` entries, so the draws for the missi
 generated but never used. For zone systems with large or sparse IDs, this waste can be substantial.
 
 An alternative would be to draw only as many error terms as there are sampled alternatives and
-retrieve the relevant term for each zone via a lookup. That would avoid unused draws but adds an
-index-mapping step for every chooser-sample in the interaction frame, trading one form of overhead
-for another. The current design favours the dense approach because the direct-offset indexing is
-simpler and because the ``recode_columns`` setting can encode zone IDs as ``zero-based`` in
-the input table list; see the
+retrieve the relevant term for each zone via a lookup. That would avoid unused draws but it does
+not fit naturally with with ActivitySim's current random number generation machinery, trading
+one form of overhead for another. The current design favours the dense approach because
+benchmarking suggested it was quicker and because ActivitySim has a ``recode_columns`` setting
+that optionally encodes zone IDs as ``zero-based`` in the input table list; see the
 [Zero-based Recoding of Zones](using-sharrow.md#zero-based-recoding-of-zones) section for details.
+We recommend using this option when running with EET.
 
-(explicit_error_terms_memory)=
-### Memory usage
+#### Sampling method considerations for model components with sampled choice sets
+ActivitySim uses sampling of alternatives to reduce runtime of location choice methods.
 
-When running EET with MC for location sampling as described in the Runtime section above,
-there should be only a small increase in memory usage for location choice models compared to full
-MC simulation.
+TODO: Add details here once sampling method discussion have been resolved. Make clear this is
+independent of overall simulation strategy. Maybe rename EET sampling so there is no confusion?
 
-However, when EET is run with its current default location sampling settings, an array of size
-(number of choosers, number of alternatives, number of samples) is allocated for all random error
-terms. This can quickly become unwieldy for machines with limited memory, and
-[chunking](../users-guide/performance/chunking.md) will likely be needed.
+To use MC sampling with EET simulation, add the following lines to the settings of all models
+where location choice sampling is used (currently all location and destination choice models as
+well as disaggregate accessibilities):
 
-When chunking is needed and [explicit chunking](../users-guide/performance/chunking.md#explicit-chunking)
-is used, using fractional values for the chunk size rather than absolute numbers of choosers is
-often a better fit. This is because the individual steps of location choice models
-(location sampling, location logsums, and location choice from the sampled choice set) all have
-very different chooser characteristics, but the chunk size currently can only be set at the model
-level. Using absolute values for the explicit chunk size would lead to a large number of chunks
-for the logsum calculations, which is relatively slow.
+.. code-block:: yaml
+
+  compute_settings:
+    use_explicit_error_terms:
+      sample: false
+
 
 
 ## Implementation Details and Adding New Models
@@ -185,5 +165,5 @@ exponentiated utilities at 1e-300. To keep behavior consistent, EET treats alter
 utilities at or below that threshold as unavailable; see `activitysim.core.logit.validate_utils`.
 
 ### Scale of the distribution
-Error terms are drawn from standard Gumbel distributions, i.e., the scale of the error term is
+MNL error terms are drawn from standard Gumbel distributions, i.e., the scale of the error term is
 fixed to one.

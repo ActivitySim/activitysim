@@ -39,7 +39,8 @@ With EET enabled, the final draw step changes:
 
 For multinomial logit, ActivitySim adds Gumbel draws to the utility table and takes the
 row-wise maximum. For nested logit, ActivitySim applies the same idea while walking the
-nest tree, preserving the configured nesting structure. For details, see
+nest tree (TODO: UPDATE DOCO, now exact sampler for error terms), preserving the configured
+nesting structure. For details, see
 [this ATRF paper](https://australasiantransportresearchforum.org.au/frozen-randomness-at-the-individual-utility-level/).
 
 The model being simulated does not change. EET changes how the random utility model is

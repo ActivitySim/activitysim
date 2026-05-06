@@ -51,7 +51,6 @@ CustomChooser_T = Callable[
     tuple[pd.Series, pd.Series],
 ]
 
-
 def random_rows(state: workflow.State, df, n):
     # only sample if df has more than n rows
     if len(df.index) > n:
@@ -1509,43 +1508,31 @@ def eval_nl(
             state, raw_utilities, allow_zero_probs=True, trace_label=trace_label
         )
 
-        # utilities of leaves and nests
-        nested_utilities = compute_nested_utilities(raw_utilities, nest_spec)
-        chunk_sizer.log_df(trace_label, "nested_utilities", nested_utilities)
-
-        if want_logsums:
-            logsums = pd.Series(nested_utilities.root, index=choosers.index)
-            chunk_sizer.log_df(trace_label, "logsums", logsums)
-
-        # Index of choices for nested utilities is different than unnested - this needs to be consistent for
-        # turning indexes into alternative names to keep code changes to minimum for now. Might want to look
-        # into changing this in the future when revisiting nested logit EET code.
-        name_mapping = raw_utilities.columns.values
-
-        del raw_utilities
-        chunk_sizer.log_df(trace_label, "raw_utilities", None)
-
         if custom_chooser:
-            choices, rands = custom_chooser(
-                state,
-                utilities=nested_utilities,
-                name_mapping=name_mapping,
-                choosers=choosers,
-                spec=spec,
-                nest_spec=nest_spec,
-                trace_label=trace_label,
-            )
+            # choices, rands = custom_chooser(
+            #     state, raw_utilities, choosers, spec, nest_spec, trace_label
+            # )
+            # TODO: Need to pass through nest_spec here, which would make it imcompatible with MC.
+            raise NotImplementedError("Nested custom choosers for EET not implemented in simulate.py")
         else:
             choices, rands = logit.make_choices_utility_based(
                 state,
-                nested_utilities,
-                name_mapping=name_mapping,
+                raw_utilities,
                 nest_spec=nest_spec,
                 trace_label=trace_label,
             )
 
-        del nested_utilities
-        chunk_sizer.log_df(trace_label, "nested_utilities", None)
+        if want_logsums:
+            # utilities of leaves and nests
+            nested_utilities = compute_nested_utilities(raw_utilities, nest_spec)
+            chunk_sizer.log_df(trace_label, "nested_utilities", nested_utilities)
+            logsums = pd.Series(nested_utilities.root, index=choosers.index)
+            chunk_sizer.log_df(trace_label, "logsums", logsums)
+            del nested_utilities
+            chunk_sizer.log_df(trace_label, "nested_utilities", None)
+
+        del raw_utilities
+        chunk_sizer.log_df(trace_label, "raw_utilities", None)
 
     else:
         # exponentiated utilities of leaves and nests

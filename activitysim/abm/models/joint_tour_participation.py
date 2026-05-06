@@ -131,6 +131,7 @@ def participants_chooser(
     choosers: pd.DataFrame,
     spec: pd.DataFrame,
     trace_label: str,
+    nest_spec: Optional[dict, LogitNestSpec] = None,
 ) -> tuple[pd.Series, pd.Series]:
     """
     custom alternative to logit.make_choices for simulate.simple_simulate
@@ -256,7 +257,7 @@ def participants_chooser(
             else logit.make_choices
         )
         choices, rands = choice_function(
-            state, probs_or_utils, trace_label=trace_label, trace_choosers=choosers
+            state, probs_or_utils, trace_label=trace_label, trace_choosers=choosers, nest_spec=nest_spec,
         )
         participate = choices == PARTICIPATE_CHOICE
 
@@ -428,13 +429,6 @@ def joint_tour_participation(
     for i in ["person_is_preschool", "composition", "adult"]:
         if i not in model_settings.compute_settings.protect_columns:
             model_settings.compute_settings.protect_columns.append(i)
-
-    # This is related to the difference in nested logit and logit choice. As soon as alt_order_array
-    # is removed from arguments to make_choices_explicit_error_term_nl this guard can be removed.
-    if state.settings.use_explicit_error_terms:
-        assert (
-            nest_spec is None
-        ), "Nested logit model custom chooser for EET requires name_mapping, currently not implemented in jtp"
 
     custom_chooser = participants_chooser
 

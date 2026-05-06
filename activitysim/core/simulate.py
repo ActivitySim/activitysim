@@ -47,7 +47,7 @@ from activitysim.core.exceptions import ModelConfigurationError
 logger = logging.getLogger(__name__)
 
 CustomChooser_T = Callable[
-    [workflow.State, pd.DataFrame, pd.DataFrame, pd.DataFrame, str],
+    [workflow.State, pd.DataFrame, pd.DataFrame, pd.DataFrame, str, dict | LogitNestSpec | None],
     tuple[pd.Series, pd.Series],
 ]
 
@@ -1509,17 +1509,20 @@ def eval_nl(
         )
 
         if custom_chooser:
-            # choices, rands = custom_chooser(
-            #     state, raw_utilities, choosers, spec, nest_spec, trace_label
-            # )
-            # TODO: Need to pass through nest_spec here, which would make it imcompatible with MC.
-            raise NotImplementedError("Nested custom choosers for EET not implemented in simulate.py")
+            choices, rands = custom_chooser(
+                state,
+                raw_utilities,
+                choosers,
+                spec,
+                trace_label,
+                nest_spec=nest_spec,
+            )
         else:
             choices, rands = logit.make_choices_utility_based(
                 state,
                 raw_utilities,
-                nest_spec=nest_spec,
                 trace_label=trace_label,
+                nest_spec=nest_spec,
             )
 
         if want_logsums:

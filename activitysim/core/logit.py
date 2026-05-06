@@ -540,7 +540,6 @@ def make_choices_explicit_error_term_nl(
     nest_spec,
     trace_label,
     trace_choosers=None,
-    allow_bad_utils=False,
     alts_context: AltsContext | None = None,
     alt_nrs_df: pd.DataFrame | None = None,
 ):
@@ -579,17 +578,6 @@ def make_choices_explicit_error_term_nl(
         )
 
     choices = np.argmax(utilities_incl_unobs.to_numpy(), axis=1)
-    missing_choices = np.isnan(choices)
-    if missing_choices.any() and not allow_bad_utils:
-        report_bad_choices(
-            state,
-            missing_choices,
-            utilities_incl_unobs,
-            trace_label=tracing.extend_trace_label(trace_label, "bad_utils"),
-            msg="no alternative selected",
-            trace_choosers=trace_choosers,
-        )
-
     return pd.Series(choices, index=utilities_incl_unobs.index)
 
 
@@ -598,7 +586,6 @@ def make_choices_explicit_error_term_mnl(
     utilities,
     trace_label,
     trace_choosers=None,
-    allow_bad_utils=False,
     alts_context: AltsContext | None = None,
     alt_nrs_df: pd.DataFrame | None = None,
 ) -> pd.Series:
@@ -618,39 +605,25 @@ def make_choices_explicit_error_term_mnl(
     pandas.Series
         Choice indices aligned to the utilities columns order.
     """
-    if trace_label:
-        state.tracing.trace_df(
-            utilities, tracing.extend_trace_label(trace_label, "utilities")
-        )
     utilities_incl_unobs = add_ev1_random(state, utilities, alts_context, alt_nrs_df)
-    if trace_label:
-        state.tracing.trace_df(
-            utilities_incl_unobs,
-            tracing.extend_trace_label(trace_label, "utilities_eet"),
-        )
+
+    # if trace_label:
+    #     state.tracing.trace_df(
+    #         utilities_incl_unobs,
+    #         tracing.extend_trace_label(trace_label, "utilities_eet"),
+    #     )
+
     choices = np.argmax(utilities_incl_unobs.to_numpy(), axis=1)
-    missing_choices = np.isnan(choices)  # TODO: should we check for infs here too?
-    if missing_choices.any() and not allow_bad_utils:
-        report_bad_choices(
-            state,
-            missing_choices,
-            utilities,
-            trace_label=tracing.extend_trace_label(trace_label, "bad_utils"),
-            msg="no alternative selected",
-            # raise_error=False,
-            trace_choosers=trace_choosers,
-        )
-    choices = pd.Series(choices, index=utilities_incl_unobs.index)
-    return choices
+    return pd.Series(choices, index=utilities_incl_unobs.index)
 
 
 def make_choices_utility_based(
     state: workflow.State,
     utilities: pd.DataFrame,
-    nest_spec=None,
     trace_label: str = None,
     trace_choosers=None,
     allow_bad_utils=False,
+    nest_spec=None,  # Make consistent with make_choices for generalizability of custom chooser.
     alts_context: AltsContext | None = None,
     alt_nrs_df: pd.DataFrame | None = None,
 ) -> tuple[pd.Series, pd.Series]:
@@ -663,8 +636,6 @@ def make_choices_utility_based(
     utilities : pandas.DataFrame
         Utilities with choosers as rows and alternatives as columns. Note for nested logit models,
         this should include only leaf nodes.
-    nest_spec : dict or LogitNestSpec, optional
-        Nest specification for the choice model. If None, will be treated as a multinomial logit model.
     trace_label : str
         Trace label for logging and tracing.
     trace_choosers : pandas.dataframe
@@ -673,6 +644,8 @@ def make_choices_utility_based(
         which is indexed on index values from alternatives df.
     allow_bad_utils : bool
         If True, allows utilities with missing or invalid values without raising an error.
+    nest_spec : dict or LogitNestSpec, optional
+        Nest specification for the choice model. If None, will be treated as a multinomial logit model.
     alts_context : AltsContext, optional
         If provided, will be used to determine how many random numbers to sample and how to index them for the EET
         sampling. This is only relevant for multinomial logit models, and should be provided along with alt_nrs_df.
@@ -698,7 +671,6 @@ def make_choices_utility_based(
             utilities,
             trace_label,
             trace_choosers,
-            allow_bad_utils,
             alts_context,
             alt_nrs_df,
         )
@@ -711,9 +683,20 @@ def make_choices_utility_based(
             nest_spec,
             trace_label,
             trace_choosers,
-            allow_bad_utils,
             alts_context,
             alt_nrs_df,
+        )
+
+    missing_choices = np.isnan(choices)  # TODO: should we check for infs here too?
+    if missing_choices.any() and not allow_bad_utils:
+        report_bad_choices(
+            state,
+            missing_choices,
+            utilities,
+            trace_label=tracing.extend_trace_label(trace_label, "bad_utils"),
+            msg="no alternative selected",
+            # raise_error=False,
+            trace_choosers=trace_choosers,
         )
 
     # EET does not expose per-row random draws; return zeros for compatibility.

@@ -83,12 +83,8 @@ probabilities are computed. EET, however, does not need to compute probabilities
 
 Exact runtimes depend on the number of alternatives, nesting structure, interaction size, and
 sampling configuration. With default settings, current full-scale demand model runs with EET
-are about
-%%% TODO: REVIEW THIS AND UPDATE
-100% higher than the default MC method. Most of this is due to sampling in location choice.
-%%% END TODO: REVIEW THIS AND UPDATE
-
-Memory usage should be comparable albeit slightly higher when running with EET.
+are about 1.5 to 2 times longer than the default MC method. Virtually all of this is due to
+sampling in location choice. Memory usage should be comparable for both methods.
 
 (explicit_error_terms_zone_encoding)=
 #### Zone ID encoding and runtime
@@ -116,6 +112,7 @@ that optionally encodes zone IDs as ``zero-based`` in the input table list; see 
 [Zero-based Recoding of Zones](using-sharrow.md#zero-based-recoding-of-zones) section for details.
 We recommend using this option when running with EET.
 
+<!--
 #### Sampling method considerations for model components with sampled choice sets
 ActivitySim uses sampling of alternatives to reduce runtime of location choice methods.
 
@@ -131,7 +128,7 @@ well as disaggregate accessibilities):
   compute_settings:
     use_explicit_error_terms:
       sample: false
-
+-->
 
 
 ## Implementation Details and Adding New Models

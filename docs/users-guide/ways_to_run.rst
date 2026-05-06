@@ -312,8 +312,9 @@ To enable EET for a model run, set the global switch in ``settings.yaml``:
 Enable or disable this setting consistently across all runs being compared.
 
 EET is currently slower than the default probability-based simulation method because it requires
-many repeated error term draws. The exact slow-down depends on several factors, but generally location choice
-models are most affected and can be up to XXX% slower.
+many repeated error term draws. The exact slow-down depends on several factors, but is generally on the
+order of around 1.5-2 times compared to MC. Virtually all of the increase in runtime is caused by
+location choice models, and work is under way to remedy this.
 
 For location choice models, encoding zone IDs as a 0-based contiguous index reduces EET runtime;
 see :ref:`explicit_error_terms_zone_encoding` for details. For models where the input data does not

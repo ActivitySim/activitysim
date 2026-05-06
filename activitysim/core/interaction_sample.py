@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import typing
 
 import numpy as np
 import pandas as pd
@@ -17,14 +18,33 @@ from activitysim.core import (
     util,
     workflow,
 )
+from activitysim.core.chunk import ChunkSizer
 from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.exceptions import SegmentedSpecificationError
 from activitysim.core.skim_dataset import DatasetWrapper
 from activitysim.core.skim_dictionary import SkimWrapper
 
+if typing.TYPE_CHECKING:
+    from activitysim.core.random import Random
+
 logger = logging.getLogger(__name__)
 
 DUMP = False
+
+
+def _poisson_sample_alternatives_inner(
+    alternative_count: int,
+    probs: pd.DataFrame,
+    poisson_inclusion_probs: pd.DataFrame,
+    rng: Random,
+    trace_label: str | None,
+    chunk_sizer: ChunkSizer,
+) -> pd.DataFrame:
+    rands = rng.random_for_df(probs, n=alternative_count)
+    chunk_sizer.log_df(trace_label, "rands", rands)
+    sampled_mask = rands < poisson_inclusion_probs
+    sampled_results = poisson_inclusion_probs.where(sampled_mask)
+    return sampled_results
 
 
 def make_sample_choices_utility_based(
@@ -36,10 +56,8 @@ def make_sample_choices_utility_based(
     alternative_count,
     alt_col_name,
     allow_zero_probs,
-    trace_label,
-    chunk_sizer,
-    stable_alt_positions=None,
-    n_total_alts=None,
+    trace_label: str,
+    chunk_sizer: ChunkSizer,
 ):
     assert isinstance(utilities, pd.DataFrame)
     assert utilities.shape == (len(choosers), alternative_count)
@@ -54,22 +72,14 @@ def make_sample_choices_utility_based(
         if zero_probs.all():
             return pd.DataFrame(
                 columns=[alt_col_name, "rand", "prob", choosers.index.name]
-            )
+            ), pd.DataFrame(columns=["prob"])
         if zero_probs.any():
             # remove from sample
             utilities = utilities[~zero_probs]
             choosers = choosers[~zero_probs]
 
-    chosen_destinations = state.get_rn_generator().gumbel_max_positions_for_df(
-        utilities,
-        sample_size,
-        stable_alt_positions=stable_alt_positions,
-        n_total_alts=n_total_alts,
-    ).reshape(-1)
-    chunk_sizer.log_df(trace_label, "chosen_destinations", chosen_destinations)
-
-    chooser_idx = np.repeat(np.arange(utilities.shape[0]), sample_size)
-    chunk_sizer.log_df(trace_label, "chooser_idx", chooser_idx)
+    utils_array = utilities.to_numpy()
+    chunk_sizer.log_df(trace_label, "utils_array", utils_array)
 
     probs = logit.utils_to_probs(
         state,
@@ -79,28 +89,88 @@ def make_sample_choices_utility_based(
         overflow_protection=not allow_zero_probs,
         trace_choosers=choosers,
     )
-    chunk_sizer.log_df(trace_label, "probs", probs)
-
-    choices_df = pd.DataFrame(
-        {
-            alt_col_name: alternatives.index.values[chosen_destinations],
-            "prob": probs.to_numpy()[chooser_idx, chosen_destinations],
-            choosers.index.name: choosers.index.values[chooser_idx],
-        }
+    inclusion_probs, sampled_alternatives = _poisson_sample_alternatives(
+        alternative_count, chunk_sizer, probs, sample_size, state, trace_label
     )
-    chunk_sizer.log_df(trace_label, "choices_df", choices_df)
 
-    del chooser_idx
-    chunk_sizer.log_df(trace_label, "chooser_idx", None)
-    del chosen_destinations
-    chunk_sizer.log_df(trace_label, "chosen_destinations", None)
-    del probs
-    chunk_sizer.log_df(trace_label, "probs", None)
+    # Stack removes the NaNs (the ones that weren't sampled)
+    # and gives us a multi-index of (person_id, alt_id)
+    choices_df = (
+        sampled_alternatives.rename_axis("alt_idx", axis=1)
+        .stack()
+        .reset_index(name="prob")
+        .assign(**{alt_col_name: lambda df: alternatives.index.values[df["alt_idx"]]})
+        .drop(columns=["alt_idx"])
+    )
 
-    # handing this off to caller
-    chunk_sizer.log_df(trace_label, "choices_df", None)
+    # Here we return the inclusion probabilities i.e. the true probability of being sampled and (ab)use the fact
+    # that pick_count=1 by definition and ln(1)=0 and recover the standard sample correction term.
+    # In non-Poisson sampling, we would return the probs of sampling an alternative once
+    # and the sampling correction factor np.log(df.pick_count/df.prob) is applied to the simulate utilities.
+    # TODO is it safe change the meaning of df.prob, given it's referenced in expression csvs?
+    #   (but the alternative is to update all the expression CSV for sampling?)
+    return choices_df, inclusion_probs
 
-    return choices_df
+
+def _poisson_sample_alternatives(
+    alternative_count,
+    chunk_sizer: ChunkSizer,
+    probs: pd.DataFrame,
+    sample_size,
+    state: workflow.State,
+    trace_label: str,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    # compute the inclusion probability as the reciprocal of alt never being drawn
+    #  -- these are common, so compute once upfront
+    exclusion_probs = (1 - probs) ** sample_size
+    inclusion_probs = 1 - exclusion_probs
+
+    n = 0
+    probs_subset = probs
+    inclusion_probs_subset = inclusion_probs
+    sampled_alternatives = pd.DataFrame(
+        0.0, index=inclusion_probs.index, columns=inclusion_probs.columns
+    )
+    while True:
+        sampled_results_subset = _poisson_sample_alternatives_inner(
+            alternative_count,
+            probs_subset,
+            inclusion_probs_subset,
+            state.get_rn_generator(),
+            trace_label,
+            chunk_sizer,
+        )
+        no_alts_sampled_mask = sampled_results_subset.isna().all(axis=1)
+        alts_with_sampled_alternatives = sampled_results_subset[~no_alts_sampled_mask]
+        sampled_alternatives.loc[
+            alts_with_sampled_alternatives.index, :
+        ] = alts_with_sampled_alternatives
+        if no_alts_sampled_mask.any():
+            # TODO if this happens in base but the project case is such that something is picked, random numbers won't
+            #  be consistent - we're asserting that this is very rare models where the sample size is not too small
+            logger.info(f"Poisson sampling of alternatives failed with {n=}, retrying")
+            # TODO put this behind a debug guard, because it will be slow
+            logger.info(
+                f"Sampled size was {sample_size}, poisson method mean expected sample size was {inclusion_probs.sum(axis=1).mean():.1f}, actual sampled mean was {(sampled_alternatives > 0).sum(axis=1).mean():.1f} and highest zero selection prob was {(exclusion_probs).product(axis=1).max():.2g}"
+            )
+            probs_subset = probs[no_alts_sampled_mask]
+            inclusion_probs_subset = inclusion_probs[no_alts_sampled_mask]
+
+        else:  # All alternatives are fine
+            break
+
+        n += 1
+        if n == 10:
+            choosers_no_alts_sampled = sampled_results_subset[no_alts_sampled_mask]
+            msg = (
+                f"Poisson choice set sampling failed after 10 attempts for these cases:\n"
+                f"{choosers_no_alts_sampled}\n{probs_subset}"
+            )
+            raise ValueError(msg)
+
+    chunk_sizer.log_df(trace_label, "sampled_alternatives", sampled_alternatives)
+
+    return inclusion_probs, sampled_alternatives
 
 
 def make_sample_choices(
@@ -211,10 +281,8 @@ def _interaction_sample(
     locals_d=None,
     trace_label=None,
     zone_layer=None,
-    chunk_sizer=None,
+    chunk_sizer: ChunkSizer | None = None,
     compute_settings: ComputeSettings | None = None,
-    stable_alt_positions=None,
-    n_total_alts=None,
 ):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -278,6 +346,11 @@ def _interaction_sample(
         pick_count : int
             number of duplicate picks for chooser, alt
     """
+    assert (
+        chunk_sizer is not None
+    ), "chunk_sizer cannot be None but old nullable signature is preserved"
+    # TODO it's probably safe to reorder these arguments to make chunk_sizer mandatory since
+    #   _interaction_sample is private?
 
     have_trace_targets = state.tracing.has_trace_targets(choosers)
     trace_ids = None
@@ -572,7 +645,7 @@ def _interaction_sample(
             trace_choosers=choosers,
         )
 
-        choices_df = make_sample_choices_utility_based(
+        choices_df, probs = make_sample_choices_utility_based(
             state,
             choosers,
             utilities,
@@ -583,8 +656,6 @@ def _interaction_sample(
             allow_zero_probs=allow_zero_probs,
             trace_label=trace_label,
             chunk_sizer=chunk_sizer,
-            stable_alt_positions=stable_alt_positions,
-            n_total_alts=n_total_alts,
         )
         del utilities
         chunk_sizer.log_df(trace_label, "utilities", None)
@@ -659,8 +730,8 @@ def _interaction_sample(
                 choices_df = pd.concat([choices_df, survey_choices], ignore_index=True)
                 choices_df.sort_values(by=[choosers.index.name], inplace=True)
 
-        del probs
-        chunk_sizer.log_df(trace_label, "probs", None)
+    del probs
+    chunk_sizer.log_df(trace_label, "probs", None)
 
     chunk_sizer.log_df(trace_label, "choices_df", choices_df)
 
@@ -725,8 +796,6 @@ def interaction_sample(
     zone_layer: str | None = None,
     explicit_chunk_size: float = 0,
     compute_settings: ComputeSettings | None = None,
-    stable_alt_positions=None,
-    n_total_alts=None,
 ):
     """
     Run a simulation in the situation in which alternatives must
@@ -802,7 +871,13 @@ def interaction_sample(
         assert choosers.index.is_monotonic_increasing
 
     # FIXME - legacy logic - not sure this is needed or even correct?
-    sample_size = min(sample_size, len(alternatives.index))
+    if not state.settings.use_explicit_error_terms:
+        sample_size = min(sample_size, len(alternatives.index))
+        # with poisson sampling, definitely don't want to reduce sample size - it's not a sample size but a number
+        # of theoretical draws. Another options would be to disable sampling if # alts < sample size to ensure
+        # all are included (but this wouldn't behave well if there were land use changes in the project case which
+        # switched regimes)
+
     logger.info(f" --- interaction_sample sample size = {sample_size}")
 
     result_list = []
@@ -829,8 +904,6 @@ def interaction_sample(
             zone_layer=zone_layer,
             chunk_sizer=chunk_sizer,
             compute_settings=compute_settings,
-            stable_alt_positions=stable_alt_positions,
-            n_total_alts=n_total_alts,
         )
 
         if choices.shape[0] > 0:

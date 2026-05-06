@@ -82,8 +82,6 @@ def _destination_sample(
     chunk_tag,
     trace_label: str,
     zone_layer=None,
-    stable_alt_positions=None,
-    n_total_alts=None,
 ):
     model_spec = simulate.spec_for_segment(
         state,
@@ -161,8 +159,6 @@ def _destination_sample(
         compute_settings=model_settings.compute_settings.subcomponent_settings(
             "sample"
         ),
-        stable_alt_positions=stable_alt_positions,
-        n_total_alts=n_total_alts,
     )
 
     # if special person id is passed
@@ -202,9 +198,6 @@ def destination_sample(
 
     # the name of the dest column to be returned in choices
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
-    stable_maz_positions = full_destination_size_terms.index.get_indexer(
-        destination_size_terms.index
-    )
 
     choices = _destination_sample(
         state,
@@ -217,8 +210,6 @@ def destination_sample(
         alt_dest_col_name,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
-        stable_alt_positions=stable_maz_positions,
-        n_total_alts=len(full_destination_size_terms.index),
     )
 
     return choices
@@ -582,10 +573,6 @@ def destination_presample(
     MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(
         destination_size_terms, network_los
     )
-    full_taz_index = pd.Index(
-        network_los.map_maz_to_taz(full_destination_size_terms.index), name=DEST_TAZ
-    ).unique().sort_values()
-    stable_taz_positions = full_taz_index.get_indexer(TAZ_size_terms.index)
 
     orig_maz = model_settings.CHOOSER_ORIG_COL_NAME
     assert orig_maz in choosers
@@ -610,8 +597,6 @@ def destination_presample(
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer="taz",
-        stable_alt_positions=stable_taz_positions,
-        n_total_alts=len(full_taz_index),
     )
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total

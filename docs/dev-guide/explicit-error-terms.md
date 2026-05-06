@@ -4,7 +4,8 @@
 Explicit Error Terms (EET) is an alternative way to simulate choices from ActivitySim's
 logit models. It keeps the same systematic utilities and the same random-utility
 interpretation as the standard method, but changes how the final simulated choice is
-drawn.
+drawn. For details, see
+[this ATRF paper](https://australasiantransportresearchforum.org.au/frozen-randomness-at-the-individual-utility-level/).
 
 For user-facing guidance on when to use EET, see {ref}`explicit_error_terms_ways_to_run`.
 
@@ -33,18 +34,17 @@ Under the default ActivitySim simulation path, choice drawing works like this:
 With EET enabled, the final draw step changes:
 
 1. Compute systematic utilities.
-2. Draw one iid EV1 error term for each chooser-alternative pair.
-3. Add that error term to the systematic utility.
+2. Draw error terms for each chooser-alternative pair.
+3. Add those error terms to the systematic utilities.
 4. Choose the alternative with the highest total utility.
 
-For multinomial logit, ActivitySim adds Gumbel draws to the utility table and takes the
-row-wise maximum. For nested logit, ActivitySim applies the same idea while walking the
-nest tree (TODO: UPDATE DOCO, now exact sampler for error terms), preserving the configured
-nesting structure. For details, see
-[this ATRF paper](https://australasiantransportresearchforum.org.au/frozen-randomness-at-the-individual-utility-level/).
-
-The model being simulated does not change. EET changes how the random utility model is
-sampled, not the underlying utility specification.
+For multinomial logit, the error term distribution is i.i.d. Gumbel and draws are generated
+by inverting the cumulative density function. For nested logit, this method is not available
+due to correlations between error terms. Instead, ActivitySim makes use of recent advances
+regarding the [representation of nested logit models](https://doi.org/10.1017/S026646662000047X)
+and combines this with
+[exact numerical sampling methods](https://doi.org/10.1007/978-3-030-52915-4)
+to draw error terms of all fundamental alternatives (leafs).
 
 ## Practical Effects
 

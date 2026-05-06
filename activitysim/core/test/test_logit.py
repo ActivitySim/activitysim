@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os.path
 import re
-from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
@@ -408,63 +407,6 @@ def test_add_ev1_random_requires_paired_alt_context_args():
             alt_nrs_df=None,
         )
 
-
-#
-# Nested Logit Structure Tests
-#
-def test_group_nest_names_by_level():
-    nest_spec = {
-        "name": "root",
-        "coefficient": 1.0,
-        "alternatives": [
-            {"name": "motorized", "coefficient": 0.7, "alternatives": ["car", "bus"]},
-            "walk",
-        ],
-    }
-
-    grouped = logit.group_nest_names_by_level(nest_spec)
-
-    assert grouped == {1: ["root"], 2: ["motorized", "walk"], 3: ["car", "bus"]}
-
-
-def test_choose_from_tree_selects_leaf():
-    nest_utils = pd.Series(
-        {
-            "motorized": 2.0,
-            "walk": 1.0,
-            "car": 5.0,
-            "bus": 3.0,
-        }
-    )
-    all_alternatives = {"walk", "car", "bus"}
-    root_alternatives = ["motorized", "walk"]
-    nest_alternatives_by_name = {
-        "root": ["motorized", "walk"],
-        "motorized": ["car", "bus"],
-    }
-
-    choice = logit.choose_from_tree(
-        nest_utils, root_alternatives, all_alternatives, nest_alternatives_by_name
-    )
-
-    assert choice == "car"
-
-
-def test_choose_from_tree_raises_on_missing_leaf():
-    nest_utils = pd.Series({"motorized": 2.0, "walk": 1.0})
-    all_alternatives = {"car", "bus"}
-    root_alternatives = ["motorized", "walk"]
-    nest_alternatives_by_name = {
-        "root": ["motorized", "walk"],
-        "motorized": ["car", "bus"],
-    }
-
-    with pytest.raises(ValueError, match="no alternative found"):
-        logit.choose_from_tree(
-            nest_utils, root_alternatives, all_alternatives, nest_alternatives_by_name
-        )
-
-
 #
 # EET Choice Behavior Tests
 #
@@ -488,25 +430,20 @@ def test_make_choices_eet_mnl(monkeypatch):
 
 
 def test_make_choices_eet_nl(monkeypatch):
-    def fake_add_ev1_random(_state, df, alt_info=None, alt_nrs_df=None):
-        assert {"root", "motorized", "walk", "car", "bus"}.issubset(df.columns)
+    def fake_sample_nested_logit_exact_leaf_error_terms(_state, df, nest_spec):
+        assert nest_spec["name"] == "root"
+        assert list(df.columns) == ["walk", "car", "bus"]
 
-        nested_utils_with_errors = pd.DataFrame(0.0, index=df.index, columns=df.columns)
-        nested_utils_with_errors.loc[10, ["motorized", "walk", "car", "bus"]] = [
-            2.0,
-            1.0,
-            5.0,
-            3.0,
-        ]
-        nested_utils_with_errors.loc[11, ["motorized", "walk", "car", "bus"]] = [
-            1.0,
-            4.0,
-            2.0,
-            3.0,
-        ]
-        return nested_utils_with_errors
+        error_terms = pd.DataFrame(0.0, index=df.index, columns=df.columns)
+        error_terms.loc[10, ["walk", "car", "bus"]] = [1.0, 5.0, 3.0]
+        error_terms.loc[11, ["walk", "car", "bus"]] = [4.0, 2.0, 3.0]
+        return error_terms
 
-    monkeypatch.setattr(logit, "add_ev1_random", fake_add_ev1_random)
+    monkeypatch.setattr(
+        logit,
+        "sample_nested_logit_exact_leaf_error_terms",
+        fake_sample_nested_logit_exact_leaf_error_terms,
+    )
 
     nest_spec = {
         "name": "root",
@@ -518,7 +455,6 @@ def test_make_choices_eet_nl(monkeypatch):
     }
 
     state = workflow.State().default_settings()
-    state.settings.nested_explicit_error_term_method = "tree_walk"
     monkeypatch.setattr(state.tracing, "trace_df", lambda *args, **kwargs: None)
 
     choices = logit.make_choices_explicit_error_term_nl(
@@ -652,12 +588,13 @@ def test_make_choices_vs_eet_same_distribution():
     eet_rng = np.random.default_rng(123)
 
     class EETDummyRNG:
+        def random_for_df(self, df, n=1):
+            return eet_rng.random((len(df), n))
+
         def gumbel_for_df(self, df, n):
             return eet_rng.gumbel(size=(len(df), n))
 
     class EETDummyState:
-        settings = SimpleNamespace(nested_explicit_error_term_method="tree_walk")
-
         @staticmethod
         def get_rn_generator():
             return EETDummyRNG()
@@ -697,11 +634,11 @@ def test_make_choices_vs_eet_nl_same_distribution():
     # but for probability-based choice we usually use the flattened/logsummed probabilities.
     # To compare them fairly, we use the same base utilities.
     # car=0.5, bus=0.2, walk=0.4
-    nested_utils_df = pd.DataFrame(
-        [[0.5, 0.2, 0.4, 0.0, 0.0]],
-        columns=["car", "bus", "walk", "motorized", "root"],
+    leaf_utilities = pd.DataFrame(
+        [[0.5, 0.2, 0.4]],
+        columns=["car", "bus", "walk"],
     )
-    utils_df = pd.concat([nested_utils_df] * n_draws, ignore_index=True)
+    utils_df = pd.concat([leaf_utilities] * n_draws, ignore_index=True)
 
     # 1. Probability-based Nested Logit choices
     mc_rng = np.random.default_rng(42)
@@ -719,14 +656,12 @@ def test_make_choices_vs_eet_nl_same_distribution():
             return self
 
     # Compute probabilities for NL using simulation logic
-    nested_exp_utilities = simulate.compute_nested_exp_utilities(
-        nested_utils_df[["car", "bus", "walk"]], nest_spec
-    )
+    nested_exp_utilities = simulate.compute_nested_exp_utilities(utils_df, nest_spec)
     nested_probabilities = simulate.compute_nested_probabilities(
         MCDummyState(), nested_exp_utilities, nest_spec, trace_label=None
     )
     probs = simulate.compute_base_probabilities(
-        nested_probabilities, nest_spec, nested_utils_df[["car", "bus", "walk"]]
+        nested_probabilities, nest_spec, utils_df
     )
     choices_mc, _ = logit.make_choices(MCDummyState(), probs, trace_label=None)
 
@@ -734,12 +669,13 @@ def test_make_choices_vs_eet_nl_same_distribution():
     eet_rng = np.random.default_rng(123)
 
     class EETDummyRNG:
+        def random_for_df(self, df, n=1):
+            return eet_rng.random((len(df), n))
+
         def gumbel_for_df(self, df, n):
             return eet_rng.gumbel(size=(len(df), n))
 
     class EETDummyState:
-        settings = SimpleNamespace(nested_explicit_error_term_method="tree_walk")
-
         @staticmethod
         def get_rn_generator():
             return EETDummyRNG()
@@ -755,7 +691,7 @@ def test_make_choices_vs_eet_nl_same_distribution():
 
     choices_eet = logit.make_choices_explicit_error_term_nl(
         EETDummyState(),
-        nested_utils_df[["car", "bus", "walk"]],
+        utils_df,
         nest_spec,
         trace_label=None,
     )
@@ -780,11 +716,8 @@ def _make_rng_state(
     df: pd.DataFrame,
     seed: int,
     step_name: str,
-    nested_method: str | None = None,
 ) -> workflow.State:
     state = workflow.State().default_settings()
-    if nested_method is not None:
-        state.settings.nested_explicit_error_term_method = nested_method
     rng = state.get_rn_generator()
     rng.set_base_seed(seed)
     rng.add_channel(df.index.name, df)
@@ -827,15 +760,12 @@ def _expected_nested_logit_shares(
 def _nested_logit_eet_shares(
     raw_utilities: pd.Series,
     nest_spec: dict,
-    method: str,
     n_draws: int,
     seed: int = 42,
 ) -> pd.Series:
     raw_df = _repeated_utility_df(raw_utilities, n_draws=n_draws)
-    step_name = f"nested_eet_{method}_{n_draws}_{len(raw_utilities)}"
-    state = _make_rng_state(
-        raw_df, seed=seed, step_name=step_name, nested_method=method
-    )
+    step_name = f"nested_eet_exact_leaf_{n_draws}_{len(raw_utilities)}"
+    state = _make_rng_state(raw_df, seed=seed, step_name=step_name)
     try:
         choices = logit.make_choices_explicit_error_term_nl(
             state,
@@ -911,14 +841,15 @@ def _nested_logit_method_share_matrix(
                 n_draws=n_draws,
                 seed=seed,
             )
-        else:
+        elif method == "exact_leaf":
             shares = _nested_logit_eet_shares(
                 raw_utilities,
                 nest_spec,
-                method=method,
                 n_draws=n_draws,
                 seed=seed,
             )
+        else:
+            raise ValueError(f"unknown nested-logit share method: {method}")
         share_samples.append(shares.to_numpy())
 
     return np.vstack(share_samples)
@@ -984,7 +915,7 @@ def _assert_nested_logit_methods_match_expected_across_seeds(
     nest_spec: dict,
     n_draws: int,
     seeds: list[int],
-    methods: tuple[str, ...] = ("mc", "tree_walk", "exact_leaf"),
+    methods: tuple[str, ...] = ("mc", "exact_leaf"),
 ) -> dict[str, np.ndarray]:
     expected = _expected_nested_logit_shares(raw_utilities, nest_spec)
     share_matrices: dict[str, np.ndarray] = {}
@@ -1003,11 +934,11 @@ def _assert_nested_logit_methods_match_expected_across_seeds(
         for right_method in methods[i + 1 :]:
             left_mean = pd.Series(
                 share_matrices[left_method].mean(axis=0),
-                index=raw_utilities.columns.to_numpy(),
+                index=raw_utilities.index.to_numpy(),
             )
             right_mean = pd.Series(
                 share_matrices[right_method].mean(axis=0),
-                index=raw_utilities.columns.to_numpy(),
+                index=raw_utilities.index.to_numpy(),
             )
             tolerances = 8.0 * np.sqrt(
                 2.0
@@ -1056,12 +987,8 @@ def _assert_three_level_nested_logit_methods_follow_power_law(
     if pair_slope_upper is None:
         pair_slope_upper = slope_upper
 
-    method_names = ["mc", "tree_walk", "exact_leaf"]
-    pair_names = [
-        ("mc", "tree_walk"),
-        ("mc", "exact_leaf"),
-        ("tree_walk", "exact_leaf"),
-    ]
+    method_names = ["mc", "exact_leaf"]
+    pair_names = [("mc", "exact_leaf")]
 
     nest_spec = {
         "name": "root",
@@ -1122,20 +1049,10 @@ def _assert_three_level_nested_logit_methods_follow_power_law(
                     seed=seed,
                 )
             )
-            shares_by_method["tree_walk"].append(
-                _nested_logit_eet_shares(
-                    raw_utilities,
-                    nest_spec,
-                    method="tree_walk",
-                    n_draws=int(n_draws),
-                    seed=seed,
-                )
-            )
             shares_by_method["exact_leaf"].append(
                 _nested_logit_eet_shares(
                     raw_utilities,
                     nest_spec,
-                    method="exact_leaf",
                     n_draws=int(n_draws),
                     seed=seed,
                 )
@@ -1584,7 +1501,6 @@ def test_make_choices_vs_eet_nl_exact_leaf_parity_across_structures(
     observed = _nested_logit_eet_shares(
         raw_utilities,
         nest_spec,
-        method="exact_leaf",
         n_draws=n_draws,
     )
 
@@ -1613,7 +1529,6 @@ def test_make_choices_vs_eet_nl_exact_leaf_parity_across_structures(
 #         raw_utilities,
 #         seed=17,
 #         step_name="exact_leaf_float64_dtype",
-#         nested_method="exact_leaf",
 #     )
 
 #     try:
@@ -1627,51 +1542,32 @@ def test_make_choices_vs_eet_nl_exact_leaf_parity_across_structures(
 
 #     assert all(dtype == np.float64 for dtype in error_terms.dtypes)
 
-
-@pytest.mark.parametrize(
-    "nest_spec,raw_utilities,_alt_order_array",
-    [
-        NESTED_LOGIT_EXACT_PARITY_CASES[1],
-        NESTED_LOGIT_EXACT_PARITY_CASES[3],
-    ],
-)
-def test_make_choices_vs_eet_nl_tree_walk_parity_deeper_structures(
-    nest_spec, raw_utilities, _alt_order_array
-):
-    n_draws = 20_000
-    expected = _expected_nested_logit_shares(raw_utilities, nest_spec)
-    observed = _nested_logit_eet_shares(
-        raw_utilities,
-        nest_spec,
-        method="tree_walk",
-        n_draws=n_draws,
-    )
-
-    _assert_empirical_shares_close(observed, expected, n_draws=n_draws)
-
-
-def test_make_choices_utility_based_uses_exact_leaf_setting(monkeypatch):
+def test_make_choices_utility_based_routes_nested_logit_to_nl_eet(monkeypatch):
     sentinel = pd.Series([1, 0], index=pd.Index([100, 101], name="chooser_id"))
 
-    def fake_exact_leaf(
+    def fake_make_choices_explicit_error_term_nl(
         state,
         alt_utilities,
         nest_spec,
         trace_label,
         trace_choosers=None,
-        allow_bad_utils=False,
+        alts_context=None,
+        alt_nrs_df=None,
     ):
         assert list(alt_utilities.columns) == ["car", "walk"]
+        assert trace_label == "test.make_choices_utility_based"
+        assert trace_choosers is None
+        assert alts_context is None
+        assert alt_nrs_df is None
         return sentinel
 
     monkeypatch.setattr(
         logit,
-        "make_choices_explicit_error_term_nl_exact_leaf",
-        fake_exact_leaf,
+        "make_choices_explicit_error_term_nl",
+        fake_make_choices_explicit_error_term_nl,
     )
 
     state = workflow.State().default_settings()
-    state.settings.nested_explicit_error_term_method = "exact_leaf"
     utilities = pd.DataFrame(
         [[0.0, 0.0], [0.0, 0.0]],
         index=pd.Index([100, 101], name="chooser_id"),
@@ -1690,7 +1586,7 @@ def test_make_choices_utility_based_uses_exact_leaf_setting(monkeypatch):
         state,
         utilities,
         nest_spec=nest_spec,
-        trace_label=None,
+        trace_label="test",
     )
 
     pdt.assert_series_equal(choices, sentinel)
@@ -1732,7 +1628,7 @@ def test_nested_logit_share_response_tracks_utility_perturbations():
     assert expected_delta["DRIVE_EXP"] > 0
     assert expected_delta["TNC_SHARED"] < 0
 
-    for method in ("mc", "tree_walk", "exact_leaf"):
+    for method in ("mc", "exact_leaf"):
         baseline_matrix = _nested_logit_method_share_matrix(
             base_utilities,
             case["nest_spec"],

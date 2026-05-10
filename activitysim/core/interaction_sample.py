@@ -33,18 +33,36 @@ DUMP = False
 
 
 def _poisson_sample_alternatives_inner(
-    alternative_count: int,
     probs: pd.DataFrame,
-    poisson_inclusion_probs: pd.DataFrame,
+    poisson_inclusion_probs_values: np.ndarray,
     rng: Random,
     trace_label: str | None,
     chunk_sizer: ChunkSizer,
-) -> pd.DataFrame:
-    rands = rng.random_for_df(probs, n=alternative_count)
+) -> np.ndarray:
+    rands = rng.random_for_df(probs, n=probs.shape[1])
     chunk_sizer.log_df(trace_label, "rands", rands)
-    sampled_mask = rands < poisson_inclusion_probs
-    sampled_results = poisson_inclusion_probs.where(sampled_mask)
-    return sampled_results
+    return np.where(rands < poisson_inclusion_probs_values, poisson_inclusion_probs_values, np.nan)
+
+
+def _build_choices_df_from_sampled_alternatives(
+    sampled_alternatives: pd.DataFrame,
+    alternatives: pd.DataFrame,
+    alt_col_name: str,
+) -> pd.DataFrame:
+    sampled_values = sampled_alternatives.to_numpy(copy=False)
+    chooser_positions, alt_positions = np.nonzero(~np.isnan(sampled_values))
+
+    chooser_col_name = sampled_alternatives.index.name or "index"
+    if len(chooser_positions) == 0:
+        return pd.DataFrame(columns=[chooser_col_name, "prob", alt_col_name])
+
+    return pd.DataFrame(
+        {
+            chooser_col_name: sampled_alternatives.index.to_numpy()[chooser_positions],
+            "prob": sampled_values[chooser_positions, alt_positions],
+            alt_col_name: alternatives.index.to_numpy()[alt_positions],
+        }
+    )
 
 
 def make_sample_choices_utility_based(
@@ -90,17 +108,13 @@ def make_sample_choices_utility_based(
         trace_choosers=choosers,
     )
     inclusion_probs, sampled_alternatives = _poisson_sample_alternatives(
-        alternative_count, chunk_sizer, probs, sample_size, state, trace_label
+        chunk_sizer, probs, sample_size, state, trace_label
     )
 
-    # Stack removes the NaNs (the ones that weren't sampled)
-    # and gives us a multi-index of (person_id, alt_id)
-    choices_df = (
-        sampled_alternatives.rename_axis("alt_idx", axis=1)
-        .stack()
-        .reset_index(name="prob")
-        .assign(**{alt_col_name: lambda df: alternatives.index.values[df["alt_idx"]]})
-        .drop(columns=["alt_idx"])
+    choices_df = _build_choices_df_from_sampled_alternatives(
+        sampled_alternatives,
+        alternatives,
+        alt_col_name,
     )
 
     # Here we return the inclusion probabilities i.e. the true probability of being sampled and (ab)use the fact
@@ -113,7 +127,6 @@ def make_sample_choices_utility_based(
 
 
 def _poisson_sample_alternatives(
-    alternative_count,
     chunk_sizer: ChunkSizer,
     probs: pd.DataFrame,
     sample_size,
@@ -122,51 +135,66 @@ def _poisson_sample_alternatives(
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     # compute the inclusion probability as the reciprocal of alt never being drawn
     #  -- these are common, so compute once upfront
-    exclusion_probs = (1 - probs) ** sample_size
-    inclusion_probs = 1 - exclusion_probs
+    index = probs.index
+    columns = probs.columns
+    probs_values = probs.to_numpy(copy=False)
+    exclusion_probs_values = np.power(1.0 - probs_values, sample_size)
+    inclusion_probs_values = 1.0 - exclusion_probs_values
 
     n = 0
-    probs_subset = probs
-    inclusion_probs_subset = inclusion_probs
-    sampled_alternatives = pd.DataFrame(
-        0.0, index=inclusion_probs.index, columns=inclusion_probs.columns
-    )
-    while True:
+    active_row_positions = np.arange(len(probs), dtype=np.int64)
+    sampled_values = np.full(inclusion_probs_values.shape, np.nan)
+
+    while active_row_positions.size > 0:
+        probs_subset = probs.iloc[active_row_positions]
         sampled_results_subset = _poisson_sample_alternatives_inner(
-            alternative_count,
             probs_subset,
-            inclusion_probs_subset,
+            inclusion_probs_values[active_row_positions],
             state.get_rn_generator(),
             trace_label,
             chunk_sizer,
         )
-        no_alts_sampled_mask = sampled_results_subset.isna().all(axis=1)
-        alts_with_sampled_alternatives = sampled_results_subset[~no_alts_sampled_mask]
-        sampled_alternatives.loc[
-            alts_with_sampled_alternatives.index, :
-        ] = alts_with_sampled_alternatives
+        no_alts_sampled_mask = np.isnan(sampled_results_subset).all(axis=1)
+        sampled_values[active_row_positions[~no_alts_sampled_mask]] = sampled_results_subset[
+            ~no_alts_sampled_mask
+        ]
+
         if no_alts_sampled_mask.any():
             # TODO if this happens in base but the project case is such that something is picked, random numbers won't
             #  be consistent - we're asserting that this is very rare models where the sample size is not too small
             logger.info(f"Poisson sampling of alternatives failed with {n=}, retrying")
             # TODO put this behind a debug guard, because it will be slow
             logger.info(
-                f"Sampled size was {sample_size}, poisson method mean expected sample size was {inclusion_probs.sum(axis=1).mean():.1f}, actual sampled mean was {(sampled_alternatives > 0).sum(axis=1).mean():.1f} and highest zero selection prob was {(exclusion_probs).product(axis=1).max():.2g}"
+                f"Sampled size was {sample_size}, poisson method mean expected sample size was {inclusion_probs_values.sum(axis=1).mean():.1f}, actual sampled mean was {np.isfinite(sampled_values).sum(axis=1).mean():.1f} and highest zero selection prob was {exclusion_probs_values.prod(axis=1).max():.2g}"
             )
-            probs_subset = probs[no_alts_sampled_mask]
-            inclusion_probs_subset = inclusion_probs[no_alts_sampled_mask]
+            active_row_positions = active_row_positions[no_alts_sampled_mask]
 
         else:  # All alternatives are fine
             break
 
         n += 1
         if n == 10:
-            choosers_no_alts_sampled = sampled_results_subset[no_alts_sampled_mask]
+            choosers_no_alts_sampled = pd.DataFrame(
+                sampled_results_subset[no_alts_sampled_mask],
+                index=probs_subset.index[no_alts_sampled_mask],
+                columns=probs.columns,
+            )
             msg = (
                 f"Poisson choice set sampling failed after 10 attempts for these cases:\n"
-                f"{choosers_no_alts_sampled}\n{probs_subset}"
+                f"{choosers_no_alts_sampled}\n{probs_subset.loc[choosers_no_alts_sampled.index]}"
             )
             raise ValueError(msg)
+
+    sampled_alternatives = pd.DataFrame(
+        sampled_values,
+        index=index,
+        columns=columns,
+    )
+    inclusion_probs = pd.DataFrame(
+        inclusion_probs_values,
+        index=index,
+        columns=columns,
+    )
 
     chunk_sizer.log_df(trace_label, "sampled_alternatives", sampled_alternatives)
 

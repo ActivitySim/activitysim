@@ -39,9 +39,56 @@ def _poisson_sample_alternatives_inner(
     trace_label: str | None,
     chunk_sizer: ChunkSizer,
 ) -> np.ndarray:
+    """
+    Draw one Bernoulli inclusion decision per chooser-alternative pair.
+
+    Returns a dense 2-D array aligned to `probs` where sampled alternatives
+    contain their Poisson inclusion probability and unsampled alternatives are
+    `np.nan`.
+    """
     rands = rng.random_for_df(probs, n=probs.shape[1])
     chunk_sizer.log_df(trace_label, "rands", rands)
     return np.where(rands < poisson_inclusion_probs_values, poisson_inclusion_probs_values, np.nan)
+
+
+def _poisson_fallback_sample_alternatives(
+    probs: pd.DataFrame,
+    sample_size: int,
+    rng: Random,
+    trace_label: str | None,
+    chunk_sizer: ChunkSizer,
+) -> np.ndarray:
+    """
+    Fallback sampler used when Poisson retries still leave empty chooser rows.
+
+    This path samples exactly `sample_size` distinct alternatives per chooser
+    without replacement by ranking one random score per alternative. The
+    returned array uses the same sparse chooser-by-alternative representation as
+    the Poisson path: chosen alternatives are `1.0`, unchosen alternatives are
+    `np.nan`.
+    """
+    if sample_size > probs.shape[1]:
+        raise ValueError(
+            "Fallback sampling without replacement requires sample_size <= number of alternatives"
+        )
+
+    fallback_rands = rng.random_for_df(probs, n=probs.shape[1])
+    chunk_sizer.log_df(trace_label, "fallback_rands", fallback_rands)
+
+    chosen_positions = np.argpartition(
+        fallback_rands,
+        kth=sample_size - 1,
+        axis=1,
+    )[:, :sample_size]
+
+    fallback_sampled_values = np.full(probs.shape, np.nan)
+    chooser_positions = np.repeat(np.arange(len(probs)), sample_size)
+    fallback_sampled_values[
+        chooser_positions,
+        chosen_positions.reshape(-1),
+    ] = 1.0
+
+    return fallback_sampled_values
 
 
 def _build_choices_df_from_sampled_alternatives(
@@ -107,7 +154,8 @@ def make_sample_choices_utility_based(
         overflow_protection=not allow_zero_probs,
         trace_choosers=choosers,
     )
-    inclusion_probs, sampled_alternatives = _poisson_sample_alternatives(
+    
+    sampled_alternatives = _poisson_sample_alternatives(
         chunk_sizer, probs, sample_size, state, trace_label
     )
 
@@ -117,13 +165,7 @@ def make_sample_choices_utility_based(
         alt_col_name,
     )
 
-    # Here we return the inclusion probabilities i.e. the true probability of being sampled and (ab)use the fact
-    # that pick_count=1 by definition and ln(1)=0 and recover the standard sample correction term.
-    # In non-Poisson sampling, we would return the probs of sampling an alternative once
-    # and the sampling correction factor np.log(df.pick_count/df.prob) is applied to the simulate utilities.
-    # TODO is it safe change the meaning of df.prob, given it's referenced in expression csvs?
-    #   (but the alternative is to update all the expression CSV for sampling?)
-    return choices_df, inclusion_probs
+    return choices_df
 
 
 def _poisson_sample_alternatives(
@@ -132,18 +174,43 @@ def _poisson_sample_alternatives(
     sample_size,
     state: workflow.State,
     trace_label: str,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    # compute the inclusion probability as the reciprocal of alt never being drawn
-    #  -- these are common, so compute once upfront
-    index = probs.index
-    columns = probs.columns
-    probs_values = probs.to_numpy(copy=False)
-    exclusion_probs_values = np.power(1.0 - probs_values, sample_size)
-    inclusion_probs_values = 1.0 - exclusion_probs_values
+) -> pd.DataFrame:
+    """
+    Build a Poisson-sampled choice set for each chooser.
+
+    The primary path performs independent Poisson inclusion draws for every chooser-alternative pair and retries any
+    chooser row that sampled no alternatives. Both returned DataFrames are aligned to `probs`:
+
+    - `sampled_alternatives` is sparse, with sampled cells holding the value to
+      carry forward as `prob` and unsampled cells set to `np.nan`
+
+    If a chooser still has no sampled alternatives after 10 retries, we fall
+    back to sampling exactly `sample_size` distinct alternatives without
+    replacement and force those chosen probabilities to `1.0` so the sampling
+    correction factor cancels out. In practice we expect this to be very rare
+    with reasonable sample sizes and not too small choice sets, but it is a
+    known issue with Poisson sampling that we want to guard against. Note that
+    if this fallback is triggered it can lead to inconsistent random numbers
+    between two scenarios if the number of retries it takes in each scenario
+    differs, but again we expect this to be very rare and the alternative is
+    potentially infinite retries or raising an error.
+
+    To make Poisson sampling interchangeable with other sampling methods, we return the inclusion probabilities
+    i.e. the true probability of being sampled. Pick_count will be 1 by definition (poisson sampling returns a yes/no
+    for each alternative, so if an alternative is included in the sample it is included once) and the standard
+    sampling correction factor can be recovered as np.log(df.pick_count/df.prob) = np.log(1/inclusion_prob).
+    """
+
+    # In the case of Poisson sampling, the inclusion probability for each chooser-alternative pair is the probability
+    # that the alternative was included in the sample at least once across the `sample_size` draws, which is the
+    # reciprocal of alt never being drawn in sample_size draws, so `1 - (1 - p)^sample_size`  where `p` is the
+    # original choice probability.
+    inclusion_probs_values = 1.0 - np.power(1.0 - probs.to_numpy(copy=False), sample_size)
+
+    sampled_values = np.full(inclusion_probs_values.shape, np.nan)
 
     n = 0
     active_row_positions = np.arange(len(probs), dtype=np.int64)
-    sampled_values = np.full(inclusion_probs_values.shape, np.nan)
 
     while active_row_positions.size > 0:
         probs_subset = probs.iloc[active_row_positions]
@@ -160,45 +227,50 @@ def _poisson_sample_alternatives(
         ]
 
         if no_alts_sampled_mask.any():
-            # TODO if this happens in base but the project case is such that something is picked, random numbers won't
-            #  be consistent - we're asserting that this is very rare models where the sample size is not too small
             logger.info(f"Poisson sampling of alternatives failed with {n=}, retrying")
-            # TODO put this behind a debug guard, because it will be slow
-            logger.info(
-                f"Sampled size was {sample_size}, poisson method mean expected sample size was {inclusion_probs_values.sum(axis=1).mean():.1f}, actual sampled mean was {np.isfinite(sampled_values).sum(axis=1).mean():.1f} and highest zero selection prob was {exclusion_probs_values.prod(axis=1).max():.2g}"
+            failed_row_positions = active_row_positions[no_alts_sampled_mask]
+            logger.debug(
+                f"Sampled size was {sample_size}, poisson method mean expected sample size was" +
+                f" {inclusion_probs_values[failed_row_positions].sum(axis=1).mean():.1f}, actual sampled mean was" +
+                f" {np.isfinite(sampled_values[failed_row_positions]).sum(axis=1).mean():.1f} and highest zero" +
+                f" selection prob was {(1.0 - inclusion_probs_values[failed_row_positions]).prod(axis=1).max():.2g}"
             )
-            active_row_positions = active_row_positions[no_alts_sampled_mask]
+            active_row_positions = failed_row_positions
 
-        else:  # All alternatives are fine
+        else:  # All choosers have at least one alternative in sample set
             break
 
         n += 1
         if n == 10:
-            choosers_no_alts_sampled = pd.DataFrame(
-                sampled_results_subset[no_alts_sampled_mask],
-                index=probs_subset.index[no_alts_sampled_mask],
-                columns=probs.columns,
+            logger.info(
+                "Poisson choice set sampling exceeded 10 retries; falling back to random sampling for %s choosers",
+                len(active_row_positions),
             )
-            msg = (
-                f"Poisson choice set sampling failed after 10 attempts for these cases:\n"
-                f"{choosers_no_alts_sampled}\n{probs_subset.loc[choosers_no_alts_sampled.index]}"
+            fallback_sampled_values = _poisson_fallback_sample_alternatives(
+                probs.iloc[active_row_positions],
+                sample_size,
+                state.get_rn_generator(),
+                trace_label,
+                chunk_sizer,
             )
-            raise ValueError(msg)
+            sampled_values[active_row_positions] = fallback_sampled_values
+            fallback_mask = ~np.isnan(fallback_sampled_values)
+            inclusion_probs_values[active_row_positions] = np.where(
+                fallback_mask,
+                1.0,
+                inclusion_probs_values[active_row_positions],
+            )
+            break
 
     sampled_alternatives = pd.DataFrame(
         sampled_values,
-        index=index,
-        columns=columns,
-    )
-    inclusion_probs = pd.DataFrame(
-        inclusion_probs_values,
-        index=index,
-        columns=columns,
+        index=probs.index,
+        columns=probs.columns,
     )
 
     chunk_sizer.log_df(trace_label, "sampled_alternatives", sampled_alternatives)
 
-    return inclusion_probs, sampled_alternatives
+    return sampled_alternatives
 
 
 def make_sample_choices(
@@ -673,7 +745,7 @@ def _interaction_sample(
             trace_choosers=choosers,
         )
 
-        choices_df, probs = make_sample_choices_utility_based(
+        choices_df = make_sample_choices_utility_based(
             state,
             choosers,
             utilities,
@@ -758,8 +830,8 @@ def _interaction_sample(
                 choices_df = pd.concat([choices_df, survey_choices], ignore_index=True)
                 choices_df.sort_values(by=[choosers.index.name], inplace=True)
 
-    del probs
-    chunk_sizer.log_df(trace_label, "probs", None)
+        del probs
+        chunk_sizer.log_df(trace_label, "probs", None)
 
     chunk_sizer.log_df(trace_label, "choices_df", choices_df)
 

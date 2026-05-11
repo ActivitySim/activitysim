@@ -83,6 +83,37 @@ def test_poisson_sample_alternatives_inner_returns_masked_inclusion_probs():
     np.testing.assert_allclose(sampled, expected, equal_nan=True)
 
 
+def test_poisson_fallback_sample_alternatives_selects_distinct_positions_with_prob_one():
+    probs = pd.DataFrame(
+        [[0.20, 0.30, 0.50, 0.00], [0.40, 0.10, 0.30, 0.20]],
+        index=pd.Index([11, 17], name="person_id"),
+        columns=np.arange(4),
+    )
+    rng = _SequentialDummyRng(
+        [
+            np.array(
+                [[0.90, 0.10, 0.40, 0.20], [0.05, 0.70, 0.60, 0.10]],
+                dtype=np.float64,
+            )
+        ]
+    )
+
+    sampled = interaction_sample._poisson_fallback_sample_alternatives(
+        probs=probs,
+        sample_size=2,
+        rng=rng,
+        trace_label="test_poisson_fallback_sample_alternatives_selects_distinct_positions_with_prob_one",
+        chunk_sizer=_DummyChunkSizer(),
+    )
+
+    expected = np.array(
+        [[np.nan, 1.0, np.nan, 1.0], [1.0, np.nan, np.nan, 1.0]],
+        dtype=np.float64,
+    )
+
+    np.testing.assert_allclose(sampled, expected, equal_nan=True)
+
+
 def test_poisson_sample_alternatives_retries_and_returns_expected_frames():
     probs = pd.DataFrame(
         [
@@ -128,6 +159,50 @@ def test_poisson_sample_alternatives_retries_and_returns_expected_frames():
             state=state,
             trace_label="test_poisson_sample_alternatives_retries_and_returns_expected_frames",
         )
+    )
+
+    pd.testing.assert_frame_equal(inclusion_probs, expected_inclusion_probs)
+    pd.testing.assert_frame_equal(sampled_alternatives, expected_sampled_alternatives)
+
+
+def test_poisson_sample_alternatives_falls_back_to_random_sampling_after_ten_retries():
+    probs = pd.DataFrame(
+        [[0.20, 0.30, 0.50]],
+        index=pd.Index([11], name="person_id"),
+        columns=np.arange(3),
+    )
+    sample_size = 2
+    fail_draw = np.array([[0.99, 0.99, 0.99]], dtype=np.float64)
+    fallback_draw = np.array([[0.10, 0.80, 0.20]], dtype=np.float64)
+    state = _DummyState(
+        _SequentialDummyRng([fail_draw] * 10 + [fallback_draw])
+    )
+
+    inclusion_probs, sampled_alternatives = (
+        interaction_sample._poisson_sample_alternatives(
+            chunk_sizer=_DummyChunkSizer(),
+            probs=probs,
+            sample_size=sample_size,
+            state=state,
+            trace_label="test_poisson_sample_alternatives_falls_back_to_random_sampling_after_ten_retries",
+        )
+    )
+
+    # randomly sampling sample_size alternatives, sample prob is 1 for these
+    # so that log(pick_count / prob) = log(1 / 1) = 0.
+    # note the second alternative is not chosen, but because the poisson inclusion probs
+    # are not overwritten for unused alternatives we expect it to be 1 - (1 - 0.30) ** 2
+    expected_inclusion_probs = pd.DataFrame(
+        [[1.0, 1 - (1 - 0.30) ** 2, 1.0]],
+        index=probs.index,
+        columns=probs.columns,
+    )
+    # first and third alternatives are randomly sampled with prob 1, second alternative is not
+    # sampled so prob is nan
+    expected_sampled_alternatives = pd.DataFrame(
+        [[1.0, np.nan, 1.0]],
+        index=probs.index,
+        columns=probs.columns,
     )
 
     pd.testing.assert_frame_equal(inclusion_probs, expected_inclusion_probs)

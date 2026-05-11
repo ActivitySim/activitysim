@@ -1091,6 +1091,7 @@ def interaction_sample(
 
     use_eet = state.settings.use_explicit_error_terms
     sampling_method = _resolve_sample_method(state, compute_settings, use_eet)
+    logger.debug(f" interaction_sample sample method = {sampling_method}")
 
     # FIXME - legacy logic - not sure this is needed or even correct?
     if sampling_method != "poisson":
@@ -1100,7 +1101,7 @@ def interaction_sample(
         # all are included (but this wouldn't behave well if there were land use changes in the project case which
         # switched regimes)
 
-    logger.info(f" --- interaction_sample sample size = {sample_size}")
+    logger.debug(f" interaction_sample sample size = {sample_size}")
 
     result_list = []
     for (

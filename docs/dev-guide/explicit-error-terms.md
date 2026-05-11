@@ -19,8 +19,9 @@ use_explicit_error_terms: True
 
 The top-level switch is defined in
 `activitysim.core.configuration.top.SimulationSettings.use_explicit_error_terms`.
-Choice simulation code reads that setting through the model compute settings and routes
-supported logit simulations through the EET path.
+Choice simulation code reads that setting through the supported logit wrappers and routes
+final choice simulation through the EET path. For interaction-sample-specific sampling
+configuration, see {doc}`/dev-guide/sampling-methods`.
 
 ## Default Draw Versus EET
 
@@ -73,62 +74,6 @@ TODO: expand on this here.
 
 Common random numbers. Stronger correlations for exptectation values of differences -> less
 variance in the estimator. So we need less model runs to be representative.
-
-
-### Runtime
-
-Runtime differs between the methods. EET generates one EV1 error term per chooser-alternative
-pair, while the default Monte Carlo path draws only one uniform random number per chooser after
-probabilities are computed. EET, however, does not need to compute probabilities to make choices.
-
-Exact runtimes depend on the number of alternatives, nesting structure, interaction size, and
-sampling configuration. With default settings, current full-scale demand model runs with EET
-are about 1.5 to 2 times longer than the default MC method. Virtually all of this is due to
-sampling in location choice. Memory usage should be comparable for both methods.
-
-(explicit_error_terms_zone_encoding)=
-#### Zone ID encoding and runtime
-
-For location choice models, encoding zone IDs as a 0-based contiguous index reduces EET runtime
-and memory use during sampling.
-
-The current implementation draws error terms into a dense 1-D array of length `max_zone_id + 1`
-per chooser (see `AltsContext.n_alts_to_cover_max_id` in `activitysim.core.logit`). Each sampled
-alternative is then looked up by direct offset into that array, so the same zone always receives
-the same error term regardless of which alternatives are in the sampled choice set — a property
-needed for consistent scenario comparisons.
-
-When zone IDs are a contiguous 0-based sequence, the dense array has exactly as many entries as
-there are zones and every draw is used. When zone IDs contain gaps or start from a large value,
-the array must still cover `max_zone_id + 1` entries, so the draws for the missing IDs are
-generated but never used. For zone systems with large or sparse IDs, this waste can be substantial.
-
-An alternative would be to draw only as many error terms as there are sampled alternatives and
-retrieve the relevant term for each zone via a lookup. That would avoid unused draws but it does
-not fit naturally with with ActivitySim's current random number generation machinery, trading
-one form of overhead for another. The current design favours the dense approach because
-benchmarking suggested it was quicker and because ActivitySim has a ``recode_columns`` setting
-that optionally encodes zone IDs as ``zero-based`` in the input table list; see the
-[Zero-based Recoding of Zones](using-sharrow.md#zero-based-recoding-of-zones) section for details.
-We recommend using this option when running with EET.
-
-<!--
-#### Sampling method considerations for model components with sampled choice sets
-ActivitySim uses sampling of alternatives to reduce runtime of location choice methods.
-
-TODO: Add details here once sampling method discussion have been resolved. Make clear this is
-independent of overall simulation strategy. Maybe rename EET sampling so there is no confusion?
-
-To use MC sampling with EET simulation, add the following lines to the settings of all models
-where location choice sampling is used (currently all location and destination choice models as
-well as disaggregate accessibilities):
-
-.. code-block:: yaml
-
-  compute_settings:
-    use_explicit_error_terms:
-      sample: false
--->
 
 
 ## Implementation Details and Adding New Models

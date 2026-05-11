@@ -31,6 +31,27 @@ logger = logging.getLogger(__name__)
 
 DUMP = False
 
+InteractionSampleMethod = typing.Literal["monte_carlo", "eet", "poisson"]
+
+
+def _resolve_sample_method(
+    state: workflow.State,
+    compute_settings: ComputeSettings | None,
+    use_eet: bool,
+) -> InteractionSampleMethod:
+    sampling_method = None
+    if compute_settings is not None:
+        sampling_method = compute_settings.sample_method
+    if sampling_method is None:
+        sampling_method = state.settings.sample_method
+    if sampling_method is None:
+        return "poisson" if use_eet else "monte_carlo"
+    if sampling_method not in typing.get_args(InteractionSampleMethod):
+        raise ValueError(
+            f"Unsupported sample_method {sampling_method!r}; expected one of {typing.get_args(InteractionSampleMethod)}"
+        )
+    return sampling_method
+
 
 def _poisson_sample_alternatives_inner(
     probs: pd.DataFrame,
@@ -91,6 +112,65 @@ def _poisson_fallback_sample_alternatives(
     return fallback_sampled_values
 
 
+def _eet_sample_alternatives_with_replacement(
+    state: workflow.State,
+    choosers: pd.DataFrame,
+    utilities: pd.DataFrame,
+    alternatives: pd.DataFrame,
+    sample_size: int,
+    alt_col_name: str,
+    trace_label: str,
+    chunk_sizer: ChunkSizer,
+    stable_alt_positions: np.ndarray | None = None,
+    n_total_alts: int | None = None,
+) -> pd.DataFrame:
+    """
+    Sample alternatives by repeated EET draws with replacement.
+
+    Each chooser receives `sample_size` EV1 draw sets. The winning alternative
+    from each draw is recorded, allowing duplicates in the same way as the
+    Monte Carlo sampling path.
+    """
+    chosen_destinations = state.get_rn_generator().gumbel_max_positions_for_df(
+        utilities,
+        sample_size,
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
+    ).reshape(-1)
+    chunk_sizer.log_df(trace_label, "chosen_destinations", chosen_destinations)
+
+    chooser_idx = np.repeat(np.arange(utilities.shape[0]), sample_size)
+    chunk_sizer.log_df(trace_label, "chooser_idx", chooser_idx)
+
+    probs = logit.utils_to_probs(
+        state,
+        utilities,
+        allow_zero_probs=False,
+        trace_label=trace_label,
+        overflow_protection=True,
+        trace_choosers=choosers,
+    )
+    chunk_sizer.log_df(trace_label, "probs", probs)
+
+    choices_df = pd.DataFrame(
+        {
+            choosers.index.name: choosers.index.values[chooser_idx],
+            "prob": probs.to_numpy()[chooser_idx, chosen_destinations],
+            alt_col_name: alternatives.index.values[chosen_destinations],
+        }
+    )
+    chunk_sizer.log_df(trace_label, "choices_df", choices_df)
+
+    del chooser_idx
+    chunk_sizer.log_df(trace_label, "chooser_idx", None)
+    del chosen_destinations
+    chunk_sizer.log_df(trace_label, "chosen_destinations", None)
+    del probs
+    chunk_sizer.log_df(trace_label, "probs", None)
+
+    return choices_df
+
+
 def make_sample_choices_utility_based(
     state: workflow.State,
     choosers,
@@ -102,6 +182,9 @@ def make_sample_choices_utility_based(
     allow_zero_probs,
     trace_label: str,
     chunk_sizer: ChunkSizer,
+    sampling_method: InteractionSampleMethod = "poisson",
+    stable_alt_positions: np.ndarray | None = None,
+    n_total_alts: int | None = None,
 ):
     assert isinstance(utilities, pd.DataFrame)
     assert utilities.shape == (len(choosers), alternative_count)
@@ -114,9 +197,7 @@ def make_sample_choices_utility_based(
             utilities.sum(axis=1) <= utilities.shape[1] * logit.UTIL_UNAVAILABLE
         )
         if zero_probs.all():
-            return pd.DataFrame(
-                columns=[alt_col_name, "rand", "prob", choosers.index.name]
-            ), pd.DataFrame(columns=["prob"])
+            return pd.DataFrame(columns=[choosers.index.name, "prob", alt_col_name])
         if zero_probs.any():
             # remove from sample
             utilities = utilities[~zero_probs]
@@ -125,24 +206,40 @@ def make_sample_choices_utility_based(
     utils_array = utilities.to_numpy()
     chunk_sizer.log_df(trace_label, "utils_array", utils_array)
 
-    probs = logit.utils_to_probs(
-        state,
-        utilities,
-        allow_zero_probs=allow_zero_probs,
-        trace_label=trace_label,
-        overflow_protection=not allow_zero_probs,
-        trace_choosers=choosers,
-    )
-    
-    choices_df = _poisson_sample_alternatives(
-        chunk_sizer,
-        probs,
-        alternatives,
-        sample_size,
-        alt_col_name,
-        state,
-        trace_label,
-    )
+    if sampling_method == "eet":
+        choices_df = _eet_sample_alternatives_with_replacement(
+            state,
+            choosers,
+            utilities,
+            alternatives,
+            sample_size,
+            alt_col_name,
+            trace_label,
+            chunk_sizer,
+            stable_alt_positions=stable_alt_positions,
+            n_total_alts=n_total_alts,
+        )
+    elif sampling_method == "poisson":
+        probs = logit.utils_to_probs(
+            state,
+            utilities,
+            allow_zero_probs=allow_zero_probs,
+            trace_label=trace_label,
+            overflow_protection=not allow_zero_probs,
+            trace_choosers=choosers,
+        )
+
+        choices_df = _poisson_sample_alternatives(
+            chunk_sizer,
+            probs,
+            alternatives,
+            sample_size,
+            alt_col_name,
+            state,
+            trace_label,
+        )
+    else:
+        raise ValueError(f"Unsupported utility-based sampling method {sampling_method!r}")
 
     return choices_df
 
@@ -283,6 +380,8 @@ def make_sample_choices(
 
     Returns
     -------
+    stable_alt_positions=None,
+    n_total_alts=None,
 
     """
 
@@ -364,6 +463,8 @@ def _interaction_sample(
     zone_layer=None,
     chunk_sizer: ChunkSizer | None = None,
     compute_settings: ComputeSettings | None = None,
+    stable_alt_positions=None,
+    n_total_alts=None,
 ):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -675,13 +776,8 @@ def _interaction_sample(
 
     state.tracing.dump_df(DUMP, utilities, trace_label, "utilities")
 
-    if compute_settings.use_explicit_error_terms is not None:
-        use_eet = compute_settings.use_explicit_error_terms
-        logger.info(
-            f"Interaction sample model-specific EET overrides for {trace_label}: eet = {use_eet}"
-        )
-    else:
-        use_eet = state.settings.use_explicit_error_terms
+    use_eet = state.settings.use_explicit_error_terms
+    sampling_method = _resolve_sample_method(state, compute_settings, use_eet)
 
     if sample_size == 0:
         # Return full alternative set rather than sample
@@ -711,11 +807,11 @@ def _interaction_sample(
 
         return choices_df
 
-    if use_eet:
+    if sampling_method != "monte_carlo":
 
         if estimation.manager.enabled:
             raise ValueError(
-                "cannot use explicit error terms with estimation mode at this time"
+                f"sample_method={sampling_method!r} is not supported with estimation mode"
             )
 
         utilities = logit.validate_utils(
@@ -737,6 +833,9 @@ def _interaction_sample(
             allow_zero_probs=allow_zero_probs,
             trace_label=trace_label,
             chunk_sizer=chunk_sizer,
+            sampling_method=sampling_method,
+            stable_alt_positions=stable_alt_positions,
+            n_total_alts=n_total_alts,
         )
         del utilities
         chunk_sizer.log_df(trace_label, "utilities", None)
@@ -846,7 +945,7 @@ def _interaction_sample(
             column_labels=["sample_alt", "alternative"],
         )
 
-    if not state.settings.use_explicit_error_terms:
+    if "rand" in choices_df.columns and not use_eet:
         # don't need this after tracing
         del choices_df["rand"]
 
@@ -877,6 +976,8 @@ def interaction_sample(
     zone_layer: str | None = None,
     explicit_chunk_size: float = 0,
     compute_settings: ComputeSettings | None = None,
+    stable_alt_positions=None,
+    n_total_alts=None,
 ):
     """
     Run a simulation in the situation in which alternatives must
@@ -951,8 +1052,11 @@ def interaction_sample(
     if not choosers.index.is_monotonic_increasing:
         assert choosers.index.is_monotonic_increasing
 
+    use_eet = state.settings.use_explicit_error_terms
+    sampling_method = _resolve_sample_method(state, compute_settings, use_eet)
+
     # FIXME - legacy logic - not sure this is needed or even correct?
-    if not state.settings.use_explicit_error_terms:
+    if sampling_method != "poisson":
         sample_size = min(sample_size, len(alternatives.index))
         # with poisson sampling, definitely don't want to reduce sample size - it's not a sample size but a number
         # of theoretical draws. Another options would be to disable sampling if # alts < sample size to ensure
@@ -985,6 +1089,8 @@ def interaction_sample(
             zone_layer=zone_layer,
             chunk_sizer=chunk_sizer,
             compute_settings=compute_settings,
+            stable_alt_positions=stable_alt_positions,
+            n_total_alts=n_total_alts,
         )
 
         if choices.shape[0] > 0:

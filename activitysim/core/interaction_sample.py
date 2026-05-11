@@ -104,9 +104,11 @@ def _poisson_fallback_sample_alternatives(
     `np.nan`.
     """
     if sample_size > probs.shape[1]:
-        raise ValueError(
-            "Fallback sampling without replacement requires sample_size <= number of alternatives"
+        logger.info(
+            f"Poisson fallback sampling without replacement with sample_size={sample_size} > number of alternatives=" +
+            f"{probs.shape[1]}; returning all alternatives for {len(probs)} choosers"
         )
+        return np.full(probs.shape, 1.0)
 
     if stable_alt_positions is None and n_total_alts is None:
         fallback_rands = rng.random_for_df(probs, n=probs.shape[1])

@@ -224,37 +224,23 @@ class _DummyState:
         return self._rng
 
 
-class _DummyRngUtilityBased:
-    def __init__(self, rands_3d):
-        self.rands_3d = rands_3d
+class _SequentialDummyRng:
+    def __init__(self, draws):
+        self._draws = list(draws)
 
-    def gumbel_max_positions_for_df(
-        self,
-        utilities,
-        sample_size,
-        stable_alt_positions=None,
-        n_total_alts=None,
-    ):
-        assert sample_size == self.rands_3d.shape[2]
-        if stable_alt_positions is None:
-            active_rands = self.rands_3d
-        else:
-            assert n_total_alts == self.rands_3d.shape[1]
-            active_rands = self.rands_3d[:, stable_alt_positions, :]
-        return np.argmax(
-            active_rands + utilities.to_numpy()[:, :, np.newaxis],
-            axis=1,
-        )
+    def random_for_df(self, df, n=1):
+        draw = self._draws.pop(0)
+        assert draw.shape == (len(df), n)
+        return draw
 
 
 def test_make_sample_choices_utility_based_repeat_alignment_chooser_dominant_heterogeneity():
     # Edge case: utilities are close across alternatives but vary strongly by chooser.
-    # This is where wrong chooser/sample alignment can hide in aggregate checks.
+    # This checks that the flattened Poisson result keeps chooser/prob alignment.
     chooser_index = pd.Index([101, 102, 103, 104, 105, 106], name="person_id")
     choosers = pd.DataFrame(index=chooser_index)
     alternatives = pd.DataFrame(index=pd.Index([0, 1, 2, 3], name="alt_id"))
 
-    n_choosers = len(choosers)
     n_alts = len(alternatives)
     sample_size = 3
 
@@ -268,9 +254,18 @@ def test_make_sample_choices_utility_based_repeat_alignment_chooser_dominant_het
         index=chooser_index,
     )
 
-    # No random noise: chosen alternative is deterministic argmax of utilities.
-    rands_3d = np.zeros((n_choosers, n_alts, sample_size), dtype=np.float64)
-    state = _DummyState(_DummyRngUtilityBased(rands_3d))
+    poisson_draws = np.array(
+        [
+            [0.01, 0.90, 0.90, 0.90],
+            [0.80, 0.05, 0.90, 0.90],
+            [0.90, 0.10, 0.40, 0.90],
+            [0.90, 0.90, 0.10, 0.20],
+            [0.90, 0.90, 0.02, 0.10],
+            [0.90, 0.90, 0.90, 0.001],
+        ],
+        dtype=np.float64,
+    )
+    state = _DummyState(_SequentialDummyRng([poisson_draws]))
 
     out = interaction_sample.make_sample_choices_utility_based(
         state=state,
@@ -285,16 +280,6 @@ def test_make_sample_choices_utility_based_repeat_alignment_chooser_dominant_het
         chunk_sizer=_DummyChunkSizer(),
     )
 
-    # Reconstruct expected indexing behavior.
-    chosen_2d = np.argmax(
-        rands_3d + utilities.to_numpy()[:, :, np.newaxis],
-        axis=1,
-    )
-    chosen_flat = chosen_2d.reshape(-1)
-
-    chooser_repeat = np.repeat(np.arange(n_choosers), sample_size)
-    chooser_tile = np.tile(np.arange(n_choosers), sample_size)
-
     probs = interaction_sample.logit.utils_to_probs(
         state,
         utilities,
@@ -303,12 +288,19 @@ def test_make_sample_choices_utility_based_repeat_alignment_chooser_dominant_het
         overflow_protection=True,
         trace_choosers=choosers,
     ).to_numpy()
+    inclusion_probs = 1 - np.power(1 - probs, sample_size)
+    sampled_values = np.where(poisson_draws < inclusion_probs, inclusion_probs, np.nan)
+    chooser_idx, alt_idx = np.nonzero(~np.isnan(sampled_values))
 
-    expected_prob_repeat = probs[chooser_repeat, chosen_flat]
-    wrong_prob_tile = probs[chooser_tile, chosen_flat]
+    expected = pd.DataFrame(
+        {
+            "person_id": chooser_index.to_numpy()[chooser_idx],
+            "prob": sampled_values[chooser_idx, alt_idx],
+            "alt_id": alternatives.index.to_numpy()[alt_idx],
+        }
+    )
 
-    assert np.array_equal(out["prob"].to_numpy(), expected_prob_repeat)
-    assert not np.array_equal(out["prob"].to_numpy(), wrong_prob_tile)
+    pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
 
 
 def test_make_sample_choices_utility_based_fused_rng_matches_materialized_path():
@@ -320,75 +312,16 @@ def test_make_sample_choices_utility_based_fused_rng_matches_materialized_path()
         index=chooser_index,
     )
     sample_size = 2
-    n_alts = len(alternatives)
-    rands_3d = np.array(
+    poisson_draws = np.array(
         [
-            [[0.1, -0.3], [0.2, 0.4], [0.5, -0.1], [0.0, 0.2]],
-            [[-0.2, 0.3], [0.6, -0.5], [0.1, 0.7], [0.4, 0.2]],
-            [[0.0, 0.1], [0.3, -0.4], [0.2, 0.5], [-0.3, 0.2]],
+            [0.10, 0.20, 0.50, 0.00],
+            [0.60, 0.50, 0.10, 0.40],
+            [0.00, 0.30, 0.20, 0.90],
         ],
         dtype=np.float64,
     )
-    state = _DummyState(_DummyRngUtilityBased(rands_3d))
-
-    out = interaction_sample.make_sample_choices_utility_based(
-        state=state,
-        choosers=choosers,
-        utilities=utilities,
-        alternatives=alternatives,
-        sample_size=sample_size,
-        alternative_count=n_alts,
-        alt_col_name="alt_id",
-        allow_zero_probs=False,
-        trace_label="test_fused_rng_matches_materialized",
-        chunk_sizer=_DummyChunkSizer(),
-    )
-
-    chosen_positions = np.argmax(
-        rands_3d + utilities.to_numpy()[:, :, np.newaxis],
-        axis=1,
-    )
-    chosen_flat = chosen_positions.reshape(-1)
-    chooser_idx = np.repeat(np.arange(len(choosers)), sample_size)
-    probs = interaction_sample.logit.utils_to_probs(
-        state,
-        utilities,
-        allow_zero_probs=False,
-        trace_label="test_fused_rng_matches_materialized",
-        overflow_protection=True,
-        trace_choosers=choosers,
-    ).to_numpy()
-
-    expected = pd.DataFrame(
-        {
-            "alt_id": alternatives.index.values[chosen_flat],
-            "prob": probs[chooser_idx, chosen_flat],
-            "person_id": choosers.index.values[chooser_idx],
-        }
-    )
-
-    pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
-
-
-def test_make_sample_choices_utility_based_stable_alt_mapping_matches_materialized_path():
-    chooser_index = pd.Index([301, 302], name="person_id")
-    choosers = pd.DataFrame(index=chooser_index)
-    alternatives = pd.DataFrame(index=pd.Index([10, 12, 14], name="alt_id"))
-    utilities = pd.DataFrame(
-        [[0.0, 0.3, -0.2], [1.0, 0.2, 0.4]],
-        index=chooser_index,
-    )
-    sample_size = 2
-    stable_alt_positions = np.array([0, 2, 4], dtype=np.int64)
-    n_total_alts = 5
-    dense_rands_3d = np.array(
-        [
-            [[0.1, -0.3], [0.4, 0.2], [0.2, 0.4], [0.3, -0.2], [0.5, -0.1]],
-            [[-0.2, 0.3], [0.0, 0.5], [0.6, -0.5], [0.2, 0.1], [0.1, 0.7]],
-        ],
-        dtype=np.float64,
-    )
-    state = _DummyState(_DummyRngUtilityBased(dense_rands_3d))
+    retry_draw = np.array([[0.40, 0.10, 0.90, 0.90]], dtype=np.float64)
+    state = _DummyState(_SequentialDummyRng([poisson_draws, retry_draw]))
 
     out = interaction_sample.make_sample_choices_utility_based(
         state=state,
@@ -399,33 +332,75 @@ def test_make_sample_choices_utility_based_stable_alt_mapping_matches_materializ
         alternative_count=len(alternatives),
         alt_col_name="alt_id",
         allow_zero_probs=False,
-        trace_label="test_stable_alt_mapping",
+        trace_label="test_fused_rng_matches_materialized",
         chunk_sizer=_DummyChunkSizer(),
-        stable_alt_positions=stable_alt_positions,
-        n_total_alts=n_total_alts,
     )
 
-    active_rands = dense_rands_3d[:, stable_alt_positions, :]
-    chosen_positions = np.argmax(
-        active_rands + utilities.to_numpy()[:, :, np.newaxis],
-        axis=1,
-    )
-    chosen_flat = chosen_positions.reshape(-1)
-    chooser_idx = np.repeat(np.arange(len(choosers)), sample_size)
     probs = interaction_sample.logit.utils_to_probs(
         state,
         utilities,
         allow_zero_probs=False,
-        trace_label="test_stable_alt_mapping",
+        trace_label="test_fused_rng_matches_materialized",
         overflow_protection=True,
         trace_choosers=choosers,
     ).to_numpy()
+    inclusion_probs = 1 - np.power(1 - probs, sample_size)
+    sampled_values = np.full(inclusion_probs.shape, np.nan)
+    first_pass = np.where(poisson_draws < inclusion_probs, inclusion_probs, np.nan)
+    first_pass_empty = np.isnan(first_pass).all(axis=1)
+    sampled_values[~first_pass_empty] = first_pass[~first_pass_empty]
+    retry_pass = np.where(retry_draw < inclusion_probs[first_pass_empty], inclusion_probs[first_pass_empty], np.nan)
+    sampled_values[first_pass_empty] = retry_pass
+    chooser_idx, alt_idx = np.nonzero(~np.isnan(sampled_values))
 
     expected = pd.DataFrame(
         {
-            "alt_id": alternatives.index.values[chosen_flat],
-            "prob": probs[chooser_idx, chosen_flat],
             "person_id": choosers.index.values[chooser_idx],
+            "prob": sampled_values[chooser_idx, alt_idx],
+            "alt_id": alternatives.index.values[alt_idx],
+        }
+    )
+
+    pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
+
+
+def test_make_sample_choices_utility_based_falls_back_after_retries():
+    chooser_index = pd.Index([301, 302], name="person_id")
+    choosers = pd.DataFrame(index=chooser_index)
+    alternatives = pd.DataFrame(index=pd.Index([10, 12, 14], name="alt_id"))
+    utilities = pd.DataFrame(
+        [[0.0, 0.3, -0.2], [1.0, 0.2, 0.4]],
+        index=chooser_index,
+    )
+    sample_size = 2
+    fail_draw = np.full((2, 3), 0.99, dtype=np.float64)
+    fallback_draw = np.array(
+        [
+            [0.40, 0.10, 0.20],
+            [0.30, 0.20, 0.90],
+        ],
+        dtype=np.float64,
+    )
+    state = _DummyState(_SequentialDummyRng([fail_draw] * 10 + [fallback_draw]))
+
+    out = interaction_sample.make_sample_choices_utility_based(
+        state=state,
+        choosers=choosers,
+        utilities=utilities,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alternative_count=len(alternatives),
+        alt_col_name="alt_id",
+        allow_zero_probs=False,
+        trace_label="test_falls_back_after_retries",
+        chunk_sizer=_DummyChunkSizer(),
+    )
+
+    expected = pd.DataFrame(
+        {
+            "person_id": [301, 301, 302, 302],
+            "prob": [1.0, 1.0, 1.0, 1.0],
+            "alt_id": [12, 14, 10, 12],
         }
     )
 

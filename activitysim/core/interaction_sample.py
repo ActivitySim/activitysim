@@ -915,21 +915,25 @@ def _interaction_sample(
 
     chunk_sizer.log_df(trace_label, "choices_df", choices_df)
 
-    # pick_count and pick_dup
-    # pick_count is number of duplicate picks
-    # pick_dup flag is True for all but first of duplicates
-    pick_group = choices_df.groupby([choosers.index.name, alt_col_name])
+    if sampling_method == "poisson":
+        choices_df['pick_count'] = 1
+    else:
+        # pick_count and pick_dup
+        # pick_count is number of duplicate picks
+        # pick_dup flag is True for all but first of duplicates
+        pick_group = choices_df.groupby([choosers.index.name, alt_col_name])
 
-    # number each item in each group from 0 to the length of that group - 1.
-    choices_df["pick_count"] = pick_group.cumcount(ascending=True)
-    # flag duplicate rows after first
-    choices_df["pick_dup"] = choices_df["pick_count"] > 0
-    # add reverse cumcount to get total pick_count (conveniently faster than groupby.count + merge)
-    choices_df["pick_count"] += pick_group.cumcount(ascending=False) + 1
+        # number each item in each group from 0 to the length of that group - 1.
+        choices_df["pick_count"] = pick_group.cumcount(ascending=True)
+        # flag duplicate rows after first
+        choices_df["pick_dup"] = choices_df["pick_count"] > 0
+        # add reverse cumcount to get total pick_count (conveniently faster than groupby.count + merge)
+        choices_df["pick_count"] += pick_group.cumcount(ascending=False) + 1
 
-    # drop the duplicates
-    choices_df = choices_df[~choices_df["pick_dup"]]
-    del choices_df["pick_dup"]
+        # drop the duplicates
+        choices_df = choices_df[~choices_df["pick_dup"]]
+        del choices_df["pick_dup"]
+
     chunk_sizer.log_df(trace_label, "choices_df", choices_df)
 
     # set index after groupby so we can trace on it

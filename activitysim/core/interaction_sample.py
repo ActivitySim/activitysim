@@ -59,6 +59,8 @@ def _poisson_sample_alternatives_inner(
     rng: Random,
     trace_label: str | None,
     chunk_sizer: ChunkSizer,
+    stable_alt_positions: np.ndarray | None = None,
+    n_total_alts: int | None = None,
 ) -> np.ndarray:
     """
     Draw one Bernoulli inclusion decision per chooser-alternative pair.
@@ -67,7 +69,18 @@ def _poisson_sample_alternatives_inner(
     contain their Poisson inclusion probability and unsampled alternatives are
     `np.nan`.
     """
-    rands = rng.random_for_df(probs, n=probs.shape[1])
+    if stable_alt_positions is None and n_total_alts is None:
+        rands = rng.random_for_df(probs, n=probs.shape[1])
+    elif stable_alt_positions is not None and n_total_alts is not None:
+        rands = rng.random_for_df_stable_alt_positions(
+            probs,
+            stable_alt_positions=stable_alt_positions,
+            n_total_alts=n_total_alts,
+        )
+    else:
+        raise ValueError(
+            "stable_alt_positions and n_total_alts must both be provided or omitted together"
+        )
     chunk_sizer.log_df(trace_label, "rands", rands)
     return np.where(rands < poisson_inclusion_probs_values, poisson_inclusion_probs_values, np.nan)
 
@@ -78,6 +91,8 @@ def _poisson_fallback_sample_alternatives(
     rng: Random,
     trace_label: str | None,
     chunk_sizer: ChunkSizer,
+    stable_alt_positions: np.ndarray | None = None,
+    n_total_alts: int | None = None,
 ) -> np.ndarray:
     """
     Fallback sampler used when Poisson retries still leave empty chooser rows.
@@ -93,7 +108,18 @@ def _poisson_fallback_sample_alternatives(
             "Fallback sampling without replacement requires sample_size <= number of alternatives"
         )
 
-    fallback_rands = rng.random_for_df(probs, n=probs.shape[1])
+    if stable_alt_positions is None and n_total_alts is None:
+        fallback_rands = rng.random_for_df(probs, n=probs.shape[1])
+    elif stable_alt_positions is not None and n_total_alts is not None:
+        fallback_rands = rng.random_for_df_stable_alt_positions(
+            probs,
+            stable_alt_positions=stable_alt_positions,
+            n_total_alts=n_total_alts,
+        )
+    else:
+        raise ValueError(
+            "stable_alt_positions and n_total_alts must both be provided or omitted together"
+        )
     chunk_sizer.log_df(trace_label, "fallback_rands", fallback_rands)
 
     chosen_positions = np.argpartition(
@@ -237,6 +263,8 @@ def make_sample_choices_utility_based(
             alt_col_name,
             state,
             trace_label,
+            stable_alt_positions=stable_alt_positions,
+            n_total_alts=n_total_alts,
         )
     else:
         raise ValueError(f"Unsupported utility-based sampling method {sampling_method!r}")
@@ -252,6 +280,8 @@ def _poisson_sample_alternatives(
     alt_col_name: str,
     state: workflow.State,
     trace_label: str,
+    stable_alt_positions: np.ndarray | None = None,
+    n_total_alts: int | None = None,
 ) -> pd.DataFrame:
     """
     Build a Poisson-sampled choice set for each chooser.
@@ -296,6 +326,8 @@ def _poisson_sample_alternatives(
             state.get_rn_generator(),
             trace_label,
             chunk_sizer,
+            stable_alt_positions=stable_alt_positions,
+            n_total_alts=n_total_alts,
         )
         no_alts_sampled_mask = np.isnan(sampled_results_subset).all(axis=1)
         sampled_values[active_row_positions[~no_alts_sampled_mask]] = sampled_results_subset[
@@ -328,6 +360,8 @@ def _poisson_sample_alternatives(
                 state.get_rn_generator(),
                 trace_label,
                 chunk_sizer,
+                stable_alt_positions=stable_alt_positions,
+                n_total_alts=n_total_alts,
             )
             sampled_values[active_row_positions] = fallback_sampled_values
             break
@@ -380,9 +414,6 @@ def make_sample_choices(
 
     Returns
     -------
-    stable_alt_positions=None,
-    n_total_alts=None,
-
     """
 
     assert isinstance(probs, pd.DataFrame)

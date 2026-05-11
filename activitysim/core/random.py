@@ -247,6 +247,55 @@ class SimpleChannel(object):
         self.row_states.loc[df.index, "offset"] += n
         return rands
 
+    def random_for_df_stable_alt_positions(
+        self,
+        df,
+        step_name,
+        stable_alt_positions,
+        n_total_alts,
+    ):
+        """
+        Return one uniform draw per stable-universe alternative and chooser row,
+        then project to the active alternative positions.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            DataFrame with one row per chooser and one column per active alternative.
+        stable_alt_positions : 1-D ndarray
+            Mapping from active columns in `df` to positions in the larger stable
+            alternative universe.
+        n_total_alts : int
+            Number of alternatives in the larger stable universe.
+
+        Returns
+        -------
+        rands : 2-D ndarray
+            Array with shape `(len(df), df.shape[1])` containing uniforms aligned to
+            the active alternatives.
+        """
+
+        assert self.step_name
+        assert self.step_name == step_name
+
+        n_alts = df.shape[1]
+        stable_alt_positions = np.asarray(stable_alt_positions)
+        if stable_alt_positions.shape != (n_alts,):
+            raise ValueError(
+                "stable_alt_positions must be a 1-D array aligned to df columns"
+            )
+        if stable_alt_positions.min() < 0 or stable_alt_positions.max() >= n_total_alts:
+            raise ValueError(
+                "stable_alt_positions values must be within [0, n_total_alts)"
+            )
+
+        generators = self._generators_for_df(df)
+        rands = np.asanyarray(
+            [prng.rand(n_total_alts)[stable_alt_positions] for prng in generators]
+        )
+        self.row_states.loc[df.index, "offset"] += n_total_alts
+        return rands
+
     def gumbel_for_df(self, df, step_name, n=1):
         """
         Return n floating point gumbel-distributed numbers for each row in df
@@ -835,6 +884,58 @@ class Random(object):
         channel = self.get_channel_for_df(df)
         rands = channel.random_for_df(df, self.step_name, n)
         return rands
+
+    def random_for_df_stable_alt_positions(
+        self,
+        df,
+        stable_alt_positions,
+        n_total_alts,
+    ):
+        """
+        Return per-row uniform draws aligned to active alternatives using a stable
+        larger alternative universe.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            DataFrame with one row per chooser and one column per active alternative.
+        stable_alt_positions : 1-D ndarray
+            Mapping from active columns to positions in the larger stable alternative
+            universe.
+        n_total_alts : int
+            Number of alternatives in the larger stable universe.
+
+        Returns
+        -------
+        rands : 2-D ndarray
+            Array with shape `(len(df), df.shape[1])` containing uniforms aligned to
+            the active alternatives.
+        """
+
+        n_alts = df.shape[1]
+        stable_alt_positions = np.asarray(stable_alt_positions)
+        if stable_alt_positions.shape != (n_alts,):
+            raise ValueError(
+                "stable_alt_positions must be a 1-D array aligned to df columns"
+            )
+        if stable_alt_positions.min() < 0 or stable_alt_positions.max() >= n_total_alts:
+            raise ValueError(
+                "stable_alt_positions values must be within [0, n_total_alts)"
+            )
+
+        if not self.channels:
+            rng = np.random.RandomState(0)
+            return np.asanyarray(
+                [rng.rand(n_total_alts)[stable_alt_positions] for _ in range(len(df))]
+            )
+
+        channel = self.get_channel_for_df(df)
+        return channel.random_for_df_stable_alt_positions(
+            df,
+            self.step_name,
+            stable_alt_positions,
+            n_total_alts,
+        )
 
     def gumbel_for_df(self, df, n=1):
         """

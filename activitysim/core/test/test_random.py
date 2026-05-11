@@ -215,6 +215,45 @@ def test_gumbel_max_positions_for_df_matches_stable_alt_mapping_and_offsets():
     npt.assert_allclose(next_random_after_fused, next_random_after_materialized)
 
 
+def test_random_for_df_stable_alt_mapping_and_offsets():
+    persons = pd.DataFrame(
+        {"household_id": [1, 1, 2]},
+        index=pd.Index([51, 52, 53], name="person_id"),
+    )
+    active_alts = pd.DataFrame(
+        np.zeros((len(persons), 3), dtype=np.float64),
+        index=persons.index,
+    )
+    stable_alt_positions = np.array([0, 2, 4], dtype=np.int64)
+    n_total_alts = 5
+
+    baseline_rng = random.Random()
+    baseline_rng.set_base_seed(0)
+    baseline_rng.begin_step("test_step")
+    baseline_rng.add_channel("persons", persons)
+
+    materialized = baseline_rng.random_for_df(active_alts, n=n_total_alts)
+    expected_rands = materialized[:, stable_alt_positions]
+    next_random_after_materialized = baseline_rng.random_for_df(persons)
+    baseline_rng.end_step("test_step")
+
+    fused_rng = random.Random()
+    fused_rng.set_base_seed(0)
+    fused_rng.begin_step("test_step")
+    fused_rng.add_channel("persons", persons)
+
+    observed_rands = fused_rng.random_for_df_stable_alt_positions(
+        active_alts,
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
+    )
+    next_random_after_fused = fused_rng.random_for_df(persons)
+    fused_rng.end_step("test_step")
+
+    npt.assert_allclose(observed_rands, expected_rands)
+    npt.assert_allclose(next_random_after_fused, next_random_after_materialized)
+
+
 def test_gumbel_choice_positions_for_df_matches_materialized_path_and_offsets():
     persons = pd.DataFrame(
         {"household_id": [1, 1, 2]},

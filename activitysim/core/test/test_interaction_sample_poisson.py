@@ -125,6 +125,7 @@ def test_poisson_sample_alternatives_retries_and_returns_expected_frames():
         columns=np.arange(4),
     )
     sample_size = 2
+    alternatives = pd.DataFrame(index=pd.Index([100, 300, 700, 900], name="alt_id"))
     expected_inclusion_probs = 1 - (1 - probs) ** sample_size
     expected_sampled_alternatives = pd.DataFrame(
         [
@@ -151,18 +152,23 @@ def test_poisson_sample_alternatives_retries_and_returns_expected_frames():
         )
     )
 
-    inclusion_probs, sampled_alternatives = (
-        interaction_sample._poisson_sample_alternatives(
-            chunk_sizer=_DummyChunkSizer(),
-            probs=probs,
-            sample_size=sample_size,
-            state=state,
-            trace_label="test_poisson_sample_alternatives_retries_and_returns_expected_frames",
-        )
+    choices_df = interaction_sample._poisson_sample_alternatives(
+        chunk_sizer=_DummyChunkSizer(),
+        probs=probs,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+        state=state,
+        trace_label="test_poisson_sample_alternatives_retries_and_returns_expected_frames",
     )
 
-    pd.testing.assert_frame_equal(inclusion_probs, expected_inclusion_probs)
-    pd.testing.assert_frame_equal(sampled_alternatives, expected_sampled_alternatives)
+    expected_choices_df = _expected_choices_df(
+        expected_sampled_alternatives,
+        alternatives,
+        "alt_id",
+    )
+
+    pd.testing.assert_frame_equal(choices_df, expected_choices_df)
 
 
 def test_poisson_sample_alternatives_falls_back_to_random_sampling_after_ten_retries():
@@ -172,41 +178,35 @@ def test_poisson_sample_alternatives_falls_back_to_random_sampling_after_ten_ret
         columns=np.arange(3),
     )
     sample_size = 2
+    alternatives = pd.DataFrame(index=pd.Index([100, 300, 700], name="alt_id"))
     fail_draw = np.array([[0.99, 0.99, 0.99]], dtype=np.float64)
     fallback_draw = np.array([[0.10, 0.80, 0.20]], dtype=np.float64)
     state = _DummyState(
         _SequentialDummyRng([fail_draw] * 10 + [fallback_draw])
     )
 
-    inclusion_probs, sampled_alternatives = (
-        interaction_sample._poisson_sample_alternatives(
-            chunk_sizer=_DummyChunkSizer(),
-            probs=probs,
-            sample_size=sample_size,
-            state=state,
-            trace_label="test_poisson_sample_alternatives_falls_back_to_random_sampling_after_ten_retries",
-        )
+    choices_df = interaction_sample._poisson_sample_alternatives(
+        chunk_sizer=_DummyChunkSizer(),
+        probs=probs,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+        state=state,
+        trace_label="test_poisson_sample_alternatives_falls_back_to_random_sampling_after_ten_retries",
     )
 
-    # randomly sampling sample_size alternatives, sample prob is 1 for these
-    # so that log(pick_count / prob) = log(1 / 1) = 0.
-    # note the second alternative is not chosen, but because the poisson inclusion probs
-    # are not overwritten for unused alternatives we expect it to be 1 - (1 - 0.30) ** 2
-    expected_inclusion_probs = pd.DataFrame(
-        [[1.0, 1 - (1 - 0.30) ** 2, 1.0]],
-        index=probs.index,
-        columns=probs.columns,
-    )
-    # first and third alternatives are randomly sampled with prob 1, second alternative is not
-    # sampled so prob is nan
     expected_sampled_alternatives = pd.DataFrame(
         [[1.0, np.nan, 1.0]],
         index=probs.index,
         columns=probs.columns,
     )
+    expected_choices_df = _expected_choices_df(
+        expected_sampled_alternatives,
+        alternatives,
+        "alt_id",
+    )
 
-    pd.testing.assert_frame_equal(inclusion_probs, expected_inclusion_probs)
-    pd.testing.assert_frame_equal(sampled_alternatives, expected_sampled_alternatives)
+    pd.testing.assert_frame_equal(choices_df, expected_choices_df)
 
 
 def test_make_sample_choices_utility_based_preserves_sparse_choice_order(
@@ -230,25 +230,19 @@ def test_make_sample_choices_utility_based_preserves_sparse_choice_order(
         index=chooser_index,
         columns=np.arange(len(alternatives)),
     )
-    inclusion_probs = pd.DataFrame(
-        [
-            [0.25, 0.30, 0.75, 0.10],
-            [0.12, 0.50, 0.18, 0.20],
-            [0.10, 0.15, 0.05, 0.90],
-        ],
-        index=chooser_index,
-        columns=np.arange(len(alternatives)),
-    )
-
     def fake_poisson_sample_alternatives(
         chunk_sizer,
         probs,
+        alternatives_arg,
         sample_size,
+        alt_col_name,
         state,
         trace_label,
     ):
         assert probs.shape == sampled_alternatives.shape
-        return inclusion_probs, sampled_alternatives
+        assert alternatives_arg.equals(alternatives)
+        assert alt_col_name == "alt_id"
+        return _expected_choices_df(sampled_alternatives, alternatives, alt_col_name)
 
     monkeypatch.setattr(
         interaction_sample,
@@ -256,19 +250,17 @@ def test_make_sample_choices_utility_based_preserves_sparse_choice_order(
         fake_poisson_sample_alternatives,
     )
 
-    choices_df, returned_inclusion_probs = (
-        interaction_sample.make_sample_choices_utility_based(
-            state=state,
-            choosers=choosers,
-            utilities=utilities,
-            alternatives=alternatives,
-            sample_size=3,
-            alternative_count=len(alternatives),
-            alt_col_name="alt_id",
-            allow_zero_probs=False,
-            trace_label="test_make_sample_choices_utility_based_preserves_sparse_choice_order",
-            chunk_sizer=_DummyChunkSizer(),
-        )
+    choices_df = interaction_sample.make_sample_choices_utility_based(
+        state=state,
+        choosers=choosers,
+        utilities=utilities,
+        alternatives=alternatives,
+        sample_size=3,
+        alternative_count=len(alternatives),
+        alt_col_name="alt_id",
+        allow_zero_probs=False,
+        trace_label="test_make_sample_choices_utility_based_preserves_sparse_choice_order",
+        chunk_sizer=_DummyChunkSizer(),
     )
 
     expected_choices_df = _expected_choices_df(
@@ -276,7 +268,6 @@ def test_make_sample_choices_utility_based_preserves_sparse_choice_order(
     )
 
     pd.testing.assert_frame_equal(choices_df, expected_choices_df)
-    pd.testing.assert_frame_equal(returned_inclusion_probs, inclusion_probs)
 
 
 def test_make_sample_choices_utility_based_retry_path_matches_stubbed_sampler(
@@ -332,31 +323,33 @@ def test_make_sample_choices_utility_based_retry_path_matches_stubbed_sampler(
         )
     )
 
-    real_choices_df, real_inclusion_probs = (
-        interaction_sample.make_sample_choices_utility_based(
-            state=state,
-            choosers=choosers,
-            utilities=utilities,
-            alternatives=alternatives,
-            sample_size=sample_size,
-            alternative_count=len(alternatives),
-            alt_col_name="alt_id",
-            allow_zero_probs=False,
-            trace_label="test_make_sample_choices_utility_based_retry_path_matches_stubbed_sampler",
-            chunk_sizer=_DummyChunkSizer(),
-        )
+    real_choices_df = interaction_sample.make_sample_choices_utility_based(
+        state=state,
+        choosers=choosers,
+        utilities=utilities,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alternative_count=len(alternatives),
+        alt_col_name="alt_id",
+        allow_zero_probs=False,
+        trace_label="test_make_sample_choices_utility_based_retry_path_matches_stubbed_sampler",
+        chunk_sizer=_DummyChunkSizer(),
     )
 
     def fake_poisson_sample_alternatives(
         chunk_sizer,
         probs_arg,
+        alternatives_arg,
         sample_size_arg,
+        alt_col_name,
         state_arg,
         trace_label,
     ):
         assert probs_arg.equals(probs)
+        assert alternatives_arg.equals(alternatives)
         assert sample_size_arg == sample_size
-        return inclusion_probs, sampled_alternatives
+        assert alt_col_name == "alt_id"
+        return _expected_choices_df(sampled_alternatives, alternatives, alt_col_name)
 
     monkeypatch.setattr(
         interaction_sample,
@@ -364,20 +357,17 @@ def test_make_sample_choices_utility_based_retry_path_matches_stubbed_sampler(
         fake_poisson_sample_alternatives,
     )
 
-    stubbed_choices_df, stubbed_inclusion_probs = (
-        interaction_sample.make_sample_choices_utility_based(
-            state=_DummyState(_SequentialDummyRng([])),
-            choosers=choosers,
-            utilities=utilities,
-            alternatives=alternatives,
-            sample_size=sample_size,
-            alternative_count=len(alternatives),
-            alt_col_name="alt_id",
-            allow_zero_probs=False,
-            trace_label="test_make_sample_choices_utility_based_retry_path_matches_stubbed_sampler.stub",
-            chunk_sizer=_DummyChunkSizer(),
-        )
+    stubbed_choices_df = interaction_sample.make_sample_choices_utility_based(
+        state=_DummyState(_SequentialDummyRng([])),
+        choosers=choosers,
+        utilities=utilities,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alternative_count=len(alternatives),
+        alt_col_name="alt_id",
+        allow_zero_probs=False,
+        trace_label="test_make_sample_choices_utility_based_retry_path_matches_stubbed_sampler.stub",
+        chunk_sizer=_DummyChunkSizer(),
     )
 
     pd.testing.assert_frame_equal(real_choices_df, stubbed_choices_df)
-    pd.testing.assert_frame_equal(real_inclusion_probs, stubbed_inclusion_probs)

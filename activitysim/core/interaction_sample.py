@@ -91,27 +91,6 @@ def _poisson_fallback_sample_alternatives(
     return fallback_sampled_values
 
 
-def _build_choices_df_from_sampled_alternatives(
-    sampled_alternatives: pd.DataFrame,
-    alternatives: pd.DataFrame,
-    alt_col_name: str,
-) -> pd.DataFrame:
-    sampled_values = sampled_alternatives.to_numpy(copy=False)
-    chooser_positions, alt_positions = np.nonzero(~np.isnan(sampled_values))
-
-    chooser_col_name = sampled_alternatives.index.name or "index"
-    if len(chooser_positions) == 0:
-        return pd.DataFrame(columns=[chooser_col_name, "prob", alt_col_name])
-
-    return pd.DataFrame(
-        {
-            chooser_col_name: sampled_alternatives.index.to_numpy()[chooser_positions],
-            "prob": sampled_values[chooser_positions, alt_positions],
-            alt_col_name: alternatives.index.to_numpy()[alt_positions],
-        }
-    )
-
-
 def make_sample_choices_utility_based(
     state: workflow.State,
     choosers,
@@ -155,14 +134,14 @@ def make_sample_choices_utility_based(
         trace_choosers=choosers,
     )
     
-    sampled_alternatives = _poisson_sample_alternatives(
-        chunk_sizer, probs, sample_size, state, trace_label
-    )
-
-    choices_df = _build_choices_df_from_sampled_alternatives(
-        sampled_alternatives,
+    choices_df = _poisson_sample_alternatives(
+        chunk_sizer,
+        probs,
         alternatives,
+        sample_size,
         alt_col_name,
+        state,
+        trace_label,
     )
 
     return choices_df
@@ -171,7 +150,9 @@ def make_sample_choices_utility_based(
 def _poisson_sample_alternatives(
     chunk_sizer: ChunkSizer,
     probs: pd.DataFrame,
+    alternatives: pd.DataFrame,
     sample_size,
+    alt_col_name: str,
     state: workflow.State,
     trace_label: str,
 ) -> pd.DataFrame:
@@ -179,32 +160,30 @@ def _poisson_sample_alternatives(
     Build a Poisson-sampled choice set for each chooser.
 
     The primary path performs independent Poisson inclusion draws for every chooser-alternative pair and retries any
-    chooser row that sampled no alternatives. Both returned DataFrames are aligned to `probs`:
+    chooser row that sampled no alternatives. Internally the sampler maintains a sparse chooser-by-alternative array
+    where sampled cells hold the probability to carry forward as `prob` and unsampled cells are np.nan.
 
-    - `sampled_alternatives` is sparse, with sampled cells holding the value to
-      carry forward as `prob` and unsampled cells set to `np.nan`
+    If a chooser still has no sampled alternatives after 10 retries, we fall back to sampling exactly sample_size
+    distinct alternatives without replacement and force those chosen probabilities to `1.0` so the sampling correction
+    factor cancels out. In practice we expect this to be very rare with reasonable sample sizes and not too small
+    choice sets, but it is a known issue with Poisson sampling that we want to guard against. Note that if this
+    fallback is triggered it can lead to inconsistent random numbers between two scenarios if the number of retries it
+    takes in each scenario differs, but again we expect this to be very rare and the alternative is potentially
+    infinite retries or raising an error.
 
-    If a chooser still has no sampled alternatives after 10 retries, we fall
-    back to sampling exactly `sample_size` distinct alternatives without
-    replacement and force those chosen probabilities to `1.0` so the sampling
-    correction factor cancels out. In practice we expect this to be very rare
-    with reasonable sample sizes and not too small choice sets, but it is a
-    known issue with Poisson sampling that we want to guard against. Note that
-    if this fallback is triggered it can lead to inconsistent random numbers
-    between two scenarios if the number of retries it takes in each scenario
-    differs, but again we expect this to be very rare and the alternative is
-    potentially infinite retries or raising an error.
+    returns: DataFrame with one row per sampled chooser-alternative pair and columns for chooser index, alt_col_name,
+    and prob (the Poisson inclusion probability for that pair).
 
-    To make Poisson sampling interchangeable with other sampling methods, we return the inclusion probabilities
-    i.e. the true probability of being sampled. Pick_count will be 1 by definition (poisson sampling returns a yes/no
-    for each alternative, so if an alternative is included in the sample it is included once) and the standard
-    sampling correction factor can be recovered as np.log(df.pick_count/df.prob) = np.log(1/inclusion_prob).
+    In the case of Poisson sampling, the inclusion probability for each chooser-alternative pair is the probability
+    that the alternative was included in the sample at least once across the sample_size draws, which is the
+    reciprocal of it never being drawn in sample_size draws, so 1-(1-p)^sample_size  where p is the
+    original choice probability. To make Poisson sampling interchangeable with other sampling methods, we return the
+    inclusion probabilities i.e. the true probability of being sampled. Pick_count will be 1 by definition
+    (poisson sampling returns a yes/no for each alternative, so if an alternative is included in the sample it is
+    included once) and the standard sampling correction factor can be recovered as np.log(df.pick_count/df.prob)
+    = np.log(1/inclusion_prob).
     """
 
-    # In the case of Poisson sampling, the inclusion probability for each chooser-alternative pair is the probability
-    # that the alternative was included in the sample at least once across the `sample_size` draws, which is the
-    # reciprocal of alt never being drawn in sample_size draws, so `1 - (1 - p)^sample_size`  where `p` is the
-    # original choice probability.
     inclusion_probs_values = 1.0 - np.power(1.0 - probs.to_numpy(copy=False), sample_size)
 
     sampled_values = np.full(inclusion_probs_values.shape, np.nan)
@@ -254,23 +233,25 @@ def _poisson_sample_alternatives(
                 chunk_sizer,
             )
             sampled_values[active_row_positions] = fallback_sampled_values
-            fallback_mask = ~np.isnan(fallback_sampled_values)
-            inclusion_probs_values[active_row_positions] = np.where(
-                fallback_mask,
-                1.0,
-                inclusion_probs_values[active_row_positions],
-            )
             break
 
-    sampled_alternatives = pd.DataFrame(
-        sampled_values,
-        index=probs.index,
-        columns=probs.columns,
-    )
+    chooser_positions, alt_positions = np.nonzero(~np.isnan(sampled_values))
+    chooser_col_name = probs.index.name or "index"
 
-    chunk_sizer.log_df(trace_label, "sampled_alternatives", sampled_alternatives)
+    if len(chooser_positions) == 0:
+        choices_df = pd.DataFrame(columns=[chooser_col_name, "prob", alt_col_name])
+    else:
+        choices_df = pd.DataFrame(
+            {
+                chooser_col_name: probs.index.to_numpy()[chooser_positions],
+                "prob": sampled_values[chooser_positions, alt_positions],
+                alt_col_name: alternatives.index.to_numpy()[alt_positions],
+            }
+        )
 
-    return sampled_alternatives
+    chunk_sizer.log_df(trace_label, "choices_df", choices_df)
+
+    return choices_df
 
 
 def make_sample_choices(

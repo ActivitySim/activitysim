@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,8 @@ from activitysim.abm.models.tour_mode_choice import TourModeComponentSettings
 from activitysim.core import chunk, config, expressions, los, simulate
 from activitysim.core import timetable as tt
 from activitysim.core import tracing, workflow
+from pydantic import field_validator
+
 from activitysim.core.configuration.base import ComputeSettings, PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
@@ -42,7 +45,25 @@ class TourSchedulingSettings(LogitComponentSettings, extra="forbid"):
     it is assumed to be an unsegmented preprocessor.  Otherwise, the dict keys
     give the segements.
     """
-    SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
+    SIMULATE_CHOOSER_COLUMNS: Any | None = None
+    """Was used to help reduce the memory needed for the model.
+    Setting is now obsolete and doesn't do anything.
+    Functionality was replaced by util.drop_unused_columns
+
+    .. deprecated:: 1.4
+    """
+
+    @field_validator("SIMULATE_CHOOSER_COLUMNS", mode="before")
+    @classmethod
+    def _warn_simulate_chooser_columns(cls, v):
+        if v is not None:
+            warnings.warn(
+                "SIMULATE_CHOOSER_COLUMNS is deprecated and replaced by "
+                "util.drop_unused_columns; value will be ignored.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return None
 
     SPEC_SEGMENTS: dict[str, LogitComponentSettings] = {}
 
@@ -791,6 +812,7 @@ def _schedule_tours(
 
     # - make choices
     locals_d = {"tt": timetable.attach_state(state)}
+    locals_d.update(state.get_global_constants())
     constants = config.get_model_constants(model_settings)
     if constants is not None:
         locals_d.update(constants)

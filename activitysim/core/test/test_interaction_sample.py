@@ -34,7 +34,9 @@ def test_interaction_sample_ignores_stable_positions_without_global_eet(
             index=pd.Index([1, 2], name="person_id"),
         )
 
-    monkeypatch.setattr(interaction_sample, "_interaction_sample", fake_interaction_sample)
+    monkeypatch.setattr(
+        interaction_sample, "_interaction_sample", fake_interaction_sample
+    )
 
     state.settings.use_explicit_error_terms = False
     choosers = pd.DataFrame(index=pd.Index([1, 2], name="person_id"))
@@ -72,7 +74,9 @@ def test_interaction_sample_preserves_stable_positions_with_global_eet(
             index=pd.Index([1, 2], name="person_id"),
         )
 
-    monkeypatch.setattr(interaction_sample, "_interaction_sample", fake_interaction_sample)
+    monkeypatch.setattr(
+        interaction_sample, "_interaction_sample", fake_interaction_sample
+    )
 
     state.settings.use_explicit_error_terms = True
     choosers = pd.DataFrame(index=pd.Index([1, 2], name="person_id"))

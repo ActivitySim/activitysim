@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
+import numpy as np
 import pandas as pd
 
 from activitysim.abm.models.util import tour_destination
@@ -26,6 +29,24 @@ class _DummyNetworkLos:
     def get_skim_dict(self, layer):
         assert layer == "taz"
         return _DummySkimDict()
+
+
+class _DummyRng:
+    def __init__(self, draws):
+        self._draws = np.asarray(draws)
+
+    def random_for_df(self, df, n):
+        assert self._draws.shape == (len(df), n)
+        return self._draws.copy()
+
+
+class _DummyState:
+    def __init__(self, draws):
+        self.settings = SimpleNamespace(trace_hh_id=None)
+        self._rng = _DummyRng(draws)
+
+    def get_rn_generator(self):
+        return self._rng
 
 
 def test_destination_presample_uses_taz_stable_mapping(monkeypatch):
@@ -119,6 +140,86 @@ def test_destination_presample_uses_taz_stable_mapping(monkeypatch):
     assert captured["zone_layer"] == "taz"
     assert captured["n_total_alts"] == 3
     assert list(captured["stable_alt_positions"]) == [0, 2]
+
+
+def test_choose_maz_for_taz_supports_variable_taz_counts():
+    state = _DummyState([[0.2, 0.81], [0.1, 0.9]])
+
+    taz_sample = pd.DataFrame(
+        {
+            tour_destination.DEST_TAZ: [1, 2, 2],
+            "prob": [0.4, 0.6, 1.0],
+            "pick_count": [1, 1, 1],
+        },
+        index=pd.Index([7001, 7001, 7002], name="tour_id"),
+    )
+    maz_size_terms = pd.DataFrame(
+        {
+            "zone_id": [101, 102, 201, 202],
+            tour_destination.DEST_TAZ: [1, 1, 2, 2],
+            "size_term": [1.0, 3.0, 4.0, 1.0],
+        }
+    )
+
+    out = tour_destination.choose_MAZ_for_TAZ(
+        state,
+        taz_sample,
+        maz_size_terms,
+        "test_trace",
+        SimpleNamespace(ESTIMATION_SAMPLE_SIZE=0, SAMPLE_SIZE=0),
+    )
+
+    pd.testing.assert_frame_equal(
+        out,
+        pd.DataFrame(
+            {
+                tour_destination.DEST_MAZ: [101, 202, 201],
+                "prob": [0.10, 0.12, 0.80],
+                "pick_count": [1, 1, 1],
+            },
+            index=pd.Index([7001, 7001, 7002], name="tour_id"),
+        ),
+    )
+
+
+def test_choose_maz_for_taz_preserves_fixed_width_path():
+    state = _DummyState([[0.2, 0.81], [0.1, 0.9]])
+
+    taz_sample = pd.DataFrame(
+        {
+            tour_destination.DEST_TAZ: [1, 2, 1, 2],
+            "prob": [0.4, 0.6, 0.25, 0.75],
+            "pick_count": [1, 1, 1, 1],
+        },
+        index=pd.Index([7001, 7001, 7002, 7002], name="tour_id"),
+    )
+    maz_size_terms = pd.DataFrame(
+        {
+            "zone_id": [101, 102, 201, 202],
+            tour_destination.DEST_TAZ: [1, 1, 2, 2],
+            "size_term": [1.0, 3.0, 4.0, 1.0],
+        }
+    )
+
+    out = tour_destination.choose_MAZ_for_TAZ(
+        state,
+        taz_sample,
+        maz_size_terms,
+        "test_trace",
+        SimpleNamespace(ESTIMATION_SAMPLE_SIZE=0, SAMPLE_SIZE=0),
+    )
+
+    pd.testing.assert_frame_equal(
+        out,
+        pd.DataFrame(
+            {
+                tour_destination.DEST_MAZ: [101, 202, 101, 202],
+                "prob": [0.10, 0.12, 0.0625, 0.15],
+                "pick_count": [1, 1, 1, 1],
+            },
+            index=pd.Index([7001, 7001, 7002, 7002], name="tour_id"),
+        ),
+    )
 
 
 def test_destination_sample_uses_maz_stable_mapping(monkeypatch):

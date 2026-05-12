@@ -334,17 +334,24 @@ def choose_MAZ_for_TAZ(
 
     # for random_for_df, we need df with de-duplicated chooser canonical index
     chooser_df = pd.DataFrame(index=taz_sample.index[~taz_sample.index.duplicated()])
-    num_choosers = len(chooser_df)
     assert chooser_df.index.name == chooser_id_col
 
-    # to make choices, <taz_sample_size> rands for each chooser (one rand for each sampled TAZ)
-    # taz_sample_size will be model_settings['SAMPLE_SIZE'] samples, except if we are estimating
-    taz_sample_size = taz_choices.groupby(chooser_id_col)[DEST_TAZ].count().max()
+    # to make choices, draw enough rands for the chooser with the largest TAZ sample,
+    # then keep only the draws corresponding to actual TAZ rows for each chooser.
+    taz_choice_counts = (
+        taz_choices.groupby(chooser_id_col)[DEST_TAZ]
+        .count()
+        .reindex(chooser_df.index)
+        .astype(np.int64)
+    )
+    taz_sample_size = taz_choice_counts.max()
+    uniform_taz_choice_counts = (taz_choice_counts == taz_sample_size).all()
 
-    # taz_choices index values should be contiguous
-    assert (
-        (taz_choices[chooser_id_col] == np.repeat(chooser_df.index, taz_sample_size))
-    ).all()
+    # taz_choices rows should remain grouped by chooser in chooser_df order
+    expected_chooser_ids = np.repeat(
+        chooser_df.index.to_numpy(), taz_choice_counts.to_numpy()
+    )
+    assert (taz_choices[chooser_id_col].to_numpy() == expected_chooser_ids).all()
 
     # we need to choose a MAZ for each DEST_TAZ choice
     # probability of choosing MAZ based on MAZ size_term fraction of TAZ total
@@ -402,11 +409,21 @@ def choose_MAZ_for_TAZ(
     # prob array with one row TAZ_choice, one column per alternative
     row_sums = padded_maz_sizes.sum(axis=1)
     maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
-    assert maz_probs.shape == (num_choosers * taz_sample_size, max_maz_count)
-
-    rands = state.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
-    rands = rands.reshape(-1, 1)
-    assert len(rands) == num_choosers * taz_sample_size
+    if uniform_taz_choice_counts:
+        assert maz_probs.shape == (len(chooser_df) * taz_sample_size, max_maz_count)
+        rands = state.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
+        rands = rands.reshape(-1, 1)
+        assert len(rands) == len(chooser_df) * taz_sample_size
+    else:
+        assert maz_probs.shape == (len(taz_choices), max_maz_count)
+        chooser_rands = np.asarray(
+            state.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
+        )
+        chooser_rand_mask = (
+            np.arange(taz_sample_size) < taz_choice_counts.to_numpy()[:, np.newaxis]
+        )
+        rands = chooser_rands[chooser_rand_mask].reshape(-1, 1)
+        assert len(rands) == len(taz_choices)
     assert len(rands) == maz_probs.shape[0]
 
     # make choices

@@ -57,7 +57,7 @@ It does not change the final-choice simulation method used by
 
 ## Workflow
 
-At a high level, the sampled-choice workflow is:
+The sampled-choice workflow is:
 
 1. Evaluate a simplified sampling utility for the full active alternative set.
 2. Draw a sample of alternatives using one of the methods described below.
@@ -65,8 +65,8 @@ At a high level, the sampled-choice workflow is:
 4. Compute expensive terms, such as `mode_choice_logsum`, only for that sampled table.
 5. Add the sampling correction term to the final utility and choose from the sampled set.
 
-This is the standard sample-of-alternatives pattern: the sampling stage can use an approximation,
-as long as the final stage includes the appropriate correction term.
+This is the standard sample-of-alternatives pattern: the sampling stage uses an approximation,
+and the final stage corrects for it.
 
 ## Returned Sample Table
 
@@ -76,8 +76,8 @@ as long as the final stage includes the appropriate correction term.
 - `prob`
 - `pick_count`
 
-For `monte_carlo`, the implementation also creates a `rand` column during sampling, but that
-column is only kept for tracing and is dropped from the returned dataframe in normal operation.
+For `monte_carlo`, the implementation also creates a `rand` column during sampling, but it is only
+kept for tracing and is dropped from the returned dataframe in normal operation.
 
 The meanings of `prob` and `pick_count` are important:
 
@@ -102,8 +102,8 @@ For `monte_carlo` and `eet`, `prob` is the one-draw sampling probability implied
 approximate sampling utility, and `pick_count` is the number of times that alternative appeared in
 the repeated sample. In textbook notation, the correction for repeated with-replacement sampling is
 proportional to `pick_count / (sample_size * prob)`. ActivitySim omits the common `sample_size`
-factor because it is the same for every sampled alternative for that chooser and therefore only
-adds a constant to utility for all alternatives, which does not change probabilities.
+factor because it is the same for every sampled alternative for that chooser and therefore adds
+only a chooser-specific constant to utility, which does not affect probabilities.
 
 For `poisson`, `prob` is the inclusion probability of the alternative in the sampled set, not the
 one-draw choice probability. Specifically, if the original approximate choice probability is $p$
@@ -116,16 +116,17 @@ $$
 Since `pick_count` is always `1` for `poisson`, the correction becomes exactly
 $\log(1 / \text{prob})$.
 
-This means that all sampling methods can be used interchangeably as long as the correction factor
-is specified as `np.log(df.pick_count/df.prob)`.
+This means that all three methods use the same correction expression,
+`np.log(df.pick_count/df.prob)`, even though `prob` has a different interpretation for `poisson`
+than for the with-replacement methods.
 
 ## Methods in Detail
 
 ### Monte Carlo and EET-with-replacement
 
-The `monte_carlo` and `eet` sampling methods both draw sampled alternatives with replacement.
-As a result, duplicates are possible within a chooser's sampled set, and the resulting sampled
-shares track repeated-draw MNL behavior closely.
+The `monte_carlo` and `eet` sampling methods both draw alternatives with replacement. As a result,
+duplicates are possible within a chooser's sampled set, and sampled shares track repeated-draw MNL
+behavior closely.
 
 The difference between them is how each draw is made:
 
@@ -133,12 +134,12 @@ The difference between them is how each draw is made:
 - `eet` draws explicit EV1 error terms and chooses the utility-plus-error argmax
 
 For both methods, the returned `prob` column is the one-draw sampling probability of the selected
-alternative under the approximate sampling utility. If an alternative is drawn multiple times,
-those duplicate rows are collapsed and the total multiplicity is stored in `pick_count`.
+alternative under the approximate sampling utility. If an alternative is drawn multiple times, the
+duplicate rows are collapsed and the total multiplicity is stored in `pick_count`.
 
-In practice, these methods are useful when a modeler wants the sampled set to behave like repeated
-draws from the approximate choice model. `eet` preserves that with-replacement behavior while also
-freezing the unobserved draws in a way that can greatly reduce scenario-to-scenario sampling noise.
+These methods are useful when the sampled set should behave like repeated draws from the
+approximate choice model. `eet` preserves that with-replacement behavior while also freezing the
+unobserved draws, which can greatly reduce scenario-to-scenario sampling noise.
 
 ### Poisson Sampling
 
@@ -148,30 +149,29 @@ $1 - (1 - p)^s$, where $p$ is the original choice probability and $s$ is the con
 sample size.
 
 Because sampled alternatives appear at most once per chooser, raw sampled shares can differ
-noticeably from repeated-draw MNL shares in highly peaked cases. This is structural behavior,
-not numerical noise. The interaction-sample tests document this explicitly.
+noticeably from repeated-draw MNL shares in highly peaked cases. This is structural behavior, not
+numerical noise. The interaction-sample tests document this explicitly.
 
-There can be cases where a chooser does not receive any alternatives with Poisson sampling:
-each alternative is subjected to an independent inclusion test with one random draw. However, for
-the models that require sampling in ActivitySim, this is rare. If it happens, the sampler retries
-that chooser row up to 10 times and then falls back to a simple without-replacement random sample.
-That retry-and-fallback path is important in practice. It makes the method robust, but it also
-means that Poisson sampling can have rare edge cases where two nearby scenarios consume different
-random numbers because one scenario needed retries or fallback and the other did not.
+A chooser can occasionally receive no sampled alternatives under Poisson sampling, because each
+alternative is tested independently. In the models that use sampling in ActivitySim, this should be
+rare. If it happens, the sampler retries that chooser row up to 10 times and then falls back to a
+simple without-replacement random sample. This makes the method robust, but it also creates rare
+edge cases where two nearby scenarios consume different random numbers because one scenario needed
+retries or fallback and the other did not.
 
 ## Runtime and Simulation Noise
 
-Runtime and noise characteristics differ significantly across methods.
+Runtime and noise characteristics differ across methods.
 
-- `monte_carlo` is the cheapest method runtime wise. It draws one uniform random number per
-  repeated sample, but it also has the most simulation noise because small changes in approximate
+- `monte_carlo` is usually the cheapest method. It draws one uniform random number per repeated
+  sample, but it also has the most simulation noise because small changes in approximate
   probabilities can change the sampled set substantially.
 - `poisson` is also relatively inexpensive. It draws one Bernoulli inclusion test per
   chooser-alternative pair, with possible retries for chooser rows that initially sample no
-  alternatives. With stable alternative alignment it is much less noisy than Monte Carlo,
-  but it can still show structural sample-set differences in highly peaked cases and rare retry
-  edge cases.
-- `eet` is the most expensive sampling method. It draws one EV1 error term per chooser,
+  alternatives. With stable alternative alignment it is much less noisy than Monte Carlo, but it
+  can still show structural sample-set differences in highly peaked cases and rare retry edge
+  cases.
+- `eet` is usually the most expensive sampling method. It draws one EV1 error term per chooser,
   alternative, and repeated sample draw. In return, it produces the most stable sampled sets across
   nearby scenarios because unchanged alternatives can keep the same unobserved error draws.
 
@@ -182,10 +182,9 @@ For location choice models, this often leads to a practical ranking of:
 
 `eet` does not remove the dependence on the approximate sampling utility itself: if that utility
 changes, the sampled set can still change. What it removes is the extra Monte Carlo noise from the
-sampling draw. `poisson` also benefits from stable alignment, but unlike `eet` it still has some
-edge cases because it uses probabilites for sampling and these depend on the utility of all
-alternatives, as well as the retry/fallback edge case described above. The exact influence on
-practical scenario comparisons is an empirical question that would profit from more data points.
+sampling draw. `poisson` also benefits from stable alignment, but unlike `eet` it still depends on
+probability-based inclusion tests and retains the retry/fallback edge case described above. The
+practical effect on scenario comparisons is ultimately empirical.
 
 
 (explicit_error_terms_zone_encoding)=

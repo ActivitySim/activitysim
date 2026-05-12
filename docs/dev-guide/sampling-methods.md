@@ -184,10 +184,11 @@ For location choice models, this often leads to a practical ranking of:
 changes, the sampled set can still change. What it removes is the extra Monte Carlo noise from the
 sampling draw. `poisson` also benefits from stable alignment, but unlike `eet` it still has some
 edge cases because it uses probabilites for sampling and these depend on the utility of all
-alternatives, as well as the retry/fallback edge case described above. 
+alternatives, as well as the retry/fallback edge case described above. The exact influence on
+practical scenario comparisons is an empirical question that would profit from more data points.
+
 
 (explicit_error_terms_zone_encoding)=
-(sampling_methods_zone_encoding)=
 ### Runtime and Zone Encoding
 For location choice models, ActivitySim can align random draws to positions in the full zone
 universe rather than only to the alternatives active in the current sampled set. This keeps the

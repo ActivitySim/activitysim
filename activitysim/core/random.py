@@ -388,7 +388,10 @@ class SimpleChannel(object):
                 raise ValueError(
                     "stable_alt_positions must be a 1-D array aligned to utilities columns"
                 )
-            if stable_alt_positions.min() < 0 or stable_alt_positions.max() >= n_total_alts:
+            if (
+                stable_alt_positions.min() < 0
+                or stable_alt_positions.max() >= n_total_alts
+            ):
                 raise ValueError(
                     "stable_alt_positions values must be within [0, n_total_alts)"
                 )
@@ -463,7 +466,9 @@ class SimpleChannel(object):
             if n_rands is None:
                 n_rands = n_alts
             elif n_rands != n_alts:
-                raise ValueError("n_rands must equal utilities.shape[1] when alt_nrs_df is omitted")
+                raise ValueError(
+                    "n_rands must equal utilities.shape[1] when alt_nrs_df is omitted"
+                )
             alt_nr_values = masked = safe_alt_nrs = None
 
         generators = self._generators_for_df(utilities)
@@ -1018,7 +1023,10 @@ class Random(object):
                     raise ValueError(
                         "stable_alt_positions must be a 1-D array aligned to utilities columns"
                     )
-                if stable_alt_positions.min() < 0 or stable_alt_positions.max() >= n_total_alts:
+                if (
+                    stable_alt_positions.min() < 0
+                    or stable_alt_positions.max() >= n_total_alts
+                ):
                     raise ValueError(
                         "stable_alt_positions values must be within [0, n_total_alts)"
                     )
@@ -1027,9 +1035,9 @@ class Random(object):
                 n_gumbels = n_alts
 
             for row_num, utility_row in enumerate(utility_values):
-                row_gumbels = -np.log(-np.log(rng.rand(n_gumbels * sample_size))).reshape(
-                    (sample_size, n_gumbels)
-                )
+                row_gumbels = -np.log(
+                    -np.log(rng.rand(n_gumbels * sample_size))
+                ).reshape((sample_size, n_gumbels))
                 if stable_alt_positions is not None:
                     row_gumbels = row_gumbels[:, stable_alt_positions]
                 positions[row_num, :] = np.argmax(

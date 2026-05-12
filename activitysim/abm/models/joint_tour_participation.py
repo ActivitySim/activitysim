@@ -20,8 +20,8 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.base import ComputeSettings, PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
-from activitysim.core.util import assign_in_place, reindex
 from activitysim.core.exceptions import InvalidTravelError
+from activitysim.core.util import assign_in_place, reindex
 
 logger = logging.getLogger(__name__)
 

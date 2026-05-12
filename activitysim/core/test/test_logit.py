@@ -340,7 +340,9 @@ def test_make_choices_matches_random_draws():
 #
 def test_make_choices_eet_mnl(monkeypatch):
     class DummyRNG:
-        def gumbel_choice_positions_for_df(self, utilities, alt_nrs_df=None, n_rands=None):
+        def gumbel_choice_positions_for_df(
+            self, utilities, alt_nrs_df=None, n_rands=None
+        ):
             assert alt_nrs_df is None
             assert n_rands is None
             assert list(utilities.columns) == ["a", "b"]
@@ -538,7 +540,9 @@ def test_make_choices_vs_eet_same_distribution():
         def gumbel_for_df(self, df, n):
             return eet_rng.gumbel(size=(len(df), n))
 
-        def gumbel_choice_positions_for_df(self, utilities, alt_nrs_df=None, n_rands=None):
+        def gumbel_choice_positions_for_df(
+            self, utilities, alt_nrs_df=None, n_rands=None
+        ):
             assert alt_nrs_df is None
             assert n_rands is None
             return np.argmax(
@@ -1489,6 +1493,7 @@ def test_make_choices_vs_eet_nl_exact_leaf_parity_across_structures(
 #         _finish_rng_state(state, "exact_leaf_float64_dtype")
 
 #     assert all(dtype == np.float64 for dtype in error_terms.dtypes)
+
 
 def test_make_choices_utility_based_routes_nested_logit_to_nl_eet(monkeypatch):
     sentinel = pd.Series([1, 0], index=pd.Index([100, 101], name="chooser_id"))

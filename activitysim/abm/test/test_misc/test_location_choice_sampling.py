@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pandas as pd
 
 from activitysim.abm.models import location_choice
@@ -59,7 +61,9 @@ def test_location_presample_uses_taz_stable_mapping(monkeypatch):
             index=pd.Index([1001], name="person_id"),
         )
 
-    def fake_choose_maz_for_taz(_state, _taz_sample, _maz_size_terms, _trace_label, _model_settings):
+    def fake_choose_maz_for_taz(
+        _state, _taz_sample, _maz_size_terms, _trace_label, _model_settings
+    ):
         return pd.DataFrame(
             {"dest_MAZ": [101]},
             index=pd.Index([1001], name="person_id"),

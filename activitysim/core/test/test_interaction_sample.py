@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -326,7 +328,9 @@ class _SequentialDummyRng:
         assert draw.shape == (len(df), n)
         return draw
 
-    def random_for_df_stable_alt_positions(self, df, stable_alt_positions, n_total_alts):
+    def random_for_df_stable_alt_positions(
+        self, df, stable_alt_positions, n_total_alts
+    ):
         draw = self._draws.pop(0)
         assert draw.shape == (len(df), n_total_alts)
         return draw[:, stable_alt_positions]
@@ -447,7 +451,12 @@ def test_poisson_sample_alternatives_retries_and_returns_expected_frames():
     expected_sampled_alternatives = pd.DataFrame(
         [
             [expected_inclusion_probs.iloc[0, 0], np.nan, np.nan, np.nan],
-            [expected_inclusion_probs.iloc[1, 0], expected_inclusion_probs.iloc[1, 1], np.nan, np.nan],
+            [
+                expected_inclusion_probs.iloc[1, 0],
+                expected_inclusion_probs.iloc[1, 1],
+                np.nan,
+                np.nan,
+            ],
             [np.nan, np.nan, expected_inclusion_probs.iloc[2, 2], np.nan],
         ],
         index=probs.index,
@@ -641,7 +650,11 @@ def test_make_sample_choices_utility_based_poisson_retry_matches_materialized_pa
     first_pass = np.where(poisson_draws < inclusion_probs, inclusion_probs, np.nan)
     first_pass_empty = np.isnan(first_pass).all(axis=1)
     sampled_values[~first_pass_empty] = first_pass[~first_pass_empty]
-    retry_pass = np.where(retry_draw < inclusion_probs[first_pass_empty], inclusion_probs[first_pass_empty], np.nan)
+    retry_pass = np.where(
+        retry_draw < inclusion_probs[first_pass_empty],
+        inclusion_probs[first_pass_empty],
+        np.nan,
+    )
     sampled_values[first_pass_empty] = retry_pass
     chooser_idx, alt_idx = np.nonzero(~np.isnan(sampled_values))
 
@@ -825,7 +838,9 @@ def test_make_sample_choices_utility_based_poisson_stable_alt_mapping_matches_ma
     ).to_numpy()
     inclusion_probs = 1 - np.power(1 - probs, sample_size)
     active_uniforms = dense_uniforms[:, stable_alt_positions]
-    sampled_values = np.where(active_uniforms < inclusion_probs, inclusion_probs, np.nan)
+    sampled_values = np.where(
+        active_uniforms < inclusion_probs, inclusion_probs, np.nan
+    )
     chooser_idx, alt_idx = np.nonzero(~np.isnan(sampled_values))
 
     expected = pd.DataFrame(

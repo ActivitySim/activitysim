@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pandas as pd
 
 from activitysim.abm.models.util import tour_destination
@@ -64,7 +66,9 @@ def test_destination_presample_uses_taz_stable_mapping(monkeypatch):
             index=pd.Index([7001], name="tour_id"),
         )
 
-    monkeypatch.setattr(tour_destination, "_destination_sample", fake_destination_sample)
+    monkeypatch.setattr(
+        tour_destination, "_destination_sample", fake_destination_sample
+    )
     monkeypatch.setattr(tour_destination, "choose_MAZ_for_TAZ", fake_choose_maz_for_taz)
 
     state = workflow.State().default_settings()
@@ -145,7 +149,9 @@ def test_destination_sample_uses_maz_stable_mapping(monkeypatch):
             index=pd.Index([7001], name="tour_id"),
         )
 
-    monkeypatch.setattr(tour_destination, "_destination_sample", fake_destination_sample)
+    monkeypatch.setattr(
+        tour_destination, "_destination_sample", fake_destination_sample
+    )
 
     state = workflow.State().default_settings()
     choosers = pd.DataFrame(

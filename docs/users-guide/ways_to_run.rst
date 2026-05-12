@@ -310,4 +310,3 @@ To enable EET for a model run, set the global switch in ``settings.yaml``:
   use_explicit_error_terms: True
 
 Enable or disable this setting consistently across all runs being compared.
-  

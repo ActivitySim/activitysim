@@ -650,7 +650,6 @@ def make_choices_utility_based(
     return choices, rands
 
 
-
 def make_choices(
     state: workflow.State,
     probs: pd.DataFrame,

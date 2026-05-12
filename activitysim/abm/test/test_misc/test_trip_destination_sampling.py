@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pandas as pd
 
 from activitysim.abm.models import trip_destination
@@ -48,7 +50,9 @@ def test_destination_sample_retains_full_maz_universe(monkeypatch):
             index=pd.Index([7001], name="trip_id"),
         )
 
-    monkeypatch.setattr(trip_destination, "_destination_sample", fake_destination_sample)
+    monkeypatch.setattr(
+        trip_destination, "_destination_sample", fake_destination_sample
+    )
 
     state = workflow.State().default_settings()
     trips = pd.DataFrame(index=pd.Index([7001], name="trip_id"))
@@ -131,7 +135,9 @@ def test_destination_presample_retains_full_taz_universe(monkeypatch):
             index=pd.Index([7001], name="trip_id"),
         )
 
-    monkeypatch.setattr(trip_destination, "_destination_sample", fake_destination_sample)
+    monkeypatch.setattr(
+        trip_destination, "_destination_sample", fake_destination_sample
+    )
     monkeypatch.setattr(trip_destination, "choose_MAZ_for_TAZ", fake_choose_maz_for_taz)
 
     state = workflow.State().default_settings()

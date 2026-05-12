@@ -12,11 +12,11 @@ from activitysim.abm.tables.size_terms import tour_destination_size_terms
 from activitysim.core import (
     config,
     estimation,
+    expressions,
     los,
     simulate,
     tracing,
     workflow,
-    expressions,
 )
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.interaction_sample import interaction_sample
@@ -949,9 +949,9 @@ def run_tour_destination(
         segment_destination_size_terms = size_term_calculator.dest_size_terms_df(
             segment_name, segment_trace_label
         )
-        full_segment_destination_size_terms = size_term_calculator.destination_size_terms[
-            [segment_name]
-        ].copy()
+        full_segment_destination_size_terms = (
+            size_term_calculator.destination_size_terms[[segment_name]].copy()
+        )
         full_segment_destination_size_terms.columns = ["size_term"]
 
         if choosers.shape[0] == 0:

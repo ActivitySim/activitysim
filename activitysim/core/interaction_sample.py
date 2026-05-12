@@ -82,7 +82,9 @@ def _poisson_sample_alternatives_inner(
             "stable_alt_positions and n_total_alts must both be provided or omitted together"
         )
     chunk_sizer.log_df(trace_label, "rands", rands)
-    return np.where(rands < poisson_inclusion_probs_values, poisson_inclusion_probs_values, np.nan)
+    return np.where(
+        rands < poisson_inclusion_probs_values, poisson_inclusion_probs_values, np.nan
+    )
 
 
 def _poisson_fallback_sample_alternatives(
@@ -105,8 +107,8 @@ def _poisson_fallback_sample_alternatives(
     """
     if sample_size > probs.shape[1]:
         logger.info(
-            f"Poisson fallback sampling without replacement with sample_size={sample_size} > number of alternatives=" +
-            f"{probs.shape[1]}; returning all alternatives for {len(probs)} choosers"
+            f"Poisson fallback sampling without replacement with sample_size={sample_size} > number of alternatives="
+            + f"{probs.shape[1]}; returning all alternatives for {len(probs)} choosers"
         )
         return np.full(probs.shape, 1.0)
 
@@ -159,12 +161,16 @@ def _eet_sample_alternatives_with_replacement(
     from each draw is recorded, allowing duplicates in the same way as the
     Monte Carlo sampling path.
     """
-    chosen_destinations = state.get_rn_generator().gumbel_max_positions_for_df(
-        utilities,
-        sample_size,
-        stable_alt_positions=stable_alt_positions,
-        n_total_alts=n_total_alts,
-    ).reshape(-1)
+    chosen_destinations = (
+        state.get_rn_generator()
+        .gumbel_max_positions_for_df(
+            utilities,
+            sample_size,
+            stable_alt_positions=stable_alt_positions,
+            n_total_alts=n_total_alts,
+        )
+        .reshape(-1)
+    )
     chunk_sizer.log_df(trace_label, "chosen_destinations", chosen_destinations)
 
     chooser_idx = np.repeat(np.arange(utilities.shape[0]), sample_size)
@@ -269,7 +275,9 @@ def make_sample_choices_utility_based(
             n_total_alts=n_total_alts,
         )
     else:
-        raise ValueError(f"Unsupported utility-based sampling method {sampling_method!r}")
+        raise ValueError(
+            f"Unsupported utility-based sampling method {sampling_method!r}"
+        )
 
     return choices_df
 
@@ -313,7 +321,9 @@ def _poisson_sample_alternatives(
     = np.log(1/inclusion_prob).
     """
 
-    inclusion_probs_values = 1.0 - np.power(1.0 - probs.to_numpy(copy=False), sample_size)
+    inclusion_probs_values = 1.0 - np.power(
+        1.0 - probs.to_numpy(copy=False), sample_size
+    )
 
     sampled_values = np.full(inclusion_probs_values.shape, np.nan)
 
@@ -332,18 +342,18 @@ def _poisson_sample_alternatives(
             n_total_alts=n_total_alts,
         )
         no_alts_sampled_mask = np.isnan(sampled_results_subset).all(axis=1)
-        sampled_values[active_row_positions[~no_alts_sampled_mask]] = sampled_results_subset[
-            ~no_alts_sampled_mask
-        ]
+        sampled_values[
+            active_row_positions[~no_alts_sampled_mask]
+        ] = sampled_results_subset[~no_alts_sampled_mask]
 
         if no_alts_sampled_mask.any():
             logger.info(f"Poisson sampling of alternatives failed with {n=}, retrying")
             failed_row_positions = active_row_positions[no_alts_sampled_mask]
             logger.debug(
-                f"Sampled size was {sample_size}, poisson method mean expected sample size was" +
-                f" {inclusion_probs_values[failed_row_positions].sum(axis=1).mean():.1f}, actual sampled mean was" +
-                f" {np.isfinite(sampled_values[failed_row_positions]).sum(axis=1).mean():.1f} and highest zero" +
-                f" selection prob was {(1.0 - inclusion_probs_values[failed_row_positions]).prod(axis=1).max():.2g}"
+                f"Sampled size was {sample_size}, poisson method mean expected sample size was"
+                + f" {inclusion_probs_values[failed_row_positions].sum(axis=1).mean():.1f}, actual sampled mean was"
+                + f" {np.isfinite(sampled_values[failed_row_positions]).sum(axis=1).mean():.1f} and highest zero"
+                + f" selection prob was {(1.0 - inclusion_probs_values[failed_row_positions]).prod(axis=1).max():.2g}"
             )
             active_row_positions = failed_row_positions
 
@@ -949,7 +959,7 @@ def _interaction_sample(
     chunk_sizer.log_df(trace_label, "choices_df", choices_df)
 
     if sampling_method == "poisson":
-        choices_df['pick_count'] = 1
+        choices_df["pick_count"] = 1
     else:
         # pick_count and pick_dup
         # pick_count is number of duplicate picks

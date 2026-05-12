@@ -32,9 +32,7 @@ from activitysim.core.configuration.logit import (
     LogitNestSpec,
     TemplatedLogitComponentSettings,
 )
-
-if TYPE_CHECKING:
-    from activitysim.core.estimation import Estimator
+from activitysim.core.exceptions import ModelConfigurationError
 from activitysim.core.fast_eval import fast_eval
 from activitysim.core.simulate_consts import (
     ALT_LOSER_UTIL,
@@ -42,14 +40,24 @@ from activitysim.core.simulate_consts import (
     SPEC_EXPRESSION_NAME,
     SPEC_LABEL_NAME,
 )
-from activitysim.core.exceptions import ModelConfigurationError
+
+if TYPE_CHECKING:
+    from activitysim.core.estimation import Estimator
 
 logger = logging.getLogger(__name__)
 
 CustomChooser_T = Callable[
-    [workflow.State, pd.DataFrame, pd.DataFrame, pd.DataFrame, str, dict | LogitNestSpec | None],
+    [
+        workflow.State,
+        pd.DataFrame,
+        pd.DataFrame,
+        pd.DataFrame,
+        str,
+        dict | LogitNestSpec | None,
+    ],
     tuple[pd.Series, pd.Series],
 ]
+
 
 def random_rows(state: workflow.State, df, n):
     # only sample if df has more than n rows

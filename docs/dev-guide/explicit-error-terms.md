@@ -68,12 +68,28 @@ which necessarily change for all alternatives if any observed utility changes. T
 with sensitivity to small differences in the final CDF draw when comparing nearby scenarios
 means that EET is a good candidate to remove noise from scenario comparisons.
 
+### Runtime and memory usage
+EET draws one error term per chooser and alternative, which requires many more random numbers
+than MC's one per chooser. For models with many alternatives, this can lead to a large amount
+of random numbers being calculated. To keep memory usage in line with MC simulation, the
+implementation of EET avoids materialization of large chooser-alternative arrays of error
+terms in memory.
+Regarding runtimes, EET with default settings currently carries a runtime penalty of about 5-10%
+per demand model run. However, when run in combination with an assignment model the overall
+system converges faster and can cancel out any runtime penalty completely. Precise numbers are
+hard to provide, but overall runtime and memory usage should not differ from runs with MC too
+much.
+For location choice models, keeping error terms aligned to zone IDs also affects runtime and
+memory usage. To keep the same unobserved error term attached to the same zone across runs,
+ActivitySim indexes EET draws by zone ID over the full universal choice set rather than only the
+alternatives that happen to appear in a given calculation.
 
-#### EET as a variance reduction method
-TODO: expand on this here.
-
-Common random numbers. Stronger correlations for exptectation values of differences -> less
-variance in the estimator. So we need less model runs to be representative.
+When zone IDs are a contiguous 0-based sequence, this indexing is efficient because the dense
+draw array has one entry per zone. When zone IDs contain gaps or start from a large value, the
+implementation must still allocate draws up to the maximum zone ID, so additional random numbers
+are generated for missing IDs and never used. Encoding zone IDs as a contiguous 0-based index can
+therefore reduce both runtime and memory use for location choice models with EET; see
+{ref}`explicit_error_terms_zone_encoding` for how to set this up.
 
 
 ## Implementation Details and Adding New Models
@@ -106,6 +122,7 @@ used in the probability-based path, which is about -691 because ActivitySim clip
 exponentiated utilities at 1e-300. To keep behavior consistent, EET treats alternatives with
 utilities at or below that threshold as unavailable; see `activitysim.core.logit.validate_utils`.
 
-### Scale of the distribution
-MNL error terms are drawn from standard Gumbel distributions, i.e., the scale of the error term is
-fixed to one.
+### Normalization
+For MNL, the error term scale is normalized to 1 by using the standard Gumbel distribution. For
+nested logit, ActivitySim uses the normalized formulation in which the root nest coefficient is
+fixed at 1; the EET implementation relies on that convention.

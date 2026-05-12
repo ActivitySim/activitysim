@@ -67,25 +67,28 @@ Sampling runtime differs significantly between methods.
   that sample no alternatives
 
 For location choice models, encoding zone IDs as a 0-based contiguous index can reduce runtime
-and memory use for the `eet` sampling method.
+and memory use for the aligned `eet` and `poisson` sampling methods.
 
 (explicit_error_terms_zone_encoding)=
 (sampling_methods_zone_encoding)=
 ### Zone ID encoding and runtime
 
-For location choice models, encoding zone IDs as a 0-based contiguous index reduces EET runtime
-and memory use during sampling.
+For location choice models, ActivitySim can align random draws to positions in the full zone
+universe rather than only to the alternatives active in the current sampled set. This keeps the
+same zone attached to the same random draws regardless of which alternatives are present in a
+particular chooser's calculation.
 
-The current `eet` sampling implementation draws error terms into a dense 1-D array of length
-`max_zone_id + 1` per chooser (see `AltsContext.n_alts_to_cover_max_id` in
-`activitysim.core.logit`). Each sampled alternative is then looked up by direct offset into that
-array, so the same zone always receives the same error term regardless of which alternatives are
-in the sampled choice set.
+Both aligned `eet` and aligned `poisson` sampling use this stable mapping. For `eet`, each chooser
+receives `sample_size` sets of Gumbel draws over the full encoded zone universe, and the active
+alternatives are selected from those draws by their stable zone positions. For `poisson`, each
+chooser receives one aligned uniform draw per encoded zone, and those draws are used for the
+Bernoulli inclusion tests.
 
-When zone IDs are a contiguous 0-based sequence, the dense array has exactly as many entries as
-there are zones and every draw is used. When zone IDs contain gaps or start from a large value,
-the array must still cover `max_zone_id + 1` entries, so draws for missing IDs are generated but
-never used.
+When zone IDs are a contiguous 0-based sequence, the aligned draw universe has exactly as many
+positions as there are zones and every position is potentially useful. When zone IDs contain gaps
+or start from a large value, the implementation must still cover the full encoded range, so draws
+for missing IDs are generated but never used. This increases runtime and memory use, especially
+for `eet`, where the aligned draw cost also scales with `sample_size`.
 
 ActivitySim's `recode_columns` option can create contiguous zero-based IDs where needed; see the
 [Zero-based Recoding of Zones](using-sharrow.md#zero-based-recoding-of-zones) section for details.

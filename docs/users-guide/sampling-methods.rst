@@ -5,8 +5,7 @@ ________________
 
 ActivitySim supports multiple sampling methods for ``activitysim.core.interaction_sample``.
 These methods affect how sampled choice sets are constructed for models such as destination
-and location choice. They are separate from the global final-choice switch controlled by
-``use_explicit_error_terms``.
+and location choice.
 
 Available methods are:
 
@@ -23,8 +22,8 @@ To override the default for a particular model, set the component's compute sett
 
 .. code-block:: yaml
 
-   compute_settings:
-  sample_method: eet
+  compute_settings:
+    sample_method: eet
 
 This override applies only to ``interaction_sample``. It does not change how final choices
 are simulated elsewhere in ActivitySim.

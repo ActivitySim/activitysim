@@ -583,10 +583,6 @@ def test_make_choices_vs_eet_nl_same_distribution():
         ],
     }
     # Utilities for car, bus, walk
-    # For NL, we need utilities for all nodes in the tree for EET,
-    # but for probability-based choice we usually use the flattened/logsummed probabilities.
-    # To compare them fairly, we use the same base utilities.
-    # car=0.5, bus=0.2, walk=0.4
     leaf_utilities = pd.DataFrame(
         [[0.5, 0.2, 0.4]],
         columns=["car", "bus", "walk"],
@@ -652,7 +648,6 @@ def test_make_choices_vs_eet_nl_same_distribution():
     mc_fracs = np.bincount(choices_mc.values.astype(int), minlength=3) / n_draws
     eet_fracs = np.bincount(choices_eet.values.astype(int), minlength=3) / n_draws
 
-    # They should be close
     np.testing.assert_allclose(mc_fracs, eet_fracs, atol=a_tol)
 
 
@@ -1623,17 +1618,17 @@ def test_three_level_nested_logit_methods_follow_monte_carlo_power_law():
 
 
 # # @pytest.mark.slow
-# def test_three_level_nested_logit_methods_follow_monte_carlo_power_law_large_draws():
-#     _assert_three_level_nested_logit_methods_follow_power_law(
-#         draw_counts=np.array([8_000, 32_000, 128_000]),
-#         seeds=[17, 29, 43],
-#         slope_lower=-0.7,
-#         slope_upper=-0.3,
-#         pair_slope_lower=-1.0,
-#         pair_slope_upper=-0.2,
-#         max_final_method_error=0.0015,
-#         max_final_pair_error=0.0020,
-#     )
+def test_three_level_nested_logit_methods_follow_monte_carlo_power_law_large_draws():
+    _assert_three_level_nested_logit_methods_follow_power_law(
+        draw_counts=np.array([8_000, 32_000, 128_000]),
+        seeds=[17, 29, 43],
+        slope_lower=-0.7,
+        slope_upper=-0.3,
+        pair_slope_lower=-1.0,
+        pair_slope_upper=-0.2,
+        max_final_method_error=0.0015,
+        max_final_pair_error=0.0020,
+    )
 
 
 #

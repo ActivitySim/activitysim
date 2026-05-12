@@ -117,6 +117,8 @@ def _location_sample(
     chunk_tag,
     trace_label,
     zone_layer=None,
+    stable_alt_positions=None,
+    n_total_alts=None,
 ):
     """
     select a sample of alternative locations.
@@ -212,6 +214,8 @@ def _location_sample(
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer=zone_layer,
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
         explicit_chunk_size=model_settings.explicit_chunk,
         compute_settings=model_settings.compute_settings.subcomponent_settings(
             "sample"
@@ -227,6 +231,7 @@ def location_sample(
     persons_merged,
     network_los,
     dest_size_terms,
+    full_dest_size_terms,
     estimator,
     model_settings: TourLocationComponentSettings,
     chunk_size,
@@ -245,6 +250,8 @@ def location_sample(
     skims = skim_dict.wrap("home_zone_id", "zone_id")
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
+    stable_alt_positions = full_dest_size_terms.index.get_indexer(dest_size_terms.index)
+    assert (stable_alt_positions >= 0).all()
 
     choices = _location_sample(
         state,
@@ -258,6 +265,8 @@ def location_sample(
         chunk_size,
         chunk_tag,
         trace_label,
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=len(full_dest_size_terms),
     )
 
     return choices
@@ -381,6 +390,12 @@ def location_presample(
     )
     if full_dest_size_terms is None:
         full_dest_size_terms = dest_size_terms
+    full_taz_index = pd.Index(
+        network_los.map_maz_to_taz(full_dest_size_terms.index), name=DEST_TAZ
+    )
+    full_taz_index = full_taz_index[~full_taz_index.duplicated()]
+    stable_alt_positions = full_taz_index.get_indexer(TAZ_size_terms.index)
+    assert (stable_alt_positions >= 0).all()
 
     # convert MAZ zone_id to 'TAZ' in choosers (persons_merged)
     # persons_merged[HOME_TAZ] = persons_merged[HOME_MAZ].map(maz_to_taz)
@@ -415,6 +430,8 @@ def location_presample(
         chunk_tag,
         trace_label,
         zone_layer="taz",
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=len(full_taz_index),
     )
 
     # print(f"taz_sample\n{taz_sample}")
@@ -512,6 +529,7 @@ def run_location_sample(
             persons_merged,
             network_los,
             dest_size_terms,
+            full_dest_size_terms,
             estimator,
             model_settings,
             chunk_size,

@@ -18,6 +18,90 @@ def state() -> workflow.State:
     return state
 
 
+def test_interaction_sample_ignores_stable_positions_without_global_eet(
+    state, monkeypatch
+):
+    # Do not support stable alt positions or tracking total alts when running with MC sampling
+    # to not introduce any additional changes while adding eet simulation support to ensure no
+    # regressions. We can add these features later if desired.
+    captured = {}
+
+    def fake_interaction_sample(_state, _choosers, _alternatives, **kwargs):
+        captured["stable_alt_positions"] = kwargs["stable_alt_positions"]
+        captured["n_total_alts"] = kwargs["n_total_alts"]
+        return pd.DataFrame(
+            {"alt_id": [10, 11], "prob": [1.0, 1.0], "pick_count": [1, 1]},
+            index=pd.Index([1, 2], name="person_id"),
+        )
+
+    monkeypatch.setattr(interaction_sample, "_interaction_sample", fake_interaction_sample)
+
+    state.settings.use_explicit_error_terms = False
+    choosers = pd.DataFrame(index=pd.Index([1, 2], name="person_id"))
+    alternatives = pd.DataFrame(index=pd.Index([10, 11, 12], name="alt_id"))
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["1"], name="Expression"),
+    )
+
+    interaction_sample.interaction_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size=1,
+        alt_col_name="alt_id",
+        stable_alt_positions=np.array([0, 2], dtype=np.int64),
+        n_total_alts=3,
+    )
+
+    assert captured["stable_alt_positions"] is None
+    assert captured["n_total_alts"] is None
+
+
+def test_interaction_sample_preserves_stable_positions_with_global_eet(
+    state, monkeypatch
+):
+    captured = {}
+
+    def fake_interaction_sample(_state, _choosers, _alternatives, **kwargs):
+        captured["stable_alt_positions"] = kwargs["stable_alt_positions"]
+        captured["n_total_alts"] = kwargs["n_total_alts"]
+        return pd.DataFrame(
+            {"alt_id": [10, 11], "prob": [1.0, 1.0], "pick_count": [1, 1]},
+            index=pd.Index([1, 2], name="person_id"),
+        )
+
+    monkeypatch.setattr(interaction_sample, "_interaction_sample", fake_interaction_sample)
+
+    state.settings.use_explicit_error_terms = True
+    choosers = pd.DataFrame(index=pd.Index([1, 2], name="person_id"))
+    alternatives = pd.DataFrame(index=pd.Index([10, 11, 12], name="alt_id"))
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["1"], name="Expression"),
+    )
+    stable_alt_positions = np.array([0, 2], dtype=np.int64)
+
+    interaction_sample.interaction_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size=1,
+        alt_col_name="alt_id",
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=3,
+        compute_settings=ComputeSettings(sample_method="eet"),
+    )
+
+    np.testing.assert_array_equal(
+        captured["stable_alt_positions"],
+        stable_alt_positions,
+    )
+    assert captured["n_total_alts"] == 3
+
+
 def _weighted_shares(df: pd.DataFrame) -> pd.Series:
     counts = df.groupby("alt_id")["pick_count"].sum()
     return (counts / counts.sum()).sort_index()

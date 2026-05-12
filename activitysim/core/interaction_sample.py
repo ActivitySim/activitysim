@@ -1103,6 +1103,13 @@ def interaction_sample(
     sampling_method = _resolve_sample_method(state, compute_settings, use_eet)
     logger.debug(f" interaction_sample sample method = {sampling_method}")
 
+    if not use_eet:
+        # Do not support stable alt positions or tracking total alts when running with MC sampling
+        # to not introduce any additional changes while adding eet simulation support to ensure no
+        # regressions. We can add these features later if desired.
+        stable_alt_positions = None
+        n_total_alts = None
+
     # FIXME - legacy logic - not sure this is needed or even correct?
     if sampling_method != "poisson":
         sample_size = min(sample_size, len(alternatives.index))

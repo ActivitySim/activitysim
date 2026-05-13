@@ -618,12 +618,16 @@ def destination_presample(
     MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(
         destination_size_terms, network_los
     )
-    full_taz_index = pd.Index(
-        network_los.map_maz_to_taz(full_destination_size_terms.index), name=DEST_TAZ
-    )
-    full_taz_index = full_taz_index[~full_taz_index.duplicated()]
-    stable_alt_positions = full_taz_index.get_indexer(TAZ_size_terms.index)
-    assert (stable_alt_positions >= 0).all()
+    if state.settings.use_explicit_error_terms:
+        full_taz_index = pd.Index(
+            network_los.map_maz_to_taz(full_destination_size_terms.index), name=DEST_TAZ
+        )
+        full_taz_index = full_taz_index[~full_taz_index.duplicated()]
+        stable_alt_positions = full_taz_index.get_indexer(TAZ_size_terms.index)
+        assert (stable_alt_positions >= 0).all()
+    else:
+        full_taz_index = None
+        stable_alt_positions = None
 
     orig_maz = model_settings.CHOOSER_ORIG_COL_NAME
     assert orig_maz in choosers
@@ -649,12 +653,17 @@ def destination_presample(
         trace_label=trace_label,
         zone_layer="taz",
         stable_alt_positions=stable_alt_positions,
-        n_total_alts=len(full_taz_index),
+        n_total_alts=len(full_taz_index) if full_taz_index is not None else 0,
     )
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
     maz_choices = choose_MAZ_for_TAZ(
-        state, taz_sample, MAZ_size_terms, trace_label, model_settings
+        state,
+        taz_sample,
+        MAZ_size_terms,
+        trace_label,
+        model_settings,
+        full_taz_index=full_taz_index,
     )
 
     assert DEST_MAZ in maz_choices

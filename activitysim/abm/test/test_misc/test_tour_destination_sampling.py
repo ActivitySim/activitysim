@@ -85,8 +85,14 @@ def test_destination_presample_uses_taz_stable_mapping(monkeypatch):
         )
 
     def fake_choose_maz_for_taz(
-        _state, _taz_sample, _maz_size_terms, _trace_label, _model_settings
+        _state,
+        _taz_sample,
+        _maz_size_terms,
+        _trace_label,
+        _model_settings,
+        full_taz_index=None,
     ):
+        captured["full_taz_index"] = full_taz_index
         return pd.DataFrame(
             {tour_destination.DEST_MAZ: [101]},
             index=pd.Index([7001], name="tour_id"),
@@ -145,6 +151,10 @@ def test_destination_presample_uses_taz_stable_mapping(monkeypatch):
     assert captured["zone_layer"] == "taz"
     assert captured["n_total_alts"] == 3
     assert list(captured["stable_alt_positions"]) == [0, 2]
+    pd.testing.assert_index_equal(
+        captured["full_taz_index"],
+        pd.Index([1, 2, 3], name=tour_destination.DEST_TAZ),
+    )
 
 
 def test_choose_maz_for_taz_supports_variable_taz_counts():

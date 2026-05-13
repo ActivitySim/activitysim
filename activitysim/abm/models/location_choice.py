@@ -397,6 +397,27 @@ def location_presample(
     stable_alt_positions = full_taz_index.get_indexer(TAZ_size_terms.index)
     assert (stable_alt_positions >= 0).all()
 
+    sample_compute_settings = getattr(model_settings, "compute_settings", None)
+    if sample_compute_settings is not None:
+        sample_compute_settings = sample_compute_settings.subcomponent_settings(
+            "sample"
+        )
+    taz_sample_method = None
+    if sample_compute_settings is not None:
+        taz_sample_method = sample_compute_settings.sample_method
+    if taz_sample_method is None:
+        taz_sample_method = getattr(state.settings, "sample_method", None)
+    if taz_sample_method is None:
+        taz_sample_method = (
+            "poisson"
+            if getattr(state.settings, "use_explicit_error_terms", False)
+            else "monte_carlo"
+        )
+    use_stable_taz_index = (
+        getattr(state.settings, "use_explicit_error_terms", False)
+        and taz_sample_method == "poisson"
+    )
+
     # convert MAZ zone_id to 'TAZ' in choosers (persons_merged)
     # persons_merged[HOME_TAZ] = persons_merged[HOME_MAZ].map(maz_to_taz)
     assert HOME_MAZ in persons_merged
@@ -444,7 +465,12 @@ def location_presample(
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
     maz_choices = tour_destination.choose_MAZ_for_TAZ(
-        state, taz_sample, MAZ_size_terms, trace_label, model_settings
+        state,
+        taz_sample,
+        MAZ_size_terms,
+        trace_label,
+        model_settings,
+        full_taz_index=full_taz_index if use_stable_taz_index else None,
     )
 
     assert DEST_MAZ in maz_choices

@@ -30,13 +30,13 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LocationComponentSettings
+from activitysim.core.exceptions import DuplicateWorkflowTableError, InvalidTravelError
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.logit import AltsContext
 from activitysim.core.skim_dictionary import DataFrameMatrix
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place, reindex
-from activitysim.core.exceptions import InvalidTravelError, DuplicateWorkflowTableError
 
 logger = logging.getLogger(__name__)
 
@@ -295,6 +295,7 @@ def choose_MAZ_for_TAZ(
     alt_dest_col_name,
     trace_label,
     model_settings,
+    full_taz_index=None,
 ):
     """
     Convert taz_sample table with TAZ zone sample choices to a table with a MAZ zone chosen for each TAZ
@@ -452,7 +453,19 @@ def choose_MAZ_for_TAZ(
     # prob array with one row TAZ_choice, one column per alternative
     row_sums = padded_maz_sizes.sum(axis=1)
     maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
-    if uniform_taz_choice_counts:
+    if full_taz_index is not None:
+        full_taz_index = pd.Index(full_taz_index, name=DEST_TAZ)
+        taz_positions = full_taz_index.get_indexer(taz_choices[DEST_TAZ])
+        assert (taz_positions >= 0).all()
+        chooser_rands = np.asarray(
+            state.get_rn_generator().random_for_df(chooser_df, n=len(full_taz_index))
+        )
+        chooser_row_positions = np.repeat(
+            np.arange(len(chooser_df)), taz_choice_counts.to_numpy()
+        )
+        rands = chooser_rands[chooser_row_positions, taz_positions].reshape(-1, 1)
+        assert len(rands) == len(taz_choices)
+    elif uniform_taz_choice_counts:
         assert maz_probs.shape == (len(chooser_df) * taz_sample_size, max_maz_count)
         rands = (
             state.get_rn_generator()
@@ -644,6 +657,28 @@ def destination_presample(
     alternatives = alternatives.groupby(
         network_los.map_maz_to_taz(alternatives.index)
     ).sum()
+    full_taz_index = pd.Index(alternatives.index, name=f"{alt_dest_col_name}_TAZ")
+
+    sample_compute_settings = getattr(model_settings, "compute_settings", None)
+    if sample_compute_settings is not None:
+        sample_compute_settings = sample_compute_settings.subcomponent_settings(
+            "sample"
+        )
+    taz_sample_method = None
+    if sample_compute_settings is not None:
+        taz_sample_method = sample_compute_settings.sample_method
+    if taz_sample_method is None:
+        taz_sample_method = getattr(state.settings, "sample_method", None)
+    if taz_sample_method is None:
+        taz_sample_method = (
+            "poisson"
+            if getattr(state.settings, "use_explicit_error_terms", False)
+            else "monte_carlo"
+        )
+    use_stable_taz_index = (
+        getattr(state.settings, "use_explicit_error_terms", False)
+        and taz_sample_method == "poisson"
+    )
 
     # # i did this but after changing alt_dest_col_name to 'trip_dest' it
     # # shouldn't be needed anymore
@@ -676,6 +711,7 @@ def destination_presample(
         alt_dest_col_name,
         trace_label,
         model_settings,
+        full_taz_index=full_taz_index if use_stable_taz_index else None,
     )
 
     assert alt_dest_col_name in maz_sample
@@ -1544,13 +1580,13 @@ def run_trip_destination(
                             """
 
                         When using the trip destination model with sharrow, it is necessary
-                        to set a value for `purpose_index_num` in the trip destination 
-                        annotate trips preprocessor.  This allows for an optimized compiled 
+                        to set a value for `purpose_index_num` in the trip destination
+                        annotate trips preprocessor.  This allows for an optimized compiled
                         lookup of the size term from the array of size terms.  The value of
-                        `purpose_index_num` should be the integer column position in the size 
-                        matrix, with usual zero-based numpy indexing semantics (i.e. the first 
+                        `purpose_index_num` should be the integer column position in the size
+                        matrix, with usual zero-based numpy indexing semantics (i.e. the first
                         column is zero).  The preprocessor expression most likely needs to be
-                        "size_terms.get_cols(df.purpose)" unless some unusual transform of 
+                        "size_terms.get_cols(df.purpose)" unless some unusual transform of
                         size terms has been employed.
 
                         """

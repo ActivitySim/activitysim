@@ -276,7 +276,12 @@ def aggregate_size_terms(dest_size_terms, network_los):
 
 
 def choose_MAZ_for_TAZ(
-    state: workflow.State, taz_sample, MAZ_size_terms, trace_label, model_settings
+    state: workflow.State,
+    taz_sample,
+    MAZ_size_terms,
+    trace_label,
+    model_settings,
+    full_taz_index=None,
 ):
     """
     Convert taz_sample table with TAZ zone sample choices to a table with a MAZ zone chosen for each TAZ
@@ -419,7 +424,20 @@ def choose_MAZ_for_TAZ(
     # prob array with one row TAZ_choice, one column per alternative
     row_sums = padded_maz_sizes.sum(axis=1)
     maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
-    if uniform_taz_choice_counts:
+
+    if full_taz_index is not None:
+        full_taz_index = pd.Index(full_taz_index, name=DEST_TAZ)
+        taz_positions = full_taz_index.get_indexer(taz_choices[DEST_TAZ])
+        assert (taz_positions >= 0).all()
+        chooser_rands = np.asarray(
+            state.get_rn_generator().random_for_df(chooser_df, n=len(full_taz_index))
+        )
+        chooser_row_positions = np.repeat(
+            np.arange(len(chooser_df)), taz_choice_counts.to_numpy()
+        )
+        rands = chooser_rands[chooser_row_positions, taz_positions].reshape(-1, 1)
+        assert len(rands) == len(taz_choices)
+    elif uniform_taz_choice_counts:
         assert maz_probs.shape == (len(chooser_df) * taz_sample_size, max_maz_count)
         rands = state.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
         rands = rands.reshape(-1, 1)

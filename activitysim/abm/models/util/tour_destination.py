@@ -941,10 +941,14 @@ def run_destination_simulate(
     state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
     log_alt_losers = state.settings.log_alt_losers
-    # use full land_use index to ensure AltsContext spans full range of potential destinations
-    # (maintains stable random number generation even if zones flip zero/non-zero size)
-    land_use = state.get_dataframe("land_use")
-    alts_context = AltsContext.from_series(land_use.index)
+
+    if state.settings.use_explicit_error_terms:
+        # use full land_use index to ensure AltsContext spans full range of potential destinations
+        # (maintains stable random number generation even if zones flip zero/non-zero size)
+        land_use = state.get_dataframe("land_use")
+        alts_context = AltsContext.from_series(land_use.index)
+    else:
+        alts_context = None
 
     choices = interaction_sample_simulate(
         state,

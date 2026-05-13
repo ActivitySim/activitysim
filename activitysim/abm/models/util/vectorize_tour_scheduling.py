@@ -850,9 +850,13 @@ def _schedule_tours(
         estimator.write_interaction_sample_alternatives(alt_tdd)
 
     log_alt_losers = state.settings.log_alt_losers
-    # use full TDD alternatives index to ensure AltsContext spans full range of potential slots
-    tdd_alts = state.get_injectable("tdd_alts")
-    alts_context = AltsContext.from_series(tdd_alts.index)
+
+    if state.settings.use_explicit_error_terms:
+        # use full TDD alternatives index to ensure AltsContext spans full range of potential slots
+        tdd_alts = state.get_injectable("tdd_alts")
+        alts_context = AltsContext.from_series(tdd_alts.index)
+    else:
+        alts_context = None
 
     choices = interaction_sample_simulate(
         state,
@@ -973,7 +977,7 @@ def schedule_tours(
     if len(result_list) > 1:
         choices = pd.concat(result_list)
 
-    assert len(choices.index == len(tours.index))
+    assert len(choices.index) == len(tours.index)
 
     return choices
 

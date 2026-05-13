@@ -790,7 +790,6 @@ def run_location_choice(
     chunk_tag,
     trace_label,
     skip_choice=False,
-    alts_context: AltsContext | None = None,
 ):
     """
     Run the three-part location choice algorithm to generate a location choice for each chooser
@@ -844,9 +843,13 @@ def run_location_choice(
         if choosers.shape[0] == 0:
             logger.info(f"{trace_label} skipping segment {segment_name}: no choosers")
             continue
-        # dest_size_terms contains 0-attraction zones so using this directly here, important for stable error terms
-        # when a zone goes from 0 base -> nonzero project
-        alts_context = AltsContext.from_series(dest_size_terms.index)
+
+        if state.settings.use_explicit_error_terms:
+            # dest_size_terms contains 0-attraction zones so using this directly here, important for stable error terms
+            # when a zone goes from 0 base -> nonzero project
+            alts_context = AltsContext.from_series(dest_size_terms.index)
+        else:
+            alts_context = None
 
         # - location_sample
         location_sample_df = run_location_sample(

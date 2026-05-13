@@ -551,9 +551,10 @@ def interaction_sample_simulate(
     if state.settings.use_explicit_error_terms:
         choice_ids_are_int = pd.api.types.is_integer_dtype(alternatives[choice_column])
         if alts_context is None and choice_ids_are_int:
-            raise ValueError(
-                "alts_context is required for interaction_sample_simulate when "
-                "use_explicit_error_terms is True and choice_column is integer-coded"
+            logger.warning(
+                "Using integer-coded choice_column values without alts_context when use_explicit_error_terms is true."
+                + " Ensure this is desired, when running on a sample it should be provided to ensure consistent random"
+                + " numbers across the whole alternative set."
             )
         if alts_context is not None and not choice_ids_are_int:
             raise ValueError(

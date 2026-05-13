@@ -538,6 +538,7 @@ def interaction_sample_simulate(
     trace_label = tracing.extend_trace_label(trace_label, "interaction_sample_simulate")
     chunk_tag = chunk_tag or trace_label
 
+    # TODO EET: Do we just want to warn here? Or better throw and be explicit?
     if state.settings.use_explicit_error_terms:
         choice_ids_are_int = pd.api.types.is_integer_dtype(alternatives[choice_column])
         if alts_context is None and choice_ids_are_int:

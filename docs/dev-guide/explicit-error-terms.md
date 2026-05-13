@@ -7,7 +7,7 @@ interpretation as the standard method, but changes how the final simulated choic
 drawn. For details, see
 [this ATRF paper](https://australasiantransportresearchforum.org.au/frozen-randomness-at-the-individual-utility-level/).
 
-For user-facing guidance, see {ref}`explicit_error_terms_ways_to_run`.
+<!-- For user-facing guidance, see {ref}`explicit_error_terms_ways_to_run`. -->
 
 ## Enabling EET
 
@@ -52,21 +52,70 @@ to draw error terms of all fundamental alternatives.
 ### Comparisons and Simulation Noise
 
 For EET to reduce simulation noise, it is important that alternatives of a choice situation
-keep the same unobserved error term in different scenario runs. This is intimately tied
-to how random numbers are generated; see {ref}`random_in_detail` for the underlying
-random-number stream design and the `activitysim.core.random` API. In essence, keeping the
-global random number generator seed constant for comparison runs is essential. This also means
-that it is advisable to use the same setting in all runs. Comparing a baseline
-run with EET to a scenario run without EET mixes two simulation methods and can make differences
-harder to interpret. Aggregate choice patterns should remain statistically the same
-as for the default probability-based method.
+keep the same unobserved error term in different scenario runs. If unchanged alternatives
+keep the same unobserved draws, changes to choices between scenarios can only happen when
+the observed utility of an alternative increases. This is not the case for the Monte Carlo
+simulation method, where the draws are based on probabilities, which necessarily change for
+all alternatives if any observed utility changes. This combined with sensitivity to small
+differences in the final CDF draw when comparing nearby scenarios means that EET removes
+noise from scenario comparisons.
 
-Because unchanged alternatives can keep the same unobserved draws, changes to choices between
-scenarios can only happen when the observed utility of an alternative increases. This is not
-the case for the Monte Carlo simulation method, where the draws are based on probabilities,
-which necessarily change for all alternatives if any observed utility changes. This combined
-with sensitivity to small differences in the final CDF draw when comparing nearby scenarios
-means that EET is a good candidate to remove noise from scenario comparisons.
+Note that the both MC and EET are simulating the same model, so individual runs with identical
+inputs but varying global seed will lead to the same statistical results for individual
+output metrics. EET's properties become apparent when comparing two model runs with different
+inputs. Because error terms are aligned, the variance of the estimator of the indicator, e.g.,
+mode choice shift or VMT difference, is reduced. In other words, difference metrics are more
+precise estimators under EET.
+
+In mathematical terms, for any two metrics $X$ (baseline) and $Y$ (scenario), the variance
+of the difference $X - Y$ is
+
+$$\text{Var}(X - Y) = \text{Var}(X) + \text{Var}(Y) - 2,\text{Cov}(X, Y)$$
+
+EET deliberately drives $\text{Cov}(X, Y)$ up by aligning error terms, so $\text{Var}(X-Y)$
+collapses even though $\text{Var}(X)$ and $\text{Var}(Y)$ individually are unchanged.
+
+In practice, models are often run once for each scenario. EET is still usefull because the
+lower the noise of the estimator, the higher the chance that a single run is representative.
+In other words, the noise level of comparison metrics is lower. Additionally, under MC small
+but real benefits can show up as negative in a single run. Under EET, the sign of the effect
+is far more trustworthy.
+
+Independent of any statistical argument, under EET, choice changes between two runs are
+causally attributable to utility changes which can be helpful for model development,
+sensitivity testing, and defending results to stakeholders.
+
+### Aligning error terms
+
+Aligning error terms between runs is essential. This is intimately tied
+to how random numbers are generated; see {ref}`random_in_detail` for the underlying
+random-number stream design and the `activitysim.core.random` API. It boils down to
+each chooser needing to have the same ID between scenarios, and all alternatives being
+reproduciably ordered.
+
+For chooser alignment, it is necessary that person and household IDs are stable between runs.
+When running a scenario with population changes, it is important to only change the IDs of
+those households and persons that have changed, e.g., new households.
+
+For alternative alignment, it is important to know the universal choice set, i.e., all possible
+alternatives, for each model. For example, when running scenarios where a new mode is introduced,
+this new mode should also be in the specification of the run where it is not available, with
+its utility specification such that it is never chosen. In case the model is nested logit, the
+nesting structure also needs to be held constant across scenarios.
+For location choice models, all alternatives need to be listed in the land use table and the
+zone IDs need to be stable between scenarios. Additionally, for computational efficiency
+EET requires <!-- TODO: this might need to change to `recommend` depending on implementation -->
+0-based, contiguous zone IDs. For models where this is not the case, ActivitySim can
+automatically perform the conversion for internal calculations, see
+{ref}`explicit_error_terms_zone_encoding` for how to set this up.
+
+For models that use sub-sampling of alternatives, it is important to keep the sampling scheme
+identical between scenarios, otherwise the error terms for the choice from the sampled set are
+not guaranteed to be aligned.
+
+Finally, it also important to keep the global random number generator seed constant for
+comparison runs. <!-- maybe make clear this is for when only one base and scenario are run, and link this to estimator of difference above. -->
+
 
 ### Runtime and memory usage
 EET draws one error term per chooser and alternative, which requires many more random numbers
@@ -79,7 +128,8 @@ per demand model run. However, when run in combination with an assignment model 
 system converges faster and can cancel out any runtime penalty completely. Precise numbers are
 hard to provide, but overall runtime and memory usage should not differ from runs with MC too
 much.
-For location choice models, keeping error terms aligned to zone IDs also affects runtime and
+
+<!-- For location choice models, keeping error terms aligned to zone IDs also affects runtime and
 memory usage. To keep the same unobserved error term attached to the same zone across runs,
 ActivitySim indexes EET draws by zone ID over the full universal choice set rather than only the
 alternatives that happen to appear in a given calculation.
@@ -90,6 +140,7 @@ implementation must still allocate draws up to the maximum zone ID, so additiona
 are generated for missing IDs and never used. Encoding zone IDs as a contiguous 0-based index can
 therefore reduce both runtime and memory use for location choice models with EET; see
 {ref}`explicit_error_terms_zone_encoding` for how to set this up.
+-->
 
 
 ## Implementation Details and Adding New Models

@@ -335,9 +335,8 @@ with the highest total utility.
 EET changes the final simulation step, not the utility expressions, availability logic, or nesting structure. In
 practice, it can reduce Monte Carlo noise in scenario comparisons and between demand and network assignment iterations.
 
-For configuration guidance see :ref:`explicit_error_terms_ways_to_run`. For detailed implementation notes
-see :doc:`/dev-guide/explicit-error-terms`. For interaction-sample-specific sampling behavior,
-see :ref:`sampling_methods_ways_to_run` and :doc:`/dev-guide/sampling-methods`.
+For configuration guidance see :ref:`explicit_error_terms_ways_to_run`. For detailed background and implementation notes
+see :doc:`/dev-guide/explicit-error-terms`.
 
 API
 ^^^

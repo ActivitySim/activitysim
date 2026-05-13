@@ -301,7 +301,7 @@ noise when comparing scenarios and can  make some comparisons easier to interpre
 selected alternative is the one with the highest total utility after adding the explicit
 error term, and if the explicit error term is consistent between a base and scenario run then
 only (relative) increases in the observed utility can lead to previously un-chosen alternatives
-being chosen. For more details, see :doc:`/dev-guide/explicit-error-terms`.
+being chosen.
 
 To enable EET for a model run, set the global switch in ``settings.yaml``:
 
@@ -309,4 +309,5 @@ To enable EET for a model run, set the global switch in ``settings.yaml``:
 
   use_explicit_error_terms: True
 
-Enable or disable this setting consistently across all runs being compared.
+Enable or disable this setting consistently across all runs being compared. For more details, including
+scenario comparison considerations and implementation notes, see :doc:`/dev-guide/explicit-error-terms`.

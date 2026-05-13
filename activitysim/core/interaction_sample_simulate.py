@@ -263,28 +263,33 @@ def _interaction_sample_simulate(
 
     # insert the zero-prob utilities to pad each alternative set to same size
     padded_utilities = np.insert(interaction_utilities.utility.values, inserts, -999)
-    padded_alt_nrs = np.insert(interaction_df[choice_column], inserts, -999)
     chunk_sizer.log_df(trace_label, "padded_utilities", padded_utilities)
+
+    # reshape to array with one row per chooser, one column per alternative
+    padded_utilities = padded_utilities.reshape(-1, max_sample_count)
+
+    if alts_context is not None:
+        padded_alt_nrs = np.insert(interaction_df[choice_column], inserts, -999)
+        chunk_sizer.log_df(trace_label, "padded_alt_nrs", padded_alt_nrs)
+        padded_alt_nrs = padded_alt_nrs.reshape(-1, max_sample_count)
+        # alt_nrs_df has columns for each alt in the choice set, with values indicating which alt_id
+        # they correspond to (as opposed to the 0-n index implied by the column number).
+        alt_nrs_df = pd.DataFrame(padded_alt_nrs, index=choosers.index)
+        chunk_sizer.log_df(trace_label, "alt_nrs_df", alt_nrs_df)
+
+        del padded_alt_nrs
+        chunk_sizer.log_df(trace_label, "padded_alt_nrs", None)
+    else:
+        alt_nrs_df = None  # if we don't provide the number of dense alternatives, assume that we'll use the old approach
 
     del interaction_df
     chunk_sizer.log_df(trace_label, "interaction_df", None)
 
     del inserts
 
-    # reshape to array with one row per chooser, one column per alternative
-    padded_utilities = padded_utilities.reshape(-1, max_sample_count)
-    padded_alt_nrs = padded_alt_nrs.reshape(-1, max_sample_count)
-
     # convert to a dataframe with one row per chooser and one column per alternative
     utilities_df = pd.DataFrame(padded_utilities, index=choosers.index)
     chunk_sizer.log_df(trace_label, "utilities_df", utilities_df)
-
-    # alt_nrs_df has columns for each alt in the choice set, with values indicating which alt_id
-    # they correspond to (as opposed to the 0-n index implied by the column number).
-    if alts_context is not None:
-        alt_nrs_df = pd.DataFrame(padded_alt_nrs, index=choosers.index)
-    else:
-        alt_nrs_df = None  # if we don't provide the number of dense alternatives, assume that we'll use the old approach
 
     del padded_utilities
     chunk_sizer.log_df(trace_label, "padded_utilities", None)
@@ -339,6 +344,10 @@ def _interaction_sample_simulate(
 
         del utilities_df
         chunk_sizer.log_df(trace_label, "utilities_df", None)
+
+        if alt_nrs_df is not None:
+            del alt_nrs_df
+            chunk_sizer.log_df(trace_label, "alt_nrs_df", None)
     else:
         # convert to probabilities (utilities exponentiated and normalized to probs)
         # probs is same shape as utilities, one row per chooser and one column for alternative

@@ -810,7 +810,6 @@ def run_location_choice(
     chunk_size : int
     trace_label : str
     skip_choice : bool
-    alts_context : AltsContext or None
 
     Returns
     -------

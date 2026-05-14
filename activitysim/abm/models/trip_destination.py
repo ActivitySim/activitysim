@@ -215,6 +215,7 @@ def _destination_sample(
         preprocessor_setting_name="alts_preprocessor_sample",
     )
 
+    # Trip destination keeps the alternative universe here so stable_alt_positions is not needed.
     choices = interaction_sample(
         state,
         choosers=trips,

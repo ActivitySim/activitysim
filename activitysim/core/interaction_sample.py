@@ -850,11 +850,10 @@ def _interaction_sample(
 
         return choices_df
 
-    if sampling_method != "monte_carlo":
-
+    if use_eet:
         if estimation.manager.enabled:
             raise ValueError(
-                f"sample_method={sampling_method!r} is not supported with estimation mode"
+                "use_explicit_error_terms is not supported with estimation mode"
             )
 
         utilities = logit.validate_utils(

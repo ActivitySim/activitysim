@@ -37,7 +37,6 @@ InteractionSampleMethod = typing.Literal["monte_carlo", "eet", "poisson"]
 def _resolve_sample_method(
     state: workflow.State,
     compute_settings: ComputeSettings | None,
-    use_eet: bool,
 ) -> InteractionSampleMethod:
     sampling_method = None
     if compute_settings is not None:
@@ -45,7 +44,7 @@ def _resolve_sample_method(
     if sampling_method is None:
         sampling_method = state.settings.sample_method
     if sampling_method is None:
-        return "poisson" if use_eet else "monte_carlo"
+        return "poisson" if state.settings.use_explicit_error_terms else "monte_carlo"
     if sampling_method not in typing.get_args(InteractionSampleMethod):
         raise ValueError(
             f"Unsupported sample_method {sampling_method!r}; expected one of {typing.get_args(InteractionSampleMethod)}"
@@ -820,7 +819,7 @@ def _interaction_sample(
     state.tracing.dump_df(DUMP, utilities, trace_label, "utilities")
 
     use_eet = state.settings.use_explicit_error_terms
-    sampling_method = _resolve_sample_method(state, compute_settings, use_eet)
+    sampling_method = _resolve_sample_method(state, compute_settings)
 
     if sample_size == 0:
         # Return full alternative set rather than sample
@@ -1098,13 +1097,12 @@ def interaction_sample(
     if not choosers.index.is_monotonic_increasing:
         assert choosers.index.is_monotonic_increasing
 
-    use_eet = state.settings.use_explicit_error_terms
-    sampling_method = _resolve_sample_method(state, compute_settings, use_eet)
+    sampling_method = _resolve_sample_method(state, compute_settings)
     logger.debug(f" interaction_sample sample method = {sampling_method}")
 
-    if not use_eet:
-        # Do not support stable alt positions or tracking total alts when running with MC sampling
-        # to not introduce any additional changes while adding eet simulation support to ensure no
+    if not state.settings.use_explicit_error_terms:
+        # Do not support stable alt positions or tracking total alts when running with MC sampling. We do
+        # not want to introduce any additional changes while adding eet simulation support to ensure no
         # regressions. We can add these features later if desired.
         stable_alt_positions = None
         n_total_alts = None

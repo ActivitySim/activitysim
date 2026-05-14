@@ -675,9 +675,7 @@ def destination_presample(
             sample_compute_settings = sample_compute_settings.subcomponent_settings(
                 "sample"
             )
-        taz_sample_method = _resolve_sample_method(
-            state, sample_compute_settings, trace_label
-        )
+        taz_sample_method = _resolve_sample_method(state, sample_compute_settings)
         if taz_sample_method == "poisson":
             full_taz_index = pd.Index(
                 alternatives.index, name=f"{alt_dest_col_name}_TAZ"

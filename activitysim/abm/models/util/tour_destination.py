@@ -645,9 +645,7 @@ def destination_presample(
             sample_compute_settings = sample_compute_settings.subcomponent_settings(
                 "sample"
             )
-        taz_sample_method = _resolve_sample_method(
-            state, sample_compute_settings, trace_label
-        )
+        taz_sample_method = _resolve_sample_method(state, sample_compute_settings)
         use_stable_taz_index = taz_sample_method == "poisson"
     else:
         full_taz_index = None

@@ -627,13 +627,13 @@ def choose_MAZ_for_TAZ(
     return taz_choices_w_maz
 
 
-def resolve_sample_method(state, model_settings, trace_label):
+def resolve_sample_method(state, model_settings):
     sample_compute_settings = getattr(model_settings, "compute_settings", None)
     if sample_compute_settings is not None:
         sample_compute_settings = sample_compute_settings.subcomponent_settings(
             "sample"
         )
-    return _resolve_sample_method(state, sample_compute_settings, trace_label)
+    return _resolve_sample_method(state, sample_compute_settings)
 
 
 @workflow.func
@@ -660,7 +660,7 @@ def od_presample(
         destination_size_terms, network_los
     )
 
-    taz_sample_method = resolve_sample_method(state, model_settings, trace_label)
+    taz_sample_method = resolve_sample_method(state, model_settings)
     if taz_sample_method == "poisson":
         full_taz_index = pd.Index(
             network_los.map_maz_to_taz(full_destination_size_terms.index),

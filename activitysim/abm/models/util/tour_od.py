@@ -216,6 +216,8 @@ def _od_sample(
         preprocessor_setting_name="alts_preprocessor_sample",
     )
 
+    # Note not using stable alternative positions for EET here, the cross-product of origins and destinations
+    # is too large for the way the RNG currently works.
     choices = interaction_sample(
         state,
         choosers,
@@ -625,6 +627,15 @@ def choose_MAZ_for_TAZ(
     return taz_choices_w_maz
 
 
+def resolve_sample_method(state, model_settings, trace_label):
+    sample_compute_settings = getattr(model_settings, "compute_settings", None)
+    if sample_compute_settings is not None:
+        sample_compute_settings = sample_compute_settings.subcomponent_settings(
+            "sample"
+        )
+    return _resolve_sample_method(state, sample_compute_settings, trace_label)
+
+
 @workflow.func
 def od_presample(
     state: workflow.State,
@@ -649,28 +660,15 @@ def od_presample(
         destination_size_terms, network_los
     )
 
-    full_taz_index = None
-    if state.settings.use_explicit_error_terms:
-        # Stable alt positions are only used with explicit error terms and Poisson sampling for
-        # two-zone systems with pre-sampling due to how MAZs are chosen. For explicit error terms
-        # with eet sampling alignment would require a large amount of random numbers due to
-        # potential repeated occurence of MAZs (importance sampling with replacement). This is due
-        # to how random numbers are generated atm, but with a counter-based RNG this could be
-        # revisited.
-        sample_compute_settings = getattr(model_settings, "compute_settings", None)
-        if sample_compute_settings is not None:
-            sample_compute_settings = sample_compute_settings.subcomponent_settings(
-                "sample"
-            )
-        taz_sample_method = _resolve_sample_method(
-            state, sample_compute_settings, trace_label
+    taz_sample_method = resolve_sample_method(state, model_settings, trace_label)
+    if taz_sample_method == "poisson":
+        full_taz_index = pd.Index(
+            network_los.map_maz_to_taz(full_destination_size_terms.index),
+            name=DEST_TAZ,
         )
-        if taz_sample_method == "poisson":
-            full_taz_index = pd.Index(
-                network_los.map_maz_to_taz(full_destination_size_terms.index),
-                name=DEST_TAZ,
-            )
-            full_taz_index = full_taz_index[~full_taz_index.duplicated()]
+        full_taz_index = full_taz_index[~full_taz_index.duplicated()]
+    else:
+        full_taz_index = None
 
     # create wrapper with keys for this lookup - in this case there is a ORIG_TAZ
     # in the choosers and a DEST_TAZ in the alternatives which get merged during

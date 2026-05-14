@@ -665,6 +665,13 @@ def destination_presample(
         sample_compute_settings = sample_compute_settings.subcomponent_settings(
             "sample"
         )
+
+    # Stable alt positions are only used with explicit error terms and Poisson sampling for
+    # two-zone systems with pre-sampling due to how MAZs are chosen. For explicit error terms
+    # with eet sampling alignment would require a large amount of random numbers due to
+    # potential repeated occurence of MAZs (importance sampling with replacement). This is due
+    # to how random numbers are generated atm, but with a counter-based RNG this could be
+    # revisited.
     taz_sample_method = None
     if sample_compute_settings is not None:
         taz_sample_method = sample_compute_settings.sample_method

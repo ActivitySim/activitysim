@@ -19,7 +19,10 @@ from activitysim.core import (
     workflow,
 )
 from activitysim.core.configuration.logit import TourLocationComponentSettings
-from activitysim.core.interaction_sample import interaction_sample
+from activitysim.core.interaction_sample import (
+    _resolve_sample_method,
+    interaction_sample,
+)
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.logit import AltsContext
 from activitysim.core.util import reindex
@@ -630,9 +633,26 @@ def destination_presample(
         full_taz_index = full_taz_index[~full_taz_index.duplicated()]
         stable_alt_positions = full_taz_index.get_indexer(TAZ_size_terms.index)
         assert (stable_alt_positions >= 0).all()
+
+        # Stable alt positions are only used with explicit error terms and Poisson sampling for
+        # two-zone systems with pre-sampling due to how MAZs are chosen. For explicit error terms
+        # with eet sampling alignment would require a large amount of random numbers due to
+        # potential repeated occurence of MAZs (importance sampling with replacement). This is due
+        # to how random numbers are generated atm, but with a counter-based RNG this could be
+        # revisited.
+        sample_compute_settings = getattr(model_settings, "compute_settings", None)
+        if sample_compute_settings is not None:
+            sample_compute_settings = sample_compute_settings.subcomponent_settings(
+                "sample"
+            )
+        taz_sample_method = _resolve_sample_method(
+            state, sample_compute_settings, trace_label
+        )
+        use_stable_taz_index = taz_sample_method == "poisson"
     else:
         full_taz_index = None
         stable_alt_positions = None
+        use_stable_taz_index = False
 
     orig_maz = model_settings.CHOOSER_ORIG_COL_NAME
     assert orig_maz in choosers
@@ -668,7 +688,7 @@ def destination_presample(
         MAZ_size_terms,
         trace_label,
         model_settings,
-        full_taz_index=full_taz_index,
+        full_taz_index=full_taz_index if use_stable_taz_index else None,
     )
 
     assert DEST_MAZ in maz_choices

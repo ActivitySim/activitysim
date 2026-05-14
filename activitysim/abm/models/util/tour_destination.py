@@ -202,10 +202,15 @@ def destination_sample(
 
     # the name of the dest column to be returned in choices
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
-    stable_alt_positions = full_destination_size_terms.index.get_indexer(
-        destination_size_terms.index
-    )
-    assert (stable_alt_positions >= 0).all()
+    if state.settings.use_explicit_error_terms:
+        stable_alt_positions = full_destination_size_terms.index.get_indexer(
+            destination_size_terms.index
+        )
+        assert (stable_alt_positions >= 0).all()
+        n_total_alts = len(full_destination_size_terms)
+    else:
+        stable_alt_positions = None
+        n_total_alts = None
 
     choices = _destination_sample(
         state,
@@ -219,7 +224,7 @@ def destination_sample(
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         stable_alt_positions=stable_alt_positions,
-        n_total_alts=len(full_destination_size_terms),
+        n_total_alts=n_total_alts,
     )
 
     return choices

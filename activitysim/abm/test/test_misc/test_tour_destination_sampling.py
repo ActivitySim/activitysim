@@ -104,6 +104,7 @@ def test_destination_presample_uses_taz_stable_mapping(monkeypatch):
     monkeypatch.setattr(tour_destination, "choose_MAZ_for_TAZ", fake_choose_maz_for_taz)
 
     state = workflow.State().default_settings()
+    state.settings.use_explicit_error_terms = True
     choosers = pd.DataFrame(
         {"origin": [101]},
         index=pd.Index([7001], name="tour_id"),
@@ -353,6 +354,7 @@ def test_destination_sample_uses_maz_stable_mapping(monkeypatch):
     )
 
     state = workflow.State().default_settings()
+    state.settings.use_explicit_error_terms = True
     choosers = pd.DataFrame(
         {"origin": [101], "person_id": [55]},
         index=pd.Index([7001], name="tour_id"),

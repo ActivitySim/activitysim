@@ -16,7 +16,10 @@ from activitysim.core.configuration.logit import (
     TourModeComponentSettings,
 )
 from activitysim.core.exceptions import DuplicateWorkflowTableError
-from activitysim.core.interaction_sample import interaction_sample
+from activitysim.core.interaction_sample import (
+    _resolve_sample_method,
+    interaction_sample,
+)
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.logit import AltsContext
 from activitysim.core.util import reindex
@@ -396,8 +399,10 @@ def location_presample(
     MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(
         state, dest_size_terms, network_los, model_settings
     )
+
     if full_dest_size_terms is None:
         full_dest_size_terms = dest_size_terms
+
     if state.settings.use_explicit_error_terms:
         full_taz_index = pd.Index(
             network_los.map_maz_to_taz(full_dest_size_terms.index), name=DEST_TAZ
@@ -406,38 +411,27 @@ def location_presample(
         stable_alt_positions = full_taz_index.get_indexer(TAZ_size_terms.index)
         assert (stable_alt_positions >= 0).all()
         n_total_alts = len(full_taz_index)
+
+        # Stable alt positions are only used with explicit error terms and Poisson sampling for
+        # two-zone systems with pre-sampling due to how MAZs are chosen. For explicit error terms
+        # with eet sampling alignment would require a large amount of random numbers due to
+        # potential repeated occurence of MAZs (importance sampling with replacement). This is due
+        # to how random numbers are generated atm, but with a counter-based RNG this could be
+        # revisited.
+        sample_compute_settings = getattr(model_settings, "compute_settings", None)
+        if sample_compute_settings is not None:
+            sample_compute_settings = sample_compute_settings.subcomponent_settings(
+                "sample"
+            )
+        taz_sample_method = _resolve_sample_method(
+            state, sample_compute_settings, trace_label
+        )
+        use_stable_taz_index = taz_sample_method == "poisson"
     else:
         full_taz_index = None
         stable_alt_positions = None
         n_total_alts = None
-
-    sample_compute_settings = getattr(model_settings, "compute_settings", None)
-    if sample_compute_settings is not None:
-        sample_compute_settings = sample_compute_settings.subcomponent_settings(
-            "sample"
-        )
-
-    # Stable alt positions are only used with explicit error terms and Poisson sampling for
-    # two-zone systems with pre-sampling due to how MAZs are chosen. For explicit error terms
-    # with eet sampling alignment would require a large amount of random numbers due to
-    # potential repeated occurence of MAZs (importance sampling with replacement). This is due
-    # to how random numbers are generated atm, but with a counter-based RNG this could be
-    # revisited.
-    taz_sample_method = None
-    if sample_compute_settings is not None:
-        taz_sample_method = sample_compute_settings.sample_method
-    if taz_sample_method is None:
-        taz_sample_method = getattr(state.settings, "sample_method", None)
-    if taz_sample_method is None:
-        taz_sample_method = (
-            "poisson"
-            if getattr(state.settings, "use_explicit_error_terms", False)
-            else "monte_carlo"
-        )
-    use_stable_taz_index = (
-        getattr(state.settings, "use_explicit_error_terms", False)
-        and taz_sample_method == "poisson"
-    )
+        use_stable_taz_index = False
 
     # convert MAZ zone_id to 'TAZ' in choosers (persons_merged)
     # persons_merged[HOME_TAZ] = persons_merged[HOME_MAZ].map(maz_to_taz)

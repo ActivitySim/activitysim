@@ -250,8 +250,16 @@ def location_sample(
     skims = skim_dict.wrap("home_zone_id", "zone_id")
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
-    stable_alt_positions = full_dest_size_terms.index.get_indexer(dest_size_terms.index)
-    assert (stable_alt_positions >= 0).all()
+
+    if state.settings.use_explicit_error_terms:
+        stable_alt_positions = full_dest_size_terms.index.get_indexer(
+            dest_size_terms.index
+        )
+        assert (stable_alt_positions >= 0).all()
+        n_total_alts = len(full_dest_size_terms)
+    else:
+        stable_alt_positions = None
+        n_total_alts = None
 
     choices = _location_sample(
         state,
@@ -266,7 +274,7 @@ def location_sample(
         chunk_tag,
         trace_label,
         stable_alt_positions=stable_alt_positions,
-        n_total_alts=len(full_dest_size_terms),
+        n_total_alts=n_total_alts,
     )
 
     return choices
@@ -390,12 +398,18 @@ def location_presample(
     )
     if full_dest_size_terms is None:
         full_dest_size_terms = dest_size_terms
-    full_taz_index = pd.Index(
-        network_los.map_maz_to_taz(full_dest_size_terms.index), name=DEST_TAZ
-    )
-    full_taz_index = full_taz_index[~full_taz_index.duplicated()]
-    stable_alt_positions = full_taz_index.get_indexer(TAZ_size_terms.index)
-    assert (stable_alt_positions >= 0).all()
+    if state.settings.use_explicit_error_terms:
+        full_taz_index = pd.Index(
+            network_los.map_maz_to_taz(full_dest_size_terms.index), name=DEST_TAZ
+        )
+        full_taz_index = full_taz_index[~full_taz_index.duplicated()]
+        stable_alt_positions = full_taz_index.get_indexer(TAZ_size_terms.index)
+        assert (stable_alt_positions >= 0).all()
+        n_total_alts = len(full_taz_index)
+    else:
+        full_taz_index = None
+        stable_alt_positions = None
+        n_total_alts = None
 
     sample_compute_settings = getattr(model_settings, "compute_settings", None)
     if sample_compute_settings is not None:
@@ -452,7 +466,7 @@ def location_presample(
         trace_label,
         zone_layer="taz",
         stable_alt_positions=stable_alt_positions,
-        n_total_alts=len(full_taz_index),
+        n_total_alts=n_total_alts,
     )
 
     # print(f"taz_sample\n{taz_sample}")

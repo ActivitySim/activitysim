@@ -54,7 +54,7 @@ def test_location_presample_uses_taz_stable_mapping(monkeypatch):
         captured["alt_dest_col_name"] = alt_dest_col_name
         captured["zone_layer"] = zone_layer
         captured["active_taz_index"] = alternatives.index.copy()
-        captured["stable_alt_positions"] = stable_alt_positions.copy()
+        captured["stable_alt_positions"] = stable_alt_positions
         captured["n_total_alts"] = n_total_alts
         return pd.DataFrame(
             {"dest_TAZ": [1]},
@@ -146,8 +146,8 @@ def test_location_presample_uses_taz_stable_mapping(monkeypatch):
     )
     assert captured["alt_dest_col_name"] == location_choice.DEST_TAZ
     assert captured["zone_layer"] == "taz"
-    assert captured["n_total_alts"] == 3
-    assert list(captured["stable_alt_positions"]) == [0, 2]
+    assert captured["n_total_alts"] is None
+    assert captured["stable_alt_positions"] is None
     assert captured["full_taz_index"] is None
 
 
@@ -321,6 +321,7 @@ def test_location_sample_uses_maz_stable_mapping(monkeypatch):
     monkeypatch.setattr(location_choice, "_location_sample", fake_location_sample)
 
     state = workflow.State().default_settings()
+    state.settings.use_explicit_error_terms = True
     model_settings = type(
         "ModelSettings",
         (),

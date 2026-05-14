@@ -31,7 +31,10 @@ from activitysim.core import (
 from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LocationComponentSettings
 from activitysim.core.exceptions import DuplicateWorkflowTableError, InvalidTravelError
-from activitysim.core.interaction_sample import interaction_sample
+from activitysim.core.interaction_sample import (
+    _resolve_sample_method,
+    interaction_sample,
+)
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.logit import AltsContext
 from activitysim.core.skim_dictionary import DataFrameMatrix
@@ -658,13 +661,6 @@ def destination_presample(
     alternatives = alternatives.groupby(
         network_los.map_maz_to_taz(alternatives.index)
     ).sum()
-    full_taz_index = pd.Index(alternatives.index, name=f"{alt_dest_col_name}_TAZ")
-
-    sample_compute_settings = getattr(model_settings, "compute_settings", None)
-    if sample_compute_settings is not None:
-        sample_compute_settings = sample_compute_settings.subcomponent_settings(
-            "sample"
-        )
 
     # Stable alt positions are only used with explicit error terms and Poisson sampling for
     # two-zone systems with pre-sampling due to how MAZs are chosen. For explicit error terms
@@ -672,21 +668,20 @@ def destination_presample(
     # potential repeated occurence of MAZs (importance sampling with replacement). This is due
     # to how random numbers are generated atm, but with a counter-based RNG this could be
     # revisited.
-    taz_sample_method = None
-    if sample_compute_settings is not None:
-        taz_sample_method = sample_compute_settings.sample_method
-    if taz_sample_method is None:
-        taz_sample_method = getattr(state.settings, "sample_method", None)
-    if taz_sample_method is None:
-        taz_sample_method = (
-            "poisson"
-            if getattr(state.settings, "use_explicit_error_terms", False)
-            else "monte_carlo"
+    full_taz_index = None
+    if state.settings.use_explicit_error_terms:
+        sample_compute_settings = getattr(model_settings, "compute_settings", None)
+        if sample_compute_settings is not None:
+            sample_compute_settings = sample_compute_settings.subcomponent_settings(
+                "sample"
+            )
+        taz_sample_method = _resolve_sample_method(
+            state, sample_compute_settings, trace_label
         )
-    use_stable_taz_index = (
-        getattr(state.settings, "use_explicit_error_terms", False)
-        and taz_sample_method == "poisson"
-    )
+        if taz_sample_method == "poisson":
+            full_taz_index = pd.Index(
+                alternatives.index, name=f"{alt_dest_col_name}_TAZ"
+            )
 
     # # i did this but after changing alt_dest_col_name to 'trip_dest' it
     # # shouldn't be needed anymore
@@ -719,7 +714,7 @@ def destination_presample(
         alt_dest_col_name,
         trace_label,
         model_settings,
-        full_taz_index=full_taz_index if use_stable_taz_index else None,
+        full_taz_index=full_taz_index,
     )
 
     assert alt_dest_col_name in maz_sample

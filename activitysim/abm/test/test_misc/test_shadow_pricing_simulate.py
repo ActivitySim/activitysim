@@ -578,3 +578,97 @@ def test_shadow_pricing_simulate(state, model_settings, network_los):
                 choices_df.index
             ),
         )
+
+
+def test_shadow_pricing_dedicated_rng_channel_eet_only(
+    state, model_settings, network_los
+):
+    """
+    Under EET, ShadowPriceCalculator should register a dedicated
+    shadow_pricing_persons RNG channel on first call to update_shadow_prices,
+    and route its re-simulation draws through it so they are isolated from
+    the main persons channel. Under MC, no channel is registered and the
+    pre-existing coupling with the main RNG is preserved.
+    """
+    from activitysim.core import logit
+
+    model_settings.LOGSUM_SETTINGS = None
+    rng = state.get_rn_generator()
+
+    # --- MC case: helper is a no-op ---
+    state.settings.use_explicit_error_terms = False
+    spc_mc = shadow_pricing.load_shadow_price_calculator(state, model_settings)
+    spc_mc._ensure_sp_rng_channel(state)
+
+    assert not spc_mc._sp_rng_channel_registered
+    assert "shadow_pricing_persons" not in rng.channels
+
+    # --- EET case: channel registered, idempotent, draws advance offsets ---
+    state.settings.use_explicit_error_terms = True
+    spc_eet = shadow_pricing.load_shadow_price_calculator(state, model_settings)
+    spc_eet._ensure_sp_rng_channel(state)
+
+    assert spc_eet._sp_rng_channel_registered
+    assert "shadow_pricing_persons" in rng.channels
+
+    # Idempotent re-registration
+    rng_channels_before = set(rng.channels.keys())
+    spc_eet._ensure_sp_rng_channel(state)
+    assert set(rng.channels.keys()) == rng_channels_before
+
+    # Channel covers the same person ids as persons_merged
+    persons = state.get_dataframe("persons_merged")
+    sp_channel = rng.channels["shadow_pricing_persons"]
+    pd.testing.assert_index_equal(
+        sp_channel.row_states.index, persons.index, check_names=False
+    )
+
+    # Draws via make_choices on a probs DF indexed by shadow_pricing_persons
+    # advance the dedicated channel's offsets each call, demonstrating the
+    # channel keeps its offset across iterations (no reset between calls).
+    rng.begin_step("test_shadow_pricing_sp_channel_draws")
+
+    probs = pd.DataFrame(
+        {"0": [0.5] * len(persons), "1": [0.5] * len(persons)},
+        index=persons.index.rename("shadow_pricing_persons"),
+    )
+
+    offsets_before = sp_channel.row_states["offset"].copy()
+    logit.make_choices(state, probs)
+    offsets_after_first = sp_channel.row_states["offset"].copy()
+    assert (offsets_after_first > offsets_before).all(), (
+        "shadow_pricing_persons channel offsets should advance after first draw"
+    )
+
+    logit.make_choices(state, probs)
+    offsets_after_second = sp_channel.row_states["offset"]
+    assert (offsets_after_second > offsets_after_first).all(), (
+        "shadow_pricing_persons channel offsets should advance further on second draw "
+        "(channel is not reset between shadow-pricing iterations)"
+    )
+
+    rng.end_step("test_shadow_pricing_sp_channel_draws")
+
+    # cleanup_rng_channel drops the channel and resets the flag so the SPC can
+    # be re-used (or a fresh SPC for the next location_choice model can
+    # re-register the channel without colliding on extend_domain's no-overlap
+    # assert in SimpleChannel).
+    spc_eet.cleanup_rng_channel(state)
+    assert "shadow_pricing_persons" not in rng.channels
+    assert not spc_eet._sp_rng_channel_registered
+
+    # Idempotent: calling cleanup again is a no-op
+    spc_eet.cleanup_rng_channel(state)
+
+    # A fresh SPC can register the channel cleanly after cleanup (simulates the
+    # work-then-school sequential model pattern).
+    spc_eet_2 = shadow_pricing.load_shadow_price_calculator(state, model_settings)
+    spc_eet_2._ensure_sp_rng_channel(state)
+    assert "shadow_pricing_persons" in rng.channels
+    spc_eet_2.cleanup_rng_channel(state)
+
+    # cleanup_rng_channel on an MC-only SPC is also a no-op
+    spc_mc.cleanup_rng_channel(state)
+
+    # Reset for hygiene (other tests in this module assume MC default)
+    state.settings.use_explicit_error_terms = False

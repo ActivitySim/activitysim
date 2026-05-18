@@ -290,6 +290,9 @@ class ShadowPriceCalculator:
         self.choices_by_iteration = pd.DataFrame()
         self.global_pending_persons = 1
         self.sampled_persons = pd.DataFrame()
+        # Under EET, simulation-method shadow pricing uses a dedicated RNG channel to be independent of the location
+        # choice randoms. Registered lazily on first call to update_shadow_prices.
+        self._sp_rng_channel_registered = False
 
         if (
             self.use_shadow_pricing
@@ -699,6 +702,44 @@ class ShadowPriceCalculator:
 
         return converged
 
+    _SP_RNG_CHANNEL = "shadow_pricing_persons"
+
+    def cleanup_rng_channel(self, state):
+        """
+        Drop the dedicated shadow_pricing_persons RNG channel if it was registered. Called at the end of
+        iterate_location_choice so the channel doesn't survive into the next model (e.g., school after work) — which
+        would otherwise fail the no-overlap assert in SimpleChannel.extend_domain when the next SPC tries to register
+        the same persons. No-op under MC (channel was never registered).
+        """
+        if not self._sp_rng_channel_registered:
+            return
+        state.get_rn_generator().drop_channel(self._SP_RNG_CHANNEL)
+        self._sp_rng_channel_registered = False
+
+    def _ensure_sp_rng_channel(self, state):
+        """
+        Lazily register a dedicated RNG channel for shadow-pricing re-simulation draws under EET. The channel covers
+        the same persons as the main persons channel but has its own per-person offsets, so its draws don't consume
+        the main persons channel and aren't reset by the per-iteration location-choice reset.
+        """
+        if self._sp_rng_channel_registered:
+            return
+        if not (
+            self.use_shadow_pricing
+            and self.shadow_settings.SHADOW_PRICE_METHOD == "simulation"
+            and state.settings.use_explicit_error_terms
+        ):
+            return
+        persons = state.get_dataframe("persons_merged")
+        # add_channel only consumes the index; the renamed axis is what maps this channel to probs DataFrames with
+        # index name SP_RNG_CHANNEL. We rename the axis on a thin view (one dummy column) so the domain DF isn't
+        # pandas-"empty" (which would log a spurious warning).
+        domain = pd.DataFrame(
+            {"_": 0}, index=persons.index.rename(self._SP_RNG_CHANNEL)
+        )
+        state.get_rn_generator().add_channel(self._SP_RNG_CHANNEL, domain)
+        self._sp_rng_channel_registered = True
+
     def update_shadow_prices(self, state):
         """
         Adjust shadow_prices based on relative values of modeled_size and desired_size.
@@ -737,6 +778,8 @@ class ShadowPriceCalculator:
         assert self.modeled_size is not None
         assert self.desired_size is not None
         assert self.shadow_prices is not None
+
+        self._ensure_sp_rng_channel(state)
 
         if shadow_price_method == "ctramp":
             # - CTRAMP
@@ -899,12 +942,22 @@ class ShadowPriceCalculator:
                 if (len(choices) > 0) & (~converged):
                     # person's probability of being selected for re-simulation is from the zonal sample rate
                     sample_rates = choices.map(zonal_sample_rate.to_dict())
+                    # Under EET we route through a dedicated RNG channel so shadow-pricing draws are isolated from the
+                    # persons-channel reset that location_choice does between iterations. Under MC we leave the index
+                    # name alone so draws continue to consume the main persons channel exactly as before.
+                    probs_index = choices.index
+                    if state.settings.use_explicit_error_terms:
+                        probs_index = probs_index.rename(self._SP_RNG_CHANNEL)
                     probs = pd.DataFrame(
                         data={"0": 1 - sample_rates, "1": sample_rates},
-                        index=choices.index,
+                        index=probs_index,
                     )
                     # using ActivitySim's RNG to make choices for repeatability
                     current_sample, rands = logit.make_choices(state, probs)
+                    if state.settings.use_explicit_error_terms:
+                        current_sample.index = current_sample.index.rename(
+                            choices.index.name
+                        )
                     current_sample = current_sample[current_sample == 1]
 
                     if len(sampled_persons) == 0:

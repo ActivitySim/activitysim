@@ -1107,15 +1107,16 @@ def iterate_location_choice(
                 persons_merged_df_ = persons_merged_df_.sort_index()
 
         # reset rng offsets to identical state on each iteration. This ensures that the same set of random numbers is
-        # used on each iteration. Note this has to happen AFTER updating shadow prices because the simulation method
-        # draws random numbers.
-        # Only applying when using EET for now because this will need changes to integration
-        # tests, but it's probably a good idea for MC simulation as well.
+        # used on each iteration for the persons being re-simulated, so sampling and final choice draws are
+        # reproducible across shadow-pricing iterations.
+        # Scoped to the persons channel for these specific rows via reset_offsets_for_df so the dedicated
+        # shadow_pricing_persons channel (registered under EET) keeps its offset across iterations and advances
+        # naturally on each iteration's update_shadow_prices call.
         if state.settings.use_explicit_error_terms and iteration > 1:
             logger.debug(
                 f"{trace_label} resetting random number generator offsets for iteration {iteration}"
             )
-            state.get_rn_generator().reset_offsets_for_step(state.current_model_name)
+            state.get_rn_generator().reset_offsets_for_df(persons_merged_df_)
 
         choices_df_, save_sample_df = run_location_choice(
             state,
@@ -1177,6 +1178,11 @@ def iterate_location_choice(
                 )
             )
             break
+
+    # Drop the dedicated shadow_pricing RNG channel (registered lazily under EET by spc.update_shadow_prices) so it
+    # doesn't survive into the next location_choice model (e.g., school after work) — both models share the same
+    # channel name and would otherwise collide on the no-overlap assert in SimpleChannel.extend_domain. No-op for MC.
+    spc.cleanup_rng_channel(state)
 
     # - shadow price table
     if locutor:

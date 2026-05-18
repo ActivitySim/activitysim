@@ -17,8 +17,8 @@ from activitysim.abm.tables.size_terms import tour_destination_size_terms
 from activitysim.core import logit, tracing, util, workflow
 from activitysim.core.configuration import PydanticReadable
 from activitysim.core.configuration.logit import TourLocationComponentSettings
+from activitysim.core.exceptions import MissingNameError, SystemConfigurationError
 from activitysim.core.input import read_input_table
-from activitysim.core.exceptions import SystemConfigurationError, MissingNameError
 
 logger = logging.getLogger(__name__)
 
@@ -947,6 +947,9 @@ class ShadowPriceCalculator:
                     # name alone so draws continue to consume the main persons channel exactly as before.
                     probs_index = choices.index
                     if state.settings.use_explicit_error_terms:
+                        logger.debug(
+                            f"Renaming probs index from {probs_index.name} to {self._SP_RNG_CHANNEL} for EET RNG channel matching."
+                        )
                         probs_index = probs_index.rename(self._SP_RNG_CHANNEL)
                     probs = pd.DataFrame(
                         data={"0": 1 - sample_rates, "1": sample_rates},

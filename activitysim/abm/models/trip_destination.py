@@ -662,12 +662,16 @@ def destination_presample(
         network_los.map_maz_to_taz(alternatives.index)
     ).sum()
 
-    # Stable alt positions are only used with explicit error terms and Poisson sampling for
-    # two-zone systems with pre-sampling due to how MAZs are chosen. For explicit error terms
-    # with eet sampling alignment would require a large amount of random numbers due to
-    # potential repeated occurence of MAZs (importance sampling with replacement). This is due
-    # to how random numbers are generated atm, but with a counter-based RNG this could be
-    # revisited.
+    # Trip destination keeps the alternative universe in `alternatives`, so the active TAZ set after aggregation always
+    # equals the full TAZ universe and stable_alt_positions is not needed at the TAZ presample call itself (unlike
+    # tour_destination / location_choice, which filter zero-attraction zones before presampling). full_taz_index is
+    # still computed here for the MAZ-for-TAZ second stage, but only for Poisson sampling: that stage uses one
+    # per-(chooser, TAZ) uniform to pick a MAZ within each sampled TAZ. Under Poisson each sampled TAZ appears at most
+    # once per chooser, so the per-TAZ uniform produces an independent MAZ choice. Under EET sampling (importance
+    # sampling with replacement) the same TAZ can appear multiple times in a chooser's sample and would allshare one
+    # uniform, forcing every duplicate to pick the same MAZ. An EET-stable MAZ-for-TAZ would need a
+    # (TAZ, occurrence-rank)-keyed draw and many more random numbers per chooser; that's too expensive with the
+    # current RNG, revisit if a counter-based RNG is adapted.
     full_taz_index = None
     if state.settings.use_explicit_error_terms:
         sample_compute_settings = getattr(model_settings, "compute_settings", None)

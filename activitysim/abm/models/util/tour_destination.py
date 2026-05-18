@@ -634,12 +634,14 @@ def destination_presample(
         stable_alt_positions = full_taz_index.get_indexer(TAZ_size_terms.index)
         assert (stable_alt_positions >= 0).all()
 
-        # Stable alt positions are only used with explicit error terms and Poisson sampling for
-        # two-zone systems with pre-sampling due to how MAZs are chosen. For explicit error terms
-        # with eet sampling alignment would require a large amount of random numbers due to
-        # potential repeated occurence of MAZs (importance sampling with replacement). This is due
-        # to how random numbers are generated atm, but with a counter-based RNG this could be
-        # revisited.
+        # The TAZ presample call below passes stable_alt_positions for both EET and Poisson sampling, so each TAZ is
+        # keyed to its position in the full TAZ universe. The MAZ-for-TAZ second stage only receives full_taz_index for
+        # Poisson: that stage uses one per-(chooser, TAZ) uniform to pick a MAZ within each sampled TAZ. Under Poisson
+        # each sampled TAZ appears at most once per chooser, so the per-TAZ uniform produces an independent MAZ choice.
+        # Under EET sampling (importance sampling with replacement) the same TAZ can appear multiple times in a
+        # chooser's sample and would all share one uniform, forcing every duplicate to pick the same MAZ. An
+        # EET-stable MAZ-for-TAZ would need a (TAZ, occurrence-rank)-keyed draw and many more random numbers per
+        # chooser; that's too expensive with the current RNG, revisit if a counter-based RNG is adapted.
         sample_compute_settings = getattr(model_settings, "compute_settings", None)
         if sample_compute_settings is not None:
             sample_compute_settings = sample_compute_settings.subcomponent_settings(

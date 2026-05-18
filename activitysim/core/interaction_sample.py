@@ -49,6 +49,7 @@ def _resolve_sample_method(
         raise ValueError(
             f"Unsupported sample_method {sampling_method!r}; expected one of {typing.get_args(InteractionSampleMethod)}"
         )
+    logger.info(f"Using sample_method={sampling_method}")
     return sampling_method
 
 

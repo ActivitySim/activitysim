@@ -216,8 +216,10 @@ def _od_sample(
         preprocessor_setting_name="alts_preprocessor_sample",
     )
 
-    # Note not using stable alternative positions for EET here, the cross-product of origins and destinations
-    # is too large for the way the RNG currently works.
+    # Not passing stable_alt_positions here: the cross product of origins and destinations
+    # would make the per-chooser draw count (n_total_alts, or n_total_alts * sample_size for
+    # EET sampling) prohibitive under the current sequential RNG. Revisit with a counter-based
+    # RNG.
     choices = interaction_sample(
         state,
         choosers,
@@ -660,6 +662,17 @@ def od_presample(
         destination_size_terms, network_los
     )
 
+    # The OD presample call below does not pass stable_alt_positions: the cross product of
+    # origins and destinations is too large for the current sequential-RNG cost (see comment
+    # at the OD sample call in _od_sample). full_taz_index is still computed here for the
+    # MAZ-for-TAZ second stage, but only for Poisson sampling: that stage uses one
+    # per-(chooser, TAZ) uniform to pick a MAZ within each sampled TAZ. Under Poisson each
+    # sampled TAZ appears at most once per chooser, so the per-TAZ uniform produces an
+    # independent MAZ choice. Under EET sampling (importance sampling with replacement) the
+    # same TAZ can appear multiple times in a chooser's sample and would all share one
+    # uniform, forcing every duplicate to pick the same MAZ. An EET-stable MAZ-for-TAZ would
+    # need a (TAZ, occurrence-rank)-keyed draw and many more random numbers per chooser; that's
+    # too expensive with the current RNG, revisit if a counter-based RNG is adapted.
     taz_sample_method = resolve_sample_method(state, model_settings)
     if taz_sample_method == "poisson":
         full_taz_index = pd.Index(

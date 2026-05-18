@@ -1,17 +1,17 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
+
 import numpy as np
-import pandas as pd
-
-import pytest
 import openmatrix as omx
+import pandas as pd
+import pytest
 
-
-from activitysim.abm.tables import shadow_pricing
-from activitysim.core import workflow, los
-from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.abm.models.location_choice import run_location_choice
-
+from activitysim.abm.tables import shadow_pricing
+from activitysim.core import los, workflow
+from activitysim.core.configuration.logit import TourLocationComponentSettings
 
 LAND_USE_FIELDS = [
     "e01_nrm",
@@ -636,9 +636,9 @@ def test_shadow_pricing_dedicated_rng_channel_eet_only(
     offsets_before = sp_channel.row_states["offset"].copy()
     logit.make_choices(state, probs)
     offsets_after_first = sp_channel.row_states["offset"].copy()
-    assert (offsets_after_first > offsets_before).all(), (
-        "shadow_pricing_persons channel offsets should advance after first draw"
-    )
+    assert (
+        offsets_after_first > offsets_before
+    ).all(), "shadow_pricing_persons channel offsets should advance after first draw"
 
     logit.make_choices(state, probs)
     offsets_after_second = sp_channel.row_states["offset"]

@@ -449,13 +449,25 @@ def test_interaction_sample_eet_sampling_under_mc_simulation(state):
     )
 
     _, shares_mc_sim = _shares_for_sample(
-        state, choosers, alternatives, spec, sample_size,
-        use_eet=False, sample_method="eet", seed=42,
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size,
+        use_eet=False,
+        sample_method="eet",
+        seed=42,
         step_name="test_eet_under_mc_sim",
     )
     _, shares_eet_sim = _shares_for_sample(
-        state, choosers, alternatives, spec, sample_size,
-        use_eet=True, sample_method="eet", seed=42,
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size,
+        use_eet=True,
+        sample_method="eet",
+        seed=42,
         step_name="test_eet_under_eet_sim",
     )
 
@@ -492,13 +504,25 @@ def test_interaction_sample_poisson_sampling_under_mc_simulation(state):
     )
 
     choices_mc_sim, shares_mc_sim = _shares_for_sample(
-        state, choosers, alternatives, spec, sample_size,
-        use_eet=False, sample_method="poisson", seed=42,
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size,
+        use_eet=False,
+        sample_method="poisson",
+        seed=42,
         step_name="test_poisson_under_mc_sim",
     )
     _, shares_eet_sim = _shares_for_sample(
-        state, choosers, alternatives, spec, sample_size,
-        use_eet=True, sample_method="poisson", seed=42,
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size,
+        use_eet=True,
+        sample_method="poisson",
+        seed=42,
         step_name="test_poisson_under_eet_sim",
     )
 
@@ -538,13 +562,25 @@ def test_interaction_sample_mc_sampling_under_eet_simulation(state):
     )
 
     _, shares_mc_sim = _shares_for_sample(
-        state, choosers, alternatives, spec, sample_size,
-        use_eet=False, sample_method="monte_carlo", seed=42,
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size,
+        use_eet=False,
+        sample_method="monte_carlo",
+        seed=42,
         step_name="test_mc_under_mc_sim",
     )
     _, shares_eet_sim = _shares_for_sample(
-        state, choosers, alternatives, spec, sample_size,
-        use_eet=True, sample_method="monte_carlo", seed=42,
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size,
+        use_eet=True,
+        sample_method="monte_carlo",
+        seed=42,
         step_name="test_mc_under_eet_sim",
     )
 

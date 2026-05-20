@@ -762,7 +762,7 @@ def get_disaggregate_logsums(
     )
 
     if _resolve_sample_method(state, disagg_model_settings) == "poisson":
-        logger.warning(
+        logger.info(
             "Using Poisson sampling method for disaggregate accessibility calculations. Currently the results will"
             + " differ from those obtained with monte-carlo or eet sampling by a constant shift of"
             + f" log({disagg_model_settings.DESTINATION_SAMPLE_SIZE}) if you are using the common correction factor"

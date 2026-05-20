@@ -762,7 +762,9 @@ def get_disaggregate_logsums(
     )
 
     if (
-        _resolve_sample_method(state, getattr(model_settings, "compute_settings", None))
+        _resolve_sample_method(
+            state, getattr(disagg_model_settings, "compute_settings", None)
+        )
         == "poisson"
     ):
         logger.warning(

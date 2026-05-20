@@ -297,7 +297,7 @@ cumulative distribution for each chooser. Explicit Error Terms (EET) replaces th
 random-utility simulation by drawing the unobserved portion of utility (error term) for each
 chooser-alternative pair, adding it to the systematic utility, and selecting the alternative with the highest
 total utility. Both methods simulate the same underlying model, but EET can be less affected by Monte Carlo
-noise when comparing scenarios and can  make some comparisons easier to interpret. This is because the
+noise when comparing scenarios and can make some comparisons easier to interpret. This is because the
 selected alternative is the one with the highest total utility after adding the explicit
 error term, and if the explicit error term is consistent between a base and scenario run then
 only (relative) increases in the observed utility can lead to previously un-chosen alternatives
@@ -310,4 +310,4 @@ To enable EET for a model run, set the global switch in ``settings.yaml``:
   use_explicit_error_terms: True
 
 Enable or disable this setting consistently across all runs being compared. For more details, including
-scenario comparison considerations and implementation notes, see :doc:`/dev-guide/explicit-error-terms`.
+scenario comparison considerations, see :doc:`/dev-guide/explicit-error-terms`.

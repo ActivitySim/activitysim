@@ -82,8 +82,8 @@ but real benefits can show up as negative in a single run. Under EET, the sign o
 is far more trustworthy.
 
 Independent of any statistical argument, under EET, choice changes between two runs are
-causally attributable to utility changes which can be helpful for model development,
-sensitivity testing, and defending results to stakeholders.
+attributable to utility changes which can be helpful for model development, sensitivity
+testing, and presenting results to stakeholders.
 
 ### Aligning error terms
 
@@ -103,31 +103,33 @@ this new mode should also be in the specification of the run where it is not ava
 its utility specification such that it is never chosen. In case the model is nested logit, the
 nesting structure also needs to be held constant across scenarios.
 For location choice models, all alternatives need to be listed in the land use table and the
-zone IDs need to be stable between scenarios. Additionally, for computational efficiency
-EET requires <!-- TODO: this might need to change to `recommend` depending on implementation -->
-0-based, contiguous zone IDs. For models where this is not the case, ActivitySim can
-automatically perform the conversion for internal calculations, see
-{ref}`explicit_error_terms_zone_encoding` for how to set this up.
+zone IDs need to be stable between scenarios. Additionally, for computational efficiency it
+is recommended to have zone IDs that are a contiguous 0-based sequence because ActivitySim aligns
+random draws to positions in the full zone universe and generates draws for all zone IDs up to the
+maximum. For models where this is not the case, ActivitySim can automatically perform the
+conversion for internal calculations. The `recode_columns` option creates contiguous zero-based IDs
+where needed; see the
+[Zero-based Recoding of Zones](using-sharrow.md#zero-based-recoding-of-zones) section for details.
 
 For models that use sub-sampling of alternatives, it is important to keep the sampling scheme
 identical between scenarios, otherwise the error terms for the choice from the sampled set are
-not guaranteed to be aligned.
+not guaranteed to be aligned. When running with EET, the default sampling method is ``poisson``,
+which balances runtime performance and noise reduction. For more details on sampling methods,
+see {ref}`sampling_methods_dev_guide`.
 
-Finally, it also important to keep the global random number generator seed constant for
-comparison runs. <!-- maybe make clear this is for when only one base and scenario are run, and link this to estimator of difference above. -->
+Finally, it also important to keep the global random number generator seed constant for two
+individual comparison runs.
 
 
 ### Runtime and memory usage
 EET draws one error term per chooser and alternative, which requires many more random numbers
 than MC's one per chooser. For models with many alternatives, this can lead to a large amount
-of random numbers being calculated. To keep memory usage in line with MC simulation, the
-implementation of EET avoids materialization of large chooser-alternative arrays of error
-terms in memory.
-Regarding runtimes, EET with default settings currently carries a runtime penalty of about 5-10%
+of random numbers being calculated. The implementation of EET avoids materialization of large
+chooser-alternative arrays of error terms in memory so that the memory usage is in line with MC
+simulation.
+Regarding runtimes, EET with default settings currently carries a runtime penalty of about 3-10%
 per demand model run. However, when run in combination with an assignment model the overall
-system converges faster and can cancel out any runtime penalty completely. Precise numbers are
-hard to provide, but overall runtime and memory usage should not differ from runs with MC too
-much.
+system can converge faster and this can reduce the overall model runtime penalty.
 
 <!-- For location choice models, keeping error terms aligned to zone IDs also affects runtime and
 memory usage. To keep the same unobserved error term attached to the same zone across runs,

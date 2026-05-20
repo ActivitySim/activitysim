@@ -761,7 +761,10 @@ def get_disaggregate_logsums(
         state, "disaggregate_accessibility.yaml"
     )
 
-    if _resolve_sample_method(state, disagg_model_settings) == "poisson":
+    if (
+        _resolve_sample_method(state, getattr(model_settings, "compute_settings", None))
+        == "poisson"
+    ):
         logger.info(
             "Using Poisson sampling method for disaggregate accessibility calculations. Currently the results will"
             + " differ from those obtained with monte-carlo or eet sampling by a constant shift of"

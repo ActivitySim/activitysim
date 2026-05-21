@@ -21,12 +21,13 @@ from activitysim.core.exceptions import (
 
 logger = logging.getLogger(__name__)
 
+EXACT_NESTED_LOGIT_DTYPE = np.float64
+
 EXP_UTIL_MIN = 1e-300
 EXP_UTIL_MAX = np.inf
 
 UTIL_MIN = np.log(EXP_UTIL_MIN, dtype=np.float64)
 UTIL_UNAVAILABLE = 1000.0 * (UTIL_MIN - 1.0)
-
 
 PROB_MIN = 0.0
 PROB_MAX = 1.0
@@ -377,98 +378,123 @@ def utils_to_probs(
     return probs
 
 
-def add_ev1_random(
-    state: workflow.State,
-    df: pd.DataFrame,
-    alt_info: AltsContext | None = None,
-    alt_nrs_df: pd.DataFrame | None = None,
-):
-    """
-    Add iid EV1 (Gumbel) random error terms to utilities for EET choice.
+def _log_positive_stable_for_df(
+    state: workflow.State, df: pd.DataFrame, alpha: float
+) -> np.ndarray:
+    alpha = EXACT_NESTED_LOGIT_DTYPE(alpha)
+    if np.isclose(alpha, 1.0):
+        return np.zeros(len(df), dtype=EXACT_NESTED_LOGIT_DTYPE)
 
-    Parameters
-    ----------
-    state : workflow.State
-    df : pandas.DataFrame
-        Utilities indexed by chooser and with alternatives as columns.
-
-    Returns
-    -------
-    pandas.DataFrame
-        Utilities with EV1 errors added.
-    """
-    nest_utils_for_choice = df.copy()
-    assert (alt_info is None) == (
-        alt_nrs_df is None
-    ), "alt_info and alt_nrs_df must both be provided or omitted together"
-
-    if alt_info is None:
-        # Fallback behaviour for models where alt_info/alt_nrs_df are not provided (e.g. non-integer alts)
-        rands = state.get_rn_generator().gumbel_for_df(
-            nest_utils_for_choice, n=nest_utils_for_choice.shape[1]
-        )
-        nest_utils_for_choice += rands
-        return nest_utils_for_choice
-
-    idx_array = alt_nrs_df.values
-    mask = idx_array == -999
-    safe_idx = np.where(mask, 1, idx_array)  # replace -999 with a temp value inbounds
-    # generate random number for all alts - this is wasteful, but ensures that the same zone
-    #  gets the same random number if the sampled choice set changes between base and project
-    # (alternatively, one could seed a channel for (persons x zones) and use the zone seed to ensure consistency.
-    # Trade off is needing to seed (persons x zones) rows and multiindex channels to
-    # avoid extra random numbers generated here. Quick benchmark suggests seeding per row is likely slower
-    rands_dense = state.get_rn_generator().gumbel_for_df(
-        nest_utils_for_choice, n=alt_info.n_alts_to_cover_max_id
+    eps = np.finfo(EXACT_NESTED_LOGIT_DTYPE).eps
+    uniforms = np.asarray(
+        state.get_rn_generator().random_for_df(df, n=2),
+        dtype=EXACT_NESTED_LOGIT_DTYPE,
     )
-    # generate n=alt_info.max_alt_id+1 rather than n_alts so that indexing works
-    # (this is drawing a random number for a redundant zeroth zone in 1 based zoning systems)
-    # TODO deal with non 0->n-1 indexed land use more efficiently? ideally do where alt_nrs_df is constructed,
-    #  not on the fly here. Potentially via state.get_injectable('network_los').get_skim_dict('taz').zone_ids
-    rands = np.take_along_axis(rands_dense, safe_idx, axis=1)
-    rands[
-        mask
-    ] = 0  # zero out the masked zones so they don't have the util adjustment of alt 0
+    angle_uniform = np.clip(uniforms[:, 0], eps, 1.0 - eps)
+    exp_uniform = np.clip(uniforms[:, 1], eps, 1.0 - eps)
 
-    nest_utils_for_choice += rands
-    return nest_utils_for_choice
+    u = eps + (np.pi - 2.0 * eps) * angle_uniform
+    w = -np.log(exp_uniform)
+
+    return (
+        np.log(np.sin(alpha * u))
+        - np.log(np.sin(u)) / alpha
+        + ((1.0 - alpha) / alpha) * (np.log(np.sin((1.0 - alpha) * u)) - np.log(w))
+    )
 
 
-def choose_from_tree(
-    nest_utils, all_alternatives, logit_nest_groups, nest_alternatives_by_name
-):
-    for level, nest_names in logit_nest_groups.items():
-        if level == 1:
-            next_level_alts = nest_alternatives_by_name[nest_names[0]]
+def _leaf_path_coefficients(
+    nest_spec: dict | LogitNestSpec, alt_order_array: np.ndarray
+) -> pd.Series:
+    coefficients = pd.Series(
+        {
+            nest.name: nest.product_of_coefficients
+            for nest in each_nest(nest_spec, type="leaf")
+        },
+        dtype=EXACT_NESTED_LOGIT_DTYPE,
+    ).reindex(alt_order_array)
+
+    if coefficients.isna().any():
+        missing = coefficients[coefficients.isna()].index.tolist()
+        raise ValueError(f"leaf alternatives missing from nest spec: {missing}")
+
+    return coefficients
+
+
+def sample_nested_logit_exact_leaf_error_terms(
+    state: workflow.State,
+    alt_utilities: pd.DataFrame,
+    nest_spec: dict | LogitNestSpec,
+) -> pd.DataFrame:
+    # Galichon writes the error term for alternative (leaf) j as
+    # $\sum_{t=1}^{n} path_coeff_up_to_t * log_positive_stable_draw(nest_coeff_t) + path_coeff_j leaf_gumbel_j$
+    # with nest_coeff_0 = 1.0
+
+    error_terms = pd.DataFrame(
+        0.0,
+        index=alt_utilities.index,
+        columns=alt_utilities.columns.to_numpy(),
+        dtype=EXACT_NESTED_LOGIT_DTYPE,
+    )
+
+    leaf_children_for_each_node = get_leaf_children_for_nodes(nest_spec)
+
+    for i, nest in enumerate(each_nest(nest_spec, post_order=False)):
+        # skip root.
+        if i == 0:
+            assert np.isclose(
+                nest.coefficient, 1.0
+            ), "EET for nested logit requires root coefficient of 1.0"
             continue
-        choice_this_level = nest_utils[nest_utils.index.isin(next_level_alts)].idxmax()
-        if choice_this_level in all_alternatives:
-            return choice_this_level
-        next_level_alts = nest_alternatives_by_name[choice_this_level]
-    raise ValueError("This should never happen - no alternative found")
+
+        if nest.type == "node":
+            all_leaf_children = leaf_children_for_each_node.get(nest.name, [])
+            if not all_leaf_children:
+                logger.warning(f"Node nest {nest.name} has no leaf children, skipping.")
+                continue
+
+            # draw stable term with nest coeff as scale and multiply by path coeff, add to each child alternative
+            log_stable_for_node = (
+                nest.product_of_coefficients
+                * _log_positive_stable_for_df(state, alt_utilities, nest.coefficient)
+            )
+            # all alternatives for a chooser (row) get the same term, so we repeat the values across columns
+            error_terms.loc[:, all_leaf_children] += log_stable_for_node.reshape(
+                -1, 1
+            ).repeat(len(all_leaf_children), axis=1)
+
+    leaf_path_coefficients = _leaf_path_coefficients(
+        nest_spec, alt_utilities.columns.to_numpy()
+    )
+    leaf_gumbels = pd.DataFrame(
+        state.get_rn_generator().gumbel_for_df(alt_utilities, n=alt_utilities.shape[1]),
+        index=alt_utilities.index,
+        columns=alt_utilities.columns.to_numpy(),
+    ).mul(leaf_path_coefficients, axis=1)
+
+    error_terms += leaf_gumbels
+
+    return error_terms
 
 
 def make_choices_explicit_error_term_nl(
     state,
-    nested_utilities,
-    alt_order_array,
+    alt_utilities,
     nest_spec,
     trace_label,
     trace_choosers=None,
-    allow_bad_utils=False,
     alts_context: AltsContext | None = None,
     alt_nrs_df: pd.DataFrame | None = None,
 ):
     """
-    Walk down the nesting tree and make a choice at each level using EET.
+    Make EET choices for a nested logit model by adding nested-logit errors. Note these are correlated
+    among nests.
 
     Parameters
     ----------
     state : workflow.State
-    nested_utilities : pandas.DataFrame
-        Utilities for nest and leaf nodes.
-    alt_order_array : numpy.ndarray
-        Leaf alternatives in the original ordering.
+    alt_utilities : pandas.DataFrame
+        Utilities for fundamental alternatives (leaf nodes).
     nest_spec : dict or LogitNestSpec
         Nest specification for the choice model.
     trace_label : str
@@ -477,49 +503,25 @@ def make_choices_explicit_error_term_nl(
     Returns
     -------
     pandas.Series
-        Choice indices aligned to `alt_order_array`.
+        Choice indices aligned to `alt_utilities` columns.
     """
+    # TODO assert alts_context and alt_nrs_df are both None - no sampling from nested models for now.
+
+    utilities_incl_unobs = sample_nested_logit_exact_leaf_error_terms(
+        state,
+        alt_utilities,
+        nest_spec,
+    )
+    utilities_incl_unobs += alt_utilities
+
     if trace_label:
         state.tracing.trace_df(
-            nested_utilities, tracing.extend_trace_label(trace_label, "nested_utils")
+            utilities_incl_unobs,
+            tracing.extend_trace_label(trace_label, "leaf_utilities_eet_exact"),
         )
-    nest_utils_for_choice = add_ev1_random(
-        state, nested_utilities, alts_context, alt_nrs_df
-    )
 
-    all_alternatives = set(nest.name for nest in each_nest(nest_spec, type="leaf"))
-    logit_nest_groups = group_nest_names_by_level(nest_spec)
-    nest_alternatives_by_name = {n.name: n.alternatives for n in each_nest(nest_spec)}
-
-    # Apply is slow. It could *maybe* be sped up by using the fact that the nesting structure is the same for all rows:
-    # Add ev1(0,1) to all entries (as is currently being done). Then, at each level, pick the maximum of the available
-    # composite alternatives and set the corresponding entry to 1 for each row, set all other alternatives at this level
-    # to zero. Once the tree is walked (all alternatives have been processed), take the product of the alternatives in
-    # each leaf's alternative list. Then pick the only alternative with entry 1, all others must be 0.
-    choices = nest_utils_for_choice.apply(
-        lambda x: choose_from_tree(
-            x, all_alternatives, logit_nest_groups, nest_alternatives_by_name
-        ),
-        axis=1,
-    )
-    missing_choices = choices.isnull()  # TODO: should we check for infs here too?
-    if missing_choices.any() and not allow_bad_utils:
-        report_bad_choices(
-            state,
-            missing_choices,
-            nested_utilities,
-            trace_label=tracing.extend_trace_label(trace_label, "bad_utils"),
-            msg="no alternative selected",
-            # raise_error=False,
-            trace_choosers=trace_choosers,
-        )
-    choices = pd.Series(choices, index=nest_utils_for_choice.index)
-
-    # In order for choice indexing to be consistent with MNL and cumsum MC choices, we need to index in the order
-    #  alternatives were originally created before adding nest nodes that are not elemental alternatives
-    choices = choices.map({v: k for k, v in enumerate(alt_order_array)})
-
-    return choices
+    choices = np.argmax(utilities_incl_unobs.to_numpy(), axis=1)
+    return pd.Series(choices, index=utilities_incl_unobs.index)
 
 
 def make_choices_explicit_error_term_mnl(
@@ -527,7 +529,6 @@ def make_choices_explicit_error_term_mnl(
     utilities,
     trace_label,
     trace_choosers=None,
-    allow_bad_utils=False,
     alts_context: AltsContext | None = None,
     alt_nrs_df: pd.DataFrame | None = None,
 ) -> pd.Series:
@@ -547,17 +548,88 @@ def make_choices_explicit_error_term_mnl(
     pandas.Series
         Choice indices aligned to the utilities columns order.
     """
-    if trace_label:
-        state.tracing.trace_df(
-            utilities, tracing.extend_trace_label(trace_label, "utilities")
+    if alts_context is None:
+        choices = state.get_rn_generator().gumbel_choice_positions_for_df(utilities)
+    else:
+        choices = state.get_rn_generator().gumbel_choice_positions_for_df(
+            utilities,
+            alt_nrs_df=alt_nrs_df,
+            n_rands=alts_context.n_alts_to_cover_max_id,
         )
-    utilities_incl_unobs = add_ev1_random(state, utilities, alts_context, alt_nrs_df)
-    if trace_label:
-        state.tracing.trace_df(
-            utilities_incl_unobs,
-            tracing.extend_trace_label(trace_label, "utilities_eet"),
+
+    return pd.Series(choices, index=utilities.index)
+
+
+def make_choices_utility_based(
+    state: workflow.State,
+    utilities: pd.DataFrame,
+    trace_label: str = None,
+    trace_choosers=None,
+    allow_bad_utils=False,
+    nest_spec=None,  # Make consistent with make_choices for generalizability of custom chooser.
+    alts_context: AltsContext | None = None,
+    alt_nrs_df: pd.DataFrame | None = None,
+) -> tuple[pd.Series, pd.Series]:
+    """
+    Make choices for each chooser from among a set of alternatives based on utilities by adding
+    random error terms and choosing the maximum utility alternative.
+
+    Parameters
+    ----------
+    utilities : pandas.DataFrame
+        Utilities with choosers as rows and alternatives as columns. Note for nested logit models,
+        this should include only leaf nodes.
+    trace_label : str
+        Trace label for logging and tracing.
+    trace_choosers : pandas.dataframe
+        the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+        by report_bad_choices because it can't deduce hh_id from the interaction_dataset
+        which is indexed on index values from alternatives df.
+    allow_bad_utils : bool
+        If True, allows utilities with missing or invalid values without raising an error.
+    nest_spec : dict or LogitNestSpec, optional
+        Nest specification for the choice model. If None, will be treated as a multinomial logit model.
+    alts_context : AltsContext, optional
+        If provided, will be used to determine how many random numbers to sample and how to index them for the EET
+        sampling. This is only relevant for multinomial logit models, and should be provided along with alt_nrs_df.
+    alt_nrs_df : pandas.DataFrame, optional
+        DataFrame with same index as `utilities` and columns corresponding to `alts_context.max_alt_id`, containing
+        the alt_nrs for each alternative for each chooser. This is used to index into the random numbers when sampling
+        EET terms for multinomial logit models, and should contain -999 for any alternatives that are not available
+        for a given chooser. Should be provided along with `alts_context`.
+
+    Returns
+    -------
+    choices : pandas.Series
+        Maps chooser IDs (from `probs` index) to a choice, where the choice
+        is an index into the columns of `probs`.
+    rands : pandas.Series
+        A series of 0s for compatibility with make_choices. For EET, we do not have per-row random numbers.
+    """
+    trace_label = tracing.extend_trace_label(trace_label, "make_choices_utility_based")
+
+    if nest_spec is None:
+        choices = make_choices_explicit_error_term_mnl(
+            state,
+            utilities,
+            trace_label,
+            trace_choosers,
+            alts_context,
+            alt_nrs_df,
         )
-    choices = np.argmax(utilities_incl_unobs.to_numpy(), axis=1)
+    else:
+        # Nested-logit EET expects leaf utilities and returns indices aligned to
+        # the leaf alternative column order.
+        choices = make_choices_explicit_error_term_nl(
+            state,
+            utilities,
+            nest_spec,
+            trace_label,
+            trace_choosers,
+            alts_context,
+            alt_nrs_df,
+        )
+
     missing_choices = np.isnan(choices)  # TODO: should we check for infs here too?
     if missing_choices.any() and not allow_bad_utils:
         report_bad_choices(
@@ -569,74 +641,10 @@ def make_choices_explicit_error_term_mnl(
             # raise_error=False,
             trace_choosers=trace_choosers,
         )
-    choices = pd.Series(choices, index=utilities_incl_unobs.index)
-    return choices
 
-
-def make_choices_explicit_error_term(
-    state,
-    utilities,
-    alt_order_array,
-    nest_spec=None,
-    trace_label=None,
-    trace_choosers=None,
-    allow_bad_utils=False,
-    alts_context: AltsContext | None = None,
-    alt_nrs_df: pd.DataFrame | None = None,
-) -> pd.Series:
-    trace_label = tracing.extend_trace_label(trace_label, "make_choices_eet")
-    if nest_spec is None:
-        choices = make_choices_explicit_error_term_mnl(
-            state,
-            utilities,
-            trace_label,
-            trace_choosers,
-            allow_bad_utils,
-            alts_context,
-            alt_nrs_df,
-        )
-    else:
-        choices = make_choices_explicit_error_term_nl(
-            state,
-            utilities,
-            alt_order_array,
-            nest_spec,
-            trace_label,
-            trace_choosers,
-            allow_bad_utils,
-            alts_context,
-            alt_nrs_df,
-        )
-    return choices
-
-
-def make_choices_utility_based(
-    state: workflow.State,
-    utilities: pd.DataFrame,
-    name_mapping=None,
-    nest_spec=None,
-    trace_label: str = None,
-    trace_choosers=None,
-    allow_bad_utils=False,
-    alts_context: AltsContext | None = None,
-    alt_nrs_df: pd.DataFrame | None = None,
-) -> tuple[pd.Series, pd.Series]:
-    trace_label = tracing.extend_trace_label(trace_label, "make_choices_utility_based")
-
-    # For nested models, choices are mapped to `name_mapping` ordering inside the
-    # EET helper. For MNL, choices already follow the utilities column order.
-    choices = make_choices_explicit_error_term(
-        state,
-        utilities,
-        name_mapping,
-        nest_spec,
-        trace_label,
-        trace_choosers=trace_choosers,
-        allow_bad_utils=allow_bad_utils,
-        alts_context=alts_context,
-        alt_nrs_df=alt_nrs_df,
-    )
     # EET does not expose per-row random draws; return zeros for compatibility.
+    # Maybe exposing the seed of the chooser could be an alternative to re-create the random number for
+    # debugging/tracing purposes?
     rands = pd.Series(np.zeros_like(utilities.index.values), index=utilities.index)
 
     return choices, rands
@@ -967,10 +975,17 @@ def count_nests(nest_spec):
     return count_each_nest(nest_spec, 0) if nest_spec is not None else 0
 
 
-def group_nest_names_by_level(nest_spec):
-    # group nests by level, returns {level: [nest.name at that level]}
-    depth = np.max([x.level for x in each_nest(nest_spec)])
-    nest_levels = {x: [] for x in range(1, depth + 1)}
-    for n in each_nest(nest_spec):
-        nest_levels[n.level].append(n.name)
-    return nest_levels
+def get_leaf_children_for_nodes(nest_spec, include_self=False):
+    leaf_ancestors = {
+        nest.name: [ancestor for ancestor in nest.ancestors]
+        for nest in each_nest(nest_spec, type="leaf")
+    }
+
+    leaf_children_for_each_node = {}
+    for alt, ancestor_nodes in leaf_ancestors.items():
+        for ancestor in ancestor_nodes:
+            # skip the leaf itself unless include_self is True
+            if (ancestor != alt) or include_self:
+                leaf_children_for_each_node.setdefault(ancestor, list()).append(alt)
+
+    return leaf_children_for_each_node

@@ -263,28 +263,33 @@ def _interaction_sample_simulate(
 
     # insert the zero-prob utilities to pad each alternative set to same size
     padded_utilities = np.insert(interaction_utilities.utility.values, inserts, -999)
-    padded_alt_nrs = np.insert(interaction_df[choice_column], inserts, -999)
     chunk_sizer.log_df(trace_label, "padded_utilities", padded_utilities)
+
+    # reshape to array with one row per chooser, one column per alternative
+    padded_utilities = padded_utilities.reshape(-1, max_sample_count)
+
+    if alts_context is not None:
+        padded_alt_nrs = np.insert(interaction_df[choice_column], inserts, -999)
+        chunk_sizer.log_df(trace_label, "padded_alt_nrs", padded_alt_nrs)
+        padded_alt_nrs = padded_alt_nrs.reshape(-1, max_sample_count)
+        # alt_nrs_df has columns for each alt in the choice set, with values indicating which alt_id
+        # they correspond to (as opposed to the 0-n index implied by the column number).
+        alt_nrs_df = pd.DataFrame(padded_alt_nrs, index=choosers.index)
+        chunk_sizer.log_df(trace_label, "alt_nrs_df", alt_nrs_df)
+
+        del padded_alt_nrs
+        chunk_sizer.log_df(trace_label, "padded_alt_nrs", None)
+    else:
+        alt_nrs_df = None  # if we don't provide the number of dense alternatives, assume that we'll use the old approach
 
     del interaction_df
     chunk_sizer.log_df(trace_label, "interaction_df", None)
 
     del inserts
 
-    # reshape to array with one row per chooser, one column per alternative
-    padded_utilities = padded_utilities.reshape(-1, max_sample_count)
-    padded_alt_nrs = padded_alt_nrs.reshape(-1, max_sample_count)
-
     # convert to a dataframe with one row per chooser and one column per alternative
     utilities_df = pd.DataFrame(padded_utilities, index=choosers.index)
     chunk_sizer.log_df(trace_label, "utilities_df", utilities_df)
-
-    # alt_nrs_df has columns for each alt in the choice set, with values indicating which alt_id
-    # they correspond to (as opposed to the 0-n index implied by the column number).
-    if alts_context is not None:
-        alt_nrs_df = pd.DataFrame(padded_alt_nrs, index=choosers.index)
-    else:
-        alt_nrs_df = None  # if we don't provide the number of dense alternatives, assume that we'll use the old approach
 
     del padded_utilities
     chunk_sizer.log_df(trace_label, "padded_utilities", None)
@@ -339,6 +344,10 @@ def _interaction_sample_simulate(
 
         del utilities_df
         chunk_sizer.log_df(trace_label, "utilities_df", None)
+
+        if alt_nrs_df is not None:
+            del alt_nrs_df
+            chunk_sizer.log_df(trace_label, "alt_nrs_df", None)
     else:
         # convert to probabilities (utilities exponentiated and normalized to probs)
         # probs is same shape as utilities, one row per chooser and one column for alternative
@@ -538,12 +547,14 @@ def interaction_sample_simulate(
     trace_label = tracing.extend_trace_label(trace_label, "interaction_sample_simulate")
     chunk_tag = chunk_tag or trace_label
 
+    # TODO EET: Do we just want to warn here? Or better throw and be explicit?
     if state.settings.use_explicit_error_terms:
         choice_ids_are_int = pd.api.types.is_integer_dtype(alternatives[choice_column])
         if alts_context is None and choice_ids_are_int:
-            raise ValueError(
-                "alts_context is required for interaction_sample_simulate when "
-                "use_explicit_error_terms is True and choice_column is integer-coded"
+            logger.warning(
+                "Using integer-coded choice_column values without alts_context when use_explicit_error_terms is true."
+                + " Ensure this is desired, when running on a sample it should be provided to ensure consistent random"
+                + " numbers across the whole alternative set."
             )
         if alts_context is not None and not choice_ids_are_int:
             raise ValueError(

@@ -294,10 +294,14 @@ random component, and for each choice situation a single outcome is generated.
 With the default Monte Carlo draw method, ActivitySim first calculates analytical probabilities from the
 systematic utilities of a multinomial or nested logit model and then makes one draw from the
 cumulative distribution for each chooser. Explicit Error Terms (EET) replaces that final draw with a direct
-random-utility simulation by drawing an independent standard EV1 (Gumbel) error term for each
+random-utility simulation by drawing the unobserved portion of utility (error term) for each
 chooser-alternative pair, adding it to the systematic utility, and selecting the alternative with the highest
 total utility. Both methods simulate the same underlying model, but EET can be less affected by Monte Carlo
-noise when comparing scenarios. For more details, see :doc:`/dev-guide/explicit-error-terms`.
+noise when comparing scenarios and can make some comparisons easier to interpret. This is because the
+selected alternative is the one with the highest total utility after adding the explicit
+error term, and if the explicit error term is consistent between a base and scenario run then
+only (relative) increases in the observed utility can lead to previously un-chosen alternatives
+being chosen.
 
 To enable EET for a model run, set the global switch in ``settings.yaml``:
 
@@ -305,28 +309,5 @@ To enable EET for a model run, set the global switch in ``settings.yaml``:
 
   use_explicit_error_terms: True
 
-Enable or disable this setting consistently across all runs being compared.
-
-Using EET changes the simulation method, not the underlying model. Aggregate behavior should remain statistically
-comparable to the default method, but individual simulated choices will not usually match record-by-record.
-EET is currently slower than the default probability-based simulation method. Most of the slowdown comes from location
-choice models, where the number of alternatives is large and the current importance-sampling workflow requires
-many repeated error term draws. Work to reduce that overhead is ongoing. Until then, it is also possible to turn
-off EET for the sampling part of these models by adding the following lines to the settings of all models where
-location choice sampling is used (currently all location and destination choice models as well as disaggregate
-accessibilities):
-
-.. code-block:: yaml
-
-  compute_settings:
-    use_explicit_error_terms:
-      sample: false
-
-If you keep EET enabled for the sampling step, also consider memory usage during location sampling.
-In that case, explicit chunking with a fractional ``explicit_chunk`` setting is often the most
-practical approach; see :ref:`explicit_error_terms_memory` for details.
-
-For location choice models, encoding zone IDs as a 0-based contiguous index also reduces EET runtime and memory usage;
-see :ref:`explicit_error_terms_zone_encoding` for a technical description. For models where the input data does not
-already use contiguous zone IDs, the ``recode_columns`` option can be used to create them. See the
-*Zero-based Recoding of Zones* section in :doc:`/dev-guide/using-sharrow` for more details.
+Enable or disable this setting consistently across all runs being compared. For more details, including
+scenario comparison considerations, see :doc:`/dev-guide/explicit-error-terms`.

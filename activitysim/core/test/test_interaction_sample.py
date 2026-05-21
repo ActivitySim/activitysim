@@ -1,11 +1,14 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import pytest
 
 from activitysim.core import interaction_sample, workflow
+from activitysim.core.configuration.base import ComputeSettings
 
 
 @pytest.fixture
@@ -15,8 +18,102 @@ def state() -> workflow.State:
     return state
 
 
+def test_interaction_sample_ignores_stable_positions_without_global_eet(
+    state, monkeypatch
+):
+    # Do not support stable alt positions or tracking total alts when running with MC sampling
+    # to not introduce any additional changes while adding eet simulation support to ensure no
+    # regressions. We can add these features later if desired.
+    captured = {}
+
+    def fake_interaction_sample(_state, _choosers, _alternatives, **kwargs):
+        captured["stable_alt_positions"] = kwargs["stable_alt_positions"]
+        captured["n_total_alts"] = kwargs["n_total_alts"]
+        return pd.DataFrame(
+            {"alt_id": [10, 11], "prob": [1.0, 1.0], "pick_count": [1, 1]},
+            index=pd.Index([1, 2], name="person_id"),
+        )
+
+    monkeypatch.setattr(
+        interaction_sample, "_interaction_sample", fake_interaction_sample
+    )
+
+    state.settings.use_explicit_error_terms = False
+    choosers = pd.DataFrame(index=pd.Index([1, 2], name="person_id"))
+    alternatives = pd.DataFrame(index=pd.Index([10, 11, 12], name="alt_id"))
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["1"], name="Expression"),
+    )
+
+    interaction_sample.interaction_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size=1,
+        alt_col_name="alt_id",
+        stable_alt_positions=np.array([0, 2], dtype=np.int64),
+        n_total_alts=3,
+    )
+
+    assert captured["stable_alt_positions"] is None
+    assert captured["n_total_alts"] is None
+
+
+def test_interaction_sample_preserves_stable_positions_with_global_eet(
+    state, monkeypatch
+):
+    captured = {}
+
+    def fake_interaction_sample(_state, _choosers, _alternatives, **kwargs):
+        captured["stable_alt_positions"] = kwargs["stable_alt_positions"]
+        captured["n_total_alts"] = kwargs["n_total_alts"]
+        return pd.DataFrame(
+            {"alt_id": [10, 11], "prob": [1.0, 1.0], "pick_count": [1, 1]},
+            index=pd.Index([1, 2], name="person_id"),
+        )
+
+    monkeypatch.setattr(
+        interaction_sample, "_interaction_sample", fake_interaction_sample
+    )
+
+    state.settings.use_explicit_error_terms = True
+    choosers = pd.DataFrame(index=pd.Index([1, 2], name="person_id"))
+    alternatives = pd.DataFrame(index=pd.Index([10, 11, 12], name="alt_id"))
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["1"], name="Expression"),
+    )
+    stable_alt_positions = np.array([0, 2], dtype=np.int64)
+
+    interaction_sample.interaction_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size=1,
+        alt_col_name="alt_id",
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=3,
+        compute_settings=ComputeSettings(sample_method="eet"),
+    )
+
+    np.testing.assert_array_equal(
+        captured["stable_alt_positions"],
+        stable_alt_positions,
+    )
+    assert captured["n_total_alts"] == 3
+
+
+def _weighted_shares(df: pd.DataFrame) -> pd.Series:
+    counts = df.groupby("alt_id")["pick_count"].sum()
+    return (counts / counts.sum()).sort_index()
+
+
 def test_interaction_sample_parity(state):
-    # Run interaction_sample with and without explicit error terms and check that results are similar.
+    # Run all three sampling methods on a realistic synthetic case and check
+    # that their aggregate sampled shares stay close.
 
     num_choosers = 100_000
     num_alts = 100
@@ -40,7 +137,7 @@ def test_interaction_sample_parity(state):
         index=pd.Index(["chooser_attr * alt_attr"], name="Expression"),
     )
 
-    # Run _without_ explicit error terms
+    # Run Monte Carlo with replacement.
     state.settings.use_explicit_error_terms = False
     state.rng().set_base_seed(42)
     state.rng().add_channel("person_id", choosers)
@@ -55,14 +152,14 @@ def test_interaction_sample_parity(state):
         alt_col_name="alt_id",
     )
 
-    # Run _with_ explicit error terms
+    # Run Poisson inclusion sampling, which is the default when global EET is enabled.
     state.init_state()  # reset the state to rerun with same seed
     state.settings.use_explicit_error_terms = True
     state.rng().set_base_seed(42)
     state.rng().add_channel("person_id", choosers)
-    state.rng().begin_step("test_step_explicit")
+    state.rng().begin_step("test_step_poisson")
 
-    choices_explicit = interaction_sample.interaction_sample(
+    choices_poisson = interaction_sample.interaction_sample(
         state,
         choosers,
         alternatives,
@@ -71,30 +168,52 @@ def test_interaction_sample_parity(state):
         alt_col_name="alt_id",
     )
 
-    assert "alt_id" in choices_mnl.columns
-    assert "alt_id" in choices_explicit.columns
-    assert not choices_mnl["alt_id"].isna().any()
-    assert not choices_explicit["alt_id"].isna().any()
-    assert choices_mnl["alt_id"].isin(alternatives.index).all()
-    assert choices_explicit["alt_id"].isin(alternatives.index).all()
+    # Run EET-with-replacement with the same global EET setting.
+    state.init_state()
+    state.settings.use_explicit_error_terms = True
+    state.rng().set_base_seed(42)
+    state.rng().add_channel("person_id", choosers)
+    state.rng().begin_step("test_step_eet")
 
-    # In interaction_sample, choices_explicit and choices_mnl are DataFrames with sampled alternatives.
-    # The statistics of chosen alternatives should be similar.
-    mnl_counts = choices_mnl["alt_id"].value_counts(normalize=True).sort_index()
-    explicit_counts = (
-        choices_explicit["alt_id"].value_counts(normalize=True).sort_index()
+    choices_eet = interaction_sample.interaction_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+        compute_settings=ComputeSettings(sample_method="eet"),
     )
 
-    # Check top choices overlap significantly or shares are close
-    all_alts = set(mnl_counts.index) | set(explicit_counts.index)
-    for alt in all_alts:
-        share_mnl = mnl_counts.get(alt, 0)
-        share_explicit = explicit_counts.get(alt, 0)
-        diff = abs(share_mnl - share_explicit)
-        assert diff < 0.01, (
-            f"Large discrepancy at alt {alt}: "
-            f"mnl={share_mnl:.4f}, explicit={share_explicit:.4f}, diff={diff:.4f}"
-        )
+    assert "alt_id" in choices_mnl.columns
+    assert "alt_id" in choices_poisson.columns
+    assert "alt_id" in choices_eet.columns
+    assert not choices_mnl["alt_id"].isna().any()
+    assert not choices_poisson["alt_id"].isna().any()
+    assert not choices_eet["alt_id"].isna().any()
+    assert choices_mnl["alt_id"].isin(alternatives.index).all()
+    assert choices_poisson["alt_id"].isin(alternatives.index).all()
+    assert choices_eet["alt_id"].isin(alternatives.index).all()
+
+    shares = {
+        "monte_carlo": _weighted_shares(choices_mnl),
+        "poisson": _weighted_shares(choices_poisson),
+        "eet": _weighted_shares(choices_eet),
+    }
+
+    for left, right in [
+        ("monte_carlo", "poisson"),
+        ("monte_carlo", "eet"),
+        ("poisson", "eet"),
+    ]:
+        all_alts = set(shares[left].index) | set(shares[right].index)
+        for alt in all_alts:
+            diff = abs(shares[left].get(alt, 0.0) - shares[right].get(alt, 0.0))
+            assert diff < 0.01, (
+                f"Large discrepancy at alt {alt} between {left} and {right}: "
+                f"{left}={shares[left].get(alt, 0.0):.4f}, "
+                f"{right}={shares[right].get(alt, 0.0):.4f}, diff={diff:.4f}"
+            )
 
 
 def test_interaction_sample_eet_unavailable_alternatives(state):
@@ -138,9 +257,12 @@ def test_interaction_sample_eet_unavailable_alternatives(state):
     assert not choices_eet["alt_id"].isin([5, 6, 7, 8, 9]).any()
 
 
-def test_interaction_sample_parity_peaked_utilities(state):
-    # Stress parity under a highly peaked utility profile:
-    # one dominant alternative, one secondary, and many tiny utilities.
+def test_interaction_sample_parity_peaked_utilities_eet_with_replacement(state):
+    # Under highly peaked utilities, the EET-with-replacement sampler should still
+    # approximate repeated-draw MNL shares because both sample with replacement.
+    # This test also documents that per-model compute settings can override the
+    # global default: global EET implies Poisson by default, but this model opts
+    # into EET-with-replacement explicitly.
     num_choosers = 20_000
     num_alts = 100
     sample_size = 5
@@ -175,7 +297,7 @@ def test_interaction_sample_parity_peaked_utilities(state):
         alt_col_name="alt_id",
     )
 
-    # Run EET path with the same seed.
+    # Run EET-with-replacement path with the same seed.
     state.init_state()
     state.settings.use_explicit_error_terms = True
     state.rng().set_base_seed(42)
@@ -188,14 +310,11 @@ def test_interaction_sample_parity_peaked_utilities(state):
         spec,
         sample_size=sample_size,
         alt_col_name="alt_id",
+        compute_settings=ComputeSettings(sample_method="eet"),
     )
 
-    def weighted_shares(df: pd.DataFrame) -> pd.Series:
-        counts = df.groupby("alt_id")["pick_count"].sum()
-        return (counts / counts.sum()).sort_index()
-
-    mnl_shares = weighted_shares(choices_mnl)
-    explicit_shares = weighted_shares(choices_explicit)
+    mnl_shares = _weighted_shares(choices_mnl)
+    explicit_shares = _weighted_shares(choices_explicit)
 
     all_alts = set(mnl_shares.index) | set(explicit_shares.index)
     for alt in all_alts:
@@ -211,6 +330,270 @@ def test_interaction_sample_parity_peaked_utilities(state):
     assert explicit_shares.get(0, 0.0) > 0.99
 
 
+def test_interaction_sample_peaked_utilities_poisson_matches_inclusion_shares(state):
+    # Poisson sampling does not reproduce repeated-draw MNL shares in peaked cases.
+    # It samples each alternative independently with inclusion probability
+    # 1 - (1 - p)^sample_size, so the dominant alternative's share is flattened
+    # relative to MNL once the included set is normalized. This is also the
+    # default interaction_sample behavior when global EET is enabled.
+    num_choosers = 20_000
+    num_alts = 100
+    sample_size = 5
+
+    choosers = pd.DataFrame(
+        {"chooser_attr": np.ones(num_choosers)},
+        index=pd.Index(range(num_choosers), name="person_id"),
+    )
+    alt_utils = np.array([10.0, 1.0] + [0.0] * (num_alts - 2), dtype=np.float64)
+    alternatives = pd.DataFrame(
+        {"alt_attr": alt_utils},
+        index=pd.Index(range(num_alts), name="alt_id"),
+    )
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["alt_attr"], name="Expression"),
+    )
+
+    state.settings.use_explicit_error_terms = False
+    state.rng().set_base_seed(42)
+    state.rng().add_channel("person_id", choosers)
+    state.rng().begin_step("test_peaked_mnl_poisson_compare")
+    choices_mnl = interaction_sample.interaction_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+    )
+
+    state.init_state()
+    state.settings.use_explicit_error_terms = True
+    state.rng().set_base_seed(42)
+    state.rng().add_channel("person_id", choosers)
+    state.rng().begin_step("test_peaked_poisson")
+    choices_poisson = interaction_sample.interaction_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+    )
+
+    mnl_shares = _weighted_shares(choices_mnl)
+    poisson_shares = _weighted_shares(choices_poisson)
+
+    weights = np.exp(alt_utils)
+    probs = weights / weights.sum()
+    expected_poisson_shares = 1 - np.power(1 - probs, sample_size)
+    expected_poisson_shares /= expected_poisson_shares.sum()
+
+    assert mnl_shares.get(0, 0.0) > poisson_shares.get(0, 0.0) + 0.01
+    assert abs(poisson_shares.get(0, 0.0) - expected_poisson_shares[0]) < 0.005
+    assert abs(poisson_shares.get(1, 0.0) - expected_poisson_shares[1]) < 0.002
+
+
+def _shares_for_sample(
+    state,
+    choosers,
+    alternatives,
+    spec,
+    sample_size,
+    *,
+    use_eet,
+    sample_method,
+    seed,
+    step_name,
+):
+    state.init_state()
+    state.settings.use_explicit_error_terms = use_eet
+    state.rng().set_base_seed(seed)
+    state.rng().add_channel("person_id", choosers)
+    state.rng().begin_step(step_name)
+    compute_settings = (
+        ComputeSettings(sample_method=sample_method) if sample_method else None
+    )
+    choices = interaction_sample.interaction_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+        compute_settings=compute_settings,
+    )
+    return choices, _weighted_shares(choices)
+
+
+def test_interaction_sample_eet_sampling_under_mc_simulation(state):
+    # use_eet=False + sample_method="eet" was silently ignored before the
+    # sampling/simulation decoupling. The dispatch now keys on sampling_method
+    # only, so this combo must produce shares that match use_eet=True + eet.
+    num_choosers = 100_000
+    num_alts = 100
+    sample_size = 10
+
+    rng = np.random.default_rng(42)
+    choosers = pd.DataFrame(
+        {"chooser_attr": rng.random(num_choosers)},
+        index=pd.Index(range(num_choosers), name="person_id"),
+    )
+    alternatives = pd.DataFrame(
+        {"alt_attr": rng.random(num_alts)},
+        index=pd.Index(range(num_alts), name="alt_id"),
+    )
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["chooser_attr * alt_attr"], name="Expression"),
+    )
+
+    _, shares_mc_sim = _shares_for_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size,
+        use_eet=False,
+        sample_method="eet",
+        seed=42,
+        step_name="test_eet_under_mc_sim",
+    )
+    _, shares_eet_sim = _shares_for_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size,
+        use_eet=True,
+        sample_method="eet",
+        seed=42,
+        step_name="test_eet_under_eet_sim",
+    )
+
+    all_alts = set(shares_mc_sim.index) | set(shares_eet_sim.index)
+    for alt in all_alts:
+        diff = abs(shares_mc_sim.get(alt, 0.0) - shares_eet_sim.get(alt, 0.0))
+        assert diff < 0.01, (
+            f"EET sampling shares should not depend on simulation mode at alt {alt}: "
+            f"mc_sim={shares_mc_sim.get(alt, 0.0):.4f}, "
+            f"eet_sim={shares_eet_sim.get(alt, 0.0):.4f}, diff={diff:.4f}"
+        )
+
+
+def test_interaction_sample_poisson_sampling_under_mc_simulation(state):
+    # use_eet=False + sample_method="poisson" used to silently fall through to MC
+    # sampling and then have pick_count forced to 1, corrupting results. After
+    # decoupling, the combo must run the Poisson path and match use_eet=True + poisson.
+    num_choosers = 100_000
+    num_alts = 100
+    sample_size = 10
+
+    rng = np.random.default_rng(42)
+    choosers = pd.DataFrame(
+        {"chooser_attr": rng.random(num_choosers)},
+        index=pd.Index(range(num_choosers), name="person_id"),
+    )
+    alternatives = pd.DataFrame(
+        {"alt_attr": rng.random(num_alts)},
+        index=pd.Index(range(num_alts), name="alt_id"),
+    )
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["chooser_attr * alt_attr"], name="Expression"),
+    )
+
+    choices_mc_sim, shares_mc_sim = _shares_for_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size,
+        use_eet=False,
+        sample_method="poisson",
+        seed=42,
+        step_name="test_poisson_under_mc_sim",
+    )
+    _, shares_eet_sim = _shares_for_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size,
+        use_eet=True,
+        sample_method="poisson",
+        seed=42,
+        step_name="test_poisson_under_eet_sim",
+    )
+
+    # Poisson contract: pick_count must be uniformly 1
+    assert (choices_mc_sim["pick_count"] == 1).all(), (
+        "Poisson sampling under MC simulation must produce pick_count=1; got "
+        f"{choices_mc_sim['pick_count'].value_counts().to_dict()}"
+    )
+
+    all_alts = set(shares_mc_sim.index) | set(shares_eet_sim.index)
+    for alt in all_alts:
+        diff = abs(shares_mc_sim.get(alt, 0.0) - shares_eet_sim.get(alt, 0.0))
+        assert diff < 0.01, (
+            f"Poisson sampling shares should not depend on simulation mode at alt {alt}: "
+            f"mc_sim={shares_mc_sim.get(alt, 0.0):.4f}, "
+            f"eet_sim={shares_eet_sim.get(alt, 0.0):.4f}, diff={diff:.4f}"
+        )
+
+
+def test_interaction_sample_mc_sampling_under_eet_simulation(state):
+    num_choosers = 100_000
+    num_alts = 100
+    sample_size = 10
+
+    rng = np.random.default_rng(42)
+    choosers = pd.DataFrame(
+        {"chooser_attr": rng.random(num_choosers)},
+        index=pd.Index(range(num_choosers), name="person_id"),
+    )
+    alternatives = pd.DataFrame(
+        {"alt_attr": rng.random(num_alts)},
+        index=pd.Index(range(num_alts), name="alt_id"),
+    )
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["chooser_attr * alt_attr"], name="Expression"),
+    )
+
+    _, shares_mc_sim = _shares_for_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size,
+        use_eet=False,
+        sample_method="monte_carlo",
+        seed=42,
+        step_name="test_mc_under_mc_sim",
+    )
+    _, shares_eet_sim = _shares_for_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size,
+        use_eet=True,
+        sample_method="monte_carlo",
+        seed=42,
+        step_name="test_mc_under_eet_sim",
+    )
+
+    all_alts = set(shares_mc_sim.index) | set(shares_eet_sim.index)
+    for alt in all_alts:
+        diff = abs(shares_mc_sim.get(alt, 0.0) - shares_eet_sim.get(alt, 0.0))
+        assert diff < 0.01, (
+            f"MC sampling shares should not depend on simulation mode at alt {alt}: "
+            f"mc_sim={shares_mc_sim.get(alt, 0.0):.4f}, "
+            f"eet_sim={shares_eet_sim.get(alt, 0.0):.4f}, diff={diff:.4f}"
+        )
+
+
 class _DummyChunkSizer:
     def log_df(self, *_args, **_kwargs):
         return None
@@ -224,24 +607,227 @@ class _DummyState:
         return self._rng
 
 
+class _SequentialDummyRng:
+    def __init__(self, draws):
+        self._draws = list(draws)
+
+    def random_for_df(self, df, n=1):
+        draw = self._draws.pop(0)
+        assert draw.shape == (len(df), n)
+        return draw
+
+    def random_for_df_stable_alt_positions(
+        self, df, stable_alt_positions, n_total_alts
+    ):
+        draw = self._draws.pop(0)
+        assert draw.shape == (len(df), n_total_alts)
+        return draw[:, stable_alt_positions]
+
+
 class _DummyRngUtilityBased:
     def __init__(self, rands_3d):
         self.rands_3d = rands_3d
 
-    def gumbel_for_df(self, _utilities, n):
-        assert n == self.rands_3d.shape[1] * self.rands_3d.shape[2]
-        return self.rands_3d.reshape(-1)
+    def gumbel_max_positions_for_df(
+        self,
+        utilities,
+        sample_size,
+        stable_alt_positions=None,
+        n_total_alts=None,
+    ):
+        assert sample_size == self.rands_3d.shape[2]
+        if stable_alt_positions is None:
+            active_rands = self.rands_3d
+        else:
+            assert n_total_alts == self.rands_3d.shape[1]
+            active_rands = self.rands_3d[:, stable_alt_positions, :]
+        return np.argmax(
+            active_rands + utilities.to_numpy()[:, :, np.newaxis],
+            axis=1,
+        )
 
 
-def test_make_sample_choices_utility_based_repeat_alignment_chooser_dominant_heterogeneity():
+def _expected_choices_df(sampled_alternatives, alternatives, alt_col_name):
+    return (
+        sampled_alternatives.rename_axis("alt_idx", axis=1)
+        .stack()
+        .reset_index(name="prob")
+        .assign(**{alt_col_name: lambda df: alternatives.index.values[df["alt_idx"]]})
+        .drop(columns=["alt_idx"])
+    )
+
+
+def test_poisson_sample_alternatives_inner_returns_masked_inclusion_probs():
+    probs = pd.DataFrame(
+        [[0.2, 0.4, 0.6], [0.1, 0.3, 0.5]],
+        index=pd.Index([11, 17], name="person_id"),
+        columns=[0, 1, 2],
+    )
+    inclusion_probs_values = np.array(
+        [[0.36, 0.64, 0.84], [0.19, 0.51, 0.75]],
+        dtype=np.float64,
+    )
+    rng = _SequentialDummyRng(
+        [
+            np.array(
+                [[0.10, 0.80, 0.20], [0.30, 0.50, 0.90]],
+                dtype=np.float64,
+            )
+        ]
+    )
+
+    sampled = interaction_sample._poisson_sample_alternatives_inner(
+        probs,
+        inclusion_probs_values,
+        rng,
+        trace_label="test_poisson_sample_alternatives_inner_returns_masked_inclusion_probs",
+        chunk_sizer=_DummyChunkSizer(),
+    )
+
+    expected = np.array(
+        [[0.36, np.nan, 0.84], [np.nan, 0.51, np.nan]],
+        dtype=np.float64,
+    )
+
+    np.testing.assert_allclose(sampled, expected, equal_nan=True)
+
+
+def test_poisson_fallback_sample_alternatives_selects_distinct_positions_with_prob_one():
+    probs = pd.DataFrame(
+        [[0.20, 0.30, 0.50, 0.00], [0.40, 0.10, 0.30, 0.20]],
+        index=pd.Index([11, 17], name="person_id"),
+        columns=np.arange(4),
+    )
+    rng = _SequentialDummyRng(
+        [
+            np.array(
+                [[0.90, 0.10, 0.40, 0.20], [0.05, 0.70, 0.60, 0.10]],
+                dtype=np.float64,
+            )
+        ]
+    )
+
+    sampled = interaction_sample._poisson_fallback_sample_alternatives(
+        probs=probs,
+        sample_size=2,
+        rng=rng,
+        trace_label="test_poisson_fallback_sample_alternatives_selects_distinct_positions_with_prob_one",
+        chunk_sizer=_DummyChunkSizer(),
+    )
+
+    expected = np.array(
+        [[np.nan, 1.0, np.nan, 1.0], [1.0, np.nan, np.nan, 1.0]],
+        dtype=np.float64,
+    )
+
+    np.testing.assert_allclose(sampled, expected, equal_nan=True)
+
+
+def test_poisson_sample_alternatives_retries_and_returns_expected_frames():
+    probs = pd.DataFrame(
+        [
+            [0.20, 0.60, 0.10, 0.05],
+            [0.40, 0.10, 0.30, 0.20],
+            [0.30, 0.20, 0.70, 0.10],
+        ],
+        index=pd.Index([11, 17, 42], name="person_id"),
+        columns=np.arange(4),
+    )
+    sample_size = 2
+    alternatives = pd.DataFrame(index=pd.Index([100, 300, 700, 900], name="alt_id"))
+    expected_inclusion_probs = 1 - (1 - probs) ** sample_size
+    expected_sampled_alternatives = pd.DataFrame(
+        [
+            [expected_inclusion_probs.iloc[0, 0], np.nan, np.nan, np.nan],
+            [
+                expected_inclusion_probs.iloc[1, 0],
+                expected_inclusion_probs.iloc[1, 1],
+                np.nan,
+                np.nan,
+            ],
+            [np.nan, np.nan, expected_inclusion_probs.iloc[2, 2], np.nan],
+        ],
+        index=probs.index,
+        columns=probs.columns,
+    )
+    state = _DummyState(
+        _SequentialDummyRng(
+            [
+                np.array(
+                    [
+                        [0.10, 0.90, 0.50, 0.90],
+                        [0.90, 0.90, 0.90, 0.90],
+                        [0.80, 0.90, 0.20, 0.80],
+                    ],
+                    dtype=np.float64,
+                ),
+                np.array([[0.10, 0.05, 0.70, 0.80]], dtype=np.float64),
+            ]
+        )
+    )
+
+    choices_df = interaction_sample._poisson_sample_alternatives(
+        chunk_sizer=_DummyChunkSizer(),
+        probs=probs,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+        state=state,
+        trace_label="test_poisson_sample_alternatives_retries_and_returns_expected_frames",
+    )
+
+    expected_choices_df = _expected_choices_df(
+        expected_sampled_alternatives,
+        alternatives,
+        "alt_id",
+    )
+
+    pd.testing.assert_frame_equal(choices_df, expected_choices_df)
+
+
+def test_poisson_sample_alternatives_falls_back_to_random_sampling_after_ten_retries():
+    probs = pd.DataFrame(
+        [[0.20, 0.30, 0.50]],
+        index=pd.Index([11], name="person_id"),
+        columns=np.arange(3),
+    )
+    sample_size = 2
+    alternatives = pd.DataFrame(index=pd.Index([100, 300, 700], name="alt_id"))
+    fail_draw = np.array([[0.99, 0.99, 0.99]], dtype=np.float64)
+    fallback_draw = np.array([[0.10, 0.80, 0.20]], dtype=np.float64)
+    state = _DummyState(_SequentialDummyRng([fail_draw] * 10 + [fallback_draw]))
+
+    choices_df = interaction_sample._poisson_sample_alternatives(
+        chunk_sizer=_DummyChunkSizer(),
+        probs=probs,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+        state=state,
+        trace_label="test_poisson_sample_alternatives_falls_back_to_random_sampling_after_ten_retries",
+    )
+
+    expected_sampled_alternatives = pd.DataFrame(
+        [[1.0, np.nan, 1.0]],
+        index=probs.index,
+        columns=probs.columns,
+    )
+    expected_choices_df = _expected_choices_df(
+        expected_sampled_alternatives,
+        alternatives,
+        "alt_id",
+    )
+
+    pd.testing.assert_frame_equal(choices_df, expected_choices_df)
+
+
+def test_poisson_sample_alternatives_repeat_alignment_chooser_dominant_heterogeneity():
     # Edge case: utilities are close across alternatives but vary strongly by chooser.
-    # This is where wrong chooser/sample alignment can hide in aggregate checks.
+    # This checks that the flattened Poisson result keeps chooser/prob alignment.
     chooser_index = pd.Index([101, 102, 103, 104, 105, 106], name="person_id")
     choosers = pd.DataFrame(index=chooser_index)
     alternatives = pd.DataFrame(index=pd.Index([0, 1, 2, 3], name="alt_id"))
 
-    n_choosers = len(choosers)
-    n_alts = len(alternatives)
     sample_size = 3
 
     # Very small alternative differences...
@@ -254,32 +840,18 @@ def test_make_sample_choices_utility_based_repeat_alignment_chooser_dominant_het
         index=chooser_index,
     )
 
-    # No random noise: chosen alternative is deterministic argmax of utilities.
-    rands_3d = np.zeros((n_choosers, n_alts, sample_size), dtype=np.float64)
-    state = _DummyState(_DummyRngUtilityBased(rands_3d))
-
-    out = interaction_sample.make_sample_choices_utility_based(
-        state=state,
-        choosers=choosers,
-        utilities=utilities,
-        alternatives=alternatives,
-        sample_size=sample_size,
-        alternative_count=n_alts,
-        alt_col_name="alt_id",
-        allow_zero_probs=False,
-        trace_label="test_repeat_alignment_chooser_heterogeneity",
-        chunk_sizer=_DummyChunkSizer(),
+    poisson_draws = np.array(
+        [
+            [0.01, 0.90, 0.90, 0.90],
+            [0.80, 0.05, 0.90, 0.90],
+            [0.90, 0.10, 0.40, 0.90],
+            [0.90, 0.90, 0.10, 0.20],
+            [0.90, 0.90, 0.02, 0.10],
+            [0.90, 0.90, 0.90, 0.001],
+        ],
+        dtype=np.float64,
     )
-
-    # Reconstruct expected indexing behavior.
-    chosen_2d = np.argmax(
-        rands_3d + utilities.to_numpy()[:, :, np.newaxis],
-        axis=1,
-    )
-    chosen_flat = chosen_2d.reshape(-1)
-
-    chooser_repeat = np.repeat(np.arange(n_choosers), sample_size)
-    chooser_tile = np.tile(np.arange(n_choosers), sample_size)
+    state = _DummyState(_SequentialDummyRng([poisson_draws]))
 
     probs = interaction_sample.logit.utils_to_probs(
         state,
@@ -288,10 +860,322 @@ def test_make_sample_choices_utility_based_repeat_alignment_chooser_dominant_het
         trace_label="test_repeat_alignment_chooser_heterogeneity",
         overflow_protection=True,
         trace_choosers=choosers,
-    ).to_numpy()
+    )
 
-    expected_prob_repeat = probs[chooser_repeat, chosen_flat]
-    wrong_prob_tile = probs[chooser_tile, chosen_flat]
+    out = interaction_sample._poisson_sample_alternatives(
+        chunk_sizer=_DummyChunkSizer(),
+        probs=probs,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+        state=state,
+        trace_label="test_repeat_alignment_chooser_heterogeneity",
+    )
 
-    assert np.array_equal(out["prob"].to_numpy(), expected_prob_repeat)
-    assert not np.array_equal(out["prob"].to_numpy(), wrong_prob_tile)
+    probs_np = probs.to_numpy()
+    inclusion_probs = 1 - np.power(1 - probs_np, sample_size)
+    sampled_values = np.where(poisson_draws < inclusion_probs, inclusion_probs, np.nan)
+    chooser_idx, alt_idx = np.nonzero(~np.isnan(sampled_values))
+
+    expected = pd.DataFrame(
+        {
+            "person_id": chooser_index.to_numpy()[chooser_idx],
+            "prob": sampled_values[chooser_idx, alt_idx],
+            "alt_id": alternatives.index.to_numpy()[alt_idx],
+        }
+    )
+
+    pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
+
+
+def test_poisson_sample_alternatives_retry_matches_materialized_path():
+    chooser_index = pd.Index([201, 202, 203], name="person_id")
+    choosers = pd.DataFrame(index=chooser_index)
+    alternatives = pd.DataFrame(index=pd.Index([10, 11, 12, 13], name="alt_id"))
+    utilities = pd.DataFrame(
+        [[0.0, 0.3, -0.2, 0.1], [1.0, 0.2, 0.4, -0.5], [-0.1, 0.0, 0.8, 0.7]],
+        index=chooser_index,
+    )
+    sample_size = 2
+    poisson_draws = np.array(
+        [
+            [0.10, 0.20, 0.50, 0.00],
+            [0.60, 0.50, 0.10, 0.40],
+            [0.00, 0.30, 0.20, 0.90],
+        ],
+        dtype=np.float64,
+    )
+    retry_draw = np.array([[0.40, 0.10, 0.90, 0.90]], dtype=np.float64)
+    state = _DummyState(_SequentialDummyRng([poisson_draws, retry_draw]))
+
+    probs = interaction_sample.logit.utils_to_probs(
+        state,
+        utilities,
+        allow_zero_probs=False,
+        trace_label="test_fused_rng_matches_materialized",
+        overflow_protection=True,
+        trace_choosers=choosers,
+    )
+
+    out = interaction_sample._poisson_sample_alternatives(
+        chunk_sizer=_DummyChunkSizer(),
+        probs=probs,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+        state=state,
+        trace_label="test_fused_rng_matches_materialized",
+    )
+
+    probs_np = probs.to_numpy()
+    inclusion_probs = 1 - np.power(1 - probs_np, sample_size)
+    sampled_values = np.full(inclusion_probs.shape, np.nan)
+    first_pass = np.where(poisson_draws < inclusion_probs, inclusion_probs, np.nan)
+    first_pass_empty = np.isnan(first_pass).all(axis=1)
+    sampled_values[~first_pass_empty] = first_pass[~first_pass_empty]
+    retry_pass = np.where(
+        retry_draw < inclusion_probs[first_pass_empty],
+        inclusion_probs[first_pass_empty],
+        np.nan,
+    )
+    sampled_values[first_pass_empty] = retry_pass
+    chooser_idx, alt_idx = np.nonzero(~np.isnan(sampled_values))
+
+    expected = pd.DataFrame(
+        {
+            "person_id": choosers.index.values[chooser_idx],
+            "prob": sampled_values[chooser_idx, alt_idx],
+            "alt_id": alternatives.index.values[alt_idx],
+        }
+    )
+
+    pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
+
+
+def test_make_sample_choices_eet_matches_materialized_path():
+    chooser_index = pd.Index([201, 202, 203], name="person_id")
+    choosers = pd.DataFrame(index=chooser_index)
+    alternatives = pd.DataFrame(index=pd.Index([10, 11, 12, 13], name="alt_id"))
+    utilities = pd.DataFrame(
+        [[0.0, 0.3, -0.2, 0.1], [1.0, 0.2, 0.4, -0.5], [-0.1, 0.0, 0.8, 0.7]],
+        index=chooser_index,
+    )
+    sample_size = 2
+    rands_3d = np.array(
+        [
+            [[0.1, -0.3], [0.2, 0.4], [0.5, -0.1], [0.0, 0.2]],
+            [[-0.2, 0.3], [0.6, -0.5], [0.1, 0.7], [0.4, 0.2]],
+            [[0.0, 0.1], [0.3, -0.4], [0.2, 0.5], [-0.3, 0.2]],
+        ],
+        dtype=np.float64,
+    )
+    state = _DummyState(_DummyRngUtilityBased(rands_3d))
+
+    probs = interaction_sample.logit.utils_to_probs(
+        state,
+        utilities,
+        allow_zero_probs=False,
+        trace_label="test_make_sample_choices_eet_matches_materialized_path",
+        overflow_protection=True,
+        trace_choosers=choosers,
+    )
+
+    out = interaction_sample.make_sample_choices_eet(
+        state=state,
+        choosers=choosers,
+        utilities=utilities,
+        probs=probs,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+        trace_label="test_make_sample_choices_eet_matches_materialized_path",
+        chunk_sizer=_DummyChunkSizer(),
+    )
+
+    chosen_positions = np.argmax(
+        rands_3d + utilities.to_numpy()[:, :, np.newaxis],
+        axis=1,
+    )
+    chosen_flat = chosen_positions.reshape(-1)
+    chooser_idx = np.repeat(np.arange(len(choosers)), sample_size)
+
+    expected = pd.DataFrame(
+        {
+            "person_id": choosers.index.values[chooser_idx],
+            "prob": probs.to_numpy()[chooser_idx, chosen_flat],
+            "alt_id": alternatives.index.values[chosen_flat],
+        }
+    )
+
+    pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
+
+
+def test_make_sample_choices_eet_stable_alt_mapping_matches_materialized_path():
+    chooser_index = pd.Index([301, 302], name="person_id")
+    choosers = pd.DataFrame(index=chooser_index)
+    alternatives = pd.DataFrame(index=pd.Index([10, 12, 14], name="alt_id"))
+    utilities = pd.DataFrame(
+        [[0.0, 0.3, -0.2], [1.0, 0.2, 0.4]],
+        index=chooser_index,
+    )
+    sample_size = 2
+    stable_alt_positions = np.array([0, 2, 4], dtype=np.int64)
+    n_total_alts = 5
+    dense_rands_3d = np.array(
+        [
+            [[0.1, -0.3], [0.4, 0.2], [0.2, 0.4], [0.3, -0.2], [0.5, -0.1]],
+            [[-0.2, 0.3], [0.0, 0.5], [0.6, -0.5], [0.2, 0.1], [0.1, 0.7]],
+        ],
+        dtype=np.float64,
+    )
+    state = _DummyState(_DummyRngUtilityBased(dense_rands_3d))
+
+    probs = interaction_sample.logit.utils_to_probs(
+        state,
+        utilities,
+        allow_zero_probs=False,
+        trace_label="test_make_sample_choices_eet_stable_alt_mapping_matches_materialized_path",
+        overflow_protection=True,
+        trace_choosers=choosers,
+    )
+
+    out = interaction_sample.make_sample_choices_eet(
+        state=state,
+        choosers=choosers,
+        utilities=utilities,
+        probs=probs,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+        trace_label="test_make_sample_choices_eet_stable_alt_mapping_matches_materialized_path",
+        chunk_sizer=_DummyChunkSizer(),
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
+    )
+
+    active_rands = dense_rands_3d[:, stable_alt_positions, :]
+    chosen_positions = np.argmax(
+        active_rands + utilities.to_numpy()[:, :, np.newaxis],
+        axis=1,
+    )
+    chosen_flat = chosen_positions.reshape(-1)
+    chooser_idx = np.repeat(np.arange(len(choosers)), sample_size)
+
+    expected = pd.DataFrame(
+        {
+            "person_id": choosers.index.values[chooser_idx],
+            "prob": probs.to_numpy()[chooser_idx, chosen_flat],
+            "alt_id": alternatives.index.values[chosen_flat],
+        }
+    )
+
+    pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
+
+
+def test_poisson_sample_alternatives_stable_alt_mapping_matches_materialized_path():
+    chooser_index = pd.Index([311, 312], name="person_id")
+    choosers = pd.DataFrame(index=chooser_index)
+    alternatives = pd.DataFrame(index=pd.Index([10, 12, 14], name="alt_id"))
+    utilities = pd.DataFrame(
+        [[0.0, 0.3, -0.2], [1.0, 0.2, 0.4]],
+        index=chooser_index,
+    )
+    sample_size = 2
+    stable_alt_positions = np.array([0, 2, 4], dtype=np.int64)
+    n_total_alts = 5
+    dense_uniforms = np.array(
+        [
+            [0.05, 0.90, 0.10, 0.80, 0.20],
+            [0.90, 0.70, 0.05, 0.60, 0.10],
+        ],
+        dtype=np.float64,
+    )
+    state = _DummyState(_SequentialDummyRng([dense_uniforms]))
+
+    probs = interaction_sample.logit.utils_to_probs(
+        state,
+        utilities,
+        allow_zero_probs=False,
+        trace_label="test_poisson_sample_alternatives_stable_alt_mapping_matches_materialized_path",
+        overflow_protection=True,
+        trace_choosers=choosers,
+    )
+
+    out = interaction_sample._poisson_sample_alternatives(
+        chunk_sizer=_DummyChunkSizer(),
+        probs=probs,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+        state=state,
+        trace_label="test_poisson_sample_alternatives_stable_alt_mapping_matches_materialized_path",
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
+    )
+
+    probs_np = probs.to_numpy()
+    inclusion_probs = 1 - np.power(1 - probs_np, sample_size)
+    active_uniforms = dense_uniforms[:, stable_alt_positions]
+    sampled_values = np.where(
+        active_uniforms < inclusion_probs, inclusion_probs, np.nan
+    )
+    chooser_idx, alt_idx = np.nonzero(~np.isnan(sampled_values))
+
+    expected = pd.DataFrame(
+        {
+            "person_id": choosers.index.values[chooser_idx],
+            "prob": sampled_values[chooser_idx, alt_idx],
+            "alt_id": alternatives.index.values[alt_idx],
+        }
+    )
+
+    pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
+
+
+def test_poisson_sample_alternatives_falls_back_after_retries():
+    chooser_index = pd.Index([301, 302], name="person_id")
+    choosers = pd.DataFrame(index=chooser_index)
+    alternatives = pd.DataFrame(index=pd.Index([10, 12, 14], name="alt_id"))
+    utilities = pd.DataFrame(
+        [[0.0, 0.3, -0.2], [1.0, 0.2, 0.4]],
+        index=chooser_index,
+    )
+    sample_size = 2
+    fail_draw = np.full((2, 3), 0.99, dtype=np.float64)
+    fallback_draw = np.array(
+        [
+            [0.40, 0.10, 0.20],
+            [0.30, 0.20, 0.90],
+        ],
+        dtype=np.float64,
+    )
+    state = _DummyState(_SequentialDummyRng([fail_draw] * 10 + [fallback_draw]))
+
+    probs = interaction_sample.logit.utils_to_probs(
+        state,
+        utilities,
+        allow_zero_probs=False,
+        trace_label="test_falls_back_after_retries",
+        overflow_protection=True,
+        trace_choosers=choosers,
+    )
+
+    out = interaction_sample._poisson_sample_alternatives(
+        chunk_sizer=_DummyChunkSizer(),
+        probs=probs,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+        state=state,
+        trace_label="test_falls_back_after_retries",
+    )
+
+    expected = pd.DataFrame(
+        {
+            "person_id": [301, 301, 302, 302],
+            "prob": [1.0, 1.0, 1.0, 1.0],
+            "alt_id": [12, 14, 10, 12],
+        }
+    )
+
+    pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)

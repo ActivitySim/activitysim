@@ -4,9 +4,10 @@
 Explicit Error Terms (EET) is an alternative way to simulate choices from ActivitySim's
 logit models. It keeps the same systematic utilities and the same random-utility
 interpretation as the standard method, but changes how the final simulated choice is
-drawn.
+drawn. For details, see
+[this ATRF paper](https://australasiantransportresearchforum.org.au/frozen-randomness-at-the-individual-utility-level/).
 
-For user-facing guidance on when to use EET, see {ref}`explicit_error_terms_ways_to_run`.
+<!-- For user-facing guidance, see {ref}`explicit_error_terms_ways_to_run`. -->
 
 ## Enabling EET
 
@@ -18,8 +19,9 @@ use_explicit_error_terms: True
 
 The top-level switch is defined in
 `activitysim.core.configuration.top.SimulationSettings.use_explicit_error_terms`.
-Choice simulation code reads that setting through the model compute settings and routes
-supported logit simulations through the EET path.
+Choice simulation code reads that setting through the supported logit wrappers and routes
+final choice simulation through the EET path. For interaction-sample-specific sampling
+configuration, see {doc}`/dev-guide/sampling-methods`.
 
 ## Default Draw Versus EET
 
@@ -33,124 +35,114 @@ Under the default ActivitySim simulation path, choice drawing works like this:
 With EET enabled, the final draw step changes:
 
 1. Compute systematic utilities.
-2. Draw one iid EV1 error term for each chooser-alternative pair.
-3. Add that error term to the systematic utility.
+2. Draw error terms for each chooser-alternative pair.
+3. Add those error terms to the systematic utilities.
 4. Choose the alternative with the highest total utility.
 
-For multinomial logit, ActivitySim adds Gumbel draws to the utility table and takes the
-row-wise maximum. For nested logit, ActivitySim applies the same idea while walking the
-nest tree, preserving the configured nesting structure. For details, see
-[this ATRF paper](https://australasiantransportresearchforum.org.au/frozen-randomness-at-the-individual-utility-level/).
-
-The model being simulated does not change. EET changes how the random utility model is
-sampled, not the underlying utility specification.
+For multinomial logit, the error term distribution is i.i.d. Gumbel and draws are generated
+by inverting the cumulative density function. For nested logit, this method is not available
+due to correlations between error terms. Instead, ActivitySim makes use of recent advances
+in the [representation of nested logit models](https://doi.org/10.1017/S026646662000047X)
+and combines this with
+[exact numerical sampling methods](https://doi.org/10.1007/978-3-030-52915-4)
+to draw error terms of all fundamental alternatives.
 
 ## Practical Effects
 
 ### Comparisons and Simulation Noise
 
 For EET to reduce simulation noise, it is important that alternatives of a choice situation
-keep the same unobserved error term in different scenario runs. This is intimately tied
+keep the same unobserved error term in different scenario runs. If unchanged alternatives
+keep the same unobserved draws, changes to choices between scenarios can only happen when
+the observed utility of an alternative increases. This is not the case for the Monte Carlo
+simulation method, where the draws are based on probabilities, which necessarily change for
+all alternatives if any observed utility changes. This combined with sensitivity to small
+differences in the final CDF draw when comparing nearby scenarios means that EET removes
+noise from scenario comparisons.
+
+Note that the both MC and EET are simulating the same model, so individual runs with identical
+inputs but varying global seed will lead to the same statistical results for individual
+output metrics. EET's properties become apparent when comparing two model runs with different
+inputs. Because error terms are aligned, the variance of the estimator of the indicator, e.g.,
+mode choice shift or VMT difference, is reduced. In other words, difference metrics are more
+precise estimators under EET.
+
+In mathematical terms, for any two metrics $X$ (baseline) and $Y$ (scenario), the variance
+of the difference $X - Y$ is
+
+$$\text{Var}(X - Y) = \text{Var}(X) + \text{Var}(Y) - 2,\text{Cov}(X, Y)$$
+
+EET deliberately drives $\text{Cov}(X, Y)$ up by aligning error terms, so $\text{Var}(X-Y)$
+collapses even though $\text{Var}(X)$ and $\text{Var}(Y)$ individually are unchanged.
+
+In practice, models are often run once for each scenario. EET is still usefull because the
+lower the noise of the estimator, the higher the chance that a single run is representative.
+In other words, the noise level of comparison metrics is lower. Additionally, under MC small
+but real benefits can show up as negative in a single run. Under EET, the sign of the effect
+is far more trustworthy.
+
+Independent of any statistical argument, under EET, choice changes between two runs are
+attributable to utility changes which can be helpful for model development, sensitivity
+testing, and presenting results to stakeholders.
+
+### Aligning error terms
+
+Aligning error terms between runs is essential. This is intimately tied
 to how random numbers are generated; see {ref}`random_in_detail` for the underlying
-random-number stream design and the `activitysim.core.random` API.
-Because unchanged alternatives can keep the same unobserved draws, changes to choices between
-scenarios can only happen when the observed utility of an alternative increases. This is not
-the case for the Monte Carlo simulation method, where the draws are based on probabilities,
-which necessarily change for all alternatives if any observed utility changes.
+random-number stream design and the `activitysim.core.random` API. It boils down to
+each chooser needing to have the same ID between scenarios, and all alternatives being
+reproduciably ordered.
 
-This also means that it is advisable to use the same setting in all runs. Comparing a baseline
-run with EET to a scenario run without EET mixes two simulation methods and can make differences
-harder to interpret. Aggregate choice patterns should remain statistically the same
-as for the default probability-based method. The project test suite includes parity tests for
-MNL, NL, and interaction-based simulations.
+For chooser alignment, it is necessary that person and household IDs are stable between runs.
+When running a scenario with population changes, it is important to only change the IDs of
+those households and persons that have changed, e.g., new households.
 
-### Numerical and Debugging Behavior
-
-EET changes the final simulation step, not the utility calculation itself. Utility
-expressions, availability logic, nesting structure, and utility validation still matter in
-the same way as in the default method.
-
-In practice, EET can make some comparisons easier to interpret because the selected
-alternative is the one with the highest total utility after adding the explicit error term,
-rather than the one reached by a cumulative-probability threshold. That can reduce
-sensitivity to small differences in the final CDF draw when comparing nearby scenarios.
-It does not eliminate the need to inspect invalid or unavailable alternatives, and it does
-not guarantee identical results across different RNG seeds or different model
-configurations.
-
-For shadow-priced location choice, ActivitySim resets RNG offsets between iterations when
-EET is enabled so each shadow-pricing iteration uses the same sequence of random numbers.
-That keeps the comparison across iterations focused on the shadow price updates instead of
-changing random draws between iterations.
-
-### Runtime
-
-Runtime differs between the methods. EET generates one EV1 error term per chooser-alternative
-pair, while the default Monte Carlo path draws only one uniform random number per chooser after
-probabilities are computed. EET, however, does not need to compute probabilities to make choices.
-
-Exact runtimes depend on the number of alternatives, nesting structure, interaction size, and
-sampling configuration. With default settings, current full-scale demand model runs with EET
-are about 100% higher than the default MC method. While the relative runtime increase
-of nested logit models is large, these typically contribute only a very small fraction to the
-overall runtime and virtually all of the increase is due to sampling in location choice. To
-avoid this penalty, it is possible to use MC for sampling only by adding the following to each
-model setting where sampling is used (currently all location and destination choice models as
-well as disaggregate accessibilities):
-
-```yaml
-compute_settings:
-  use_explicit_error_terms:
-    sample: false
-```
-
-With this setting, model runtimes should be roughly equal. The influence of this change on
-sampling noise is under investigation.
-
-(explicit_error_terms_zone_encoding)=
-#### Zone ID encoding and runtime
-
-For location choice models, encoding zone IDs as a 0-based contiguous index reduces EET runtime
-and memory use during sampling.
-
-The current implementation draws error terms into a dense 1-D array of length `max_zone_id + 1`
-per chooser (see `AltsContext.n_alts_to_cover_max_id` in `activitysim.core.logit`). Each sampled
-alternative is then looked up by direct offset into that array, so the same zone always receives
-the same error term regardless of which alternatives are in the sampled choice set — a property
-needed for consistent scenario comparisons.
-
-When zone IDs are a contiguous 0-based sequence, the dense array has exactly as many entries as
-there are zones and every draw is used. When zone IDs contain gaps or start from a large value,
-the array must still cover `max_zone_id + 1` entries, so the draws for the missing IDs are
-generated but never used. For zone systems with large or sparse IDs, this waste can be substantial.
-
-An alternative would be to draw only as many error terms as there are sampled alternatives and
-retrieve the relevant term for each zone via a lookup. That would avoid unused draws but adds an
-index-mapping step for every chooser-sample in the interaction frame, trading one form of overhead
-for another. The current design favours the dense approach because the direct-offset indexing is
-simpler and because the ``recode_columns`` setting can encode zone IDs as ``zero-based`` in
-the input table list; see the
+For alternative alignment, it is important to know the universal choice set, i.e., all possible
+alternatives, for each model. For example, when running scenarios where a new mode is introduced,
+this new mode should also be in the specification of the run where it is not available, with
+its utility specification such that it is never chosen. In case the model is nested logit, the
+nesting structure also needs to be held constant across scenarios.
+For location choice models, all alternatives need to be listed in the land use table and the
+zone IDs need to be stable between scenarios. Additionally, for computational efficiency it
+is recommended to have zone IDs that are a contiguous 0-based sequence because ActivitySim aligns
+random draws to positions in the full zone universe and generates draws for all zone IDs up to the
+maximum. For models where this is not the case, ActivitySim can automatically perform the
+conversion for internal calculations. The `recode_columns` option creates contiguous zero-based IDs
+where needed; see the
 [Zero-based Recoding of Zones](using-sharrow.md#zero-based-recoding-of-zones) section for details.
 
-(explicit_error_terms_memory)=
-### Memory usage
+For models that use sub-sampling of alternatives, it is important to keep the sampling scheme
+identical between scenarios, otherwise the error terms for the choice from the sampled set are
+not guaranteed to be aligned. When running with EET, the default sampling method is ``poisson``,
+which balances runtime performance and noise reduction. For more details on sampling methods,
+see {ref}`sampling_methods_dev_guide`.
 
-When running EET with MC for location sampling as described in the Runtime section above,
-there should be only a small increase in memory usage for location choice models compared to full
-MC simulation.
+Finally, it also important to keep the global random number generator seed constant for two
+individual comparison runs.
 
-However, when EET is run with its current default location sampling settings, an array of size
-(number of choosers, number of alternatives, number of samples) is allocated for all random error
-terms. This can quickly become unwieldy for machines with limited memory, and
-[chunking](../users-guide/performance/chunking.md) will likely be needed.
 
-When chunking is needed and [explicit chunking](../users-guide/performance/chunking.md#explicit-chunking)
-is used, using fractional values for the chunk size rather than absolute numbers of choosers is
-often a better fit. This is because the individual steps of location choice models
-(location sampling, location logsums, and location choice from the sampled choice set) all have
-very different chooser characteristics, but the chunk size currently can only be set at the model
-level. Using absolute values for the explicit chunk size would lead to a large number of chunks
-for the logsum calculations, which is relatively slow.
+### Runtime and memory usage
+EET draws one error term per chooser and alternative, which requires many more random numbers
+than MC's one per chooser. For models with many alternatives, this can lead to a large amount
+of random numbers being calculated. The implementation of EET avoids materialization of large
+chooser-alternative arrays of error terms in memory so that the memory usage is in line with MC
+simulation.
+Regarding runtimes, EET with default settings currently carries a runtime penalty of about 3-10%
+per demand model run. However, when run in combination with an assignment model the overall
+system can converge faster and this can reduce the overall model runtime penalty.
+
+<!-- For location choice models, keeping error terms aligned to zone IDs also affects runtime and
+memory usage. To keep the same unobserved error term attached to the same zone across runs,
+ActivitySim indexes EET draws by zone ID over the full universal choice set rather than only the
+alternatives that happen to appear in a given calculation.
+
+When zone IDs are a contiguous 0-based sequence, this indexing is efficient because the dense
+draw array has one entry per zone. When zone IDs contain gaps or start from a large value, the
+implementation must still allocate draws up to the maximum zone ID, so additional random numbers
+are generated for missing IDs and never used. Encoding zone IDs as a contiguous 0-based index can
+therefore reduce both runtime and memory use for location choice models with EET; see
+{ref}`explicit_error_terms_zone_encoding` for how to set this up.
+-->
 
 
 ## Implementation Details and Adding New Models
@@ -183,6 +175,7 @@ used in the probability-based path, which is about -691 because ActivitySim clip
 exponentiated utilities at 1e-300. To keep behavior consistent, EET treats alternatives with
 utilities at or below that threshold as unavailable; see `activitysim.core.logit.validate_utils`.
 
-### Scale of the distribution
-Error terms are drawn from standard Gumbel distributions, i.e., the scale of the error term is
-fixed to one.
+### Normalization
+For MNL, the error term scale is normalized to 1 by using the standard Gumbel distribution. For
+nested logit, ActivitySim uses the normalized formulation in which the root nest coefficient is
+fixed at 1; the EET implementation relies on that convention.

@@ -22,7 +22,10 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import TourLocationComponentSettings
-from activitysim.core.interaction_sample import interaction_sample
+from activitysim.core.interaction_sample import (
+    _resolve_sample_method,
+    interaction_sample,
+)
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
 
@@ -213,6 +216,10 @@ def _od_sample(
         preprocessor_setting_name="alts_preprocessor_sample",
     )
 
+    # Not passing stable_alt_positions here: the cross product of origins and destinations
+    # would make the per-chooser draw count (n_total_alts, or n_total_alts * sample_size for
+    # EET sampling) prohibitive under the current sequential RNG. Revisit with a counter-based
+    # RNG.
     choices = interaction_sample(
         state,
         choosers,
@@ -345,6 +352,7 @@ def choose_MAZ_for_TAZ(
     trace_label,
     addtl_col_for_unique_key=None,
     dest_maz_id_col=DEST_MAZ,
+    full_taz_index=None,
 ):
     """
     Convert taz_sample table with TAZ zone sample choices to a table with a MAZ zone chosen for each TAZ
@@ -423,17 +431,24 @@ def choose_MAZ_for_TAZ(
 
     # for random_for_df, we need df with de-duplicated chooser canonical index
     chooser_df = pd.DataFrame(index=taz_sample.index[~taz_sample.index.duplicated()])
-    num_choosers = len(chooser_df)
     assert chooser_df.index.name == chooser_id_col
 
-    # to make choices, <taz_sample_size> rands for each chooser (one rand for each sampled TAZ)
-    # taz_sample_size will be model_settings['SAMPLE_SIZE'] samples, except if we are estimating
-    taz_sample_size = taz_choices.groupby(chooser_id_col)[DEST_TAZ].count().max()
+    # to make choices, draw enough rands for the chooser with the largest TAZ sample,
+    # then keep only the draws corresponding to actual TAZ rows for each chooser.
+    taz_choice_counts = (
+        taz_choices.groupby(chooser_id_col)[DEST_TAZ]
+        .count()
+        .reindex(chooser_df.index)
+        .astype(np.int64)
+    )
+    taz_sample_size = taz_choice_counts.max()
+    uniform_taz_choice_counts = (taz_choice_counts == taz_sample_size).all()
 
-    # taz_choices index values should be contiguous
-    assert (
-        taz_choices[chooser_id_col] == np.repeat(chooser_df.index, taz_sample_size)
-    ).all()
+    # taz_choices rows should remain grouped by chooser in chooser_df order
+    expected_chooser_ids = np.repeat(
+        chooser_df.index.to_numpy(), taz_choice_counts.to_numpy()
+    )
+    assert (taz_choices[chooser_id_col].to_numpy() == expected_chooser_ids).all()
 
     # we need to choose a MAZ for each DEST_TAZ choice
     # probability of choosing MAZ based on MAZ size_term fraction of TAZ total
@@ -493,11 +508,33 @@ def choose_MAZ_for_TAZ(
     # prob array with one row TAZ_choice, one column per alternative
     row_sums = padded_maz_sizes.sum(axis=1)
     maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
-    assert maz_probs.shape == (num_choosers * taz_sample_size, max_maz_count)
-
-    rands = state.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
-    rands = rands.reshape(-1, 1)
-    assert len(rands) == num_choosers * taz_sample_size
+    if full_taz_index is not None:
+        full_taz_index = pd.Index(full_taz_index, name=DEST_TAZ)
+        taz_positions = full_taz_index.get_indexer(taz_choices[DEST_TAZ])
+        assert (taz_positions >= 0).all()
+        chooser_rands = np.asarray(
+            state.get_rn_generator().random_for_df(chooser_df, n=len(full_taz_index))
+        )
+        chooser_row_positions = np.repeat(
+            np.arange(len(chooser_df)), taz_choice_counts.to_numpy()
+        )
+        rands = chooser_rands[chooser_row_positions, taz_positions].reshape(-1, 1)
+        assert len(rands) == len(taz_choices)
+    elif uniform_taz_choice_counts:
+        assert maz_probs.shape == (len(chooser_df) * taz_sample_size, max_maz_count)
+        rands = state.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
+        rands = rands.reshape(-1, 1)
+        assert len(rands) == len(chooser_df) * taz_sample_size
+    else:
+        assert maz_probs.shape == (len(taz_choices), max_maz_count)
+        chooser_rands = np.asarray(
+            state.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
+        )
+        chooser_rand_mask = (
+            np.arange(taz_sample_size) < taz_choice_counts.to_numpy()[:, np.newaxis]
+        )
+        rands = chooser_rands[chooser_rand_mask].reshape(-1, 1)
+        assert len(rands) == len(taz_choices)
     assert len(rands) == maz_probs.shape[0]
 
     # make choices
@@ -592,6 +629,15 @@ def choose_MAZ_for_TAZ(
     return taz_choices_w_maz
 
 
+def resolve_sample_method(state, model_settings):
+    sample_compute_settings = getattr(model_settings, "compute_settings", None)
+    if sample_compute_settings is not None:
+        sample_compute_settings = sample_compute_settings.subcomponent_settings(
+            "sample"
+        )
+    return _resolve_sample_method(state, sample_compute_settings)
+
+
 @workflow.func
 def od_presample(
     state: workflow.State,
@@ -600,6 +646,7 @@ def od_presample(
     model_settings: TourODSettings,
     network_los,
     destination_size_terms,
+    full_destination_size_terms,
     estimator,
     chunk_size,
     trace_label,
@@ -614,6 +661,27 @@ def od_presample(
     MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(
         destination_size_terms, network_los
     )
+
+    # The OD presample call below does not pass stable_alt_positions: the cross product of
+    # origins and destinations is too large for the current sequential-RNG cost (see comment
+    # at the OD sample call in _od_sample). full_taz_index is still computed here for the
+    # MAZ-for-TAZ second stage, but only for Poisson sampling: that stage uses one
+    # per-(chooser, TAZ) uniform to pick a MAZ within each sampled TAZ. Under Poisson each
+    # sampled TAZ appears at most once per chooser, so the per-TAZ uniform produces an
+    # independent MAZ choice. Under EET sampling (importance sampling with replacement) the
+    # same TAZ can appear multiple times in a chooser's sample and would all share one
+    # uniform, forcing every duplicate to pick the same MAZ. An EET-stable MAZ-for-TAZ would
+    # need a (TAZ, occurrence-rank)-keyed draw and many more random numbers per chooser; that's
+    # too expensive with the current RNG, revisit if a counter-based RNG is adapted.
+    taz_sample_method = resolve_sample_method(state, model_settings)
+    if taz_sample_method == "poisson":
+        full_taz_index = pd.Index(
+            network_los.map_maz_to_taz(full_destination_size_terms.index),
+            name=DEST_TAZ,
+        )
+        full_taz_index = full_taz_index[~full_taz_index.duplicated()]
+    else:
+        full_taz_index = None
 
     # create wrapper with keys for this lookup - in this case there is a ORIG_TAZ
     # in the choosers and a DEST_TAZ in the alternatives which get merged during
@@ -654,6 +722,7 @@ def od_presample(
         MAZ_size_terms,
         trace_label,
         addtl_col_for_unique_key=ORIG_MAZ,
+        full_taz_index=full_taz_index,
     )
 
     # outputs
@@ -675,6 +744,7 @@ def run_od_sample(
     model_settings: TourODSettings,
     network_los,
     destination_size_terms,
+    full_destination_size_terms,
     estimator,
     chunk_size,
     trace_label,
@@ -722,6 +792,7 @@ def run_od_sample(
             model_settings,
             network_los,
             destination_size_terms,
+            full_destination_size_terms,
             estimator,
             chunk_size,
             trace_label,
@@ -1093,6 +1164,10 @@ def run_tour_od(
         segment_destination_size_terms = size_term_calculator.dest_size_terms_df(
             segment_name, trace_label
         )
+        full_segment_destination_size_terms = (
+            size_term_calculator.destination_size_terms[[segment_name]].copy()
+        )
+        full_segment_destination_size_terms.columns = ["size_term"]
 
         if choosers.shape[0] == 0:
             logger.info(
@@ -1110,6 +1185,7 @@ def run_tour_od(
             model_settings,
             network_los,
             segment_destination_size_terms,
+            full_segment_destination_size_terms,
             estimator,
             chunk_size=chunk_size,
             trace_label=tracing.extend_trace_label(

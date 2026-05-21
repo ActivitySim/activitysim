@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -180,7 +182,6 @@ def test_interaction_sample_simulate_passes_alts_context_and_alt_nrs_df(
     def fake_make_choices_utility_based(
         _state,
         utilities,
-        name_mapping=None,
         nest_spec=None,
         trace_label=None,
         trace_choosers=None,
@@ -222,34 +223,3 @@ def test_interaction_sample_simulate_passes_alts_context_and_alt_nrs_df(
         index=choosers.index,
     )
     pd.testing.assert_frame_equal(captured["alt_nrs_df"], expected_alt_nrs)
-
-
-def test_interaction_sample_simulate_requires_alts_context_for_eet_integer_choices(
-    state,
-):
-    state.settings.use_explicit_error_terms = True
-
-    choosers = pd.DataFrame(
-        {"chooser_attr": [1.0, 1.0]},
-        index=pd.Index([200, 201], name="person_id"),
-    )
-    alternatives = pd.DataFrame(
-        {
-            "alt_attr": [1.0, 0.5, 0.8, 1.2],
-            "tdd": [0, 2, 0, 2],
-        },
-        index=pd.Index([200, 200, 201, 201], name="person_id"),
-    )
-    spec = pd.DataFrame(
-        {"coefficient": [1.0]},
-        index=pd.Index(["alt_attr"], name="Expression"),
-    )
-
-    with pytest.raises(ValueError, match="alts_context is required"):
-        interaction_sample_simulate.interaction_sample_simulate(
-            state,
-            choosers,
-            alternatives,
-            spec,
-            choice_column="tdd",
-        )

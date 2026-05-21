@@ -32,9 +32,7 @@ from activitysim.core.configuration.logit import (
     LogitNestSpec,
     TemplatedLogitComponentSettings,
 )
-
-if TYPE_CHECKING:
-    from activitysim.core.estimation import Estimator
+from activitysim.core.exceptions import ModelConfigurationError
 from activitysim.core.fast_eval import fast_eval
 from activitysim.core.simulate_consts import (
     ALT_LOSER_UTIL,
@@ -42,12 +40,21 @@ from activitysim.core.simulate_consts import (
     SPEC_EXPRESSION_NAME,
     SPEC_LABEL_NAME,
 )
-from activitysim.core.exceptions import ModelConfigurationError
+
+if TYPE_CHECKING:
+    from activitysim.core.estimation import Estimator
 
 logger = logging.getLogger(__name__)
 
 CustomChooser_T = Callable[
-    [workflow.State, pd.DataFrame, pd.DataFrame, pd.DataFrame, str],
+    [
+        workflow.State,
+        pd.DataFrame,
+        pd.DataFrame,
+        pd.DataFrame,
+        str,
+        dict | LogitNestSpec | None,
+    ],
     tuple[pd.Series, pd.Series],
 ]
 
@@ -1509,43 +1516,34 @@ def eval_nl(
             state, raw_utilities, allow_zero_probs=True, trace_label=trace_label
         )
 
-        # utilities of leaves and nests
-        nested_utilities = compute_nested_utilities(raw_utilities, nest_spec)
-        chunk_sizer.log_df(trace_label, "nested_utilities", nested_utilities)
-
-        if want_logsums:
-            logsums = pd.Series(nested_utilities.root, index=choosers.index)
-            chunk_sizer.log_df(trace_label, "logsums", logsums)
-
-        # Index of choices for nested utilities is different than unnested - this needs to be consistent for
-        # turning indexes into alternative names to keep code changes to minimum for now. Might want to look
-        # into changing this in the future when revisiting nested logit EET code.
-        name_mapping = raw_utilities.columns.values
-
-        del raw_utilities
-        chunk_sizer.log_df(trace_label, "raw_utilities", None)
-
         if custom_chooser:
             choices, rands = custom_chooser(
                 state,
-                utilities=nested_utilities,
-                name_mapping=name_mapping,
-                choosers=choosers,
-                spec=spec,
+                raw_utilities,
+                choosers,
+                spec,
+                trace_label,
                 nest_spec=nest_spec,
-                trace_label=trace_label,
             )
         else:
             choices, rands = logit.make_choices_utility_based(
                 state,
-                nested_utilities,
-                name_mapping=name_mapping,
-                nest_spec=nest_spec,
+                raw_utilities,
                 trace_label=trace_label,
+                nest_spec=nest_spec,
             )
 
-        del nested_utilities
-        chunk_sizer.log_df(trace_label, "nested_utilities", None)
+        if want_logsums:
+            # utilities of leaves and nests
+            nested_utilities = compute_nested_utilities(raw_utilities, nest_spec)
+            chunk_sizer.log_df(trace_label, "nested_utilities", nested_utilities)
+            logsums = pd.Series(nested_utilities.root, index=choosers.index)
+            chunk_sizer.log_df(trace_label, "logsums", logsums)
+            del nested_utilities
+            chunk_sizer.log_df(trace_label, "nested_utilities", None)
+
+        del raw_utilities
+        chunk_sizer.log_df(trace_label, "raw_utilities", None)
 
     else:
         # exponentiated utilities of leaves and nests

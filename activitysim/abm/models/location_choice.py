@@ -16,7 +16,10 @@ from activitysim.core.configuration.logit import (
     TourModeComponentSettings,
 )
 from activitysim.core.exceptions import DuplicateWorkflowTableError
-from activitysim.core.interaction_sample import interaction_sample
+from activitysim.core.interaction_sample import (
+    _resolve_sample_method,
+    interaction_sample,
+)
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.logit import AltsContext
 from activitysim.core.util import reindex
@@ -117,6 +120,8 @@ def _location_sample(
     chunk_tag,
     trace_label,
     zone_layer=None,
+    stable_alt_positions=None,
+    n_total_alts=None,
 ):
     """
     select a sample of alternative locations.
@@ -212,6 +217,8 @@ def _location_sample(
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer=zone_layer,
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
         explicit_chunk_size=model_settings.explicit_chunk,
         compute_settings=model_settings.compute_settings.subcomponent_settings(
             "sample"
@@ -227,6 +234,7 @@ def location_sample(
     persons_merged,
     network_los,
     dest_size_terms,
+    full_dest_size_terms,
     estimator,
     model_settings: TourLocationComponentSettings,
     chunk_size,
@@ -246,6 +254,16 @@ def location_sample(
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
+    if state.settings.use_explicit_error_terms:
+        stable_alt_positions = full_dest_size_terms.index.get_indexer(
+            dest_size_terms.index
+        )
+        assert (stable_alt_positions >= 0).all()
+        n_total_alts = len(full_dest_size_terms)
+    else:
+        stable_alt_positions = None
+        n_total_alts = None
+
     choices = _location_sample(
         state,
         segment_name,
@@ -258,6 +276,8 @@ def location_sample(
         chunk_size,
         chunk_tag,
         trace_label,
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
     )
 
     return choices
@@ -367,6 +387,7 @@ def location_presample(
     chunk_size,
     chunk_tag,
     trace_label,
+    full_dest_size_terms=None,
 ):
     trace_label = tracing.extend_trace_label(trace_label, "presample")
 
@@ -378,6 +399,39 @@ def location_presample(
     MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(
         state, dest_size_terms, network_los, model_settings
     )
+
+    if full_dest_size_terms is None:
+        full_dest_size_terms = dest_size_terms
+
+    if state.settings.use_explicit_error_terms:
+        full_taz_index = pd.Index(
+            network_los.map_maz_to_taz(full_dest_size_terms.index), name=DEST_TAZ
+        )
+        full_taz_index = full_taz_index[~full_taz_index.duplicated()]
+        stable_alt_positions = full_taz_index.get_indexer(TAZ_size_terms.index)
+        assert (stable_alt_positions >= 0).all()
+        n_total_alts = len(full_taz_index)
+
+        # The TAZ presample call below passes stable_alt_positions for both EET and Poisson sampling, so each TAZ is
+        # keyed to its position in the full TAZ universe. The MAZ-for-TAZ second stage only receives full_taz_index for
+        # Poisson: that stage uses one per-(chooser, TAZ) uniform to pick a MAZ within each sampled TAZ. Under Poisson
+        # each sampled TAZ appears at most once per chooser, so the per-TAZ uniform produces an independent MAZ choice.
+        # Under EET sampling (importance sampling with replacement) the same TAZ can appear multiple times in a
+        # chooser's sample and would all share one uniform, forcing every duplicate to pick the same MAZ. An EET-stable
+        # MAZ-for-TAZ would need a (TAZ, occurrence-rank)-keyed draw and many more random numbers per chooser; that's
+        # too expensive with the current RNG, revisit if a counter-based RNG is adapted.
+        sample_compute_settings = getattr(model_settings, "compute_settings", None)
+        if sample_compute_settings is not None:
+            sample_compute_settings = sample_compute_settings.subcomponent_settings(
+                "sample"
+            )
+        taz_sample_method = _resolve_sample_method(state, sample_compute_settings)
+        use_stable_taz_index = taz_sample_method == "poisson"
+    else:
+        full_taz_index = None
+        stable_alt_positions = None
+        n_total_alts = None
+        use_stable_taz_index = False
 
     # convert MAZ zone_id to 'TAZ' in choosers (persons_merged)
     # persons_merged[HOME_TAZ] = persons_merged[HOME_MAZ].map(maz_to_taz)
@@ -412,6 +466,8 @@ def location_presample(
         chunk_tag,
         trace_label,
         zone_layer="taz",
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
     )
 
     # print(f"taz_sample\n{taz_sample}")
@@ -424,7 +480,12 @@ def location_presample(
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
     maz_choices = tour_destination.choose_MAZ_for_TAZ(
-        state, taz_sample, MAZ_size_terms, trace_label, model_settings
+        state,
+        taz_sample,
+        MAZ_size_terms,
+        trace_label,
+        model_settings,
+        full_taz_index=full_taz_index if use_stable_taz_index else None,
     )
 
     assert DEST_MAZ in maz_choices
@@ -463,6 +524,8 @@ def run_location_sample(
     23751,      14,           0.972732479292,  2
     """
 
+    full_dest_size_terms = dest_size_terms
+
     logger.debug(
         f"dropping {(~(dest_size_terms.size_term > 0)).sum()} "
         f"of {len(dest_size_terms)} rows where size_term is zero"
@@ -497,6 +560,7 @@ def run_location_sample(
             chunk_size,
             chunk_tag=f"{chunk_tag}.presample",
             trace_label=trace_label,
+            full_dest_size_terms=full_dest_size_terms,
         )
 
     else:
@@ -506,6 +570,7 @@ def run_location_sample(
             persons_merged,
             network_los,
             dest_size_terms,
+            full_dest_size_terms,
             estimator,
             model_settings,
             chunk_size,
@@ -740,7 +805,6 @@ def run_location_choice(
     chunk_tag,
     trace_label,
     skip_choice=False,
-    alts_context: AltsContext | None = None,
 ):
     """
     Run the three-part location choice algorithm to generate a location choice for each chooser
@@ -761,7 +825,6 @@ def run_location_choice(
     chunk_size : int
     trace_label : str
     skip_choice : bool
-    alts_context : AltsContext or None
 
     Returns
     -------
@@ -794,9 +857,13 @@ def run_location_choice(
         if choosers.shape[0] == 0:
             logger.info(f"{trace_label} skipping segment {segment_name}: no choosers")
             continue
-        # dest_size_terms contains 0-attraction zones so using this directly here, important for stable error terms
-        # when a zone goes from 0 base -> nonzero project
-        alts_context = AltsContext.from_series(dest_size_terms.index)
+
+        if state.settings.use_explicit_error_terms:
+            # dest_size_terms contains 0-attraction zones so using this directly here, important for stable error terms
+            # when a zone goes from 0 base -> nonzero project
+            alts_context = AltsContext.from_series(dest_size_terms.index)
+        else:
+            alts_context = None
 
         # - location_sample
         location_sample_df = run_location_sample(
@@ -1042,15 +1109,16 @@ def iterate_location_choice(
                 persons_merged_df_ = persons_merged_df_.sort_index()
 
         # reset rng offsets to identical state on each iteration. This ensures that the same set of random numbers is
-        # used on each iteration. Note this has to happen AFTER updating shadow prices because the simulation method
-        # draws random numbers.
-        # Only applying when using EET for now because this will need changes to integration
-        # tests, but it's probably a good idea for MC simulation as well.
+        # used on each iteration for the persons being re-simulated, so sampling and final choice draws are
+        # reproducible across shadow-pricing iterations.
+        # Scoped to the persons channel for these specific rows via reset_offsets_for_df so the dedicated
+        # shadow_pricing_persons channel (registered under EET) keeps its offset across iterations and advances
+        # naturally on each iteration's update_shadow_prices call.
         if state.settings.use_explicit_error_terms and iteration > 1:
             logger.debug(
                 f"{trace_label} resetting random number generator offsets for iteration {iteration}"
             )
-            state.get_rn_generator().reset_offsets_for_step(state.current_model_name)
+            state.get_rn_generator().reset_offsets_for_df(persons_merged_df_)
 
         choices_df_, save_sample_df = run_location_choice(
             state,
@@ -1112,6 +1180,11 @@ def iterate_location_choice(
                 )
             )
             break
+
+    # Drop the dedicated shadow_pricing RNG channel (registered lazily under EET by spc.update_shadow_prices) so it
+    # doesn't survive into the next location_choice model (e.g., school after work) — both models share the same
+    # channel name and would otherwise collide on the no-overlap assert in SimpleChannel.extend_domain. No-op for MC.
+    spc.cleanup_rng_channel(state)
 
     # - shadow price table
     if locutor:

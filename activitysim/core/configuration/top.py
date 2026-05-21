@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any, Literal
 import struct
 import time
+from pathlib import Path
+from typing import Any, Literal
 
 from pydantic import model_validator, validator
 
@@ -704,6 +704,7 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
         "instrument",
         "sharrow",
         "use_explicit_error_terms",
+        "sample_method",
     )
     """
     Setting to log on startup.
@@ -781,18 +782,25 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     """
     Make choice from random utility model by drawing from distribution of unobserved
     part of utility and taking the maximum of total utility.
-    
+
     Defaults to standard Monte Carlo method, i.e., calculating probabilities and then
     drawing a single uniform random number to draw from cumulative probabily.
 
     .. versionadded:: 1.6
     """
 
+    sample_method: None | Literal["monte_carlo", "eet", "poisson"] = None
+    """
+    Sampling method to use in `activitysim.core.interaction_sample`.
+
+    When unset, `monte_carlo` is used when `use_explicit_error_terms` is false and `poisson` is used when it is true.
+    """
+
     check_model_settings: bool = True
     """
     run checks to validate that YAML settings files are loadable and spec and coefficent csv can be resolved.
 
-    should catch many common errors early, including missing required configurations or specified coefficient labels without defined values.  
+    should catch many common errors early, including missing required configurations or specified coefficient labels without defined values.
     """
 
     other_settings: dict[str, Any] = None

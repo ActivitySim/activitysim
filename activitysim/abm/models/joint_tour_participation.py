@@ -20,8 +20,8 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.base import ComputeSettings, PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
-from activitysim.core.util import assign_in_place, reindex
 from activitysim.core.exceptions import InvalidTravelError
+from activitysim.core.util import assign_in_place, reindex
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +131,7 @@ def participants_chooser(
     choosers: pd.DataFrame,
     spec: pd.DataFrame,
     trace_label: str,
+    nest_spec: Optional[dict, LogitNestSpec] = None,
 ) -> tuple[pd.Series, pd.Series]:
     """
     custom alternative to logit.make_choices for simulate.simple_simulate
@@ -250,14 +251,21 @@ def participants_chooser(
                     f"{num_tours_remaining} tours could not be satisfied after {iter} iterations"
                 )
 
-        choice_function = (
-            logit.make_choices_utility_based
-            if state.settings.use_explicit_error_terms
-            else logit.make_choices
-        )
-        choices, rands = choice_function(
-            state, probs_or_utils, trace_label=trace_label, trace_choosers=choosers
-        )
+        if state.settings.use_explicit_error_terms:
+            choices, rands = logit.make_choices_utility_based(
+                state,
+                probs_or_utils,
+                trace_label=trace_label,
+                trace_choosers=choosers,
+                nest_spec=nest_spec,
+            )
+        else:
+            choices, rands = logit.make_choices(
+                state,
+                probs_or_utils,
+                trace_label=trace_label,
+                trace_choosers=choosers,
+            )
         participate = choices == PARTICIPATE_CHOICE
 
         # satisfaction indexed by tour_id
@@ -428,13 +436,6 @@ def joint_tour_participation(
     for i in ["person_is_preschool", "composition", "adult"]:
         if i not in model_settings.compute_settings.protect_columns:
             model_settings.compute_settings.protect_columns.append(i)
-
-    # This is related to the difference in nested logit and logit choice. As soon as alt_order_array
-    # is removed from arguments to make_choices_explicit_error_term_nl this guard can be removed.
-    if state.settings.use_explicit_error_terms:
-        assert (
-            nest_spec is None
-        ), "Nested logit model custom chooser for EET requires name_mapping, currently not implemented in jtp"
 
     custom_chooser = participants_chooser
 

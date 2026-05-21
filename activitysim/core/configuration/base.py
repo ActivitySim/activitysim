@@ -135,9 +135,14 @@ class ComputeSettings(PydanticBase):
     Sharrow settings for a component.
     """
 
-    # Make this more general compute settings and use for explicit error term overrides
-    # Default None work for sub-components defined in getter below (eet_subcomponent)
-    use_explicit_error_terms: None | bool | dict[str, bool] = None
+    sample_method: None | Literal["monte_carlo", "eet", "poisson"] = None
+    """
+    Override the alternative sampling method used by `interaction_sample`.
+
+    When unset, `interaction_sample` preserves legacy behavior: it uses
+    `monte_carlo` when explicit error terms are off and `poisson` when they
+    are on.
+    """
 
     sharrow_skip: bool | dict[str, bool] = False
     """Skip sharrow when evaluating this component.
@@ -222,13 +227,6 @@ class ComputeSettings(PydanticBase):
         else:
             return bool(self.sharrow_skip)
 
-    def eet_subcomponent(self, subcomponent: str) -> bool:
-        """Check for EET overrides for a particular subcomponent."""
-        if isinstance(self.use_explicit_error_terms, dict):
-            return self.use_explicit_error_terms.get(subcomponent, None)
-        else:
-            return self.use_explicit_error_terms
-
     @contextmanager
     def pandas_option_context(self):
         """Context manager to set pandas options for compute settings."""
@@ -277,7 +275,7 @@ class ComputeSettings(PydanticBase):
             use_numba=self.use_numba,
             drop_unused_columns=self.drop_unused_columns,
             protect_columns=self.protect_columns,
-            use_explicit_error_terms=self.eet_subcomponent(subcomponent),
+            sample_method=self.sample_method,
         )
 
 

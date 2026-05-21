@@ -16,12 +16,13 @@ from activitysim.abm.models.util import tour_destination
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core import estimation, los, tracing, util, workflow
 from activitysim.core.configuration.base import (
+    ComputeSettings,
     PreprocessorSettings,
     PydanticReadable,
-    ComputeSettings,
 )
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.expressions import assign_columns
+from activitysim.core.interaction_sample import _resolve_sample_method
 
 logger = logging.getLogger(__name__)
 
@@ -759,6 +760,21 @@ def get_disaggregate_logsums(
     disagg_model_settings = read_disaggregate_accessibility_yaml(
         state, "disaggregate_accessibility.yaml"
     )
+
+    if (
+        _resolve_sample_method(
+            state, getattr(disagg_model_settings, "compute_settings", None)
+        )
+        == "poisson"
+    ):
+        logger.warning(
+            "Using Poisson sampling method for disaggregate accessibility calculations. Currently the results will"
+            + " differ from those obtained with monte-carlo or eet sampling by a constant shift of"
+            + f" log({disagg_model_settings.DESTINATION_SAMPLE_SIZE}) if you are using the common correction factor"
+            + " `log(pick_count / prob)` in location choice specs. The results of the Poisson method are unbiased,"
+            + " i.e., they agree with the results obtained with a full destination sample, unlike those for"
+            + " monte-carlo or eet sampling."
+        )
 
     for model_name in [
         "workplace_location",

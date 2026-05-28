@@ -40,17 +40,13 @@ Some available examples include those listed in the table below.
 +-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | example_estimation                        | Estimation example with prototype_mtc                     | 1            | Mature               |
 +-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| placeholder_multiple_zone                 | 2 or 3 zone system example using MTC data                 | 2 or 3       | Simple test example  |
-+-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| prototype_marin                           | 3 zone system example using Marin tour mode choice model  | 3            | Mature               |
+| placeholder_multiple_zone                 | 2 zone system example using MTC data                      | 2            | Simple test example  |
 +-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | prototype_arc                             | ARC agency example                                        | 1            | In development       |
 +-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`prototype_semcog`                   | SEMCOG agency example                                     | 1            | In production        |
 +-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | placeholder_psrc                          | PSRC agency example                                       | 2            | Future development   |
-+-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| prototype_sandag_xborder                  | SANDAG agency example                                     | 3            | In development       |
 +-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | prototype_mwcog                           | MWCOG agency example                                      | 2            | In development       |
 +-------------------------------------------+-----------------------------------------------------------+--------------+----------------------+
@@ -84,53 +80,6 @@ The following changes were made to demonstrate this:
   included as part of the stop_frequency_othdiscr.csv specification with an added calibration constant to control that alternative.
   Because an additional trip may now happen in the outbound direction, the trip scheduling probabilities table was extended for the
   other discretionary tour purpose where the fourth outbound trip rows were copied for the now availabile fifth trip.
-
-.. _prototype_marin :
-
-**prototype_marin**
-
-
-To finalize development and verification of the multiple zone system and transit virtual path building components, the
-`Transportation Authority of Marin County <https://www.tam.ca.gov/>`__ version of MTC travel model two (TM2) work
-tour mode choice model was implemented.  This example was also developed to test multiprocessed runtime performance.
-The complete runnable setup is available from the ActivitySim command line interface as `prototype_3_marin_full`.  This example
-has essentially the same configuration as the simpler three zone example above.
-
-*Example*
-
-To run prototype_marin, do the following:
-
-* Create a local copy of the example
-
-::
-
-  # Marin TM2 work tour mode choice for the MTC region
-  activitysim create -e prototype_3_marin_full -d test_prototype_3_marin_full
-
-* Change to the example directory
-* Run the example
-
-::
-
-  # Marin TM2 work tour mode choice for the MTC region
-  uv run activitysim run -c configs -d data -o output -s settings_mp.yaml
-
-* For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
-
-
-*Settings*
-
-
-Additional settings for running the Marin TM2 tour mode choice example are in the ``network_los.yaml`` file.  The
-only additional notable setting is the ``tap_lines`` setting, which identifies a table of transit line names
-served for each TAP.  This file is used to trimmed the set of nearby TAP for each MAZ so only TAPs that are
-further away and serve new service are included in the TAP set for consideration.  It is a very important
-file to include as it can considerably reduce runtimes.
-
-::
-
-  tap_lines: tap_lines.csv
-
 
 .. _prototype_arc :
 
@@ -192,31 +141,6 @@ prototype_mtc model design.  It uses PSRC zones, land use, synthetic population,
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running placeholder_psrc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
-
-.. _prototype_sandag_xborder :
-
-**prototype_sandag_xborder**
-
-
-.. note::
-
-  This example is in development
-
-
-The prototype_sandag_xborder is a three zone system (MAZs, TAZs, and TAPs) that
-generates cross-border activities for a tour-based population of Mexican residents.
-In addition to the normal SANDAG zones, there are external MAZs and TAZs defined for
-each border crossing station (Port of Entry). Because the model is tour-based, there
-are no household or person-level attributes in the synthetic population. The
-principal difference between this and the standard 3-zone implementation is that
-since household do not have a default tour origin (home zones), a tour OD choice
-model is required to assign tour origins and destinations simultaneously.
-
-*Example*
-
-
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
-for running prototype_sandag_xborder.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _prototype_mwcog :
 

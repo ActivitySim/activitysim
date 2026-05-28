@@ -20,7 +20,6 @@ from activitysim.core import (
     config,
     configuration,
     logit,
-    pathbuilder,
     timing,
     tracing,
     util,
@@ -1437,11 +1436,9 @@ def eval_nl(
     if have_trace_targets:
         state.tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
-    choosers, spec_sh = _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d)
-
     raw_utilities = eval_utilities(
         state,
-        spec_sh,
+        spec,
         choosers,
         locals_d,
         log_alt_losers=log_alt_losers,
@@ -1449,7 +1446,7 @@ def eval_nl(
         have_trace_targets=have_trace_targets,
         estimator=estimator,
         trace_column_names=trace_column_names,
-        spec_sh=spec_sh,
+        spec_sh=spec,
         chunk_sizer=chunk_sizer,
         compute_settings=compute_settings,
     )
@@ -1533,14 +1530,14 @@ def eval_nl(
             _resimulate_failed_choice_for_tracing(
                 state=state,
                 choosers=choosers,
-                spec=spec_sh,
+                spec=spec,
                 locals_d=locals_d,
                 log_alt_losers=log_alt_losers,
                 trace_label=trace_label,
                 have_trace_targets=have_trace_targets,
                 estimator=estimator,
                 trace_column_names=trace_column_names,
-                spec_sh=spec_sh,
+                spec_sh=spec,
                 chunk_sizer=chunk_sizer,
                 compute_settings=compute_settings,
             )
@@ -1705,27 +1702,6 @@ def _simple_simulate(
         )
 
     return choices
-
-
-def tvpb_skims(skims):
-    def list_of_skims(skims):
-        return (
-            skims
-            if isinstance(skims, list)
-            else (
-                skims.values()
-                if isinstance(skims, dict)
-                else [skims]
-                if skims is not None
-                else []
-            )
-        )
-
-    return [
-        skim
-        for skim in list_of_skims(skims)
-        if isinstance(skim, pathbuilder.TransitVirtualPathLogsumWrapper)
-    ]
 
 
 def simple_simulate(
@@ -1909,85 +1885,6 @@ def eval_mnl_logsums(
     return logsums
 
 
-def _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d):
-    """
-    Compute TVPB logsums and attach those values to the choosers.
-
-    Also generate a modified spec that uses the replacement value instead of
-    regenerating the logsums dynamically inline.
-
-    Parameters
-    ----------
-    choosers
-    spec
-    locals_d
-
-    Returns
-    -------
-    choosers
-    spec
-
-    """
-    spec_sh = spec.copy()
-
-    def _replace_in_level(multiindex, level_name, *args, **kwargs):
-        y = multiindex.levels[multiindex.names.index(level_name)].str.replace(
-            *args, **kwargs
-        )
-        return multiindex.set_levels(y, level=level_name)
-
-    # Preprocess TVPB logsums outside sharrow
-    if "tvpb_logsum_odt" in locals_d:
-        tvpb = locals_d["tvpb_logsum_odt"]
-        path_types = tvpb.tvpb.network_los.setting(
-            f"TVPB_SETTINGS.{tvpb.recipe}.path_types"
-        ).keys()
-        assignments = {}
-        for path_type in ["WTW", "DTW"]:
-            if path_type not in path_types:
-                continue
-            re_spec = spec_sh.index
-            re_spec = _replace_in_level(
-                re_spec,
-                "Expression",
-                rf"tvpb_logsum_odt\['{path_type}'\]",
-                f"df.PRELOAD_tvpb_logsum_odt_{path_type}",
-                regex=True,
-            )
-            if not all(spec_sh.index == re_spec):
-                spec_sh.index = re_spec
-                preloaded = locals_d["tvpb_logsum_odt"][path_type]
-                assignments[f"PRELOAD_tvpb_logsum_odt_{path_type}"] = preloaded
-        if assignments:
-            choosers = choosers.assign(**assignments)
-
-    if "tvpb_logsum_dot" in locals_d:
-        tvpb = locals_d["tvpb_logsum_dot"]
-        path_types = tvpb.tvpb.network_los.setting(
-            f"TVPB_SETTINGS.{tvpb.recipe}.path_types"
-        ).keys()
-        assignments = {}
-        for path_type in ["WTW", "WTD"]:
-            if path_type not in path_types:
-                continue
-            re_spec = spec_sh.index
-            re_spec = _replace_in_level(
-                re_spec,
-                "Expression",
-                rf"tvpb_logsum_dot\['{path_type}'\]",
-                f"df.PRELOAD_tvpb_logsum_dot_{path_type}",
-                regex=True,
-            )
-            if not all(spec_sh.index == re_spec):
-                spec_sh.index = re_spec
-                preloaded = locals_d["tvpb_logsum_dot"][path_type]
-                assignments[f"PRELOAD_tvpb_logsum_dot_{path_type}"] = preloaded
-        if assignments:
-            choosers = choosers.assign(**assignments)
-
-    return choosers, spec_sh
-
-
 def eval_nl_logsums(
     state: workflow.State,
     choosers,
@@ -2013,20 +1910,18 @@ def eval_nl_logsums(
 
     logit.validate_nest_spec(nest_spec, trace_label)
 
-    choosers, spec_sh = _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d)
-
     # trace choosers
     if have_trace_targets:
         state.tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     raw_utilities = eval_utilities(
         state,
-        spec_sh,
+        spec,
         choosers,
         locals_d,
         trace_label=trace_label,
         have_trace_targets=have_trace_targets,
-        spec_sh=spec_sh,
+        spec_sh=spec,
         chunk_sizer=chunk_sizer,
         compute_settings=compute_settings,
     )

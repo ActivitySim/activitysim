@@ -1,2 +1,0 @@
-Description,Target,Expression
-walk time,walk_time,"out_of_vehicle_walk_time_weight * df.walk_time"

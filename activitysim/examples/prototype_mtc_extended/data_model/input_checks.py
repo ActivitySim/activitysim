@@ -19,7 +19,7 @@ import enums as e
 import numpy as np
 import openmatrix as omx
 import pandas as pd
-import pandera as pa
+import pandera.pandas as pa
 from pydantic import BaseModel, validator
 
 from activitysim.abm.models.input_checker import TABLE_STORE, log_info

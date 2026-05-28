@@ -97,38 +97,6 @@ def atwork_subtour_mode_choice(
         "in_time_col_name": in_time_col_name,
     }
 
-    if network_los.zone_system == los.THREE_ZONE:
-        # fixme - is this a lightweight object?
-        tvpb = network_los.tvpb
-
-        tvpb_logsum_odt = tvpb.wrap_logsum(
-            orig_key=orig_col_name,
-            dest_key=dest_col_name,
-            tod_key="out_period",
-            segment_key="demographic_segment",
-            cache_choices=True,
-            trace_label=trace_label,
-            tag="tvpb_logsum_odt",
-        )
-        tvpb_logsum_dot = tvpb.wrap_logsum(
-            orig_key=dest_col_name,
-            dest_key=orig_col_name,
-            tod_key="in_period",
-            segment_key="demographic_segment",
-            cache_choices=True,
-            trace_label=trace_label,
-            tag="tvpb_logsum_dot",
-        )
-
-        skims.update(
-            {"tvpb_logsum_odt": tvpb_logsum_odt, "tvpb_logsum_dot": tvpb_logsum_dot}
-        )
-
-        # TVPB constants can appear in expressions
-        constants.update(
-            network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
-        )
-
     estimator = estimation.manager.begin_estimation(state, "atwork_subtour_mode_choice")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
@@ -151,32 +119,6 @@ def atwork_subtour_mode_choice(
         trace_label=trace_label,
         trace_choice_name="tour_mode_choice",
     )
-
-    # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
-    if network_los.zone_system == los.THREE_ZONE:
-        tvpb_mode_path_types = model_settings.tvpb_mode_path_types
-        for mode, path_types in tvpb_mode_path_types.items():
-            for direction, skim in zip(
-                ["od", "do"], [tvpb_logsum_odt, tvpb_logsum_dot]
-            ):
-                path_type = path_types[direction]
-                skim_cache = skim.cache[path_type]
-
-                print(f"mode {mode} direction {direction} path_type {path_type}")
-
-                for c in skim_cache:
-                    dest_col = f"{direction}_{c}"
-
-                    if dest_col not in choices_df:
-                        choices_df[dest_col] = (
-                            np.nan
-                            if pd.api.types.is_numeric_dtype(skim_cache[c])
-                            else ""
-                        )
-
-                    choices_df[dest_col].where(
-                        choices_df.tour_mode != mode, skim_cache[c], inplace=True
-                    )
 
     if estimator:
         estimator.write_choices(choices_df[mode_column_name])

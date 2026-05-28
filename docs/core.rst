@@ -354,50 +354,6 @@ API
 .. automodule:: activitysim.core.timetable
    :members:
 
-.. _transit_virtual_path_builder:
-
-Transit Virtual Path Builder
-----------------------------
-
-Transit virtual path builder (TVPB) for three zone system (see :ref:`multiple_zone_systems`) transit path utility calculations.
-TAP to TAP skims and walk access and egress times between MAZs and TAPs are input to the
-demand model.  ActivitySim then assembles the total transit path utility based on the user specified TVPB
-expression files for the respective components:
-
-* from MAZ to first boarding TAP +
-* from first boarding to final alighting TAP +
-* from alighting TAP to destination MAZ
-
-This assembling is done via the TVPB, which considers all the possible combinations of nearby boarding and alighting TAPs for each origin
-destination MAZ pair and selects the user defined N best paths to represent the transit mode.  After selecting N best paths, the logsum across
-N best paths is calculated and exposed to the mode choice models and a random number is drawn and a path is chosen. The boarding TAP,
-alighting TAP, and TAP to TAP skim set for the chosen path is saved to the chooser table.
-
-The initialize TVPB submodel (see :ref:`initialize_los`) pre-computes TAP to TAP total utilities for the user defined attribute_segments,
-which are typically demographic segment (for example household income bin), time-of-day, and access/egress mode.  This submodel can be
-run in both single process and multiprocess mode, with single process excellent for development/debugging and multiprocess excellent
-for application.  ActivitySim saves the pre-calculated TAP to TAP total utilities to a memory mapped cache file for reuse by downstream models
-such as tour mode choice.  In tour mode choice, the pre-computed TAP to TAP total utilities for the attribute_segment, along with the
-access and egress impedances, are used to evaluate the best N TAP pairs for each origin MAZ destination MAZ pair being evaluated.
-Assembling the total transit path impedance and then picking the best N is quick since it is done in a de-duplicated manner within
-each chunk of multiprocessed choosers.
-
-A model with TVPB can take considerably longer to run than a traditional TAZ based model since it does an order of magnitude more
-calculations.  Thus, it is important to be mindful of your approach to your network model as well, especially the number of TAPs
-accessible to each MAZ, which is the key determinant of runtime.
-
-API
-~~~
-
-.. automodule:: activitysim.core.pathbuilder
-   :members:
-
-
-Cache API
-~~~~~~~~~
-
-.. automodule:: activitysim.core.pathbuilder_cache
-   :members:
 
 .. _visualization:
 

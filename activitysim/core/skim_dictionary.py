@@ -89,7 +89,7 @@ class OffsetMapper(object):
         # - for performance, check if this is a simple range that can ber represented by an int offset
         first_offset = offset_list[0]
         if offset_list == list(range(first_offset, len(offset_list) + first_offset)):
-            offset_int = -1 * first_offset
+            offset_int = -1 * int(first_offset)
             self.set_offset_int(offset_int)
         else:
             offset_series = pd.Series(

@@ -14,6 +14,16 @@ branch (i.e., the main branch on GitHub), but not yet released in a stable versi
 of ActivitySim.  See below under the various version headings for changes in
 released versions.
 
+### Changed Default for Sharrow "Fastmath" Optimization
+
+The default setting for the "fastmath" optimization in sharrow has been changed
+from `True` to `False`.  This optimization can improve performance in some cases,
+but can also cause subtle and hard to diagnose bugs, particularly when the
+data being processed contains `NaN` or `Inf` values.  By defaulting to
+`False`, we aim to improve platform stability for most users.  Users who wish
+to enable the "fastmath" optimization can do so by setting the `fastmath` option
+to `True` in the `compute_settings` for each model component where it is desired.
+
 ### Skipping Failed Choices
 
 A new feature is introduced to ActivitySim to skip failed choices during model execution. 

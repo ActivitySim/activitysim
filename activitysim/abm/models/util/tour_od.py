@@ -692,6 +692,9 @@ def run_od_sample(
     choosers = tours
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
+    # Drop this when PR #1017 is merged
+    if ("household_id" not in chooser_columns) and ("household_id" in choosers.columns):
+        chooser_columns = chooser_columns + ["household_id"]
     choosers = choosers[chooser_columns]
 
     # interaction_sample requires that choosers.index.is_monotonic_increasing
@@ -951,6 +954,9 @@ def run_od_simulate(
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
+    # Drop this when PR #1017 is merged
+    if ("household_id" not in chooser_columns) and ("household_id" in choosers.columns):
+        chooser_columns = chooser_columns + ["household_id"]
     choosers = choosers[chooser_columns]
 
     # interaction_sample requires that choosers.index.is_monotonic_increasing

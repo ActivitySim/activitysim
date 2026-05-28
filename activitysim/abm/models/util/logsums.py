@@ -357,13 +357,19 @@ def compute_location_choice_logsums(
         include_pnr_skims=logsum_settings.include_pnr_for_logsums,
         trace_label=trace_label,
     )
-    locals_dict.update(skims)
+    od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
 
-    # TVPB constants can appear in expressions
-    if (network_los.zone_system == los.THREE_ZONE) & logsum_settings.use_TVPB_constants:
-        locals_dict.update(
-            network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
-        )
+    skims = {
+        "odt_skims": odt_skim_stack_wrapper,
+        "dot_skims": dot_skim_stack_wrapper,
+        "odr_skims": odr_skim_stack_wrapper,
+        "dor_skims": dor_skim_stack_wrapper,
+        "od_skims": od_skim_stack_wrapper,
+        "orig_col_name": orig_col_name,
+        "dest_col_name": dest_col_name,
+    }
+
+    locals_dict.update(skims)
 
     # - run preprocessor to annotate choosers
     # allow specification of alternate preprocessor for nontour choosers

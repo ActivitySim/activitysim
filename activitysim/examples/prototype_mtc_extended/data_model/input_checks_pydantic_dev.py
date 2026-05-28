@@ -4,16 +4,19 @@ Data Model for ActivitySim Inputs
 Instructions: customize these example values for your own ActivitySim implementation
 """
 
-from typing import List, Optional
-import os, sys, logging
+from __future__ import annotations
 
-from pydantic import BaseModel, validator
-import pandera as pa
-import numpy as np
-import pandas as pd
-import openmatrix as omx
+import logging
+import os
+import sys
+from typing import List, Optional
 
 import enums as e
+import numpy as np
+import openmatrix as omx
+import pandas as pd
+import pandera.pandas as pa
+from pydantic import BaseModel, validator
 
 from activitysim.abm.models.input_checker import TABLE_STORE
 

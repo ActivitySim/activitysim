@@ -259,12 +259,6 @@ def tour_mode_choice_simulate(
         trace_label=trace_label,
     )
 
-    # TVPB constants can appear in expressions
-    if (network_los.zone_system == los.THREE_ZONE) & model_settings.use_TVPB_constants:
-        constants.update(
-            network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
-        )
-
     # don't create estimation data bundle if trip mode choice is being called
     # from another model step (i.e. tour mode choice logsum creation)
     if state.get_rn_generator().step_name != "tour_mode_choice_simulate":
@@ -418,32 +412,6 @@ def tour_mode_choice_simulate(
             choosers.drop(
                 columns=["out_period", "in_period"], errors="ignore", inplace=True
             )
-
-    # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
-    if network_los.zone_system == los.THREE_ZONE:
-        tvpb_mode_path_types = model_settings.tvpb_mode_path_types
-        if tvpb_mode_path_types is not None:
-            for mode, path_types in tvpb_mode_path_types.items():
-                for direction, skim in zip(
-                    ["od", "do"], [skims["tvpb_logsum_odt"], skims["tvpb_logsum_dot"]]
-                ):
-                    path_type = path_types[direction]
-                    skim_cache = skim.cache[path_type]
-
-                    print(f"mode {mode} direction {direction} path_type {path_type}")
-
-                    for c in skim_cache:
-                        dest_col = f"{direction}_{c}"
-
-                        if dest_col not in final_choices:
-                            final_choices[dest_col] = (
-                                np.nan
-                                if pd.api.types.is_numeric_dtype(skim_cache[c])
-                                else ""
-                            )
-                        final_choices[dest_col].where(
-                            final_choices.tour_mode != mode, skim_cache[c], inplace=True
-                        )
 
     if estimator:
         estimator.write_choices(final_choices.tour_mode)

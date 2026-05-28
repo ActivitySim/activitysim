@@ -115,14 +115,6 @@ specifications:
     characteristics from each alternative destination to the tour final
     destination.
 
-The following TransitVirtualPathLogsumWrapper values are also available,
-only for 3-zone models:
-
-- `tvpb_logsum_odt`
-- `tvpb_logsum_dot`
-- `tvpb_logsum_dpt`
-- `tvpb_logsum_pdt`
-
 ## Additional Related Functions
 
 ```{eval-rst}

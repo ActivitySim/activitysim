@@ -161,10 +161,6 @@ CHECKER_SETTINGS = {
         "settings_cls": InitializeTableSettings,
         "settings_file": "initialize_landuse.yaml",
     },
-    "initialize_los": {
-        "settings_cls": NetworkSettings,
-        "settings_file": "network_los.yaml",
-    },
     "input_checker": {
         "settings_cls": PydanticReadable,  # input checker uses state.filesystem.read_model_settings directly
         "settings_file": "input_checker.yaml",
@@ -663,8 +659,6 @@ def check_model_settings(
     # add shadow pricing and initalize los (not in state.settings.models)
     if state.settings.use_shadow_pricing == True:
         all_models.append("shadow_pricing")
-    if "initialize_los" in state._RUNNABLE_STEPS:
-        all_models.append("initialize_los")
 
     for model_name in all_models:
 

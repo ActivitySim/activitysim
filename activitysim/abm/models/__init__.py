@@ -13,7 +13,6 @@ from . import (
     disaggregate_accessibility,
     free_parking,
     initialize,
-    initialize_los,
     initialize_tours,
     input_checker,
     joint_tour_composition,

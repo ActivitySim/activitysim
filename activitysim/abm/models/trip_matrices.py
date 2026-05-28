@@ -32,7 +32,6 @@ class MatrixTableSettings(PydanticReadable):
 class MatrixSettings(PydanticReadable):
     file_name: Path
     tables: list[MatrixTableSettings] = []
-    is_tap: bool = False
 
 
 class WriteTripMatricesSettings(PydanticReadable):
@@ -68,15 +67,11 @@ def write_trip_matrices(
     then aggregates trip counts and writes OD matrices to OMX.  Save annotated
     trips table to pipeline if desired.
 
-    Writes taz trip tables for one and two zone system.  Writes taz and tap
-    trip tables for three zone system.  Add ``is_tap:True`` to the settings file
-    to identify an output matrix as tap level trips as opposed to taz level trips.
+    Writes taz trip tables for one and two zone system.
 
     For one zone system, uses the land use table for the set of possible tazs.
-    For two zone system, uses the taz skim zone names for the set of possible tazs.
-    For three zone system, uses the taz skim zone names for the set of possible tazs
-    and uses the tap skim zone names for the set of possible taps.
-
+    For two zone system, uses the taz skim zone names for the set of possible
+    tazs.
     """
 
     if trips is None:
@@ -95,6 +90,70 @@ def write_trip_matrices(
         )
 
     trips_df = annotate_trips(state, trips, network_los, model_settings)
+
+    # This block adjusts household sample rate column to account for skipped households.
+    # Note: the `HH_EXPANSION_WEIGHT_COL` is pointing to the `sample_rate` column in the households table.
+    # Based on the calculation in write_matrices() function, the sample_rate is used to calculate the expansion weight as 1 / sample_rate.
+    # A sample_rate of 0.01 means the sample household should be expanded 1/0.01 = 100 times in the actual population households.
+    # In simulation, the `sample_rate` is calculated and added to the synthetic households
+    # based on household_sample_size / total_household_count, and therefore is the same for all households.
+    # In estimation, the `sample_rate` may vary by household, but weights are not used in estimation, and write_trip_matrices is not called during estimation.
+    # But we still try to cover both cases (when rates are the same vs when they vary) here for consistency.
+    hh_weight_col = model_settings.HH_EXPANSION_WEIGHT_COL
+    household_sample_rate = state.get_dataframe("households")[hh_weight_col]
+    zero_household_sample_rate = household_sample_rate == 0
+
+    # Check if there are households with zero `sample_rate`, which will result in inf expansion weight.
+    # If all households have zero `sample_rate`, then all trips will have inf expansion weight, we will use household count instead of weight for adjustment factor calculation
+    # If some households have zero `sample_rate`, we will print a warning and skip trips from those households in the trip matrix generation.
+    if zero_household_sample_rate.all():
+        logger.warning(
+            f"All households have {hh_weight_col} of 0, which will result in inf expansion weight. "
+            f"Trip matrix generation will be based on household count instead of weight."
+        )
+    elif zero_household_sample_rate.any():
+        logger.warning(
+            f"Some households have {hh_weight_col} of 0, which will result in inf expansion weight. "
+            f"Trips from those households will be skipped in trip matrix generation."
+        )
+        trips_df = trips_df[trips_df[hh_weight_col] != 0]
+        # skip trip matrix generation if there are no trips left after filtering out zero sample_rate households
+        if trips_df.empty:
+            logger.warning(
+                f"All trips have {hh_weight_col} of 0, which will result in inf expansion weight. "
+                f"Trip matrix generation will be skipped."
+            )
+            return
+
+    if state.get("num_skipped_households", 0) > 0:
+        logger.info(
+            f"Adjusting household sample rate in {hh_weight_col} to account for {state.get('num_skipped_households', 0)} skipped households."
+        )
+        skipped_sample_rate = state.get_dataframe("households_skipped")[hh_weight_col]
+        remaining_sample_rate = household_sample_rate
+
+        if zero_household_sample_rate.all():
+            # if all households have zero sample rate, we will use household count instead of weight for adjustment factor calculation
+            skipped_household_count = state.get("num_skipped_households", 0)
+            remaining_household_count = len(state.get_dataframe("households"))
+            total_household_count = skipped_household_count + remaining_household_count
+            adjustment_factor = remaining_household_count / total_household_count
+        else:
+            # adjust the hh sample rates to account for skipped households
+            # first get the total expansion weight of the skipped households, which will be the sum of inverse of their sample rates
+            skipped_household_weights = (
+                1 / skipped_sample_rate[skipped_sample_rate != 0]
+            ).sum()
+            # next get the total expansion weight of the remaining households
+            remaining_household_weights = (
+                1 / remaining_sample_rate[remaining_sample_rate != 0]
+            ).sum()
+            # the adjustment factor is the remaining household weight / (remaining household weight + skipped household weight)
+            total_household_weights = (
+                remaining_household_weights + skipped_household_weights
+            )
+            adjustment_factor = remaining_household_weights / total_household_weights
+        trips_df[hh_weight_col] = trips_df[hh_weight_col] * adjustment_factor
 
     if model_settings.SAVE_TRIPS_TABLE:
         state.add_table("trips", trips_df)
@@ -179,58 +238,12 @@ def write_trip_matrices(
             is_tap=False,
         )
 
-    elif (
-        network_los.zone_system == los.THREE_ZONE
-    ):  # maz trips written to taz and tap matrices
-        logger.info("aggregating trips three zone taz...")
-
-        # TAZ domain for output
-        zone_index = pd.Index(network_los.get_tazs(state), name="TAZ")
-
-        try:
-            land_use_taz = state.get_dataframe("land_use_taz")
-        except (KeyError, RuntimeError):
-            pass  # table missing, ignore
-        else:
-            if "_original_TAZ" in land_use_taz.columns:
-                zone_index = pd.Series(
-                    land_use_taz["_original_TAZ"]
-                    .reindex(zone_index)
-                    .fillna(zone_index.to_series())
-                    .values,
-                    index=pd.Index(zone_index, name="TAZ"),
-                    name="TAZ",
-                )
-
-        write_matrices(
-            state=state,
-            trips_df=trips_df,
-            zone_index=zone_index,
-            model_settings=model_settings,
-            is_tap=False,
-        )
-
-        logger.info("aggregating trips three zone tap...")
-
-        tap_index = pd.Index(network_los.get_taps(), name="TAP")
-
-        write_matrices(
-            state=state,
-            trips_df=trips_df,
-            zone_index=tap_index,
-            model_settings=model_settings,
-            is_tap=True,
-        )
-
     if "parking_location" in state.settings.models:
         # Set trip origin and destination to be the actual location the person is and not where their vehicle is parked
         trips_df["origin"] = trips_df["true_origin"]
         trips_df["destination"] = trips_df["true_destination"]
         del trips_df["true_origin"], trips_df["true_destination"]
-        if (
-            network_los.zone_system == los.TWO_ZONE
-            or network_los.zone_system == los.THREE_ZONE
-        ):
+        if network_los.zone_system == los.TWO_ZONE:
             trips_df["otaz"] = (
                 state.get_table("land_use").reindex(trips_df["origin"]).TAZ.tolist()
             )
@@ -305,7 +318,6 @@ def write_matrices(
     trips_df: pd.DataFrame,
     zone_index: pd.Index | pd.Series,
     model_settings: WriteTripMatricesSettings,
-    is_tap: bool = False,
 ):
     """
     Write aggregated trips to OMX format per table using table-specific origin/destination
@@ -333,8 +345,6 @@ def write_matrices(
 
     # For each output file, accumulate table_name -> matrix
     for matrix in matrix_settings:
-        if matrix.is_tap != is_tap:
-            continue
 
         filename = str(matrix.file_name)
         filepath = state.get_output_file_path(filename)
@@ -355,8 +365,8 @@ def write_matrices(
                 continue
 
             # Effective origin/destination columns
-            ocol = table.origin or ("btap" if is_tap else "origin")
-            dcol = table.destination or ("atap" if is_tap else "destination")
+            ocol = table.origin or "origin"
+            dcol = table.destination or "destination"
 
             if ocol not in trips_df.columns or dcol not in trips_df.columns:
                 logger.warning(

@@ -1,3 +1,0 @@
-Label,Description,Expression,fastest,cheapest,shortest
-# fastest,,,,,
-util_transit_available_fastest,transit_available,@~df.transit_available_fastest * C_UNAVAILABLE,1,,

@@ -130,6 +130,7 @@ jobs:
 
       - run: uv run pytest test/test_skim_name_conflicts.py
       - run: uv run pytest test/random_seed/test_random_seed.py
+      - run: uv run pytest test/skip_failed_choices/test_skip_failed_choices.py
       - run: uv run pytest test/trace_id/test_trace_id.py
 
   builtin_regional_models:
@@ -142,9 +143,7 @@ jobs:
         region:
           - prototype_mtc
           - placeholder_psrc
-          - prototype_marin
           - prototype_mtc_extended
-          - prototype_sandag_xborder
           - production_semcog
           - prototype_mwcog
           - placeholder_multiple_zone

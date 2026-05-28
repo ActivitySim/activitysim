@@ -64,7 +64,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Apr 29, 2026"/>
+    <meta name="docbuild:last-update" content="May 28, 2026"/>
   </head>
   
   
@@ -447,6 +447,16 @@ configurations or code to fail to run correctly.</p>
 branch (i.e., the main branch on GitHub), but not yet released in a stable version
 of ActivitySim.  See below under the various version headings for changes in
 released versions.</p>
+<section id="changed-default-for-sharrow-fastmath-optimization">
+<h3>Changed Default for Sharrow “Fastmath” Optimization<a class="headerlink" href="#changed-default-for-sharrow-fastmath-optimization" title="Permalink to this heading">#</a></h3>
+<p>The default setting for the “fastmath” optimization in sharrow has been changed
+from <code class="docutils literal notranslate"><span class="pre">True</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code>.  This optimization can improve performance in some cases,
+but can also cause subtle and hard to diagnose bugs, particularly when the
+data being processed contains <code class="docutils literal notranslate"><span class="pre">NaN</span></code> or <code class="docutils literal notranslate"><span class="pre">Inf</span></code> values.  By defaulting to
+<code class="docutils literal notranslate"><span class="pre">False</span></code>, we aim to improve platform stability for most users.  Users who wish
+to enable the “fastmath” optimization can do so by setting the <code class="docutils literal notranslate"><span class="pre">fastmath</span></code> option
+to <code class="docutils literal notranslate"><span class="pre">True</span></code> in the <code class="docutils literal notranslate"><span class="pre">compute_settings</span></code> for each model component where it is desired.</p>
+</section>
 <section id="skipping-failed-choices">
 <h3>Skipping Failed Choices<a class="headerlink" href="#skipping-failed-choices" title="Permalink to this heading">#</a></h3>
 <p>A new feature is introduced to ActivitySim to skip failed choices during model execution.
@@ -907,6 +917,7 @@ development cycle, including:</p>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upcoming-changes">Upcoming Changes</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#changed-default-for-sharrow-fastmath-optimization">Changed Default for Sharrow “Fastmath” Optimization</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skipping-failed-choices">Skipping Failed Choices</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#potential-impact-on-existing-model-runs">Potential Impact on Existing Model Runs:</a></li>
 </ul>
@@ -980,7 +991,7 @@ development cycle, including:</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev16+g3d4433f3a, documentation last updated Apr 29, 2026.<br/>
+ActivitySim 1.5.2.dev17+g279e4f9ac, documentation last updated May 28, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

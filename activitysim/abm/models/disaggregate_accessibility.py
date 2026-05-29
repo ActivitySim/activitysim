@@ -890,6 +890,10 @@ def get_disaggregate_logsums(
 
             # Merge onto persons & tours
             if _logsums is not None and len(_logsums.index) > 0:
+                if bias_poisson_sampling_results:
+                    _logsums["logsums"] += np.log(
+                        disagg_model_settings.DESTINATION_SAMPLE_SIZE
+                    )
                 tour_logsums = tours.merge(
                     _logsums["logsums"].to_frame(), left_index=True, right_index=True
                 )

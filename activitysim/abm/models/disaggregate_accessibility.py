@@ -191,6 +191,14 @@ class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
 
     compute_settings: ComputeSettings | None = None
 
+    bias_poisson_sampling_results: bool = False
+    """
+    Whether to apply a bias of `log(sample_size)` to the Poisson sampling results. This is a temporary
+    workaround to align Poisson sampling results with the biased results of the monte-carlo and eet
+    sampling methods, such that models that were estimated with historical biased sampling results
+    can be run with Poisson sampling without needing to re-estimate the model.
+    """
+
 
 def read_disaggregate_accessibility_yaml(
     state: workflow.State, file_name
@@ -761,20 +769,30 @@ def get_disaggregate_logsums(
         state, "disaggregate_accessibility.yaml"
     )
 
+    bias_poisson_sampling_results = False
     if (
         _resolve_sample_method(
             state, getattr(disagg_model_settings, "compute_settings", None)
         )
         == "poisson"
-    ):
-        logger.warning(
-            "Using Poisson sampling method for disaggregate accessibility calculations. Currently the results will"
-            + " differ from those obtained with monte-carlo or eet sampling by a constant shift of"
-            + f" log({disagg_model_settings.DESTINATION_SAMPLE_SIZE}) if you are using the common correction factor"
-            + " `log(pick_count / prob)` in location choice specs. The results of the Poisson method are unbiased,"
-            + " i.e., they agree with the results obtained with a full destination sample, unlike those for"
-            + " monte-carlo or eet sampling."
-        )
+    ) and (disagg_model_settings.DESTINATION_SAMPLE_SIZE > 0):
+        # Check for temporary fix to bias Poisson sampling results to align with MC/eet sampling. However, only
+        # apply this for final sample size, for unsampled disagg acc the MC/eet results are unbiased and we
+        # want to stay consistent.
+        if disagg_model_settings.bias_poisson_sampling_results:
+            logger.warning(
+                "Applying temporary bias correction to Poisson sampling results to align with MC/eet sampling."
+            )
+            bias_poisson_sampling_results = True
+        else:
+            logger.warning(
+                "Using Poisson sampling method for disaggregate accessibility calculations. Currently the results will"
+                + " differ from those obtained with monte-carlo or eet sampling by a constant shift of"
+                + f" log({disagg_model_settings.DESTINATION_SAMPLE_SIZE}) if you are using the common correction factor"
+                + " `log(pick_count / prob)` in location choice specs. The results of the Poisson method are unbiased,"
+                + " i.e., they agree with the results obtained with a full destination sample, unlike those for"
+                + " monte-carlo or eet sampling."
+            )
 
     for model_name in [
         "workplace_location",
@@ -843,6 +861,12 @@ def get_disaggregate_logsums(
             # Merge onto persons
             if _logsums is not None and len(_logsums.index) > 0:
                 keep_cols = list(set(_logsums.columns).difference(choosers.columns))
+
+                if bias_poisson_sampling_results:
+                    _logsums[keep_cols] += np.log(
+                        disagg_model_settings.DESTINATION_SAMPLE_SIZE
+                    )
+
                 logsums[model_name] = persons_merged.merge(
                     _logsums[keep_cols], on="proto_person_id"
                 )

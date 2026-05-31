@@ -483,7 +483,9 @@ class SimpleChannel(object):
                     utility_row - np.log(-np.log(row_randoms))
                 )
             else:
-                candidate_values = utility_row - np.log(-np.log(row_randoms[safe_alt_nrs[row_num]]))
+                candidate_values = utility_row - np.log(
+                    -np.log(row_randoms[safe_alt_nrs[row_num]])
+                )
                 candidate_values[masked[row_num]] = utility_row[masked[row_num]]
                 # row_mask = masked[row_num]
                 # candidate_values = utility_row.copy()

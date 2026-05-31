@@ -9,6 +9,7 @@ import pandas as pd
 
 from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.models.util import tour_destination
+from activitysim.abm.models.util.bias_logsums import maybe_bias_logsums
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core import estimation, expressions, los, simulate, tracing, workflow
 from activitysim.core.configuration.logit import (
@@ -919,6 +920,10 @@ def run_location_choice(
             skip_choice=skip_choice,
             alts_context=alts_context,
         )
+
+        # Check for temporary fix to bias logsums for Poisson sampling results to align with MC/eet sampling.
+        if want_logsums:
+            choices_df = maybe_bias_logsums(state, choices_df, model_settings)
 
         if estimator:
             if state.settings.trace_hh_id:

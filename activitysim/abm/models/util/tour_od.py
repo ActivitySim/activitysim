@@ -10,6 +10,7 @@ import pandas as pd
 
 from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.models.util import trip
+from activitysim.abm.models.util.bias_logsums import maybe_bias_logsums
 from activitysim.abm.models.util.tour_destination import SizeTermCalculator
 from activitysim.core import (
     config,
@@ -1243,6 +1244,10 @@ def run_tour_od(
                 trace_label, "simulate.%s" % segment_name
             ),
         )
+
+        # Check for temporary fix to bias logsums for Poisson sampling results to align with MC/eet sampling.
+        if want_logsums:
+            choices = maybe_bias_logsums(state, choices, model_settings)
 
         choices_list.append(choices)
         if estimator:

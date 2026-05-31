@@ -44,7 +44,9 @@ def _resolve_sample_method(
     if sampling_method is None:
         sampling_method = state.settings.sample_method
     if sampling_method is None:
-        return "poisson" if state.settings.use_explicit_error_terms else "monte_carlo"
+        sampling_method = (
+            "poisson" if state.settings.use_explicit_error_terms else "monte_carlo"
+        )
     if sampling_method not in typing.get_args(InteractionSampleMethod):
         raise ValueError(
             f"Unsupported sample_method {sampling_method!r}; expected one of {typing.get_args(InteractionSampleMethod)}"

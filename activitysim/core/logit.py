@@ -566,7 +566,7 @@ def make_choices_utility_based(
     trace_label: str = None,
     trace_choosers=None,
     allow_bad_utils=False,
-    nest_spec=None,  # Make consistent with make_choices for generalizability of custom chooser.
+    nest_spec=None,
     alts_context: AltsContext | None = None,
     alt_nrs_df: pd.DataFrame | None = None,
 ) -> tuple[pd.Series, pd.Series]:

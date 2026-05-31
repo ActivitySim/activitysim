@@ -793,7 +793,21 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     """
     Sampling method to use in `activitysim.core.interaction_sample`.
 
-    When unset, `monte_carlo` is used when `use_explicit_error_terms` is false and `poisson` is used when it is true.
+    When unset, `monte_carlo` is used when `use_explicit_error_terms` is false and
+    `poisson` is used when it is true.
+
+    .. versionadded:: 1.6
+    """
+
+    bias_location_choice_logsums_for_poisson_sampling: bool = False
+    """
+    Whether to apply a bias of `log(sample_size)` to the Poisson sampling results.
+    This is a temporary workaround to align Poisson sampling results with the biased
+    results of the monte-carlo and eet sampling methods, such that models that were
+    estimated with historical biased sampling results can be run with Poisson sampling
+    without needing to re-estimate the model.
+
+    .. versionadded:: 1.6
     """
 
     check_model_settings: bool = True

@@ -18,6 +18,7 @@ from activitysim.abm.models.util.trip import (
     flag_failed_trip_leg_mates,
 )
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
+from activitysim.abm.models.util.bias_logsums import maybe_bias_logsums
 from activitysim.core import (
     chunk,
     config,
@@ -1204,6 +1205,10 @@ def choose_trip_destination(
         trace_label=trace_label,
         alts_context=alts_context,
     )
+
+    # Check for temporary fix to bias logsums for Poisson sampling results to align with MC/eet sampling.
+    if want_logsums:
+        destinations = maybe_bias_logsums(state, destinations, model_settings)
 
     dropped_trips = ~trips.index.isin(destinations.index)
     if dropped_trips.any():

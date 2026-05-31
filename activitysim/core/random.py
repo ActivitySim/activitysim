@@ -366,7 +366,7 @@ class SimpleChannel(object):
 
         Returns
         -------
-        positions : 2-D ndarray of int32
+        positions : 2-D ndarray of int64
             Array with shape (len(utilities), sample_size) containing the column
             position of the winning alternative for each chooser/sample pair.
         """
@@ -376,7 +376,7 @@ class SimpleChannel(object):
 
         utility_values = utilities.to_numpy()
         n_rows, n_alts = utility_values.shape
-        positions = np.empty((n_rows, sample_size), dtype=np.int32)
+        positions = np.empty((n_rows, sample_size), dtype=np.int64)
 
         if stable_alt_positions is not None or n_total_alts is not None:
             if stable_alt_positions is None or n_total_alts is None:
@@ -406,11 +406,12 @@ class SimpleChannel(object):
         # first sample, the next n_alts values are the gumbels for the second sample, etc.
         for row_num, prng in enumerate(generators):
             utility_row = utility_values[row_num]
-            row_gumbels = -np.log(-np.log(prng.rand(n_gumbels * sample_size))).reshape(
+            row_uniforms = prng.rand(n_gumbels * sample_size).reshape(
                 (sample_size, n_gumbels)
             )
             if stable_alt_positions is not None:
-                row_gumbels = row_gumbels[:, stable_alt_positions]
+                row_uniforms = row_uniforms[:, stable_alt_positions]
+            row_gumbels = -np.log(-np.log(row_uniforms))
             positions[row_num, :] = np.argmax(
                 row_gumbels + utility_row[np.newaxis, :],
                 axis=1,
@@ -443,7 +444,7 @@ class SimpleChannel(object):
 
         Returns
         -------
-        positions : 1-D ndarray of int32
+        positions : 1-D ndarray of int64
             Array with shape (len(utilities),) containing the winning column position
             for each chooser row.
         """
@@ -453,7 +454,7 @@ class SimpleChannel(object):
 
         utility_values = utilities.to_numpy()
         n_rows, n_alts = utility_values.shape
-        positions = np.empty(n_rows, dtype=np.int32)
+        positions = np.empty(n_rows, dtype=np.int64)
 
         if alt_nrs_df is not None:
             assert alt_nrs_df.shape == utilities.shape
@@ -475,13 +476,25 @@ class SimpleChannel(object):
 
         for row_num, prng in enumerate(generators):
             utility_row = utility_values[row_num]
-            row_gumbels = -np.log(-np.log(prng.rand(n_rands)))
+            row_randoms = prng.rand(n_rands)
 
             if alt_nrs_df is None:
-                positions[row_num] = np.argmax(row_gumbels + utility_row)
+                positions[row_num] = np.argmax(
+                    utility_row - np.log(-np.log(row_randoms))
+                )
             else:
-                candidate_values = utility_row + row_gumbels[safe_alt_nrs[row_num]]
+                candidate_values = utility_row - np.log(
+                    -np.log(row_randoms[safe_alt_nrs[row_num]])
+                )
                 candidate_values[masked[row_num]] = utility_row[masked[row_num]]
+                # row_mask = masked[row_num]
+                # candidate_values = utility_row.copy()
+                # if not row_mask.all():
+                #     active = ~row_mask
+                #     row_alt_nrs = safe_alt_nrs[row_num, active]
+                #     candidate_values[active] += -np.log(
+                #         -np.log(row_randoms[row_alt_nrs])
+                #     )
                 positions[row_num] = np.argmax(candidate_values)
 
         self.row_states.loc[utilities.index, "offset"] += n_rands
@@ -1003,49 +1016,10 @@ class Random(object):
 
         Returns
         -------
-        positions : 2-D ndarray of int32
+        positions : 2-D ndarray of int64
             Array with shape (len(utilities), sample_size) containing the column
             position of the winning alternative for each chooser/sample pair.
         """
-        if not self.channels:
-            utility_values = utilities.to_numpy()
-            n_rows, n_alts = utility_values.shape
-            positions = np.empty((n_rows, sample_size), dtype=np.int32)
-            rng = np.random.RandomState(0)
-
-            if stable_alt_positions is not None or n_total_alts is not None:
-                if stable_alt_positions is None or n_total_alts is None:
-                    raise ValueError(
-                        "stable_alt_positions and n_total_alts must both be provided or omitted together"
-                    )
-                stable_alt_positions = np.asarray(stable_alt_positions)
-                if stable_alt_positions.shape != (n_alts,):
-                    raise ValueError(
-                        "stable_alt_positions must be a 1-D array aligned to utilities columns"
-                    )
-                if (
-                    stable_alt_positions.min() < 0
-                    or stable_alt_positions.max() >= n_total_alts
-                ):
-                    raise ValueError(
-                        "stable_alt_positions values must be within [0, n_total_alts)"
-                    )
-                n_gumbels = n_total_alts
-            else:
-                n_gumbels = n_alts
-
-            for row_num, utility_row in enumerate(utility_values):
-                row_gumbels = -np.log(
-                    -np.log(rng.rand(n_gumbels * sample_size))
-                ).reshape((sample_size, n_gumbels))
-                if stable_alt_positions is not None:
-                    row_gumbels = row_gumbels[:, stable_alt_positions]
-                positions[row_num, :] = np.argmax(
-                    row_gumbels + utility_row[np.newaxis, :],
-                    axis=1,
-                )
-
-            return positions
 
         channel = self.get_channel_for_df(utilities)
         return channel.gumbel_max_positions_for_df(
@@ -1071,33 +1045,8 @@ class Random(object):
 
         Returns
         -------
-        positions : 1-D ndarray of int32
+        positions : 1-D ndarray of int64
         """
-        if not self.channels:
-            rng = np.random.RandomState(0)
-            utility_values = utilities.to_numpy()
-            positions = np.empty(len(utilities), dtype=np.int32)
-
-            if alt_nrs_df is not None:
-                if n_rands is None:
-                    raise ValueError("n_rands is required when alt_nrs_df is provided")
-                alt_nr_values = alt_nrs_df.to_numpy()
-                masked = alt_nr_values == -999
-                safe_alt_nrs = np.where(masked, 0, alt_nr_values)
-                for row_num, utility_row in enumerate(utility_values):
-                    row_gumbels = -np.log(-np.log(rng.rand(n_rands)))
-                    candidate_values = utility_row + row_gumbels[safe_alt_nrs[row_num]]
-                    candidate_values[masked[row_num]] = utility_row[masked[row_num]]
-                    positions[row_num] = np.argmax(candidate_values)
-            else:
-                if n_rands is None:
-                    n_rands = utility_values.shape[1]
-                for row_num, utility_row in enumerate(utility_values):
-                    positions[row_num] = np.argmax(
-                        -np.log(-np.log(rng.rand(n_rands))) + utility_row
-                    )
-
-            return positions
 
         channel = self.get_channel_for_df(utilities)
         return channel.gumbel_choice_positions_for_df(

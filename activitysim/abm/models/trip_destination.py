@@ -18,6 +18,7 @@ from activitysim.abm.models.util.trip import (
     flag_failed_trip_leg_mates,
 )
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
+from activitysim.activitysim.abm.models.util.bias_logsums import maybe_bias_logsums
 from activitysim.core import (
     chunk,
     config,

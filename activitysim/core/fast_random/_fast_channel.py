@@ -490,11 +490,18 @@ class FastChannel:
         self,
         df: pd.DataFrame,
         step_name: str,
-        n: int = 1,
+        n: int | tuple[int, ...] = 1,
     ) -> np.ndarray:
         """Draw type-I extreme-value variates for each selected row."""
-        uniforms = self.random_for_df(df, step_name, n=n)
-        return -np.log(-np.log(uniforms))
+        assert step_name is not None
+        assert step_name == self.step_name
+        selected_positions = self._check_valid_df(df)
+        self._reseed_step()
+        return self._fast_generator.vector_random_standard_gumbel(
+            self._state_array,
+            selected_positions=selected_positions,
+            shape=n,
+        )
 
     def gumbel_max_positions_for_df(
         self,
@@ -529,14 +536,13 @@ class FastChannel:
         else:
             n_gumbels = n_alts
 
-        uniforms = self.random_for_df(
+        gumbels = self.gumbel_for_df(
             utilities,
             step_name,
             n=n_gumbels * sample_size,
         ).reshape((len(utilities), sample_size, n_gumbels))
         if stable_alt_positions is not None:
-            uniforms = uniforms[:, :, stable_alt_positions]
-        gumbels = -np.log(-np.log(uniforms))
+            gumbels = gumbels[:, :, stable_alt_positions]
         return np.argmax(
             gumbels + utility_values[:, np.newaxis, :],
             axis=2,
@@ -581,9 +587,9 @@ class FastChannel:
                 )
             active_mask = safe_alt_nrs = None
 
-        row_randoms = self.random_for_df(utilities, step_name, n=n_rands)
+        row_gumbels = self.gumbel_for_df(utilities, step_name, n=n_rands)
         if alt_nrs_df is None:
-            return np.argmax(utility_values - np.log(-np.log(row_randoms)), axis=1)
+            return np.argmax(utility_values + row_gumbels, axis=1)
 
         positions = np.empty(n_rows, dtype=np.int64)
         for row_num in range(n_rows):
@@ -592,8 +598,9 @@ class FastChannel:
             if active.size == 0:
                 positions[row_num] = 0
                 continue
-            gumbel = utility_values[row_num, active] - np.log(
-                -np.log(row_randoms[row_num, safe_alt_nrs[row_num, active]])
+            gumbel = (
+                utility_values[row_num, active]
+                + row_gumbels[row_num, safe_alt_nrs[row_num, active]]
             )
             positions[row_num] = active[np.argmax(gumbel)]
         return positions

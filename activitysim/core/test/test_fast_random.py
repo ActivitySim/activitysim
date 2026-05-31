@@ -1,4 +1,4 @@
-"""Tests for vector_random_standard_normal and vector_random_standard_uniform."""
+"""Tests for vector_random_standard_normal, uniform, and gumbel."""
 
 from __future__ import annotations
 
@@ -373,3 +373,70 @@ class TestVectorRandomStandardNormal:
         state = make_state_array(fg, 200)
         result = fg.vector_random_standard_normal(state, shape=500)
         assert abs(np.abs(result).mean() - expected_mean_abs) < 0.05
+
+
+# ---------------------------------------------------------------------------
+# vector_random_standard_gumbel
+# ---------------------------------------------------------------------------
+
+
+class TestVectorRandomStandardGumbel:
+    """Tests for vector_random_standard_gumbel."""
+
+    def test_returns_float64(self):
+        fg = make_fast_generator()
+        state = make_state_array(fg, 5)
+        result = fg.vector_random_standard_gumbel(state)
+        assert result.dtype == np.float64
+
+    def test_default_shape_all_agents(self):
+        n = 7
+        fg = make_fast_generator()
+        state = make_state_array(fg, n)
+        result = fg.vector_random_standard_gumbel(state)
+        assert result.shape == (n, 1)
+
+    def test_selected_positions_shape(self):
+        n = 10
+        fg = make_fast_generator()
+        state = make_state_array(fg, n)
+        sel = np.array([0, 2, 5], dtype=np.intp)
+        result = fg.vector_random_standard_gumbel(
+            state, selected_positions=sel, shape=4
+        )
+        assert result.shape == (3, 4)
+
+    def test_selected_positions_only_selected_rows_mutated(self):
+        n = 5
+        fg = make_fast_generator()
+        state = make_state_array(fg, n)
+        state_copy = state.copy()
+        sel = np.array([0, 4], dtype=np.intp)
+        fg.vector_random_standard_gumbel(state, selected_positions=sel, shape=1)
+        for i in range(n):
+            if i not in sel:
+                np.testing.assert_array_equal(
+                    state[i],
+                    state_copy[i],
+                    err_msg=f"Row {i} should not have been mutated",
+                )
+        for i in sel:
+            assert not np.array_equal(
+                state[i], state_copy[i]
+            ), f"Row {i} should have been mutated"
+
+    def test_matches_transformed_uniform(self):
+        fg = make_fast_generator()
+        state_a = make_state_array(fg, 8, base_seed=99)
+        state_b = state_a.copy()
+
+        out_a = fg.vector_random_standard_gumbel(state_a, shape=10)
+        out_b = -np.log(-np.log(fg.vector_random_standard_uniform(state_b, shape=10)))
+
+        np.testing.assert_allclose(out_a, out_b)
+
+    def test_values_are_finite(self):
+        fg = make_fast_generator()
+        state = make_state_array(fg, 50)
+        result = fg.vector_random_standard_gumbel(state, shape=200)
+        assert np.all(np.isfinite(result))

@@ -1633,6 +1633,38 @@ def _several_random_standard_uniform(
 
 
 @nb.njit
+def _several_random_standard_gumbel(
+    state_array: np.ndarray,
+    state_bytes: np.ndarray,
+    size: int,
+    _next_double,
+    _state_address,
+    _slice_start: int,
+    _slice_end: int,
+) -> np.ndarray:
+    """
+    Draw ``size`` standard-gumbel samples for a single RNG state row.
+
+    Samples U[0, 1) values from the shared bit-generator and immediately
+    applies the inverse-CDF transform ``-log(-log(u))`` inside the numba
+    loop so callers do not need extra whole-array ufunc passes.
+    """
+
+    # write into the BIT_GENERATOR's state from the given state_array
+    _state_uint64_ = state_bytes.view(np.uint64)[_slice_start:_slice_end]
+    _state_uint64_[:] = state_array[:4]
+    try:
+        result = np.empty(size, dtype=np.float64)
+        for n in range(size):
+            uniform = _next_double(_state_address)
+            result[n] = -math.log(-math.log(uniform))
+        return result
+    finally:
+        # write back the updated state into the given state_array
+        state_array[:4] = _state_uint64_[:4]
+
+
+@nb.njit
 def _vector_random_standard_uniform(
     state_array: np.ndarray,
     state_bytes: np.ndarray,
@@ -1671,6 +1703,55 @@ def _vector_random_standard_uniform(
     result = np.empty((state_array.shape[0], flat_size), dtype=np.float64)
     for idx in range(state_array.shape[0]):
         result[idx] = _several_random_standard_uniform(
+            state_array[idx],
+            state_bytes,
+            flat_size,
+            _next_double,
+            _state_address,
+            _slice_start=_slice_start,
+            _slice_end=_slice_end,
+        )
+    return result
+
+
+@nb.njit
+def _vector_random_standard_gumbel(
+    state_array: np.ndarray,
+    state_bytes: np.ndarray,
+    shape: tuple[int, ...],
+    _next_double,
+    _state_address,
+    _slice_start: int,
+    _slice_end: int,
+) -> np.ndarray:
+    """
+    Draw standard-gumbel samples for every row of *state_array*.
+
+    Parameters
+    ----------
+    state_array : np.ndarray
+        2-D ``uint64`` array of shape ``(n_agents, ≥4)`` where each row holds
+        the PCG64 state for one agent.  Mutated in-place.
+    state_bytes : np.ndarray
+        Byte view (``uint8``) of the shared ``_BIT_GENERATOR`` state buffer.
+    shape : tuple of int, optional
+        Trailing dimensions of the per-agent sample block.  The total number
+        of samples per agent equals ``prod(shape)``.  Defaults to ``(1,)``.
+
+    Returns
+    -------
+    np.ndarray
+        2-D ``float64`` array of shape ``(n_agents, prod(shape))``.  Callers
+        that want trailing dimensions split out should call
+        ``.reshape(n_agents, *shape)`` on the result.
+    """
+    flat_size = 1
+    for s in shape:
+        flat_size *= s
+
+    result = np.empty((state_array.shape[0], flat_size), dtype=np.float64)
+    for idx in range(state_array.shape[0]):
+        result[idx] = _several_random_standard_gumbel(
             state_array[idx],
             state_bytes,
             flat_size,
@@ -1726,6 +1807,60 @@ def _selected_vector_random_standard_uniform(
     result = np.empty((selected_positions.shape[0], flat_size), dtype=np.float64)
     for idx in range(selected_positions.shape[0]):
         result[idx] = _several_random_standard_uniform(
+            state_array[selected_positions[idx]],
+            state_bytes,
+            flat_size,
+            _next_double,
+            _state_address,
+            _slice_start=_slice_start,
+            _slice_end=_slice_end,
+        )
+    return result
+
+
+@nb.njit
+def _selected_vector_random_standard_gumbel(
+    selected_positions: np.ndarray,
+    state_array: np.ndarray,
+    state_bytes: np.ndarray,
+    shape: tuple[int, ...],
+    _next_double,
+    _state_address,
+    _slice_start: int,
+    _slice_end: int,
+) -> np.ndarray:
+    """
+    Draw standard-gumbel samples for a subset of rows of *state_array*.
+
+    Parameters
+    ----------
+    selected_positions : np.ndarray
+        1-D integer array whose values are row indices into *state_array*.
+        Only the indicated rows are advanced and sampled.
+    state_array : np.ndarray
+        2-D ``uint64`` array of shape ``(n_agents, ≥4)`` where each row holds
+        the PCG64 state for one agent.  Mutated in-place for the selected rows.
+    state_bytes : np.ndarray
+        Byte view (``uint8``) of the shared ``_BIT_GENERATOR`` state buffer.
+    shape : tuple of int, optional
+        Trailing dimensions of the per-agent sample block.  The total number
+        of samples per selected agent equals ``prod(shape)``.  Defaults to
+        ``(1,)``.
+
+    Returns
+    -------
+    np.ndarray
+        2-D ``float64`` array of shape ``(len(selected_positions), prod(shape))``.
+        Callers that want the trailing dimensions split out should call
+        ``.reshape(len(selected_positions), *shape)`` on the result.
+    """
+    flat_size = 1
+    for s in shape:
+        flat_size *= s
+
+    result = np.empty((selected_positions.shape[0], flat_size), dtype=np.float64)
+    for idx in range(selected_positions.shape[0]):
+        result[idx] = _several_random_standard_gumbel(
             state_array[selected_positions[idx]],
             state_bytes,
             flat_size,
@@ -1907,6 +2042,62 @@ class FastGenerator:
             ).reshape(-1, *shape)
         else:
             return _vector_random_standard_uniform(
+                state_array,
+                state_bytes=self._state_bytes,
+                shape=shape,
+                _next_double=self._next_double,
+                _state_address=self._state_address,
+                _slice_start=self._slice_start,
+                _slice_end=self._slice_end,
+            ).reshape(-1, *shape)
+
+    def vector_random_standard_gumbel(
+        self,
+        state_array: np.ndarray,
+        selected_positions: np.ndarray | None = None,
+        shape: int | tuple[int, ...] = 1,
+    ) -> np.ndarray:
+        """
+        Draw standard-gumbel samples for agents, optionally restricted to a subset.
+
+        Parameters
+        ----------
+        state_array : np.ndarray
+            2-D ``uint64`` array of shape ``(n_agents, ≥4)`` where each row holds
+            the PCG64 state for one agent.  Mutated in-place.
+        selected_positions : np.ndarray or None, optional
+            1-D integer array of row indices into *state_array*.  When provided,
+            only these agents are sampled; otherwise all agents are sampled.
+        shape : int or tuple of int, optional
+            Shape of the per-agent sample block.  A plain ``int`` is treated as a
+            1-element tuple, e.g. ``3`` → ``(3,)``.  Defaults to ``1``, i.e. one
+            scalar draw per agent.
+
+        Returns
+        -------
+        np.ndarray
+            ``float64`` array of shape
+            ``(n_selected, *shape)`` when *selected_positions* is given, or
+            ``(n_agents, *shape)`` otherwise; values drawn from the standard
+            gumbel distribution.
+        """
+        if shape is None:
+            shape = 1
+        if isinstance(shape, (int, np.integer)):
+            shape = (shape,)
+        if selected_positions is not None:
+            return _selected_vector_random_standard_gumbel(
+                selected_positions,
+                state_array,
+                state_bytes=self._state_bytes,
+                shape=shape,
+                _next_double=self._next_double,
+                _state_address=self._state_address,
+                _slice_start=self._slice_start,
+                _slice_end=self._slice_end,
+            ).reshape(-1, *shape)
+        else:
+            return _vector_random_standard_gumbel(
                 state_array,
                 state_bytes=self._state_bytes,
                 shape=shape,

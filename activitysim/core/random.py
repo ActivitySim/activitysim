@@ -483,17 +483,16 @@ class SimpleChannel(object):
                     utility_row - np.log(-np.log(row_randoms))
                 )
             else:
-                # candidate_values = utility_row - np.log(-np.log(row_randoms[safe_alt_nrs[row_num]]))
-                # candidate_values[masked[row_num]] = utility_row[masked[row_num]]
-                row_mask = masked[row_num]
-                candidate_values = utility_row.copy()
-                if not row_mask.all():
-                    active = ~row_mask
-                    row_alt_nrs = safe_alt_nrs[row_num, active]
-                    candidate_values[active] += -np.log(
-                        -np.log(row_randoms[row_alt_nrs])
-                    )
-
+                candidate_values = utility_row - np.log(-np.log(row_randoms[safe_alt_nrs[row_num]]))
+                candidate_values[masked[row_num]] = utility_row[masked[row_num]]
+                # row_mask = masked[row_num]
+                # candidate_values = utility_row.copy()
+                # if not row_mask.all():
+                #     active = ~row_mask
+                #     row_alt_nrs = safe_alt_nrs[row_num, active]
+                #     candidate_values[active] += -np.log(
+                #         -np.log(row_randoms[row_alt_nrs])
+                #     )
                 positions[row_num] = np.argmax(candidate_values)
 
         self.row_states.loc[utilities.index, "offset"] += n_rands

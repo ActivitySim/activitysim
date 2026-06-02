@@ -15,8 +15,6 @@ Because Activity-based models use synthetic populations, those input files will 
 Before setting up this test, one should run the [SANDAG ABM3 Example model](https://github.com/activitysim/sandag-abm3-example), as the inputs used in it will be copied for this test.
 
 ### Instructions
-This code shown is in the script [reallocate_hh_emp.py](reallocate_hh_emp.py) that could be run to set up the test.
-
 1. Create a new directory for your test (suggested name: example-land-use). Copy the `data` and `configs` folders from your completed SANDAG ABM3 Example run into this directory. Additionally, create an empty directory called `output`.
 
 2. Next, add the new households. This can be done using PopulationSim's repop mode. To do that, copy an existing setup to a new location. Then, edit the model steps within the `run_list` settings file to be the following steps:

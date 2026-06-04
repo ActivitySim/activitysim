@@ -6,16 +6,21 @@ Many contemporary urban planners are encouraging developers to build denser hous
 
 **NOTE: The example provided is a hypothetical project that demonstrates how one would use ActivitySim to model the effects of a land use change and does not necessarily reflect any real planned developments.**
 
-## Setting Up the Test
+## Prerequisite
+
+Before setting up this test, one should run the [SANDAG ABM3 Example model](https://github.com/activitysim/sandag-abm3-example), as the inputs used in it will be copied for this test.
+
+## Setting Up the Scenario
 
 Three input files need to be changed in order to run this test: the land use file (landuse.csv) and the files defining the synthetic population (households.csv and persons.csv). While updating the land use file may seem very straightforward, it is very easy to overlook some necessary changes that could result in the model understating the impact of the change. A modeler doesn't need to just edit the household and employment fields in the study area--they also need to edit any field derived from those fields. For example, every new household will have at least one person in it, so the population field will need to be updated as well (along with population density if that is present). If the total population is to be kept the same, households will need to be removed outside of the study area as well.
 
 Because Activity-based models use synthetic populations, those input files will need to be updated to reflect the different distribution in the population. There are multiple ways that this could be done. The ActivitySim consortium maintains the PopulationSim population synthesis software, which includes a `repop` mode that can be used to add households to an existing synthetic population. This demonstration will show how to do this, though any user is welcome to add the additional households in whatever way works best for them (such as through a script).
 
-Before setting up this test, one should run the [SANDAG ABM3 Example model](https://github.com/activitysim/sandag-abm3-example), as the inputs used in it will be copied for this test.
-
 ### Instructions
+
 1. Create a new directory for your test (suggested name: example-land-use). Copy the `data` and `configs` folders from your completed SANDAG ABM3 Example run into this directory. Additionally, create an empty directory called `output`.
+
+#### PopulationSim Repop Mode
 
 2. Next, add the new households. This can be done using PopulationSim's repop mode. To do that, copy an existing setup to a new location. Then, edit the model steps within the `run_list` settings file to be the following steps:
 ```
@@ -62,6 +67,8 @@ Setting that CSV file to the following values should result in the addition of 1
 | 2    | 250      | 125      | 75       | 25       | 120      | 60       | 200       | 75         | 100        | 100        | 75         |
 | 3    | 250      | 125      | 75       | 25       | 120      | 60       | 200       | 75         | 100        | 100        | 75         |
 | 4    | 250      | 125      | 75       | 25       | 120      | 60       | 200       | 75         | 100        | 100        | 75         |
+
+#### Updating Land Use File
 
 3. The land use data needs to be readjusted to increase the number of households within the study area.
 ```

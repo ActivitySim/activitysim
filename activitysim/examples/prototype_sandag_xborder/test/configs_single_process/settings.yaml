@@ -1,3 +1,0 @@
-inherit_settings: True
-num_processes: 1
-multiprocess: False

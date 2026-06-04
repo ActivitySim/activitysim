@@ -1,0 +1,7 @@
+trip_id,tour_id,outbound,person_id,trip_num,trip_count,purpose,primary_purpose,origin,destination,failed
+10001,500,TRUE,1,1,1,work,work,0,3,FALSE
+10002,500,FALSE,1,1,2,social,work,3,0,FALSE
+10003,500,FALSE,1,2,2,home,work,3,0,FALSE
+20003,501,TRUE,4,1,1,social,social,2,8,FALSE
+20004,501,FALSE,4,1,2,eatout,social,8,2,FALSE
+20005,501,FALSE,4,2,2,home,social,8,2,FALSE

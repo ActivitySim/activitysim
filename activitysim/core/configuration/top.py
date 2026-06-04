@@ -790,7 +790,7 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     .. versionadded:: 1.6
     """
 
-    fraction_of_failed_choices_allowed: float = 0.1
+    fraction_of_failed_choices_allowed: float = 0.001
     """
     Threshold for the fraction of households that can be skipped before failing the model run,
     used in conjunction with `skip_failed_choices`.

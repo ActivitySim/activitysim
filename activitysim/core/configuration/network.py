@@ -213,7 +213,6 @@ class NetworkSettings(PydanticReadable, extra="forbid"):
 
     * 1 - TAZ only.
     * 2 - MAZ and TAZ.
-    * 3 - MAZ, TAZ, and TAP
     """
 
     taz_skims: Union[str, list[str], TAZ_Settings] = None
@@ -259,36 +258,6 @@ class NetworkSettings(PydanticReadable, extra="forbid"):
 
     maz_to_maz: MazToMazSettings | None = None
     """Settings to manage maz-to-maz level of service in 2- and 3-zone models."""
-
-    #### 3 ZONE ####
-
-    tap: str = None
-    """Filename for the TAP data file.
-
-    This file should contain the MAZ ID, TAZ, and land use and other MAZ attributes
-    """
-
-    maz_to_tap: dict[str, Any] = None
-    """Settings to manage maz-to-tap level of service in 3-zone models."""
-
-    demographic_segments: Any = None
-
-    tap_skims: Union[str, list[str]] = None
-
-    tap_lines: str = None
-    """TAP lines filename."""
-
-    TVPB_SETTINGS: Any = None
-
-    rebuild_tvpb_cache: bool = True
-    """
-    rebuild and overwrite existing pre-computed TAP to TAP utilities cache
-    """
-
-    trace_tvpb_cache_as_csv: bool = False
-    """Write a CSV version of TVPB cache for tracing
-
-    Not currently implemented."""
 
     skim_dict_factory: Literal[
         "NumpyArraySkimFactory",

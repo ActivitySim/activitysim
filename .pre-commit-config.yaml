@@ -17,6 +17,9 @@ repos:
   rev: 22.6.0
   hooks:
     - id: black
+      language_version: python3.12
+      # explicitly set the Python version for the hook environment for black,
+      # as older versions of black don't work with the latest Python.
 
 #- repo: https://github.com/PyCQA/flake8
 #  rev: 5.0.4

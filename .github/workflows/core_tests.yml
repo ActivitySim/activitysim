@@ -143,9 +143,7 @@ jobs:
         region:
           - prototype_mtc
           - placeholder_psrc
-          - prototype_marin
           - prototype_mtc_extended
-          - prototype_sandag_xborder
           - production_semcog
           - prototype_mwcog
           - placeholder_multiple_zone

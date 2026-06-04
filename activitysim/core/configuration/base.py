@@ -161,7 +161,7 @@ class ComputeSettings(PydanticBase):
 
     """
 
-    fastmath: bool = True
+    fastmath: bool = False
     """Use fastmath when evaluating this component with sharrow.
 
     The fastmath option can be used to speed up the evaluation of expressions in
@@ -170,6 +170,14 @@ class ComputeSettings(PydanticBase):
     computations are NaN or Inf.  This can lead to errors when the assumptions
     are violated.  If running in sharrow test mode generates errors, try turning
     this setting off.
+    
+    .. versionchanged:: 1.6
+
+        In ActivitySim versions 1.5 and earlier, the default value for this
+        setting was `True`, meant to favor superior runtime performance when
+        using sharrow. However, due to the difficulty of diagnosing and fixing
+        bugs that arise from the use of `fastmath`, the default setting has been
+        changed to `False`. 
     """
 
     use_bottleneck: bool | None = None

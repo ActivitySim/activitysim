@@ -181,7 +181,7 @@ def _interaction_sample(
     zone_layer : {'taz', 'maz'}, default 'taz'
         Specify which zone layer of the skims is to be used.  You cannot use the
         'maz' zone layer in a one-zone model, but you can use the 'taz' layer in
-        a two- or three-zone model (e.g. for destination pre-sampling).
+        a two-zone model (e.g. for destination pre-sampling).
 
     compute_settings : ComputeSettings, optional
         Settings to use if compiling with sharrow
@@ -643,7 +643,7 @@ def interaction_sample(
     zone_layer : {'taz', 'maz'}, default 'taz'
         Specify which zone layer of the skims is to be used.  You cannot use the
         'maz' zone layer in a one-zone model, but you can use the 'taz' layer in
-        a two- or three-zone model (e.g. for destination pre-sampling).
+        a two-zone model (e.g. for destination pre-sampling).
     explicit_chunk_size : float, optional
         If > 0, specifies the chunk size to use when chunking the interaction
         simulation. If < 1, specifies the fraction of the total number of choosers.

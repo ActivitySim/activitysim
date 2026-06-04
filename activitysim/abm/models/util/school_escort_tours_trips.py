@@ -125,7 +125,7 @@ def create_bundle_attributes(bundles):
                 escortee_num1 = pd.Series(
                     np.where(
                         filtered_bundles[f"bundle_child{first_child}"] > 0,
-                        first_child,
+                        str(first_child),
                         "",
                     ),
                     index=filtered_bundles.index,
@@ -133,7 +133,7 @@ def create_bundle_attributes(bundles):
                 escortee_num2 = pd.Series(
                     np.where(
                         filtered_bundles[f"bundle_child{second_child}"] > 0,
-                        second_child,
+                        str(second_child),
                         "",
                     ),
                     index=filtered_bundles.index,
@@ -141,7 +141,7 @@ def create_bundle_attributes(bundles):
                 escortee_num3 = pd.Series(
                     np.where(
                         filtered_bundles[f"bundle_child{third_child}"] > 0,
-                        third_child,
+                        str(third_child),
                         "",
                     ),
                     index=filtered_bundles.index,

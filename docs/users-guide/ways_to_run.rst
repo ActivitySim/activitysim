@@ -312,6 +312,11 @@ For interaction_simulate models, users can manually specify trace IDs to perform
 Users can configure ActivitySim to not skip failed choices by setting the 
 ``skip_failed_choices`` option to ``False`` in the settings file. When this option is disabled, the system will fall back to
 using the legacy ``overflow_protection`` mechanism to handle such cases. Specifically, if the computed utilities lead to zero or infinite exponentiated values, 
-overflow protection will adjust the utilities to prevent numerical overflow during exponentiation and arbitarily making a choice. 
-No loggings will be made for these cases. When ``skip_failed_choices`` is enabled, 
-ActivitySim will not use the legacy ``overflow_protection`` mechanism to handle failed choices.
+the legacy ``overflow_protection`` will adjust the utilities to prevent numerical overflow during exponentiation and arbitarily making a choice, however, no loggings will be made for these cases. 
+When ``skip_failed_choices`` is enabled, ActivitySim will not use the legacy ``overflow_protection`` mechanism to handle failed choices.
+
+.. note::
+  When an agency turns on ``skip_failed_choices`` for the first time in an existing ActivitySim implementation, 
+  warning messages may appear in the log for failed choices that were previously handled silently by the legacy ``overflow_protection`` mechanism. 
+  These warnings are expected and reflect the change in behavior: failed choices are now explicitly skipped and traced rather than silently handled. 
+  In some cases, model runs may crash if the number of skipped failed choices exceeds the configured ``fraction_of_failed_choices_allowed`` threshold.

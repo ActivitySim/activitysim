@@ -7,7 +7,15 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, interaction_simulate, logit, tracing, util, workflow
+from activitysim.core import (
+    chunk,
+    interaction_simulate,
+    logit,
+    random,
+    tracing,
+    util,
+    workflow,
+)
 from activitysim.core.configuration.base import ComputeSettings
 from activitysim.core.exceptions import SegmentedSpecificationError
 from activitysim.core.logit import AltsContext
@@ -269,7 +277,9 @@ def _interaction_sample_simulate(
     padded_utilities = padded_utilities.reshape(-1, max_sample_count)
 
     if alts_context is not None:
-        padded_alt_nrs = np.insert(interaction_df[choice_column], inserts, -999)
+        padded_alt_nrs = np.insert(
+            interaction_df[choice_column], inserts, random.MASKED_ALT_ID
+        )
         chunk_sizer.log_df(trace_label, "padded_alt_nrs", padded_alt_nrs)
         padded_alt_nrs = padded_alt_nrs.reshape(-1, max_sample_count)
         # alt_nrs_df has columns for each alt in the choice set, with values indicating which alt_id
@@ -547,14 +557,30 @@ def interaction_sample_simulate(
     trace_label = tracing.extend_trace_label(trace_label, "interaction_sample_simulate")
     chunk_tag = chunk_tag or trace_label
 
-    # TODO EET: Do we just want to warn here? Or better throw and be explicit?
+    # Note: when use_explicit_error_terms is True but alts_context is None, EET draws are
+    # keyed to the per-call active alternative count rather than a stable universe, so they
+    # are NOT guaranteed to be consistent across scenarios that differ in alternative
+    # availability. We cannot make this a hard error today because two production callers
+    # rely on the warning-only fallback:
+    #   - trip_scheduling_choice: SCHEDULE_ID is a per-call enumeration that depends on
+    #     chunk composition and tour duration distribution (see FIXME in
+    #     trip_scheduling_choice.py:282-289 for the proposed redesign that would key
+    #     SCHEDULE_ID to a fixed (OB, MAIN, IB) duration tuple).
+    #   - tour_od_choice: OD id is a string concatenation `f"{orig}_{dest}"`; a stable
+    #     integer universe would be O(n_zones^2) error terms per chooser, which is too
+    #     large to allocate.
+    # If you add a new EET caller that uses an integer choice column, please pass an
+    # alts_context built from the stable universe (e.g., AltsContext.from_series(land_use.index)).
     if state.settings.use_explicit_error_terms:
         choice_ids_are_int = pd.api.types.is_integer_dtype(alternatives[choice_column])
         if alts_context is None and choice_ids_are_int:
             logger.warning(
-                "Using integer-coded choice_column values without alts_context when use_explicit_error_terms is true."
-                + " Ensure this is desired, when running on a sample it should be provided to ensure consistent random"
-                + " numbers across the whole alternative set."
+                f"{trace_label}: use_explicit_error_terms is True but no alts_context "
+                "was passed; EET draws will be keyed to the per-call active alternative "
+                "count rather than a stable universe. Cross-scenario reproducibility for "
+                "this model is best-effort only. See the comment in interaction_sample_simulate.py "
+                "for the two known callers (trip_scheduling_choice, tour_od_choice) and "
+                "the requirements for opting into stable randoms."
             )
         if alts_context is not None and not choice_ids_are_int:
             raise ValueError(

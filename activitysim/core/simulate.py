@@ -46,17 +46,42 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-CustomChooser_T = Callable[
-    [
-        workflow.State,
-        pd.DataFrame,
-        pd.DataFrame,
-        pd.DataFrame,
-        str,
-        dict | LogitNestSpec | None,
-    ],
-    tuple[pd.Series, pd.Series],
-]
+CustomChooser_T = Callable[..., tuple[pd.Series, pd.Series]]
+"""
+Type alias for a custom choice function passed to ``simple_simulate`` /
+``simulate.eval_mnl`` / ``simulate.eval_nl``.
+
+The runtime calling convention is:
+
+- ``custom_chooser(state, utilities_or_probs, choosers, spec, trace_label)``
+  in MC paths (``eval_mnl``, the non-EET branch of ``eval_nl``) and in the
+  EET branch of ``eval_mnl``. Five positional arguments.
+- ``custom_chooser(state, utilities, choosers, spec, trace_label,
+  nest_spec=nest_spec)`` in the EET branch of ``eval_nl`` only. Five
+  positional arguments plus a ``nest_spec`` keyword argument.
+
+The alias is intentionally widened to ``Callable[..., ...]`` rather than
+a fully-specified ``Callable[[State, ...], ...]`` so that:
+
+1. Existing custom choosers written before nested-logit EET landed (5
+   positional args, no ``nest_spec``) remain valid implementations — they
+   are never called with ``nest_spec`` because only the eval_nl EET branch
+   passes it.
+2. New custom choosers that want to support NL+EET can opt in by accepting
+   ``nest_spec`` as a keyword-only argument, e.g.::
+
+       def my_chooser(state, utilities, choosers, spec, trace_label, *,
+                      nest_spec: dict | LogitNestSpec | None = None,
+                      ) -> tuple[pd.Series, pd.Series]:
+           ...
+
+   They MUST give ``nest_spec`` a default of ``None`` so the non-NL-EET call
+   sites (which do not pass it) still work.
+
+Return value is ``(choices, rands)`` where ``choices`` is a Series of
+chosen alternative positions and ``rands`` is the per-row random draw used
+(or zeros for EET, which has no per-row draw to expose).
+"""
 
 
 def random_rows(state: workflow.State, df, n):

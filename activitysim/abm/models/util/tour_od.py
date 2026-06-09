@@ -11,6 +11,7 @@ import pandas as pd
 from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.models.util import trip
 from activitysim.abm.models.util.bias_logsums import maybe_bias_logsums
+from activitysim.abm.models.util.maz_sampling import draw_maz_rands
 from activitysim.abm.models.util.tour_destination import SizeTermCalculator
 from activitysim.core import (
     config,
@@ -24,8 +25,8 @@ from activitysim.core import (
 from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.interaction_sample import (
-    _resolve_sample_method,
     interaction_sample,
+    resolve_sample_method,
 )
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
@@ -509,34 +510,18 @@ def choose_MAZ_for_TAZ(
     # prob array with one row TAZ_choice, one column per alternative
     row_sums = padded_maz_sizes.sum(axis=1)
     maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
-    if full_taz_index is not None:
-        full_taz_index = pd.Index(full_taz_index, name=DEST_TAZ)
-        taz_positions = full_taz_index.get_indexer(taz_choices[DEST_TAZ])
-        assert (taz_positions >= 0).all()
-        chooser_rands = np.asarray(
-            state.get_rn_generator().random_for_df(chooser_df, n=len(full_taz_index))
-        )
-        chooser_row_positions = np.repeat(
-            np.arange(len(chooser_df)), taz_choice_counts.to_numpy()
-        )
-        rands = chooser_rands[chooser_row_positions, taz_positions].reshape(-1, 1)
-        assert len(rands) == len(taz_choices)
-    elif uniform_taz_choice_counts:
-        assert maz_probs.shape == (len(chooser_df) * taz_sample_size, max_maz_count)
-        rands = state.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
-        rands = rands.reshape(-1, 1)
-        assert len(rands) == len(chooser_df) * taz_sample_size
-    else:
-        assert maz_probs.shape == (len(taz_choices), max_maz_count)
-        chooser_rands = np.asarray(
-            state.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
-        )
-        chooser_rand_mask = (
-            np.arange(taz_sample_size) < taz_choice_counts.to_numpy()[:, np.newaxis]
-        )
-        rands = chooser_rands[chooser_rand_mask].reshape(-1, 1)
-        assert len(rands) == len(taz_choices)
-    assert len(rands) == maz_probs.shape[0]
+    rands = draw_maz_rands(
+        state=state,
+        chooser_df=chooser_df,
+        taz_choices=taz_choices,
+        taz_choice_counts=taz_choice_counts,
+        taz_sample_size=taz_sample_size,
+        maz_probs=maz_probs,
+        max_maz_count=max_maz_count,
+        uniform_taz_choice_counts=uniform_taz_choice_counts,
+        dest_taz_col=DEST_TAZ,
+        full_taz_index=full_taz_index,
+    )
 
     # make choices
     # positions is array with the chosen alternative represented as a column index in probs
@@ -628,15 +613,6 @@ def choose_MAZ_for_TAZ(
     taz_choices_w_maz.set_index(chooser_id_col, inplace=True)
 
     return taz_choices_w_maz
-
-
-def resolve_sample_method(state, model_settings):
-    sample_compute_settings = getattr(model_settings, "compute_settings", None)
-    if sample_compute_settings is not None:
-        sample_compute_settings = sample_compute_settings.subcomponent_settings(
-            "sample"
-        )
-    return _resolve_sample_method(state, sample_compute_settings)
 
 
 @workflow.func

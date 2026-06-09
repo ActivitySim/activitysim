@@ -22,7 +22,6 @@ from activitysim.core.configuration.base import (
 )
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.expressions import assign_columns
-from activitysim.core.interaction_sample import _resolve_sample_method
 
 logger = logging.getLogger(__name__)
 

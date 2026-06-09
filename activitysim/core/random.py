@@ -20,6 +20,11 @@ logger = logging.getLogger(__name__)
 _MAX_SEED = 1 << 32
 _SEED_MASK = 0xFFFFFFFF
 
+# Sentinel used by callers of gumbel_choice_positions_for_df to mark padded /
+# unavailable alternative slots in alt_nrs_df. Exported so callers don't
+# re-encode the magic number.
+MASKED_ALT_ID = -999
+
 
 def hash32(s):
     """
@@ -437,7 +442,8 @@ class SimpleChannel(object):
             DataFrame with one row per chooser and one column per available alternative.
         alt_nrs_df : pandas.DataFrame, optional
             DataFrame aligned to `utilities` whose values identify which dense alternative
-            each utility column corresponds to. Use -999 for masked or unavailable positions.
+            each utility column corresponds to. Use `MASKED_ALT_ID` (-999) for masked or
+            unavailable positions; any other negative value raises ValueError.
         n_rands : int, optional
             Number of EV1 draws to generate per chooser row. Required when `alt_nrs_df`
             is provided and may exceed the visible number of utility columns.
@@ -461,7 +467,15 @@ class SimpleChannel(object):
             if n_rands is None:
                 raise ValueError("n_rands is required when alt_nrs_df is provided")
             alt_nr_values = alt_nrs_df.to_numpy()
-            masked = alt_nr_values == -999
+            # Validate sentinel: MASKED_ALT_ID is the only allowed negative value.
+            bad_negatives = (alt_nr_values < 0) & (alt_nr_values != MASKED_ALT_ID)
+            if bad_negatives.any():
+                offenders = np.unique(alt_nr_values[bad_negatives])
+                raise ValueError(
+                    f"alt_nrs contains negative values other than the "
+                    f"{MASKED_ALT_ID} sentinel: {offenders}"
+                )
+            masked = alt_nr_values == MASKED_ALT_ID
             safe_alt_nrs = np.where(masked, 0, alt_nr_values)
         else:
             if n_rands is None:
@@ -483,18 +497,15 @@ class SimpleChannel(object):
                     utility_row - np.log(-np.log(row_randoms))
                 )
             else:
-                candidate_values = utility_row - np.log(
-                    -np.log(row_randoms[safe_alt_nrs[row_num]])
-                )
-                candidate_values[masked[row_num]] = utility_row[masked[row_num]]
-                # row_mask = masked[row_num]
-                # candidate_values = utility_row.copy()
-                # if not row_mask.all():
-                #     active = ~row_mask
-                #     row_alt_nrs = safe_alt_nrs[row_num, active]
-                #     candidate_values[active] += -np.log(
-                #         -np.log(row_randoms[row_alt_nrs])
-                #     )
+                # Masked positions are set to -inf so they cannot win argmax,
+                # and the gumbel transform is skipped for them entirely.
+                row_mask = masked[row_num]
+                candidate_values = np.full(n_alts, -np.inf, dtype=np.float64)
+                active = ~row_mask
+                if active.any():
+                    candidate_values[active] = utility_row[active] - np.log(
+                        -np.log(row_randoms[safe_alt_nrs[row_num, active]])
+                    )
                 positions[row_num] = np.argmax(candidate_values)
 
         self.row_states.loc[utilities.index, "offset"] += n_rands
@@ -789,6 +800,17 @@ class Random(object):
         if channel_name in self.channels:
             logger.debug("Dropping channel '%s'" % (channel_name,))
             del self.channels[channel_name]
+            # Also clear any index_to_channel entries that pointed at the
+            # dropped channel; a stale mapping would otherwise survive and
+            # could mis-route a subsequent channel registered against the
+            # same index name.
+            stale_index_names = [
+                index_name
+                for index_name, mapped in self.index_to_channel.items()
+                if mapped == channel_name
+            ]
+            for index_name in stale_index_names:
+                del self.index_to_channel[index_name]
         else:
             logger.error(
                 "drop_channel called with unknown channel '%s'" % (channel_name,)

@@ -10,7 +10,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
-from activitysim.core import tracing, workflow
+from activitysim.core import estimation, tracing, workflow
 from activitysim.core.choosing import choice_maker
 from activitysim.core.configuration.logit import LogitNestSpec
 from activitysim.core.exceptions import (
@@ -39,11 +39,6 @@ class AltsContext:
 
     min_alt_id: int
     max_alt_id: int
-
-    def __post_init__(self):
-        # e.g. for zero based zones max_alt_id = n_alts - 1
-        # but for 1 based zones, we don't need to add extra padding
-        self.n_rands_to_sample = max(self.max_alt_id, self.n_alts_to_cover_max_id)
 
     @classmethod
     def from_series(cls, ser: Union[pd.Series, pd.Index]) -> "AltsContext":
@@ -382,14 +377,23 @@ def _log_positive_stable_for_df(
     state: workflow.State, df: pd.DataFrame, alpha: float
 ) -> np.ndarray:
     alpha = EXACT_NESTED_LOGIT_DTYPE(alpha)
-    if np.isclose(alpha, 1.0):
-        return np.zeros(len(df), dtype=EXACT_NESTED_LOGIT_DTYPE)
 
+    # ALWAYS draw the two uniforms so the channel offset advances by a data-
+    # independent amount, regardless of alpha. Without this, a degenerate nest
+    # with coefficient=1.0 would consume zero rands and shift all downstream
+    # draws on the persons/tours channel — breaking EET cross-scenario stability
+    # for any config change that introduces or collapses such a nest.
     eps = np.finfo(EXACT_NESTED_LOGIT_DTYPE).eps
     uniforms = np.asarray(
         state.get_rn_generator().random_for_df(df, n=2),
         dtype=EXACT_NESTED_LOGIT_DTYPE,
     )
+
+    if np.isclose(alpha, 1.0):
+        # degenerate nest: positive-stable variate is deterministically 1, so log = 0.
+        # Offset has already advanced above.
+        return np.zeros(len(df), dtype=EXACT_NESTED_LOGIT_DTYPE)
+
     angle_uniform = np.clip(uniforms[:, 0], eps, 1.0 - eps)
     exp_uniform = np.clip(uniforms[:, 1], eps, 1.0 - eps)
 
@@ -449,19 +453,26 @@ def sample_nested_logit_exact_leaf_error_terms(
 
         if nest.type == "node":
             all_leaf_children = leaf_children_for_each_node.get(nest.name, [])
-            if not all_leaf_children:
-                logger.warning(f"Node nest {nest.name} has no leaf children, skipping.")
-                continue
-
-            # draw stable term with nest coeff as scale and multiply by path coeff, add to each child alternative
+            # ALWAYS draw to keep offset advancement topology-independent, even for degenerate nodes with no leaf
+            # children. This ensures that a config change that adds or removes a no-leaf intermediate node does
+            # not shift downstream draws on the persons/tours channel.
             log_stable_for_node = (
                 nest.product_of_coefficients
                 * _log_positive_stable_for_df(state, alt_utilities, nest.coefficient)
             )
-            # all alternatives for a chooser (row) get the same term, so we repeat the values across columns
-            error_terms.loc[:, all_leaf_children] += log_stable_for_node.reshape(
-                -1, 1
-            ).repeat(len(all_leaf_children), axis=1)
+            if not all_leaf_children:
+                logger.warning(
+                    f"Node nest {nest.name} has no leaf children; discarding draw."
+                )
+                continue
+
+            # All alternatives for a chooser (row) get the same term.
+            # Use direct numpy broadcasting into the underlying values array — avoids the `.repeat()` materialization
+            # and pandas label alignment overhead.
+            # error_terms.loc[:, all_leaf_children] += log_stable_for_node.reshape(-1, 1
+            # ).repeat(len(all_leaf_children), axis=1)
+            col_idx = error_terms.columns.get_indexer(all_leaf_children)
+            error_terms.values[:, col_idx] += log_stable_for_node[:, None]
 
     leaf_path_coefficients = _leaf_path_coefficients(
         nest_spec, alt_utilities.columns.to_numpy()
@@ -565,7 +576,6 @@ def make_choices_utility_based(
     utilities: pd.DataFrame,
     trace_label: str = None,
     trace_choosers=None,
-    allow_bad_utils=False,
     nest_spec=None,
     alts_context: AltsContext | None = None,
     alt_nrs_df: pd.DataFrame | None = None,
@@ -585,8 +595,6 @@ def make_choices_utility_based(
         the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
         by report_bad_choices because it can't deduce hh_id from the interaction_dataset
         which is indexed on index values from alternatives df.
-    allow_bad_utils : bool
-        If True, allows utilities with missing or invalid values without raising an error.
     nest_spec : dict or LogitNestSpec, optional
         Nest specification for the choice model. If None, will be treated as a multinomial logit model.
     alts_context : AltsContext, optional
@@ -605,8 +613,23 @@ def make_choices_utility_based(
         is an index into the columns of `probs`.
     rands : pandas.Series
         A series of 0s for compatibility with make_choices. For EET, we do not have per-row random numbers.
+
+    Notes
+    -----
+    Bad-row reporting (e.g., a chooser whose alternatives are all `UTIL_UNAVAILABLE`) is the
+    responsibility of `validate_utils()`, which is invoked at every EET call site
+    (interaction_sample, interaction_sample_simulate, simulate.eval_mnl, simulate.eval_nl)
+    BEFORE this function is called. EET argmax always returns a valid integer position;
+    we do not re-check here.
     """
     trace_label = tracing.extend_trace_label(trace_label, "make_choices_utility_based")
+
+    # Estimation requires MC choice currently. Block the EET choice path under estimation.
+    if estimation.manager.enabled:
+        raise RuntimeError(
+            f"{trace_label}: EET choice path reached during estimation. Estimation must use make_choices(probs=...)" +
+            " on MC probabilities; set use_explicit_error_terms=False for estimation runs."
+        )
 
     if nest_spec is None:
         choices = make_choices_explicit_error_term_mnl(
@@ -628,18 +651,6 @@ def make_choices_utility_based(
             trace_choosers,
             alts_context,
             alt_nrs_df,
-        )
-
-    missing_choices = np.isnan(choices)  # TODO: should we check for infs here too?
-    if missing_choices.any() and not allow_bad_utils:
-        report_bad_choices(
-            state,
-            missing_choices,
-            utilities,
-            trace_label=tracing.extend_trace_label(trace_label, "bad_utils"),
-            msg="no alternative selected",
-            # raise_error=False,
-            trace_choosers=trace_choosers,
         )
 
     # EET does not expose per-row random draws; return zeros for compatibility.

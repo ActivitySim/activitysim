@@ -7,20 +7,28 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import workflow
-from activitysim.core.interaction_sample import _resolve_sample_method
+from activitysim.core import estimation, workflow
+from activitysim.core.interaction_sample import resolve_sample_method
 
 logger = logging.getLogger(__name__)
 
 
 def maybe_bias_logsums(state: workflow.State, choices_df: pd.DataFrame, model_settings):
-    # Check for temporary fix to bias logsums for Poisson sampling results to align with MC/eet sampling.
-    sample_compute_settings = getattr(model_settings, "compute_settings", None)
-    if sample_compute_settings is not None:
-        sample_compute_settings = sample_compute_settings.subcomponent_settings(
-            "sample"
+    """Check for temporary fix to bias logsums for Poisson sampling results to align with MC/eet sampling."""
+
+    # Defensive guard: estimation mode is supposed to be MC-only (see the guard in
+    # interaction_sample.py that blocks any non-monte_carlo sampling method during
+    # estimation). If that guard is ever bypassed, this function would otherwise apply
+    # log(SAMPLE_SIZE) instead of log(ESTIMATION_SAMPLE_SIZE) — the wrong correction —
+    # and silently skew estimated coefficients. Fail loudly here so the divergence
+    # cannot reach the user's estimation output.
+    if estimation.manager.enabled:
+        raise RuntimeError(
+            "maybe_bias_logsums should not be called during estimation; "
+            "Poisson sampling is not allowed in estimation mode."
         )
-    sample_method = _resolve_sample_method(state, sample_compute_settings)
+
+    sample_method = resolve_sample_method(state, model_settings)
     if (
         (sample_method == "poisson")
         and (model_settings.SAMPLE_SIZE > 0)

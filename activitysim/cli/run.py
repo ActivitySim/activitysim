@@ -14,7 +14,7 @@ import time
 
 import numpy as np
 
-from activitysim.core import chunk, config, mem, timing, tracing, workflow
+from activitysim.core import calibration, chunk, config, mem, timing, tracing, workflow
 from activitysim.core.configuration import FileSystem, Settings
 from activitysim.core.run_id import RunId
 
@@ -418,7 +418,29 @@ def run(args):
         check_model_settings(state, extension_settings=extension_checker_settings)
 
     try:
-        if state.settings.multiprocess:
+        if calibration.calibration_enabled(state):
+            logger.info("run calibration workflow")
+
+            calibration_result = calibration.run_calibration_loop(
+                state=state,
+                models=state.settings.models,
+                memory_sidecar_process=memory_sidecar_process,
+            )
+
+            logger.info(
+                "calibration workflow complete converged=%s completed_global_iterations=%s",
+                calibration_result.converged,
+                calibration_result.completed_global_iterations,
+            )
+
+            if state.settings.cleanup_pipeline_after_run:
+                state.checkpoint.cleanup()
+            else:
+                state.checkpoint.close_store()
+
+            mem.log_global_hwm()
+
+        elif state.settings.multiprocess:
             logger.info("run multiprocess simulation")
 
             from activitysim.core import mp_tasks

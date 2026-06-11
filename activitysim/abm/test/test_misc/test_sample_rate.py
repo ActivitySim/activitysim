@@ -36,8 +36,8 @@ def state(example_root) -> workflow.State:
 
     households = pd.DataFrame(
         {
-            "household_id": range(1, 100001),
-            "home_zone_id": [1, 2] * 50000,
+            "household_id": range(1, 4002),
+            "home_zone_id": [1, 2] * 2000 + [1],
         }
     )
     households.to_csv(example_root / "data" / "households.csv", index=False)
@@ -50,6 +50,6 @@ def state(example_root) -> workflow.State:
 def test_sample_rate_calculation(state):
     households_df = state.get_dataframe("households")
     sample_rate = households_df["sample_rate"].iloc[0]
-    assert (
-        sample_rate == 0.00002
-    ), f"Expected sample rate of 0.00002, but got {sample_rate}"
+    assert sample_rate == pytest.approx(
+        0.0005, abs=1e-6
+    ), f"Expected sample rate of 0.0005, but got {sample_rate}"

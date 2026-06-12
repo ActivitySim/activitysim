@@ -19,7 +19,6 @@ def get_settings(omx_file_name):
         MATRICES=[
             MatrixSettings(
                 file_name=Path(omx_file_name),
-                is_tap=False,
                 tables=[
                     MatrixTableSettings(
                         name="DRIVEALONE_VOT1",
@@ -77,7 +76,6 @@ def test_write_matrices_one_zone():
         trips_df=trips_df,
         zone_index=zone_index,
         model_settings=get_settings("trips_one_zone.omx"),
-        is_tap=False,
     )
 
     # Validate output
@@ -170,7 +168,6 @@ def test_write_matrices_two_zone():
         trips_df=trips_df,
         zone_index=zone_index,
         model_settings=get_settings("trips_two_zone.omx"),
-        is_tap=False,
     )
 
     # Validate output

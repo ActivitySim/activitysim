@@ -132,31 +132,6 @@ def setup_skims(
             }
         )
 
-    if network_los.zone_system == los.THREE_ZONE:
-        # fixme - is this a lightweight object?
-        tvpb = network_los.tvpb
-
-        tvpb_logsum_odt = tvpb.wrap_logsum(
-            orig_key=orig_col_name,
-            dest_key=dest_col_name,
-            tod_key="out_period",
-            segment_key="demographic_segment",
-            trace_label=None,
-            tag="tvpb_logsum_odt",
-        )
-        tvpb_logsum_dot = tvpb.wrap_logsum(
-            orig_key=dest_col_name,
-            dest_key=orig_col_name,
-            tod_key="in_period",
-            segment_key="demographic_segment",
-            trace_label=None,
-            tag="tvpb_logsum_dot",
-        )
-
-        skims.update(
-            {"tvpb_logsum_odt": tvpb_logsum_odt, "tvpb_logsum_dot": tvpb_logsum_dot}
-        )
-
     # add time periods to skims if requested
     if add_periods:
         choosers["out_period"] = network_los.skim_time_period_label(

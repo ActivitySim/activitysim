@@ -205,7 +205,6 @@ def write_trip_matrices(
             trips_df=trips_df,
             zone_index=zone_labels,  # Series or Index; used for mapping and shape
             model_settings=model_settings,
-            is_tap=False,
         )
 
     elif network_los.zone_system == los.TWO_ZONE:  # maz trips written to taz matrices
@@ -235,7 +234,6 @@ def write_trip_matrices(
             trips_df=trips_df,
             zone_index=zone_index,
             model_settings=model_settings,
-            is_tap=False,
         )
 
     if "parking_location" in state.settings.models:
@@ -385,7 +383,7 @@ def write_matrices(
             def to_domain_vals(series: pd.Series) -> pd.Series:
                 # already in domain?
                 in_domain = pd.Series(series.isin(pos_index).values, index=series.index)
-                if in_domain.all() or is_tap:
+                if in_domain.all():
                     return series
                 # try MAZ -> TAZ using land_use while preserving the original index
                 try:

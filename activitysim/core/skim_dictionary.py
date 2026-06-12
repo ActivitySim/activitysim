@@ -79,19 +79,21 @@ class OffsetMapper(object):
         if len(index_vals) > 0:
             min_zone = int(index_vals.min())
             max_zone = int(index_vals.max())
+            span = max_zone - min_zone + 1
             # Only build array if zone IDs are non-negative and range is reasonable
             # (avoid huge arrays for sparse zone IDs)
-            if min_zone >= 0 and (max_zone - min_zone + 1) <= len(index_vals) * 10:
-                self._offset_array = np.full(
-                    max_zone + 1, NOT_IN_SKIM_ZONE_ID, dtype=np.int32
-                )
+            if min_zone >= 0 and span <= len(index_vals) * 10:
+                self._offset_array_min_zone = min_zone
+                self._offset_array = np.full(span, NOT_IN_SKIM_ZONE_ID, dtype=np.int32)
                 self._offset_array[
-                    index_vals.astype(int)
+                    index_vals.astype(int) - min_zone
                 ] = offset_series.values.astype(np.int32)
             else:
                 self._offset_array = None
+                self._offset_array_min_zone = 0
         else:
             self._offset_array = None
+            self._offset_array_min_zone = 0
 
     def set_offset_list(self, offset_list):
         """

@@ -339,10 +339,6 @@ def tour_mode_choice_simulate(
                 )
             )
 
-            if network_los.zone_system == los.THREE_ZONE:
-                skims["tvpb_logsum_odt"].extend_trace_label(tour_purpose)
-                skims["tvpb_logsum_dot"].extend_trace_label(tour_purpose)
-
             # name index so tracing knows how to slice
             assert tours_segment.index.name == "tour_id"
 

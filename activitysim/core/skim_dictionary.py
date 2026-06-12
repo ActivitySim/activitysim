@@ -149,14 +149,16 @@ class OffsetMapper(object):
         if self._offset_array is not None:
             # Fast path: use numpy array indexing (O(1) per element)
             zone_ids = np.asanyarray(zone_ids).astype(int)
+            min_zone = getattr(self, "_offset_array_min_zone", 0)
+            idx = zone_ids - min_zone
             # Clip to valid range to avoid index errors, then mark out-of-range as NOT_IN_SKIM
             max_valid = len(self._offset_array) - 1
-            valid_mask = (zone_ids >= 0) & (zone_ids <= max_valid)
+            valid_mask = (idx >= 0) & (idx <= max_valid)
             # Use clip to safely index, then apply mask
-            clipped_ids = np.clip(zone_ids, 0, max_valid)
+            clipped_idx = np.clip(idx, 0, max_valid)
             offsets = np.where(
                 valid_mask,
-                self._offset_array[clipped_ids],
+                self._offset_array[clipped_idx],
                 NOT_IN_SKIM_ZONE_ID,
             )
             return offsets

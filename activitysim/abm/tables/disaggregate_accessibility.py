@@ -41,21 +41,27 @@ def find_nearest_accessibility_zone(
         if n_origins == 0 or n_dests == 0:
             return []
 
-        # Create all origin-destination pairs in one go
-        # all_orig: [o1, o1, o1, ..., o2, o2, o2, ..., oN, oN, oN, ...]
-        # all_dest: [d1, d2, d3, ..., d1, d2, d3, ..., d1, d2, d3, ...]
-        all_orig = np.repeat(origin_zones, n_dests)
-        all_dest = np.tile(dest_zones, n_origins)
+        # Process in batches to avoid allocating arrays of size n_origins * n_dests
+        max_pairs = 5_000_000
+        batch_size = max(1, int(max_pairs // n_dests))
 
-        # Single skim lookup for all pairs
-        all_dists = skim_dict.lookup(all_orig, all_dest, "DIST")
+        results = []
+        for start in range(0, n_origins, batch_size):
+            batch_orig = origin_zones[start : start + batch_size]
 
-        # Reshape to (n_origins, n_dests) and find argmin per origin
-        dist_matrix = np.asarray(all_dists).reshape(n_origins, n_dests)
-        nearest_indices = np.argmin(dist_matrix, axis=1)
+            # create all origin-destination pairs for this batch
+            all_orig = np.repeat(batch_orig, n_dests)
+            all_dest = np.tile(dest_zones, len(batch_orig))
 
-        # Return list of (origin, nearest_dest) tuples
-        return list(zip(origin_zones, dest_zones[nearest_indices]))
+            # single skim lookup for all pairs in the batch
+            all_dists = skim_dict.lookup(all_orig, all_dest, "DIST")
+            dist_matrix = np.asarray(all_dists).reshape(len(batch_orig), n_dests)
+
+            # find the index of the nearest destination zone for each origin in the batch
+            nearest_indices = np.argmin(dist_matrix, axis=1)
+            results.extend(zip(batch_orig, dest_zones[nearest_indices]))
+
+        return results
 
     def nearest_node(oz, zones_df):
         _idx = util.nearest_node_index(_centroids.loc[oz].XY, zones_df.to_list())

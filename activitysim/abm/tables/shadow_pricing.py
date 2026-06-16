@@ -62,12 +62,6 @@ TALLY_CHECKIN = (0, -1)
 TALLY_CHECKOUT = (1, -1)
 TALLY_PENDING_PERSONS = (2, -1)
 
-default_segment_to_name_dict = {
-    # model_selector : persons_segment_name
-    "school": "school_segment",
-    "workplace": "income_segment",
-}
-
 
 def size_table_name(model_selector):
     """
@@ -133,12 +127,6 @@ class ShadowPriceSettings(PydanticReadable, extra="forbid"):
     school_segmentation_targets: dict[str, str] | None = None
 
     WRITE_ITERATION_CHOICES: bool = False
-
-    SEGMENT_TO_NAME: dict[str, str] = {
-        "school": "school_segment",
-        "workplace": "income_segment",
-    }  # pydantic uses deep copy, so mutable default value is ok here
-    """Mapping from model_selector to persons_segment_name."""
 
 
 class ShadowPriceCalculator:

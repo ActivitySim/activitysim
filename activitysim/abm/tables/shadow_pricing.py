@@ -176,6 +176,7 @@ class ShadowPriceCalculator:
         )
 
         self.model_selector = model_settings.MODEL_SELECTOR
+        self.chooser_segment_column = model_settings.CHOOSER_SEGMENT_COLUMN_NAME
 
         if (self.num_processes > 1) and not state.settings.fail_fast:
             # if we are multiprocessing, then fail_fast should be true or we will wait forever for failed processes
@@ -826,9 +827,24 @@ class ShadowPriceCalculator:
             sampled_persons = pd.DataFrame()
             persons_merged = state.get_dataframe("persons_merged")
 
-            # need to join the segment to the choices to sample correct persons
-            segment_to_name_dict = self.shadow_settings.SEGMENT_TO_NAME
-            segment_name = segment_to_name_dict[self.model_selector]
+            # Use the model chooser segmentation to keep shadow-pricing resampling
+            # consistent with segment_ids in location choice settings.
+            segment_name = self.chooser_segment_column
+            if segment_name not in persons_merged.columns:
+                raise SystemConfigurationError(
+                    f"Missing chooser segment column '{segment_name}' in persons_merged "
+                    f"for {self.model_selector} simulation shadow pricing"
+                )
+
+            # Fail fast on obvious misconfiguration instead of silently sampling no one.
+            segment_values = set(self.segment_ids.values())
+            chooser_values = set(persons_merged[segment_name].dropna().unique())
+            if not segment_values.intersection(chooser_values):
+                raise SystemConfigurationError(
+                    f"No overlap between SEGMENT_IDS values ({sorted(segment_values)}) and "
+                    f"persons_merged['{segment_name}'] values for {self.model_selector} "
+                    "simulation shadow pricing"
+                )
 
             if type(self.choices_synced) != pd.DataFrame:
                 self.choices_synced = self.choices_synced.to_frame()

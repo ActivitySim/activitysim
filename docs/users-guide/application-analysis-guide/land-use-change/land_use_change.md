@@ -6,10 +6,6 @@ Many contemporary urban planners are encouraging developers to build denser hous
 
 **NOTE: The example provided is a hypothetical project that demonstrates how one would use ActivitySim to model the effects of a land use change and does not necessarily reflect any real planned developments.**
 
-## Prerequisite
-
-Before setting up this test, one should run the [SANDAG ABM3 Example model](https://github.com/activitysim/sandag-abm3-example), as the inputs used in it will be copied for this test.
-
 ## Setting Up the Scenario
 
 Three input files need to be changed in order to run this test: the land use file (landuse.csv) and the files defining the synthetic population (households.csv and persons.csv). While updating the land use file may seem very straightforward, it is very easy to overlook some necessary changes that could result in the model understating the impact of the change. A modeler doesn't need to just edit the household and employment fields in the study area--they also need to edit any field derived from those fields. For example, every new household will have at least one person in it, so the population field will need to be updated as well (along with population density if that is present). If the total population is to be kept the same, households will need to be removed outside of the study area as well.
@@ -18,11 +14,9 @@ Because Activity-based models use synthetic populations, those input files will 
 
 ### Instructions
 
-1. Create a new directory for your test (suggested name: example-land-use). Copy the `data` and `configs` folders from your completed SANDAG ABM3 Example run into this directory. Additionally, create an empty directory called `output`.
+1. The first thing to do would be to update the new synthetic population. This can be done using PopulationSim's repop mode, which adds additional population on top of existing PopulationSim outputs (a pipeline file is needed). A more detailed explanation of PopulationSim's repop mode can be found in [PopulationSim's documentation](https://activitysim.github.io/populationsim/application_configuration.html#configuring-settings-file-for-repop-mode), but this guide will briefly provide some examples of how PopulationSim can be configured for this particular scenario.
 
-#### PopulationSim Repop Mode
-
-2. Next, add the new households. This can be done using PopulationSim's repop mode. To do that, copy an existing setup to a new location. Then, edit the model steps within the `run_list` settings file to be the following steps:
+First, the `run_list` in the settings file needs to be adjusted to have PopulationSim run the repop steps:
 ```
 run_list:
   steps:
@@ -38,72 +32,98 @@ run_list:
     - write_tables.repop
 ```
 
-Next, add the setting `repop_control_file_name: repop_controls.csv` to the settings file. This tells PopulationSim which file to configure what the control totals will be within the configs directory (configs\repop_controls.csv). Now, open that file and edit it to match the following table:
-| target     | geography | seed_table | importance | control_field | expression                                          |
-|------------|-----------|------------|------------|---------------|-----------------------------------------------------|
-| num_hh     | mgra      | households | 1000000000 | Total_HH      | (households.WGTP > 0) & (households.WGTP < np.inf)  |
-| HHSize_1   | mgra      | households | 250000     | HHSize_1      | households.NP == 1                                  |
-| HHSize_2   | mgra      | households | 250000     | HHSize_2      | households.NP == 2                                  |
-| HHWork_0   | mgra      | households | 100000     | HHWork_0      | households.workers == 0                             |
-| HHWork_1   | mgra      | households | 100000     | HHWork_1      | households.workers == 1                             |
-| HHWork_2   | mgra      | households | 100000     | HHWork_2      | households.workers == 2                             |
-| HHChild_0  | mgra      | households | 100000     | HHChild_0     | households.HUPAC == 4                               |
-| Age_18to24 | mgra      | persons    | 100000     | Age_18to24    | (persons.AGEP >= 18) & (persons.AGEP <= 24)         |
-| Age_25to34 | mgra      | persons    | 100000     | Age_25to34    | (persons.AGEP >= 25) & (persons.AGEP <= 34)         |
-| Age_35to44 | mgra      | persons    | 100000     | Age_35to44    | (persons.AGEP >= 35) & (persons.AGEP <= 44)         |
-| Age_45to54 | mgra      | persons    | 100000     | Age_45to54    | (persons.AGEP >= 45) & (persons.AGEP <= 54)         |
+Next, `repop_control_file_name: repop_controls.csv` should be added to the settings file. This tells PopulationSim which file to configure what the control totals will be within the configs directory (configs\repop_controls.csv). The following configuration will help control for characteristic of the population within a TOD area. For example, TOD is more likely to attract smaller households who are more likely to be workers, more likely to be held by younger adults, and less likely to have children than the general population.
+| target     | geography | seed_table | importance | control_field | expression                                         |
+|------------|-----------|------------|------------|---------------|----------------------------------------------------|
+| num_hh     | mgra      | households | 1000000000 | Total_HH      | (households.WGTP > 0) & (households.WGTP < np.inf) |
+| HHSize_1   | mgra      | households | 250000     | HHSize_1      | households.NP == 1                                 |
+| HHSize_2   | mgra      | households | 250000     | HHSize_2      | households.NP == 2                                 |
+| HHWork_0   | mgra      | households | 100000     | HHWork_0      | households.workers == 0                            |
+| HHWork_1   | mgra      | households | 100000     | HHWork_1      | households.workers == 1                            |
+| HHWork_2   | mgra      | households | 100000     | HHWork_2      | households.workers == 2                            |
+| HHChild_0  | mgra      | households | 100000     | HHChild_0     | households.HUPAC == 4                              |
+| Age_18to24 | mgra      | persons    | 100000     | Age_18to24    | (persons.AGEP >= 18) & (persons.AGEP <= 24)        |
+| Age_25to34 | mgra      | persons    | 100000     | Age_25to34    | (persons.AGEP >= 25) & (persons.AGEP <= 34)        |
+| Age_35to44 | mgra      | persons    | 100000     | Age_35to44    | (persons.AGEP >= 35) & (persons.AGEP <= 44)        |
+| Age_45to54 | mgra      | persons    | 100000     | Age_45to54    | (persons.AGEP >= 45) & (persons.AGEP <= 54)        |
 
-Many of the fields that are controlled for can be defined to be characteristic of the population within a TOD area. For example, TOD is more likely to attract smaller households who are more likely to be workers, more likely to be held by younger adults, and less likely to have children than the general population. This can be defined in the control totals table, which resides within the data folder. The exact name of the file is defined as the `mgra_control_data` within the `input_table_list` setting:
+The totals in each of the zones are then defined in the control total file, which can be defined in the settings file as follows:
 ```
 input_table_list:
   - filename : repop_control_totals.csv
     tablename: mgra_control_data
 ```
 
-Setting that CSV file to the following values should result in the addition of 1000 households that are characteristic of a TOD in the San Diego area:
+These values can be set to add a population to the study area that is characteristic of a typical transit-oriented development.
 | mgra | Total_HH | HHSize_1 | HHSize_2 | HHWork_0 | HHWork_1 | HHWork_2 | HHChild_0 | Age_18to24 | Age_25to34 | Age_35to44 | Age_45to54 |
 |------|----------|----------|----------|----------|----------|----------|-----------|------------|------------|------------|------------|
-| 1    | 250      | 125      | 75       | 25       | 120      | 60       | 200       | 75         | 100        | 100        | 75         |
-| 2    | 250      | 125      | 75       | 25       | 120      | 60       | 200       | 75         | 100        | 100        | 75         |
-| 3    | 250      | 125      | 75       | 25       | 120      | 60       | 200       | 75         | 100        | 100        | 75         |
-| 4    | 250      | 125      | 75       | 25       | 120      | 60       | 200       | 75         | 100        | 100        | 75         |
+| 579  | 500      | 250      | 150      | 50       | 240      | 120      | 400       | 150        | 200        | 200        | 150        |
+| 4502 | 500      | 250      | 150      | 50       | 240      | 120      | 400       | 150        | 200        | 200        | 150        |
 
-#### Updating Land Use File
+The output synthetic population files then need to be placed in the `data` directory for the ActivitySim run.
 
-3. The land use data needs to be readjusted to increase the number of households within the study area.
+2. The land use file now needs to be updated to reflect the updated population. These lines of code update the household and population values within the land use file (assuming that the synthetic population exists as data frames called `households` and `persons` and the land use file is a data frame called `land_use`).
 ```
 land_use["hh"] = households.groupby("home_zone_id").count()["household_id"]
 persons["home_zone_id"] = persons["household_id"].map(households.set_index("household_id")["home_zone_id"])
 land_use["pop"] = persons.groupby("home_zone_id").count()["person_id"]
 del persons["home_zone_id"]
 ```
+Further variables will need to be edited as well. For example, the SANDAG example contains variables on the number of housing units in each MAZ, including those that are vacant (so this will be higher than the number of households). There are also variables for population density. It may initially seem that one could just calculate them by dividing the updated population by the total area. While some models may use population density calculated in that way, the population density variables in the SANDAG model are actually the population within a buffer and are calculated via a preprocessing step that's external to ActivitySim (which should be rerun in this particular scenario). One should pay close attention to how each of the variables are defined to reduce the risk of a misunderstanding causing incorrect model results.
 
-4. The land use data needs to again be adjusted for the retail jobs. This example will show those jobs being taken from other areas, though if the total number of jobs don't need to stay constant, no values outside the study area would need to change.
+3. The land use data needs to again be adjusted for the retail jobs. This is overall more straightforward than adjusting the population, as ActivitySim models don't typically have a set of synthetic set of establishments. As this particular scenario add 1000 additional retail jobs to the TOD development, the values of the retail and total employment fields simply need to be updated for the zones within the study area:
 ```
 # Adjust employment
-outside_mask = ~land_use["MAZ"].isin(STUDY_AREA_ZONES)
-inside_mask = land_use["MAZ"].isin(STUDY_AREA_ZONES)
-
-# Randomly select which outside zones lose retail jobs (weighted by current emp_ret)
-outside = land_use.loc[outside_mask].copy()
-outside_ret = outside.loc[outside["emp_ret"] > 0]
-weights = outside_ret["emp_ret"] / outside_ret["emp_ret"].sum()
-jobs_to_remove = pd.Series(
-    np.random.choice(outside_ret.index, size=N_NEW_RETJOBS, p=weights),
-).value_counts()
-land_use.loc[jobs_to_remove.index, "emp_ret"] -= jobs_to_remove.values
-
-# Randomly distribute those jobs into study area zones
-jobs_to_add = pd.Series(
-    np.random.choice(land_use.loc[inside_mask].index, size=N_NEW_RETJOBS),
-).value_counts()
-land_use.loc[jobs_to_add.index, "emp_ret"] += jobs_to_add.values
+land_use = land_use.set_index("MAZ")
+land_use.loc[579, "emp_ret"] += 500
+land_use.loc[579, "emp_tot"] += 500
+land_use.loc[4502, "emp_ret"] += 500
+land_use.loc[4502, "emp_tot"] += 500
+land_use = land_use.reset_index() # Not necessary, but helpful if further operations use the MAZ field this could prevent an error
 ```
+It should be noted that the same caveat applies to fields derived from employment data, such as employment density or any aggregated fields that may be present. One should be careful to update all fields that are relevant to the total employment.
 
 ## Running the Test
+
 To run the test, run the following command line argument:
 ```
-
+uv run activitysim run -c configs\common -c configs\resident -d data_full -o output --ext extensions
 ```
 
 ## Analyzing the Results
+
+The following code blocks demonstrate how to calculate key metrics from the model outputs. They all assume that the ActivitySim output files will be read in as a data frame where the name will be the same as the file name but without the prefix or the file extension (e.g. final_trips.csv will be read as trips).
+
+### Vehicle Miles Traveled
+While the true modeled VMT requires assignment to be run, one can get a reasonable estimate via the ActivitySim outputs. The output trips table in the SANDAG ABM3 example actually includes fields called `distance` and `weightTrip`, which are created in the preprocessor for writing the outputs (write_trip_matrices_annotate_trips_preprocessor.csv). The `distance` field is created by [reading in the distance skim value](https://github.com/ActivitySim/sandag-abm3-example/blob/main/configs/resident/write_trip_matrices_annotate_trips_preprocessor.csv#L5) and the `weightTrip` field is a weight that [factors in the occupancy](https://github.com/ActivitySim/sandag-abm3-example/blob/main/configs/resident/write_trip_matrices_annotate_trips_preprocessor.csv#L7). The following lines of code compute the VMT using those particular fields:
+```
+auto_modes = ["DRIVEALONE", "SHARED2", "SHARED3", "TNC_SINGLE", "TNC_SHARED", "TAXI"]
+auto_trips = trips[["trip_mode", "distance", "weightTrip"]].query("trip_mode in @auto_modes")
+vmt = (auto_trips["distance"] * auto_trips["weightTrip"]()).sum()
+```
+Now, not every ActivitySim implementation will have such a field in their outputs, so the calculation may not be as simple. If the distance field isn't added to the outputs, one will need to read in the skims in order to perform the calculation. One will also need to remember to factor in the occupancy, as an individual who is carpooling has less of an impact on VMT than a person who is driving alone.
+
+### Mode Share
+Calculating the mode share of ActivitySim is fairly straightforward as the modes are reported in the output. However, one needs to ask the questions of *which* mode share they'd like to know. For example, the simplest is the regional mode share, which can just be directly calculated from the trips file:
+```
+mode_share = trips["trip_mode"].value_counts(normalize = True)
+```
+This will return the percentage of trips that use each mode. However, a single localized development won't move the needle much, so it may be hard to tell if there was an impact. The following metric computes the *tour* mode share to work of households living in zones close to the transit stop, which should show a much larger difference from the baseline (there are no households in the study area in the baseline run so the baseline mode share would be undefined).
+```
+station_area = [579, 4502, 8524, 7714, 12170, 12171, 5455, 8457, 846, 8232, 7831, 12172, 12173, 12174, 12175, 12176, 12177, 12178]
+tours["home_maz"] = reindex() # Look how to use this
+station_area_tours = tours[["home_maz", "tour_mode", "tour_purpose"]].query("home_maz in @station_area and tour_purpose == 'work'")
+tour_mode_share_to_work = station_area_tours["tour_mode"].value_counts(normalize = True)
+```
+
+### Auto Ownership
+The calculation of the reigional auto ownership rates is very straightforward, as that variable is reported directly in the households table:
+```
+auto_ownership = households["auto_ownership"].value_counts(normalize = True)
+```
+However, auto ownership has the same issue with mode share where the TOD development will barely move the needle on the regional auto ownership rates. Therefore, a similar calculation would need to be done:
+```
+station_area = [579, 4502, 8524, 7714, 12170, 12171, 5455, 8457, 846, 8232, 7831, 12172, 12173, 12174, 12175, 12176, 12177, 12178]
+station_area_households = households.query("household_id in @station_area")
+station_area_auto_ownership = station_area_households["auto_ownership"].value_counts(normalize = True)
+```

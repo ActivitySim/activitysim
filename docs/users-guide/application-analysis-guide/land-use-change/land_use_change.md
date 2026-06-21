@@ -4,6 +4,8 @@
 
 Many contemporary urban planners are encouraging developers to build denser housing, particularly around transit stops. Naturally, planners will want to gauge what the impact of such a development would be on their jurisdiction's transportation system, particularly regarding metrics such as VMT (and subsequently greenhouse gas emission) and transit boardings (and subsequently farebox revenue). To demonstrate this, we will be analyzing a hypothetical development in the San Diego Region. The particular development will add 2000 households and 1000 retail jobs in the vicinity of the Grossmont Station on the Green and Orange Lines of San Diego's light rail system, where there is an existing auto-oriented shopping mall. The guide will show how to make changes to the ActivitySim inputs, how to run the test, and how to calculate some of the key metrics such as VMT and changes in mode share.
 
+![A map of the Study Area. The study area (Grossmont Center) is highlighted in red and the location of the nearby Grossmont Trolley Station is highlighted](LandUseStudyAreaMap.png)
+
 **NOTE: The example provided is a hypothetical project that demonstrates how one would use ActivitySim to model the effects of a land use change and does not necessarily reflect any real planned developments.**
 
 ## Setting Up the Scenario

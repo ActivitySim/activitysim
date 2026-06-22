@@ -99,10 +99,7 @@ def households(state: workflow.State) -> pd.DataFrame:
         if households_sample_size == 0:
             sample_rate = 1
         else:
-            # TODO: do not round, keep full precision to avoid creating 0 sample_rate for small samples
-            # Existing CI tests will fail when performing bitwise comparisons with the unrounded sample_rate
-            # We should update the CI tests
-            sample_rate = round(households_sample_size / tot_households, 3)
+            sample_rate = households_sample_size / tot_households
 
         df["sample_rate"] = sample_rate
 

@@ -114,7 +114,7 @@ mode_share = trips["trip_mode"].value_counts(normalize = True)
 This will return the percentage of trips that use each mode. However, a single localized development won't move the needle much, so it may be hard to tell if there was an impact. The following metric computes the *tour* mode share to work of households living in zones close to the transit stop, which should show a much larger difference from the baseline (there are no households in the study area in the baseline run so the baseline mode share would be undefined).
 ```
 station_area = [579, 4502, 8524, 7714, 12170, 12171, 5455, 8457, 846, 8232, 7831, 12172, 12173, 12174, 12175, 12176, 12177, 12178]
-tours["home_maz"] = reindex() # Look how to use this
+tours["home_maz"] = tours["household_id"].map(households.set_index("household_id")["home_zone_id"])
 station_area_tours = tours[["home_maz", "tour_mode", "tour_purpose"]].query("home_maz in @station_area and tour_purpose == 'work'")
 tour_mode_share_to_work = station_area_tours["tour_mode"].value_counts(normalize = True)
 ```

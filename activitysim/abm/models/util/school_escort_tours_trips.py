@@ -7,7 +7,7 @@ import pandas as pd
 
 from activitysim.abm.models.school_escorting import NUM_ESCORTEES
 from activitysim.abm.models.util import canonical_ids
-from activitysim.core import workflow
+from activitysim.core import estimation, workflow
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ def create_bundle_attributes(bundles):
             series = (
                 df[col]
                 .fillna(-1)
-                .astype(int)
+                .astype("int64")
                 .astype(str)
                 .replace("-1", "", regex=False)
             )
@@ -331,7 +331,7 @@ def create_chauf_trip_table(bundles):
 
 def create_chauf_escort_trips(bundles):
     chauf_trip_bundles = create_chauf_trip_table(bundles.copy())
-    chauf_trip_bundles["tour_id"] = bundles["chauf_tour_id"].astype(int)
+    chauf_trip_bundles["tour_id"] = bundles["chauf_tour_id"].astype("int64")
 
     # departure time is the first school start in the outbound school_escort_direction and the last school end in the inbound school_escort_direction
     starts = (
@@ -651,7 +651,7 @@ def process_tours_after_escorting_model(state: workflow.State, escort_bundles, t
     num_escortees = (
         escort_bundles.drop_duplicates("chauf_tour_id")
         .set_index("chauf_tour_id")["num_escortees"]
-        .astype(int)
+        .astype("int64")
     )
     tours.loc[num_escortees.index, "num_escortees"] = num_escortees
 
@@ -921,7 +921,9 @@ def create_pure_school_escort_tours(state: workflow.State, bundles):
         pe_tours["school_escort_direction"] == "inbound", "pure_escort", pd.NA
     )
 
-    pe_tours = pe_tours.sort_values(by=["household_id", "person_id", "start"])
+    pe_tours = pe_tours.sort_values(
+        by=["household_id", "person_id", "start"], kind="stable"
+    )
 
     # finding what the next start time for that person for scheduling
     pe_tours["next_pure_escort_start"] = (

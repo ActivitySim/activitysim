@@ -85,13 +85,15 @@ def determine_escorting_participants(
     )
 
     chaperones["chaperone_num"] = (
-        chaperones.sort_values("chaperone_weight", ascending=False)
+        chaperones.sort_values("chaperone_weight", ascending=False, kind="stable")
         .groupby("household_id")
         .cumcount()
         + 1
     )
     escortees["escortee_num"] = (
-        escortees.sort_values("age", ascending=True).groupby("household_id").cumcount()
+        escortees.sort_values("age", ascending=True, kind="stable")
+        .groupby("household_id")
+        .cumcount()
         + 1
     )
 
@@ -247,7 +249,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
         )
 
     # each chauffeur option has ride share or pure escort
-    bundles["chauf_num"] = np.ceil(bundles["chauf_type_num"].div(2)).astype(int)
+    bundles["chauf_num"] = np.ceil(bundles["chauf_type_num"].div(2)).astype("int64")
 
     # getting bundle chauffeur id based on the chauffeur num
     bundles["chauf_id"] = -1
@@ -257,7 +259,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
             choosers["chauf_id" + str(i)],
             bundles["chauf_id"],
         )
-    bundles["chauf_id"] = bundles["chauf_id"].astype(int)
+    bundles["chauf_id"] = bundles["chauf_id"].astype("int64")
     assert (
         bundles["chauf_id"] > 0
     ).all(), "Invalid chauf_id's for school escort bundles!"
@@ -586,6 +588,7 @@ def school_escorting(
             by=["household_id", "school_escort_direction"],
             ascending=[True, False],
             inplace=True,
+            kind="stable",
         )
 
         school_escort_tours = school_escort_tours_trips.create_pure_school_escort_tours(

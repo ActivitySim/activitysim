@@ -7,7 +7,7 @@ import pandas as pd
 
 from activitysim.abm.models.school_escorting import NUM_ESCORTEES
 from activitysim.abm.models.util import canonical_ids
-from activitysim.core import estimation, workflow
+from activitysim.core import workflow
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)

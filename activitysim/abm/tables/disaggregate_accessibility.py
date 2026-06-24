@@ -27,20 +27,41 @@ def find_nearest_accessibility_zone(
     def weighted_average(df, values, weights):
         return df[values].T.dot(df[weights]) / df[weights].sum()
 
-    def nearest_skim(oz, zones):
-        # need to pass equal # of origins and destinations to skim_dict
-        orig_zones = np.full(shape=len(zones), fill_value=oz, dtype=int)
+    def find_nearest_zones_via_skims(origin_zones, dest_zones, skim_dict):
+        """
+        Vectorized lookup to find nearest destination zone for each origin zone.
+        Performs a single batched skim lookup instead of one per origin zone.
+        """
+        origin_zones = np.asarray(origin_zones)
+        dest_zones = np.asarray(dest_zones)
+        n_origins = len(origin_zones)
+        n_dests = len(dest_zones)
 
-        skim_name = model_settings.NEAREST_ZONE_SKIM
-        if "__" in skim_name:
-            # If the skim name contains '__', it is a 3D skim
-            # we need to pass the skim name as a tuple to the lookup method, e.g. ('WALK_TRANSIT_IVTT', 'MD')
-            skim_name = tuple(skim_name.split("__"))
+        # handle empty input case
+        if n_origins == 0 or n_dests == 0:
+            return []
 
-        return (
-            oz,
-            zones[np.argmin(skim_dict.lookup(orig_zones, zones, skim_name))],
-        )
+        # Process in batches to avoid allocating arrays of size n_origins * n_dests
+        max_pairs = 5_000_000
+        batch_size = max(1, int(max_pairs // n_dests))
+
+        results = []
+        for start in range(0, n_origins, batch_size):
+            batch_orig = origin_zones[start : start + batch_size]
+
+            # create all origin-destination pairs for this batch
+            all_orig = np.repeat(batch_orig, n_dests)
+            all_dest = np.tile(dest_zones, len(batch_orig))
+
+            # single skim lookup for all pairs in the batch
+            all_dists = skim_dict.lookup(all_orig, all_dest, "DIST")
+            dist_matrix = np.asarray(all_dists).reshape(len(batch_orig), n_dests)
+
+            # find the index of the nearest destination zone for each origin in the batch
+            nearest_indices = np.argmin(dist_matrix, axis=1)
+            results.extend(zip(batch_orig, dest_zones[nearest_indices]))
+
+        return results
 
     def nearest_node(oz, zones_df):
         _idx = util.nearest_node_index(_centroids.loc[oz].XY, zones_df.to_list())
@@ -77,7 +98,10 @@ def find_nearest_accessibility_zone(
 
     else:
         skim_dict = state.get_injectable("skim_dict")
-        nearest = [nearest_skim(Oz, accessibility_zones) for Oz in unmatched_zones]
+        # Vectorized lookup: single skim call for all origin-destination pairs
+        nearest = find_nearest_zones_via_skims(
+            unmatched_zones, accessibility_zones, skim_dict
+        )
 
     # Add the nearest zones to the matched zones
     matched = [(x, x) for x in matched_zones]

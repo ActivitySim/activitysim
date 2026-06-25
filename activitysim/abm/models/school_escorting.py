@@ -249,7 +249,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
         )
 
     # each chauffeur option has ride share or pure escort
-    bundles["chauf_num"] = np.ceil(bundles["chauf_type_num"].div(2)).astype("int64")
+    bundles["chauf_num"] = ((bundles["chauf_type_num"] + 1) // 2).astype("int64")
 
     # getting bundle chauffeur id based on the chauffeur num
     bundles["chauf_id"] = -1

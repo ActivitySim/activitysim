@@ -42,9 +42,9 @@ Practical differences:
 * ``poisson`` samples alternatives by inclusion probability, so each sampled alternative appears
   at most once per chooser. This can change raw sampled shares in highly peaked cases, even though
   the downstream sampling correction remains well defined.
-* ``monte-carlo`` is the fastest method, followed by ``poisson``, with ``eet`` being the slowest.
+* ``monte_carlo`` is the fastest method, followed by ``poisson``, with ``eet`` being the slowest.
   However, for models like location choice, most runtime comes from logsum calculations and the
-  total difference between ``monte-carlo`` and ``poisson`` sampling is usually very small.
+  total difference between ``monte_carlo`` and ``poisson`` sampling is usually very small.
 * ``poisson`` is the current default when running with simulation method explicit error terms
   because it avoids repeated chooser-by-alternative explicit-error draws during sampling while
   still providing improved noise reduction compared to Monte Carlo sampling.

@@ -803,7 +803,7 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     """
     Whether to apply a bias of `log(sample_size)` to the Poisson sampling results.
     This is a temporary workaround to align Poisson sampling results with the biased
-    results of the monte-carlo and eet sampling methods, such that models that were
+    results of the monte_carlo and eet sampling methods, such that models that were
     estimated with historical biased sampling results can be run with Poisson sampling
     without needing to re-estimate the model.
 

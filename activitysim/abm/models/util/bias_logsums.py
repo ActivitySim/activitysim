@@ -48,11 +48,11 @@ def maybe_bias_logsums(state: workflow.State, choices_df: pd.DataFrame, model_se
         else:
             logger.warning(
                 "Using Poisson sampling method for location choice logsum calculations. Currently the logsums results will"
-                + " differ from those obtained with monte-carlo or eet sampling by a constant shift of"
+                + " differ from those obtained with monte_carlo or eet sampling by a constant shift of"
                 + f" log({model_settings.SAMPLE_SIZE}) if using the common correction factor"
                 + " `log(pick_count / prob)` in location choice specs. The results of the Poisson method are unbiased,"
                 + " i.e., they agree with the results obtained with a full destination sample, unlike those for"
-                + " monte-carlo or eet sampling."
+                + " monte_carlo or eet sampling."
             )
 
     return choices_df

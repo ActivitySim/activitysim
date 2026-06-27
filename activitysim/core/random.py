@@ -695,7 +695,7 @@ class Random(object):
         channel.row_states.loc[df.index, "offset"] = 0
         logger.info(
             f"RNG: resetting random number generator offsets for channel '{channel.channel_name}' for {len(df)} rows"
-            + f" with index name '{df.index.name}'. Total lenght df: {len(channel.row_states)}"
+            + f" with index name '{df.index.name}'. Total length df: {len(channel.row_states)}"
         )
 
     def begin_step(self, step_name):

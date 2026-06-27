@@ -1095,98 +1095,95 @@ def iterate_location_choice(
         choices_df
     ) = None  # initialize to None, will be populated in first iteration
 
-    try:
-        for iteration in range(1, max_iterations + 1):
-            persons_merged_df_ = persons_merged_df.copy()
+    for iteration in range(1, max_iterations + 1):
+        persons_merged_df_ = persons_merged_df.copy()
 
-            if spc.use_shadow_pricing and iteration > 1:
-                spc.update_shadow_prices(state)
+        if spc.use_shadow_pricing and iteration > 1:
+            spc.update_shadow_prices(state)
 
-                if spc.shadow_settings.SHADOW_PRICE_METHOD == "simulation":
-                    # filter from the sampled persons
-                    persons_merged_df_ = persons_merged_df_[
-                        persons_merged_df_.index.isin(spc.sampled_persons.index)
-                    ]
-                    persons_merged_df_ = persons_merged_df_.sort_index()
+            if spc.shadow_settings.SHADOW_PRICE_METHOD == "simulation":
+                # filter from the sampled persons
+                persons_merged_df_ = persons_merged_df_[
+                    persons_merged_df_.index.isin(spc.sampled_persons.index)
+                ]
+                persons_merged_df_ = persons_merged_df_.sort_index()
 
-            # reset rng offsets to identical state on each iteration. This ensures that the same set of random numbers is
-            # used on each iteration for the persons being re-simulated, so sampling and final choice draws are
-            # reproducible across shadow-pricing iterations.
-            # Scoped to the persons channel for these specific rows via reset_offsets_for_df so the dedicated
-            # shadow_pricing_persons channel (registered under EET) keeps its offset across iterations and advances
-            # naturally on each iteration's update_shadow_prices call.
-            if state.settings.use_explicit_error_terms and iteration > 1:
-                logger.debug(
-                    f"{trace_label} resetting random number generator offsets for iteration {iteration}"
-                )
-                state.get_rn_generator().reset_offsets_for_df(persons_merged_df_)
-
-            choices_df_, save_sample_df = run_location_choice(
-                state,
-                persons_merged_df_,
-                network_los,
-                shadow_price_calculator=spc,
-                want_logsums=want_logsums,
-                want_sample_table=want_sample_table,
-                estimator=estimator,
-                model_settings=model_settings,
-                chunk_size=chunk_size,
-                chunk_tag=chunk_tag,
-                trace_label=tracing.extend_trace_label(trace_label, "i%s" % iteration),
+        # reset rng offsets to identical state on each iteration. This ensures that the same set of random numbers is
+        # used on each iteration for the persons being re-simulated, so sampling and final choice draws are
+        # reproducible across shadow-pricing iterations.
+        # Scoped to the persons channel for these specific rows via reset_offsets_for_df so the dedicated
+        # shadow_pricing_persons channel (registered under EET) keeps its offset across iterations and advances
+        # naturally on each iteration's update_shadow_prices call.
+        if state.settings.use_explicit_error_terms and iteration > 1:
+            logger.debug(
+                f"{trace_label} resetting random number generator offsets for iteration {iteration}"
             )
+            state.get_rn_generator().reset_offsets_for_df(persons_merged_df_)
 
-            # choices_df is a pandas DataFrame with columns "choice" and (optionally) "logsum"
-            if choices_df_ is None:
-                break
+        choices_df_, save_sample_df = run_location_choice(
+            state,
+            persons_merged_df_,
+            network_los,
+            shadow_price_calculator=spc,
+            want_logsums=want_logsums,
+            want_sample_table=want_sample_table,
+            estimator=estimator,
+            model_settings=model_settings,
+            chunk_size=chunk_size,
+            chunk_tag=chunk_tag,
+            trace_label=tracing.extend_trace_label(trace_label, "i%s" % iteration),
+        )
 
-            if spc.use_shadow_pricing:
-                # handle simulation method
-                if (
-                    spc.shadow_settings.SHADOW_PRICE_METHOD == "simulation"
-                    and iteration > 1
-                ):
-                    # if a process ends up with no sampled workers in it, hence an empty choice_df_, then choice_df wil be what it was previously
-                    if len(choices_df_) != 0:
-                        choices_df = pd.concat([choices_df, choices_df_], axis=0)
-                        choices_df_index = choices_df_.index.name
-                        choices_df = choices_df.reset_index()
-                        # update choices of workers/students
-                        choices_df = choices_df.drop_duplicates(
-                            subset=[choices_df_index], keep="last"
-                        )
-                        choices_df = choices_df.set_index(choices_df_index)
-                        choices_df = choices_df.sort_index()
-                else:
-                    choices_df = choices_df_.copy()
+        # choices_df is a pandas DataFrame with columns "choice" and (optionally) "logsum"
+        if choices_df_ is None:
+            break
 
-            else:
-                choices_df = choices_df_
-
-            spc.set_choices(
-                choices=choices_df["choice"],
-                segment_ids=persons_merged_df[chooser_segment_column].reindex(
-                    choices_df.index
-                ),
-            )
-
-            if locutor:
-                spc.write_trace_files(state, iteration)
-
-            if spc.use_shadow_pricing and spc.check_fit(state, iteration):
-                logging.info(
-                    "%s converged after iteration %s"
-                    % (
-                        trace_label,
-                        iteration,
+        if spc.use_shadow_pricing:
+            # handle simulation method
+            if (
+                spc.shadow_settings.SHADOW_PRICE_METHOD == "simulation"
+                and iteration > 1
+            ):
+                # if a process ends up with no sampled workers in it, hence an empty choice_df_, then choice_df wil be what it was previously
+                if len(choices_df_) != 0:
+                    choices_df = pd.concat([choices_df, choices_df_], axis=0)
+                    choices_df_index = choices_df_.index.name
+                    choices_df = choices_df.reset_index()
+                    # update choices of workers/students
+                    choices_df = choices_df.drop_duplicates(
+                        subset=[choices_df_index], keep="last"
                     )
+                    choices_df = choices_df.set_index(choices_df_index)
+                    choices_df = choices_df.sort_index()
+            else:
+                choices_df = choices_df_.copy()
+
+        else:
+            choices_df = choices_df_
+
+        spc.set_choices(
+            choices=choices_df["choice"],
+            segment_ids=persons_merged_df[chooser_segment_column].reindex(
+                choices_df.index
+            ),
+        )
+
+        if locutor:
+            spc.write_trace_files(state, iteration)
+
+        if spc.use_shadow_pricing and spc.check_fit(state, iteration):
+            logging.info(
+                "%s converged after iteration %s"
+                % (
+                    trace_label,
+                    iteration,
                 )
-                break
-    finally:
-        # Drop the dedicated shadow_pricing RNG channel (registered lazily under EET by spc.update_shadow_prices) so it
-        # doesn't survive into the next location_choice model (e.g., school after work) — both models share the same
-        # channel name and would otherwise collide on the no-overlap assert in SimpleChannel.extend_domain. No-op for MC.
-        # In try/finally so an exception escaping run_location_choice still drops the channel.
-        spc.cleanup_rng_channel(state)
+            )
+            break
+    # Drop the dedicated shadow_pricing RNG channel (registered lazily under EET by spc.update_shadow_prices) so it
+    # doesn't survive into the next location_choice model (e.g., school after work) — both models share the same
+    # channel name and would otherwise collide on the no-overlap assert in SimpleChannel.extend_domain. No-op for MC.
+    spc.cleanup_rng_channel(state)
 
     # - shadow price table
     if locutor:

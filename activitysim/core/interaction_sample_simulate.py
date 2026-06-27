@@ -534,8 +534,8 @@ def interaction_sample_simulate(
         Representation of the full alternatives domain (min and max alternative id)
         in the absence of sampling.
         This is used with EET simulation to ensure consistent random numbers across the whole alternative set
-        ( as the sampled set may change between base and project). When not provided,
-        EET with integer-coded choice ids will raise an error.
+        ( as the sampled set may change between base and project). When not provided, ActivitySim will log a
+        warning when running with EET, because this may reduce alignment of error terms between scenario runs.
 
     Returns
     -------

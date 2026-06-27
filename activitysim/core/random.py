@@ -20,9 +20,7 @@ logger = logging.getLogger(__name__)
 _MAX_SEED = 1 << 32
 _SEED_MASK = 0xFFFFFFFF
 
-# Sentinel used by callers of gumbel_choice_positions_for_df to mark padded /
-# unavailable alternative slots in alt_nrs_df. Exported so callers don't
-# re-encode the magic number.
+# Used by callers of gumbel_choice_positions_for_df to mark padded or unavailable alternative slots in alt_nrs_df
 MASKED_ALT_ID = -999
 
 

@@ -115,7 +115,7 @@ For models that use sub-sampling of alternatives, it is important to keep the sa
 identical between scenarios, otherwise the error terms for the choice from the sampled set are
 not guaranteed to be aligned. When running with EET, the default sampling method is ``poisson``,
 which balances runtime performance and noise reduction. For more details on sampling methods,
-see {ref}`sampling_methods_dev_guide`.
+see {ref}`sampling-methods-dev`.
 
 Finally, it also important to keep the global random number generator seed constant for two
 individual comparison runs.

@@ -142,7 +142,6 @@ jobs:
       matrix:
         region:
           - prototype_mtc
-          - prototype_arc
           - placeholder_psrc
           - prototype_mtc_extended
           - production_semcog

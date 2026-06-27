@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -602,6 +604,7 @@ class _DummyChunkSizer:
 class _DummyState:
     def __init__(self, rng):
         self._rng = rng
+        self.settings = SimpleNamespace(skip_failed_choices=False)
 
     def get_rn_generator(self):
         return self._rng

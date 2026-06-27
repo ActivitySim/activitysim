@@ -256,6 +256,7 @@ def validate_utils(
                 state,
                 zero_probs,
                 utils,
+                state.settings.skip_failed_choices,
                 trace_label=tracing.extend_trace_label(trace_label, "zero_prob_utils"),
                 msg="all probabilities are zero",
                 trace_choosers=trace_choosers,
@@ -274,7 +275,6 @@ def utils_to_probs(
     allow_zero_probs=False,
     trace_choosers=None,
     overflow_protection: bool = True,
-    skip_failed_choices: bool = True,
     return_logsums: bool = False,
 ):
     """
@@ -315,15 +315,12 @@ def utils_to_probs(
         overflow_protection will have no benefit but impose a modest computational
         overhead cost.
 
-    skip_failed_choices : bool, default True
-        If True, when bad choices are detected (all zero probabilities or infinite
-        probabilities), the entire household that's causing bad choices will be skipped instead of
-        being masked by overflow protection or causing an error.
-        A counter will be incremented for each skipped household. This is useful when running large
-        simulations where occasional bad choices are encountered and should not halt the process.
-        The counter can be accessed via `state.get("num_skipped_households", 0)`.
-        The number of skipped households and their IDs will be logged at the end of the simulation.
-        When `skip_failed_choices` is True, `overflow_protection` will be forced to False to avoid conflicts.
+    skip_failed_choices behavior
+        Bad-choice handling is controlled by `state.settings.skip_failed_choices`.
+        If enabled, choosers with bad probabilities (all zero or infinite
+        exponentiated utilities) are skipped instead of raising immediately.
+        The number of skipped households and their IDs are tracked on `state`, and
+        `overflow_protection` is forced off so those failures are not masked.
 
     Returns
     -------
@@ -352,7 +349,6 @@ def utils_to_probs(
             utils_arr.dtype == np.float32 and utils_arr.max() > 85
         )
 
-    # get skip_failed_choices from state
     skip_failed_choices = state.settings.skip_failed_choices
     # when skipping failed choices, we cannot use overflow protection
     # because it would mask the underlying issue causing bad choices

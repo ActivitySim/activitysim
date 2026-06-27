@@ -146,7 +146,7 @@ This means that all three methods use the same correction expression,
 `np.log(df.pick_count/df.prob)`, even though `prob` has a different interpretation for `poisson`
 than for the with-replacement methods.
 
-<<!-- TODO: Add section on disaggregate accessibilities here once decision is made in engineering meeting -->>
+<!-- TODO: Add section on disaggregate accessibilities here once decision is made in engineering meeting -->
 
 ## Runtime and Simulation Noise
 

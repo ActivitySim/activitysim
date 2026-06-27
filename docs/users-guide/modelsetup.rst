@@ -66,6 +66,7 @@ ActivitySim has features that makes it possible to customize model runs or impro
    + Converting string variables to pandas categoricals. ActivitySim releases 1.3.0 and higher have this capability.
    + Converting higher byte integer variables to lower byte integer variables (such as reducing ‘num tours’ from int64 to int8). ActivitySim releases 1.3.0 and higher have this capability as a switch and defaults to turning this feature off.
    + Converting higher byte float variables to lower bytes. ActivitySim releases 1.3.0 and higher have this capability as a switch and defaults to turning this feature off.
+* :ref:`Skip Failed Choices <skip_failed_choices_ways_to_run>` allows the user to skip over households that encounter errors during model execution. This feature helps to ensure that the model can continue running even in the presence of data or specification issues, while also providing visibility into any potential problems that need to be addressed.
 
 Steps for enabling/disabling these options are included in the :ref:`Advanced Configuration` sub-section, under :ref:`Ways to Run the Model` page of this Users’ Guide.
 
@@ -234,6 +235,9 @@ listed in ActivitySim's ``pyproject.toml`` file. This approach is the quickest
 for getting started but it does not rely on ActivitySim's own lockfile to install deep dependencies so you may
 end up with different versions of deep dependencies than those tested by ActivitySim developers. 
 If you want to ensure exact versions of ActivitySim's deep dependencies, you should install ActivitySim using Option 2: From Source with Lockfile.
+
+The command ``uv add activitysim`` installs the latest version of ActivitySim. To install a specific version, run the command ``uv add activitysim==[VERSION NUMBER]``.
+For example, running the command ``uv add activitysim==1.2.1`` installs ActivitySim version 1.2.1.
 
 Option 2: From Source with Lockfile
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

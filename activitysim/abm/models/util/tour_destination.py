@@ -22,8 +22,8 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.interaction_sample import (
-    resolve_sample_method,
     interaction_sample,
+    resolve_sample_method,
 )
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.logit import AltsContext
@@ -697,6 +697,11 @@ def run_destination_sample(
     # if special person id is passed
     chooser_id_column = model_settings.CHOOSER_ID_COLUMN
 
+    # Drop this when PR #1017 is merged
+    if ("household_id" not in chooser_columns) and (
+        "household_id" in persons_merged.columns
+    ):
+        chooser_columns = chooser_columns + ["household_id"]
     persons_merged = persons_merged[
         [c for c in persons_merged.columns if c in chooser_columns]
     ]
@@ -873,6 +878,11 @@ def run_destination_simulate(
     # if special person id is passed
     chooser_id_column = model_settings.CHOOSER_ID_COLUMN
 
+    # Drop this when PR #1017 is merged
+    if ("household_id" not in chooser_columns) and (
+        "household_id" in persons_merged.columns
+    ):
+        chooser_columns = chooser_columns + ["household_id"]
     persons_merged = persons_merged[
         [c for c in persons_merged.columns if c in chooser_columns]
     ]

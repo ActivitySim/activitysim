@@ -1,0 +1,8 @@
+Description,Target,Expression
+,i_tour_mode,df.tour_mode.map(I_MODE_MAP)
+,tour_mode_is_SOV,i_tour_mode == I_SOV_MODES
+,tour_mode_is_auto,i_tour_mode.isin(I_AUTO_MODES)
+,tour_mode_is_walk,i_tour_mode == I_WALK_MODE
+,inbound,~df.outbound
+,first_trip,df.trip_num == 1
+,last_trip,df.trip_num == df.trip_count

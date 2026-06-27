@@ -1,3 +1,0 @@
-Description,Target,Expression
-,primary_purpose,df.tour_type
-copied from ctramp,duration_hours,(df.end - df.start + 1) * 0.5

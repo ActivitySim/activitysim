@@ -1,3 +1,0 @@
-inherit_settings: True
-sharrow: require
-recode_pipeline_columns: True

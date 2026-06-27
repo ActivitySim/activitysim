@@ -16,9 +16,6 @@ logger = logging.getLogger(__name__)
 def maybe_bias_logsums(state: workflow.State, choices_df: pd.DataFrame, model_settings):
     """Check for temporary fix to bias logsums for Poisson sampling results to align with MC/eet sampling."""
 
-    if estimation.manager.enabled:
-        raise RuntimeError("maybe_bias_logsums should not be called during estimation.")
-
     sample_method = resolve_sample_method(state, model_settings)
     if (
         (sample_method == "poisson")
@@ -27,6 +24,11 @@ def maybe_bias_logsums(state: workflow.State, choices_df: pd.DataFrame, model_se
     ):
         # Only apply for sample size > 0, for unsampled disagg acc the MC/eet results are unbiased and we
         # want to stay consistent.
+        if estimation.manager.enabled:
+            raise RuntimeError(
+                "maybe_bias_logsums should not be called during estimation."
+            )
+
         if state.settings.bias_location_choice_logsums_for_poisson_sampling:
             logger.warning(
                 "Applying bias correction to location logsums with Poisson sampling to align with MC/eet sampling."

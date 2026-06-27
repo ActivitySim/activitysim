@@ -580,7 +580,9 @@ def interaction_sample_simulate(
             )
         choice_ids_are_int = pd.api.types.is_integer_dtype(alternatives[choice_column])
         if alts_context is not None and not choice_ids_are_int:
-            raise ValueError("alts_context can only be used with integer-coded choice_column values")
+            raise ValueError(
+                "alts_context can only be used with integer-coded choice_column values"
+            )
 
     result_list = []
     for (

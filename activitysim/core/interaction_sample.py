@@ -785,8 +785,8 @@ def _interaction_sample(
     # Estimation requires MC sampling and MC choice for now
     if estimation.manager.enabled and sampling_method != "monte_carlo":
         raise ValueError(
-            f"{trace_label}: estimation requires monte_carlo sampling and choice. Set sample_method='monte_carlo'" +
-            " (or leave it unset) and use_explicit_error_terms=False for estimation runs."
+            f"{trace_label}: estimation requires monte_carlo sampling and choice. Set sample_method='monte_carlo'"
+            + " (or leave it unset) and use_explicit_error_terms=False for estimation runs."
         )
 
     if sample_size == 0:

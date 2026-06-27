@@ -536,8 +536,8 @@ def test_sample_nested_logit_exact_leaf_error_terms_three_level_galichon(
         DummyState(), alt_utilities, nest_spec
     )
 
-    L_M = 0.85           # Λ_MOTORIZED = θ_MOTORIZED
-    L_A = 0.85 * 0.72    # Λ_AUTO = θ_MOTORIZED * θ_AUTO
+    L_M = 0.85  # Λ_MOTORIZED = θ_MOTORIZED
+    L_A = 0.85 * 0.72  # Λ_AUTO = θ_MOTORIZED * θ_AUTO
     expected_car = L_M * nest_log_S["MOTORIZED"] + L_A * nest_log_S["AUTO"] + L_A * 1.0
     expected_bus = L_M * nest_log_S["MOTORIZED"] + L_A * nest_log_S["AUTO"] + L_A * 2.0
     # walk's parent is root: Λ_parent = 1.0; only the walk gumbel contributes.

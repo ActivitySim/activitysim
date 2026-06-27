@@ -44,9 +44,7 @@ def draw_maz_rands(
         taz_positions = full_taz_index.get_indexer(taz_choices[dest_taz_col])
         assert (taz_positions >= 0).all()
         chooser_rands = np.asarray(
-            state.get_rn_generator().random_for_df(
-                chooser_df, n=len(full_taz_index)
-            )
+            state.get_rn_generator().random_for_df(chooser_df, n=len(full_taz_index))
         )
         chooser_row_positions = np.repeat(
             np.arange(len(chooser_df)), taz_choice_counts.to_numpy()

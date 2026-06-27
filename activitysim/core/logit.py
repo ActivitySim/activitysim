@@ -10,7 +10,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
-from activitysim.core import estimation, tracing, workflow
+from activitysim.core import tracing, workflow
 from activitysim.core.choosing import choice_maker
 from activitysim.core.configuration.logit import LogitNestSpec
 from activitysim.core.exceptions import (
@@ -377,12 +377,6 @@ def _log_positive_stable_for_df(
     state: workflow.State, df: pd.DataFrame, alpha: float
 ) -> np.ndarray:
     alpha = EXACT_NESTED_LOGIT_DTYPE(alpha)
-
-    # ALWAYS draw the two uniforms so the channel offset advances by a data-
-    # independent amount, regardless of alpha. Without this, a degenerate nest
-    # with coefficient=1.0 would consume zero rands and shift all downstream
-    # draws on the persons/tours channel — breaking EET cross-scenario stability
-    # for any config change that introduces or collapses such a nest.
     eps = np.finfo(EXACT_NESTED_LOGIT_DTYPE).eps
     uniforms = np.asarray(
         state.get_rn_generator().random_for_df(df, n=2),
@@ -391,7 +385,8 @@ def _log_positive_stable_for_df(
 
     if np.isclose(alpha, 1.0):
         # degenerate nest: positive-stable variate is deterministically 1, so log = 0.
-        # Offset has already advanced above.
+        # This early exit needs to happen after drawing the two uniform randoms so the channel
+        # offset advances by the same amount independent of alpha.
         return np.zeros(len(df), dtype=EXACT_NESTED_LOGIT_DTYPE)
 
     angle_uniform = np.clip(uniforms[:, 0], eps, 1.0 - eps)
@@ -453,9 +448,6 @@ def sample_nested_logit_exact_leaf_error_terms(
 
         if nest.type == "node":
             all_leaf_children = leaf_children_for_each_node.get(nest.name, [])
-            # ALWAYS draw to keep offset advancement topology-independent, even for degenerate nodes with no leaf
-            # children. This ensures that a config change that adds or removes a no-leaf intermediate node does
-            # not shift downstream draws on the persons/tours channel.
             log_stable_for_node = (
                 nest.product_of_coefficients
                 * _log_positive_stable_for_df(state, alt_utilities, nest.coefficient)
@@ -467,12 +459,12 @@ def sample_nested_logit_exact_leaf_error_terms(
                 continue
 
             # All alternatives for a chooser (row) get the same term.
-            # Use direct numpy broadcasting into the underlying values array — avoids the `.repeat()` materialization
-            # and pandas label alignment overhead.
-            # error_terms.loc[:, all_leaf_children] += log_stable_for_node.reshape(-1, 1
-            # ).repeat(len(all_leaf_children), axis=1)
             col_idx = error_terms.columns.get_indexer(all_leaf_children)
             error_terms.values[:, col_idx] += log_stable_for_node[:, None]
+            # Now using direct numpy broadcasting into the underlying values array — avoids the `.repeat()`
+            # materialization and pandas label alignment overhead.
+            # error_terms.loc[:, all_leaf_children] += log_stable_for_node.reshape(-1, 1
+            # ).repeat(len(all_leaf_children), axis=1)
 
     leaf_path_coefficients = _leaf_path_coefficients(
         nest_spec, alt_utilities.columns.to_numpy()
@@ -623,13 +615,6 @@ def make_choices_utility_based(
     we do not re-check here.
     """
     trace_label = tracing.extend_trace_label(trace_label, "make_choices_utility_based")
-
-    # Estimation requires MC choice currently. Block the EET choice path under estimation.
-    if estimation.manager.enabled:
-        raise RuntimeError(
-            f"{trace_label}: EET choice path reached during estimation. Estimation must use make_choices(probs=...)" +
-            " on MC probabilities; set use_explicit_error_terms=False for estimation runs."
-        )
 
     if nest_spec is None:
         choices = make_choices_explicit_error_term_mnl(

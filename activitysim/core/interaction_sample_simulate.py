@@ -572,20 +572,15 @@ def interaction_sample_simulate(
     # If you add a new EET caller that uses an integer choice column, please pass an
     # alts_context built from the stable universe (e.g., AltsContext.from_series(land_use.index)).
     if state.settings.use_explicit_error_terms:
-        choice_ids_are_int = pd.api.types.is_integer_dtype(alternatives[choice_column])
-        if alts_context is None and choice_ids_are_int:
+        if alts_context is None:
             logger.warning(
-                f"{trace_label}: use_explicit_error_terms is True but no alts_context "
-                "was passed; EET draws will be keyed to the per-call active alternative "
-                "count rather than a stable universe. Cross-scenario reproducibility for "
-                "this model is best-effort only. See the comment in interaction_sample_simulate.py "
-                "for the two known callers (trip_scheduling_choice, tour_od_choice) and "
-                "the requirements for opting into stable randoms."
+                f"{trace_label}: use_explicit_error_terms is True but no alts_context was passed; EET draws will be "
+                "keyed to the per-call active alternative count rather than a stable universe, which can affect "
+                "cross-scenario reproducibility."
             )
+        choice_ids_are_int = pd.api.types.is_integer_dtype(alternatives[choice_column])
         if alts_context is not None and not choice_ids_are_int:
-            raise ValueError(
-                "alts_context can only be used with integer-coded choice_column values"
-            )
+            raise ValueError("alts_context can only be used with integer-coded choice_column values")
 
     result_list = []
     for (

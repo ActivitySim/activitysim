@@ -62,12 +62,6 @@ def resolve_sample_method(
     """
     Resolve the sampling method for a model from its `model_settings`.
 
-    Wraps the `model_settings.compute_settings → subcomponent_settings("sample")
-    → _resolve_sample_method` boilerplate that several call sites need (so the
-    boilerplate lives in one place rather than being open-coded in
-    location_choice / tour_destination / trip_destination / tour_od /
-    bias_logsums).
-
     Parameters
     ----------
     state : workflow.State

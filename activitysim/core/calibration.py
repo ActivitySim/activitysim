@@ -79,6 +79,7 @@ class CalibrationComponentSettings(PydanticBase):
     helper_module: str | None = None
     submodel_max_iterations: int = 1
     reports: CalibrationReportsSettings = CalibrationReportsSettings()
+    survey_file: str
 
 
 class CalibrationConfig(PydanticReadable):
@@ -355,7 +356,7 @@ def _calibrate_component(
         if bespoke_callable is not None:
             # Preserve compatibility with helper modules that expect a global
             # `state` symbol and/or no explicit arguments.
-            _run_bespoke_report(bespoke_callable, state)
+            _run_bespoke_report(bespoke_callable, state, component_settings)
 
         if component_converged:
             break
@@ -865,15 +866,17 @@ def _write_generic_report(
     _append_csv(report, path)
 
 
-def _run_bespoke_report(bespoke_callable, state: workflow.State) -> None:
+def _run_bespoke_report(bespoke_callable, state: workflow.State, component_settings: CalibrationComponentSettings) -> None:
     """Run optional bespoke report callback from helper module."""
     try:
-        # Support either no-argument callback or callback(state).
+        # Support no-argument callback, callback(state), or callback(state, component_settings).
         sig = inspect.signature(bespoke_callable)
         if len(sig.parameters) == 0:
             bespoke_callable()
-        else:
+        elif len(sig.parameters) == 1:
             bespoke_callable(state)
+        else:
+            bespoke_callable(state, component_settings)
     except TypeError:
         bespoke_callable()
 

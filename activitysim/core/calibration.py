@@ -12,7 +12,7 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -60,9 +60,11 @@ MP_INJECTABLES = [
 class CalibrationRunSettings(PydanticBase):
     """Run-control settings for calibration."""
 
-    resume_after: str
+    resume_after: Optional[str] = None
     calibrate_models: list[str]
     restart_after: list[str] = []
+    global_iterations: int = 1
+    complete_steps: bool = True
 
 
 class CalibrationReportsSettings(PydanticBase):
@@ -86,7 +88,6 @@ class CalibrationConfig(PydanticReadable):
     """Top-level calibration configuration."""
 
     enable: bool = False
-    max_iterations: int = 1
     run: CalibrationRunSettings
     model_settings: dict[str, CalibrationComponentSettings] = {}
 
@@ -105,7 +106,7 @@ class CalibrationConfig(PydanticReadable):
                     f"restart_after component '{component}' is not in calibrate_models"
                 )
 
-        if self.max_iterations < 1:
+        if self.run.global_iterations < 1:
             raise ValueError("max_iterations must be >= 1")
 
         return self
@@ -159,6 +160,16 @@ def run_calibration_loop(
     if not calibration_settings or not calibration_settings.enable:
         raise RuntimeError("calibration loop called while calibration is disabled")
 
+    assert all(
+        [c in models for c in calibration_settings.run.calibrate_models]
+    ), f"settings.yaml steps list does not include calibration model{'s' if len([c for c in calibration_settings.run.calibrate_models if c not in models]) != 1 else ''} {[c for c in calibration_settings.run.calibrate_models if c not in models]}"
+
+    # sort calibration models into main model order
+    calibration_settings.run.calibrate_models = sorted(
+        calibration_settings.run.calibrate_models, key=lambda x: models.index(x)
+    )
+    first_calib_model_idx = models.index(calibration_settings.run.calibrate_models[0])
+
     _ensure_calibration_output_dir(state)
 
     # If there is recoverable calibration progress from a prior interrupted run,
@@ -172,31 +183,48 @@ def run_calibration_loop(
 
     try:
         for global_iter in range(
-            start_global_iter, calibration_settings.max_iterations + 1
+            start_global_iter,
+            start_global_iter + calibration_settings.run.global_iterations,
         ):
             logger.info(
                 "calibration global iteration %s/%s",
-                global_iter,
-                calibration_settings.max_iterations,
+                global_iter - start_global_iter,
+                calibration_settings.run.global_iterations,
             )
 
             # Run ActivitySim normally from resume_after through production model steps.
-            _run_model_system_for_iteration(
+            _run_precursor_components(
                 state,
-                models=models,
-                resume_after=calibration_settings.run.resume_after,
+                models=models[:first_calib_model_idx],
+                resume_after=calibration_settings.run.resume_after
+                if global_iter == start_global_iter
+                else _prior_step_name(
+                    models, calibration_settings.run.calibrate_models[0]
+                ),
                 global_iter=global_iter,
                 memory_sidecar_process=memory_sidecar_process,
             )
 
             all_converged = True
-            restart_triggered = False
 
+            last_calibrated_component = None
             for component in calibration_settings.run.calibrate_models:
                 component_settings = calibration_settings.model_settings[component]
+
                 prior_step = _prior_step_name(models, component)
-                if prior_step is None:
-                    prior_step = calibration_settings.run.resume_after
+
+                if last_calibrated_component is not None:
+
+                    # run all models b/w the last calibrated model and the current one
+                    _run_intermediate_components(
+                        state,
+                        models=models[
+                            models.index(last_calibrated_component)
+                            + 1 : models.index(component)
+                        ],
+                        resume_after=last_calibrated_component,
+                        memory_sidecar_process=memory_sidecar_process,
+                    )
 
                 component_result = _calibrate_component(
                     state=state,
@@ -208,10 +236,15 @@ def run_calibration_loop(
 
                 all_converged = all_converged and component_result.converged
 
-                if component in calibration_settings.run.restart_after:
-                    # Restart global loop from resume_after after this component.
-                    restart_triggered = True
-                    break
+                last_calibrated_component = component
+
+            if calibration_settings.run.complete_steps:
+                _run_subsequent_components(
+                    state,
+                    models=models[models.index(last_calibrated_component) + 1 :],
+                    resume_after=last_calibrated_component,
+                    memory_sidecar_process=memory_sidecar_process,
+                )
 
             _write_progress(
                 state,
@@ -221,25 +254,16 @@ def run_calibration_loop(
                 },
             )
 
-            if all_converged and not restart_triggered:
-                _write_final_coefficients_snapshot(state, calibration_settings)
-                _clear_progress(state)
-                return CalibrationRunResult(
-                    converged=True,
-                    completed_global_iterations=global_iter,
-                )
-
         _write_final_coefficients_snapshot(state, calibration_settings)
-        _clear_progress(state)
         return CalibrationRunResult(
             converged=False,
-            completed_global_iterations=calibration_settings.max_iterations,
+            completed_global_iterations=calibration_settings.run.global_iterations,
         )
     finally:
         state.filesystem.pipeline_file_name = original_pipeline_name
 
 
-def _run_model_system_for_iteration(
+def _run_precursor_components(
     state: workflow.State,
     models: list[str],
     resume_after: str,
@@ -247,6 +271,10 @@ def _run_model_system_for_iteration(
     memory_sidecar_process=None,
 ) -> None:
     """Run the normal ActivitySim model flow for one global calibration iteration."""
+
+    assert (resume_after is None) or (
+        resume_after in models
+    ), f"resume_after step {resume_after} not in models preceding calibration models"
     if global_iter > 1:
         # Seed a fresh pipeline from the configured resume checkpoint to avoid
         # duplicate checkpoint-name collisions across global calibration loops.
@@ -254,7 +282,38 @@ def _run_model_system_for_iteration(
         state.checkpoint.close_store()
         state.filesystem.pipeline_file_name = f"pipeline_calibration_iter_{global_iter}"
         state.checkpoint.restore_from(prior_pipeline, checkpoint_name=resume_after)
+    else:
 
+        _run_in_configured_mode(
+            state,
+            models=models,
+            resume_after=resume_after,
+            memory_sidecar_process=memory_sidecar_process,
+        )
+
+
+def _run_intermediate_components(
+    state: workflow.State,
+    models: list[str],
+    resume_after: str,
+    memory_sidecar_process=None,
+) -> None:
+    # don't modify the pipeline, just run the models needed
+    _run_in_configured_mode(
+        state,
+        models=models,
+        resume_after=resume_after,
+        memory_sidecar_process=memory_sidecar_process,
+    )
+
+
+def _run_subsequent_components(
+    state: workflow.State,
+    models: list[str],
+    resume_after: str,
+    memory_sidecar_process=None,
+) -> None:
+    # don't modify the pipeline, just run the models needed
     _run_in_configured_mode(
         state,
         models=models,
@@ -360,6 +419,7 @@ def _calibrate_component(
 
         if component_converged:
             break
+    state.checkpoint.add(component_name)
 
     return CalibrationComponentResult(
         component=component_name,
@@ -866,7 +926,11 @@ def _write_generic_report(
     _append_csv(report, path)
 
 
-def _run_bespoke_report(bespoke_callable, state: workflow.State, component_settings: CalibrationComponentSettings) -> None:
+def _run_bespoke_report(
+    bespoke_callable,
+    state: workflow.State,
+    component_settings: CalibrationComponentSettings,
+) -> None:
     """Run optional bespoke report callback from helper module."""
     try:
         # Support no-argument callback, callback(state), or callback(state, component_settings).
@@ -1011,13 +1075,6 @@ def _write_progress(state: workflow.State, payload: dict[str, Any]) -> None:
     os.makedirs(path.parent, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2)
-
-
-def _clear_progress(state: workflow.State) -> None:
-    """Delete calibration progress metadata after successful completion."""
-    path = state.get_output_file_path(CALIBRATION_PROGRESS_FILE)
-    if path.exists():
-        path.unlink()
 
 
 def _run_in_configured_mode(

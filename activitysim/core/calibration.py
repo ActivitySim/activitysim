@@ -197,7 +197,7 @@ def run_calibration_loop(
                 state,
                 models=models[:first_calib_model_idx],
                 resume_after=calibration_settings.run.resume_after
-                if global_iter == start_global_iter
+                if global_iter == 1
                 else _prior_step_name(
                     models, calibration_settings.run.calibrate_models[0]
                 ),
@@ -255,6 +255,18 @@ def run_calibration_loop(
             )
 
         _write_final_coefficients_snapshot(state, calibration_settings)
+
+        iteration_records = pd.read_csv(state.get_output_file_path(CALIBRATION_ITERATION_FILE))
+
+        for component in iteration_records.component.unique():
+
+            ax = iteration_records.loc[iteration_records.component == component].set_index(['global_iter','component_iter','coefficient']).next_coefficient.unstack('coefficient').plot()
+            ax.xaxis.set_label("Component iteration")
+            ax.yaxis.set_label("Coefficient value")
+            
+            ax.legend(title="Coefficient label")
+            ax.figure.savefig(os.path.join(state.filesystem.output_dir,f"{component}_coefficient_progress.png"))
+
         return CalibrationRunResult(
             converged=False,
             completed_global_iterations=calibration_settings.run.global_iterations,

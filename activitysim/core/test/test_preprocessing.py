@@ -34,6 +34,7 @@ def state() -> workflow.State:
     state = add_canonical_dirs("configs_1z").load_settings()
     network_los = los.Network_LOS(state)
     network_los.load_data()
+    state.set("network_los", network_los)
     state.set("skim_dict", network_los.get_default_skim_dict())
     return state
 
@@ -71,6 +72,7 @@ def tours():
             "origin": [1, 2, 3],
             "destination": [2, 3, 1],
             "period": ["AM", "PM", "AM"],
+            "depart": [8, 18, 8],
         }
     ).set_index("tour_id")
 
@@ -88,6 +90,7 @@ def check_outputs(tours):
         "od_sov_time",
         "constant_test",
         "global_constant_test",
+        "los_period",
     ]
 
     # check all new columns are added
@@ -101,7 +104,7 @@ def check_outputs(tours):
     ), f"Unexpected column found: _hh_income in {tours.columns}"
 
     # check the values in the new columns
-    exppected_output = pd.DataFrame(
+    expected_output = pd.DataFrame(
         {
             "tour_id": [1, 2, 3],
             "is_high_income": [False, True, True],
@@ -111,9 +114,11 @@ def check_outputs(tours):
             "od_sov_time": [0.78, 0.89, 1.76],
             "constant_test": [21, 21, 21],
             "global_constant_test": [21, 21, 21],
+            "los_period": ["AM", "PM", "AM"],
         }
     ).set_index("tour_id")
-    pd.testing.assert_frame_equal(tours[new_cols], exppected_output, check_dtype=False)
+    expected_output["los_period"] = expected_output["los_period"].astype("category")
+    pd.testing.assert_frame_equal(tours[new_cols], expected_output, check_dtype=False)
 
 
 def setup_skims(state: workflow.State):

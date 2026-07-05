@@ -73,7 +73,7 @@ Next, `repop_control_file_name: repop_controls.csv` should be added to the setti
 | Age_35to44 | mgra      | persons    | 100000     | Age_35to44    | (persons.AGEP >= 35) & (persons.AGEP <= 44)        |
 | Age_45to54 | mgra      | persons    | 100000     | Age_45to54    | (persons.AGEP >= 45) & (persons.AGEP <= 54)        |
 
-The totals in each of the zones are then defined in the control total file, which can be defined in the settings file as follows:
+The totals in each of the zones are then defined in the control total file, which can be defined in settings.yaml as follows:
 ```
 input_table_list:
   - filename : repop_control_totals.csv

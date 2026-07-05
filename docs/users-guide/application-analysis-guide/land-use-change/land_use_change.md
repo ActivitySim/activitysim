@@ -2,18 +2,41 @@
 
 ## Introduction
 
-Many contemporary urban planners are encouraging developers to build denser housing, particularly around transit stops. Naturally, planners will want to gauge what the impact of such a development would be on their jurisdiction's transportation system, particularly regarding metrics such as VMT (and subsequently greenhouse gas emission) and transit boardings (and subsequently farebox revenue). To demonstrate this, we will be analyzing a hypothetical development in the San Diego Region. The particular development will add 2000 households and 1000 retail jobs in the vicinity of the Grossmont Station on the Green and Orange Lines of San Diego's light rail system, where there is an existing auto-oriented shopping mall. The guide will show how to make changes to the ActivitySim inputs, how to run the test, and how to calculate some of the key metrics such as VMT and changes in mode share.
-
-![A map of the Study Area. The study area (Grossmont Center) is highlighted in red and the location of the nearby Grossmont Trolley Station is highlighted](LandUseStudyAreaMap.png)
-*Satellite imagery from Google*
+Many contemporary urban planners are encouraging developers to build denser housing, particularly around transit stops. Naturally, planners will want to gauge what the impact of such a development would be on their jurisdiction's transportation system, particularly regarding metrics such as VMT (and subsequently greenhouse gas emission) and transit boardings (and subsequently farebox revenue). To demonstrate this, we will be analyzing a hypothetical development in the San Diego Region that will add 2000 households and 1000 retail jobs near a light rail station. These will be added to the existing population and jobs in the region. The guide will show how to make changes to the ActivitySim inputs, how to run the test, and how to calculate some of the key metrics such as VMT and changes in mode share.
 
 **NOTE: The example provided is a hypothetical project that demonstrates how one would use ActivitySim to model the effects of a land use change and does not necessarily reflect any real planned developments.**
 
 ## Setting Up the Scenario
 
-Three input files need to be changed in order to run this test: the land use file (landuse.csv) and the files defining the synthetic population (households.csv and persons.csv). While updating the land use file may seem very straightforward, it is very easy to overlook some necessary changes that could result in the model understating the impact of the change. A modeler doesn't need to just edit the household and employment fields in the study area--they also need to edit any field derived from those fields. For example, every new household will have at least one person in it, so the population field will need to be updated as well (along with population density if that is present). If the total population is to be kept the same, households will need to be removed outside of the study area as well.
+Three input files need to be changed in order to run this test: the files defining the synthetic population (households.csv and persons.csv) and the land use file (land_use.csv). Because Activity-based models use synthetic populations, those input files will need to be updated to reflect the different distribution in the population. There are multiple ways that this could be done. The ActivitySim consortium maintains the PopulationSim population synthesis software, which includes a `repop` mode that can be used to add households to an existing synthetic population. This demonstration will show how to do this, though any user is welcome to add the additional households in whatever way works best for them (such as through a script).
 
-Because Activity-based models use synthetic populations, those input files will need to be updated to reflect the different distribution in the population. There are multiple ways that this could be done. The ActivitySim consortium maintains the PopulationSim population synthesis software, which includes a `repop` mode that can be used to add households to an existing synthetic population. This demonstration will show how to do this, though any user is welcome to add the additional households in whatever way works best for them (such as through a script).
+While updating the land use file may seem very straightforward, it is very easy to overlook some necessary changes that could result in the model understating the impact of the change. A modeler doesn't need to just edit the household and employment fields in the study area--they also need to edit any field derived from those fields. The following fields land use fields in the SANDAG ABM3 example reflect the increase in the number of multi-family households (descriptions of the fields can be found at SANDAG's [ABM3 Documentation](https://sandag.github.io/ABM/inputs.html#land-use)):
+- pop
+- hhp
+- hs
+- hs_mf
+- hh
+- hh_mf
+- i1
+- i2
+- i3
+- i4
+- i5
+- i6
+- i7
+- i8
+- i9
+- i10
+- duden
+- popden
+- dudenbin
+- PopEmpDenPerMi
+
+Further, the following fields would need to be updated to reflect the increase in retail employment:
+- emp_ret
+- emp_total
+- empden
+- PopEmpDenPerMi
 
 ### Instructions
 
@@ -129,3 +152,6 @@ station_area = [579, 4502, 8524, 7714, 12170, 12171, 5455, 8457, 846, 8232, 7831
 station_area_households = households.query("household_id in @station_area")
 station_area_auto_ownership = station_area_households["auto_ownership"].value_counts(normalize = True)
 ```
+
+## Summary
+This guide demonstrated how to set up, run, and analyze a TOD scenario in ActivitySim. Users were shown how to configure PopulationSim in repop mode, perform QA on the updated synthetic population, run the scenario, and analyze some key metrics. Some alternate ways that scenarios could be set up were mentioned, such as adding the population through a script or changing utility coefficients to better reflect different behavior when living in such a development. Nuances on the metrics were described, such has how impacts from localized projects may not be as noticable in metrics that describe network performance at a regional level.

@@ -86,7 +86,7 @@ These values can be set to add a population to the study area that is characteri
 | 579  | 500      | 250      | 150      | 50       | 240      | 120      | 400       | 150        | 200        | 200        | 150        |
 | 4502 | 500      | 250      | 150      | 50       | 240      | 120      | 400       | 150        | 200        | 200        | 150        |
 
-The output synthetic population files then need to be placed in the `data` directory for the ActivitySim run.
+The output synthetic population files, output\synthetic_households.csv and output\synthetic_persons.csv, then need to be placed in the `data` directory for the ActivitySim run and renamed households.csv and persons.csv, respectively.
 
 2. The land use file now needs to be updated to reflect the updated population. These lines of code update the household and population values within the land use file (assuming that the synthetic population exists as data frames called `households` and `persons` and the land use file is a data frame called `land_use`).
 ```

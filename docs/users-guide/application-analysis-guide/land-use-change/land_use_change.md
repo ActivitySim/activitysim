@@ -42,7 +42,7 @@ Further, the following fields would need to be updated to reflect the increase i
 
 1. The first thing to do would be to update the new synthetic population. This can be done using PopulationSim's repop mode, which adds additional population on top of existing PopulationSim outputs (a pipeline file is needed). A more detailed explanation of PopulationSim's repop mode can be found in [PopulationSim's documentation](https://activitysim.github.io/populationsim/application_configuration.html#configuring-settings-file-for-repop-mode), but this guide will briefly provide some examples of how PopulationSim can be configured for this particular scenario.
 
-First, the `run_list` in the settings file needs to be adjusted to have PopulationSim run the repop steps:
+First, the `run_list` in the settings file (settings.yaml) needs to be adjusted to have PopulationSim run the repop steps:
 ```
 run_list:
   steps:

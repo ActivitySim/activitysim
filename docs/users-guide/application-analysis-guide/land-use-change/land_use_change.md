@@ -90,9 +90,9 @@ The output synthetic population files, output\synthetic_households.csv and outpu
 
 2. The land use file now needs to be updated to reflect the updated population. This will be demonstrated using code blocks, that have the ActivitySim input files read in as Pandas DataFrames as follows:
 ```
-households = pd.DataFrame("data\households.csv")
-persons = pd.DataFrame("data\persons.csv")
-land_use = pd.DataFrame("data\land_use.csv")
+households = pd.DataFrame(r"data-full\households.csv")
+persons = pd.DataFrame(r"data-full\persons.csv")
+land_use = pd.DataFrame(r"data-full\land_use.csv")
 ```
 These lines of code update the household and population values within the land use file.
 ```
@@ -114,6 +114,13 @@ land_use.loc[4502, "emp_tot"] += 500
 land_use = land_use.reset_index() # Not necessary, but helpful if further operations use the MAZ field this could prevent an error
 ```
 It should be noted that the same caveat applies to fields derived from employment data, such as employment density or any aggregated fields that may be present. One should be careful to update all fields that are relevant to the total employment.
+
+The following lines of code then write the updated ActivitySim inputs to file (the `index = False` keyword argument prevents a superfluous index column from being written):
+```
+households.to_csv(r"data-full\households.csv", index = False)
+persons.to_csv(r"data-full\persons.csv", index = False)
+land_use.to_csv(r"data-full\land_use.csv", index = False)
+```
 
 ## Running the Test
 

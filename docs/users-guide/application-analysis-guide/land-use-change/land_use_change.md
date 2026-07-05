@@ -88,7 +88,13 @@ These values can be set to add a population to the study area that is characteri
 
 The output synthetic population files, output\synthetic_households.csv and output\synthetic_persons.csv, then need to be placed in the `data` directory for the ActivitySim run and renamed households.csv and persons.csv, respectively.
 
-2. The land use file now needs to be updated to reflect the updated population. These lines of code update the household and population values within the land use file (assuming that the synthetic population exists as data frames called `households` and `persons` and the land use file is a data frame called `land_use`).
+2. The land use file now needs to be updated to reflect the updated population. This will be demonstrated using code blocks, that have the ActivitySim input files read in as Pandas DataFrames as follows:
+```
+households = pd.DataFrame("data\households.csv")
+persons = pd.DataFrame("data\persons.csv")
+land_use = pd.DataFrame("data\land_use.csv")
+```
+These lines of code update the household and population values within the land use file.
 ```
 land_use["hh"] = households.groupby("home_zone_id").count()["household_id"]
 persons["home_zone_id"] = persons["household_id"].map(households.set_index("household_id")["home_zone_id"])

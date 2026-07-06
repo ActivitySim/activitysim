@@ -261,8 +261,8 @@ def run_calibration_loop(
         for component in iteration_records.component.unique():
 
             ax = iteration_records.loc[iteration_records.component == component].set_index(['global_iter','component_iter','coefficient']).next_coefficient.unstack('coefficient').plot()
-            ax.xaxis.set_label("Component iteration")
-            ax.yaxis.set_label("Coefficient value")
+            ax.xaxis.set_label_text("Component iteration")
+            ax.yaxis.set_label_text("Coefficient value")
             
             ax.legend(title="Coefficient label")
             ax.figure.savefig(os.path.join(state.filesystem.output_dir,f"{component}_coefficient_progress.png"))

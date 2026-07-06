@@ -675,7 +675,7 @@ def _evaluate_and_update(
         )
 
         difference = target_value - model_value
-        prc_difference = _safe_percent_difference(difference, target_value)
+        pct_difference = _safe_percent_difference(difference, target_value)
 
         tolerance = float(row["tolerance"])
         converged = abs(difference) <= tolerance
@@ -738,9 +738,10 @@ def _evaluate_and_update(
                 "target_value": target_value,
                 "model_value": model_value,
                 "difference": difference,
-                "prc_difference": prc_difference,
+                "pct_difference": pct_difference,
                 "hold_fast": hold_fast,
                 "prev_coefficient": prev_value,
+                "coef_delta": abs_change,
                 "next_coefficient": candidate_value,
                 "converged": converged,
                 "under_min": under_min,
@@ -924,7 +925,7 @@ def _write_generic_report(
                 "component",
                 "description",
                 "difference",
-                "prc_difference",
+                "pct_difference",
                 "converged",
             ]
         ]

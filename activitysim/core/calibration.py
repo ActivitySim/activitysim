@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import importlib
 import importlib.util
-import inspect
 import json
 import logging
 import math
@@ -16,6 +15,7 @@ from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from pydantic import model_validator
 
 from activitysim.core import workflow
@@ -30,6 +30,8 @@ CALIBRATION_PROGRESS_FILE = "calibration/calibration_progress.json"
 CALIBRATION_ITERATION_FILE = "calibration/calibration_iteration_records.csv"
 CALIBRATION_SUMMARY_FILE = "calibration/calibration_iteration_summary.csv"
 CALIBRATION_FINAL_COEFFICIENTS_FILE = "calibration/final_calibrated_coefficients.csv"
+
+DEFAULT_INCREMENT = 2.0
 
 CALIBRATION_REQUIRED_COLUMNS = [
     "description",
@@ -64,7 +66,7 @@ class CalibrationRunSettings(PydanticBase):
     calibrate_models: list[str]
     restart_after: list[str] = []
     global_iterations: int = 1
-    complete_steps: bool = True
+    complete_steps: bool = False
 
 
 class CalibrationReportsSettings(PydanticBase):
@@ -238,7 +240,11 @@ def run_calibration_loop(
 
                 last_calibrated_component = component
 
-            if calibration_settings.run.complete_steps:
+            if calibration_settings.run.complete_steps or (
+                start_global_iter + calibration_settings.run.global_iterations
+                == global_iter + 1
+            ):
+                # finish the full model chain
                 _run_subsequent_components(
                     state,
                     models=models[models.index(last_calibrated_component) + 1 :],
@@ -256,16 +262,64 @@ def run_calibration_loop(
 
         _write_final_coefficients_snapshot(state, calibration_settings)
 
-        iteration_records = pd.read_csv(state.get_output_file_path(CALIBRATION_ITERATION_FILE))
+        iteration_records = (
+            pd.read_csv(state.get_output_file_path(CALIBRATION_ITERATION_FILE))
+            .set_index(["global_iter", "component_iter", "coefficient"])
+            .sort_index()
+        )
 
         for component in iteration_records.component.unique():
 
-            ax = iteration_records.loc[iteration_records.component == component].set_index(['global_iter','component_iter','coefficient']).next_coefficient.unstack('coefficient').plot()
+            ax = (
+                iteration_records.loc[iteration_records.component == component]
+                .next_coefficient.unstack("coefficient")
+                .plot()
+            )
             ax.xaxis.set_label_text("Component iteration")
             ax.yaxis.set_label_text("Coefficient value")
-            
+
             ax.legend(title="Coefficient label")
-            ax.figure.savefig(os.path.join(state.filesystem.output_dir,f"{component}_coefficient_progress.png"))
+            ax.figure.savefig(
+                os.path.join(
+                    state.filesystem.output_dir,
+                    "calibration",
+                    f"{component}_coefficient_progress.png",
+                )
+            )
+
+            last_global = iteration_records.index.get_level_values("global_iter")[-1]
+            last_comp = iteration_records.loc[last_global].index.get_level_values(
+                "component_iter"
+            )[-1]
+
+            last_records = iteration_records.xs(
+                (last_global, last_comp), level=("global_iter", "component_iter")
+            )[["target_value", "model_value"]]
+            ax = last_records.plot.bar()
+            ax.xaxis.set_tick_params(rotation=45)
+            ax.xaxis.set_label_text("Component value")
+            plt.tight_layout()
+            ax.figure.savefig(
+                os.path.join(
+                    state.filesystem.output_dir,
+                    "calibration",
+                    f"{component}_final_components.png",
+                )
+            )
+
+            _ = plt.subplots()
+
+            pct_diff = last_records.diff(axis=1).model_value / last_records.target_value
+            ax = pct_diff.plot.bar()
+            ax.xaxis.set_tick_params(rotation=45)
+            plt.tight_layout()
+            ax.figure.savefig(
+                os.path.join(
+                    state.filesystem.output_dir,
+                    "calibration",
+                    f"{component}_final_pct_change.png",
+                )
+            )
 
         return CalibrationRunResult(
             converged=False,
@@ -427,7 +481,8 @@ def _calibrate_component(
         if bespoke_callable is not None:
             # Preserve compatibility with helper modules that expect a global
             # `state` symbol and/or no explicit arguments.
-            _run_bespoke_report(bespoke_callable, state, component_settings)
+            kwargs = {"state": state, "component_settings": component_settings}
+            bespoke_callable(**kwargs)
 
         if component_converged:
             break
@@ -657,6 +712,12 @@ def _evaluate_and_update(
         method = row["method"]
         hold_fast = bool(row["hold_fast"])
 
+        default_increment = (
+            row["default_increment"]
+            if "default_increment" in row.index
+            else DEFAULT_INCREMENT
+        )
+
         prev_value = float(updated.loc[coefficient_name, "value"])
 
         model_value = _eval_numeric_value(
@@ -688,6 +749,7 @@ def _evaluate_and_update(
             damping=damping,
             component_name=component_name,
             description=description,
+            default_increment=default_increment,
         )
 
         candidate_value = prev_value if hold_fast else prev_value + raw_delta
@@ -811,6 +873,7 @@ def _compute_delta(
     damping: float,
     component_name: str,
     description: str,
+    default_increment: float,
 ) -> float:
     """Compute damped coefficient delta using selected method."""
     if damping < 0:
@@ -820,9 +883,15 @@ def _compute_delta(
 
     if method == "log_ratio":
         if model_value <= 0 or target_value <= 0:
-            raise RuntimeError(
-                f"log_ratio requires positive model and target values for {component_name} / {description}"
+            logger.warning(
+                f"log_ratio requires positive model and target values for {component_name} / {description}. Falling back to default increment {default_increment}"
             )
+            if model_value <= 0 and target_value > 0:
+                return default_increment
+            elif model_value > 0 and target_value <= 0:
+                return -default_increment
+            else:
+                return 0
         delta = math.log(target_value / model_value) * damping
 
     elif method == "odds_ratio":
@@ -831,9 +900,15 @@ def _compute_delta(
         denominator = (target_value * model_value) - model_value
 
         if numerator <= 0 or denominator <= 0:
-            raise RuntimeError(
-                f"odds_ratio produced invalid numerator/denominator for {component_name} / {description}"
+            logger.warning(
+                f"odds_ratio produced invalid numerator/denominator for {component_name} / {description}. Falling back to default increment {default_increment}"
             )
+            if model_value <= 0 and target_value > 0:
+                return default_increment
+            elif model_value > 0 and target_value <= 0:
+                return -default_increment
+            else:
+                return 0
 
         ratio = numerator / denominator
         if ratio <= 0 or not np.isfinite(ratio):
@@ -937,25 +1012,6 @@ def _write_generic_report(
         f"calibration/{component_name}_generic_report.csv"
     )
     _append_csv(report, path)
-
-
-def _run_bespoke_report(
-    bespoke_callable,
-    state: workflow.State,
-    component_settings: CalibrationComponentSettings,
-) -> None:
-    """Run optional bespoke report callback from helper module."""
-    try:
-        # Support no-argument callback, callback(state), or callback(state, component_settings).
-        sig = inspect.signature(bespoke_callable)
-        if len(sig.parameters) == 0:
-            bespoke_callable()
-        elif len(sig.parameters) == 1:
-            bespoke_callable(state)
-        else:
-            bespoke_callable(state, component_settings)
-    except TypeError:
-        bespoke_callable()
 
 
 def _load_helper_symbols(

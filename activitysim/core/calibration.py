@@ -24,6 +24,8 @@ from activitysim.core.configuration.base import PydanticBase
 
 logger = logging.getLogger("calibration")
 
+plt.style.use("seaborn-v0_8-darkgrid")
+
 CALIBRATION_SETTINGS_FILE_NAME = "calibration.yaml"
 CALIBRATION_OUTPUT_DIR = "calibration"
 CALIBRATION_PROGRESS_FILE = "calibration/calibration_progress.json"
@@ -312,7 +314,7 @@ def run_calibration_loop(
                 ].xs((last_global, last_comp), level=("global_iter", "component_iter"))[
                     ["target_value", "model_value"]
                 ]
-                ax = last_records.plot.bar()
+                ax = last_records.plot.barh()
                 ax.xaxis.set_tick_params(rotation=45)
                 ax.xaxis.set_label_text("Component value")
                 plt.tight_layout()
@@ -329,8 +331,10 @@ def run_calibration_loop(
                 pct_diff = (
                     last_records.diff(axis=1).model_value / last_records.target_value
                 )
-                ax = pct_diff.plot.bar()
+                ax = pct_diff.plot.barh()
                 ax.xaxis.set_tick_params(rotation=45)
+                ax.xaxis.set_label_text("Coefficient")
+                ax.yaxis.set_label_text("% Change")
                 plt.tight_layout()
                 ax.figure.savefig(
                     os.path.join(

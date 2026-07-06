@@ -32,6 +32,7 @@ CALIBRATION_SUMMARY_FILE = "calibration/calibration_iteration_summary.csv"
 CALIBRATION_FINAL_COEFFICIENTS_FILE = "calibration/final_calibrated_coefficients.csv"
 
 DEFAULT_INCREMENT = 2.0
+MAX_COEFFS_IN_GRAPH = 10
 
 CALIBRATION_REQUIRED_COLUMNS = [
     "description",
@@ -270,56 +271,74 @@ def run_calibration_loop(
 
         for component in iteration_records.component.unique():
 
-            ax = (
-                iteration_records.loc[iteration_records.component == component]
-                .next_coefficient.unstack("coefficient")
-                .plot()
-            )
-            ax.xaxis.set_label_text("Component iteration")
-            ax.yaxis.set_label_text("Coefficient value")
-
-            ax.legend(title="Coefficient label")
-            ax.figure.savefig(
-                os.path.join(
-                    state.filesystem.output_dir,
-                    "calibration",
-                    f"{component}_coefficient_progress.png",
+            recs = iteration_records.loc[iteration_records.component == component]
+            coefs = sorted(recs.index.get_level_values("coefficient").unique())
+            n_sets = math.ceil(len(coefs) / MAX_COEFFS_IN_GRAPH)
+            for coef_set in range(n_sets):
+                set_coefs = coefs[
+                    coef_set
+                    * MAX_COEFFS_IN_GRAPH : min(
+                        len(coefs), (coef_set + 1) * MAX_COEFFS_IN_GRAPH
+                    )
+                ]
+                ax = (
+                    recs[recs.index.get_level_values("coefficient").isin(set_coefs)]
+                    .next_coefficient.unstack("coefficient")
+                    .plot()
                 )
-            )
+                ax.xaxis.set_label_text("Component iteration")
+                ax.yaxis.set_label_text("Coefficient value")
 
-            last_global = iteration_records.index.get_level_values("global_iter")[-1]
-            last_comp = iteration_records.loc[last_global].index.get_level_values(
-                "component_iter"
-            )[-1]
-
-            last_records = iteration_records.xs(
-                (last_global, last_comp), level=("global_iter", "component_iter")
-            )[["target_value", "model_value"]]
-            ax = last_records.plot.bar()
-            ax.xaxis.set_tick_params(rotation=45)
-            ax.xaxis.set_label_text("Component value")
-            plt.tight_layout()
-            ax.figure.savefig(
-                os.path.join(
-                    state.filesystem.output_dir,
-                    "calibration",
-                    f"{component}_final_components.png",
+                ax.legend(title="Coefficient label")
+                ax.figure.savefig(
+                    os.path.join(
+                        state.filesystem.output_dir,
+                        "calibration",
+                        f"{component}_coefficient_progress_set_{coef_set}.png",
+                    )
                 )
-            )
 
-            _ = plt.subplots()
-
-            pct_diff = last_records.diff(axis=1).model_value / last_records.target_value
-            ax = pct_diff.plot.bar()
-            ax.xaxis.set_tick_params(rotation=45)
-            plt.tight_layout()
-            ax.figure.savefig(
-                os.path.join(
-                    state.filesystem.output_dir,
-                    "calibration",
-                    f"{component}_final_pct_change.png",
+                last_global = recs[
+                    recs.index.get_level_values("coefficient").isin(set_coefs)
+                ].index.get_level_values("global_iter")[-1]
+                last_comp = (
+                    recs[recs.index.get_level_values("coefficient").isin(set_coefs)]
+                    .loc[last_global]
+                    .index.get_level_values("component_iter")[-1]
                 )
-            )
+
+                last_records = recs[
+                    recs.index.get_level_values("coefficient").isin(set_coefs)
+                ].xs((last_global, last_comp), level=("global_iter", "component_iter"))[
+                    ["target_value", "model_value"]
+                ]
+                ax = last_records.plot.bar()
+                ax.xaxis.set_tick_params(rotation=45)
+                ax.xaxis.set_label_text("Component value")
+                plt.tight_layout()
+                ax.figure.savefig(
+                    os.path.join(
+                        state.filesystem.output_dir,
+                        "calibration",
+                        f"{component}_final_components_set_{coef_set}.png",
+                    )
+                )
+
+                _ = plt.subplots()
+
+                pct_diff = (
+                    last_records.diff(axis=1).model_value / last_records.target_value
+                )
+                ax = pct_diff.plot.bar()
+                ax.xaxis.set_tick_params(rotation=45)
+                plt.tight_layout()
+                ax.figure.savefig(
+                    os.path.join(
+                        state.filesystem.output_dir,
+                        "calibration",
+                        f"{component}_final_pct_change_set_{coef_set}.png",
+                    )
+                )
 
         return CalibrationRunResult(
             converged=False,

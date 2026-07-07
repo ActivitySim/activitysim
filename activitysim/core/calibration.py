@@ -400,7 +400,7 @@ def _calibrate_component(
             )
             state.run(models=[run_model_name], resume_after=prior_step)
 
-        eval_context = _build_expression_context(state, helper_symbols, component_name)
+        eval_context = _build_expression_context(state, helper_symbols, component_name, component_settings)
         _bind_context_to_helper_module_globals(helper_module, eval_context)
 
         (
@@ -614,6 +614,7 @@ def _build_expression_context(
     state: workflow.State,
     helper_symbols: dict[str, Any],
     component_name: str,
+    component_settings: CalibrationComponentSettings,
 ) -> dict[str, Any]:
     """Create the evaluation context for model_value and target_value expressions."""
     context: dict[str, Any] = {
@@ -621,6 +622,7 @@ def _build_expression_context(
         "np": np,
         "pd": pd,
         "component_output_dir": _component_output_dir(state, component_name),
+        "component_settings": component_settings,
     }
 
     # Load active tables into context for direct expression access.

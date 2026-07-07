@@ -10,8 +10,11 @@ def report_tour_mode_choice(context):
     survey_tours = pd.read_csv(os.path.join(SURVEY_DATA_FOLDER, "override_tours.csv"))
 
     model_summary = model_tours.tour_mode.value_counts(normalize=True).sort_index().fillna(0)
-    survey_summary = survey_tours.groupby("tour_mode").tour_weight.sum()
-    survey_summary = survey_summary / survey_tours.tour_weight.sum()
+    if 'tour_weight' in survey_tours.columns:
+        survey_summary = survey_tours.groupby("tour_mode").tour_weight.sum()
+        survey_summary = survey_summary / survey_tours.tour_weight.sum()
+    else:
+        survey_summary = survey_tours.groupby("tour_mode").size()
 
     summary_df = (
         pd.DataFrame({"model": model_summary, "survey": survey_summary})

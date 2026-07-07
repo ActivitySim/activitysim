@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
-SURVEY_DATA_FOLDER = r"C:\Users\david.hensle\OneDrive - Resource Systems Group, Inc\Documents\projects\activitysim\rsg_activitysim\activitysim\examples\example_estimation\data_test\survey_data"
+SURVEY_DATA_FOLDER = "activitysim/examples/example_estimation/data_sf/survey_data"
 
 def report_auto_ownership(context):
     model_hhs = context["households"]

@@ -11,7 +11,7 @@ import pandas as pd
 import os
 from functools import lru_cache
 
-SURVEY_DATA_FOLDER = r"C:\Users\david.hensle\OneDrive - Resource Systems Group, Inc\Documents\projects\activitysim\rsg_activitysim\activitysim\examples\example_estimation\data_test\survey_data"
+SURVEY_DATA_FOLDER = "activitysim/examples/example_estimation/data_sf/survey_data"
 
 def compute_distances(context, origins, destinations):
     # Compute distances between origins and destinations using the network level of service

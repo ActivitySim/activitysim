@@ -401,7 +401,6 @@ def _calibrate_component(
             state.run(models=[run_model_name], resume_after=prior_step)
 
         eval_context = _build_expression_context(state, helper_symbols, component_name, component_settings)
-        _bind_context_to_helper_module_globals(helper_module, eval_context)
 
         (
             row_records,
@@ -427,9 +426,7 @@ def _calibrate_component(
             _write_generic_report(state, component_name, row_records)
 
         if bespoke_callable is not None:
-            # Helper module globals were already updated from eval_context,
-            # so bespoke functions can access tables/injectables directly.
-            bespoke_callable()
+            bespoke_callable(eval_context)
 
         if component_converged:
             break
@@ -641,36 +638,9 @@ def _build_expression_context(
         pass
 
     context.update(helper_symbols)
+    # Explicit function-call context used by calibration expressions.
+    context["context"] = context
     return context
-
-
-def _bind_context_to_helper_module_globals(
-    helper_module: Any | None,
-    eval_context: dict[str, Any],
-) -> None:
-    """Bind eval context names into helper module globals.
-
-    Helper functions referenced by calibration expressions resolve free names
-    from their module globals, not from eval locals. This syncs the current
-    evaluation context into the helper module globals each component iteration.
-    """
-    if helper_module is None:
-        return
-
-    excluded = {
-        "__builtins__",
-        "__name__",
-        "__package__",
-        "__loader__",
-        "__spec__",
-        "__file__",
-        "__cached__",
-    }
-
-    filtered_context = {
-        key: value for key, value in eval_context.items() if key not in excluded
-    }
-    helper_module.__dict__.update(filtered_context)
 
 
 def _evaluate_and_update(

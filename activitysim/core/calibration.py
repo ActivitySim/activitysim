@@ -427,7 +427,7 @@ def _calibrate_component(
     coefficients_df = state.filesystem.read_model_coefficients(
         model_settings=model_settings
     )
-    helper_symbols, bespoke_callable = _load_helper_symbols(
+    helper_symbols, bespoke_callable, helper_module = _load_helper_symbols(
         state,
         component_settings,
     )
@@ -477,6 +477,7 @@ def _calibrate_component(
             state.run(models=[run_model_name], resume_after=prior_step)
 
         eval_context = _build_expression_context(state, helper_symbols)
+        _bind_context_to_helper_module_globals(helper_module, eval_context)
 
         (
             row_records,
@@ -703,9 +704,45 @@ def _build_expression_context(
         except Exception:
             # Some entries may not be available as dataframes in all contexts.
             continue
+    try:
+        network_los = state.get_injectable("network_los")
+        context["network_los"] = network_los
+        context["skim_dict"] = network_los.get_default_skim_dict()
+    except Exception:
+        # Network LOS may not be available in all contexts.
+        pass
 
     context.update(helper_symbols)
     return context
+
+
+def _bind_context_to_helper_module_globals(
+    helper_module: Any | None,
+    eval_context: dict[str, Any],
+) -> None:
+    """Bind eval context names into helper module globals.
+
+    Helper functions referenced by calibration expressions resolve free names
+    from their module globals, not from eval locals. This syncs the current
+    evaluation context into the helper module globals each component iteration.
+    """
+    if helper_module is None:
+        return
+
+    excluded = {
+        "__builtins__",
+        "__name__",
+        "__package__",
+        "__loader__",
+        "__spec__",
+        "__file__",
+        "__cached__",
+    }
+
+    filtered_context = {
+        key: value for key, value in eval_context.items() if key not in excluded
+    }
+    helper_module.__dict__.update(filtered_context)
 
 
 def _evaluate_and_update(
@@ -1040,10 +1077,10 @@ def _write_generic_report(
 def _load_helper_symbols(
     state: workflow.State,
     component_settings: CalibrationComponentSettings,
-) -> tuple[dict[str, Any], Any | None]:
+) -> tuple[dict[str, Any], Any | None, Any | None]:
     """Load helper module and return evaluation symbols and bespoke function."""
     if not component_settings.helper_module:
-        return {}, None
+        return {}, None, None
 
     module = _load_helper_module(state, component_settings.helper_module)
     symbols = {
@@ -1059,7 +1096,7 @@ def _load_helper_symbols(
             )
         bespoke = getattr(module, fn_name)
 
-    return symbols, bespoke
+    return symbols, bespoke, module
 
 
 def _load_helper_module(state: workflow.State, helper_module: str):

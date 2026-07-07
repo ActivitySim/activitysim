@@ -15,6 +15,7 @@ from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 from pydantic import model_validator
 
@@ -25,6 +26,7 @@ from activitysim.core.configuration.base import PydanticBase
 logger = logging.getLogger("calibration")
 
 plt.style.use("seaborn-v0_8-darkgrid")
+matplotlib.use('Agg')  # Forces non-interactive background rendering
 
 CALIBRATION_SETTINGS_FILE_NAME = "calibration.yaml"
 CALIBRATION_OUTPUT_DIR = "calibration"
@@ -238,6 +240,7 @@ def run_calibration_loop(
                     prior_step=prior_step,
                     global_iter=global_iter,
                 )
+                _write_component_plots(state, component)
 
                 all_converged = all_converged and component_result.converged
 
@@ -264,85 +267,6 @@ def run_calibration_loop(
             )
 
         _write_final_coefficients_snapshot(state, calibration_settings)
-
-        iteration_records = (
-            pd.read_csv(state.get_output_file_path(CALIBRATION_ITERATION_FILE))
-            .set_index(["global_iter", "component_iter", "coefficient"])
-            .sort_index()
-        )
-
-        for component in iteration_records.component.unique():
-
-            recs = iteration_records.loc[iteration_records.component == component]
-            coefs = sorted(recs.index.get_level_values("coefficient").unique())
-            n_sets = math.ceil(len(coefs) / MAX_COEFFS_IN_GRAPH)
-            for coef_set in range(n_sets):
-                set_coefs = coefs[
-                    coef_set
-                    * MAX_COEFFS_IN_GRAPH : min(
-                        len(coefs), (coef_set + 1) * MAX_COEFFS_IN_GRAPH
-                    )
-                ]
-                ax = (
-                    recs[recs.index.get_level_values("coefficient").isin(set_coefs)]
-                    .next_coefficient.unstack("coefficient")
-                    .plot()
-                )
-                ax.xaxis.set_label_text("Component iteration")
-                ax.yaxis.set_label_text("Coefficient value")
-
-                ax.legend(title="Coefficient label")
-                ax.figure.savefig(
-                    os.path.join(
-                        state.filesystem.output_dir,
-                        "calibration",
-                        f"{component}_coefficient_progress_set_{coef_set}.png",
-                    )
-                )
-
-                last_global = recs[
-                    recs.index.get_level_values("coefficient").isin(set_coefs)
-                ].index.get_level_values("global_iter")[-1]
-                last_comp = (
-                    recs[recs.index.get_level_values("coefficient").isin(set_coefs)]
-                    .loc[last_global]
-                    .index.get_level_values("component_iter")[-1]
-                )
-
-                last_records = recs[
-                    recs.index.get_level_values("coefficient").isin(set_coefs)
-                ].xs((last_global, last_comp), level=("global_iter", "component_iter"))[
-                    ["target_value", "model_value"]
-                ]
-                ax = last_records.plot.barh()
-                ax.xaxis.set_tick_params(rotation=45)
-                ax.xaxis.set_label_text("Component value")
-                plt.tight_layout()
-                ax.figure.savefig(
-                    os.path.join(
-                        state.filesystem.output_dir,
-                        "calibration",
-                        f"{component}_final_components_set_{coef_set}.png",
-                    )
-                )
-
-                _ = plt.subplots()
-
-                pct_diff = (
-                    last_records.diff(axis=1).model_value / last_records.target_value
-                )
-                ax = pct_diff.plot.barh()
-                ax.xaxis.set_tick_params(rotation=45)
-                ax.xaxis.set_label_text("Coefficient")
-                ax.yaxis.set_label_text("% Change")
-                plt.tight_layout()
-                ax.figure.savefig(
-                    os.path.join(
-                        state.filesystem.output_dir,
-                        "calibration",
-                        f"{component}_final_pct_change_set_{coef_set}.png",
-                    )
-                )
 
         return CalibrationRunResult(
             converged=False,
@@ -476,7 +400,7 @@ def _calibrate_component(
             )
             state.run(models=[run_model_name], resume_after=prior_step)
 
-        eval_context = _build_expression_context(state, helper_symbols)
+        eval_context = _build_expression_context(state, helper_symbols, component_name)
         _bind_context_to_helper_module_globals(helper_module, eval_context)
 
         (
@@ -496,20 +420,20 @@ def _calibrate_component(
         coefficients_df = new_coefficients_df
 
         _persist_coefficients_to_config(state, model_settings, coefficients_df)
-        _append_iteration_records(state, row_records)
+        _append_iteration_records(state, component_name, row_records)
         _append_summary_records(state, [summary_record])
 
         if component_settings.reports.generic:
             _write_generic_report(state, component_name, row_records)
 
         if bespoke_callable is not None:
-            # Preserve compatibility with helper modules that expect a global
-            # `state` symbol and/or no explicit arguments.
-            kwargs = {"state": state, "component_settings": component_settings}
-            bespoke_callable(**kwargs)
+            # Helper module globals were already updated from eval_context,
+            # so bespoke functions can access tables/injectables directly.
+            bespoke_callable()
 
         if component_converged:
             break
+
     state.checkpoint.add(component_name)
 
     return CalibrationComponentResult(
@@ -689,12 +613,14 @@ def _warn_if_initial_values_outside_bounds(
 def _build_expression_context(
     state: workflow.State,
     helper_symbols: dict[str, Any],
+    component_name: str,
 ) -> dict[str, Any]:
     """Create the evaluation context for model_value and target_value expressions."""
     context: dict[str, Any] = {
         "state": state,
         "np": np,
         "pd": pd,
+        "component_output_dir": _component_output_dir(state, component_name),
     }
 
     # Load active tables into context for direct expression access.
@@ -758,10 +684,8 @@ def _evaluate_and_update(
     records: list[dict[str, Any]] = []
 
     max_difference = -math.inf
-    max_difference_component = ""
     max_difference_coefficient = ""
     max_change = -math.inf
-    max_change_component = ""
     max_change_coefficient = ""
 
     num_converged = 0
@@ -814,18 +738,18 @@ def _evaluate_and_update(
 
         candidate_value = prev_value if hold_fast else prev_value + raw_delta
 
-        under_min = False
-        over_max = False
+        at_min = False
+        at_max = False
 
         lower = row["min"]
         upper = row["max"]
 
-        if not pd.isna(lower) and candidate_value < float(lower):
+        if not pd.isna(lower) and candidate_value <= float(lower):
             candidate_value = float(lower)
-            under_min = True
-        if not pd.isna(upper) and candidate_value > float(upper):
+            at_min = True
+        if not pd.isna(upper) and candidate_value >= float(upper):
             candidate_value = float(upper)
-            over_max = True
+            at_max = True
 
         if not np.isfinite(candidate_value):
             raise RuntimeError(
@@ -839,12 +763,10 @@ def _evaluate_and_update(
 
         if abs_diff > max_difference:
             max_difference = abs_diff
-            max_difference_component = component_name
             max_difference_coefficient = coefficient_name
 
         if abs_change > max_change:
             max_change = abs_change
-            max_change_component = component_name
             max_change_coefficient = coefficient_name
 
         if converged:
@@ -866,8 +788,8 @@ def _evaluate_and_update(
                 "coef_delta": abs_change,
                 "next_coefficient": candidate_value,
                 "converged": converged,
-                "under_min": under_min,
-                "over_max": over_max,
+                "at_min": at_min,
+                "at_max": at_max,
             }
         )
 
@@ -880,10 +802,8 @@ def _evaluate_and_update(
         "component_iter": component_iter,
         "component": component_name,
         "max_difference": max_difference if max_difference != -math.inf else 0.0,
-        "max_difference_component": max_difference_component,
         "max_difference_coefficient": max_difference_coefficient,
         "max_change": max_change if max_change != -math.inf else 0.0,
-        "max_change_component": max_change_component,
         "max_change_coefficient": max_change_coefficient,
         "num_converged_iter": num_converged,
         "tot_converged": num_converged,
@@ -1014,14 +934,22 @@ def _persist_coefficients_to_config(
 
 
 def _append_iteration_records(
-    state: workflow.State, records: list[dict[str, Any]]
+    state: workflow.State, component_name: str, records: list[dict[str, Any]]
 ) -> None:
     """Append per-coefficient calibration iteration records."""
     if not records:
         return
-    path = state.get_output_file_path(CALIBRATION_ITERATION_FILE)
     df = pd.DataFrame(records)
-    _append_csv(df, path)
+
+    # Save a global iteration history file
+    global_path = state.get_output_file_path(CALIBRATION_ITERATION_FILE)
+    _append_csv(df, global_path)
+
+    # Also write component-local iteration history
+    component_path = _component_output_dir(state, component_name) / Path(
+        CALIBRATION_ITERATION_FILE
+    ).name
+    _append_csv(df, component_path)
 
 
 def _append_summary_records(
@@ -1040,6 +968,122 @@ def _append_csv(df: pd.DataFrame, path: Path) -> None:
     os.makedirs(path.parent, exist_ok=True)
     write_header = not path.exists()
     df.to_csv(path, mode="a", index=False, header=write_header)
+
+
+def _component_output_dir(state: workflow.State, component_name: str) -> Path:
+    """Return output/calibration/<component_name> and ensure it exists."""
+    component_dir = state.get_output_file_path(
+        f"calibration/{component_name}"
+    )
+    os.makedirs(component_dir, exist_ok=True)
+    return component_dir
+
+
+def _write_component_plots(state: workflow.State, component_name: str) -> None:
+    """Write/update all standard plots for one calibrated component."""
+    recs = _read_component_iteration_records(state, component_name)
+    if recs is None or recs.empty:
+        return
+
+    # Segment coefficients into manageable sets for plotting
+    coefs = sorted(recs.index.get_level_values("coefficient").unique())
+    n_sets = math.ceil(len(coefs) / MAX_COEFFS_IN_GRAPH)
+    for coef_set in range(n_sets):
+        set_coefs = coefs[
+            coef_set * MAX_COEFFS_IN_GRAPH : min(
+                len(coefs), (coef_set + 1) * MAX_COEFFS_IN_GRAPH
+            )
+        ]
+        _plot_coefficient_progress(state, component_name, recs, set_coefs, coef_set)
+        last_records = _component_last_records(recs, set_coefs)
+        _plot_component_values(state, component_name, last_records, coef_set)
+        _plot_component_pct_change(state, component_name, last_records, coef_set)
+
+
+def _read_component_iteration_records(
+    state: workflow.State, component_name: str
+) -> pd.DataFrame | None:
+    """Read all iteration records for a single component."""
+    path = state.get_output_file_path(CALIBRATION_ITERATION_FILE)
+    if not path.exists():
+        return None
+
+    iteration_records = (
+        pd.read_csv(path)
+        .set_index(["global_iter", "component_iter", "coefficient"])
+        .sort_index()
+    )
+    return iteration_records.loc[iteration_records.component == component_name]
+
+
+def _plot_coefficient_progress(
+    state: workflow.State,
+    component_name: str,
+    recs: pd.DataFrame,
+    set_coefs: list[str],
+    coef_set: int,
+) -> None:
+    """Plot coefficient value progression for one coefficient subset."""
+    component_dir = _component_output_dir(state, component_name)
+    ax = (
+        recs[recs.index.get_level_values("coefficient").isin(set_coefs)]
+        .next_coefficient.unstack("coefficient")
+        .plot(figsize=(10,5))
+    )
+    ax.xaxis.set_label_text("Component iteration")
+    ax.yaxis.set_label_text("Coefficient value")
+    ax.legend(title="Coefficient label", loc="center left", bbox_to_anchor=(1.02, 0.5))
+    plt.tight_layout()
+    ax.figure.savefig(
+        component_dir / f"coefficient_progress_set_{coef_set}.png",
+        bbox_inches="tight",
+    )
+    plt.close(ax.figure)
+
+
+def _component_last_records(recs: pd.DataFrame, set_coefs: list[str]) -> pd.DataFrame:
+    """Select target/model values for the latest iteration and coefficient subset."""
+    filtered = recs[recs.index.get_level_values("coefficient").isin(set_coefs)]
+    last_global = filtered.index.get_level_values("global_iter")[-1]
+    last_comp = filtered.loc[last_global].index.get_level_values("component_iter")[-1]
+    return filtered.xs((last_global, last_comp), level=("global_iter", "component_iter"))[
+        ["target_value", "model_value"]
+    ]
+
+
+def _plot_component_values(
+    state: workflow.State,
+    component_name: str,
+    last_records: pd.DataFrame,
+    coef_set: int,
+) -> None:
+    """Plot final target/model component values for one coefficient subset."""
+    component_dir = _component_output_dir(state, component_name)
+    ax = last_records.plot.bar(figsize=(10,5))
+    ax.xaxis.set_tick_params(rotation=45)
+    ax.xaxis.set_label_text("Component value")
+    plt.tight_layout()
+    ax.figure.savefig(component_dir / f"final_components_set_{coef_set}.png")
+    plt.close(ax.figure)
+
+
+def _plot_component_pct_change(
+    state: workflow.State,
+    component_name: str,
+    last_records: pd.DataFrame,
+    coef_set: int,
+) -> None:
+    """Plot final percent difference for one coefficient subset."""
+    component_dir = _component_output_dir(state, component_name)
+    fig, ax = plt.subplots(figsize=(10,5))
+    pct_diff = last_records.diff(axis=1).model_value / last_records.target_value
+    ax = pct_diff.plot.bar(ax=ax)
+    ax.xaxis.set_tick_params(rotation=45)
+    ax.xaxis.set_label_text("Coefficient")
+    ax.yaxis.set_label_text("% Difference between Model and Target")
+    plt.tight_layout()
+    ax.figure.savefig(component_dir / f"final_pct_change_set_{coef_set}.png")
+    plt.close(ax.figure)
 
 
 def _write_generic_report(
@@ -1068,9 +1112,7 @@ def _write_generic_report(
         .sort_values(["global_iter", "component_iter", "description"])
     )
 
-    path = state.get_output_file_path(
-        f"calibration/{component_name}_generic_report.csv"
-    )
+    path = _component_output_dir(state, component_name) / "generic_report.csv"
     _append_csv(report, path)
 
 

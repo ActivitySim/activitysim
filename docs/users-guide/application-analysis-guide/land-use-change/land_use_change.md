@@ -59,19 +59,36 @@ run_list:
 ```
 
 Next, `repop_control_file_name: repop_controls.csv` should be added to the settings file. This tells PopulationSim which file to configure what the control totals will be within the configs directory (configs\repop_controls.csv). The following configuration will help control for characteristic of the population within a TOD area. For example, TOD is more likely to attract smaller households who are more likely to be workers, more likely to be held by younger adults, and less likely to have children than the general population.
-| target     | geography | seed_table | importance | control_field | expression                                         |
-|------------|-----------|------------|------------|---------------|----------------------------------------------------|
-| num_hh     | mgra      | households | 1000000000 | Total_HH      | (households.WGTP > 0) & (households.WGTP < np.inf) |
-| HHSize_1   | mgra      | households | 250000     | HHSize_1      | households.NP == 1                                 |
-| HHSize_2   | mgra      | households | 250000     | HHSize_2      | households.NP == 2                                 |
-| HHWork_0   | mgra      | households | 100000     | HHWork_0      | households.workers == 0                            |
-| HHWork_1   | mgra      | households | 100000     | HHWork_1      | households.workers == 1                            |
-| HHWork_2   | mgra      | households | 100000     | HHWork_2      | households.workers == 2                            |
-| HHChild_0  | mgra      | households | 100000     | HHChild_0     | households.HUPAC == 4                              |
-| Age_18to24 | mgra      | persons    | 100000     | Age_18to24    | (persons.AGEP >= 18) & (persons.AGEP <= 24)        |
-| Age_25to34 | mgra      | persons    | 100000     | Age_25to34    | (persons.AGEP >= 25) & (persons.AGEP <= 34)        |
-| Age_35to44 | mgra      | persons    | 100000     | Age_35to44    | (persons.AGEP >= 35) & (persons.AGEP <= 44)        |
-| Age_45to54 | mgra      | persons    | 100000     | Age_45to54    | (persons.AGEP >= 45) & (persons.AGEP <= 54)        |
+| target                | geography | seed_table | importance | control_field        | expression                                                        |
+|-----------------------|-----------|------------|------------|----------------------|-------------------------------------------------------------------|
+| num_hh                | mgra      | households | 1000000000 | Total_HH             | (households.WGTP > 0) & (households.WGTP < np.inf)                |
+| HHSize_1              | mgra      | households | 250000     | HHSize_1             | households.NP == 1                                                |
+| HHSize_2              | mgra      | households | 250000     | HHSize_2             | households.NP == 2                                                |
+| HHSize_3              | mgra      | households | 250000     | HHSize_4             | households.NP == 3                                                |
+| HHSize_4Plus          | mgra      | households | 250000     | HHSize_2             | households.NP == 2                                                |
+| HHInc_0to14999        | mgra      | households | 100000     | HHInc_0to14999       | (households.HHADJINC >= 0) & (households.HHADJINC <= 14999)       |
+| HHInc_15000to29999    | mgra      | households | 100000     | HHInc_15000to29999   | (households.HHADJINC >= 15000) & (households.HHADJINC <= 29999)   |
+| HHInc_30000to59999    | mgra      | households | 100000     | HHInc_30000to59999   | (households.HHADJINC >= 30000) & (households.HHADJINC <= 59999)   |
+| HHInc_60000to99999    | mgra      | households | 100000     | HHInc_60000to99999   | (households.HHADJINC >= 60000) & (households.HHADJINC <= 99999)   |
+| HHInc_100000to149999  | mgra      | households | 100000     | HHInc_100000to149999 | (households.HHADJINC >= 100000) & (households.HHADJINC <= 149999) |
+| HHInc_150000to199999  | mgra      | households | 100000     | HHInc_150000to199999 | (households.HHADJINC >= 150000) & (households.HHADJINC <= 199999) |
+| HHInc_200000Plus      | mgra      | households | 100000     | HHInc_200000Plus     | (households.HHADJINC >= 200000) & (households.HHADJINC <= np.inf) |
+| HHWork_0              | mgra      | households | 100000     | HHWork_0             | households.workers == 0                                           |
+| HHWork_1              | mgra      | households | 100000     | HHWork_1             | households.workers == 1                                           |
+| HHWork_2              | mgra      | households | 100000     | HHWork_2             | households.workers == 2                                           |
+| HHWork_3Plus          | mgra      | households | 100000     | HHWork_3Plus         | households.workers >= 3                                           |
+| Age_LT5               | mgra      | persons    | 100000     | Age_LT5              | (persons.AGEP >= 0) & (persons.AGEP <= 4)                         |
+| Age_5to9              | mgra      | persons    | 100000     | Age_5to9             | (persons.AGEP >= 5) & (persons.AGEP <= 9)                         |
+| Age_10to14            | mgra      | persons    | 100000     | Age_10to14           | (persons.AGEP >= 10) & (persons.AGEP <= 14)                       |
+| Age_15to17            | mgra      | persons    | 100000     | Age_15to17           | (persons.AGEP >= 15) & (persons.AGEP <= 17)                       |
+| Age_18to24            | mgra      | persons    | 100000     | Age_18to24           | (persons.AGEP >= 18) & (persons.AGEP <= 24)                       |
+| Age_25to34            | mgra      | persons    | 100000     | Age_25to34           | (persons.AGEP >= 25) & (persons.AGEP <= 34)                       |
+| Age_35to44            | mgra      | persons    | 100000     | Age_35to44           | (persons.AGEP >= 35) & (persons.AGEP <= 44)                       |
+| Age_45to54            | mgra      | persons    | 100000     | Age_45to54           | (persons.AGEP >= 45) & (persons.AGEP <= 54)                       |
+| Age_55to64            | mgra      | persons    | 100000     | Age_55to64           | (persons.AGEP >= 55) & (persons.AGEP <= 64)                       |
+| Age_65to74            | mgra      | persons    | 100000     | Age_65to74           | (persons.AGEP >= 65) & (persons.AGEP <= 74)                       |
+| Age_75to84            | mgra      | persons    | 100000     | Age_75to84           | (persons.AGEP >= 75) & (persons.AGEP <= 84)                       |
+| Age_85Plus            | mgra      | persons    | 100000     | Age_85Plus           | (persons.AGEP >= 85)                                              |
 
 The totals in each of the zones are then defined in the control total file, which is defined in settings.yaml within the `input_table_list` setting. Within that setting, there are two subsettings: `filename` which defines the name of the file within the PopulationSim run's data directory (in this case data\repop_control_totals.csv), and `tablename`, which defines what the table will be called in memory.
 ```
@@ -80,13 +97,13 @@ input_table_list:
     tablename: mgra_control_data
 ```
 
-These values can be set to add a population to the study area that is characteristic of a typical transit-oriented development.
-| mgra | Total_HH | HHSize_1 | HHSize_2 | HHWork_0 | HHWork_1 | HHWork_2 | HHChild_0 | Age_18to24 | Age_25to34 | Age_35to44 | Age_45to54 |
-|------|----------|----------|----------|----------|----------|----------|-----------|------------|------------|------------|------------|
-| 579  | 500      | 250      | 150      | 50       | 240      | 120      | 400       | 150        | 200        | 200        | 150        |
-| 4502 | 500      | 250      | 150      | 50       | 240      | 120      | 400       | 150        | 200        | 200        | 150        |
+These values can be set to add a population to the study area that is characteristic of a typical transit-oriented development in the San Diego area.
+| mgra                 | num_hh               | HHSize_1             | HHSize_2             | HHSize_3             | HHSize_4Plus         | HHInc_0to14999       | HHInc_15000to29999   | HHInc_30000to59999   | HHInc_60000to99999   | HHInc_100000to149999 | HHInc_150000to199999 | HHInc_200000Plus     | HHWork_0             | HHWork_1             | HHWork_2             | HHWork_3Plus         | Age_LT5              | Age_5to9             | Age_10to14           | Age_15to17           | Age_18to24           | Age_25to34           | Age_35to44           | Age_45to54           | Age_55to64           | Age_65to74           | Age_75to84           | Age_85Plus           |
+|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|
+| 579                  | 1000                 | 383                  | 388                  | 134                  | 95                   | 67                   | 127                  | 298                  | 227                  | 150                  | 70                   | 61                   | 606                  | 114                  | 199                  | 81                   | 93                   | 121                  | 100                  | 55                   | 250                  | 481                  | 289                  | 208                  | 203                  | 205                  | 124                  | 44                   |
+| 579                  | 1000                 | 383                  | 388                  | 134                  | 95                   | 67                   | 127                  | 298                  | 227                  | 150                  | 70                   | 61                   | 606                  | 114                  | 199                  | 81                   | 93                   | 121                  | 100                  | 55                   | 250                  | 481                  | 289                  | 208                  | 203                  | 205                  | 124                  | 44                   |
 
-The output synthetic population files, output\synthetic_households.csv and output\synthetic_persons.csv, then need to be placed in the `data` directory for the ActivitySim run and renamed households.csv and persons.csv, respectively.
+The output synthetic population files, output\synthetic_households.csv and output\synthetic_persons.csv, then need to be placed in the `data` directory for the ActivitySim run and renamed households.csv and persons.csv, respectively. It should be noted that SANDAG does have an additional processing step to conver the PopulationSim outputs into ActivitySim inputs, which is available in their [Land Use Prep Tool](https://github.com/SANDAG/landuse_prep_tool) repository.
 
 2. The land use file now needs to be updated to reflect the updated population. This will be demonstrated using code blocks, that have the ActivitySim input files read in as Pandas DataFrames as follows:
 ```

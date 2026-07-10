@@ -173,7 +173,8 @@ class Tracing(StateAccessor):
         prior_traced_ids = traceable_table_ids.get(table_name, [])
 
         if new_traced_ids:
-            assert not set(prior_traced_ids) & set(new_traced_ids)
+            if not self._obj.settings.skip_failed_choices:
+                assert not set(prior_traced_ids) & set(new_traced_ids)
             traceable_table_ids[table_name] = prior_traced_ids + new_traced_ids
             self.traceable_table_ids = traceable_table_ids
 

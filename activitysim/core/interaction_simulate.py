@@ -15,8 +15,8 @@ import pandas as pd
 
 from activitysim.core import chunk, logit, simulate, timing, tracing, util, workflow
 from activitysim.core.configuration.base import ComputeSettings
-from activitysim.core.fast_eval import fast_eval
 from activitysim.core.exceptions import SegmentedSpecificationError
+from activitysim.core.fast_eval import fast_eval
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ def eval_interaction_utilities(
     zone_layer : {'taz', 'maz'}, default 'taz'
         Specify which zone layer of the skims is to be used.  You cannot use the
         'maz' zone layer in a one-zone model, but you can use the 'taz' layer in
-        a two- or three-zone model (e.g. for destination pre-sampling).
+        a two-zone model (e.g. for destination pre-sampling).
 
     Returns
     -------

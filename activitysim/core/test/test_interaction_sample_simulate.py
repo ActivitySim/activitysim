@@ -185,7 +185,6 @@ def test_interaction_sample_simulate_passes_alts_context_and_alt_nrs_df(
         nest_spec=None,
         trace_label=None,
         trace_choosers=None,
-        allow_bad_utils=False,
         alts_context=None,
         alt_nrs_df=None,
     ):

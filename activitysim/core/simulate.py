@@ -20,7 +20,6 @@ from activitysim.core import (
     config,
     configuration,
     logit,
-    pathbuilder,
     timing,
     tracing,
     util,
@@ -46,17 +45,42 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-CustomChooser_T = Callable[
-    [
-        workflow.State,
-        pd.DataFrame,
-        pd.DataFrame,
-        pd.DataFrame,
-        str,
-        dict | LogitNestSpec | None,
-    ],
-    tuple[pd.Series, pd.Series],
-]
+CustomChooser_T = Callable[..., tuple[pd.Series, pd.Series]]
+"""
+Type alias for a custom choice function passed to ``simple_simulate`` /
+``simulate.eval_mnl`` / ``simulate.eval_nl``.
+
+The runtime calling convention is:
+
+- ``custom_chooser(state, utilities_or_probs, choosers, spec, trace_label)``
+  in MC paths (``eval_mnl``, the non-EET branch of ``eval_nl``) and in the
+  EET branch of ``eval_mnl``. Five positional arguments.
+- ``custom_chooser(state, utilities, choosers, spec, trace_label,
+  nest_spec=nest_spec)`` in the EET branch of ``eval_nl`` only. Five
+  positional arguments plus a ``nest_spec`` keyword argument.
+
+The alias is intentionally widened to ``Callable[..., ...]`` rather than
+a fully-specified ``Callable[[State, ...], ...]`` so that:
+
+1. Existing custom choosers written before nested-logit EET landed (5
+   positional args, no ``nest_spec``) remain valid implementations — they
+   are never called with ``nest_spec`` because only the eval_nl EET branch
+   passes it.
+2. New custom choosers that want to support NL+EET can opt in by accepting
+   ``nest_spec`` as a keyword-only argument, e.g.::
+
+       def my_chooser(state, utilities, choosers, spec, trace_label, *,
+                      nest_spec: dict | LogitNestSpec | None = None,
+                      ) -> tuple[pd.Series, pd.Series]:
+           ...
+
+   They MUST give ``nest_spec`` a default of ``None`` so the non-NL-EET call
+   sites (which do not pass it) still work.
+
+Return value is ``(choices, rands)`` where ``choices`` is a Series of
+chosen alternative positions and ``rands`` is the per-row random draw used
+(or zeros for EET, which has no per-row draw to expose).
+"""
 
 
 def random_rows(state: workflow.State, df, n):
@@ -1393,6 +1417,22 @@ def eval_mnl(
         )
         chunk_sizer.log_df(trace_label, "probs", probs)
 
+        # resimulate one of the failed households for tracing
+        if state.settings.skip_failed_choices:
+            _resimulate_failed_choice_for_tracing(
+                state=state,
+                choosers=choosers,
+                spec=spec,
+                locals_d=locals_d,
+                log_alt_losers=log_alt_losers,
+                trace_label=trace_label,
+                have_trace_targets=have_trace_targets,
+                estimator=estimator,
+                trace_column_names=trace_column_names,
+                chunk_sizer=chunk_sizer,
+                compute_settings=compute_settings,
+            )
+
         del utilities
         chunk_sizer.log_df(trace_label, "utilities", None)
 
@@ -1407,7 +1447,9 @@ def eval_mnl(
         if custom_chooser:
             choices, rands = custom_chooser(state, probs, choosers, spec, trace_label)
         else:
-            choices, rands = logit.make_choices(state, probs, trace_label=trace_label)
+            choices, rands = logit.make_choices(
+                state, probs, trace_label=trace_label, trace_choosers=choosers
+            )
 
         del probs
         chunk_sizer.log_df(trace_label, "probs", None)
@@ -1486,11 +1528,9 @@ def eval_nl(
     if have_trace_targets:
         state.tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
-    choosers, spec_sh = _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d)
-
     raw_utilities = eval_utilities(
         state,
-        spec_sh,
+        spec,
         choosers,
         locals_d,
         log_alt_losers=log_alt_losers,
@@ -1498,7 +1538,7 @@ def eval_nl(
         have_trace_targets=have_trace_targets,
         estimator=estimator,
         trace_column_names=trace_column_names,
-        spec_sh=spec_sh,
+        spec_sh=spec,
         chunk_sizer=chunk_sizer,
         compute_settings=compute_settings,
     )
@@ -1607,10 +1647,27 @@ def eval_nl(
                 state,
                 no_choices,
                 base_probabilities,
+                state.settings.skip_failed_choices,
                 trace_label=tracing.extend_trace_label(trace_label, "bad_probs"),
                 trace_choosers=choosers,
                 msg="base_probabilities do not sum to one",
             )
+
+            if state.settings.skip_failed_choices:
+                _resimulate_failed_choice_for_tracing(
+                    state=state,
+                    choosers=choosers,
+                    spec=spec,
+                    locals_d=locals_d,
+                    log_alt_losers=log_alt_losers,
+                    trace_label=trace_label,
+                    have_trace_targets=have_trace_targets,
+                    estimator=estimator,
+                    trace_column_names=trace_column_names,
+                    spec_sh=spec,
+                    chunk_sizer=chunk_sizer,
+                    compute_settings=compute_settings,
+                )
 
         if custom_chooser:
             choices, rands = custom_chooser(
@@ -1772,27 +1829,6 @@ def _simple_simulate(
         )
 
     return choices
-
-
-def tvpb_skims(skims):
-    def list_of_skims(skims):
-        return (
-            skims
-            if isinstance(skims, list)
-            else (
-                skims.values()
-                if isinstance(skims, dict)
-                else [skims]
-                if skims is not None
-                else []
-            )
-        )
-
-    return [
-        skim
-        for skim in list_of_skims(skims)
-        if isinstance(skim, pathbuilder.TransitVirtualPathLogsumWrapper)
-    ]
 
 
 def simple_simulate(
@@ -1976,85 +2012,6 @@ def eval_mnl_logsums(
     return logsums
 
 
-def _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d):
-    """
-    Compute TVPB logsums and attach those values to the choosers.
-
-    Also generate a modified spec that uses the replacement value instead of
-    regenerating the logsums dynamically inline.
-
-    Parameters
-    ----------
-    choosers
-    spec
-    locals_d
-
-    Returns
-    -------
-    choosers
-    spec
-
-    """
-    spec_sh = spec.copy()
-
-    def _replace_in_level(multiindex, level_name, *args, **kwargs):
-        y = multiindex.levels[multiindex.names.index(level_name)].str.replace(
-            *args, **kwargs
-        )
-        return multiindex.set_levels(y, level=level_name)
-
-    # Preprocess TVPB logsums outside sharrow
-    if "tvpb_logsum_odt" in locals_d:
-        tvpb = locals_d["tvpb_logsum_odt"]
-        path_types = tvpb.tvpb.network_los.setting(
-            f"TVPB_SETTINGS.{tvpb.recipe}.path_types"
-        ).keys()
-        assignments = {}
-        for path_type in ["WTW", "DTW"]:
-            if path_type not in path_types:
-                continue
-            re_spec = spec_sh.index
-            re_spec = _replace_in_level(
-                re_spec,
-                "Expression",
-                rf"tvpb_logsum_odt\['{path_type}'\]",
-                f"df.PRELOAD_tvpb_logsum_odt_{path_type}",
-                regex=True,
-            )
-            if not all(spec_sh.index == re_spec):
-                spec_sh.index = re_spec
-                preloaded = locals_d["tvpb_logsum_odt"][path_type]
-                assignments[f"PRELOAD_tvpb_logsum_odt_{path_type}"] = preloaded
-        if assignments:
-            choosers = choosers.assign(**assignments)
-
-    if "tvpb_logsum_dot" in locals_d:
-        tvpb = locals_d["tvpb_logsum_dot"]
-        path_types = tvpb.tvpb.network_los.setting(
-            f"TVPB_SETTINGS.{tvpb.recipe}.path_types"
-        ).keys()
-        assignments = {}
-        for path_type in ["WTW", "WTD"]:
-            if path_type not in path_types:
-                continue
-            re_spec = spec_sh.index
-            re_spec = _replace_in_level(
-                re_spec,
-                "Expression",
-                rf"tvpb_logsum_dot\['{path_type}'\]",
-                f"df.PRELOAD_tvpb_logsum_dot_{path_type}",
-                regex=True,
-            )
-            if not all(spec_sh.index == re_spec):
-                spec_sh.index = re_spec
-                preloaded = locals_d["tvpb_logsum_dot"][path_type]
-                assignments[f"PRELOAD_tvpb_logsum_dot_{path_type}"] = preloaded
-        if assignments:
-            choosers = choosers.assign(**assignments)
-
-    return choosers, spec_sh
-
-
 def eval_nl_logsums(
     state: workflow.State,
     choosers,
@@ -2080,20 +2037,18 @@ def eval_nl_logsums(
 
     logit.validate_nest_spec(nest_spec, trace_label)
 
-    choosers, spec_sh = _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d)
-
     # trace choosers
     if have_trace_targets:
         state.tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     raw_utilities = eval_utilities(
         state,
-        spec_sh,
+        spec,
         choosers,
         locals_d,
         trace_label=trace_label,
         have_trace_targets=have_trace_targets,
-        spec_sh=spec_sh,
+        spec_sh=spec,
         chunk_sizer=chunk_sizer,
         compute_settings=compute_settings,
     )
@@ -2266,3 +2221,113 @@ def simple_simulate_logsums(
     assert len(logsums.index == len(choosers.index))
 
     return logsums
+
+
+def _resimulate_failed_choice_for_tracing(
+    state: workflow.State,
+    choosers,
+    spec,
+    locals_d,
+    log_alt_losers,
+    trace_label,
+    have_trace_targets,
+    estimator,
+    trace_column_names,
+    chunk_sizer,
+    compute_settings,
+    spec_sh=None,
+):
+    """
+    Helper function to resimulate one of the failed choices for tracing purposes.
+
+    This function handles the logic for finding and retracing skipped households
+    when skip_failed_choices is enabled.
+    """
+    skipped_household_ids_dict = state.get("skipped_household_ids", dict())
+
+    # check if there are any skipped households to process
+    if not skipped_household_ids_dict:
+        return
+
+    # calculate current skipped household count efficiently
+    current_skipped_count = sum(
+        len(hh_list) for hh_list in skipped_household_ids_dict.values()
+    )
+    # check if there are newly skipped households
+    last_updated_count = state.get("_last_updated_skipped_count", 0)
+    if current_skipped_count <= last_updated_count:
+        return
+
+    # find the last household ID
+    last_household_id = None
+    for hh_list in reversed(list(skipped_household_ids_dict.values())):
+        if hh_list:  # Check if list is not empty
+            last_household_id = hh_list[-1]
+            break
+    if last_household_id is None:
+        return
+
+    # get failed choosers based on household_id location
+    failed_choosers = None
+    if "household_id" in choosers.columns:
+        failed_choosers = choosers.loc[choosers["household_id"] == last_household_id]
+    elif "household_id" in choosers.index.names:
+        failed_choosers = choosers.loc[
+            choosers.index.get_level_values("household_id") == last_household_id
+        ]
+    else:
+        logger.warning(
+            f"{trace_label} - cannot resimulate skipped household_id {last_household_id} "
+            "because no household_id column or index level found in choosers"
+        )
+        return
+
+    # resimulate failed choosers if found
+    if failed_choosers is None or len(failed_choosers) == 0:
+        return
+    # set up tracing for this chooser
+    existing_trace_hh_id = state.settings.trace_hh_id
+    existing_traceable_table_indexes = state.tracing.traceable_table_indexes
+    # find corresponding traceable name based on choosers index
+    traceable_table_name = existing_traceable_table_indexes.get(
+        choosers.index.name, None
+    )
+    if traceable_table_name is None:
+        return
+
+    # temporarily set trace settings for this household
+    state.settings.trace_hh_id = last_household_id
+    if "households" not in state.tracing.traceable_table_ids:
+        state.tracing.traceable_table_ids["households"] = []
+    state.tracing.traceable_table_ids["households"] = state.tracing.traceable_table_ids[
+        "households"
+    ] + [last_household_id]
+    state.tracing.register_traceable_table(traceable_table_name, failed_choosers)
+    try:
+        # update the SkimWrapper and Skim3dWrapper objects in the locals_d based on index of failed_choosers
+        from activitysim.core.skim_dictionary import Skim3dWrapper, SkimWrapper
+
+        for local_key, local_value in locals_d.items():
+            if isinstance(local_value, SkimWrapper):
+                local_value.set_df(failed_choosers)
+            elif isinstance(local_value, Skim3dWrapper):
+                local_value.set_df(failed_choosers)
+
+        # rerun eval_utilities for the failed chooser
+        _failed_utilities = eval_utilities(
+            state,
+            spec,
+            failed_choosers,
+            locals_d,
+            log_alt_losers=log_alt_losers,
+            trace_label=trace_label + "_resimulate",
+            have_trace_targets=True,
+            estimator=estimator,
+            trace_column_names=trace_column_names,
+            spec_sh=spec_sh,
+            chunk_sizer=chunk_sizer,
+            compute_settings=compute_settings,
+        )
+    finally:
+        # restore original trace settings
+        state.settings.trace_hh_id = existing_trace_hh_id

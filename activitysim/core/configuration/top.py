@@ -803,7 +803,7 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     """
     Whether to apply a bias of `log(sample_size)` to the Poisson sampling results.
     This is a temporary workaround to align Poisson sampling results with the biased
-    results of the monte-carlo and eet sampling methods, such that models that were
+    results of the monte_carlo and eet sampling methods, such that models that were
     estimated with historical biased sampling results can be run with Poisson sampling
     without needing to re-estimate the model.
 
@@ -812,9 +812,25 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
 
     check_model_settings: bool = True
     """
-    run checks to validate that YAML settings files are loadable and spec and coefficent csv can be resolved.
+    run checks to validate that YAML settings files are loadable and spec and coefficient csv can be resolved.
 
     should catch many common errors early, including missing required configurations or specified coefficient labels without defined values.
+    """
+
+    skip_failed_choices: bool = True
+    """
+    Skip households that cause errors during processing instead of failing the model run.
+
+    .. versionadded:: 1.6
+    """
+
+    fraction_of_failed_choices_allowed: float = 0.001
+    """
+    Threshold for the fraction of households that can be skipped before failing the model run,
+    used in conjunction with `skip_failed_choices`.
+    We want to skip problems when they are rare, but fail the run if they are common.
+
+    .. versionadded:: 1.6
     """
 
     other_settings: dict[str, Any] = None

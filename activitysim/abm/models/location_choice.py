@@ -18,8 +18,8 @@ from activitysim.core.configuration.logit import (
 )
 from activitysim.core.exceptions import DuplicateWorkflowTableError
 from activitysim.core.interaction_sample import (
-    _resolve_sample_method,
     interaction_sample,
+    resolve_sample_method,
 )
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.logit import AltsContext
@@ -244,6 +244,11 @@ def location_sample(
 ):
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
+    # Drop this when PR #1017 is merged
+    if ("household_id" not in chooser_columns) and (
+        "household_id" in persons_merged.columns
+    ):
+        chooser_columns = chooser_columns + ["household_id"]
     choosers = persons_merged[chooser_columns]
 
     # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
@@ -421,12 +426,7 @@ def location_presample(
         # chooser's sample and would all share one uniform, forcing every duplicate to pick the same MAZ. An EET-stable
         # MAZ-for-TAZ would need a (TAZ, occurrence-rank)-keyed draw and many more random numbers per chooser; that's
         # too expensive with the current RNG, revisit if a counter-based RNG is adapted.
-        sample_compute_settings = getattr(model_settings, "compute_settings", None)
-        if sample_compute_settings is not None:
-            sample_compute_settings = sample_compute_settings.subcomponent_settings(
-                "sample"
-            )
-        taz_sample_method = _resolve_sample_method(state, sample_compute_settings)
+        taz_sample_method = resolve_sample_method(state, model_settings)
         use_stable_taz_index = taz_sample_method == "poisson"
     else:
         full_taz_index = None
@@ -446,6 +446,11 @@ def location_presample(
     # FIXME maybe we should add it for multi-zone (from maz_taz) if missing?
     chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
     chooser_columns = [HOME_TAZ if c == HOME_MAZ else c for c in chooser_columns]
+    # Drop this when PR #1017 is merged
+    if ("household_id" not in chooser_columns) and (
+        "household_id" in persons_merged.columns
+    ):
+        chooser_columns = chooser_columns + ["household_id"]
     choosers = persons_merged[chooser_columns]
 
     # create wrapper with keys for this lookup - in this case there is a HOME_TAZ in the choosers
@@ -688,6 +693,11 @@ def run_location_simulate(
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
+    # Drop this when PR #1017 is merged
+    if ("household_id" not in chooser_columns) and (
+        "household_id" in persons_merged.columns
+    ):
+        chooser_columns = chooser_columns + ["household_id"]
     choosers = persons_merged[chooser_columns]
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
@@ -1166,6 +1176,33 @@ def iterate_location_choice(
         else:
             choices_df = choices_df_
 
+        if (
+            state.settings.skip_failed_choices
+            and state.get("num_skipped_households", 0) > 0
+        ):
+            # drop choices that belong to the failed households: state.skipped_household_ids
+            # so that their choices are not considered in shadow price calculations
+            # first append household_id to choices_df
+            choices_df = choices_df.merge(
+                persons_merged_df[["household_id"]],
+                left_index=True,
+                right_index=True,
+                how="left",
+            )
+            if len(choices_df) > 0:
+                # Get all household IDs from all trace_labels in the dictionary
+                import itertools
+
+                skipped_household_ids_dict = state.get("skipped_household_ids", dict())
+                all_skipped_hh_ids = set(
+                    itertools.chain.from_iterable(skipped_household_ids_dict.values())
+                )
+
+                choices_df = choices_df[
+                    ~choices_df["household_id"].isin(all_skipped_hh_ids)
+                ]
+            choices_df = choices_df.drop(columns=["household_id"])
+
         spc.set_choices(
             choices=choices_df["choice"],
             segment_ids=persons_merged_df[chooser_segment_column].reindex(
@@ -1185,7 +1222,6 @@ def iterate_location_choice(
                 )
             )
             break
-
     # Drop the dedicated shadow_pricing RNG channel (registered lazily under EET by spc.update_shadow_prices) so it
     # doesn't survive into the next location_choice model (e.g., school after work) — both models share the same
     # channel name and would otherwise collide on the no-overlap assert in SimpleChannel.extend_domain. No-op for MC.

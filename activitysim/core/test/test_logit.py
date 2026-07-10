@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os.path
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
@@ -99,6 +100,7 @@ def test_validate_utils_replaces_unavailable_values():
 
 def test_validate_utils_raises_when_all_unavailable():
     state = workflow.State().default_settings()
+    state.settings.skip_failed_choices = False
     utils = pd.DataFrame([[logit.UTIL_MIN - 1.0, logit.UTIL_MIN - 2.0]])
 
     with pytest.raises(InvalidTravelError) as excinfo:
@@ -122,6 +124,7 @@ def test_validate_utils_allows_zero_probs():
 #
 def test_utils_to_probs_logsums_with_overflow_protection():
     state = workflow.State().default_settings()
+    state.settings.skip_failed_choices = False
     utils = pd.DataFrame(
         [[1000.0, 1001.0, 999.0], [-1000.0, -1001.0, -999.0]],
         columns=["a", "b", "c"],
@@ -198,6 +201,7 @@ def test_utils_to_probs(utilities, test_data):
 
 def test_utils_to_probs_raises():
     state = workflow.State().default_settings()
+    state.settings.skip_failed_choices = False
     idx = pd.Index(name="household_id", data=[1])
     with pytest.raises(RuntimeError) as excinfo:
         logit.utils_to_probs(
@@ -309,6 +313,8 @@ def test_make_choices_matches_random_draws():
             return np.array([[0.05], [0.6], [0.95]])
 
     class DummyState:
+        settings = SimpleNamespace(skip_failed_choices=False)
+
         @staticmethod
         def get_rn_generator():
             return DummyRNG()
@@ -464,6 +470,94 @@ def test_sample_nested_logit_exact_leaf_error_terms_accumulates_node_and_leaf_te
     pdt.assert_frame_equal(error_terms, expected)
 
 
+def test_sample_nested_logit_exact_leaf_error_terms_three_level_galichon(
+    monkeypatch,
+):
+    """
+    Three-level deterministic accumulation test guarding the Galichon endpoint
+    convention: Λ_n includes the nest's own coefficient. With
+    `_log_positive_stable_for_df` monkeypatched to a per-nest constant, the
+    per-leaf error term is exactly
+
+        sum over ancestors-and-self t of  Λ_n(t) * log_S_n(t)
+          +  Λ_parent(leaf) * leaf_gumbel
+
+    where Λ_n is the product of coefficients along the path from root to and
+    including n. If the implementation were to switch to ancestor-only
+    products (the misreading flagged in finding #11), the per-leaf totals
+    would diverge from these expected values.
+    """
+    nest_log_S = {"MOTORIZED": 0.30, "AUTO": -0.20}
+
+    def fake_log_positive_stable_for_df(_state, df, alpha):
+        # identify nest by its coefficient (each non-root nest has a unique alpha here)
+        if alpha == pytest.approx(0.85):
+            return np.full(len(df), nest_log_S["MOTORIZED"], dtype=np.float64)
+        if alpha == pytest.approx(0.72):
+            return np.full(len(df), nest_log_S["AUTO"], dtype=np.float64)
+        raise AssertionError(f"unexpected alpha {alpha}")
+
+    monkeypatch.setattr(
+        logit, "_log_positive_stable_for_df", fake_log_positive_stable_for_df
+    )
+
+    class DummyRNG:
+        @staticmethod
+        def gumbel_for_df(df, n):
+            assert n == df.shape[1]
+            # one chooser, three leaf columns in order [car, bus, walk]
+            return np.array([[1.0, 2.0, 3.0]], dtype=np.float64)
+
+    class DummyState:
+        @staticmethod
+        def get_rn_generator():
+            return DummyRNG()
+
+    nest_spec = {
+        "name": "root",
+        "coefficient": 1.0,
+        "alternatives": [
+            {
+                "name": "MOTORIZED",
+                "coefficient": 0.85,
+                "alternatives": [
+                    {
+                        "name": "AUTO",
+                        "coefficient": 0.72,
+                        "alternatives": ["car", "bus"],
+                    },
+                ],
+            },
+            "walk",
+        ],
+    }
+    alt_utilities = pd.DataFrame(
+        0.0,
+        index=pd.Index([42], name="chooser_id"),
+        columns=["car", "bus", "walk"],
+        dtype=np.float64,
+    )
+
+    error_terms = logit.sample_nested_logit_exact_leaf_error_terms(
+        DummyState(), alt_utilities, nest_spec
+    )
+
+    L_M = 0.85  # Λ_MOTORIZED = θ_MOTORIZED
+    L_A = 0.85 * 0.72  # Λ_AUTO = θ_MOTORIZED * θ_AUTO
+    expected_car = L_M * nest_log_S["MOTORIZED"] + L_A * nest_log_S["AUTO"] + L_A * 1.0
+    expected_bus = L_M * nest_log_S["MOTORIZED"] + L_A * nest_log_S["AUTO"] + L_A * 2.0
+    # walk's parent is root: Λ_parent = 1.0; only the walk gumbel contributes.
+    expected_walk = 1.0 * 3.0
+
+    expected = pd.DataFrame(
+        {"car": [expected_car], "bus": [expected_bus], "walk": [expected_walk]},
+        index=alt_utilities.index,
+        dtype=np.float64,
+    )
+
+    pdt.assert_frame_equal(error_terms, expected)
+
+
 def test_make_choices_utility_based_sets_zero_rands(monkeypatch):
     def fake_make_choices_explicit_error_term_mnl(
         _state,
@@ -521,6 +615,8 @@ def test_make_choices_vs_eet_same_distribution():
             return mc_rng.random((len(df), n))
 
     class MCDummyState:
+        settings = SimpleNamespace(skip_failed_choices=False)
+
         @staticmethod
         def get_rn_generator():
             return MCDummyRNG()
@@ -552,6 +648,8 @@ def test_make_choices_vs_eet_same_distribution():
             )
 
     class EETDummyState:
+        settings = SimpleNamespace(skip_failed_choices=False)
+
         @staticmethod
         def get_rn_generator():
             return EETDummyRNG()
@@ -601,6 +699,8 @@ def test_make_choices_vs_eet_nl_same_distribution():
             return mc_rng.random((len(df), n))
 
     class MCDummyState:
+        settings = SimpleNamespace(skip_failed_choices=False)
+
         @staticmethod
         def get_rn_generator():
             return MCDummyRNG()
@@ -629,6 +729,8 @@ def test_make_choices_vs_eet_nl_same_distribution():
             return eet_rng.gumbel(size=(len(df), n))
 
     class EETDummyState:
+        settings = SimpleNamespace(skip_failed_choices=False)
+
         @staticmethod
         def get_rn_generator():
             return EETDummyRNG()
@@ -1682,7 +1784,6 @@ def test_alts_context_from_series_and_properties():
     assert ctx.min_alt_id == 3
     assert ctx.max_alt_id == 9
     assert ctx.n_alts_to_cover_max_id == 10
-    assert ctx.n_rands_to_sample == 10
 
 
 @pytest.mark.parametrize(
@@ -1700,4 +1801,3 @@ def test_alts_context_from_num_alts(
     assert ctx.min_alt_id == expected_min
     assert ctx.max_alt_id == expected_max
     assert ctx.n_alts_to_cover_max_id == expected_n_cover
-    assert ctx.n_rands_to_sample == expected_n_cover

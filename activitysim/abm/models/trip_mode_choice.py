@@ -41,10 +41,6 @@ class TripModeChoiceSettings(TemplatedLogitComponentSettings, extra="forbid"):
 
     CHOOSER_COLS_TO_KEEP: list[str] = []
 
-    tvpb_mode_path_types: dict[str, Any] = {}
-    TVPB_recipe: str = "tour_mode_choice"
-    use_TVPB_constants: bool = True
-
     FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH: bool = True
     """
     If True, overwrite the trip mode of escortee trips to match the mode selected
@@ -155,41 +151,6 @@ def trip_mode_choice(
         "od_skims": od_skim_wrapper,
     }
 
-    if network_los.zone_system == los.THREE_ZONE:
-        # fixme - is this a lightweight object?
-        tvpb = network_los.tvpb
-        tvpb_recipe = model_settings.TVPB_recipe
-        tvpb_logsum_odt = tvpb.wrap_logsum(
-            orig_key=orig_col,
-            dest_key=dest_col,
-            tod_key="trip_period",
-            segment_key="demographic_segment",
-            recipe=tvpb_recipe,
-            cache_choices=True,
-            trace_label=trace_label,
-            tag="tvpb_logsum_odt",
-        )
-        skims.update(
-            {
-                "tvpb_logsum_odt": tvpb_logsum_odt,
-            }
-        )
-
-        # This if-clause gives the user the option of NOT inheriting constants
-        # from the tvpb settings. previously, these constants were inherited
-        # automatically, which had the undesirable effect of overwriting any
-        # trip mode choice model constants/coefficients that shared the same
-        # name. The default behavior is still the same (True), but the user
-        # can now avoid any chance of squashing these local variables by
-        # adding `use_TVPB_constants: False` to the trip_mode_choice.yaml file.
-        # the tvpb will still use the constants as defined in the recipe
-        # specified above in `tvpb.wrap_logsum()` but they will not be used
-        # in the trip mode choice expressions.
-        if model_settings.use_TVPB_constants:
-            constants.update(
-                network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
-            )
-
     # don't create estimation data bundle if trip mode choice is being called
     # from another model step (e.g. tour mode choice logsum creation)
     if state.current_model_name != "trip_mode_choice":
@@ -224,10 +185,6 @@ def trip_mode_choice(
         # name index so tracing knows how to slice
         assert trips_segment.index.name == "trip_id"
 
-        if network_los.zone_system == los.THREE_ZONE:
-            tvpb_logsum_odt.extend_trace_label(primary_purpose)
-            # tvpb_logsum_dot.extend_trace_label(primary_purpose)
-
         coefficients = state.filesystem.get_segment_coefficients(
             model_settings, primary_purpose
         )
@@ -240,21 +197,14 @@ def trip_mode_choice(
             logger.warning("coefficients are obscuring constants in locals_dict")
         locals_dict.update(coefficients)
 
-        # have to initialize chunker for preprocessing in order to access
-        # tvpb logsum terms in preprocessor expressions.
-        with chunk.chunk_log(
+        expressions.annotate_preprocessors(
             state,
-            tracing.extend_trace_label(trace_label, "preprocessing"),
-            base=True,
-        ):
-            expressions.annotate_preprocessors(
-                state,
-                trips_segment,
-                locals_dict,
-                skims,
-                model_settings,
-                segment_trace_label,
-            )
+            trips_segment,
+            locals_dict,
+            skims,
+            model_settings,
+            segment_trace_label,
+        )
 
         if estimator:
             # write choosers after annotation
@@ -317,22 +267,6 @@ def trip_mode_choice(
 
     choices_df = pd.concat(choices_list)
 
-    # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
-    if network_los.zone_system == los.THREE_ZONE:
-        tvpb_mode_path_types = model_settings.tvpb_mode_path_types
-        for mode, path_type in tvpb_mode_path_types.items():
-            skim_cache = tvpb_logsum_odt.cache[path_type]
-
-            for c in skim_cache:
-                dest_col = c
-                if dest_col not in choices_df:
-                    choices_df[dest_col] = (
-                        np.nan if pd.api.types.is_numeric_dtype(skim_cache[c]) else ""
-                    )
-                choices_df[dest_col].where(
-                    choices_df[mode_column_name] != mode, skim_cache[c], inplace=True
-                )
-
     if estimator:
         estimator.write_choices(choices_df.trip_mode)
         choices_df.trip_mode = estimator.get_survey_values(
@@ -366,7 +300,20 @@ def trip_mode_choice(
         "trip_mode_choice choices", trips_df[mode_column_name], value_counts=True
     )
 
-    assert not trips_df[mode_column_name].isnull().any()
+    # if we're skipping failed choices, the trip modes for failed simulations will be null
+    if state.settings.skip_failed_choices:
+        # Get all household IDs from all trace_labels in the dictionary - more efficient flattening
+        import itertools
+
+        skipped_household_ids_dict = state.get("skipped_household_ids", dict())
+        all_skipped_hh_ids = set(
+            itertools.chain.from_iterable(skipped_household_ids_dict.values())
+        )
+
+        mask_skipped = trips_df["household_id"].isin(all_skipped_hh_ids)
+        assert not trips_df.loc[~mask_skipped, mode_column_name].isnull().any()
+    else:
+        assert not trips_df[mode_column_name].isnull().any()
 
     state.add_table("trips", trips_df)
 
@@ -382,6 +329,8 @@ def trip_mode_choice(
     # need to update locals_dict to access skims that are the same .shape as trips table
     locals_dict = {}
     locals_dict.update(constants)
+    if state.settings.skip_failed_choices:
+        trips_merged = trips_merged.loc[~mask_skipped]
     simulate.set_skim_wrapper_targets(trips_merged, skims)
     locals_dict.update(skims)
     locals_dict["timeframe"] = "trip"

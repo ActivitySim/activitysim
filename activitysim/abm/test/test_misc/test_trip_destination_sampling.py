@@ -278,6 +278,10 @@ def test_destination_presample_passes_full_taz_index_for_eet_poisson(monkeypatch
 
     state = workflow.State().default_settings()
     state.settings.use_explicit_error_terms = True
+    state.add_table(
+        "land_use_taz",
+        pd.DataFrame(index=pd.Index([1, 2, 3], name="zone_id")),
+    )
     trips = pd.DataFrame(
         {"origin": [101], "tour_leg_dest": [103]},
         index=pd.Index([7001], name="trip_id"),

@@ -22,7 +22,6 @@ from activitysim.core.configuration.base import (
 )
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.expressions import assign_columns
-from activitysim.core.interaction_sample import _resolve_sample_method
 
 logger = logging.getLogger(__name__)
 
@@ -654,6 +653,8 @@ class ProtoPop:
             households.name, persons.name, tours.name = klist
 
             # Create hhid
+            # the households dataframe created by generate_replicates above is indexed by a
+            # simple zero-based RangeIndex, so we will create new ID's by adding 1.
             households[hhid] = households.index + 1
             households["household_serial_no"] = households[hhid]
 
@@ -665,8 +666,14 @@ class ProtoPop:
                 .set_index("index")
                 .rename(columns={"hhid": hhid})
             )
+            # NOTE: in order to get a stable and reproducible sort of persons here,
+            # the sort keys need to be given all in a single sort command.  This code
+            # originally sorted the join (to in theory get all the persons joined in
+            # order, then sorted again by hhid to get the households order, but this
+            # does not guarantee that the persons stay in order, and sorting implementations
+            # can and do vary by platform and dependency version.
             persons = (
-                rep.join(persons, sort=True).sort_values(hhid).reset_index(drop=True)
+                rep.join(persons).sort_values([hhid, "index"]).reset_index(drop=True)
             )
             persons[perid] = persons.index + 1
 
@@ -675,6 +682,10 @@ class ProtoPop:
             tours = tours.merge(
                 persons[[pkey, hhid, perid]], left_on=tkey, right_on=pkey
             )
+            # We sort tours on the three keys, then drop the index (which is just a row number but scrambled),
+            # then set the tour id, based on the sorted row number. This is to ensure that the tour ids are
+            # assigned in a stable way that is not dependent on the order of the merge.
+            tours = tours.sort_values([hhid, perid, tkey]).reset_index(drop=True)
             tours.index = tours.index.set_names([tourid])
             tours.index += 1
             tours = tours.reset_index().drop(columns=[pkey])

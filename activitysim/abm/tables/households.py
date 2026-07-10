@@ -99,7 +99,7 @@ def households(state: workflow.State) -> pd.DataFrame:
         if households_sample_size == 0:
             sample_rate = 1
         else:
-            sample_rate = round(households_sample_size / tot_households, 3)
+            sample_rate = households_sample_size / tot_households
 
         df["sample_rate"] = sample_rate
 
@@ -110,6 +110,12 @@ def households(state: workflow.State) -> pd.DataFrame:
 
     # replace table function with dataframe
     state.add_table("households", df)
+    if state.settings.skip_failed_choices:
+        logger.info(
+            "Note: 'skip_failed_choices' is enabled; households may be skipped when simulation fails."
+        )
+    # initialize skipped households table as empty and same columns as households
+    state.add_table("households_skipped", df.iloc[0:0])
 
     state.get_rn_generator().add_channel("households", df)
 

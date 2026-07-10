@@ -7,20 +7,16 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import workflow
-from activitysim.core.interaction_sample import _resolve_sample_method
+from activitysim.core import estimation, workflow
+from activitysim.core.interaction_sample import resolve_sample_method
 
 logger = logging.getLogger(__name__)
 
 
 def maybe_bias_logsums(state: workflow.State, choices_df: pd.DataFrame, model_settings):
-    # Check for temporary fix to bias logsums for Poisson sampling results to align with MC/eet sampling.
-    sample_compute_settings = getattr(model_settings, "compute_settings", None)
-    if sample_compute_settings is not None:
-        sample_compute_settings = sample_compute_settings.subcomponent_settings(
-            "sample"
-        )
-    sample_method = _resolve_sample_method(state, sample_compute_settings)
+    """Check for temporary fix to bias logsums for Poisson sampling results to align with MC/eet sampling."""
+
+    sample_method = resolve_sample_method(state, model_settings)
     if (
         (sample_method == "poisson")
         and (model_settings.SAMPLE_SIZE > 0)
@@ -28,6 +24,11 @@ def maybe_bias_logsums(state: workflow.State, choices_df: pd.DataFrame, model_se
     ):
         # Only apply for sample size > 0, for unsampled disagg acc the MC/eet results are unbiased and we
         # want to stay consistent.
+        if estimation.manager.enabled:
+            raise RuntimeError(
+                "maybe_bias_logsums should not be called during estimation."
+            )
+
         if state.settings.bias_location_choice_logsums_for_poisson_sampling:
             logger.warning(
                 "Applying bias correction to location logsums with Poisson sampling to align with MC/eet sampling."
@@ -40,11 +41,11 @@ def maybe_bias_logsums(state: workflow.State, choices_df: pd.DataFrame, model_se
         else:
             logger.warning(
                 "Using Poisson sampling method for location choice logsum calculations. Currently the logsums results will"
-                + " differ from those obtained with monte-carlo or eet sampling by a constant shift of"
+                + " differ from those obtained with monte_carlo or eet sampling by a constant shift of"
                 + f" log({model_settings.SAMPLE_SIZE}) if using the common correction factor"
                 + " `log(pick_count / prob)` in location choice specs. The results of the Poisson method are unbiased,"
                 + " i.e., they agree with the results obtained with a full destination sample, unlike those for"
-                + " monte-carlo or eet sampling."
+                + " monte_carlo or eet sampling."
             )
 
     return choices_df

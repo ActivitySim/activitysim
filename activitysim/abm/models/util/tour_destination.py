@@ -9,6 +9,7 @@ import pandas as pd
 
 from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.models.util.bias_logsums import maybe_bias_logsums
+from activitysim.abm.models.util.maz_sampling import draw_maz_rands
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 from activitysim.core import (
     config,
@@ -21,8 +22,8 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.interaction_sample import (
-    _resolve_sample_method,
     interaction_sample,
+    resolve_sample_method,
 )
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.logit import AltsContext
@@ -434,34 +435,18 @@ def choose_MAZ_for_TAZ(
     row_sums = padded_maz_sizes.sum(axis=1)
     maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
 
-    if full_taz_index is not None:
-        full_taz_index = pd.Index(full_taz_index, name=DEST_TAZ)
-        taz_positions = full_taz_index.get_indexer(taz_choices[DEST_TAZ])
-        assert (taz_positions >= 0).all()
-        chooser_rands = np.asarray(
-            state.get_rn_generator().random_for_df(chooser_df, n=len(full_taz_index))
-        )
-        chooser_row_positions = np.repeat(
-            np.arange(len(chooser_df)), taz_choice_counts.to_numpy()
-        )
-        rands = chooser_rands[chooser_row_positions, taz_positions].reshape(-1, 1)
-        assert len(rands) == len(taz_choices)
-    elif uniform_taz_choice_counts:
-        assert maz_probs.shape == (len(chooser_df) * taz_sample_size, max_maz_count)
-        rands = state.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
-        rands = rands.reshape(-1, 1)
-        assert len(rands) == len(chooser_df) * taz_sample_size
-    else:
-        assert maz_probs.shape == (len(taz_choices), max_maz_count)
-        chooser_rands = np.asarray(
-            state.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
-        )
-        chooser_rand_mask = (
-            np.arange(taz_sample_size) < taz_choice_counts.to_numpy()[:, np.newaxis]
-        )
-        rands = chooser_rands[chooser_rand_mask].reshape(-1, 1)
-        assert len(rands) == len(taz_choices)
-    assert len(rands) == maz_probs.shape[0]
+    rands = draw_maz_rands(
+        state=state,
+        chooser_df=chooser_df,
+        taz_choices=taz_choices,
+        taz_choice_counts=taz_choice_counts,
+        taz_sample_size=taz_sample_size,
+        maz_probs=maz_probs,
+        max_maz_count=max_maz_count,
+        uniform_taz_choice_counts=uniform_taz_choice_counts,
+        dest_taz_col=DEST_TAZ,
+        full_taz_index=full_taz_index,
+    )
 
     # make choices
     # positions is array with the chosen alternative represented as a column index in probs
@@ -643,12 +628,7 @@ def destination_presample(
         # chooser's sample and would all share one uniform, forcing every duplicate to pick the same MAZ. An
         # EET-stable MAZ-for-TAZ would need a (TAZ, occurrence-rank)-keyed draw and many more random numbers per
         # chooser; that's too expensive with the current RNG, revisit if a counter-based RNG is adapted.
-        sample_compute_settings = getattr(model_settings, "compute_settings", None)
-        if sample_compute_settings is not None:
-            sample_compute_settings = sample_compute_settings.subcomponent_settings(
-                "sample"
-            )
-        taz_sample_method = _resolve_sample_method(state, sample_compute_settings)
+        taz_sample_method = resolve_sample_method(state, model_settings)
         use_stable_taz_index = taz_sample_method == "poisson"
     else:
         full_taz_index = None
@@ -679,7 +659,7 @@ def destination_presample(
         trace_label=trace_label,
         zone_layer="taz",
         stable_alt_positions=stable_alt_positions,
-        n_total_alts=len(full_taz_index) if full_taz_index is not None else 0,
+        n_total_alts=len(full_taz_index) if full_taz_index is not None else None,
     )
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
@@ -717,6 +697,11 @@ def run_destination_sample(
     # if special person id is passed
     chooser_id_column = model_settings.CHOOSER_ID_COLUMN
 
+    # Drop this when PR #1017 is merged
+    if ("household_id" not in chooser_columns) and (
+        "household_id" in persons_merged.columns
+    ):
+        chooser_columns = chooser_columns + ["household_id"]
     persons_merged = persons_merged[
         [c for c in persons_merged.columns if c in chooser_columns]
     ]
@@ -893,6 +878,11 @@ def run_destination_simulate(
     # if special person id is passed
     chooser_id_column = model_settings.CHOOSER_ID_COLUMN
 
+    # Drop this when PR #1017 is merged
+    if ("household_id" not in chooser_columns) and (
+        "household_id" in persons_merged.columns
+    ):
+        chooser_columns = chooser_columns + ["household_id"]
     persons_merged = persons_merged[
         [c for c in persons_merged.columns if c in chooser_columns]
     ]

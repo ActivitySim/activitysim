@@ -10,6 +10,8 @@ import numpy as np
 import pandas as pd
 from pydantic import root_validator
 
+from activitysim.abm.models.util.bias_logsums import maybe_bias_logsums
+from activitysim.abm.models.util.maz_sampling import draw_maz_rands
 from activitysim.abm.models.util.school_escort_tours_trips import (
     split_out_school_escorting_trips,
 )
@@ -18,7 +20,6 @@ from activitysim.abm.models.util.trip import (
     flag_failed_trip_leg_mates,
 )
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
-from activitysim.abm.models.util.bias_logsums import maybe_bias_logsums
 from activitysim.core import (
     chunk,
     config,
@@ -33,8 +34,8 @@ from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LocationComponentSettings
 from activitysim.core.exceptions import DuplicateWorkflowTableError, InvalidTravelError
 from activitysim.core.interaction_sample import (
-    _resolve_sample_method,
     interaction_sample,
+    resolve_sample_method,
 )
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.logit import AltsContext
@@ -279,12 +280,16 @@ def destination_sample(
     return choices
 
 
-def aggregate_size_term_matrix(maz_size_term_matrix, network_los):
+def aggregate_size_term_matrix(maz_size_term_matrix, network_los, all_tazs=None):
     df = maz_size_term_matrix.df
     assert ALT_DEST_TAZ not in df
 
     dest_taz = network_los.map_maz_to_taz(df.index)
     taz_size_term_matrix = df.groupby(dest_taz).sum()
+    if all_tazs is not None:
+        taz_size_term_matrix = taz_size_term_matrix.reindex(
+            all_tazs, fill_value=0
+        ).rename_axis(taz_size_term_matrix.index.name, axis=0)
 
     taz_size_term_matrix = DataFrameMatrix(taz_size_term_matrix)
 
@@ -458,37 +463,18 @@ def choose_MAZ_for_TAZ(
     # prob array with one row TAZ_choice, one column per alternative
     row_sums = padded_maz_sizes.sum(axis=1)
     maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
-    if full_taz_index is not None:
-        full_taz_index = pd.Index(full_taz_index, name=DEST_TAZ)
-        taz_positions = full_taz_index.get_indexer(taz_choices[DEST_TAZ])
-        assert (taz_positions >= 0).all()
-        chooser_rands = np.asarray(
-            state.get_rn_generator().random_for_df(chooser_df, n=len(full_taz_index))
-        )
-        chooser_row_positions = np.repeat(
-            np.arange(len(chooser_df)), taz_choice_counts.to_numpy()
-        )
-        rands = chooser_rands[chooser_row_positions, taz_positions].reshape(-1, 1)
-        assert len(rands) == len(taz_choices)
-    elif uniform_taz_choice_counts:
-        assert maz_probs.shape == (len(chooser_df) * taz_sample_size, max_maz_count)
-        rands = (
-            state.get_rn_generator()
-            .random_for_df(chooser_df, n=taz_sample_size)
-            .reshape(-1, 1)
-        )
-        assert len(rands) == len(chooser_df) * taz_sample_size
-    else:
-        assert maz_probs.shape == (len(taz_choices), max_maz_count)
-        chooser_rands = np.asarray(
-            state.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
-        )
-        chooser_rand_mask = (
-            np.arange(taz_sample_size) < taz_choice_counts.to_numpy()[:, np.newaxis]
-        )
-        rands = chooser_rands[chooser_rand_mask].reshape(-1, 1)
-        assert len(rands) == len(taz_choices)
-    assert len(rands) == maz_probs.shape[0]
+    rands = draw_maz_rands(
+        state=state,
+        chooser_df=chooser_df,
+        taz_choices=taz_choices,
+        taz_choice_counts=taz_choice_counts,
+        taz_sample_size=taz_sample_size,
+        maz_probs=maz_probs,
+        max_maz_count=max_maz_count,
+        uniform_taz_choice_counts=uniform_taz_choice_counts,
+        dest_taz_col=DEST_TAZ,
+        full_taz_index=full_taz_index,
+    )
 
     # make choices
     # positions is array with the chosen alternative represented as a column index in probs
@@ -648,7 +634,17 @@ def destination_presample(
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
-    TAZ_size_term_matrix = aggregate_size_term_matrix(size_term_matrix, network_los)
+    if state.settings.sharrow or state.settings.use_explicit_error_terms:
+        # when using sharrow, we use the skim_dataset structure, and need to ensure
+        # that all TAZs are represented in the size_term_matrix, even those with no MAZs.
+        # we also need to do this when using eet for consistent error terms.
+        all_tazs = state.get_dataframe("land_use_taz").index
+    else:
+        all_tazs = None
+
+    TAZ_size_term_matrix = aggregate_size_term_matrix(
+        size_term_matrix, network_los, all_tazs
+    )
 
     TRIP_ORIGIN = model_settings.TRIP_ORIGIN
     PRIMARY_DEST = model_settings.PRIMARY_DEST
@@ -663,6 +659,17 @@ def destination_presample(
         network_los.map_maz_to_taz(alternatives.index)
     ).sum()
 
+    # We now have aggregated alternatives indexed by TAZ instead of MAZ.
+    # For sharrow, we need the TAZ indexing to be "complete", i.e. include all TAZ ids,
+    # even those that had no MAZs (and so were missing from the aggregation result).
+    # this is needed because we are going to taking the entire set of TAZ alternatives
+    # as a vector which will need to align with the TAZ skims.
+    if state.settings.sharrow or state.settings.use_explicit_error_terms:
+        all_tazs = state.get_dataframe("land_use_taz").index
+        alternatives = alternatives.reindex(all_tazs, fill_value=0).rename_axis(
+            alternatives.index.name, axis=0
+        )
+
     # Trip destination keeps the alternative universe in `alternatives`, so the active TAZ set after aggregation always
     # equals the full TAZ universe and stable_alt_positions is not needed at the TAZ presample call itself (unlike
     # tour_destination / location_choice, which filter zero-attraction zones before presampling). full_taz_index is
@@ -675,12 +682,7 @@ def destination_presample(
     # current RNG, revisit if a counter-based RNG is adapted.
     full_taz_index = None
     if state.settings.use_explicit_error_terms:
-        sample_compute_settings = getattr(model_settings, "compute_settings", None)
-        if sample_compute_settings is not None:
-            sample_compute_settings = sample_compute_settings.subcomponent_settings(
-                "sample"
-            )
-        taz_sample_method = _resolve_sample_method(state, sample_compute_settings)
+        taz_sample_method = resolve_sample_method(state, model_settings)
         if taz_sample_method == "poisson":
             full_taz_index = pd.Index(
                 alternatives.index, name=f"{alt_dest_col_name}_TAZ"
@@ -826,19 +828,9 @@ def compute_ood_logsums(
 
     locals_dict.update(od_skims)
 
-    # if preprocessor contains tvpb logsums term, `pathbuilder.get_tvpb_logsum()`
-    # will get called before a ChunkSizers class object has been instantiated,
-    # causing pathbuilder to throw an error at L815 due to the assert statement
-    # in `chunk.chunk_log()` at chunk.py L927. To avoid failing this assertion,
-    # the preprocessor must be called from within a "null chunker" as follows:
-    with chunk.chunk_log(
-        state,
-        tracing.extend_trace_label(trace_label, "annotate_preprocessor"),
-        base=True,
-    ):
-        expressions.annotate_preprocessors(
-            state, choosers, locals_dict, od_skims, logsum_settings, trace_label
-        )
+    expressions.annotate_preprocessors(
+        state, choosers, locals_dict, od_skims, logsum_settings, trace_label
+    )
 
     logsums = simulate.simple_simulate_logsums(
         state,
@@ -929,12 +921,6 @@ def compute_logsums(
     locals_dict.update(coefficients)
 
     skims = skim_hotel.logsum_skims()
-    if network_los.zone_system == los.THREE_ZONE:
-        # TVPB constants can appear in expressions
-        if logsum_settings.get("use_TVPB_constants", True):
-            locals_dict.update(
-                network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
-            )
 
     # - od_logsums
     od_skims = {
@@ -945,13 +931,7 @@ def compute_logsums(
         "od_skims": skims["od_skims"],
         "timeframe": "trip",
     }
-    if network_los.zone_system == los.THREE_ZONE:
-        od_skims.update(
-            {
-                "tvpb_logsum_odt": skims["tvpb_logsum_odt"],
-                "tvpb_logsum_dot": skims["tvpb_logsum_dot"],
-            }
-        )
+
     destination_sample["od_logsum"] = compute_ood_logsums(
         state,
         choosers,
@@ -974,13 +954,6 @@ def compute_logsums(
         "dot_skims": skims["pdt_skims"],
         "od_skims": skims["dp_skims"],
     }
-    if network_los.zone_system == los.THREE_ZONE:
-        dp_skims.update(
-            {
-                "tvpb_logsum_odt": skims["tvpb_logsum_dpt"],
-                "tvpb_logsum_dot": skims["tvpb_logsum_pdt"],
-            }
-        )
 
     destination_sample["dp_logsum"] = compute_ood_logsums(
         state,
@@ -1312,52 +1285,6 @@ class SkimHotel:
             "od_skims": skim_dict.wrap(o, d),
             "dp_skims": skim_dict.wrap(d, p),
         }
-
-        if self.zone_system == los.THREE_ZONE:
-            # fixme - is this a lightweight object?
-            tvpb = self.network_los.tvpb
-
-            tvpb_logsum_odt = tvpb.wrap_logsum(
-                orig_key=o,
-                dest_key=d,
-                tod_key="trip_period",
-                segment_key="demographic_segment",
-                trace_label=self.trace_label,
-                tag="tvpb_logsum_odt",
-            )
-            tvpb_logsum_dot = tvpb.wrap_logsum(
-                orig_key=d,
-                dest_key=o,
-                tod_key="trip_period",
-                segment_key="demographic_segment",
-                trace_label=self.trace_label,
-                tag="tvpb_logsum_dot",
-            )
-            tvpb_logsum_dpt = tvpb.wrap_logsum(
-                orig_key=d,
-                dest_key=p,
-                tod_key="trip_period",
-                segment_key="demographic_segment",
-                trace_label=self.trace_label,
-                tag="tvpb_logsum_dpt",
-            )
-            tvpb_logsum_pdt = tvpb.wrap_logsum(
-                orig_key=p,
-                dest_key=d,
-                tod_key="trip_period",
-                segment_key="demographic_segment",
-                trace_label=self.trace_label,
-                tag="tvpb_logsum_pdt",
-            )
-
-            skims.update(
-                {
-                    "tvpb_logsum_odt": tvpb_logsum_odt,
-                    "tvpb_logsum_dot": tvpb_logsum_dot,
-                    "tvpb_logsum_dpt": tvpb_logsum_dpt,
-                    "tvpb_logsum_pdt": tvpb_logsum_pdt,
-                }
-            )
 
         return skims
 

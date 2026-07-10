@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import os
 import shutil
 from importlib.resources import files
 from pathlib import Path
 
 import openmatrix
+import pandas as pd
 import pytest
 
 import activitysim.abm  # noqa: F401
@@ -31,20 +31,23 @@ def psrc_example_path(dirname):
 def example_data_dir(tmp_path_factory) -> Path:
     """Fixture to provide the path to the example data directory."""
     td = tmp_path_factory.mktemp("skim-conflict-data")
-    shutil.copytree(example_path("data_2"), td.joinpath("data_2"))
-    shutil.copy(
-        example_path(os.path.join("data_3", "maz_to_maz_bike.csv")),
-        td.joinpath("data_2"),
-    )
+    data_dir = td.joinpath("data_2")
+    shutil.copytree(example_path("data_2"), data_dir)
+
+    walk = pd.read_csv(data_dir.joinpath("maz_to_maz_walk.csv"))
+    bike = walk.rename(columns={"DISTWALK": "DISTBIKE"}).copy()
+    bike["DIST"] = bike["DISTBIKE"]
+    bike = bike[["OMAZ", "DMAZ", "DIST", "DISTBIKE"]]
+    bike.to_csv(data_dir.joinpath("maz_to_maz_bike.csv"), index=False)
 
     # add extra skims to OMX to create a conflict
 
-    with openmatrix.open_file(td.joinpath("data_2").joinpath("skims1.omx"), "a") as omx:
+    with openmatrix.open_file(data_dir.joinpath("skims1.omx"), "a") as omx:
         for t in ["EA", "AM", "MD", "PM", "EV"]:
             # Create a new matrix for each time period
             omx.createMatrix(f"DISTBIKE__{t}", obj=omx["DISTBIKE"][:])
 
-    return td.joinpath("data_2")
+    return data_dir
 
 
 def test_skim_name_conflicts(example_data_dir, tmp_path_factory):

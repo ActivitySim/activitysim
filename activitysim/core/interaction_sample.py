@@ -55,6 +55,33 @@ def _resolve_sample_method(
     return sampling_method
 
 
+def resolve_sample_method(
+    state: workflow.State,
+    model_settings,
+) -> InteractionSampleMethod:
+    """
+    Resolve the sampling method for a model from its `model_settings`.
+
+    Parameters
+    ----------
+    state : workflow.State
+    model_settings : a pydantic model exposing an optional
+        `compute_settings` attribute (typically a `LogitComponentSettings`
+        subclass). If absent or None, the method is resolved purely from
+        `state.settings`.
+
+    Returns
+    -------
+    sampling_method : InteractionSampleMethod
+    """
+    sample_compute_settings = getattr(model_settings, "compute_settings", None)
+    if sample_compute_settings is not None:
+        sample_compute_settings = sample_compute_settings.subcomponent_settings(
+            "sample"
+        )
+    return _resolve_sample_method(state, sample_compute_settings)
+
+
 def _poisson_sample_alternatives_inner(
     probs: pd.DataFrame,
     poisson_inclusion_probs_values: np.ndarray,
@@ -250,6 +277,14 @@ def _poisson_sample_alternatives(
 
     while active_row_positions.size > 0:
         probs_subset = probs.iloc[active_row_positions]
+        # Each retry call advances the per-row offset by n_total_alts on the
+        # underlying RNG channel (see SimpleChannel.random_for_df_stable_alt_positions).
+        # The number of retries is data-dependent, so two scenarios with slightly
+        # different inclusion probabilities for the same chooser can end up with
+        # different downstream RNG offsets — defeating cross-scenario stability
+        # for that chooser. This is rare (only fires when the first Poisson draw
+        # yields zero samples) but worth keeping in mind for base/project
+        # comparisons; see the docstring above for context.
         sampled_results_subset = _poisson_sample_alternatives_inner(
             probs_subset,
             inclusion_probs_values[active_row_positions],
@@ -265,8 +300,16 @@ def _poisson_sample_alternatives(
         ] = sampled_results_subset[~no_alts_sampled_mask]
 
         if no_alts_sampled_mask.any():
-            logger.info(f"Poisson sampling of alternatives failed with {n=}, retrying")
             failed_row_positions = active_row_positions[no_alts_sampled_mask]
+            extra_per_retry = (
+                f"{n_total_alts}" if n_total_alts is not None else "n_total_alts"
+            )
+            logger.warning(
+                f"Poisson sampling of alternatives failed for {len(failed_row_positions)} "
+                f"chooser(s) with {n=}, retrying. Note: retried choosers consume an extra "
+                f"{extra_per_retry} randoms per retry on this RNG channel, which can cause "
+                f"downstream RNG offset divergence vs scenarios that did not retry."
+            )
             logger.debug(
                 f"Sampled size was {sample_size}, poisson method mean expected sample size was"
                 + f" {inclusion_probs_values[failed_row_positions].sum(axis=1).mean():.1f}, actual sampled mean was"
@@ -470,7 +513,7 @@ def _interaction_sample(
     zone_layer : {'taz', 'maz'}, default 'taz'
         Specify which zone layer of the skims is to be used.  You cannot use the
         'maz' zone layer in a one-zone model, but you can use the 'taz' layer in
-        a two- or three-zone model (e.g. for destination pre-sampling).
+        a two-zone model (e.g. for destination pre-sampling).
 
     compute_settings : ComputeSettings, optional
         Settings to use if compiling with sharrow
@@ -739,9 +782,11 @@ def _interaction_sample(
 
     sampling_method = _resolve_sample_method(state, compute_settings)
 
-    if state.settings.use_explicit_error_terms and estimation.manager.enabled:
+    # Estimation requires MC sampling and MC choice for now
+    if estimation.manager.enabled and sampling_method != "monte_carlo":
         raise ValueError(
-            "use_explicit_error_terms is not supported with estimation mode"
+            f"{trace_label}: estimation requires monte_carlo sampling and choice. Set sample_method='monte_carlo'"
+            + " (or leave it unset) and use_explicit_error_terms=False for estimation runs."
         )
 
     if sample_size == 0:
@@ -1016,7 +1061,7 @@ def interaction_sample(
     zone_layer : {'taz', 'maz'}, default 'taz'
         Specify which zone layer of the skims is to be used.  You cannot use the
         'maz' zone layer in a one-zone model, but you can use the 'taz' layer in
-        a two- or three-zone model (e.g. for destination pre-sampling).
+        a two-zone model (e.g. for destination pre-sampling).
     explicit_chunk_size : float, optional
         If > 0, specifies the chunk size to use when chunking the interaction
         simulation. If < 1, specifies the fraction of the total number of choosers.

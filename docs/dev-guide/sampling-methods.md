@@ -87,7 +87,7 @@ chooser-alternative arrays of error terms in memory.
 pair is sampled independently with inclusion probability $1 - (1 - p)^s$, where $p$ is the original
 choice probability and $s$ is the configured sample size.
 A single inclusion draw is made for each alternative. This is much cheaper than repeated draws for
-`eet`, and unlike ``monte-carlo``, it can still benefit from stable alignment of random draws to
+`eet`, and unlike ``monte_carlo``, it can still benefit from stable alignment of random draws to
 alternatives, so it can provide improved noise reduction compared to `monte_carlo` without the full
 cost of `eet` and therefore it is the default when running with explicit error terms, see
 {ref}`explicit-error-terms-dev`.
@@ -146,7 +146,7 @@ This means that all three methods use the same correction expression,
 `np.log(df.pick_count/df.prob)`, even though `prob` has a different interpretation for `poisson`
 than for the with-replacement methods.
 
-<<!-- TODO: Add section on disaggregate accessibilities here once decision is made in engineering meeting -->>
+<!-- TODO: Add section on disaggregate accessibilities here once decision is made in engineering meeting -->
 
 ## Runtime and Simulation Noise
 

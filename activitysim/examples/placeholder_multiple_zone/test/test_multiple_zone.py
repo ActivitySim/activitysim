@@ -31,7 +31,6 @@ def build_data():
         else:
             go = [sys.executable]
         subprocess.check_call(go + [example_path("scripts/two_zone_example_data.py")])
-        subprocess.check_call(go + [example_path("scripts/three_zone_example_data.py")])
 
 
 @pytest.fixture(scope="module")
@@ -99,8 +98,6 @@ def run_test(zone, multiprocess=False, use_explicit_error_terms=False):
 
     if multiprocess:
         run_args = run_args + ["-s", "settings_mp"]
-    elif zone == "3":
-        run_args = run_args + ["-s", "settings_static"]
 
     if os.environ.get("GITHUB_ACTIONS") == "true":
         subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
@@ -124,16 +121,6 @@ def test_2_zone_eet(data):
 
 def test_2_zone_mp_eet(data):
     run_test(zone="2", multiprocess=True, use_explicit_error_terms=True)
-
-
-def test_3_zone(data):
-    # python simulation.py -c configs_3_zone -c ../configs_3_zone -c \
-    # ../../prototype_mtc/configs -d ../data_3 -o output -s settings_mp
-    run_test(zone="3", multiprocess=False)
-
-
-def test_3_zone_mp(data):
-    run_test(zone="3", multiprocess=True)
 
 
 EXPECTED_MODELS = [
@@ -266,9 +253,5 @@ if __name__ == "__main__":
 
     run_test(zone="2", multiprocess=False)
     run_test(zone="2", multiprocess=True)
-
     run_test(zone="2", multiprocess=False, use_explicit_error_terms=True)
     run_test(zone="2", multiprocess=True, use_explicit_error_terms=True)
-
-    run_test(zone="3", multiprocess=False)
-    run_test(zone="3", multiprocess=True)

@@ -1,3 +1,0 @@
-PROBS_SPEC: tour_scheduling_probs.csv
-PROBS_JOIN_COLS:
-  - purpose_id

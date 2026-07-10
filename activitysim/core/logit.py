@@ -40,11 +40,6 @@ class AltsContext:
     min_alt_id: int
     max_alt_id: int
 
-    def __post_init__(self):
-        # e.g. for zero based zones max_alt_id = n_alts - 1
-        # but for 1 based zones, we don't need to add extra padding
-        self.n_rands_to_sample = max(self.max_alt_id, self.n_alts_to_cover_max_id)
-
     @classmethod
     def from_series(cls, ser: Union[pd.Series, pd.Index]) -> "AltsContext":
         min_alt_id = ser.min()
@@ -69,6 +64,7 @@ def report_bad_choices(
     state: workflow.State,
     bad_row_map,
     df,
+    skip_failed_choices,
     trace_label,
     msg,
     trace_choosers=None,
@@ -125,6 +121,45 @@ def report_bad_choices(
         )
 
         logger.warning(row_msg)
+
+    if skip_failed_choices:
+        # update counter in state
+        num_skipped_households = state.get("num_skipped_households", 0)
+        skipped_household_ids = state.get("skipped_household_ids", dict())
+
+        # Get current household IDs and filter out None values
+        current_hh_ids = set(df[trace_col].dropna().unique())
+
+        # Get all previously skipped household IDs across all trace_labels
+        import itertools
+
+        already_skipped = set(
+            itertools.chain.from_iterable(skipped_household_ids.values())
+        )
+
+        # Find truly new household IDs that haven't been skipped before
+        new_skipped_hh_ids = current_hh_ids - already_skipped
+
+        # Only process if there are new households to skip
+        if new_skipped_hh_ids:
+            # Initialize list for this trace_label if it doesn't exist
+            if trace_label not in skipped_household_ids:
+                skipped_household_ids[trace_label] = []
+            skipped_household_ids[trace_label].extend(new_skipped_hh_ids)
+            num_skipped_households += len(new_skipped_hh_ids)
+
+        # make sure the number of skipped households is consistent with the ids recorded
+        assert num_skipped_households == sum(
+            len(hh_list) for hh_list in skipped_household_ids.values()
+        ), "Inconsistent number of skipped households and recorded ids"
+        state.set("num_skipped_households", num_skipped_households)
+        state.set("skipped_household_ids", skipped_household_ids)
+
+        logger.warning(
+            f"Skipping {bad_row_map.sum()} bad choices. Total skipped households so far: {num_skipped_households}. Skipped household IDs: {skipped_household_ids}"
+        )
+
+        return
 
     if raise_error:
         raise InvalidTravelError(msg_with_count)
@@ -221,6 +256,7 @@ def validate_utils(
                 state,
                 zero_probs,
                 utils,
+                state.settings.skip_failed_choices,
                 trace_label=tracing.extend_trace_label(trace_label, "zero_prob_utils"),
                 msg="all probabilities are zero",
                 trace_choosers=trace_choosers,
@@ -279,6 +315,13 @@ def utils_to_probs(
         overflow_protection will have no benefit but impose a modest computational
         overhead cost.
 
+    skip_failed_choices behavior
+        Bad-choice handling is controlled by `state.settings.skip_failed_choices`.
+        If enabled, choosers with bad probabilities (all zero or infinite
+        exponentiated utilities) are skipped instead of raising immediately.
+        The number of skipped households and their IDs are tracked on `state`, and
+        `overflow_protection` is forced off so those failures are not masked.
+
     Returns
     -------
     probs : pandas.DataFrame
@@ -305,6 +348,12 @@ def utils_to_probs(
         overflow_protection = overflow_protection or (
             utils_arr.dtype == np.float32 and utils_arr.max() > 85
         )
+
+    skip_failed_choices = state.settings.skip_failed_choices
+    # when skipping failed choices, we cannot use overflow protection
+    # because it would mask the underlying issue causing bad choices
+    if skip_failed_choices:
+        overflow_protection = False
 
     if overflow_protection:
         # exponentiated utils will overflow, downshift them
@@ -343,6 +392,7 @@ def utils_to_probs(
                 state,
                 zero_probs,
                 utils,
+                skip_failed_choices,
                 trace_label=tracing.extend_trace_label(trace_label, "zero_prob_utils"),
                 msg="all probabilities are zero",
                 trace_choosers=trace_choosers,
@@ -354,8 +404,22 @@ def utils_to_probs(
             state,
             inf_utils,
             utils,
+            skip_failed_choices,
             trace_label=tracing.extend_trace_label(trace_label, "inf_exp_utils"),
             msg="infinite exponentiated utilities",
+            trace_choosers=trace_choosers,
+        )
+
+    # check if any values are nan
+    nan_utils = np.isnan(arr_sum)
+    if nan_utils.any():
+        report_bad_choices(
+            state,
+            nan_utils,
+            utils,
+            skip_failed_choices,
+            trace_label=tracing.extend_trace_label(trace_label, "nan_exp_utils"),
+            msg="nan exponentiated utilities",
             trace_choosers=trace_choosers,
         )
 
@@ -382,14 +446,18 @@ def _log_positive_stable_for_df(
     state: workflow.State, df: pd.DataFrame, alpha: float
 ) -> np.ndarray:
     alpha = EXACT_NESTED_LOGIT_DTYPE(alpha)
-    if np.isclose(alpha, 1.0):
-        return np.zeros(len(df), dtype=EXACT_NESTED_LOGIT_DTYPE)
-
     eps = np.finfo(EXACT_NESTED_LOGIT_DTYPE).eps
     uniforms = np.asarray(
         state.get_rn_generator().random_for_df(df, n=2),
         dtype=EXACT_NESTED_LOGIT_DTYPE,
     )
+
+    if np.isclose(alpha, 1.0):
+        # degenerate nest: positive-stable variate is deterministically 1, so log = 0.
+        # This early exit needs to happen after drawing the two uniform randoms so the channel
+        # offset advances by the same amount independent of alpha.
+        return np.zeros(len(df), dtype=EXACT_NESTED_LOGIT_DTYPE)
+
     angle_uniform = np.clip(uniforms[:, 0], eps, 1.0 - eps)
     exp_uniform = np.clip(uniforms[:, 1], eps, 1.0 - eps)
 
@@ -449,19 +517,23 @@ def sample_nested_logit_exact_leaf_error_terms(
 
         if nest.type == "node":
             all_leaf_children = leaf_children_for_each_node.get(nest.name, [])
-            if not all_leaf_children:
-                logger.warning(f"Node nest {nest.name} has no leaf children, skipping.")
-                continue
-
-            # draw stable term with nest coeff as scale and multiply by path coeff, add to each child alternative
             log_stable_for_node = (
                 nest.product_of_coefficients
                 * _log_positive_stable_for_df(state, alt_utilities, nest.coefficient)
             )
-            # all alternatives for a chooser (row) get the same term, so we repeat the values across columns
-            error_terms.loc[:, all_leaf_children] += log_stable_for_node.reshape(
-                -1, 1
-            ).repeat(len(all_leaf_children), axis=1)
+            if not all_leaf_children:
+                logger.warning(
+                    f"Node nest {nest.name} has no leaf children; discarding draw."
+                )
+                continue
+
+            # All alternatives for a chooser (row) get the same term.
+            col_idx = error_terms.columns.get_indexer(all_leaf_children)
+            error_terms.values[:, col_idx] += log_stable_for_node[:, None]
+            # Now using direct numpy broadcasting into the underlying values array — avoids the `.repeat()`
+            # materialization and pandas label alignment overhead.
+            # error_terms.loc[:, all_leaf_children] += log_stable_for_node.reshape(-1, 1
+            # ).repeat(len(all_leaf_children), axis=1)
 
     leaf_path_coefficients = _leaf_path_coefficients(
         nest_spec, alt_utilities.columns.to_numpy()
@@ -565,7 +637,6 @@ def make_choices_utility_based(
     utilities: pd.DataFrame,
     trace_label: str = None,
     trace_choosers=None,
-    allow_bad_utils=False,
     nest_spec=None,
     alts_context: AltsContext | None = None,
     alt_nrs_df: pd.DataFrame | None = None,
@@ -585,8 +656,6 @@ def make_choices_utility_based(
         the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
         by report_bad_choices because it can't deduce hh_id from the interaction_dataset
         which is indexed on index values from alternatives df.
-    allow_bad_utils : bool
-        If True, allows utilities with missing or invalid values without raising an error.
     nest_spec : dict or LogitNestSpec, optional
         Nest specification for the choice model. If None, will be treated as a multinomial logit model.
     alts_context : AltsContext, optional
@@ -605,6 +674,14 @@ def make_choices_utility_based(
         is an index into the columns of `probs`.
     rands : pandas.Series
         A series of 0s for compatibility with make_choices. For EET, we do not have per-row random numbers.
+
+    Notes
+    -----
+    Bad-row reporting (e.g., a chooser whose alternatives are all `UTIL_UNAVAILABLE`) is the
+    responsibility of `validate_utils()`, which is invoked at every EET call site
+    (interaction_sample, interaction_sample_simulate, simulate.eval_mnl, simulate.eval_nl)
+    BEFORE this function is called. EET argmax always returns a valid integer position;
+    we do not re-check here.
     """
     trace_label = tracing.extend_trace_label(trace_label, "make_choices_utility_based")
 
@@ -628,18 +705,6 @@ def make_choices_utility_based(
             trace_choosers,
             alts_context,
             alt_nrs_df,
-        )
-
-    missing_choices = np.isnan(choices)  # TODO: should we check for infs here too?
-    if missing_choices.any() and not allow_bad_utils:
-        report_bad_choices(
-            state,
-            missing_choices,
-            utilities,
-            trace_label=tracing.extend_trace_label(trace_label, "bad_utils"),
-            msg="no alternative selected",
-            # raise_error=False,
-            trace_choosers=trace_choosers,
         )
 
     # EET does not expose per-row random draws; return zeros for compatibility.
@@ -686,11 +751,14 @@ def make_choices(
         np.ones(len(probs.index))
     ).abs() > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
 
+    skip_failed_choices = state.settings.skip_failed_choices
+
     if bad_probs.any() and not allow_bad_probs:
         report_bad_choices(
             state,
             bad_probs,
             probs,
+            skip_failed_choices,
             trace_label=tracing.extend_trace_label(trace_label, "bad_probs"),
             msg="probabilities do not add up to 1",
             trace_choosers=trace_choosers,
@@ -699,6 +767,8 @@ def make_choices(
     rands = state.get_rn_generator().random_for_df(probs)
 
     choices = pd.Series(choice_maker(probs.values, rands), index=probs.index)
+    # mark bad choices with -99
+    choices[bad_probs] = -99
 
     rands = pd.Series(np.asanyarray(rands).flatten(), index=probs.index)
 

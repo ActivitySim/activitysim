@@ -114,6 +114,9 @@ class OutputTable(PydanticBase):
     should be decoded, as negative values indicate an absence of choice.  In
     these cases, the "tablename.fieldname" can be prefixed with a "nonnegative"
     filter, seperated by a pipe character (e.g. "nonnegative | land_use.zone_id").
+    If the column may also contain null values, use "nullable_nonnegative"
+    instead to pass nulls through unchanged while still preserving negative
+    sentinel values.
     """
 
 

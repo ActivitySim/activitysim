@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Jun 22, 2026"/>
+    <meta name="docbuild:last-update" content="Jul 13, 2026"/>
   </head>
   
   
@@ -539,7 +539,9 @@ decoded in various output files.  Generally, for columns that are fully populate
 with zone id’s (e.g. tour and trip ends) we can apply the <code class="docutils literal notranslate"><span class="pre">decode_columns</span></code> settings
 to reverse the mapping and restore the nominal zone id’s globally for the entire
 column of data.  For columns where there is some missing data flagged by negative
-values, the “nonnegative” filter is prepended to the instruction.</p>
+values, the “nonnegative” filter is prepended to the instruction. If the column
+may also contain nulls, use “nullable_nonnegative” to leave those values
+unchanged while decoding the non-negative indexes.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">output_tables</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">include</span>
 <span class="w">  </span><span class="nt">tables</span><span class="p">:</span>
@@ -553,7 +555,7 @@ values, the “nonnegative” filter is prepended to the instruction.</p>
 <span class="w">      </span><span class="nt">decode_columns</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">home_zone_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">land_use.zone_id</span>
 <span class="w">        </span><span class="nt">school_zone_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nonnegative | land_use.zone_id</span>
-<span class="w">        </span><span class="nt">workplace_zone_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nonnegative | land_use.zone_id</span>
+<span class="w">        </span><span class="nt">workplace_zone_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nullable_nonnegative | land_use.zone_id</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">tablename</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tours</span>
 <span class="w">      </span><span class="nt">decode_columns</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">land_use.zone_id</span>
@@ -1134,7 +1136,7 @@ see <a class="reference internal" href="#performance-considerations">Performance
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev19+g3bcc811bc, documentation last updated Jun 22, 2026.<br/>
+ActivitySim 1.5.2.dev20+gaa1a3ff1c, documentation last updated Jul 13, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

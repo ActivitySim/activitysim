@@ -738,7 +738,7 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
                     )
 
                 # - write table to pipeline
-                pipeline_path.joinpath(table_name).mkdir(parents=True, exist_ok=True)
+                # pipeline_path.joinpath(table_name).mkdir(parents=True, exist_ok=True)
 
                 ParquetStore(pipeline_path).put(
                     table_name=table_name,
@@ -755,9 +755,9 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
                 f"writing checkpoints ({checkpoints_df.shape}) "
                 f"to {CHECKPOINT_TABLE_NAME} in {pipeline_path}",
             )
-            pipeline_path.joinpath(CHECKPOINT_TABLE_NAME).mkdir(
-                parents=True, exist_ok=True
-            )
+            # pipeline_path.joinpath(CHECKPOINT_TABLE_NAME).mkdir(
+            #     parents=True, exist_ok=True
+            # )
             ParquetStore(pipeline_path).put(
                 table_name=CHECKPOINT_TABLE_NAME,
                 df=checkpoints_df,

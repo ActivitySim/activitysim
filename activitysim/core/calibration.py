@@ -382,7 +382,10 @@ def _calibrate_component(
 
     for component_iter in range(1, component_settings.submodel_max_iterations + 1):
         component_iterations = component_iter
-
+        run_model_name = (
+            f"{component_name}.component_i{component_iter};"
+            f"global_i{global_iter}"
+        )
         # Re-run only this component from its prior checkpoint so model values
         # reflect the current candidate coefficients for this component.
         if state.settings.multiprocess:
@@ -390,14 +393,10 @@ def _calibrate_component(
             # so table coalescing semantics match the initial global run path.
             _run_in_configured_mode(
                 state,
-                models=state.settings.models,
+                models=state.settings.models[:state.settings.models.index(component_name) + 1],
                 resume_after=prior_step,
             )
         else:
-            run_model_name = (
-                f"{component_name}.calibration_component_iter={component_iter};"
-                f"calibration_global_iter={global_iter}"
-            )
             state.run(models=[run_model_name], resume_after=prior_step)
 
         eval_context = _build_expression_context(state, helper_symbols, component_name, component_settings)
@@ -1251,9 +1250,11 @@ def _run_multiprocess_with_overrides(
     from activitysim.core import mp_tasks
 
     original_models = state.settings.models
+    original_mp_steps = state.settings.multiprocess_steps
     original_resume_after = state.settings.resume_after
 
     state.settings.models = models
+    state.settings.multiprocess_steps = [step for step in original_mp_steps if step.begin in models]
     state.settings.resume_after = resume_after
 
     try:
@@ -1268,3 +1269,4 @@ def _run_multiprocess_with_overrides(
     finally:
         state.settings.models = original_models
         state.settings.resume_after = original_resume_after
+        state.settings.multiprocess_steps = original_mp_steps

@@ -1436,7 +1436,11 @@ def _run_multiprocess_with_overrides(
 
     state.settings.models = models
     state.settings.multiprocess_steps = calibration_mp_steps
-    state.settings.resume_after = resume_after
+    # Always None: calibration manages pipeline state externally via
+    # _restore_parent_state_from_pipeline and checkpoint.add, so the MP
+    # system's breadcrumb-based resume logic must not be triggered.
+    # Apportion uses LAST_CHECKPOINT to read from the current pipeline state.
+    state.settings.resume_after = None
 
     try:
         injectables = _build_calibration_injectables(state)

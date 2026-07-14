@@ -61,6 +61,7 @@ MP_INJECTABLES = [
     "imported_extensions",
     "run_timestamp",
     "run_id",
+    "pipeline_file_name",
 ]
 
 
@@ -311,6 +312,8 @@ def _run_intermediate_components(
     resume_after: str,
     memory_sidecar_process=None,
 ) -> None:
+    if len(models) == 0:
+        return
     # don't modify the pipeline, just run the models needed
     _run_in_configured_mode(
         state,

@@ -181,7 +181,14 @@ class GenericCheckpointStore:
         if checkpoint_name == LAST_CHECKPOINT:
             checkpoint_name = cp_df.index[-1]
         try:
-            return cp_df.loc[checkpoint_name, table_name]
+            result = cp_df.loc[checkpoint_name, table_name]
+            # If checkpoint_name appears multiple times in the index (e.g. when
+            # run_simulation adds a final checkpoint with the same name as the
+            # apportion checkpoint), loc returns a Series. Take the last value
+            # which represents the most recent state.
+            if isinstance(result, pd.Series):
+                result = result.iloc[-1]
+            return result
         except KeyError:
             if checkpoint_name not in cp_df.index:
                 raise CheckpointNameNotFoundError(checkpoint_name)

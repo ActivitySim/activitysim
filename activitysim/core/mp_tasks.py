@@ -575,6 +575,18 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
     # for the subprocess pipelines, keep only the last row of checkpoints and patch the last checkpoint name
     checkpoints_df = checkpoints_df.tail(1).copy()
 
+    # Drop table columns not present at the restored checkpoint. This is
+    # necessary because get_inventory() reads from the on-disk store which
+    # may contain later checkpoints that added tables not yet created at the
+    # restore point (e.g. during calibration iteration re-runs).
+    extra_cols = [
+        c
+        for c in checkpoints_df.columns
+        if c not in NON_TABLE_COLUMNS and c not in checkpointed_tables
+    ]
+    if extra_cols:
+        checkpoints_df = checkpoints_df.drop(columns=extra_cols)
+
     # load all tables from pipeline
     checkpoint_name = multiprocess_step_name
     tables = {}

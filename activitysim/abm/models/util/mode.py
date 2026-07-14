@@ -36,6 +36,7 @@ def mode_choice_simulate(
     trace_column_names=None,
     estimator: Optional[Estimator] = None,
     compute_settings: ComputeSettings | None = None,
+    explicit_chunk_size: float = 0,
 ):
     """
     common method for  both tour_mode_choice and trip_mode_choice
@@ -74,6 +75,7 @@ def mode_choice_simulate(
         estimator=estimator,
         trace_column_names=trace_column_names,
         compute_settings=compute_settings,
+        explicit_chunk_size=explicit_chunk_size,
     )
 
     # for consistency, always return dataframe, whether or not logsums were requested
@@ -176,6 +178,7 @@ def run_tour_mode_choice_simulate(
         trace_column_names=trace_column_names,
         estimator=estimator,
         compute_settings=model_settings.compute_settings,
+        explicit_chunk_size=model_settings.explicit_chunk,
     )
 
     return choices

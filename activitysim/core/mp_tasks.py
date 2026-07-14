@@ -558,12 +558,10 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
 
     # ensure that if we are resuming, we don't apportion any tables from future model steps
     last_checkpoint_in_previous_multiprocess_step = step_info.get(
-        "last_checkpoint_in_previous_multiprocess_step", None
+        "last_checkpoint_in_previous_multiprocess_step", LAST_CHECKPOINT
     )
     if last_checkpoint_in_previous_multiprocess_step is None:
-        raise CheckpointNameNotFoundError(
-            "missing last_checkpoint_in_previous_multiprocess_step"
-        )
+        last_checkpoint_in_previous_multiprocess_step = LAST_CHECKPOINT
     state.checkpoint.restore(resume_after=last_checkpoint_in_previous_multiprocess_step)
 
     # ensure all tables are in the pipeline
@@ -1588,7 +1586,12 @@ def drop_breadcrumb(state: workflow.State, step_name, crumb, value=True):
     write_breadcrumbs(state, breadcrumbs)
 
 
-def run_multiprocess(state: workflow.State, injectables):
+def run_multiprocess(
+    state: workflow.State,
+    injectables,
+    shared_data_buffers=None,
+    skip_final_checkpoint=False,
+):
     """
     run the steps in run_list, possibly resuming after checkpoint specified by resume_after
 
@@ -1616,6 +1619,13 @@ def run_multiprocess(state: workflow.State, injectables):
         annotated run_list  (including prior run breadcrumbs if resuming)
     injectables : dict
         dict of values to inject in sub-processes
+    shared_data_buffers : dict, optional
+        Pre-allocated shared data buffers (skims, shadow pricing). If provided,
+        allocation and skim loading are skipped (useful for calibration loops
+        that call run_multiprocess repeatedly).
+    skip_final_checkpoint : bool, default False
+        If True, skip writing the final checkpoint at the end of the run.
+        Useful when the caller manages checkpoints externally.
     """
 
     state.trace_memory_info("run_multiprocess.start")
@@ -1645,60 +1655,61 @@ def run_multiprocess(state: workflow.State, injectables):
 
     sharrow_enabled = state.settings.sharrow
 
-    # - allocate shared data
-    shared_data_buffers = {}
+    # - allocate shared data (skip if pre-allocated buffers were provided)
+    if shared_data_buffers is None:
+        shared_data_buffers = {}
 
-    state.trace_memory_info("allocate_shared_skim_buffer.before")
+        state.trace_memory_info("allocate_shared_skim_buffer.before")
 
-    t0 = tracing.print_elapsed_time()
-    if not sharrow_enabled:
-        shared_data_buffers.update(allocate_shared_skim_buffers(state))
-        t0 = tracing.print_elapsed_time("allocate shared skim buffer", t0)
-        state.trace_memory_info("allocate_shared_skim_buffer.completed")
+        t0 = tracing.print_elapsed_time()
+        if not sharrow_enabled:
+            shared_data_buffers.update(allocate_shared_skim_buffers(state))
+            t0 = tracing.print_elapsed_time("allocate shared skim buffer", t0)
+            state.trace_memory_info("allocate_shared_skim_buffer.completed")
 
-    # combine shared_skim_buffer and shared_shadow_pricing_buffer in shared_data_buffer
-    t0 = tracing.print_elapsed_time()
-    shared_data_buffers.update(allocate_shared_shadow_pricing_buffers(state))
-    t0 = tracing.print_elapsed_time("allocate shared shadow_pricing buffer", t0)
-    state.trace_memory_info("allocate_shared_shadow_pricing_buffers.completed")
+        # combine shared_skim_buffer and shared_shadow_pricing_buffer in shared_data_buffer
+        t0 = tracing.print_elapsed_time()
+        shared_data_buffers.update(allocate_shared_shadow_pricing_buffers(state))
+        t0 = tracing.print_elapsed_time("allocate shared shadow_pricing buffer", t0)
+        state.trace_memory_info("allocate_shared_shadow_pricing_buffers.completed")
 
-    # combine shared_shadow_pricing_buffers to pool choices across all processes
-    t0 = tracing.print_elapsed_time()
-    shared_data_buffers.update(allocate_shared_shadow_pricing_buffers_choice(state))
-    t0 = tracing.print_elapsed_time("allocate shared shadow_pricing choice buffer", t0)
-    state.trace_memory_info("allocate_shared_shadow_pricing_buffers_choice.completed")
+        # combine shared_shadow_pricing_buffers to pool choices across all processes
+        t0 = tracing.print_elapsed_time()
+        shared_data_buffers.update(allocate_shared_shadow_pricing_buffers_choice(state))
+        t0 = tracing.print_elapsed_time("allocate shared shadow_pricing choice buffer", t0)
+        state.trace_memory_info("allocate_shared_shadow_pricing_buffers_choice.completed")
 
-    start_time = time.time()
-    if sharrow_enabled:
-        shared_data_buffers["skim_dataset"] = "sh.Dataset:skim_dataset"
+        start_time = time.time()
+        if sharrow_enabled:
+            shared_data_buffers["skim_dataset"] = "sh.Dataset:skim_dataset"
 
-        # Loading skim_dataset must be done in the main process, not a subprocess,
-        # so that this min process can hold on to the shared memory and then cleanly
-        # release it on exit.
-        from . import flow, skim_dataset  # make injectables known  # noqa: F401
+            # Loading skim_dataset must be done in the main process, not a subprocess,
+            # so that this min process can hold on to the shared memory and then cleanly
+            # release it on exit.
+            from . import flow, skim_dataset  # make injectables known  # noqa: F401
 
-        state.get_injectable("skim_dataset")
+            state.get_injectable("skim_dataset")
 
-        tracing.print_elapsed_time("setup skim_dataset", t0)
-        state.trace_memory_info("skim_dataset.completed")
+            tracing.print_elapsed_time("setup skim_dataset", t0)
+            state.trace_memory_info("skim_dataset.completed")
 
-    # - mp_setup_skims
-    else:  # not sharrow_enabled
-        if len(shared_data_buffers) > 0:
-            start_time = time.time()
-            run_sub_task(
-                state,
-                multiprocessing.Process(
-                    target=mp_setup_skims,
-                    name="mp_setup_skims",
-                    args=(injectables,),
-                    kwargs=shared_data_buffers,
-                ),
-            )
+        # - mp_setup_skims
+        else:  # not sharrow_enabled
+            if len(shared_data_buffers) > 0:
+                start_time = time.time()
+                run_sub_task(
+                    state,
+                    multiprocessing.Process(
+                        target=mp_setup_skims,
+                        name="mp_setup_skims",
+                        args=(injectables,),
+                        kwargs=shared_data_buffers,
+                    ),
+                )
 
-            tracing.print_elapsed_time("setup shared_data_buffers", t0)
-            state.trace_memory_info("mp_setup_skims.completed")
-    state.run.log_runtime("mp_setup_skims", start_time=start_time, force=True)
+                tracing.print_elapsed_time("setup shared_data_buffers", t0)
+                state.trace_memory_info("mp_setup_skims.completed")
+        state.run.log_runtime("mp_setup_skims", start_time=start_time, force=True)
 
     # - for each step in run list
     for step_info in run_list["multiprocess_steps"]:
@@ -1769,7 +1780,7 @@ def run_multiprocess(state: workflow.State, injectables):
         drop_breadcrumb(state, step_name, "coalesce")
 
     # add checkpoint with final tables even if not intermediate checkpointing
-    if not state.should_save_checkpoint():
+    if not skip_final_checkpoint and not state.should_save_checkpoint():
         state.checkpoint.restore(resume_after="_")
         state.checkpoint.add(FINAL_CHECKPOINT_NAME)
         state.checkpoint.close_store()
@@ -2069,7 +2080,7 @@ def get_run_list(state: workflow.State):
             # remember there should always be a final checkpoint with same name as multiprocess_step name
             multiprocess_steps[istep][
                 "last_checkpoint_in_previous_multiprocess_step"
-            ] = (multiprocess_steps[istep - 1].get("name") if istep > 0 else None)
+            ] = (multiprocess_steps[istep - 1].get("name") if istep > 0 else LAST_CHECKPOINT)
 
         # - build individual step model lists based on starts
         starts.append(len(models))  # so last step gets remaining models in list

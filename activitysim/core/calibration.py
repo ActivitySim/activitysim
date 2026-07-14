@@ -7,6 +7,7 @@ import importlib.util
 import json
 import logging
 import math
+import multiprocessing
 import os
 import re
 from dataclasses import dataclass
@@ -22,6 +23,7 @@ from pydantic import model_validator
 from activitysim.core import workflow
 from activitysim.core.configuration import PydanticReadable
 from activitysim.core.configuration.base import PydanticBase
+from activitysim.core.configuration.top import MultiprocessStep
 
 logger = logging.getLogger("calibration")
 
@@ -189,6 +191,12 @@ def run_calibration_loop(
 
     original_pipeline_name = state.filesystem.pipeline_file_name
 
+    # Initialize shared resources for multiprocess mode (skims, shadow pricing).
+    # These are allocated once and reused across all calibration iterations.
+    shared_data_buffers = None
+    if state.settings.multiprocess:
+        shared_data_buffers = _initialize_mp_shared_resources(state)
+
     try:
         for global_iter in range(
             start_global_iter,
@@ -211,6 +219,7 @@ def run_calibration_loop(
                 ),
                 global_iter=global_iter,
                 memory_sidecar_process=memory_sidecar_process,
+                shared_data_buffers=shared_data_buffers,
             )
 
             all_converged = True
@@ -232,6 +241,7 @@ def run_calibration_loop(
                         ],
                         resume_after=last_calibrated_component,
                         memory_sidecar_process=memory_sidecar_process,
+                        shared_data_buffers=shared_data_buffers,
                     )
 
                 component_result = _calibrate_component(
@@ -240,6 +250,7 @@ def run_calibration_loop(
                     component_settings=component_settings,
                     prior_step=prior_step,
                     global_iter=global_iter,
+                    shared_data_buffers=shared_data_buffers,
                 )
                 _write_component_plots(state, component)
 
@@ -257,6 +268,7 @@ def run_calibration_loop(
                     models=models[models.index(last_calibrated_component) + 1 :],
                     resume_after=last_calibrated_component,
                     memory_sidecar_process=memory_sidecar_process,
+                    shared_data_buffers=shared_data_buffers,
                 )
 
             _write_progress(
@@ -283,12 +295,10 @@ def _run_precursor_components(
     resume_after: str,
     global_iter: int,
     memory_sidecar_process=None,
+    shared_data_buffers: dict | None = None,
 ) -> None:
     """Run the normal ActivitySim model flow for one global calibration iteration."""
 
-    assert (resume_after is None) or (
-        resume_after in models
-    ), f"resume_after step {resume_after} not in models preceding calibration models"
     if global_iter > 1:
         # Seed a fresh pipeline from the configured resume checkpoint to avoid
         # duplicate checkpoint-name collisions across global calibration loops.
@@ -297,12 +307,12 @@ def _run_precursor_components(
         state.filesystem.pipeline_file_name = f"pipeline_calibration_iter_{global_iter}"
         state.checkpoint.restore_from(prior_pipeline, checkpoint_name=resume_after)
     else:
-
         _run_in_configured_mode(
             state,
             models=models,
             resume_after=resume_after,
             memory_sidecar_process=memory_sidecar_process,
+            shared_data_buffers=shared_data_buffers,
         )
 
 
@@ -311,15 +321,16 @@ def _run_intermediate_components(
     models: list[str],
     resume_after: str,
     memory_sidecar_process=None,
+    shared_data_buffers: dict | None = None,
 ) -> None:
     if len(models) == 0:
         return
-    # don't modify the pipeline, just run the models needed
     _run_in_configured_mode(
         state,
         models=models,
         resume_after=resume_after,
         memory_sidecar_process=memory_sidecar_process,
+        shared_data_buffers=shared_data_buffers,
     )
 
 
@@ -328,13 +339,14 @@ def _run_subsequent_components(
     models: list[str],
     resume_after: str,
     memory_sidecar_process=None,
+    shared_data_buffers: dict | None = None,
 ) -> None:
-    # don't modify the pipeline, just run the models needed
     _run_in_configured_mode(
         state,
         models=models,
         resume_after=resume_after,
         memory_sidecar_process=memory_sidecar_process,
+        shared_data_buffers=shared_data_buffers,
     )
 
 
@@ -344,6 +356,7 @@ def _calibrate_component(
     component_settings: CalibrationComponentSettings,
     prior_step: str,
     global_iter: int,
+    shared_data_buffers: dict | None = None,
 ) -> CalibrationComponentResult:
     """Run iterative coefficient calibration for one component."""
     model_settings_file = _infer_model_settings_file(component_name)
@@ -383,6 +396,22 @@ def _calibrate_component(
     component_converged = False
     component_iterations = 0
 
+    # Determine the checkpoint name to restore from for component re-runs.
+    # In MP mode, the checkpoint that represents prior_step's completed state
+    # is the last checkpoint in the pipeline before we run the component.
+    # We capture it once and reuse across component iterations.
+    mp_restore_checkpoint = None
+    if state.settings.multiprocess and shared_data_buffers is not None:
+        # The pipeline should already be open from _restore_parent_state_from_pipeline
+        # called after precursor/intermediate models ran. The last checkpoint
+        # in the pipeline represents the state at prior_step.
+        if state.checkpoint.checkpoints:
+            mp_restore_checkpoint = state.checkpoint.last_checkpoint.get(
+                "checkpoint_name", "_"
+            )
+        else:
+            mp_restore_checkpoint = "_"
+
     for component_iter in range(1, component_settings.submodel_max_iterations + 1):
         component_iterations = component_iter
         run_model_name = (
@@ -391,13 +420,15 @@ def _calibrate_component(
         )
         # Re-run only this component from its prior checkpoint so model values
         # reflect the current candidate coefficients for this component.
-        if state.settings.multiprocess:
-            # In multiprocess mode, preserve the standard multiprocess orchestration
-            # so table coalescing semantics match the initial global run path.
-            _run_in_configured_mode(
+        if state.settings.multiprocess and shared_data_buffers is not None:
+            # Use direct MP orchestration with explicit checkpoint control.
+            # This ensures we always apportion from prior_step's state,
+            # even after multiple component iterations.
+            _run_mp_single_component(
                 state,
-                models=state.settings.models[:state.settings.models.index(component_name) + 1],
-                resume_after=prior_step,
+                component_name=component_name,
+                restore_checkpoint=mp_restore_checkpoint,
+                shared_data_buffers=shared_data_buffers,
             )
         else:
             state.run(models=[run_model_name], resume_after=prior_step)
@@ -1222,19 +1253,158 @@ def _write_progress(state: workflow.State, payload: dict[str, Any]) -> None:
         json.dump(payload, f, indent=2)
 
 
+def _run_mp_single_component(
+    state: workflow.State,
+    component_name: str,
+    restore_checkpoint: str,
+    shared_data_buffers: dict,
+) -> None:
+    """Run a single component in multiprocess mode with explicit checkpoint control.
+
+    This directly orchestrates the apportion → simulate → coalesce flow
+    without going through run_multiprocess/get_run_list, giving us precise
+    control over which checkpoint to apportion from. This is essential for
+    calibration component re-runs where we must always restart from prior_step's
+    state regardless of what other checkpoints exist in the pipeline.
+
+    Parameters
+    ----------
+    state : workflow.State
+    component_name : str
+        The model component to run.
+    restore_checkpoint : str
+        The checkpoint name to restore from before apportioning.
+        This should be the checkpoint representing prior_step's state.
+    shared_data_buffers : dict
+        Pre-allocated shared memory buffers for skims/shadow pricing.
+    """
+    from activitysim.core import mp_tasks
+
+    # Determine slice info from original settings
+    original_steps = state.settings.multiprocess_steps
+    all_models = state.settings.models
+
+    slice_info = None
+    num_processes = state.settings.num_processes or 2
+    chunk_size = state.settings.chunk_size or 0
+
+    # Find which original step this component belongs to
+    step_boundaries = []
+    for i, step in enumerate(original_steps):
+        step_boundaries.append(all_models.index(step.begin))
+    step_boundaries.append(len(all_models))
+
+    component_idx = all_models.index(component_name)
+    for i, step in enumerate(original_steps):
+        if step_boundaries[i] <= component_idx < step_boundaries[i + 1]:
+            if step.slice:
+                slice_info = step.slice.model_dump()
+            if step.num_processes:
+                num_processes = step.num_processes
+            if step.chunk_size:
+                chunk_size = step.chunk_size
+            break
+
+    step_name = f"calibration_{component_name}"
+
+    # Build step_info dict matching what mp_tasks functions expect
+    step_info = {
+        "name": step_name,
+        "models": [component_name],
+        "num_processes": num_processes,
+        "chunk_size": chunk_size,
+        "step_num": 0,
+        "slice": slice_info,
+        "last_checkpoint_in_previous_multiprocess_step": restore_checkpoint,
+    }
+
+    injectables = _build_calibration_injectables(state)
+
+    if num_processes == 1:
+        sub_proc_names = [step_name]
+    else:
+        sub_proc_names = [f"{step_name}_{i}" for i in range(num_processes)]
+
+    fail_fast = state.settings.fail_fast
+
+    # Apportion pipeline (split tables across sub-processes)
+    if num_processes > 1 and slice_info is not None:
+        mp_tasks.run_sub_task(
+            state,
+            multiprocessing.Process(
+                target=mp_tasks.mp_apportion_pipeline,
+                name=f"{step_name}_apportion",
+                args=(injectables, sub_proc_names, step_info),
+            ),
+        )
+
+    # For multi-process runs, subprocesses must restore from the apportioned
+    # pipeline (which has one checkpoint). Use LAST_CHECKPOINT so they don't
+    # overwrite the apportioned data with a fresh pipeline.
+    # For single-process runs (no apportion), use restore_checkpoint to resume
+    # from the correct point in the main pipeline.
+    if num_processes > 1:
+        sim_resume_after = "_"  # LAST_CHECKPOINT in apportioned sub-pipeline
+    else:
+        sim_resume_after = restore_checkpoint
+
+    # Run simulations in sub-processes
+    completed = mp_tasks.run_sub_simulations(
+        state,
+        injectables,
+        shared_data_buffers,
+        step_info,
+        sub_proc_names,
+        sim_resume_after,
+        [],  # previously_completed
+        fail_fast,
+    )
+
+    if len(completed) != num_processes:
+        from activitysim.core.exceptions import SubprocessError
+
+        raise SubprocessError(
+            f"{num_processes - len(completed)} processes failed in "
+            f"calibration step {step_name}"
+        )
+
+    # Coalesce sub-process pipelines back into main pipeline
+    if num_processes > 1 and slice_info is not None:
+        mp_tasks.run_sub_task(
+            state,
+            multiprocessing.Process(
+                target=mp_tasks.mp_coalesce_pipelines,
+                name=f"{step_name}_coalesce",
+                args=(injectables, sub_proc_names, slice_info),
+            ),
+        )
+
+    # Restore coalesced results into parent state
+    _restore_parent_state_from_pipeline(state)
+
+
 def _run_in_configured_mode(
     state: workflow.State,
     models: list[str],
     resume_after: str | None,
     memory_sidecar_process=None,
+    shared_data_buffers: dict | None = None,
 ) -> None:
     """Run models using the same single/multiprocess mode as the parent run."""
+    if not models:
+        return
+
     if state.settings.multiprocess:
         _run_multiprocess_with_overrides(
             state,
             models=models,
             resume_after=resume_after,
+            shared_data_buffers=shared_data_buffers,
         )
+        # After multiprocess completes, the coalesced pipeline exists on disk.
+        # Restore it into the parent process state so tables are accessible
+        # for calibration expression evaluation.
+        _restore_parent_state_from_pipeline(state)
         return
 
     state.run(
@@ -1248,6 +1418,7 @@ def _run_multiprocess_with_overrides(
     state: workflow.State,
     models: list[str],
     resume_after: str | None,
+    shared_data_buffers: dict | None = None,
 ) -> None:
     """Run multiprocess with temporary settings overrides for calibration passes."""
     from activitysim.core import mp_tasks
@@ -1256,20 +1427,167 @@ def _run_multiprocess_with_overrides(
     original_mp_steps = state.settings.multiprocess_steps
     original_resume_after = state.settings.resume_after
 
+    # Build valid multiprocess_steps for the requested model subset.
+    calibration_mp_steps = _build_calibration_mp_steps(
+        models=models,
+        original_steps=original_mp_steps,
+        all_models=original_models,
+    )
+
     state.settings.models = models
-    state.settings.multiprocess_steps = [step for step in original_mp_steps if step.begin in models]
+    state.settings.multiprocess_steps = calibration_mp_steps
     state.settings.resume_after = resume_after
 
     try:
-        injectables = {}
-        for key in MP_INJECTABLES:
-            try:
-                injectables[key] = state.get_injectable(key)
-            except KeyError:
-                pass
-        injectables["settings"] = state.settings
-        mp_tasks.run_multiprocess(state, injectables)
+        injectables = _build_calibration_injectables(state)
+        mp_tasks.run_multiprocess(
+            state,
+            injectables,
+            shared_data_buffers=shared_data_buffers,
+            skip_final_checkpoint=True,
+        )
     finally:
         state.settings.models = original_models
         state.settings.resume_after = original_resume_after
         state.settings.multiprocess_steps = original_mp_steps
+
+
+def _restore_parent_state_from_pipeline(state: workflow.State) -> None:
+    """Restore coalesced pipeline tables into the parent process state.
+
+    After a multiprocess run, the parent's in-memory state is stale.
+    This loads the latest checkpoint from the pipeline store so that
+    calibration expressions can evaluate against model outputs.
+    """
+    if state.checkpoint.store_is_open():
+        state.checkpoint.close_store()
+    state.checkpoint.restore(resume_after="_")
+
+
+def _initialize_mp_shared_resources(state: workflow.State) -> dict:
+    """Allocate shared data buffers (skims, shadow pricing) once for reuse.
+
+    This mirrors the allocation logic in mp_tasks.run_multiprocess but
+    is called once at calibration start rather than on every sub-run.
+    """
+    from activitysim.core import mp_tasks, tracing
+
+    shared_data_buffers = {}
+    sharrow_enabled = state.settings.sharrow
+
+    t0 = tracing.print_elapsed_time()
+    if not sharrow_enabled:
+        shared_data_buffers.update(mp_tasks.allocate_shared_skim_buffers(state))
+        t0 = tracing.print_elapsed_time("calibration: allocate shared skim buffer", t0)
+
+    shared_data_buffers.update(mp_tasks.allocate_shared_shadow_pricing_buffers(state))
+    t0 = tracing.print_elapsed_time(
+        "calibration: allocate shared shadow_pricing buffer", t0
+    )
+
+    shared_data_buffers.update(
+        mp_tasks.allocate_shared_shadow_pricing_buffers_choice(state)
+    )
+    t0 = tracing.print_elapsed_time(
+        "calibration: allocate shared shadow_pricing choice buffer", t0
+    )
+
+    # Load skim data into the shared buffers.
+    if sharrow_enabled:
+        shared_data_buffers["skim_dataset"] = "sh.Dataset:skim_dataset"
+        from activitysim.core import flow, skim_dataset  # noqa: F401
+
+        state.get_injectable("skim_dataset")
+    else:
+        if len(shared_data_buffers) > 0:
+            injectables = _build_calibration_injectables(state)
+            mp_tasks.run_sub_task(
+                state,
+                multiprocessing.Process(
+                    target=mp_tasks.mp_setup_skims,
+                    name="mp_setup_skims_calibration",
+                    args=(injectables,),
+                    kwargs=shared_data_buffers,
+                ),
+            )
+
+    # Make skims available in the parent process for expression evaluation.
+    state.add_injectable("data_buffers", shared_data_buffers)
+    try:
+        state.get_injectable("network_los")
+    except Exception:
+        logger.warning(
+            "calibration: could not resolve network_los in parent process; "
+            "skim-dependent expressions may fail"
+        )
+
+    return shared_data_buffers
+
+
+def _build_calibration_mp_steps(
+    models: list[str],
+    original_steps: list[MultiprocessStep],
+    all_models: list[str],
+) -> list[MultiprocessStep]:
+    """Build valid MultiprocessStep objects for a calibration model subset.
+
+    The key challenge is that get_run_list() in mp_tasks requires:
+    - The first step's begin == models[0]
+    - Steps are ordered and non-overlapping
+    - Each step's begin is in the models list
+
+    We intersect the original multiprocess_steps with the requested model
+    subset and construct new steps that satisfy these constraints.
+    """
+    if not models:
+        return []
+
+    # Determine which original step each model in the full list belongs to.
+    # Build a mapping: model_name -> original step index
+    model_to_step: dict[str, int] = {}
+    step_boundaries = []
+    for i, step in enumerate(original_steps):
+        begin_idx = all_models.index(step.begin)
+        step_boundaries.append(begin_idx)
+    step_boundaries.append(len(all_models))
+
+    for i, step in enumerate(original_steps):
+        for model_idx in range(step_boundaries[i], step_boundaries[i + 1]):
+            model_to_step[all_models[model_idx]] = i
+
+    # Group the requested models by their original step
+    from collections import OrderedDict
+
+    step_model_groups: OrderedDict[int, list[str]] = OrderedDict()
+    for model in models:
+        step_idx = model_to_step.get(model)
+        if step_idx is None:
+            continue
+        step_model_groups.setdefault(step_idx, []).append(model)
+
+    # Build new MultiprocessStep for each group
+    new_steps = []
+    for step_idx, step_models in step_model_groups.items():
+        orig_step = original_steps[step_idx]
+        new_step = MultiprocessStep(
+            name=f"calibration_{orig_step.name}",
+            begin=step_models[0],
+            num_processes=orig_step.num_processes,
+            slice=orig_step.slice,
+            chunk_size=orig_step.chunk_size,
+        )
+        new_steps.append(new_step)
+
+    return new_steps
+
+
+def _build_calibration_injectables(state: workflow.State) -> dict:
+    """Build the injectables dict for multiprocess sub-processes."""
+    injectables = {}
+    for key in MP_INJECTABLES:
+        try:
+            injectables[key] = state.get_injectable(key)
+        except KeyError:
+            pass
+    injectables["settings"] = state.settings
+    return injectables

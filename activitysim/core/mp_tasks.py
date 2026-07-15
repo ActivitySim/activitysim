@@ -1603,6 +1603,7 @@ def run_multiprocess(
     injectables,
     shared_data_buffers=None,
     skip_final_checkpoint=False,
+    force_resume=False,
 ):
     """
     run the steps in run_list, possibly resuming after checkpoint specified by resume_after
@@ -1638,6 +1639,10 @@ def run_multiprocess(
     skip_final_checkpoint : bool, default False
         If True, skip writing the final checkpoint at the end of the run.
         Useful when the caller manages checkpoints externally.
+    force_resume : bool, default False
+        If True, all subprocess steps resume from LAST_CHECKPOINT regardless
+        of step_num. Use when the pipeline already has data that must be
+        preserved (e.g. calibration sub-runs).
     """
 
     state.trace_memory_info("run_multiprocess.start")
@@ -1754,6 +1759,12 @@ def run_multiprocess(
         # - run_sub_simulations
         if not skip_phase("simulate"):
             resume_after = step_info.get("resume_after", None)
+
+            # When force_resume is set (e.g. calibration sub-runs), always
+            # resume from the last checkpoint so subprocesses don't discard
+            # existing pipeline data by starting fresh.
+            if resume_after is None and force_resume:
+                resume_after = LAST_CHECKPOINT
 
             previously_completed = find_breadcrumb("completed", default=[])
 

@@ -1449,6 +1449,7 @@ def _run_multiprocess_with_overrides(
             injectables,
             shared_data_buffers=shared_data_buffers,
             skip_final_checkpoint=True,
+            force_resume=True,
         )
     finally:
         state.settings.models = original_models

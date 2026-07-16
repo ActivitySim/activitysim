@@ -1463,10 +1463,21 @@ def _restore_parent_state_from_pipeline(state: workflow.State) -> None:
     After a multiprocess run, the parent's in-memory state is stale.
     This loads the latest checkpoint from the pipeline store so that
     calibration expressions can evaluate against model outputs.
+
+    All tables are explicitly re-checkpointed so that subsequent apportion
+    subprocesses can load them from a direct file path without relying on
+    checkpoint backtracking through potentially ambiguous checkpoint history.
     """
     if state.checkpoint.store_is_open():
         state.checkpoint.close_store()
     state.checkpoint.restore(resume_after="_")
+
+    # After restore, all tables are clean (status=False). Mark them dirty so
+    # the next checkpoint.add() writes them to disk at a known checkpoint name.
+    # This ensures apportion subprocesses find table files at a single,
+    # unambiguous checkpoint rather than needing to backtrack through history.
+    for table_name in list(state.existing_table_names):
+        state.existing_table_status[table_name] = True
 
 
 def _initialize_mp_shared_resources(state: workflow.State) -> dict:

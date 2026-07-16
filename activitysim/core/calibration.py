@@ -1405,6 +1405,11 @@ def _run_in_configured_mode(
         # Restore it into the parent process state so tables are accessible
         # for calibration expression evaluation.
         _restore_parent_state_from_pipeline(state)
+        # Add a checkpoint named after the last model so that model-name
+        # references (e.g. _prior_step_name, resume_after on global_iter > 1)
+        # resolve correctly. Without this, only the step-level coalesce name
+        # exists in the pipeline.
+        state.checkpoint.add(models[-1])
         return
 
     state.run(

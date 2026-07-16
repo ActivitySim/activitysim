@@ -1585,11 +1585,13 @@ def _build_calibration_mp_steps(
     # Some original steps (e.g. mp_initialize) omit num_processes, slice,
     # and chunk_size — these default to None on MultiprocessStep and
     # get_run_list() applies global defaults when they are absent.
+    # Step names include the first model to ensure uniqueness across multiple
+    # intermediate runs that draw from the same original step.
     new_steps = []
     for step_idx, step_models in step_model_groups.items():
         orig_step = original_steps[step_idx]
         kwargs: dict[str, Any] = {
-            "name": f"calibration_{orig_step.name}",
+            "name": f"calibration_{orig_step.name}_{step_models[0]}",
             "begin": step_models[0],
         }
         if orig_step.num_processes is not None:

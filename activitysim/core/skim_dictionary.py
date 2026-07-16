@@ -39,6 +39,7 @@ class OffsetMapper(object):
 
     def __init__(self, offset_int=None, offset_list=None, offset_series=None):
         self.offset_int = self.offset_series = None
+        self._offset_array = None  # numpy array for fast O(1) lookups
 
         assert (offset_int is not None) + (offset_list is not None) + (
             offset_series is not None
@@ -72,6 +73,28 @@ class OffsetMapper(object):
         self.offset_series = offset_series
         self.offset_int = None
 
+        # Build numpy lookup array for fast O(1) mapping
+        # This replaces slow pandas Series.map() with direct numpy indexing
+        index_vals = offset_series.index.values
+        if len(index_vals) > 0:
+            min_zone = int(index_vals.min())
+            max_zone = int(index_vals.max())
+            span = max_zone - min_zone + 1
+            # Only build array if zone IDs are non-negative and range is reasonable
+            # (avoid huge arrays for sparse zone IDs)
+            if min_zone >= 0 and span <= len(index_vals) * 10:
+                self._offset_array_min_zone = min_zone
+                self._offset_array = np.full(span, NOT_IN_SKIM_ZONE_ID, dtype=np.int32)
+                self._offset_array[
+                    index_vals.astype(int) - min_zone
+                ] = offset_series.values.astype(np.int32)
+            else:
+                self._offset_array = None
+                self._offset_array_min_zone = 0
+        else:
+            self._offset_array = None
+            self._offset_array_min_zone = 0
+
     def set_offset_list(self, offset_list):
         """
         Convenience method to set offset_series using an integer list the same size as target skim dimension
@@ -89,7 +112,7 @@ class OffsetMapper(object):
         # - for performance, check if this is a simple range that can ber represented by an int offset
         first_offset = offset_list[0]
         if offset_list == list(range(first_offset, len(offset_list) + first_offset)):
-            offset_int = -1 * first_offset
+            offset_int = -1 * int(first_offset)
             self.set_offset_int(offset_int)
         else:
             offset_series = pd.Series(
@@ -110,6 +133,7 @@ class OffsetMapper(object):
 
         self.offset_int = int(offset_int)
         self.offset_series = None
+        self._offset_array = None  # not needed for simple int offset
 
     def map(self, zone_ids):
         """
@@ -124,7 +148,24 @@ class OffsetMapper(object):
         offsets : numpy array of int
         """
 
-        if self.offset_series is not None:
+        if self._offset_array is not None:
+            # Fast path: use numpy array indexing (O(1) per element)
+            zone_ids = np.asanyarray(zone_ids).astype(int)
+            min_zone = getattr(self, "_offset_array_min_zone", 0)
+            idx = zone_ids - min_zone
+            # Clip to valid range to avoid index errors, then mark out-of-range as NOT_IN_SKIM
+            max_valid = len(self._offset_array) - 1
+            valid_mask = (idx >= 0) & (idx <= max_valid)
+            # Use clip to safely index, then apply mask
+            clipped_idx = np.clip(idx, 0, max_valid)
+            offsets = np.where(
+                valid_mask,
+                self._offset_array[clipped_idx],
+                NOT_IN_SKIM_ZONE_ID,
+            )
+            return offsets
+
+        elif self.offset_series is not None:
             assert self.offset_int is None
             assert isinstance(self.offset_series, pd.Series)
 

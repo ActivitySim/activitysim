@@ -1,0 +1,8 @@
+Description,Expression,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
+,_od_DIST@od_skims['distwalk'],1,1,1,1,1,1,1,1,1,1
+,_dp_DIST@dp_skims['distwalk'],1,1,1,1,1,1,1,1,1,1
+size term,"@np.log1p(size_terms.get(df.alt_dest, df.purpose)) # sharrow: np.log1p(size_terms['sizearray'])",1,1,1,1,1,1,1,1,1,1
+no attractions,"@size_terms.get(df.alt_dest, df.purpose) == 0 # sharrow: size_terms['sizearray'] == 0",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+stop proximity to home (outbound),@df.outbound * _od_DIST,-0.3800,0,0,0,0,0,0,0,0,0
+stop proximity to home (inbound),@~df.outbound * _od_DIST,-0.1500,0,0,0,0,0,0,0,0,0
+stop proximity to main destination (outbound),@df.outbound * _dp_DIST,-0.26,,,,,,,,,

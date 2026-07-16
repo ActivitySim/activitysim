@@ -221,7 +221,7 @@ def tour_map(persons, tours, tdd_alts, persons_id_col="person_id"):
         "maint": "mnt",
     }
 
-    sigil_type = "S3"
+    sigil_type = np.dtypes.StringDType()
 
     # we can only map scheduled tours
     tours = tours[tours.tdd.notnull()]
@@ -229,7 +229,7 @@ def tour_map(persons, tours, tdd_alts, persons_id_col="person_id"):
     # convert tdd_alts_df start, end times to time_windows
     min_period = tdd_alts.start.min()
     max_period = tdd_alts.end.max()
-    n_periods = max_period - min_period + 1
+    n_periods = int(max_period - min_period + 1)
     n_persons = len(persons.index)
 
     agenda = np.array([sigil["empty"]] * (n_periods * n_persons), dtype=sigil_type)

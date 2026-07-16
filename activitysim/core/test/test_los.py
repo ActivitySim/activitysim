@@ -133,30 +133,6 @@ def test_two_zone():
         pdt.assert_series_equal(skims["DIST"], dist)
 
 
-def test_three_zone():
-    state = add_canonical_dirs("configs_3z").load_settings()
-
-    network_los = los.Network_LOS(state)
-
-    assert network_los.setting("zone_system") == los.THREE_ZONE
-
-    assert "z3_taz_skims.omx" in network_los.omx_file_names("taz")
-
-    assert network_los.blend_distance_skim_name == "DIST"
-
-    network_los.load_data()
-
-    od_df = pd.DataFrame(
-        {
-            "orig": [1000, 2000, 23000, 23000, 23000],
-            "dest": [2000, 2000, 20000, 21000, 22000],
-        }
-    )
-
-    dist = network_los.get_mazpairs(od_df.orig, od_df.dest, "DIST").astype(np.float32)
-    np.testing.assert_almost_equal(dist, [0.24, 0.14, 2.55, 1.9, 0.62])
-
-
 def test_30_minute_windows():
     state = add_canonical_dirs("configs_test_misc").default_settings()
     network_los = los.Network_LOS(state, los_settings_file_name="settings_30_min.yaml")

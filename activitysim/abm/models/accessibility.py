@@ -154,9 +154,6 @@ def compute_accessibilities_for_zones(
     locals_d["skim_od"] = skim_dict.wrap("orig", "dest").set_df(od_df)
     locals_d["skim_do"] = skim_dict.wrap("dest", "orig").set_df(od_df)
 
-    if network_los.zone_system == los.THREE_ZONE:
-        locals_d["tvpb"] = network_los.tvpb
-
     logger.info(f"{trace_label}: assign.assign_variables")
     results, trace_results, trace_assigned_locals = assign.assign_variables(
         state,

@@ -119,7 +119,7 @@ want_dest_choice_sample_tables: False
 log_alt_losers: False
 
 # alternate dir to read/write cache (defaults to output_dir)
-# used for skim cache, tvpb, and chunk_log caches
+# used for skim cache, and chunk_log caches
 #cache_dir: data/cache
 
 ##############

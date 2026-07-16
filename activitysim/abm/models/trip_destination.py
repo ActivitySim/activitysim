@@ -30,12 +30,12 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LocationComponentSettings
+from activitysim.core.exceptions import DuplicateWorkflowTableError, InvalidTravelError
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.skim_dictionary import DataFrameMatrix
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place, reindex
-from activitysim.core.exceptions import InvalidTravelError, DuplicateWorkflowTableError
 
 logger = logging.getLogger(__name__)
 
@@ -273,12 +273,16 @@ def destination_sample(
     return choices
 
 
-def aggregate_size_term_matrix(maz_size_term_matrix, network_los):
+def aggregate_size_term_matrix(maz_size_term_matrix, network_los, all_tazs=None):
     df = maz_size_term_matrix.df
     assert ALT_DEST_TAZ not in df
 
     dest_taz = network_los.map_maz_to_taz(df.index)
     taz_size_term_matrix = df.groupby(dest_taz).sum()
+    if all_tazs is not None:
+        taz_size_term_matrix = taz_size_term_matrix.reindex(
+            all_tazs, fill_value=0
+        ).rename_axis(taz_size_term_matrix.index.name, axis=0)
 
     taz_size_term_matrix = DataFrameMatrix(taz_size_term_matrix)
 
@@ -612,7 +616,16 @@ def destination_presample(
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
-    TAZ_size_term_matrix = aggregate_size_term_matrix(size_term_matrix, network_los)
+    if state.settings.sharrow:
+        # when using sharrow, we use the skim_dataset structure, and need to ensure
+        # that all TAZs are represented in the size_term_matrix, even those with no MAZs
+        all_tazs = state.get_dataframe("land_use_taz").index
+    else:
+        all_tazs = None
+
+    TAZ_size_term_matrix = aggregate_size_term_matrix(
+        size_term_matrix, network_los, all_tazs
+    )
 
     TRIP_ORIGIN = model_settings.TRIP_ORIGIN
     PRIMARY_DEST = model_settings.PRIMARY_DEST
@@ -626,6 +639,17 @@ def destination_presample(
     alternatives = alternatives.groupby(
         network_los.map_maz_to_taz(alternatives.index)
     ).sum()
+
+    # We now have aggregated alternatives indexed by TAZ instead of MAZ.
+    # For sharrow, we need the TAZ indexing to be "complete", i.e. include all TAZ ids,
+    # even those that had no MAZs (and so were missing from the aggregation result).
+    # this is needed because we are going to taking the entire set of TAZ alternatives
+    # as a vector which will need to align with the TAZ skims.
+    if state.settings.sharrow:
+        all_tazs = state.get_dataframe("land_use_taz").index
+        alternatives = alternatives.reindex(all_tazs, fill_value=0).rename_axis(
+            alternatives.index.name, axis=0
+        )
 
     # # i did this but after changing alt_dest_col_name to 'trip_dest' it
     # # shouldn't be needed anymore
@@ -766,19 +790,9 @@ def compute_ood_logsums(
 
     locals_dict.update(od_skims)
 
-    # if preprocessor contains tvpb logsums term, `pathbuilder.get_tvpb_logsum()`
-    # will get called before a ChunkSizers class object has been instantiated,
-    # causing pathbuilder to throw an error at L815 due to the assert statement
-    # in `chunk.chunk_log()` at chunk.py L927. To avoid failing this assertion,
-    # the preprocessor must be called from within a "null chunker" as follows:
-    with chunk.chunk_log(
-        state,
-        tracing.extend_trace_label(trace_label, "annotate_preprocessor"),
-        base=True,
-    ):
-        expressions.annotate_preprocessors(
-            state, choosers, locals_dict, od_skims, logsum_settings, trace_label
-        )
+    expressions.annotate_preprocessors(
+        state, choosers, locals_dict, od_skims, logsum_settings, trace_label
+    )
 
     logsums = simulate.simple_simulate_logsums(
         state,
@@ -869,12 +883,6 @@ def compute_logsums(
     locals_dict.update(coefficients)
 
     skims = skim_hotel.logsum_skims()
-    if network_los.zone_system == los.THREE_ZONE:
-        # TVPB constants can appear in expressions
-        if logsum_settings.get("use_TVPB_constants", True):
-            locals_dict.update(
-                network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
-            )
 
     # - od_logsums
     od_skims = {
@@ -885,13 +893,7 @@ def compute_logsums(
         "od_skims": skims["od_skims"],
         "timeframe": "trip",
     }
-    if network_los.zone_system == los.THREE_ZONE:
-        od_skims.update(
-            {
-                "tvpb_logsum_odt": skims["tvpb_logsum_odt"],
-                "tvpb_logsum_dot": skims["tvpb_logsum_dot"],
-            }
-        )
+
     destination_sample["od_logsum"] = compute_ood_logsums(
         state,
         choosers,
@@ -914,13 +916,6 @@ def compute_logsums(
         "dot_skims": skims["pdt_skims"],
         "od_skims": skims["dp_skims"],
     }
-    if network_los.zone_system == los.THREE_ZONE:
-        dp_skims.update(
-            {
-                "tvpb_logsum_odt": skims["tvpb_logsum_dpt"],
-                "tvpb_logsum_dot": skims["tvpb_logsum_pdt"],
-            }
-        )
 
     destination_sample["dp_logsum"] = compute_ood_logsums(
         state,
@@ -1243,52 +1238,6 @@ class SkimHotel:
             "dp_skims": skim_dict.wrap(d, p),
         }
 
-        if self.zone_system == los.THREE_ZONE:
-            # fixme - is this a lightweight object?
-            tvpb = self.network_los.tvpb
-
-            tvpb_logsum_odt = tvpb.wrap_logsum(
-                orig_key=o,
-                dest_key=d,
-                tod_key="trip_period",
-                segment_key="demographic_segment",
-                trace_label=self.trace_label,
-                tag="tvpb_logsum_odt",
-            )
-            tvpb_logsum_dot = tvpb.wrap_logsum(
-                orig_key=d,
-                dest_key=o,
-                tod_key="trip_period",
-                segment_key="demographic_segment",
-                trace_label=self.trace_label,
-                tag="tvpb_logsum_dot",
-            )
-            tvpb_logsum_dpt = tvpb.wrap_logsum(
-                orig_key=d,
-                dest_key=p,
-                tod_key="trip_period",
-                segment_key="demographic_segment",
-                trace_label=self.trace_label,
-                tag="tvpb_logsum_dpt",
-            )
-            tvpb_logsum_pdt = tvpb.wrap_logsum(
-                orig_key=p,
-                dest_key=d,
-                tod_key="trip_period",
-                segment_key="demographic_segment",
-                trace_label=self.trace_label,
-                tag="tvpb_logsum_pdt",
-            )
-
-            skims.update(
-                {
-                    "tvpb_logsum_odt": tvpb_logsum_odt,
-                    "tvpb_logsum_dot": tvpb_logsum_dot,
-                    "tvpb_logsum_dpt": tvpb_logsum_dpt,
-                    "tvpb_logsum_pdt": tvpb_logsum_pdt,
-                }
-            )
-
         return skims
 
 
@@ -1520,13 +1469,13 @@ def run_trip_destination(
                             """
 
                         When using the trip destination model with sharrow, it is necessary
-                        to set a value for `purpose_index_num` in the trip destination 
-                        annotate trips preprocessor.  This allows for an optimized compiled 
+                        to set a value for `purpose_index_num` in the trip destination
+                        annotate trips preprocessor.  This allows for an optimized compiled
                         lookup of the size term from the array of size terms.  The value of
-                        `purpose_index_num` should be the integer column position in the size 
-                        matrix, with usual zero-based numpy indexing semantics (i.e. the first 
+                        `purpose_index_num` should be the integer column position in the size
+                        matrix, with usual zero-based numpy indexing semantics (i.e. the first
                         column is zero).  The preprocessor expression most likely needs to be
-                        "size_terms.get_cols(df.purpose)" unless some unusual transform of 
+                        "size_terms.get_cols(df.purpose)" unless some unusual transform of
                         size terms has been employed.
 
                         """

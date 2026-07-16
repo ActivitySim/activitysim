@@ -369,7 +369,6 @@ class FileSystem(PydanticBase, validate_assignment=True):
 
         The cache directory is used to store:
             - skim memmaps created by skim+dict_factories
-            - tvpb tap_tap table cache
             - pre-compiled sharrow modules
 
 

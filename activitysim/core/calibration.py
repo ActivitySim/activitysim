@@ -28,7 +28,7 @@ from activitysim.core.configuration.top import MultiprocessStep
 logger = logging.getLogger("calibration")
 
 plt.style.use("seaborn-v0_8-darkgrid")
-matplotlib.use('Agg')  # Forces non-interactive background rendering
+matplotlib.use("Agg")  # Forces non-interactive background rendering
 
 CALIBRATION_SETTINGS_FILE_NAME = "calibration.yaml"
 CALIBRATION_OUTPUT_DIR = "calibration"
@@ -415,8 +415,7 @@ def _calibrate_component(
     for component_iter in range(1, component_settings.submodel_max_iterations + 1):
         component_iterations = component_iter
         run_model_name = (
-            f"{component_name}.component_i{component_iter};"
-            f"global_i{global_iter}"
+            f"{component_name}.component_i{component_iter};" f"global_i{global_iter}"
         )
         # Re-run only this component from its prior checkpoint so model values
         # reflect the current candidate coefficients for this component.
@@ -433,7 +432,9 @@ def _calibrate_component(
         else:
             state.run(models=[run_model_name], resume_after=prior_step)
 
-        eval_context = _build_expression_context(state, helper_symbols, component_name, component_settings)
+        eval_context = _build_expression_context(
+            state, helper_symbols, component_name, component_settings
+        )
 
         (
             row_records,
@@ -951,9 +952,10 @@ def _append_iteration_records(
     _append_csv(df, global_path)
 
     # Also write component-local iteration history
-    component_path = _component_output_dir(state, component_name) / Path(
-        CALIBRATION_ITERATION_FILE
-    ).name
+    component_path = (
+        _component_output_dir(state, component_name)
+        / Path(CALIBRATION_ITERATION_FILE).name
+    )
     _append_csv(df, component_path)
 
 
@@ -977,9 +979,7 @@ def _append_csv(df: pd.DataFrame, path: Path) -> None:
 
 def _component_output_dir(state: workflow.State, component_name: str) -> Path:
     """Return output/calibration/<component_name> and ensure it exists."""
-    component_dir = state.get_output_file_path(
-        f"calibration/{component_name}"
-    )
+    component_dir = state.get_output_file_path(f"calibration/{component_name}")
     os.makedirs(component_dir, exist_ok=True)
     return component_dir
 
@@ -995,7 +995,8 @@ def _write_component_plots(state: workflow.State, component_name: str) -> None:
     n_sets = math.ceil(len(coefs) / MAX_COEFFS_IN_GRAPH)
     for coef_set in range(n_sets):
         set_coefs = coefs[
-            coef_set * MAX_COEFFS_IN_GRAPH : min(
+            coef_set
+            * MAX_COEFFS_IN_GRAPH : min(
                 len(coefs), (coef_set + 1) * MAX_COEFFS_IN_GRAPH
             )
         ]
@@ -1033,7 +1034,7 @@ def _plot_coefficient_progress(
     ax = (
         recs[recs.index.get_level_values("coefficient").isin(set_coefs)]
         .next_coefficient.unstack("coefficient")
-        .plot(figsize=(10,5))
+        .plot(figsize=(10, 5))
     )
     ax.xaxis.set_label_text("Component iteration")
     ax.yaxis.set_label_text("Coefficient value")
@@ -1051,9 +1052,9 @@ def _component_last_records(recs: pd.DataFrame, set_coefs: list[str]) -> pd.Data
     filtered = recs[recs.index.get_level_values("coefficient").isin(set_coefs)]
     last_global = filtered.index.get_level_values("global_iter")[-1]
     last_comp = filtered.loc[last_global].index.get_level_values("component_iter")[-1]
-    return filtered.xs((last_global, last_comp), level=("global_iter", "component_iter"))[
-        ["target_value", "model_value"]
-    ]
+    return filtered.xs(
+        (last_global, last_comp), level=("global_iter", "component_iter")
+    )[["target_value", "model_value"]]
 
 
 def _plot_component_values(
@@ -1064,7 +1065,7 @@ def _plot_component_values(
 ) -> None:
     """Plot final target/model component values for one coefficient subset."""
     component_dir = _component_output_dir(state, component_name)
-    ax = last_records.plot.bar(figsize=(10,5))
+    ax = last_records.plot.bar(figsize=(10, 5))
     ax.xaxis.set_tick_params(rotation=45)
     ax.xaxis.set_label_text("Component value")
     plt.tight_layout()
@@ -1080,7 +1081,7 @@ def _plot_component_pct_change(
 ) -> None:
     """Plot final percent difference for one coefficient subset."""
     component_dir = _component_output_dir(state, component_name)
-    fig, ax = plt.subplots(figsize=(10,5))
+    fig, ax = plt.subplots(figsize=(10, 5))
     pct_diff = last_records.diff(axis=1).model_value / last_records.target_value
     ax = pct_diff.plot.bar(ax=ax)
     ax.xaxis.set_tick_params(rotation=45)

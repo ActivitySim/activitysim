@@ -13,10 +13,13 @@ from functools import lru_cache
 
 SURVEY_DATA_FOLDER = "activitysim/examples/example_estimation/data_sf/survey_data"
 
+
 def compute_distances(context, origins, destinations):
     # Compute distances between origins and destinations using the network level of service
     # using non-time-dependent DIST skim
-    distances = context["skim_dict"].lookup(origins.clip(upper=24), destinations.clip(upper=24), 'DIST')
+    distances = context["skim_dict"].lookup(
+        origins.clip(upper=24), destinations.clip(upper=24), "DIST"
+    )
     # time dependent example
     # distances = skim_dict.lookup_3d(origins, destinations, 'AM', 'SOV_DIST')
     return distances
@@ -39,7 +42,9 @@ def _survey_worker_distances(context):
     """Compute survey worker distances once and reuse across calibration rows."""
     survey_persons = _survey_persons()
     survey_workers = survey_persons[survey_persons["workplace_zone_id"] > 0]
-    survey_home_zone_ids = _survey_households().set_index("household_id")["home_zone_id"]
+    survey_home_zone_ids = _survey_households().set_index("household_id")[
+        "home_zone_id"
+    ]
     survey_home_zone_ids = survey_workers["household_id"].map(survey_home_zone_ids)
     survey_workplace_zone_ids = survey_workers["workplace_zone_id"]
     return compute_distances(context, survey_home_zone_ids, survey_workplace_zone_ids)
@@ -47,11 +52,11 @@ def _survey_worker_distances(context):
 
 def summarize_model(context, min_dist=1, max_dist=2):
     """Summarize the model results for workplaces within the specified distance range."""
-    persons = context['persons']
-    workers = persons[persons['workplace_zone_id'] > 0]
-    home_zone_ids = workers['home_zone_id']
-    workplace_zone_ids = workers['workplace_zone_id']
-    
+    persons = context["persons"]
+    workers = persons[persons["workplace_zone_id"] > 0]
+    home_zone_ids = workers["home_zone_id"]
+    workplace_zone_ids = workers["workplace_zone_id"]
+
     distances = compute_distances(context, home_zone_ids, workplace_zone_ids)
 
     # Filter distances within the specified range
@@ -60,6 +65,7 @@ def summarize_model(context, min_dist=1, max_dist=2):
 
     share = len(filtered_distances) / len(distances) if len(distances) > 0 else 0
     return share
+
 
 def summarize_survey(context, min_dist=1, max_dist=2):
     """Summarize the survey results for workplaces within the specified distance range."""
@@ -73,25 +79,32 @@ def summarize_survey(context, min_dist=1, max_dist=2):
     share = len(filtered_distances) / len(distances) if len(distances) > 0 else 0
     return share
 
+
 def report_workplace_location(context):
     """Workplace location distance frequency plot comparing model results with observed data."""
     print("summarizing workplace location model")
     model_persons = context["persons"]
-    model_workers = model_persons[model_persons['workplace_zone_id'] > 0]
-    model_home_zone_ids = model_workers['home_zone_id']
-    model_workplace_zone_ids = model_workers['workplace_zone_id']
+    model_workers = model_persons[model_persons["workplace_zone_id"] > 0]
+    model_home_zone_ids = model_workers["home_zone_id"]
+    model_workplace_zone_ids = model_workers["workplace_zone_id"]
 
-    model_distances = compute_distances(context, model_home_zone_ids, model_workplace_zone_ids)
+    model_distances = compute_distances(
+        context, model_home_zone_ids, model_workplace_zone_ids
+    )
 
     survey_distances = _survey_worker_distances(context)
-    
-    # Here you can add code to compare model_distances and survey_distances, 
+
+    # Here you can add code to compare model_distances and survey_distances,
     # for example by plotting histograms or computing summary statistics.
-    plt.hist(model_distances, bins=20, density=True, alpha=0.5, label='Model')
-    plt.hist(survey_distances, bins=20, density=True, alpha=0.5, label='Survey')
-    plt.xlabel('Distance')
-    plt.ylabel('Frequency')
+    plt.hist(model_distances, bins=20, density=True, alpha=0.5, label="Model")
+    plt.hist(survey_distances, bins=20, density=True, alpha=0.5, label="Survey")
+    plt.xlabel("Distance")
+    plt.ylabel("Frequency")
     plt.legend()
     # component_output_dir set in the evaluation context
-    plt.savefig(os.path.join(context["component_output_dir"], 'workplace_location_comparison.png'))
+    plt.savefig(
+        os.path.join(
+            context["component_output_dir"], "workplace_location_comparison.png"
+        )
+    )
     plt.close()

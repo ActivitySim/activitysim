@@ -1693,8 +1693,12 @@ def run_multiprocess(
         # combine shared_shadow_pricing_buffers to pool choices across all processes
         t0 = tracing.print_elapsed_time()
         shared_data_buffers.update(allocate_shared_shadow_pricing_buffers_choice(state))
-        t0 = tracing.print_elapsed_time("allocate shared shadow_pricing choice buffer", t0)
-        state.trace_memory_info("allocate_shared_shadow_pricing_buffers_choice.completed")
+        t0 = tracing.print_elapsed_time(
+            "allocate shared shadow_pricing choice buffer", t0
+        )
+        state.trace_memory_info(
+            "allocate_shared_shadow_pricing_buffers_choice.completed"
+        )
 
         start_time = time.time()
         if sharrow_enabled:
@@ -2103,7 +2107,11 @@ def get_run_list(state: workflow.State):
             # remember there should always be a final checkpoint with same name as multiprocess_step name
             multiprocess_steps[istep][
                 "last_checkpoint_in_previous_multiprocess_step"
-            ] = (multiprocess_steps[istep - 1].get("name") if istep > 0 else LAST_CHECKPOINT)
+            ] = (
+                multiprocess_steps[istep - 1].get("name")
+                if istep > 0
+                else LAST_CHECKPOINT
+            )
 
         # - build individual step model lists based on starts
         starts.append(len(models))  # so last step gets remaining models in list

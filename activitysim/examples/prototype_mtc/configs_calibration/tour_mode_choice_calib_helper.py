@@ -4,13 +4,16 @@ import os
 
 SURVEY_DATA_FOLDER = "activitysim/examples/example_estimation/data_sf/survey_data"
 
+
 def report_tour_mode_choice(context):
     model_tours = context["tours"]
     survey_tours = None
     survey_tours = pd.read_csv(os.path.join(SURVEY_DATA_FOLDER, "override_tours.csv"))
 
-    model_summary = model_tours.tour_mode.value_counts(normalize=True).sort_index().fillna(0)
-    if 'tour_weight' in survey_tours.columns:
+    model_summary = (
+        model_tours.tour_mode.value_counts(normalize=True).sort_index().fillna(0)
+    )
+    if "tour_weight" in survey_tours.columns:
         survey_summary = survey_tours.groupby("tour_mode").tour_weight.sum()
         survey_summary = survey_summary / survey_tours.tour_weight.sum()
     else:
@@ -28,5 +31,7 @@ def report_tour_mode_choice(context):
     plt.xlabel("Tour Mode")
     plt.ylabel("Proportion of Tours")
     plt.legend(title="Data Source")
-    plt.savefig(os.path.join(context["component_output_dir"], "tour_mode_choice_comparison.png"))
+    plt.savefig(
+        os.path.join(context["component_output_dir"], "tour_mode_choice_comparison.png")
+    )
     plt.close()

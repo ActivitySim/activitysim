@@ -288,9 +288,12 @@ def test_run_trip_scheduling_choice(model_spec, tours, skims, locals_dict):
     assert out_tours[tsc.IB_DURATION].mask(in_tours[tsc.HAS_IB_STOPS], 0).sum() == 0
 
     # confirm explicit chunking is supported and doesn't affect results
+    state.settings.chunk_training_mode = "explicit"
+
     model_settings_explicit_chunk = tsc.TripSchedulingChoiceSettings(
         **{
             "SPEC": "placeholder.csv",
+            "explicit_chunk": 2,
             "compute_settings": {
                 "protect_columns": ["origin", "destination", "schedule_id"]
             },
@@ -299,7 +302,7 @@ def test_run_trip_scheduling_choice(model_spec, tours, skims, locals_dict):
     out_tours_chunked = tsc.run_trip_scheduling_choice(
         state,
         model_spec,
-        tours,
+        in_tours.copy(deep=True),
         skims,
         locals_dict,
         trace_label="PyTest Trip Scheduling",

@@ -66,7 +66,7 @@ coef_cars3_drivers_3,5.5131,F
 coef_cars2_drivers_4_up,6.3662,F
 coef_cars3_drivers_4_up,8.5148,F
 coef_cars4_drivers_4_up,9.5807,F
-coef_calib_auto_0,1,T
-coef_calib_auto_2,1,T
-coef_calib_auto_3,1,T
-coef_calib_auto_4,1,T
+coef_calib_auto_0,0,T
+coef_calib_auto_2,0,T
+coef_calib_auto_3,0,T
+coef_calib_auto_4,0,T

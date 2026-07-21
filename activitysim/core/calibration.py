@@ -205,7 +205,7 @@ def run_calibration_loop(
             _run_precursor_components(
                 state,
                 models=models[:first_calib_model_idx],
-                resume_after=calibration_settings.run.resume_after
+                resume_after=state.settings.resume_after
                 if global_iter == 1
                 else _prior_step_name(
                     models, calibration_settings.run.calibrate_models[0]

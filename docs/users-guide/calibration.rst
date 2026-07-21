@@ -343,7 +343,7 @@ Computes the coefficient delta as:
 
 .. math::
 
-   \Delta = \ln\!\left(\frac{\text{target\_value}}{\text{model\_value}}\right) \times \text{damping}
+   \Delta = \ln\!\left(\frac{\text{target_value}}{\text{model_value}}\right) \times \text{damping}
 
 Requires both ``model_value`` and ``target_value`` to be positive. If either is
 zero or negative, falls back to ``default_increment`` (positive or negative
@@ -634,7 +634,7 @@ A coefficient is considered **converged** when:
 
 .. math::
 
-   |\text{target\_value} - \text{model\_value}| \leq \text{tolerance}
+  \text{target_value} - \text{model_value} \leq \text{tolerance}
 
 A component is converged when **all** of its coefficients are converged. The
 component inner loop stops early upon convergence.

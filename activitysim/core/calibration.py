@@ -72,7 +72,6 @@ class CalibrationRunSettings(PydanticBase):
 
     resume_after: Optional[str] = None
     calibrate_models: list[str]
-    restart_after: list[str] = []
     global_iterations: int = 1
     complete_steps: bool = False
 
@@ -108,12 +107,6 @@ class CalibrationConfig(PydanticReadable):
             if component not in self.model_settings:
                 raise ValueError(
                     f"calibration model '{component}' is not in model_settings"
-                )
-
-        for component in self.run.restart_after:
-            if component not in self.run.calibrate_models:
-                raise ValueError(
-                    f"restart_after component '{component}' is not in calibrate_models"
                 )
 
         if self.run.global_iterations < 1:
@@ -279,10 +272,18 @@ def run_calibration_loop(
                 },
             )
 
+            if all_converged:
+                logger.info(
+                    "calibration converged after global iteration %s/%s",
+                    global_iter - start_global_iter,
+                    calibration_settings.run.global_iterations,
+                )
+                break
+
         _write_final_coefficients_snapshot(state, calibration_settings)
 
         return CalibrationRunResult(
-            converged=False,
+            converged=all_converged,
             completed_global_iterations=calibration_settings.run.global_iterations,
         )
     finally:
@@ -415,7 +416,7 @@ def _calibrate_component(
     for component_iter in range(1, component_settings.submodel_max_iterations + 1):
         component_iterations = component_iter
         run_model_name = (
-            f"{component_name}.component_i{component_iter};" f"global_i{global_iter}"
+            f"{component_name}.c_i{component_iter};" f"g_i{global_iter}"
         )
         # Re-run only this component from its prior checkpoint so model values
         # reflect the current candidate coefficients for this component.

@@ -415,9 +415,7 @@ def _calibrate_component(
 
     for component_iter in range(1, component_settings.submodel_max_iterations + 1):
         component_iterations = component_iter
-        run_model_name = (
-            f"{component_name}.c_i{component_iter};" f"g_i{global_iter}"
-        )
+        run_model_name = f"{component_name}.c_i{component_iter};" f"g_i{global_iter}"
         # Re-run only this component from its prior checkpoint so model values
         # reflect the current candidate coefficients for this component.
         if state.settings.multiprocess and shared_data_buffers is not None:

@@ -206,7 +206,7 @@ def run_calibration_loop(
                 state,
                 models=models[:first_calib_model_idx],
                 resume_after=state.settings.resume_after
-                if global_iter == 1
+                if global_iter == start_global_iter
                 else _prior_step_name(
                     models, calibration_settings.run.calibrate_models[0]
                 ),
@@ -300,7 +300,7 @@ def _run_precursor_components(
 ) -> None:
     """Run the normal ActivitySim model flow for one global calibration iteration."""
 
-    if global_iter > 1:
+    if global_iter > 1 and resume_after is not None:
         # Seed a fresh pipeline from the configured resume checkpoint to avoid
         # duplicate checkpoint-name collisions across global calibration loops.
         prior_pipeline = state.checkpoint.store.filename
@@ -1454,7 +1454,7 @@ def _run_multiprocess_with_overrides(
             injectables,
             shared_data_buffers=shared_data_buffers,
             skip_final_checkpoint=True,
-            force_resume=True,
+            force_resume=resume_after is not None,
         )
     finally:
         state.settings.models = original_models

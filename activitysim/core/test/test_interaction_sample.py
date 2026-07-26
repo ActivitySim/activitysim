@@ -765,7 +765,7 @@ def test_poisson_fallback_positions_breaks_ties_by_column_and_caps_at_alt_count(
     )
 
 
-def test_poisson_sample_alternatives_returns_expected_frames():
+def test_make_sample_choices_poisson_returns_expected_frames():
     probs = pd.DataFrame(
         [
             [0.20, 0.60, 0.10, 0.05],
@@ -788,14 +788,14 @@ def test_poisson_sample_alternatives_returns_expected_frames():
     )
     state = _DummyState(_SequentialDummyRng([draws]))
 
-    choices_df = interaction_sample._poisson_sample_alternatives(
+    choices_df = interaction_sample.make_sample_choices_poisson(
         chunk_sizer=_DummyChunkSizer(),
         probs=probs,
         alternatives=alternatives,
         sample_size=sample_size,
         alt_col_name="alt_id",
         state=state,
-        trace_label="test_poisson_sample_alternatives_returns_expected_frames",
+        trace_label="test_make_sample_choices_poisson_returns_expected_frames",
     )
 
     expected = _reference_poisson_choices_df(
@@ -807,7 +807,7 @@ def test_poisson_sample_alternatives_returns_expected_frames():
     assert choices_df.loc[choices_df.person_id == 17, "alt_id"].tolist() == [100, 700]
 
 
-def test_poisson_sample_alternatives_consumes_no_extra_randoms_on_empty_draw():
+def test_make_sample_choices_poisson_consumes_no_extra_randoms_on_empty_draw():
     # the fallback must not draw again: _SequentialDummyRng raises IndexError if the
     # sampler asks for a second block, so a single draw array is the assertion here
     probs = pd.DataFrame(
@@ -820,14 +820,14 @@ def test_poisson_sample_alternatives_consumes_no_extra_randoms_on_empty_draw():
     fail_draw = np.array([[0.99, 0.99, 0.99]], dtype=np.float64)
     state = _DummyState(_SequentialDummyRng([fail_draw]))
 
-    choices_df = interaction_sample._poisson_sample_alternatives(
+    choices_df = interaction_sample.make_sample_choices_poisson(
         chunk_sizer=_DummyChunkSizer(),
         probs=probs,
         alternatives=alternatives,
         sample_size=sample_size,
         alt_col_name="alt_id",
         state=state,
-        trace_label="test_poisson_sample_alternatives_consumes_no_extra_randoms_on_empty_draw",
+        trace_label="test_make_sample_choices_poisson_consumes_no_extra_randoms_on_empty_draw",
     )
 
     # the two most likely alternatives, reported at q_i + P0
@@ -847,7 +847,7 @@ def test_poisson_sample_alternatives_consumes_no_extra_randoms_on_empty_draw():
     pd.testing.assert_frame_equal(choices_df, expected)
 
 
-def test_poisson_sample_alternatives_reported_prob_is_total_inclusion_probability():
+def test_make_sample_choices_poisson_reported_prob_is_total_inclusion_probability():
     # Monte Carlo check that the reported `prob` really is the probability of the
     # alternative ending up in the choice set, counting both the Bernoulli draw and the
     # fallback. Every chooser is identical, so the empirical inclusion rate across
@@ -872,14 +872,14 @@ def test_poisson_sample_alternatives_reported_prob_is_total_inclusion_probabilit
     draws = np.random.default_rng(20260726).random((n_choosers, n_alts))
     state = _DummyState(_SequentialDummyRng([draws]))
 
-    choices_df = interaction_sample._poisson_sample_alternatives(
+    choices_df = interaction_sample.make_sample_choices_poisson(
         chunk_sizer=_DummyChunkSizer(),
         probs=probs,
         alternatives=alternatives,
         sample_size=sample_size,
         alt_col_name="alt_id",
         state=state,
-        trace_label="test_poisson_sample_alternatives_reported_prob_is_total_inclusion_probability",
+        trace_label="test_make_sample_choices_poisson_reported_prob_is_total_inclusion_probability",
     )
 
     # identical choosers must get an identical reported prob per alternative, whether
@@ -897,7 +897,7 @@ def test_poisson_sample_alternatives_reported_prob_is_total_inclusion_probabilit
     np.testing.assert_allclose(empirical, expected_reported, atol=0.005)
 
 
-def test_poisson_sample_alternatives_repeat_alignment_chooser_dominant_heterogeneity():
+def test_repeat_alignment_chooser_heterogeneity():
     # Edge case: utilities are close across alternatives but vary strongly by chooser.
     # This checks that the flattened Poisson result keeps chooser/prob alignment.
     chooser_index = pd.Index([101, 102, 103, 104, 105, 106], name="person_id")
@@ -938,7 +938,7 @@ def test_poisson_sample_alternatives_repeat_alignment_chooser_dominant_heterogen
         trace_choosers=choosers,
     )
 
-    out = interaction_sample._poisson_sample_alternatives(
+    out = interaction_sample.make_sample_choices_poisson(
         chunk_sizer=_DummyChunkSizer(),
         probs=probs,
         alternatives=alternatives,
@@ -955,7 +955,7 @@ def test_poisson_sample_alternatives_repeat_alignment_chooser_dominant_heterogen
     pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
 
 
-def test_poisson_sample_alternatives_matches_materialized_path():
+def test_make_sample_choices_poisson_matches_materialized_path():
     chooser_index = pd.Index([201, 202, 203], name="person_id")
     choosers = pd.DataFrame(index=chooser_index)
     alternatives = pd.DataFrame(index=pd.Index([10, 11, 12, 13], name="alt_id"))
@@ -983,7 +983,7 @@ def test_poisson_sample_alternatives_matches_materialized_path():
         trace_choosers=choosers,
     )
 
-    out = interaction_sample._poisson_sample_alternatives(
+    out = interaction_sample.make_sample_choices_poisson(
         chunk_sizer=_DummyChunkSizer(),
         probs=probs,
         alternatives=alternatives,
@@ -1120,7 +1120,7 @@ def test_make_sample_choices_eet_stable_alt_mapping_matches_materialized_path():
     pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
 
 
-def test_poisson_sample_alternatives_stable_alt_mapping_matches_materialized_path():
+def test_make_sample_choices_poisson_stable_alt_mapping_matches_materialized_path():
     chooser_index = pd.Index([311, 312], name="person_id")
     choosers = pd.DataFrame(index=chooser_index)
     alternatives = pd.DataFrame(index=pd.Index([10, 12, 14], name="alt_id"))
@@ -1144,19 +1144,19 @@ def test_poisson_sample_alternatives_stable_alt_mapping_matches_materialized_pat
         state,
         utilities,
         allow_zero_probs=False,
-        trace_label="test_poisson_sample_alternatives_stable_alt_mapping_matches_materialized_path",
+        trace_label="test_make_sample_choices_poisson_stable_alt_mapping_matches_materialized_path",
         overflow_protection=True,
         trace_choosers=choosers,
     )
 
-    out = interaction_sample._poisson_sample_alternatives(
+    out = interaction_sample.make_sample_choices_poisson(
         chunk_sizer=_DummyChunkSizer(),
         probs=probs,
         alternatives=alternatives,
         sample_size=sample_size,
         alt_col_name="alt_id",
         state=state,
-        trace_label="test_poisson_sample_alternatives_stable_alt_mapping_matches_materialized_path",
+        trace_label="test_make_sample_choices_poisson_stable_alt_mapping_matches_materialized_path",
         stable_alt_positions=stable_alt_positions,
         n_total_alts=n_total_alts,
     )
@@ -1172,7 +1172,7 @@ def test_poisson_sample_alternatives_stable_alt_mapping_matches_materialized_pat
     pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
 
 
-def test_poisson_sample_alternatives_falls_back_to_most_likely_alternatives():
+def test_make_sample_choices_poisson_falls_back_to_most_likely_alternatives():
     chooser_index = pd.Index([301, 302], name="person_id")
     choosers = pd.DataFrame(index=chooser_index)
     alternatives = pd.DataFrame(index=pd.Index([10, 12, 14], name="alt_id"))
@@ -1188,19 +1188,19 @@ def test_poisson_sample_alternatives_falls_back_to_most_likely_alternatives():
         state,
         utilities,
         allow_zero_probs=False,
-        trace_label="test_falls_back_to_most_likely_alternatives",
+        trace_label="test_make_sample_choices_poisson_falls_back_to_most_likely_alternatives",
         overflow_protection=True,
         trace_choosers=choosers,
     )
 
-    out = interaction_sample._poisson_sample_alternatives(
+    out = interaction_sample.make_sample_choices_poisson(
         chunk_sizer=_DummyChunkSizer(),
         probs=probs,
         alternatives=alternatives,
         sample_size=sample_size,
         alt_col_name="alt_id",
         state=state,
-        trace_label="test_falls_back_to_most_likely_alternatives",
+        trace_label="test_make_sample_choices_poisson_falls_back_to_most_likely_alternatives",
     )
 
     # neither chooser sampled anything, so both take their two most likely

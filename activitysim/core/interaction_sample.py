@@ -140,7 +140,7 @@ def _poisson_fallback_positions(
     which a data-dependent retry or redraw scheme cannot do. Because the fallback
     set is a deterministic function of the probabilities, the probability that an
     alternative ends up in the returned choice set still has an exact closed form
-    (see `_poisson_sample_alternatives`).
+    (see `make_sample_choices_poisson`).
     """
     k = min(sample_size, probs_values.shape[1])
     # stable sort of the negated probabilities gives descending probability order
@@ -204,7 +204,7 @@ def make_sample_choices_eet(
     return choices_df
 
 
-def _poisson_sample_alternatives(
+def make_sample_choices_poisson(
     chunk_sizer: ChunkSizer,
     probs: pd.DataFrame,
     alternatives: pd.DataFrame,
@@ -912,7 +912,7 @@ def _interaction_sample(
                 n_total_alts=n_total_alts,
             )
         else:  # sampling_method == "poisson"
-            choices_df = _poisson_sample_alternatives(
+            choices_df = make_sample_choices_poisson(
                 chunk_sizer,
                 probs,
                 alternatives,

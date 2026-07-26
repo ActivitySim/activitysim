@@ -461,7 +461,12 @@ class SimpleChannel(object):
         positions = np.empty(n_rows, dtype=np.int64)
 
         if alt_nrs_df is not None:
-            assert alt_nrs_df.shape == utilities.shape
+            assert alt_nrs_df.index.equals(
+                utilities.index
+            ), "alt_nrs_df and utilities must share the same index"
+            assert alt_nrs_df.columns.equals(
+                utilities.columns
+            ), "alt_nrs_df and utilities must share the same columns"
             if n_rands is None:
                 raise ValueError("n_rands is required when alt_nrs_df is provided")
             alt_nr_values = alt_nrs_df.to_numpy()

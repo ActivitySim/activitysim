@@ -337,9 +337,7 @@ def _interaction_sample_simulate(
             if zero_probs.any():
                 # copied from proabability below, fix when that gets fixed
                 # FIXME this is kind of gnarly, but we force choice of first alt
-                utilities_df.loc[
-                    zero_probs, 0
-                ] = 3.0  # arbitrary value much larger than UTIL_UNAVAILABLE
+                utilities_df.loc[zero_probs, 0] = logit.UTIL_LARGE_ENOUGH
 
         # positions is series with the chosen alternative represented as a column index in utilities_df
         # which is an integer between zero and num alternatives in the alternative sample

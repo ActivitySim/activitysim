@@ -34,13 +34,30 @@ DUMP = False
 InteractionSampleMethod = typing.Literal["monte_carlo", "eet", "poisson"]
 
 
-def _resolve_sample_method(
+def resolve_sample_method(
     state: workflow.State,
-    compute_settings: ComputeSettings | None,
+    settings: ComputeSettings | None = None,
 ) -> InteractionSampleMethod:
-    sampling_method = None
-    if compute_settings is not None:
-        sampling_method = compute_settings.sample_method
+    """
+    Resolve the sampling method to use, from most to least specific setting.
+
+    Parameters
+    ----------
+    state : workflow.State
+    settings : ComputeSettings or component settings, optional
+        Either a `ComputeSettings` directly, or a pydantic model exposing a
+        `compute_settings` attribute (typically a `LogitComponentSettings`
+        subclass). If neither, the method is resolved purely from
+        `state.settings`.
+
+    Returns
+    -------
+    sampling_method : InteractionSampleMethod
+    """
+    # accept either a ComputeSettings or a component settings object wrapping one
+    compute_settings = getattr(settings, "compute_settings", settings)
+
+    sampling_method = getattr(compute_settings, "sample_method", None)
     if sampling_method is None:
         sampling_method = state.settings.sample_method
     if sampling_method is None:
@@ -53,33 +70,6 @@ def _resolve_sample_method(
         )
     logger.debug(f"Using sample_method={sampling_method}")
     return sampling_method
-
-
-def resolve_sample_method(
-    state: workflow.State,
-    model_settings,
-) -> InteractionSampleMethod:
-    """
-    Resolve the sampling method for a model from its `model_settings`.
-
-    Parameters
-    ----------
-    state : workflow.State
-    model_settings : a pydantic model exposing an optional
-        `compute_settings` attribute (typically a `LogitComponentSettings`
-        subclass). If absent or None, the method is resolved purely from
-        `state.settings`.
-
-    Returns
-    -------
-    sampling_method : InteractionSampleMethod
-    """
-    sample_compute_settings = getattr(model_settings, "compute_settings", None)
-    if sample_compute_settings is not None:
-        sample_compute_settings = sample_compute_settings.subcomponent_settings(
-            "sample"
-        )
-    return _resolve_sample_method(state, sample_compute_settings)
 
 
 def _poisson_sample_alternatives_inner(
@@ -780,7 +770,7 @@ def _interaction_sample(
 
     state.tracing.dump_df(DUMP, utilities, trace_label, "utilities")
 
-    sampling_method = _resolve_sample_method(state, compute_settings)
+    sampling_method = resolve_sample_method(state, compute_settings)
 
     # Estimation requires MC sampling and MC choice for now
     if estimation.manager.enabled and sampling_method != "monte_carlo":
@@ -1091,7 +1081,7 @@ def interaction_sample(
     if not choosers.index.is_monotonic_increasing:
         assert choosers.index.is_monotonic_increasing
 
-    sampling_method = _resolve_sample_method(state, compute_settings)
+    sampling_method = resolve_sample_method(state, compute_settings)
     logger.debug(f" interaction_sample sample method = {sampling_method}")
 
     if sampling_method == "monte_carlo":

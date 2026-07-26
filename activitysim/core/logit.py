@@ -29,6 +29,13 @@ EXP_UTIL_MAX = np.inf
 UTIL_MIN = np.log(EXP_UTIL_MIN, dtype=np.float64)
 UTIL_UNAVAILABLE = 1000.0 * (UTIL_MIN - 1.0)
 
+# Utility assigned to an alternative that must be chosen over UTIL_UNAVAILABLE
+# alternatives, e.g. when forcing a choice for a chooser that would otherwise
+# have no available alternative. Any finite value works: the gap to
+# UTIL_UNAVAILABLE is many orders of magnitude larger than the EV1 error terms
+# added by the explicit error term choice methods.
+UTIL_LARGE_ENOUGH = 3.0
+
 PROB_MIN = 0.0
 PROB_MAX = 1.0
 

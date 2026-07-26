@@ -219,10 +219,10 @@ def participants_chooser(
                 # anybody with probability > 0 is forced to join the joint tour
                 if state.settings.use_explicit_error_terms:
                     # need "is valid choice" such that we certainly choose those with non-zero values,
-                    # and do not choose others. Let's use 3.0 as large value here.
+                    # and do not choose others.
                     probs_or_utils[choice_col] = np.where(
                         probs_or_utils[choice_col] > logit.UTIL_MIN,
-                        3.0,
+                        logit.UTIL_LARGE_ENOUGH,
                         logit.UTIL_UNAVAILABLE,
                     )
                     non_choice_col = [
@@ -230,7 +230,7 @@ def participants_chooser(
                     ][0]
                     probs_or_utils[non_choice_col] = np.where(
                         probs_or_utils[choice_col] <= logit.UTIL_MIN,
-                        3.0,
+                        logit.UTIL_LARGE_ENOUGH,
                         logit.UTIL_UNAVAILABLE,
                     )
                 else:

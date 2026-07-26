@@ -430,9 +430,6 @@ def _interaction_sample_simulate(
     # resulting pandas Int64Index has one element per chooser row and is in same order as choosers
     choices = alternatives[choice_column].take(positions + first_row_offsets)
 
-    # resulting pandas Int64Index has one element per chooser row and is in same order as choosers
-    choices = alternatives[choice_column].take(positions + first_row_offsets)
-
     # create a series with index from choosers and the index of the chosen alternative
     choices = pd.Series(choices, index=choosers.index)
 

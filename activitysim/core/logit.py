@@ -647,6 +647,7 @@ def make_choices_utility_based(
     nest_spec=None,
     alts_context: AltsContext | None = None,
     alt_nrs_df: pd.DataFrame | None = None,
+    allow_zero_probs: bool = False,
 ) -> tuple[pd.Series, pd.Series]:
     """
     Make choices for each chooser from among a set of alternatives based on utilities by adding
@@ -673,6 +674,11 @@ def make_choices_utility_based(
         the alt_nrs for each alternative for each chooser. This is used to index into the random numbers when sampling
         EET terms for multinomial logit models, and should contain -999 for any alternatives that are not available
         for a given chooser. Should be provided along with `alts_context`.
+    allow_zero_probs : bool
+        If False, report choosers that have no available alternative at all. This is the
+        utility-space counterpart of `allow_bad_probs` in `make_choices`, and takes the
+        name `allow_zero_probs` because the condition it suppresses is the same one that
+        `validate_utils` and `utils_to_probs` describe by that name.
 
     Returns
     -------
@@ -684,13 +690,35 @@ def make_choices_utility_based(
 
     Notes
     -----
-    Bad-row reporting (e.g., a chooser whose alternatives are all `UTIL_UNAVAILABLE`) is the
-    responsibility of `validate_utils()`, which is invoked at every EET call site
-    (interaction_sample, interaction_sample_simulate, simulate.eval_mnl, simulate.eval_nl)
-    BEFORE this function is called. EET argmax always returns a valid integer position;
-    we do not re-check here.
+    An argmax always returns a position, so a chooser with no available alternative gets a
+    choice here rather than an error: with every utility at `UTIL_UNAVAILABLE` the alternatives
+    are tied and the error terms decide, and with every utility at `-inf` the first column wins.
+    The Monte Carlo path does not go quiet in that situation -- `make_choices` reports it unless
+    `allow_bad_probs` is set -- so this function reports it too. Most callers reach here having
+    already run `validate_utils`, which makes the same check; the duplication is deliberate and
+    mirrors `make_choices` re-checking what `utils_to_probs` has already looked at.
     """
     trace_label = tracing.extend_trace_label(trace_label, "make_choices_utility_based")
+
+    if not allow_zero_probs:
+        # An alternative counts as available when its utility exceeds UTIL_MIN, which is the
+        # same threshold validate_utils uses before clamping to UTIL_UNAVAILABLE. Testing the
+        # threshold directly rather than testing the row sum against a multiple of
+        # UTIL_UNAVAILABLE means this also holds for callers that arrive without having run
+        # validate_utils, where unavailable alternatives may still carry their raw value.
+        no_available_alts = ~(utilities.to_numpy() > UTIL_MIN).any(axis=1)
+        if no_available_alts.any():
+            report_bad_choices(
+                state,
+                no_available_alts,
+                utilities,
+                state.settings.skip_failed_choices,
+                trace_label=tracing.extend_trace_label(
+                    trace_label, "no_available_alts"
+                ),
+                msg="no alternative is available",
+                trace_choosers=trace_choosers,
+            )
 
     if nest_spec is None:
         choices = make_choices_explicit_error_term_mnl(

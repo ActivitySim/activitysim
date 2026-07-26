@@ -119,6 +119,82 @@ def test_validate_utils_allows_zero_probs():
     assert validated.iloc[0, 1] == logit.UTIL_UNAVAILABLE
 
 
+def _rng_state_for(choosers):
+    state = workflow.State().default_settings()
+    state.settings.skip_failed_choices = False
+    state.rng().set_base_seed(0)
+    state.rng().begin_step("test_step")
+    state.rng().add_channel("persons", choosers)
+    return state
+
+
+def test_make_choices_utility_based_reports_when_no_alternative_available():
+    # the counterpart of make_choices reporting bad probabilities: an argmax over a row
+    # with nothing available still returns a position, so it has to be reported here
+    choosers = pd.DataFrame(index=pd.Index([1, 2], name="person_id"))
+    utils = pd.DataFrame(
+        [[0.5, 1.0], [logit.UTIL_UNAVAILABLE, logit.UTIL_UNAVAILABLE]],
+        index=choosers.index,
+    )
+    state = _rng_state_for(choosers)
+
+    with pytest.raises(InvalidTravelError) as excinfo:
+        logit.make_choices_utility_based(state, utils)
+
+    assert "no alternative is available" in str(excinfo.value)
+
+
+def test_make_choices_utility_based_reports_raw_unavailable_values():
+    # callers that reach here without validate_utils still carry raw values rather than
+    # UTIL_UNAVAILABLE, so the check tests the UTIL_MIN threshold rather than a row sum
+    choosers = pd.DataFrame(index=pd.Index([1], name="person_id"))
+    utils = pd.DataFrame(
+        [[logit.UTIL_MIN - 1.0, logit.UTIL_MIN - 2.0]], index=choosers.index
+    )
+    state = _rng_state_for(choosers)
+
+    with pytest.raises(InvalidTravelError, match="no alternative is available"):
+        logit.make_choices_utility_based(state, utils)
+
+
+def test_make_choices_utility_based_allows_zero_probs():
+    # callers that have already sanctioned the situation opt out, as with
+    # allow_bad_probs in make_choices
+    choosers = pd.DataFrame(index=pd.Index([1], name="person_id"))
+    utils = pd.DataFrame(
+        [[logit.UTIL_UNAVAILABLE, logit.UTIL_UNAVAILABLE]], index=choosers.index
+    )
+    state = _rng_state_for(choosers)
+
+    choices, _ = logit.make_choices_utility_based(state, utils, allow_zero_probs=True)
+
+    assert len(choices) == 1
+
+
+def test_make_choices_utility_based_reports_fully_masked_alt_nrs_row():
+    # the alt_nrs_df case needs no separate handling: padding columns carry a utility
+    # below UTIL_MIN, so a row that is masked everywhere is also a row with nothing
+    # available and trips the same check
+    choosers = pd.DataFrame(index=pd.Index([1, 2], name="person_id"))
+    utils = pd.DataFrame(
+        [[0.5, 1.0], [logit.UTIL_UNAVAILABLE, logit.UTIL_UNAVAILABLE]],
+        index=choosers.index,
+    )
+    alt_nrs_df = pd.DataFrame(
+        [[0, 1], [random.MASKED_ALT_ID, random.MASKED_ALT_ID]],
+        index=choosers.index,
+    )
+    state = _rng_state_for(choosers)
+
+    with pytest.raises(InvalidTravelError, match="no alternative is available"):
+        logit.make_choices_utility_based(
+            state,
+            utils,
+            alts_context=AltsContext.from_num_alts(2),
+            alt_nrs_df=alt_nrs_df,
+        )
+
+
 #
 # `utils_to_probs` Tests
 #

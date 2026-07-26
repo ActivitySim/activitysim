@@ -1553,7 +1553,7 @@ def eval_nl(
 
     if state.settings.use_explicit_error_terms:
         raw_utilities = logit.validate_utils(
-            state, raw_utilities, allow_zero_probs=True, trace_label=trace_label
+            state, raw_utilities, allow_zero_probs=False, trace_label=trace_label
         )
 
         if custom_chooser:

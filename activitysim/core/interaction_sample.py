@@ -33,6 +33,26 @@ DUMP = False
 
 InteractionSampleMethod = typing.Literal["monte_carlo", "eet", "poisson"]
 
+# Threshold on P0, the probability that a chooser's Poisson draw comes up empty, below
+# which the fallback term is dropped from the reported inclusion probabilities. Choosers
+# that actually draw nothing always get the term regardless of this threshold, so it only
+# governs how exact the reported probability is for choosers whose draw succeeded.
+#
+# Skipping the term avoids ranking the probability array for choosers that will essentially
+# never need a fallback set, which costs about as much as the Bernoulli draw itself. The
+# error it admits is bounded by the fact that P0 <= exp(-sample_size) whenever the
+# probabilities sum to one (from 1 - p <= exp(-p)), so for a sample size of 30 the dropped
+# term is at most 1e-13 and this branch is never taken at all for sample sizes above 27.
+#
+# Dropping the term understates prob by P0, so the relative error on the correction term
+# log(1/prob) is P0/q_i, which is only large for an alternative whose own inclusion
+# probability q_i is far below P0. Such an alternative can only be affected if it is
+# sampled, which happens with probability q_i -- the same small quantity. That coupling
+# bounds the expected number of chooser-alternative pairs whose correction is wrong by
+# more than delta at n_choosers * sample_size * TOLERANCE / (exp(delta) - 1), i.e. below
+# 1e-4 pairs off by more than 1 util in a one-million-chooser run.
+POISSON_EMPTY_SAMPLE_TOLERANCE = 1e-12
+
 
 def resolve_sample_method(
     state: workflow.State,
@@ -84,9 +104,8 @@ def _poisson_sample_alternatives_inner(
     """
     Draw one Bernoulli inclusion decision per chooser-alternative pair.
 
-    Returns a dense 2-D array aligned to `probs` where sampled alternatives
-    contain their Poisson inclusion probability and unsampled alternatives are
-    `np.nan`.
+    Returns a dense 2-D boolean array aligned to `probs` that is True for the
+    sampled chooser-alternative pairs.
     """
     if stable_alt_positions is None and n_total_alts is None:
         rands = rng.random_for_df(probs, n=probs.shape[1])
@@ -101,64 +120,32 @@ def _poisson_sample_alternatives_inner(
             "stable_alt_positions and n_total_alts must both be provided or omitted together"
         )
     chunk_sizer.log_df(trace_label, "rands", rands)
-    return np.where(
-        rands < poisson_inclusion_probs_values, poisson_inclusion_probs_values, np.nan
-    )
+    return rands < poisson_inclusion_probs_values
 
 
-def _poisson_fallback_sample_alternatives(
-    probs: pd.DataFrame,
+def _poisson_fallback_positions(
+    probs_values: np.ndarray,
     sample_size: int,
-    rng: Random,
-    trace_label: str | None,
-    chunk_sizer: ChunkSizer,
-    stable_alt_positions: np.ndarray | None = None,
-    n_total_alts: int | None = None,
 ) -> np.ndarray:
     """
-    Fallback sampler used when Poisson retries still leave empty chooser rows.
+    Fallback choice set for choosers whose Poisson draw sampled no alternative.
 
-    This path samples exactly `sample_size` distinct alternatives per chooser
-    without replacement by ranking one random score per alternative. The
-    returned array uses the same sparse chooser-by-alternative representation as
-    the Poisson path: chosen alternatives are `1.0`, unchosen alternatives are
-    `np.nan`.
+    Returns the column positions of the `sample_size` highest-probability
+    alternatives for each row of `probs_values` (all of them if there are fewer
+    than `sample_size` alternatives), with ties broken by column position.
+
+    This is deliberately *deterministic* and consumes no random numbers, so every
+    chooser row advances its RNG channel by exactly the same amount whether or not
+    the fallback fires. That keeps random number streams aligned across scenarios,
+    which a data-dependent retry or redraw scheme cannot do. Because the fallback
+    set is a deterministic function of the probabilities, the probability that an
+    alternative ends up in the returned choice set still has an exact closed form
+    (see `_poisson_sample_alternatives`).
     """
-    if sample_size > probs.shape[1]:
-        logger.info(
-            f"Poisson fallback sampling without replacement with sample_size={sample_size} > number of alternatives="
-            + f"{probs.shape[1]}; returning all alternatives for {len(probs)} choosers"
-        )
-        return np.full(probs.shape, 1.0)
-
-    if stable_alt_positions is None and n_total_alts is None:
-        fallback_rands = rng.random_for_df(probs, n=probs.shape[1])
-    elif stable_alt_positions is not None and n_total_alts is not None:
-        fallback_rands = rng.random_for_df_stable_alt_positions(
-            probs,
-            stable_alt_positions=stable_alt_positions,
-            n_total_alts=n_total_alts,
-        )
-    else:
-        raise ValueError(
-            "stable_alt_positions and n_total_alts must both be provided or omitted together"
-        )
-    chunk_sizer.log_df(trace_label, "fallback_rands", fallback_rands)
-
-    chosen_positions = np.argpartition(
-        fallback_rands,
-        kth=sample_size - 1,
-        axis=1,
-    )[:, :sample_size]
-
-    fallback_sampled_values = np.full(probs.shape, np.nan)
-    chooser_positions = np.repeat(np.arange(len(probs)), sample_size)
-    fallback_sampled_values[
-        chooser_positions,
-        chosen_positions.reshape(-1),
-    ] = 1.0
-
-    return fallback_sampled_values
+    k = min(sample_size, probs_values.shape[1])
+    # stable sort of the negated probabilities gives descending probability order
+    # with ties broken by column position
+    return np.argsort(-probs_values, axis=1, kind="stable")[:, :k]
 
 
 def make_sample_choices_eet(
@@ -231,105 +218,109 @@ def _poisson_sample_alternatives(
     """
     Build a Poisson-sampled choice set for each chooser.
 
-    The primary path performs independent Poisson inclusion draws for every chooser-alternative pair and retries any
-    chooser row that sampled no alternatives. Internally the sampler maintains a sparse chooser-by-alternative array
-    where sampled cells hold the probability to carry forward as `prob` and unsampled cells are np.nan.
+    Every chooser-alternative pair gets one independent Bernoulli inclusion draw with
+    probability
 
-    If a chooser still has no sampled alternatives after 10 retries, we fall back to sampling exactly sample_size
-    distinct alternatives without replacement and force those chosen probabilities to `1.0` so the sampling correction
-    factor cancels out. In practice we expect this to be very rare with reasonable sample sizes and not too small
-    choice sets, but it is a known issue with Poisson sampling that we want to guard against. Note that if this
-    fallback is triggered it can lead to inconsistent random numbers between two scenarios if the number of retries it
-    takes in each scenario differs, but again we expect this to be very rare and the alternative is potentially
-    infinite retries or raising an error.
+        q_i = 1 - (1 - p_i) ** sample_size
 
-    returns: DataFrame with one row per sampled chooser-alternative pair and columns for chooser index, alt_col_name,
-    and prob (the Poisson inclusion probability for that pair).
+    where `p_i` is the chooser's MNL choice probability for alternative `i`. That is the
+    probability the alternative would have been drawn at least once across `sample_size`
+    Monte Carlo draws, which is what makes Poisson sampling interchangeable with the other
+    sampling methods. `pick_count` is 1 by definition (the draw is a yes/no per
+    alternative), so the standard sampling correction factor is recoverable in the usual
+    way as `np.log(df.pick_count / df.prob)`.
 
-    In the case of Poisson sampling, the inclusion probability for each chooser-alternative pair is the probability
-    that the alternative was included in the sample at least once across the sample_size draws, which is the
-    reciprocal of it never being drawn in sample_size draws, so 1-(1-p)^sample_size  where p is the
-    original choice probability. To make Poisson sampling interchangeable with other sampling methods, we return the
-    inclusion probabilities i.e. the true probability of being sampled. Pick_count will be 1 by definition
-    (poisson sampling returns a yes/no for each alternative, so if an alternative is included in the sample it is
-    included once) and the standard sampling correction factor can be recovered as np.log(df.pick_count/df.prob)
-    = np.log(1/inclusion_prob).
+    Because the draws are independent, a chooser can end up with no sampled alternatives
+    at all. That happens with probability
+
+        P0 = prod_j (1 - q_j)
+
+    Since the probabilities sum to one and 1 - p <= exp(-p), this is bounded above by
+    exp(-sample_size): very small at the sample sizes these models use (~1e-13
+    for `sample_size=30`), but not negligible at small sample sizes or for a chooser whose
+    probability mass is spread thinly. Those choosers fall back to the `sample_size`
+    highest-probability alternatives (see `_poisson_fallback_positions`). The fallback is
+    deterministic and draws no random numbers, so every chooser advances its RNG channel by
+    exactly the same amount whether or not it fires -- unlike a retry scheme, this cannot
+    desynchronise random number streams between scenarios.
+
+    Determinism also makes the reported probability exact. Alternative `i` ends up in the
+    returned choice set if it was drawn, or if nothing was drawn and it is in the fallback
+    set. An alternative that was drawn cannot also have been in an empty draw, so these are
+    disjoint, and the fallback set is fixed rather than random, giving
+
+        prob_i = q_i + P0 * 1{i in fallback set}
+
+    unconditionally: the same value for every chooser whatever branch it actually took, and
+    bounded by 1 because P0 <= 1 - q_i. Reporting `q_i` alone would understate the
+    correction for exactly the choosers most at risk of an empty draw. Ranking the
+    probabilities to find the fallback set costs about as much as the Bernoulli draw itself,
+    so the term is only evaluated for choosers whose P0 exceeds
+    `POISSON_EMPTY_SAMPLE_TOLERANCE`, plus every chooser that actually drew nothing. See
+    that constant for the error this admits.
+
+    Note this is a different sampling design from retrying until the draw is non-empty,
+    which would give `q_i / (1 - P0)` instead. Both are valid; this one has an exact closed
+    form that does not depend on how many times a chooser was redrawn.
+
+    returns: DataFrame with one row per sampled chooser-alternative pair and columns for
+    chooser index, alt_col_name, and prob.
     """
 
-    inclusion_probs_values = 1.0 - np.power(
-        1.0 - probs.to_numpy(copy=False), sample_size
+    probs_values = probs.to_numpy(copy=False)
+
+    # q_i: probability of alternative i being included at least once in sample_size draws
+    inclusion_probs = 1.0 - np.power(1.0 - probs_values, sample_size)
+
+    # P0: probability that a chooser's Bernoulli draws include nothing at all. Must be
+    # computed before inclusion_probs is updated in place below.
+    empty_sample_probs = np.prod(1.0 - inclusion_probs, axis=1)
+
+    sampled = _poisson_sample_alternatives_inner(
+        probs,
+        inclusion_probs,
+        state.get_rn_generator(),
+        trace_label,
+        chunk_sizer,
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
     )
+    chunk_sizer.log_df(trace_label, "sampled", sampled)
 
-    sampled_values = np.full(inclusion_probs_values.shape, np.nan)
+    empty_rows = ~sampled.any(axis=1)
 
-    n = 0
-    active_row_positions = np.arange(len(probs), dtype=np.int64)
-
-    while active_row_positions.size > 0:
-        probs_subset = probs.iloc[active_row_positions]
-        # Each retry call advances the per-row offset by n_total_alts on the
-        # underlying RNG channel (see SimpleChannel.random_for_df_stable_alt_positions).
-        # The number of retries is data-dependent, so two scenarios with slightly
-        # different inclusion probabilities for the same chooser can end up with
-        # different downstream RNG offsets — defeating cross-scenario stability
-        # for that chooser. This is rare (only fires when the first Poisson draw
-        # yields zero samples) but worth keeping in mind for base/project
-        # comparisons; see the docstring above for context.
-        sampled_results_subset = _poisson_sample_alternatives_inner(
-            probs_subset,
-            inclusion_probs_values[active_row_positions],
-            state.get_rn_generator(),
-            trace_label,
-            chunk_sizer,
-            stable_alt_positions=stable_alt_positions,
-            n_total_alts=n_total_alts,
+    n_empty = int(empty_rows.sum())
+    if n_empty > 0:
+        logger.warning(
+            f"Poisson sampling drew an empty choice set for {n_empty} of {len(probs)} "
+            f"chooser(s) in {trace_label}; falling back to the "
+            f"{min(sample_size, probs_values.shape[1])} highest-probability alternatives "
+            f"for those choosers. Highest empty-sample probability was "
+            f"{empty_sample_probs[empty_rows].max():.2g} against a requested sample size "
+            f"of {sample_size} and a mean expected sample size of "
+            f"{inclusion_probs[empty_rows].sum(axis=1).mean():.1f}."
         )
-        no_alts_sampled_mask = np.isnan(sampled_results_subset).all(axis=1)
-        sampled_values[
-            active_row_positions[~no_alts_sampled_mask]
-        ] = sampled_results_subset[~no_alts_sampled_mask]
 
-        if no_alts_sampled_mask.any():
-            failed_row_positions = active_row_positions[no_alts_sampled_mask]
-            extra_per_retry = (
-                f"{n_total_alts}" if n_total_alts is not None else "n_total_alts"
-            )
-            logger.warning(
-                f"Poisson sampling of alternatives failed for {len(failed_row_positions)} "
-                f"chooser(s) with {n=}, retrying. Note: retried choosers consume an extra "
-                f"{extra_per_retry} randoms per retry on this RNG channel, which can cause "
-                f"downstream RNG offset divergence vs scenarios that did not retry."
-            )
-            logger.debug(
-                f"Sampled size was {sample_size}, poisson method mean expected sample size was"
-                + f" {inclusion_probs_values[failed_row_positions].sum(axis=1).mean():.1f}, actual sampled mean was"
-                + f" {np.isfinite(sampled_values[failed_row_positions]).sum(axis=1).mean():.1f} and highest zero"
-                + f" selection prob was {(1.0 - inclusion_probs_values[failed_row_positions]).prod(axis=1).max():.2g}"
-            )
-            active_row_positions = failed_row_positions
+    # inclusion_probs is updated in place from q_i to the reported probability
+    # q_i + P0 * 1{i in fallback set}
+    fallback_rows = np.nonzero(
+        empty_rows | (empty_sample_probs > POISSON_EMPTY_SAMPLE_TOLERANCE)
+    )[0]
+    if fallback_rows.size > 0:
+        fallback_cols = _poisson_fallback_positions(
+            probs_values[fallback_rows], sample_size
+        )
+        row_positions = np.repeat(fallback_rows, fallback_cols.shape[1])
+        col_positions = fallback_cols.reshape(-1)
+        inclusion_probs[row_positions, col_positions] += empty_sample_probs[
+            row_positions
+        ]
 
-        else:  # All choosers have at least one alternative in sample set
-            break
+        # ...but only the choosers that actually drew nothing take the fallback set
+        takes_fallback = empty_rows[row_positions]
+        sampled[row_positions[takes_fallback], col_positions[takes_fallback]] = True
 
-        n += 1
-        if n == 10:
-            logger.info(
-                "Poisson choice set sampling exceeded 10 retries; falling back to random sampling for %s choosers",
-                len(active_row_positions),
-            )
-            fallback_sampled_values = _poisson_fallback_sample_alternatives(
-                probs.iloc[active_row_positions],
-                sample_size,
-                state.get_rn_generator(),
-                trace_label,
-                chunk_sizer,
-                stable_alt_positions=stable_alt_positions,
-                n_total_alts=n_total_alts,
-            )
-            sampled_values[active_row_positions] = fallback_sampled_values
-            break
-
-    chooser_positions, alt_positions = np.nonzero(~np.isnan(sampled_values))
+    chooser_positions, alt_positions = np.nonzero(sampled)
     chooser_col_name = probs.index.name or "index"
 
     if len(chooser_positions) == 0:
@@ -338,7 +329,7 @@ def _poisson_sample_alternatives(
         choices_df = pd.DataFrame(
             {
                 chooser_col_name: probs.index.to_numpy()[chooser_positions],
-                "prob": sampled_values[chooser_positions, alt_positions],
+                "prob": inclusion_probs[chooser_positions, alt_positions],
                 alt_col_name: alternatives.index.to_numpy()[alt_positions],
             }
         )

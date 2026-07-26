@@ -650,17 +650,59 @@ class _DummyRngUtilityBased:
         )
 
 
-def _expected_choices_df(sampled_alternatives, alternatives, alt_col_name):
-    return (
-        sampled_alternatives.rename_axis("alt_idx", axis=1)
-        .stack()
-        .reset_index(name="prob")
-        .assign(**{alt_col_name: lambda df: alternatives.index.values[df["alt_idx"]]})
-        .drop(columns=["alt_idx"])
+def _reference_poisson_sampled_values(probs_np, draws, sample_size):
+    """
+    Independent re-derivation of the documented Poisson sampling result, used to check
+    the implementation against the formula rather than against itself.
+
+    An alternative ends up in the choice set if its Bernoulli draw succeeded, or if the
+    chooser drew nothing at all and the alternative is one of the `sample_size` most
+    likely. Those events are disjoint, so the probability of an alternative being in the
+    returned set is `q_i + P0 * 1{i in fallback set}` for every chooser and both branches.
+
+    Returns the sparse chooser-by-alternative array of reported probabilities, with
+    np.nan for alternatives that are not in the choice set.
+    """
+    inclusion_probs = 1.0 - np.power(1.0 - probs_np, sample_size)
+    empty_sample_probs = np.prod(1.0 - inclusion_probs, axis=1)
+
+    sampled = draws < inclusion_probs
+    empty_rows = ~sampled.any(axis=1)
+
+    in_fallback = np.zeros(probs_np.shape, dtype=bool)
+    k = min(sample_size, probs_np.shape[1])
+    top_k = np.argsort(-probs_np, axis=1, kind="stable")[:, :k]
+    np.put_along_axis(in_fallback, top_k, True, axis=1)
+
+    # the implementation skips the P0 term where it cannot matter; mirror that here so
+    # the comparison stays exact (see POISSON_EMPTY_SAMPLE_TOLERANCE)
+    material = empty_sample_probs > interaction_sample.POISSON_EMPTY_SAMPLE_TOLERANCE
+    reported = inclusion_probs + empty_sample_probs[:, None] * (
+        in_fallback & (material | empty_rows)[:, None]
+    )
+
+    sampled = sampled | (empty_rows[:, None] & in_fallback)
+    return np.where(sampled, reported, np.nan)
+
+
+def _reference_poisson_choices_df(
+    probs, draws, sample_size, alternatives, alt_col_name
+):
+    """Flatten `_reference_poisson_sampled_values` into the expected choices frame."""
+    sampled_values = _reference_poisson_sampled_values(
+        probs.to_numpy(), draws, sample_size
+    )
+    chooser_idx, alt_idx = np.nonzero(~np.isnan(sampled_values))
+    return pd.DataFrame(
+        {
+            probs.index.name: probs.index.to_numpy()[chooser_idx],
+            "prob": sampled_values[chooser_idx, alt_idx],
+            alt_col_name: alternatives.index.to_numpy()[alt_idx],
+        }
     )
 
 
-def test_poisson_sample_alternatives_inner_returns_masked_inclusion_probs():
+def test_poisson_sample_alternatives_inner_returns_inclusion_mask():
     probs = pd.DataFrame(
         [[0.2, 0.4, 0.6], [0.1, 0.3, 0.5]],
         index=pd.Index([11, 17], name="person_id"),
@@ -683,50 +725,47 @@ def test_poisson_sample_alternatives_inner_returns_masked_inclusion_probs():
         probs,
         inclusion_probs_values,
         rng,
-        trace_label="test_poisson_sample_alternatives_inner_returns_masked_inclusion_probs",
+        trace_label="test_poisson_sample_alternatives_inner_returns_inclusion_mask",
         chunk_sizer=_DummyChunkSizer(),
     )
 
     expected = np.array(
-        [[0.36, np.nan, 0.84], [np.nan, 0.51, np.nan]],
-        dtype=np.float64,
+        [[True, False, True], [False, True, False]],
+        dtype=bool,
     )
 
-    np.testing.assert_allclose(sampled, expected, equal_nan=True)
+    np.testing.assert_array_equal(sampled, expected)
 
 
-def test_poisson_fallback_sample_alternatives_selects_distinct_positions_with_prob_one():
-    probs = pd.DataFrame(
+def test_poisson_fallback_positions_selects_highest_probability_alternatives():
+    probs_values = np.array(
         [[0.20, 0.30, 0.50, 0.00], [0.40, 0.10, 0.30, 0.20]],
-        index=pd.Index([11, 17], name="person_id"),
-        columns=np.arange(4),
-    )
-    rng = _SequentialDummyRng(
-        [
-            np.array(
-                [[0.90, 0.10, 0.40, 0.20], [0.05, 0.70, 0.60, 0.10]],
-                dtype=np.float64,
-            )
-        ]
-    )
-
-    sampled = interaction_sample._poisson_fallback_sample_alternatives(
-        probs=probs,
-        sample_size=2,
-        rng=rng,
-        trace_label="test_poisson_fallback_sample_alternatives_selects_distinct_positions_with_prob_one",
-        chunk_sizer=_DummyChunkSizer(),
-    )
-
-    expected = np.array(
-        [[np.nan, 1.0, np.nan, 1.0], [1.0, np.nan, np.nan, 1.0]],
         dtype=np.float64,
     )
 
-    np.testing.assert_allclose(sampled, expected, equal_nan=True)
+    positions = interaction_sample._poisson_fallback_positions(probs_values, 2)
+
+    # highest probability first, so [0.50, 0.30] and [0.40, 0.30]
+    np.testing.assert_array_equal(positions, np.array([[2, 1], [0, 2]]))
 
 
-def test_poisson_sample_alternatives_retries_and_returns_expected_frames():
+def test_poisson_fallback_positions_breaks_ties_by_column_and_caps_at_alt_count():
+    probs_values = np.array([[0.25, 0.25, 0.25, 0.25]], dtype=np.float64)
+
+    # ties resolve to the leading columns, deterministically
+    np.testing.assert_array_equal(
+        interaction_sample._poisson_fallback_positions(probs_values, 2),
+        np.array([[0, 1]]),
+    )
+
+    # asking for more alternatives than exist returns all of them
+    np.testing.assert_array_equal(
+        interaction_sample._poisson_fallback_positions(probs_values, 99),
+        np.array([[0, 1, 2, 3]]),
+    )
+
+
+def test_poisson_sample_alternatives_returns_expected_frames():
     probs = pd.DataFrame(
         [
             [0.20, 0.60, 0.10, 0.05],
@@ -738,36 +777,16 @@ def test_poisson_sample_alternatives_retries_and_returns_expected_frames():
     )
     sample_size = 2
     alternatives = pd.DataFrame(index=pd.Index([100, 300, 700, 900], name="alt_id"))
-    expected_inclusion_probs = 1 - (1 - probs) ** sample_size
-    expected_sampled_alternatives = pd.DataFrame(
+    # the middle chooser samples nothing and takes the fallback set
+    draws = np.array(
         [
-            [expected_inclusion_probs.iloc[0, 0], np.nan, np.nan, np.nan],
-            [
-                expected_inclusion_probs.iloc[1, 0],
-                expected_inclusion_probs.iloc[1, 1],
-                np.nan,
-                np.nan,
-            ],
-            [np.nan, np.nan, expected_inclusion_probs.iloc[2, 2], np.nan],
+            [0.10, 0.90, 0.50, 0.90],
+            [0.90, 0.90, 0.90, 0.90],
+            [0.80, 0.90, 0.20, 0.80],
         ],
-        index=probs.index,
-        columns=probs.columns,
+        dtype=np.float64,
     )
-    state = _DummyState(
-        _SequentialDummyRng(
-            [
-                np.array(
-                    [
-                        [0.10, 0.90, 0.50, 0.90],
-                        [0.90, 0.90, 0.90, 0.90],
-                        [0.80, 0.90, 0.20, 0.80],
-                    ],
-                    dtype=np.float64,
-                ),
-                np.array([[0.10, 0.05, 0.70, 0.80]], dtype=np.float64),
-            ]
-        )
-    )
+    state = _DummyState(_SequentialDummyRng([draws]))
 
     choices_df = interaction_sample._poisson_sample_alternatives(
         chunk_sizer=_DummyChunkSizer(),
@@ -776,19 +795,21 @@ def test_poisson_sample_alternatives_retries_and_returns_expected_frames():
         sample_size=sample_size,
         alt_col_name="alt_id",
         state=state,
-        trace_label="test_poisson_sample_alternatives_retries_and_returns_expected_frames",
+        trace_label="test_poisson_sample_alternatives_returns_expected_frames",
     )
 
-    expected_choices_df = _expected_choices_df(
-        expected_sampled_alternatives,
-        alternatives,
-        "alt_id",
+    expected = _reference_poisson_choices_df(
+        probs, draws, sample_size, alternatives, "alt_id"
     )
+    pd.testing.assert_frame_equal(choices_df, expected)
 
-    pd.testing.assert_frame_equal(choices_df, expected_choices_df)
+    # the fallback chooser gets the two most likely alternatives, 100 and 700
+    assert choices_df.loc[choices_df.person_id == 17, "alt_id"].tolist() == [100, 700]
 
 
-def test_poisson_sample_alternatives_falls_back_to_random_sampling_after_ten_retries():
+def test_poisson_sample_alternatives_consumes_no_extra_randoms_on_empty_draw():
+    # the fallback must not draw again: _SequentialDummyRng raises IndexError if the
+    # sampler asks for a second block, so a single draw array is the assertion here
     probs = pd.DataFrame(
         [[0.20, 0.30, 0.50]],
         index=pd.Index([11], name="person_id"),
@@ -797,8 +818,7 @@ def test_poisson_sample_alternatives_falls_back_to_random_sampling_after_ten_ret
     sample_size = 2
     alternatives = pd.DataFrame(index=pd.Index([100, 300, 700], name="alt_id"))
     fail_draw = np.array([[0.99, 0.99, 0.99]], dtype=np.float64)
-    fallback_draw = np.array([[0.10, 0.80, 0.20]], dtype=np.float64)
-    state = _DummyState(_SequentialDummyRng([fail_draw] * 10 + [fallback_draw]))
+    state = _DummyState(_SequentialDummyRng([fail_draw]))
 
     choices_df = interaction_sample._poisson_sample_alternatives(
         chunk_sizer=_DummyChunkSizer(),
@@ -807,21 +827,74 @@ def test_poisson_sample_alternatives_falls_back_to_random_sampling_after_ten_ret
         sample_size=sample_size,
         alt_col_name="alt_id",
         state=state,
-        trace_label="test_poisson_sample_alternatives_falls_back_to_random_sampling_after_ten_retries",
+        trace_label="test_poisson_sample_alternatives_consumes_no_extra_randoms_on_empty_draw",
     )
 
-    expected_sampled_alternatives = pd.DataFrame(
-        [[1.0, np.nan, 1.0]],
-        index=probs.index,
-        columns=probs.columns,
-    )
-    expected_choices_df = _expected_choices_df(
-        expected_sampled_alternatives,
-        alternatives,
-        "alt_id",
+    # the two most likely alternatives, reported at q_i + P0
+    inclusion_probs = 1 - np.power(1 - probs.to_numpy(), sample_size)
+    empty_sample_prob = np.prod(1 - inclusion_probs, axis=1)[0]
+    expected = pd.DataFrame(
+        {
+            "person_id": [11, 11],
+            "prob": [
+                inclusion_probs[0, 1] + empty_sample_prob,
+                inclusion_probs[0, 2] + empty_sample_prob,
+            ],
+            "alt_id": [300, 700],
+        }
     )
 
-    pd.testing.assert_frame_equal(choices_df, expected_choices_df)
+    pd.testing.assert_frame_equal(choices_df, expected)
+
+
+def test_poisson_sample_alternatives_reported_prob_is_total_inclusion_probability():
+    # Monte Carlo check that the reported `prob` really is the probability of the
+    # alternative ending up in the choice set, counting both the Bernoulli draw and the
+    # fallback. Every chooser is identical, so the empirical inclusion rate across
+    # choosers estimates that probability directly. sample_size=1 over 6 uniform
+    # alternatives makes empty draws frequent (P0 = (5/6)^6 ~ 0.33), which is what puts
+    # the fallback term under test.
+    n_choosers = 200_000
+    n_alts = 6
+    sample_size = 1
+
+    probs = pd.DataFrame(
+        np.full((n_choosers, n_alts), 1.0 / n_alts),
+        index=pd.Index(np.arange(n_choosers), name="person_id"),
+        columns=np.arange(n_alts),
+    )
+    alternatives = pd.DataFrame(index=pd.Index(np.arange(n_alts) * 10, name="alt_id"))
+
+    inclusion_probs = 1 - np.power(1 - probs.to_numpy(), sample_size)
+    empty_sample_prob = np.prod(1 - inclusion_probs, axis=1)[0]
+    assert empty_sample_prob > 0.3
+
+    draws = np.random.default_rng(20260726).random((n_choosers, n_alts))
+    state = _DummyState(_SequentialDummyRng([draws]))
+
+    choices_df = interaction_sample._poisson_sample_alternatives(
+        chunk_sizer=_DummyChunkSizer(),
+        probs=probs,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+        state=state,
+        trace_label="test_poisson_sample_alternatives_reported_prob_is_total_inclusion_probability",
+    )
+
+    # identical choosers must get an identical reported prob per alternative, whether
+    # they reached the choice set through the Bernoulli draw or through the fallback
+    reported = choices_df.groupby("alt_id")["prob"].agg(["min", "max", "first"])
+    np.testing.assert_allclose(reported["min"], reported["max"], rtol=1e-12)
+
+    # ties in the fallback resolve to the first column, so only alternative 0 carries
+    # the extra P0 mass
+    expected_reported = np.full(n_alts, inclusion_probs[0, 0])
+    expected_reported[0] += empty_sample_prob
+    np.testing.assert_allclose(reported["first"], expected_reported, rtol=1e-12)
+
+    empirical = choices_df.groupby("alt_id").size() / n_choosers
+    np.testing.assert_allclose(empirical, expected_reported, atol=0.005)
 
 
 def test_poisson_sample_alternatives_repeat_alignment_chooser_dominant_heterogeneity():
@@ -875,23 +948,14 @@ def test_poisson_sample_alternatives_repeat_alignment_chooser_dominant_heterogen
         trace_label="test_repeat_alignment_chooser_heterogeneity",
     )
 
-    probs_np = probs.to_numpy()
-    inclusion_probs = 1 - np.power(1 - probs_np, sample_size)
-    sampled_values = np.where(poisson_draws < inclusion_probs, inclusion_probs, np.nan)
-    chooser_idx, alt_idx = np.nonzero(~np.isnan(sampled_values))
-
-    expected = pd.DataFrame(
-        {
-            "person_id": chooser_index.to_numpy()[chooser_idx],
-            "prob": sampled_values[chooser_idx, alt_idx],
-            "alt_id": alternatives.index.to_numpy()[alt_idx],
-        }
+    expected = _reference_poisson_choices_df(
+        probs, poisson_draws, sample_size, alternatives, "alt_id"
     )
 
     pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
 
 
-def test_poisson_sample_alternatives_retry_matches_materialized_path():
+def test_poisson_sample_alternatives_matches_materialized_path():
     chooser_index = pd.Index([201, 202, 203], name="person_id")
     choosers = pd.DataFrame(index=chooser_index)
     alternatives = pd.DataFrame(index=pd.Index([10, 11, 12, 13], name="alt_id"))
@@ -908,8 +972,7 @@ def test_poisson_sample_alternatives_retry_matches_materialized_path():
         ],
         dtype=np.float64,
     )
-    retry_draw = np.array([[0.40, 0.10, 0.90, 0.90]], dtype=np.float64)
-    state = _DummyState(_SequentialDummyRng([poisson_draws, retry_draw]))
+    state = _DummyState(_SequentialDummyRng([poisson_draws]))
 
     probs = interaction_sample.logit.utils_to_probs(
         state,
@@ -930,26 +993,8 @@ def test_poisson_sample_alternatives_retry_matches_materialized_path():
         trace_label="test_fused_rng_matches_materialized",
     )
 
-    probs_np = probs.to_numpy()
-    inclusion_probs = 1 - np.power(1 - probs_np, sample_size)
-    sampled_values = np.full(inclusion_probs.shape, np.nan)
-    first_pass = np.where(poisson_draws < inclusion_probs, inclusion_probs, np.nan)
-    first_pass_empty = np.isnan(first_pass).all(axis=1)
-    sampled_values[~first_pass_empty] = first_pass[~first_pass_empty]
-    retry_pass = np.where(
-        retry_draw < inclusion_probs[first_pass_empty],
-        inclusion_probs[first_pass_empty],
-        np.nan,
-    )
-    sampled_values[first_pass_empty] = retry_pass
-    chooser_idx, alt_idx = np.nonzero(~np.isnan(sampled_values))
-
-    expected = pd.DataFrame(
-        {
-            "person_id": choosers.index.values[chooser_idx],
-            "prob": sampled_values[chooser_idx, alt_idx],
-            "alt_id": alternatives.index.values[alt_idx],
-        }
+    expected = _reference_poisson_choices_df(
+        probs, poisson_draws, sample_size, alternatives, "alt_id"
     )
 
     pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
@@ -1116,26 +1161,18 @@ def test_poisson_sample_alternatives_stable_alt_mapping_matches_materialized_pat
         n_total_alts=n_total_alts,
     )
 
-    probs_np = probs.to_numpy()
-    inclusion_probs = 1 - np.power(1 - probs_np, sample_size)
-    active_uniforms = dense_uniforms[:, stable_alt_positions]
-    sampled_values = np.where(
-        active_uniforms < inclusion_probs, inclusion_probs, np.nan
-    )
-    chooser_idx, alt_idx = np.nonzero(~np.isnan(sampled_values))
-
-    expected = pd.DataFrame(
-        {
-            "person_id": choosers.index.values[chooser_idx],
-            "prob": sampled_values[chooser_idx, alt_idx],
-            "alt_id": alternatives.index.values[alt_idx],
-        }
+    expected = _reference_poisson_choices_df(
+        probs,
+        dense_uniforms[:, stable_alt_positions],
+        sample_size,
+        alternatives,
+        "alt_id",
     )
 
     pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
 
 
-def test_poisson_sample_alternatives_falls_back_after_retries():
+def test_poisson_sample_alternatives_falls_back_to_most_likely_alternatives():
     chooser_index = pd.Index([301, 302], name="person_id")
     choosers = pd.DataFrame(index=chooser_index)
     alternatives = pd.DataFrame(index=pd.Index([10, 12, 14], name="alt_id"))
@@ -1145,20 +1182,13 @@ def test_poisson_sample_alternatives_falls_back_after_retries():
     )
     sample_size = 2
     fail_draw = np.full((2, 3), 0.99, dtype=np.float64)
-    fallback_draw = np.array(
-        [
-            [0.40, 0.10, 0.20],
-            [0.30, 0.20, 0.90],
-        ],
-        dtype=np.float64,
-    )
-    state = _DummyState(_SequentialDummyRng([fail_draw] * 10 + [fallback_draw]))
+    state = _DummyState(_SequentialDummyRng([fail_draw]))
 
     probs = interaction_sample.logit.utils_to_probs(
         state,
         utilities,
         allow_zero_probs=False,
-        trace_label="test_falls_back_after_retries",
+        trace_label="test_falls_back_to_most_likely_alternatives",
         overflow_protection=True,
         trace_choosers=choosers,
     )
@@ -1170,15 +1200,22 @@ def test_poisson_sample_alternatives_falls_back_after_retries():
         sample_size=sample_size,
         alt_col_name="alt_id",
         state=state,
-        trace_label="test_falls_back_after_retries",
+        trace_label="test_falls_back_to_most_likely_alternatives",
     )
 
-    expected = pd.DataFrame(
-        {
-            "person_id": [301, 301, 302, 302],
-            "prob": [1.0, 1.0, 1.0, 1.0],
-            "alt_id": [12, 14, 10, 12],
-        }
-    )
+    # neither chooser sampled anything, so both take their two most likely
+    # alternatives: utilities [0.0, 0.3, -0.2] -> alts 12, 10 and
+    # [1.0, 0.2, 0.4] -> alts 10, 14
+    assert out["alt_id"].tolist() == [10, 12, 10, 14]
+    assert out["person_id"].tolist() == [301, 301, 302, 302]
 
+    expected = _reference_poisson_choices_df(
+        probs, fail_draw, sample_size, alternatives, "alt_id"
+    )
     pd.testing.assert_frame_equal(out.reset_index(drop=True), expected)
+
+    # reported prob is q_i + P0, strictly below 1 and strictly above the bare q_i
+    inclusion_probs = 1 - np.power(1 - probs.to_numpy(), sample_size)
+    empty_sample_probs = np.prod(1 - inclusion_probs, axis=1)
+    assert (out["prob"] < 1.0).all()
+    assert (empty_sample_probs > 0).all()

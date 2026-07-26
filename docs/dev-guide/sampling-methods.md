@@ -97,12 +97,36 @@ noticeably from repeated-draw MNL shares in highly peaked cases. This is structu
 numerical noise. The interaction-sample tests document this explicitly. -->
 
 A chooser can occasionally receive no sampled alternatives under Poisson sampling, because each
-alternative is tested independently. In the models that use sampling in ActivitySim, this should be
-rare. If it happens, the sampler retries that chooser row up to 10 times and then falls back to a
-simple without-replacement random sample.
-<!-- This makes the method robust, but it also creates rare edge cases where two nearby scenarios
-consume different random numbers because one scenario needed retries or fallback and the other did
-not. -->
+alternative is tested independently. The probability of this happening for a given chooser is
+
+$$
+P_0 = \prod_j (1 - p_j)^s
+$$
+
+Because the probabilities sum to one and $1 - p \le e^{-p}$, this is bounded above by $e^{-s}$
+regardless of how the probabilities are distributed. It is therefore negligible at the sample sizes
+these models use (at most $10^{-13}$ for a sample size of 30), but not negligible at small sample
+sizes, or for a chooser whose probability mass is spread very thinly. If it happens, that chooser
+falls back to its $s$ highest-probability alternatives.
+
+The fallback is deliberately deterministic and draws no random numbers, so every chooser advances
+its random number channel by exactly the same amount whether or not the fallback fires. A retry or
+redraw scheme cannot do this: the number of retries is data-dependent, so two nearby scenarios would
+consume different numbers of randoms for the same chooser and desynchronise every draw after it,
+which is undesired when running in explicit error term simulation mode. Determinism also keeps the
+reported `prob` exact, see below.
+
+Taking the $s$ most likely alternatives is only sound as a rare repair, not as a sampling method in
+its own right. Used on its own it would give every selected alternative an inclusion probability of
+1 and every other alternative an inclusion probability of 0, so the correction term would be the
+same constant for all selected alternatives and would cancel out of the choice entirely. The result
+is a plain MNL over the top $s$ alternatives, and the choice mass on all remaining alternatives is
+lost. Because the sampling utility is a deliberately cheap approximation, the alternatives it ranks
+poorly are not the same ones the final utility ranks poorly, so this is a systematic bias rather
+than sampling noise. The problem is the deterministic *exclusion*, not the determinism itself: an
+inclusion probability of 1 is perfectly valid, but one of 0 cannot be corrected for by any
+weighting. Here the Bernoulli draw keeps every alternative's inclusion probability strictly
+positive, and the fallback can only add inclusion mass on top of that, never remove it.
 
 
 ### Sampling Correction
@@ -134,11 +158,40 @@ chooser and therefore does not affect choice probabilities.
 
 For `poisson`, `prob` is the inclusion probability of the alternative in the sampled set, not the
 one-draw choice probability. Specifically, if the original approximate choice probability is $p$
-and the configured sample size is $s$, then the returned `prob` is:
+and the configured sample size is $s$, then the inclusion probably of the Bernoulli trial is
 
 $$
-1 - (1 - p)^s
+q_i = 1 - (1 - p_i)^s
 $$
+
+An alternative ends up in the returned choice set either because its inclusion draw succeeded,
+or because the chooser drew nothing at all and the alternative is in the fallback set. Something
+that was drawn cannot also have been part of an empty draw, so these two events are disjoint, and
+because the fallback set is deterministic rather than random the returned `prob` is
+
+$$
+\text{prob}_i = q_i + P_0 \cdot 1\{i \in \text{fallback set}\}
+$$
+
+Note this is the *unconditional* probability, not either branch on its own. Conditional on the draw
+being non-empty the inclusion probability is $q_i / (1 - P_0)$, and conditional on it being empty it
+is $1\{i \in \text{fallback set}\}$; mixing those with weights $1 - P_0$ and $P_0$ recovers the
+expression above. The unconditional form is the one the correction needs, and it is also what makes
+the reported `prob` independent of which branch a given chooser happened to take.
+
+The conditional form $q_i / (1 - P_0)$ is what a design that retried until the draw was non-empty
+would have to report. Both designs are valid samplers; this one has an exact closed form that does
+not depend on how many times a given chooser was redrawn.
+
+Ranking the probabilities to find the fallback set costs about as much as the Bernoulli draw itself,
+so the implementation evaluates the fallback term only for choosers whose $P_0$ exceeds
+`POISSON_EMPTY_SAMPLE_TOLERANCE`, which is set to $1e-12$, plus every chooser that actually drew
+nothing. Since $P_0 \le e^{-s}$, this branch is never evaluated above a sample size of 27. Dropping
+the term understates `prob` by $P_0$, so the relative error on the correction is $P_0 / q_i$, which
+is only large for an alternative whose own inclusion probability is far below $P_0$. But such an
+alternative can only be affected if it is sampled, which happens with probability $q_i$, the same
+small quantity. That coupling keeps the expected number of materially wrong corrections far below
+one for any model size.
 
 Since `pick_count` is always `1` for `poisson`, the correction becomes $\log(1 / \text{prob})$.
 
@@ -156,8 +209,8 @@ Runtime and noise characteristics differ across methods.
   each chooser, but it also has the most simulation noise because small changes in approximate
   probabilities can change the sampled set substantially.
 - `poisson` is also relatively inexpensive. It draws one uniform random number per
-  chooser-alternative pair, with possible retries for chooser rows that initially sample no
-  alternatives. With stable alternative alignment it is much less noisy than Monte Carlo.
+  chooser-alternative pair. With stable alternative alignment it is much less noisy
+  than Monte Carlo.
 - `eet` is the slowest sampling method. It draws one EV1 error term per chooser, alternative, and
   repeated sample draw. In return, it produces the most stable sampled sets across scenarios
   because unchanged alternatives keep the same unobserved error draws and only observed utility
@@ -167,7 +220,10 @@ Note that `eet` does not remove the dependence on the approximate sampling utili
 utility changes, the sampled set can still change. What it removes is the extra Monte Carlo noise
 from the sampling draw. `poisson` also benefits from stable alignment per alternative, but unlike
 `eet` it still depends on probability-based inclusion tests. The practical effect on scenario
-comparisons is ultimately empirical.
+comparisons is ultimately empirical, but expected to be small. This was found to be the case for
+test scenarios with an increase in employment in some zones, and therefore the sampling utility,
+for the SANDAG example model. `poisson` is therefore the default sampling method when running in
+explicit error term simulation mode.
 
 
 ## References

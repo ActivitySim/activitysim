@@ -441,7 +441,9 @@ class SimpleChannel(object):
         alt_nrs_df : pandas.DataFrame, optional
             DataFrame aligned to `utilities` whose values identify which dense alternative
             each utility column corresponds to. Use `MASKED_ALT_ID` (-999) for masked or
-            unavailable positions; any other negative value raises ValueError.
+            unavailable positions; any other negative value raises ValueError. A row that
+            is masked in every column is taken to mean the chooser has no alternative to
+            choose from, and returns position 0.
         n_rands : int, optional
             Number of EV1 draws to generate per chooser row. Required when `alt_nrs_df`
             is provided and may exceed the visible number of utility columns.
@@ -461,7 +463,12 @@ class SimpleChannel(object):
         positions = np.empty(n_rows, dtype=np.int64)
 
         if alt_nrs_df is not None:
-            assert alt_nrs_df.shape == utilities.shape
+            assert alt_nrs_df.index.equals(
+                utilities.index
+            ), "alt_nrs_df and utilities must share the same index"
+            assert alt_nrs_df.columns.equals(
+                utilities.columns
+            ), "alt_nrs_df and utilities must share the same columns"
             if n_rands is None:
                 raise ValueError("n_rands is required when alt_nrs_df is provided")
             alt_nr_values = alt_nrs_df.to_numpy()
@@ -474,6 +481,7 @@ class SimpleChannel(object):
                     f"{MASKED_ALT_ID} sentinel: {offenders}"
                 )
             masked = alt_nr_values == MASKED_ALT_ID
+            active_mask = ~masked
             safe_alt_nrs = np.where(masked, 0, alt_nr_values)
         else:
             if n_rands is None:
@@ -482,7 +490,7 @@ class SimpleChannel(object):
                 raise ValueError(
                     "n_rands must equal utilities.shape[1] when alt_nrs_df is omitted"
                 )
-            alt_nr_values = masked = safe_alt_nrs = None
+            alt_nr_values = masked = active_mask = safe_alt_nrs = None
 
         generators = self._generators_for_df(utilities)
 
@@ -495,16 +503,21 @@ class SimpleChannel(object):
                     utility_row - np.log(-np.log(row_randoms))
                 )
             else:
-                # Masked positions are set to -inf so they cannot win argmax,
-                # and the gumbel transform is skipped for them entirely.
-                row_mask = masked[row_num]
-                candidate_values = np.full(n_alts, -np.inf, dtype=np.float64)
-                active = ~row_mask
-                if active.any():
-                    candidate_values[active] = utility_row[active] - np.log(
-                        -np.log(row_randoms[safe_alt_nrs[row_num, active]])
-                    )
-                positions[row_num] = np.argmax(candidate_values)
+                # Masked positions can never be chosen, so apply the gumbel transform and argmax
+                # only to the active ones. flatnonzero returns ascending indices, so ties resolve
+                # to the lowest column position, which is what a full-width argmax would have done.
+                active = np.flatnonzero(active_mask[row_num])
+                if active.size == 0:
+                    # The chooser has no alternative available at all. Return the first
+                    # column by convention. Note that logit.make_choices_utility_based filters
+                    # out choosers with no available alternatives, so this case will only occur
+                    # when explicitly allowed by the caller.
+                    positions[row_num] = 0
+                    continue
+                gumbel = utility_row[active] - np.log(
+                    -np.log(row_randoms[safe_alt_nrs[row_num, active]])
+                )
+                positions[row_num] = active[np.argmax(gumbel)]
 
         self.row_states.loc[utilities.index, "offset"] += n_rands
         return positions

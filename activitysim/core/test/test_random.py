@@ -330,3 +330,75 @@ def test_gumbel_choice_positions_for_df_matches_dense_alt_mapping():
 
     npt.assert_array_equal(observed_positions, expected_positions)
     npt.assert_allclose(next_random_after_fused, next_random_after_materialized)
+
+
+def test_gumbel_choice_positions_for_df_masked_columns_never_win():
+    # padded columns carry a high utility here, so if they were eligible they would
+    # win every argmax; only the single active column of each row may be returned
+    persons = pd.DataFrame(
+        {"household_id": [1, 1, 1]},
+        index=pd.Index([41, 42, 43], name="person_id"),
+    )
+    utilities = pd.DataFrame(
+        [[0.0, 99.0, 99.0], [99.0, 0.0, 99.0], [99.0, 99.0, 0.0]],
+        index=persons.index,
+    )
+    alt_nrs_df = pd.DataFrame(
+        [
+            [0, random.MASKED_ALT_ID, random.MASKED_ALT_ID],
+            [random.MASKED_ALT_ID, 1, random.MASKED_ALT_ID],
+            [random.MASKED_ALT_ID, random.MASKED_ALT_ID, 2],
+        ],
+        index=persons.index,
+    )
+
+    rng = random.Random()
+    rng.set_base_seed(0)
+    rng.begin_step("test_step")
+    rng.add_channel("persons", persons)
+    positions = rng.gumbel_choice_positions_for_df(
+        utilities, alt_nrs_df=alt_nrs_df, n_rands=3
+    )
+    rng.end_step("test_step")
+
+    npt.assert_array_equal(positions, [0, 1, 2])
+
+
+def test_gumbel_choice_positions_for_df_fully_masked_row_falls_back_to_first_column():
+    # MASKED_ALT_ID marks padded *or unavailable* slots, so an all-masked row means the
+    # chooser has no alternative available. That returns position 0, mirroring the Monte
+    # Carlo path's probs.loc[zero_probs, 0] = 1.0, and it must not disturb the choice or
+    # the random number stream of any other chooser.
+    persons = pd.DataFrame(
+        {"household_id": [1, 1, 1]},
+        index=pd.Index([51, 52, 53], name="person_id"),
+    )
+    utilities = pd.DataFrame(
+        [[2.0, 1.0], [0.3, 1.2], [0.7, 0.4]],
+        index=persons.index,
+    )
+    all_active = pd.DataFrame([[0, 2], [0, 2], [0, 2]], index=persons.index)
+    with_masked_row = pd.DataFrame(
+        [[0, 2], [random.MASKED_ALT_ID, random.MASKED_ALT_ID], [0, 2]],
+        index=persons.index,
+    )
+
+    def run(alt_nrs_df):
+        rng = random.Random()
+        rng.set_base_seed(0)
+        rng.begin_step("test_step")
+        rng.add_channel("persons", persons)
+        positions = rng.gumbel_choice_positions_for_df(
+            utilities, alt_nrs_df=alt_nrs_df, n_rands=3
+        )
+        following = rng.random_for_df(persons)
+        rng.end_step("test_step")
+        return positions, following
+
+    baseline_positions, baseline_following = run(all_active)
+    masked_positions, masked_following = run(with_masked_row)
+
+    assert masked_positions[1] == 0
+    npt.assert_array_equal(masked_positions[[0, 2]], baseline_positions[[0, 2]])
+    # the masked row still consumes its n_rands draws, so offsets stay aligned
+    npt.assert_allclose(masked_following, baseline_following)

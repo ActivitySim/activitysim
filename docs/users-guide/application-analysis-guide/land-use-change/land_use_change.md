@@ -150,6 +150,57 @@ uv run activitysim run -c configs\common -c configs\resident -d data_full -o out
 
 The following code blocks demonstrate how to calculate key metrics from the model outputs. They all assume that the ActivitySim output files will be read in as a data frame where the name will be the same as the file name but without the prefix or the file extension (e.g. final_trips.csv will be read as trips).
 
+### Auto Ownership
+The outputs of most ActivitySim model components are stored as a single field in that component's choosers table. This means that when the table is read in as a Pandas DataFrame, the share of choosers choosing each alternative can be calculated via the `pandas.Series.value_counts()` function by setting the `normalize` argument to `True` (it is `False` by default). For the auto ownership model, the choosers are the households, and thus the number of autos is an attribute on the households table.
+
+The calculation of the reigional auto ownership rates is very straightforward:
+```
+auto_ownership = households["auto_ownership"].value_counts(normalize = True)
+```
+However, when comparing to a baseline run, there won't be much change to these values when looking at the whole region as the development in question is very localized. For that reason, analysts may want to consider looking at just the area around the station, which should show a more pronounced change than just looking at the regionwide numbers:
+```
+station_area = [579, 4502, 8524, 7714, 12170, 12171, 5455, 8457, 846, 8232, 7831, 12172, 12173, 12174, 12175, 12176, 12177, 12178]
+station_area_households = households.query("home_zone_id in @station_area")
+station_area_auto_ownership = station_area_households["auto_ownership"].value_counts(normalize = True)
+```
+One could also compare the auto ownership values compared to the regionwide values.
+
+### Transit Pass Ownership
+Where auto ownership was a household-level choice, transit pass ownership is a person-level choice, so the transit pass ownership field is in the persons table. This is how to calculate the transit pass ownership share:
+```
+transit_pass_ownership_rate = persons["transit_pass_ownership"].value_counts(normalize = True)
+```
+This variable is 1 for those who own a transit pass and 0 who do not, so the share of people with a value of 1 will be the transit pass owership rate. It should be noted that this variable would also be more sensitive for the station area than the whole region when comparing to a baseline run:
+```
+station_area_persons = persons.query("home_zone_id in @station_area")
+station_area_transit_pass_ownership = station_area_persons["transit_pass_ownership"].value_counts(normalize = True)
+```
+
+### Average Distance To Work
+For every worker with an out-of-home work location, ActivitySim models what that location is. While the zone ID is the only output of the workplace location model, the SANDAG ABM3 Example is configured to add the [distance to work](https://github.com/ActivitySim/sandag-abm3-example/blob/main/configs/resident/annotate_persons_workplace.csv#L3) to the persons table, meaning that the average distance to work can be calculated using the `pandas.Series.mean()` function with that field (Pandas will ignore the null values for people who don't work outside their home):
+```
+avg_dist_to_work = persons["distance_to_work"].mean()
+```
+Further, one can put the work distances into bins by using NumPy's `histogram()` method. This would allow for one to look at the whole distribution of the distances, not just the average. The following describes 5-mile bins up to 30 miles (with one large bin for 30 miles and above assuming 100 miles is greater than the maximum possible distance), though any analyst is free to define their bins to suit their needs:
+```
+import numpy as np
+bins = list(range(0, 35, 5) + [100])
+workers_by_distance_bin = np.histogram(persons["distance_to_work"], bins = bins)[0]
+```
+One could also filter for the study area using a method similar to the method used when demonstrating the calculation of transit pass ownership rates.
+
+### Mode Share
+Calculating the mode share of ActivitySim is fairly straightforward as the modes are reported in the output. However, as this is an activity-based model, one needs to ask the questions of *which* mode share they'd like to know. For example, the simplest is the regional mode share, which can just be directly calculated from the trips file:
+```
+mode_share = trips["trip_mode"].value_counts(normalize = True)
+```
+This will return the percentage of trips that use each mode. However, for similar reasons as described above, one may want to only focus on the study area and not just look at the trip mode share for all trips. The following metric computes the *tour* mode share to work for workers living within the station area.
+```
+station_area = [579, 4502, 8524, 7714, 12170, 12171, 5455, 8457, 846, 8232, 7831, 12172, 12173, 12174, 12175, 12176, 12177, 12178]
+station_area_tours = tours[["home_maz", "tour_mode", "tour_purpose"]].query("origin in @station_area and tour_purpose == 'work'")
+tour_mode_share_to_work = station_area_tours["tour_mode"].value_counts(normalize = True)
+```
+
 ### Vehicle Miles Traveled
 While the true modeled VMT requires assignment to be run, one can get a reasonable estimate via the ActivitySim outputs. The output trips table in the SANDAG ABM3 example actually includes fields called `distance` and `weightTrip`, which are created in the preprocessor for writing the outputs (write_trip_matrices_annotate_trips_preprocessor.csv). The `distance` field is created by [reading in the distance skim value](https://github.com/ActivitySim/sandag-abm3-example/blob/main/configs/resident/write_trip_matrices_annotate_trips_preprocessor.csv#L5) and the `weightTrip` field is a weight that [factors in the occupancy](https://github.com/ActivitySim/sandag-abm3-example/blob/main/configs/resident/write_trip_matrices_annotate_trips_preprocessor.csv#L7). The following lines of code compute the VMT using those particular fields:
 ```
@@ -159,28 +210,9 @@ vmt = (auto_trips["distance"] * auto_trips["weightTrip"]()).sum()
 ```
 Now, not every ActivitySim implementation will have such a field in their outputs, so the calculation may not be as simple. If the distance field isn't added to the outputs, one will need to read in the skims in order to perform the calculation. One will also need to remember to factor in the occupancy, as an individual who is carpooling has less of an impact on VMT than a person who is driving alone.
 
-### Mode Share
-Calculating the mode share of ActivitySim is fairly straightforward as the modes are reported in the output. However, one needs to ask the questions of *which* mode share they'd like to know. For example, the simplest is the regional mode share, which can just be directly calculated from the trips file:
+Further, if one wants to normalize the VMT by capita, they simply need to divide the VMT value by the number of persons:
 ```
-mode_share = trips["trip_mode"].value_counts(normalize = True)
-```
-This will return the percentage of trips that use each mode. However, a single localized development won't move the needle much, so it may be hard to tell if there was an impact. The following metric computes the *tour* mode share to work of households living in zones close to the transit stop, which should show a much larger difference from the baseline (there are no households in the study area in the baseline run so the baseline mode share would be undefined).
-```
-station_area = [579, 4502, 8524, 7714, 12170, 12171, 5455, 8457, 846, 8232, 7831, 12172, 12173, 12174, 12175, 12176, 12177, 12178]
-station_area_tours = tours[["home_maz", "tour_mode", "tour_purpose"]].query("origin in @station_area and tour_purpose == 'work'")
-tour_mode_share_to_work = station_area_tours["tour_mode"].value_counts(normalize = True)
-```
-
-### Auto Ownership
-The calculation of the reigional auto ownership rates is very straightforward, as that variable is reported directly in the households table:
-```
-auto_ownership = households["auto_ownership"].value_counts(normalize = True)
-```
-However, auto ownership has the same issue with mode share where the TOD development will barely move the needle on the regional auto ownership rates. Therefore, a similar calculation would need to be done:
-```
-station_area = [579, 4502, 8524, 7714, 12170, 12171, 5455, 8457, 846, 8232, 7831, 12172, 12173, 12174, 12175, 12176, 12177, 12178]
-station_area_households = households.query("household_id in @station_area")
-station_area_auto_ownership = station_area_households["auto_ownership"].value_counts(normalize = True)
+vmt_per_capita = vmt / len(persons)
 ```
 
 ## Summary

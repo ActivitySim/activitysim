@@ -125,9 +125,9 @@ Further variables will need to be edited as well (a full list of all variables i
 # Adjust employment
 land_use = land_use.set_index("MAZ")
 land_use.loc[579, "emp_ret"] += 500
-land_use.loc[579, "emp_tot"] += 500
+land_use.loc[579, "emp_total"] += 500
 land_use.loc[4502, "emp_ret"] += 500
-land_use.loc[4502, "emp_tot"] += 500
+land_use.loc[4502, "emp_total"] += 500
 land_use = land_use.reset_index() # Not necessary, but helpful if further operations use the MAZ field this could prevent an error
 ```
 It should be noted that the same caveat applies to fields derived from employment data, such as employment density or any aggregated fields that may be present. One should be careful to update all fields that are relevant to the total employment.

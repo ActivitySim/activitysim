@@ -105,11 +105,7 @@ These values can be set to add a population to the study area that is characteri
 
 The output synthetic population files, output\synthetic_households.csv and output\synthetic_persons.csv, then need to be placed in the `data` directory for the ActivitySim run and renamed households.csv and persons.csv, respectively. It should be noted that SANDAG does have an additional processing step to conver the PopulationSim outputs into ActivitySim inputs, which is available in their [Land Use Prep Tool](https://github.com/SANDAG/landuse_prep_tool) repository.
 
-To check that the number of households is correct in the updated synthetic population, it may be useful to check that the population was added correctly. One can do so with the following block of code:
-```
-households = pd.DataFrame(r"data-full\households.csv")
-households.query("mgra == )
-```
+To check that the number of households is correct in the updated synthetic population, it may be useful to check that the population was added correctly. One can do so by reading households.csv into a Pandas DataFrame and checking that the values of `len(households.query("mgra == 579")) and len(households.query("mgra == 4502"))` are both equal to 1000 (SANDAG's MAZs are based on a geography used by SANDAG staff known as the Master Geographic Reference Area).
 
 2. The land use file now needs to be updated to reflect the updated population. This will be demonstrated using code blocks, that have the ActivitySim input files read in as Pandas DataFrames as follows:
 ```

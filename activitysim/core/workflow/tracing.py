@@ -550,22 +550,22 @@ class Tracing(StateAccessor):
             # slicer column being in itneraction_df
             # or index of interaction_df being same as choosers
             if slicer_column_name in interaction_df.columns:
-                trace_rows = np.in1d(interaction_df[slicer_column_name], targets)
+                trace_rows = np.isin(interaction_df[slicer_column_name], targets)
                 trace_ids = interaction_df.loc[trace_rows, slicer_column_name].values
             else:
                 assert interaction_df.index.name == choosers.index.name
-                trace_rows = np.in1d(interaction_df.index, targets)
+                trace_rows = np.isin(interaction_df.index, targets)
                 trace_ids = interaction_df[trace_rows].index.values
 
         else:
             if slicer_column_name == choosers.index.name:
-                trace_rows = np.in1d(choosers.index, targets)
+                trace_rows = np.isin(choosers.index, targets)
                 trace_ids = np.asanyarray(choosers[trace_rows].index)
             elif slicer_column_name == "person_id":
-                trace_rows = np.in1d(choosers["person_id"], targets)
+                trace_rows = np.isin(choosers["person_id"], targets)
                 trace_ids = np.asanyarray(choosers[trace_rows].person_id)
             elif slicer_column_name == "household_id":
-                trace_rows = np.in1d(choosers["household_id"], targets)
+                trace_rows = np.isin(choosers["household_id"], targets)
                 trace_ids = np.asanyarray(choosers[trace_rows].household_id)
             else:
                 assert False

@@ -1497,7 +1497,9 @@ def _prep_model_data(state, models):
         )
         checkpoint = True
 
-    if "atwork_subtour_frequency" in models and state.is_table("tours"):
+    if (
+        "atwork_subtour_frequency" in models or "tour_mode_choice_simulate" in models
+    ) and state.is_table("tours"):
         state.add_table(
             "tours",
             state.get_table("tours")[

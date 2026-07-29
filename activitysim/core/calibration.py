@@ -163,6 +163,12 @@ def run_calibration_loop(
     if not calibration_settings or not calibration_settings.enable:
         raise RuntimeError("calibration loop called while calibration is disabled")
 
+    if state.settings.duplicate_step_execution != "allow":
+        state.settings.duplicate_step_execution = "allow"
+        logger.warning(
+            "Overriding duplicate_step_execution setting: must be enabled for calibration"
+        )
+
     assert all(
         [c in models for c in calibration_settings.run.calibrate_models]
     ), f"settings.yaml steps list does not include calibration model{'s' if len([c for c in calibration_settings.run.calibrate_models if c not in models]) != 1 else ''} {[c for c in calibration_settings.run.calibrate_models if c not in models]}"
@@ -172,6 +178,12 @@ def run_calibration_loop(
         calibration_settings.run.calibrate_models, key=lambda x: models.index(x)
     )
     first_calib_model_idx = models.index(calibration_settings.run.calibrate_models[0])
+    last_calib_model_idx = models.index(calibration_settings.run.calibrate_models[-1])
+    first_model_idx = (
+        models.index(state.settings.resume_after) + 1
+        if state.settings.resume_after
+        else None
+    )
 
     _ensure_calibration_output_dir(state)
 
@@ -191,6 +203,23 @@ def run_calibration_loop(
         shared_data_buffers = _initialize_mp_shared_resources(state)
 
     try:
+        # skip precursors if, on first iter, resume_after exists and is >= first_calib_model_idx
+        if (
+            state.settings.resume_after is None
+            or first_model_idx < first_calib_model_idx
+        ):
+            # Run ActivitySim normally from resume_after through production model steps.
+            _run_precursor_components(
+                state,
+                models=models[:first_calib_model_idx]
+                if first_model_idx is None
+                else models[first_model_idx:first_calib_model_idx],
+                resume_after=state.settings.resume_after,
+                global_iter=start_global_iter,
+                memory_sidecar_process=memory_sidecar_process,
+                shared_data_buffers=shared_data_buffers,
+            )
+
         for global_iter in range(
             start_global_iter,
             start_global_iter + calibration_settings.run.global_iterations,
@@ -201,24 +230,20 @@ def run_calibration_loop(
                 calibration_settings.run.global_iterations,
             )
 
-            # Run ActivitySim normally from resume_after through production model steps.
-            _run_precursor_components(
-                state,
-                models=models[:first_calib_model_idx],
-                resume_after=state.settings.resume_after
-                if global_iter == start_global_iter
-                else _prior_step_name(
-                    models, calibration_settings.run.calibrate_models[0]
-                ),
-                global_iter=global_iter,
-                memory_sidecar_process=memory_sidecar_process,
-                shared_data_buffers=shared_data_buffers,
-            )
-
-            all_converged = True
+            # suppress early termination on first iteration if resume_after is after all calibrated models
+            all_converged = (
+                first_model_idx is not None and first_model_idx <= last_calib_model_idx
+            ) or global_iter > start_global_iter
 
             last_calibrated_component = None
             for component in calibration_settings.run.calibrate_models:
+                # on the first global iter, skip model if it's before or == resume_after
+                if (
+                    global_iter == start_global_iter
+                    and first_model_idx is not None
+                    and first_model_idx > models.index(component)
+                ):
+                    continue
                 component_settings = calibration_settings.model_settings[component]
 
                 prior_step = _prior_step_name(models, component)
@@ -251,15 +276,32 @@ def run_calibration_loop(
 
                 last_calibrated_component = component
 
-            if calibration_settings.run.complete_steps or (
-                start_global_iter + calibration_settings.run.global_iterations
-                == global_iter + 1
+            if (
+                calibration_settings.run.complete_steps
+                or (
+                    start_global_iter + calibration_settings.run.global_iterations
+                    == global_iter + 1
+                )
+                or (
+                    global_iter == start_global_iter
+                    and state.settings.resume_after is not None
+                    and first_model_idx > last_calib_model_idx
+                )
             ):
+                subsequent_components = (
+                    models[first_model_idx:]
+                    if global_iter == start_global_iter
+                    and first_model_idx > last_calib_model_idx
+                    else models[models.index(last_calibrated_component) + 1 :]
+                )
                 # finish the full model chain
                 _run_subsequent_components(
                     state,
-                    models=models[models.index(last_calibrated_component) + 1 :],
-                    resume_after=last_calibrated_component,
+                    models=subsequent_components,
+                    resume_after=state.settings.resume_after
+                    if global_iter == start_global_iter
+                    and first_model_idx > last_calib_model_idx
+                    else last_calibrated_component,
                     memory_sidecar_process=memory_sidecar_process,
                     shared_data_buffers=shared_data_buffers,
                 )
@@ -300,21 +342,22 @@ def _run_precursor_components(
 ) -> None:
     """Run the normal ActivitySim model flow for one global calibration iteration."""
 
-    if global_iter > 1 and resume_after is not None:
-        # Seed a fresh pipeline from the configured resume checkpoint to avoid
-        # duplicate checkpoint-name collisions across global calibration loops.
-        prior_pipeline = state.checkpoint.store.filename
-        state.checkpoint.close_store()
-        state.filesystem.pipeline_file_name = f"pipeline_calibration_iter_{global_iter}"
-        state.checkpoint.restore_from(prior_pipeline, checkpoint_name=resume_after)
-    else:
-        _run_in_configured_mode(
-            state,
-            models=models,
-            resume_after=resume_after,
-            memory_sidecar_process=memory_sidecar_process,
-            shared_data_buffers=shared_data_buffers,
-        )
+    # if global_iter > 1 and resume_after is not None:
+    #     # Seed a fresh pipeline from the configured resume checkpoint to avoid
+    #     # duplicate checkpoint-name collisions across global calibration loops.
+    #     prior_pipeline = state.checkpoint.store.filename
+    #     state.checkpoint.close_store()
+    #     state.filesystem.pipeline_file_name = f"pipeline_calibration_iter_{global_iter}"
+    #     state.checkpoint.restore_from(prior_pipeline, checkpoint_name=resume_after)
+    # else:
+
+    _run_in_configured_mode(
+        state,
+        models=models,
+        resume_after=resume_after,
+        memory_sidecar_process=memory_sidecar_process,
+        shared_data_buffers=shared_data_buffers,
+    )
 
 
 def _run_intermediate_components(
@@ -425,7 +468,9 @@ def _calibrate_component(
             _run_mp_single_component(
                 state,
                 component_name=component_name,
-                restore_checkpoint=mp_restore_checkpoint,
+                restore_checkpoint=mp_restore_checkpoint
+                if component_iter == 1
+                else "_",
                 shared_data_buffers=shared_data_buffers,
             )
         else:
@@ -1305,11 +1350,9 @@ def _run_mp_single_component(
                 chunk_size = step.chunk_size
             break
 
-    step_name = f"calibration_{component_name}"
-
     # Build step_info dict matching what mp_tasks functions expect
     step_info = {
-        "name": step_name,
+        "name": component_name,
         "models": [component_name],
         "num_processes": num_processes,
         "chunk_size": chunk_size,
@@ -1321,9 +1364,9 @@ def _run_mp_single_component(
     injectables = _build_calibration_injectables(state)
 
     if num_processes == 1:
-        sub_proc_names = [step_name]
+        sub_proc_names = [component_name]
     else:
-        sub_proc_names = [f"{step_name}_{i}" for i in range(num_processes)]
+        sub_proc_names = [f"{component_name}_{i}" for i in range(num_processes)]
 
     fail_fast = state.settings.fail_fast
 
@@ -1333,7 +1376,7 @@ def _run_mp_single_component(
             state,
             multiprocessing.Process(
                 target=mp_tasks.mp_apportion_pipeline,
-                name=f"{step_name}_apportion",
+                name=f"{component_name}_apportion",
                 args=(injectables, sub_proc_names, step_info),
             ),
         )
@@ -1365,7 +1408,7 @@ def _run_mp_single_component(
 
         raise SubprocessError(
             f"{num_processes - len(completed)} processes failed in "
-            f"calibration step {step_name}"
+            f"calibration step {component_name}"
         )
 
     # Coalesce sub-process pipelines back into main pipeline
@@ -1374,7 +1417,7 @@ def _run_mp_single_component(
             state,
             multiprocessing.Process(
                 target=mp_tasks.mp_coalesce_pipelines,
-                name=f"{step_name}_coalesce",
+                name=f"{component_name}_coalesce",
                 args=(injectables, sub_proc_names, slice_info),
             ),
         )
@@ -1393,6 +1436,8 @@ def _run_in_configured_mode(
     """Run models using the same single/multiprocess mode as the parent run."""
     if not models:
         return
+
+    _prep_model_data(state, models)
 
     if state.settings.multiprocess:
         _run_multiprocess_with_overrides(
@@ -1417,6 +1462,52 @@ def _run_in_configured_mode(
         resume_after=resume_after,
         memory_sidecar_process=memory_sidecar_process,
     )
+
+
+def _prep_model_data(state, models):
+    checkpoint = False
+    _restore_parent_state_from_pipeline(state)
+    if "compute_accessibility" in models and state.is_table("accessibility"):
+        state.add_table(
+            "accessibility", pd.DataFrame(index=state.get_table("accessibility").index)
+        )
+        checkpoint = True
+    if "mandatory_tour_frequency" in models and state.is_table("tours"):
+        state.add_table(
+            "tours",
+            state.get_table("tours")[
+                state.get_table("tours").tour_category != "mandatory"
+            ],
+        )
+        checkpoint = True
+
+    if "non_mandatory_tour_frequency" in models and state.is_table("tours"):
+        state.add_table(
+            "tours",
+            state.get_table("tours")[
+                state.get_table("tours").tour_category != "non_mandatory"
+            ],
+        )
+        checkpoint = True
+
+    if "joint_tour_frequency" in models and state.is_table("tours"):
+        state.add_table(
+            "tours",
+            state.get_table("tours")[state.get_table("tours").tour_category != "joint"],
+        )
+        checkpoint = True
+
+    if "atwork_subtour_frequency" in models and state.is_table("tours"):
+        state.add_table(
+            "tours",
+            state.get_table("tours")[
+                state.get_table("tours").tour_category != "atwork"
+            ],
+        )
+        checkpoint = True
+
+    if checkpoint:
+        state.checkpoint.add(state.checkpoint.checkpoints[-1]["checkpoint_name"])
 
 
 def _run_multiprocess_with_overrides(
@@ -1596,7 +1687,7 @@ def _build_calibration_mp_steps(
     for step_idx, step_models in step_model_groups.items():
         orig_step = original_steps[step_idx]
         kwargs: dict[str, Any] = {
-            "name": f"calibration_{orig_step.name}_{step_models[0]}",
+            "name": orig_step.name,
             "begin": step_models[0],
         }
         if orig_step.num_processes is not None:

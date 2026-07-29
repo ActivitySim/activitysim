@@ -767,7 +767,7 @@ class Checkpoints(StateAccessor):
 
         try:
             # truncate rows after target checkpoint
-            i = checkpoints[checkpoints[CHECKPOINT_NAME] == checkpoint_name].index[0]
+            i = checkpoints[checkpoints[CHECKPOINT_NAME] == checkpoint_name].index[-1]
             checkpoints = checkpoints.loc[:i]
 
             # if the store is not open in read-only mode,
@@ -1231,10 +1231,10 @@ class Checkpoints(StateAccessor):
             return self._obj.get_dataframe(table_name)
 
         # find the requested checkpoint
-        checkpoint = next(
-            (x for x in self.checkpoints if x["checkpoint_name"] == checkpoint_name),
-            None,
-        )
+        matching_checkpoints = [
+            x for x in self.checkpoints if x["checkpoint_name"] == checkpoint_name
+        ]
+        checkpoint = matching_checkpoints[-1] if matching_checkpoints else None
         if checkpoint is None:
             raise CheckpointNameNotFoundError(
                 "checkpoint '%s' not in checkpoints." % checkpoint_name

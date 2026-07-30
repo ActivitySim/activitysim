@@ -31,6 +31,13 @@ Users should remove these settings from their configuration files.  Nothing else
 needs to be done to take advantage of this change; unused columns continue to be
 dropped automatically.
 
+Relatedly, `interaction_sample` (used for destination sampling) previously
+skipped dropping unused columns entirely when a run had trace targets, which
+could result in very large interaction dataframes for traced runs.  Unused
+columns are now dropped in that case as well, retaining only the columns needed
+to identify the traced rows.  The complete chooser and alternatives tables are
+still written to the trace output before the columns are dropped.
+
 ### Changed Default for Sharrow "Fastmath" Optimization
 
 The default setting for the "fastmath" optimization in sharrow has been changed

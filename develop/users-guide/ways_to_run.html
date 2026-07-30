@@ -60,7 +60,7 @@
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Runtime Performance" href="performance/index.html" />
+    <link rel="next" title="Sampling Methods" href="sampling-methods.html" />
     <link rel="prev" title="Model Setup" href="modelsetup.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -294,6 +294,7 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="modelsetup.html">Model Setup</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Ways to Run the Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling-methods.html">Sampling Methods</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="performance/index.html">Runtime Performance</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="performance/multiprocessing.html">Multiprocessing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="performance/multithreading.html">Multithreading</a></li>
@@ -705,8 +706,31 @@ file:</p>
 help debug data and/or logic errors.</p>
 <p>Refer to <a class="reference internal" href="../core.html#trace"><span class="std std-ref">Tracing</span></a> for more details on configuring tracing and the various output files.</p>
 </section>
+<section id="explicit-error-terms">
+<span id="explicit-error-terms-ways-to-run"></span><h3>Explicit Error Terms<a class="headerlink" href="#explicit-error-terms" title="Permalink to this heading">#</a></h3>
+<p>ActivitySim makes heavy use of micro-simulation. Most model components are discrete choice models with an inherent
+random component, and for each choice situation a single outcome is generated.
+With the default Monte Carlo draw method, ActivitySim first calculates analytical probabilities from the
+systematic utilities of a multinomial or nested logit model and then makes one draw from the
+cumulative distribution for each chooser. Explicit Error Terms (EET) replaces that final draw with a direct
+random-utility simulation by drawing the unobserved portion of utility (error term) for each
+chooser-alternative pair, adding it to the systematic utility, and selecting the alternative with the highest
+total utility. Both methods simulate the same underlying model, but EET can be less affected by Monte Carlo
+noise when comparing scenarios and can make some comparisons easier to interpret. This is because the
+selected alternative is the one with the highest total utility after adding the explicit
+error term, and if the explicit error term is consistent between a base and scenario run then
+only (relative) increases in the observed utility can lead to previously un-chosen alternatives
+being chosen.</p>
+<p>To enable EET for a model run, set the global switch in <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">use_explicit_error_terms</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
+</pre></div>
+</div>
+<p>Enable or disable this setting consistently across all runs being compared. For more details, including
+scenario comparison considerations, see <a class="reference internal" href="../dev-guide/explicit-error-terms.html"><span class="doc">Explicit Error Terms</span></a>.
+.. _skip_failed_choices_ways_to_run :</p>
+</section>
 <section id="skip-failed-choices">
-<span id="skip-failed-choices-ways-to-run"></span><h3>Skip Failed Choices<a class="headerlink" href="#skip-failed-choices" title="Permalink to this heading">#</a></h3>
+<h3>Skip Failed Choices<a class="headerlink" href="#skip-failed-choices" title="Permalink to this heading">#</a></h3>
 <p>By default, ActivitySim will skip any failed choices during model execution, i.e., <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>.
 A failed choice occurs when the computed utilities for all alternatives are zero, or infinite, or nan, which can happen due to
 data issues or model specification problems. A warning message is logged when a failed choice is encountered,
@@ -760,11 +784,11 @@ In some cases, model runs may crash if the number of skipped failed choices exce
       </div>
     </a>
     <a class="right-next"
-       href="performance/index.html"
+       href="sampling-methods.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Runtime Performance</p>
+        <p class="prev-next-title">Sampling Methods</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -820,6 +844,7 @@ In some cases, model runs may crash if the number of skipped failed choices exce
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multiprocessing">Multiprocessing</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sharrow">Sharrow</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracing">Tracing</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-error-terms">Explicit Error Terms</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skip-failed-choices">Skip Failed Choices</a></li>
 </ul>
 </li>
@@ -858,7 +883,7 @@ In some cases, model runs may crash if the number of skipped failed choices exce
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev21+gda4533ef5, documentation last updated Jul 30, 2026.<br/>
+ActivitySim 1.5.2.dev22+g52efeafb5, documentation last updated Jul 30, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

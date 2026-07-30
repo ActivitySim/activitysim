@@ -1,0 +1,733 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Explicit Error Terms &#8212; ActivitySim</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/design-tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/explicit-error-terms';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.5.2';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Sampling Methods for Interaction Sample" href="sampling-methods.html" />
+    <link rel="prev" title="Core Components" href="../core.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.5.2" />
+    <meta name="docbuild:last-update" content="Jul 30, 2026"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">ActivitySim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../users-guide/index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../users-guide/index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Developer Installation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="core-workflow.html">Workflow State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="core-workflow-api.html">State API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.__init__.html">State.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.make_default.html">State.make_default</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.make_temp.html">State.make_temp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.create_example.html">create_example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.run.heading_level.html">State.run.heading_level</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.checkpoint.last_checkpoint.html">State.checkpoint.last_checkpoint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.checkpoint.checkpoints.html">State.checkpoint.checkpoints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.checkpoint.store.html">State.checkpoint.store</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.initialize.html">State.tracing.initialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.register_traceable_table.html">State.tracing.register_traceable_table</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.deregister_traceable_table.html">State.tracing.deregister_traceable_table</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.write_csv.html">State.tracing.write_csv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.trace_df.html">State.tracing.trace_df</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.trace_interaction_eval_results.html">State.tracing.trace_interaction_eval_results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.get_trace_target.html">State.tracing.get_trace_target</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.trace_targets.html">State.tracing.trace_targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.has_trace_targets.html">State.tracing.has_trace_targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.dump_df.html">State.tracing.dump_df</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.delete_output_files.html">State.tracing.delete_output_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.delete_trace_files.html">State.tracing.delete_trace_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.extend.declare_table.html">State.extend.declare_table</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="core-workflow-steps.html">Workflow Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-workflow-table.html">Workflow Tables</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="using-sharrow.html">Using Sharrow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="skim-dataset.html">Using Skim Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="checkpointing.html">Checkpointing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Software Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="component-configs.html">Component Configuration</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="components/index.html">Components</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="components/input_checker.html">Input Checker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/initialize.html">Initialize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/initialize_tours.html">Initialize Tours</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/accessibility.html">Accessibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/auto_ownership.html">Auto Ownership</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/vehicle_type_choice.html">Vehicle Type Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/telecommute_frequency.html">Telecommute Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/cdap.html">Coordinated Daily Activity Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/mandatory_tour_frequency.html">Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/school_escorting.html">School Escorting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/joint_tour_composition.html">Joint Tour Composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/joint_tour_participation.html">Joint Tour Participation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/joint_tour_destination.html">Joint Tour Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/joint_tour_scheduling.html">Joint Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/non_mandatory_tour_frequency.html">Non-Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/non_mandatory_destination.html">Non-Mandatory Destination Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/non_mandatory_scheduling.html">Non-Mandatory Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/mandatory_scheduling.html">Mandatory Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/disaggregate_accessibility.html">Disaggregate Accessibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/free_parking.html">Free Parking Eligibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/school_location_choice.html">School Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/transit_pass_ownership.html">Transit Pass Ownership</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/transit_pass_subsidy.html">Transit Pass Subsidy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_destination.html">Trip Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/work_from_home.html">Work from Home</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/work_location_choice.html">Work Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/tour_mode_choice.html">Tour Mode Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/atwork_subtour_frequency.html">At-work Subtours Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/atwork_subtour_destination.html">At-work Subtours Destination Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/atwork_subtour_scheduling.html">At-work Subtour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/atwork_subtour_mode_choice.html">At-work Subtour Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/stop_frequency.html">Stop Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_purpose.html">Trip Purpose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_destination.html">Trip Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_purpose_and_destination.html">Trip Purpose and Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_scheduling_choice.html">Trip Scheduling Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_departure_choice.html">Trip Departure Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_mode_choice.html">Trip Mode Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/parking_location_choice.html">Parking Location Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/write_trip_matrices.html">Write Trip Matrices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core Components</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Explicit Error Terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling-methods.html">Sampling Methods for Interaction Sample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../benchmarking.html">Benchmarking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build-docs.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Developers</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Explicit Error Terms</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="explicit-error-terms">
+<span id="explicit-error-terms-dev"></span><h1>Explicit Error Terms<a class="headerlink" href="#explicit-error-terms" title="Permalink to this heading">#</a></h1>
+<p>Explicit Error Terms (EET) is an alternative way to simulate choices from ActivitySim’s
+logit models. It keeps the same systematic utilities and the same random-utility
+interpretation as the standard method, but changes how the final simulated choice is
+drawn. For details, see
+<a class="reference external" href="https://australasiantransportresearchforum.org.au/frozen-randomness-at-the-individual-utility-level/">this ATRF paper</a>.</p>
+<!-- For user-facing guidance, see {ref}`explicit_error_terms_ways_to_run`. -->
+<section id="enabling-eet">
+<h2>Enabling EET<a class="headerlink" href="#enabling-eet" title="Permalink to this heading">#</a></h2>
+<p>Enable EET globally in <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">use_explicit_error_terms</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
+</pre></div>
+</div>
+<p>The top-level switch is defined in
+<code class="docutils literal notranslate"><span class="pre">activitysim.core.configuration.top.SimulationSettings.use_explicit_error_terms</span></code>.
+Choice simulation code reads that setting through the supported logit wrappers and routes
+final choice simulation through the EET path. For interaction-sample-specific sampling
+configuration, see <a class="reference internal" href="sampling-methods.html"><span class="doc">Sampling Methods for Interaction Sample</span></a>.</p>
+</section>
+<section id="default-draw-versus-eet">
+<h2>Default Draw Versus EET<a class="headerlink" href="#default-draw-versus-eet" title="Permalink to this heading">#</a></h2>
+<p>Under the default ActivitySim simulation path, choice drawing works like this:</p>
+<ol class="arabic simple">
+<li><p>Compute systematic utilities.</p></li>
+<li><p>Convert those utilities into analytical probabilities.</p></li>
+<li><p>Draw one uniform random number per chooser.</p></li>
+<li><p>Select the alternative whose cumulative probability interval contains that draw.</p></li>
+</ol>
+<p>With EET enabled, the final draw step changes:</p>
+<ol class="arabic simple">
+<li><p>Compute systematic utilities.</p></li>
+<li><p>Draw error terms for each chooser-alternative pair.</p></li>
+<li><p>Add those error terms to the systematic utilities.</p></li>
+<li><p>Choose the alternative with the highest total utility.</p></li>
+</ol>
+<p>For multinomial logit, the error term distribution is i.i.d. Gumbel and draws are generated
+by inverting the cumulative density function. For nested logit, this method is not available
+due to correlations between error terms. Instead, ActivitySim makes use of recent advances
+in the <a class="reference external" href="https://doi.org/10.1017/S026646662000047X">representation of nested logit models</a>
+and combines this with
+<a class="reference external" href="https://doi.org/10.1007/978-3-030-52915-4">exact numerical sampling methods</a>
+to draw error terms of all fundamental alternatives.</p>
+</section>
+<section id="practical-effects">
+<h2>Practical Effects<a class="headerlink" href="#practical-effects" title="Permalink to this heading">#</a></h2>
+<section id="comparisons-and-simulation-noise">
+<h3>Comparisons and Simulation Noise<a class="headerlink" href="#comparisons-and-simulation-noise" title="Permalink to this heading">#</a></h3>
+<p>For EET to reduce simulation noise, it is important that alternatives of a choice situation
+keep the same unobserved error term in different scenario runs. If unchanged alternatives
+keep the same unobserved draws, changes to choices between scenarios can only happen when
+the observed utility of an alternative increases. This is not the case for the Monte Carlo
+simulation method, where the draws are based on probabilities, which necessarily change for
+all alternatives if any observed utility changes. This combined with sensitivity to small
+differences in the final CDF draw when comparing nearby scenarios means that EET removes
+noise from scenario comparisons.</p>
+<p>Note that the both MC and EET are simulating the same model, so individual runs with identical
+inputs but varying global seed will lead to the same statistical results for individual
+output metrics. EET’s properties become apparent when comparing two model runs with different
+inputs. Because error terms are aligned, the variance of the estimator of the indicator, e.g.,
+mode choice shift or VMT difference, is reduced. In other words, difference metrics are more
+precise estimators under EET.</p>
+<p>In mathematical terms, for any two metrics $X$ (baseline) and $Y$ (scenario), the variance
+of the difference $X - Y$ is</p>
+<p>$$\text{Var}(X - Y) = \text{Var}(X) + \text{Var}(Y) - 2,\text{Cov}(X, Y)$$</p>
+<p>EET deliberately drives $\text{Cov}(X, Y)$ up by aligning error terms, so $\text{Var}(X-Y)$
+collapses even though $\text{Var}(X)$ and $\text{Var}(Y)$ individually are unchanged.</p>
+<p>In practice, models are often run once for each scenario. EET is still usefull because the
+lower the noise of the estimator, the higher the chance that a single run is representative.
+In other words, the noise level of comparison metrics is lower. Additionally, under MC small
+but real benefits can show up as negative in a single run. Under EET, the sign of the effect
+is far more trustworthy.</p>
+<p>Independent of any statistical argument, under EET, choice changes between two runs are
+attributable to utility changes which can be helpful for model development, sensitivity
+testing, and presenting results to stakeholders.</p>
+</section>
+<section id="aligning-error-terms">
+<h3>Aligning error terms<a class="headerlink" href="#aligning-error-terms" title="Permalink to this heading">#</a></h3>
+<p>Aligning error terms between runs is essential. This is intimately tied
+to how random numbers are generated; see <a class="reference internal" href="../core.html#random-in-detail"><span class="std std-ref">Random</span></a> for the underlying
+random-number stream design and the <code class="docutils literal notranslate"><span class="pre">activitysim.core.random</span></code> API. It boils down to
+each chooser needing to have the same ID between scenarios, and all alternatives being
+reproduciably ordered.</p>
+<p>For chooser alignment, it is necessary that person and household IDs are stable between runs.
+When running a scenario with population changes, it is important to only change the IDs of
+those households and persons that have changed, e.g., new households.</p>
+<p>For alternative alignment, it is important to know the universal choice set, i.e., all possible
+alternatives, for each model. For example, when running scenarios where a new mode is introduced,
+this new mode should also be in the specification of the run where it is not available, with
+its utility specification such that it is never chosen. In case the model is nested logit, the
+nesting structure also needs to be held constant across scenarios.
+For location choice models, all alternatives need to be listed in the land use table and the
+zone IDs need to be stable between scenarios. Additionally, for computational efficiency it
+is recommended to have zone IDs that are a contiguous 0-based sequence because ActivitySim aligns
+random draws to positions in the full zone universe and generates draws for all zone IDs up to the
+maximum. For models where this is not the case, ActivitySim can automatically perform the
+conversion for internal calculations. The <code class="docutils literal notranslate"><span class="pre">recode_columns</span></code> option creates contiguous zero-based IDs
+where needed; see the
+<a class="reference internal" href="using-sharrow.html#zero-based-recoding-of-zones"><span class="std std-ref">Zero-based Recoding of Zones</span></a> section for details.</p>
+<p>For models that use sub-sampling of alternatives, it is important to keep the sampling scheme
+identical between scenarios, otherwise the error terms for the choice from the sampled set are
+not guaranteed to be aligned. When running with EET, the default sampling method is <code class="docutils literal notranslate"><span class="pre">poisson</span></code>,
+which balances runtime performance and noise reduction. For more details on sampling methods,
+see <a class="reference internal" href="sampling-methods.html#sampling-methods-dev"><span class="std std-ref">Sampling Methods for Interaction Sample</span></a>.</p>
+<p>Finally, it also important to keep the global random number generator seed constant for two
+individual comparison runs.</p>
+</section>
+<section id="runtime-and-memory-usage">
+<h3>Runtime and memory usage<a class="headerlink" href="#runtime-and-memory-usage" title="Permalink to this heading">#</a></h3>
+<p>EET draws one error term per chooser and alternative, which requires many more random numbers
+than MC’s one per chooser. For models with many alternatives, this can lead to a large amount
+of random numbers being calculated. The implementation of EET avoids materialization of large
+chooser-alternative arrays of error terms in memory so that the memory usage is in line with MC
+simulation.
+Regarding runtimes, EET with default settings currently carries a runtime penalty of about 3-10%
+per demand model run. However, when run in combination with an assignment model the overall
+system can converge faster and this can reduce the overall model runtime penalty.</p>
+<!-- For location choice models, keeping error terms aligned to zone IDs also affects runtime and
+memory usage. To keep the same unobserved error term attached to the same zone across runs,
+ActivitySim indexes EET draws by zone ID over the full universal choice set rather than only the
+alternatives that happen to appear in a given calculation.
+
+When zone IDs are a contiguous 0-based sequence, this indexing is efficient because the dense
+draw array has one entry per zone. When zone IDs contain gaps or start from a large value, the
+implementation must still allocate draws up to the maximum zone ID, so additional random numbers
+are generated for missing IDs and never used. Encoding zone IDs as a contiguous 0-based index can
+therefore reduce both runtime and memory use for location choice models with EET; see
+{ref}`explicit_error_terms_zone_encoding` for how to set this up.
+-->
+</section>
+</section>
+<section id="implementation-details-and-adding-new-models">
+<h2>Implementation Details and Adding New Models<a class="headerlink" href="#implementation-details-and-adding-new-models" title="Permalink to this heading">#</a></h2>
+<p>The core simulation is implemented in <code class="docutils literal notranslate"><span class="pre">activitysim.core.logit.make_choices_utility_based</span></code>. Most
+calls to this function are wrapped in one of the following methods:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">activitysim.core.simulate</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">activitysim.core.interaction_simulate</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">activitysim.core.interaction_sample</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">activitysim.core.interaction_sample_simulate</span></code></p></li>
+</ul>
+<p>These wrappers all implement EET consistently, so any model using them will automatically support
+EET. Some models call the underlying choice simulation method
+<code class="docutils literal notranslate"><span class="pre">activitysim.core.logit.make_choices</span></code> directly. For EET to work in that case, the developer must
+add a corresponding call to <code class="docutils literal notranslate"><span class="pre">logit.make_choices_utility_based</span></code>; see for example
+<code class="docutils literal notranslate"><span class="pre">activitysim.abm.models.utils.cdap.household_activity_choices</span></code>. Models that draw directly
+from probability distributions, such as <code class="docutils literal notranslate"><span class="pre">activitysim.abm.models.utils.cdap.extra_hh_member_choices</span></code>,
+do not have a corresponding EET implementation because there are no utilities to work with.</p>
+<section id="unavailable-choices-utility-convention">
+<h3>Unavailable choices utility convention<a class="headerlink" href="#unavailable-choices-utility-convention" title="Permalink to this heading">#</a></h3>
+<p>For EET, only utility differences matter, and therefore the outcome for two utilities that are
+very small, say -10000 and -10001, is identical to the outcome for 0 and 1. For MC, utilities
+have to be exponentiated and therefore floating point precision dictates the smallest and largest
+utility that can be used in practice. ActivitySim models historically often use a utility of
+-999 to make alternatives practically unavailable. That value is below the utility threshold
+used in the probability-based path, which is about -691 because ActivitySim clips
+exponentiated utilities at 1e-300. To keep behavior consistent, EET treats alternatives with
+utilities at or below that threshold as unavailable; see <code class="docutils literal notranslate"><span class="pre">activitysim.core.logit.validate_utils</span></code>.</p>
+</section>
+<section id="normalization">
+<h3>Normalization<a class="headerlink" href="#normalization" title="Permalink to this heading">#</a></h3>
+<p>For MNL, the error term scale is normalized to 1 by using the standard Gumbel distribution. For
+nested logit, ActivitySim uses the normalized formulation in which the root nest coefficient is
+fixed at 1; the EET implementation relies on that convention.</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../core.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Core Components</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="sampling-methods.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Sampling Methods for Interaction Sample</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#enabling-eet">Enabling EET</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#default-draw-versus-eet">Default Draw Versus EET</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#practical-effects">Practical Effects</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#comparisons-and-simulation-noise">Comparisons and Simulation Noise</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#aligning-error-terms">Aligning error terms</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime-and-memory-usage">Runtime and memory usage</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-details-and-adding-new-models">Implementation Details and Adding New Models</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#unavailable-choices-utility-convention">Unavailable choices utility convention</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#normalization">Normalization</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/dev-guide/explicit-error-terms.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><!-- This will display the version of the docs -->
+<p class="last-updated">
+ActivitySim 1.5.2.dev22+g52efeafb5, documentation last updated Jul 30, 2026.<br/>
+</p></div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

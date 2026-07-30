@@ -373,6 +373,8 @@
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="explicit-error-terms.html">Explicit Error Terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling-methods.html">Sampling Methods for Interaction Sample</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../benchmarking.html">Benchmarking</a></li>
 <li class="toctree-l1"><a class="reference internal" href="build-docs.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
@@ -855,6 +857,36 @@ the development and management of the ActivitySim is on the <a class="reference 
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="explicit-error-terms.html">Explicit Error Terms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="explicit-error-terms.html#enabling-eet">Enabling EET</a></li>
+<li class="toctree-l2"><a class="reference internal" href="explicit-error-terms.html#default-draw-versus-eet">Default Draw Versus EET</a></li>
+<li class="toctree-l2"><a class="reference internal" href="explicit-error-terms.html#practical-effects">Practical Effects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="explicit-error-terms.html#comparisons-and-simulation-noise">Comparisons and Simulation Noise</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explicit-error-terms.html#aligning-error-terms">Aligning error terms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explicit-error-terms.html#runtime-and-memory-usage">Runtime and memory usage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="explicit-error-terms.html#implementation-details-and-adding-new-models">Implementation Details and Adding New Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="explicit-error-terms.html#unavailable-choices-utility-convention">Unavailable choices utility convention</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explicit-error-terms.html#normalization">Normalization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sampling-methods.html">Sampling Methods for Interaction Sample</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sampling-methods.html#why-sample-alternatives">Why sample alternatives?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling-methods.html#available-methods">Available Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling-methods.html#defaults-and-overrides">Defaults and Overrides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling-methods.html#workflow">Workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="sampling-methods.html#monte-carlo-and-eet-with-replacement">Monte Carlo and EET-with-replacement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sampling-methods.html#poisson-sampling">Poisson Sampling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sampling-methods.html#sampling-correction">Sampling Correction</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="sampling-methods.html#runtime-and-simulation-noise">Runtime and Simulation Noise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling-methods.html#references">References</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../benchmarking.html">Benchmarking</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../benchmarking.html#benchmarking-setup">Benchmarking Setup</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../benchmarking.html#running-benchmarks">Running Benchmarks</a></li>
@@ -999,7 +1031,7 @@ the development and management of the ActivitySim is on the <a class="reference 
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev21+gda4533ef5, documentation last updated Jul 30, 2026.<br/>
+ActivitySim 1.5.2.dev22+g52efeafb5, documentation last updated Jul 30, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

@@ -60,7 +60,7 @@
         </script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Benchmarking" href="benchmarking.html" />
+    <link rel="next" title="Explicit Error Terms" href="dev-guide/explicit-error-terms.html" />
     <link rel="prev" title="Write Trip Matrices" href="dev-guide/components/write_trip_matrices.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -373,6 +373,8 @@
 </ul>
 </details></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/explicit-error-terms.html">Explicit Error Terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/sampling-methods.html">Sampling Methods for Interaction Sample</a></li>
 <li class="toctree-l1"><a class="reference internal" href="benchmarking.html">Benchmarking</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev-guide/build-docs.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev-guide/changes.html">Change Log</a></li>
@@ -2168,6 +2170,96 @@ and well-known index name corresponding to the channel</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.random.SimpleChannel.gumbel_choice_positions_for_df">
+<span class="sig-name descname"><span class="pre">gumbel_choice_positions_for_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utilities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_nrs_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_rands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.gumbel_choice_positions_for_df" title="Permalink to this definition">#</a></dt>
+<dd><p>Return the winning alternative position for each chooser row without
+materializing the utility-plus-error table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>utilities</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>DataFrame with one row per chooser and one column per available alternative.</p>
+</dd>
+<dt><strong>alt_nrs_df</strong><span class="classifier">pandas.DataFrame, optional</span></dt><dd><p>DataFrame aligned to <cite>utilities</cite> whose values identify which dense alternative
+each utility column corresponds to. Use <cite>MASKED_ALT_ID</cite> (-999) for masked or
+unavailable positions; any other negative value raises ValueError. A row that
+is masked in every column is taken to mean the chooser has no alternative to
+choose from, and returns position 0.</p>
+</dd>
+<dt><strong>n_rands</strong><span class="classifier">int, optional</span></dt><dd><p>Number of EV1 draws to generate per chooser row. Required when <cite>alt_nrs_df</cite>
+is provided and may exceed the visible number of utility columns.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>positions</strong><span class="classifier">1-D ndarray of int64</span></dt><dd><p>Array with shape (len(utilities),) containing the winning column position
+for each chooser row.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.random.SimpleChannel.gumbel_for_df">
+<span class="sig-name descname"><span class="pre">gumbel_for_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.gumbel_for_df" title="Permalink to this definition">#</a></dt>
+<dd><p>Return n floating point gumbel-distributed numbers for each row in df
+using the appropriate random channel for each row.</p>
+<p>Subsequent calls (in the same step) will return the next rand for each df row</p>
+<p>The resulting array will be the same length (and order) as df
+This method is designed to support alternative selection from a probability array</p>
+<p>The columns in df are ignored; the index name and values are used to determine
+which random number sequence to to use.</p>
+<p>If “true pseudo random” behavior is desired (i.e. NOT repeatable) the set_base_seed
+method (q.v.) may be used to globally reseed all random streams.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>df</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>df with index name and values corresponding to a registered channel</p>
+</dd>
+<dt><strong>n</strong><span class="classifier">int</span></dt><dd><p>number of rands desired per df row</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>rands</strong><span class="classifier">2-D ndarray</span></dt><dd><p>array the same length as df, with n floats in range [0, 1) for each df row</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.random.SimpleChannel.gumbel_max_positions_for_df">
+<span class="sig-name descname"><span class="pre">gumbel_max_positions_for_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utilities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stable_alt_positions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_total_alts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.gumbel_max_positions_for_df" title="Permalink to this definition">#</a></dt>
+<dd><p>Return the winning alternative position for each chooser/sample pair
+without materializing the full chooser-by-alternative-by-sample Gumbel array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>utilities</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>DataFrame with one row per chooser and one column per alternative.</p>
+</dd>
+<dt><strong>sample_size</strong><span class="classifier">int</span></dt><dd><p>Number of repeated sampled choices to make per chooser.</p>
+</dd>
+<dt><strong>stable_alt_positions</strong><span class="classifier">1-D ndarray, optional</span></dt><dd><p>Mapping from active utility columns to positions in a larger stable
+alternative universe.</p>
+</dd>
+<dt><strong>n_total_alts</strong><span class="classifier">int, optional</span></dt><dd><p>Number of alternatives in the larger stable universe.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>positions</strong><span class="classifier">2-D ndarray of int64</span></dt><dd><p>Array with shape (len(utilities), sample_size) containing the column
+position of the winning alternative for each chooser/sample pair.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.random.SimpleChannel.init_row_states_for_step">
 <span class="sig-name descname"><span class="pre">init_row_states_for_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row_states</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.init_row_states_for_step" title="Permalink to this definition">#</a></dt>
 <dd><p>initialize row states (in place) for new step</p>
@@ -2236,6 +2328,33 @@ method (q.v.) may be used to globally reseed all random streams.</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt><strong>rands</strong><span class="classifier">2-D ndarray</span></dt><dd><p>array the same length as df, with n floats in range [0, 1) for each df row</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.random.SimpleChannel.random_for_df_stable_alt_positions">
+<span class="sig-name descname"><span class="pre">random_for_df_stable_alt_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stable_alt_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_total_alts</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.random_for_df_stable_alt_positions" title="Permalink to this definition">#</a></dt>
+<dd><p>Return one uniform draw per stable-universe alternative and chooser row,
+then project to the active alternative positions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>df</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>DataFrame with one row per chooser and one column per active alternative.</p>
+</dd>
+<dt><strong>stable_alt_positions</strong><span class="classifier">1-D ndarray</span></dt><dd><p>Mapping from active columns in <cite>df</cite> to positions in the larger stable
+alternative universe.</p>
+</dd>
+<dt><strong>n_total_alts</strong><span class="classifier">int</span></dt><dd><p>Number of alternatives in the larger stable universe.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>rands</strong><span class="classifier">2-D ndarray</span></dt><dd><p>Array with shape <cite>(len(df), df.shape[1])</cite> containing uniforms aligned to
+the active alternatives.</p>
 </dd>
 </dl>
 </dd>
@@ -2669,7 +2788,7 @@ included in the utility.</p>
 <h4>API<a class="headerlink" href="#id6" title="Permalink to this heading">#</a></h4>
 <span class="target" id="module-activitysim.core.interaction_sample"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.interaction_sample.interaction_sample">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.interaction_sample.</span></span><span class="sig-name descname"><span class="pre">interaction_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">choosers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_col_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_zero_probs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_alt_losers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.core.skim_dictionary.SkimWrapper" title="activitysim.core.skim_dictionary.SkimWrapper"><span class="pre">SkimWrapper</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="dev-guide/skim-dataset.html#activitysim.core.skim_dataset.DatasetWrapper" title="activitysim.core.skim_dataset.DatasetWrapper"><span class="pre">DatasetWrapper</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zone_layer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explicit_chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ComputeSettings</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample.interaction_sample" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.interaction_sample.</span></span><span class="sig-name descname"><span class="pre">interaction_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">choosers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_col_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_zero_probs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_alt_losers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.core.skim_dictionary.SkimWrapper" title="activitysim.core.skim_dictionary.SkimWrapper"><span class="pre">SkimWrapper</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="dev-guide/skim-dataset.html#activitysim.core.skim_dataset.DatasetWrapper" title="activitysim.core.skim_dataset.DatasetWrapper"><span class="pre">DatasetWrapper</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zone_layer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explicit_chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ComputeSettings</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stable_alt_positions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_total_alts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample.interaction_sample" title="Permalink to this definition">#</a></dt>
 <dd><p>Run a simulation in the situation in which alternatives must
 be merged with choosers because there are interaction terms or
 because alternatives are being sampled.</p>
@@ -2759,6 +2878,90 @@ and columns alt_col_name, prob, rand, pick_count</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.interaction_sample.make_sample_choices_eet">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.interaction_sample.</span></span><span class="sig-name descname"><span class="pre">make_sample_choices_eet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">choosers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utilities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_col_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_sizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ChunkSizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stable_alt_positions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_total_alts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#activitysim.core.interaction_sample.make_sample_choices_eet" title="Permalink to this definition">#</a></dt>
+<dd><p>Sample alternatives by repeated EET (Gumbel argmax) draws with replacement.</p>
+<p>Each chooser receives <cite>sample_size</cite> EV1 draw sets and the argmax-over-utility
+winner is recorded per draw, so duplicates are possible (same with-replacement
+semantics as the Monte Carlo sampling path).</p>
+<p><cite>utilities</cite> drives the Gumbel argmax. <cite>probs</cite> (the MNL choice probabilities
+computed from the same utilities by the caller) supplies the <cite>prob</cite> column
+written back into the output for sampling-of-alternative correction factors.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.interaction_sample.make_sample_choices_poisson">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.interaction_sample.</span></span><span class="sig-name descname"><span class="pre">make_sample_choices_poisson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chunk_sizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ChunkSizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_col_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">stable_alt_positions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_total_alts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#activitysim.core.interaction_sample.make_sample_choices_poisson" title="Permalink to this definition">#</a></dt>
+<dd><p>Build a Poisson-sampled choice set for each chooser.</p>
+<p>Every chooser-alternative pair gets one independent Bernoulli inclusion draw with
+probability</p>
+<blockquote>
+<div><p>q_i = 1 - (1 - p_i) ** sample_size</p>
+</div></blockquote>
+<p>where <cite>p_i</cite> is the chooser’s MNL choice probability for alternative <cite>i</cite>. That is the
+probability the alternative would have been drawn at least once across <cite>sample_size</cite>
+Monte Carlo draws, which is what makes Poisson sampling interchangeable with the other
+sampling methods. <cite>pick_count</cite> is 1 by definition (the draw is a yes/no per
+alternative), so the standard sampling correction factor is recoverable in the usual
+way as <cite>np.log(df.pick_count / df.prob)</cite>.</p>
+<p>Because the draws are independent, a chooser can end up with no sampled alternatives
+at all. That happens with probability</p>
+<blockquote>
+<div><p>P0 = prod_j (1 - q_j)</p>
+</div></blockquote>
+<p>Since the probabilities sum to one and 1 - p &lt;= exp(-p), this is bounded above by
+exp(-sample_size): very small at the sample sizes these models use (~1e-13
+for <cite>sample_size=30</cite>), but not negligible at small sample sizes or for a chooser whose
+probability mass is spread thinly. Those choosers fall back to the <cite>sample_size</cite>
+highest-probability alternatives (see <cite>_poisson_fallback_positions</cite>). The fallback is
+deterministic and draws no random numbers, so every chooser advances its RNG channel by
+exactly the same amount whether or not it fires – unlike a retry scheme, this cannot
+desynchronise random number streams between scenarios.</p>
+<p>Determinism also makes the reported probability exact. Alternative <cite>i</cite> ends up in the
+returned choice set if it was drawn, or if nothing was drawn and it is in the fallback
+set. An alternative that was drawn cannot also have been in an empty draw, so these are
+disjoint, and the fallback set is fixed rather than random, giving</p>
+<blockquote>
+<div><p>prob_i = q_i + P0 * 1{i in fallback set}</p>
+</div></blockquote>
+<p>unconditionally: the same value for every chooser whatever branch it actually took, and
+bounded by 1 because P0 &lt;= 1 - q_i. Reporting <cite>q_i</cite> alone would understate the
+correction for exactly the choosers most at risk of an empty draw. Ranking the
+probabilities to find the fallback set costs about as much as the Bernoulli draw itself,
+so the term is only evaluated for choosers whose P0 exceeds
+<cite>POISSON_EMPTY_SAMPLE_TOLERANCE</cite>, plus every chooser that actually drew nothing. See
+that constant for the error this admits.</p>
+<p>Note this is a different sampling design from retrying until the draw is non-empty,
+which would give <cite>q_i / (1 - P0)</cite> instead. Both are valid; this one has an exact closed
+form that does not depend on how many times a chooser was redrawn.</p>
+<p>returns: DataFrame with one row per sampled chooser-alternative pair and columns for
+chooser index, alt_col_name, and prob.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.interaction_sample.resolve_sample_method">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.interaction_sample.</span></span><span class="sig-name descname"><span class="pre">resolve_sample_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ComputeSettings</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'monte_carlo'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'eet'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'poisson'</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#activitysim.core.interaction_sample.resolve_sample_method" title="Permalink to this definition">#</a></dt>
+<dd><p>Resolve the sampling method to use, from most to least specific setting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>state</strong><span class="classifier">workflow.State</span></dt><dd></dd>
+<dt><strong>settings</strong><span class="classifier">ComputeSettings or component settings, optional</span></dt><dd><p>Either a <cite>ComputeSettings</cite> directly, or a pydantic model exposing a
+<cite>compute_settings</cite> attribute (typically a <cite>LogitComponentSettings</cite>
+subclass). If neither, the method is resolved purely from
+<cite>state.settings</cite>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>sampling_method</strong><span class="classifier">InteractionSampleMethod</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 <section id="simulate">
@@ -2767,7 +2970,45 @@ and columns alt_col_name, prob, rand, pick_count</p>
 defined in the specification file.</p>
 <section id="id8">
 <h4>API<a class="headerlink" href="#id8" title="Permalink to this heading">#</a></h4>
-<span class="target" id="module-activitysim.core.simulate"></span><dl class="py function">
+<span class="target" id="module-activitysim.core.simulate"></span><dl class="py attribute">
+<dt class="sig sig-object py" id="activitysim.core.simulate.CustomChooser_T">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.simulate.</span></span><span class="sig-name descname"><span class="pre">CustomChooser_T</span></span><a class="headerlink" href="#activitysim.core.simulate.CustomChooser_T" title="Permalink to this definition">#</a></dt>
+<dd><p>Type alias for a custom choice function passed to <code class="docutils literal notranslate"><span class="pre">simple_simulate</span></code> /
+<code class="docutils literal notranslate"><span class="pre">simulate.eval_mnl</span></code> / <code class="docutils literal notranslate"><span class="pre">simulate.eval_nl</span></code>.</p>
+<p>The runtime calling convention is:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">custom_chooser(state,</span> <span class="pre">utilities_or_probs,</span> <span class="pre">choosers,</span> <span class="pre">spec,</span> <span class="pre">trace_label)</span></code>
+in MC paths (<code class="docutils literal notranslate"><span class="pre">eval_mnl</span></code>, the non-EET branch of <code class="docutils literal notranslate"><span class="pre">eval_nl</span></code>) and in the
+EET branch of <code class="docutils literal notranslate"><span class="pre">eval_mnl</span></code>. Five positional arguments.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">custom_chooser(state,</span> <span class="pre">utilities,</span> <span class="pre">choosers,</span> <span class="pre">spec,</span> <span class="pre">trace_label,</span>
+<span class="pre">nest_spec=nest_spec)</span></code> in the EET branch of <code class="docutils literal notranslate"><span class="pre">eval_nl</span></code> only. Five
+positional arguments plus a <code class="docutils literal notranslate"><span class="pre">nest_spec</span></code> keyword argument.</p></li>
+</ul>
+<p>The alias is intentionally widened to <code class="docutils literal notranslate"><span class="pre">Callable[...,</span> <span class="pre">...]</span></code> rather than
+a fully-specified <code class="docutils literal notranslate"><span class="pre">Callable[[State,</span> <span class="pre">...],</span> <span class="pre">...]</span></code> so that:</p>
+<ol class="arabic">
+<li><p>Existing custom choosers written before nested-logit EET landed (5
+positional args, no <code class="docutils literal notranslate"><span class="pre">nest_spec</span></code>) remain valid implementations — they
+are never called with <code class="docutils literal notranslate"><span class="pre">nest_spec</span></code> because only the eval_nl EET branch
+passes it.</p></li>
+<li><p>New custom choosers that want to support NL+EET can opt in by accepting
+<code class="docutils literal notranslate"><span class="pre">nest_spec</span></code> as a keyword-only argument, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">my_chooser</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">utilities</span><span class="p">,</span> <span class="n">choosers</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+               <span class="n">nest_spec</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="n">LogitNestSpec</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+               <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">]:</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>They MUST give <code class="docutils literal notranslate"><span class="pre">nest_spec</span></code> a default of <code class="docutils literal notranslate"><span class="pre">None</span></code> so the non-NL-EET call
+sites (which do not pass it) still work.</p>
+</li>
+</ol>
+<p>Return value is <code class="docutils literal notranslate"><span class="pre">(choices,</span> <span class="pre">rands)</span></code> where <code class="docutils literal notranslate"><span class="pre">choices</span></code> is a Series of
+chosen alternative positions and <code class="docutils literal notranslate"><span class="pre">rands</span></code> is the per-row random draw used
+(or zeros for EET, which has no per-row draw to expose).</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.simulate.compute_base_probabilities">
 <span class="sig-prename descclassname"><span class="pre">activitysim.core.simulate.</span></span><span class="sig-name descname"><span class="pre">compute_base_probabilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nested_probabilities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nests</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.compute_base_probabilities" title="Permalink to this definition">#</a></dt>
 <dd><p>compute base probabilities for nest leaves
@@ -2843,6 +3084,32 @@ except in nested logit, its sib group is restricted to the nest</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.simulate.compute_nested_utilities">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.simulate.</span></span><span class="sig-name descname"><span class="pre">compute_nested_utilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_utilities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nest_spec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.compute_nested_utilities" title="Permalink to this definition">#</a></dt>
+<dd><p>compute nest utilities based on nesting coefficients</p>
+<p>For nest nodes this is the logsum of alternatives adjusted by nesting coefficient</p>
+<p>leaf &lt;- raw_utility / nest_coefficient
+nest &lt;- ln(sum of exponentiated raw_utility of leaves) * nest_coefficient)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>raw_utilities</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>dataframe with the raw alternative utilities of all leaves
+(what in non-nested logit would be the utilities of all the alternatives)</p>
+</dd>
+<dt><strong>nest_spec</strong><span class="classifier">dict</span></dt><dd><p>Nest tree dict from the model spec yaml file</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>nested_utilities</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>Will have the index of <cite>raw_utilities</cite> and columns for leaf and node utilities</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.simulate.dump_mapped_coefficients">
 <span class="sig-prename descclassname"><span class="pre">activitysim.core.simulate.</span></span><span class="sig-name descname"><span class="pre">dump_mapped_coefficients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.dump_mapped_coefficients" title="Permalink to this definition">#</a></dt>
 <dd><p>dump template_df with coefficient values</p>
@@ -2850,7 +3117,7 @@ except in nested logit, its sib group is restricted to the nest</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.simulate.eval_mnl">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.simulate.</span></span><span class="sig-name descname"><span class="pre">eval_mnl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_chooser</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">pandas.core.series.Series</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pandas.core.series.Series</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_alt_losers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_choice_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_column_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_sizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ComputeSettings</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_mnl" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.simulate.</span></span><span class="sig-name descname"><span class="pre">eval_mnl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_chooser</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">pandas.core.series.Series</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pandas.core.series.Series</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_alt_losers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_choice_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_column_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_sizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ComputeSettings</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_mnl" title="Permalink to this definition">#</a></dt>
 <dd><p>Run a simulation for when the model spec does not involve alternative
 specific data, e.g. there are no interactions with alternative
 properties and no need to sample from alternatives.</p>
@@ -2910,7 +3177,7 @@ of <cite>spec</cite>.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.simulate.eval_nl">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.simulate.</span></span><span class="sig-name descname"><span class="pre">eval_nl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nest_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_chooser</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">pandas.core.series.Series</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pandas.core.series.Series</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_alt_losers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_choice_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_column_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_sizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ChunkSizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ComputeSettings</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_nl" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.simulate.</span></span><span class="sig-name descname"><span class="pre">eval_nl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nest_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_chooser</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">pandas.core.series.Series</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pandas.core.series.Series</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_alt_losers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_choice_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_column_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_sizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ChunkSizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ComputeSettings</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_nl" title="Permalink to this definition">#</a></dt>
 <dd><p>Run a nested-logit simulation for when the model spec does not involve alternative
 specific data, e.g. there are no interactions with alternative
 properties and no need to sample from alternatives.</p>
@@ -3178,7 +3445,7 @@ properties and no need to sample from alternatives.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.simulate.spec_for_segment">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.simulate.</span></span><span class="sig-name descname"><span class="pre">spec_for_segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">segment_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Estimator</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficients_file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#activitysim.core.simulate.spec_for_segment" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.simulate.</span></span><span class="sig-name descname"><span class="pre">spec_for_segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">segment_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Estimator</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficients_file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pd.DataFrame</span></span></span><a class="headerlink" href="#activitysim.core.simulate.spec_for_segment" title="Permalink to this definition">#</a></dt>
 <dd><p>Select spec for specified segment from omnibus spec containing columns for each segment</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -3313,7 +3580,7 @@ and choosing (i.e. making choices), with interaction with the chooser table.</p>
 <h4>API<a class="headerlink" href="#id11" title="Permalink to this heading">#</a></h4>
 <span class="target" id="module-activitysim.core.interaction_sample_simulate"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.interaction_sample_simulate.interaction_sample_simulate">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.interaction_sample_simulate.</span></span><span class="sig-name descname"><span class="pre">interaction_sample_simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choice_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_zero_probs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zero_prob_choice_val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_alt_losers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_choice_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_choice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explicit_chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ComputeSettings</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample_simulate.interaction_sample_simulate" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.interaction_sample_simulate.</span></span><span class="sig-name descname"><span class="pre">interaction_sample_simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choice_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_zero_probs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zero_prob_choice_val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_alt_losers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_choice_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_choice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explicit_chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts_context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.core.logit.AltsContext" title="activitysim.core.logit.AltsContext"><span class="pre">AltsContext</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ComputeSettings</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample_simulate.interaction_sample_simulate" title="Permalink to this definition">#</a></dt>
 <dd><p>Run a simulation in the situation in which alternatives must
 be merged with choosers because there are interaction terms or
 because alternatives are being sampled.</p>
@@ -3354,6 +3621,12 @@ when household tracing enabled. No tracing occurs if label is empty or None.</p>
 </dd>
 <dt><strong>explicit_chunk_size</strong><span class="classifier">float, optional</span></dt><dd><p>If &gt; 0, specifies the chunk size to use when chunking the interaction
 simulation. If &lt; 1, specifies the fraction of the total number of choosers.</p>
+</dd>
+<dt><strong>alts_context: AltsContext, optional</strong></dt><dd><p>Representation of the full alternatives domain (min and max alternative id)
+in the absence of sampling.
+This is used with EET simulation to ensure consistent random numbers across the whole alternative set
+( as the sampled set may change between base and project). When not provided, ActivitySim will log a
+warning when running with EET, because this may reduce alignment of error terms between scenario runs.</p>
 </dd>
 </dl>
 </dd>
@@ -3528,9 +3801,33 @@ as the expressions and data handling described in the <a class="reference intern
 <li><p>specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in <code class="docutils literal notranslate"><span class="pre">example/configs/tour_mode_choice.yaml</span></code></p></li>
 <li><p>call <code class="docutils literal notranslate"><span class="pre">simulate.simple_simulate()</span></code>.  The <code class="docutils literal notranslate"><span class="pre">simulate.interaction_simulate()</span></code> functionality is not yet supported for NL.</p></li>
 </ul>
+<section id="explicit-error-terms">
+<h4>Explicit Error Terms<a class="headerlink" href="#explicit-error-terms" title="Permalink to this heading">#</a></h4>
+<p>By default, ActivitySim makes choices by calculating analytical probabilities and then drawing once from
+the cumulative distribution for each chooser. With Explicit Error Terms (EET), enabled by setting
+<code class="docutils literal notranslate"><span class="pre">use_explicit_error_terms:</span> <span class="pre">True</span></code> in <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>, ActivitySim instead draws the unobserved portion of
+utility (error term) for each chooser-alternative pair, adds it to the observed utility, and chooses the alternative
+with the highest total utility.</p>
+<p>EET changes the final simulation step, not the utility expressions, availability logic, or nesting structure. In
+practice, it can reduce Monte Carlo noise in scenario comparisons and between demand and network assignment iterations.</p>
+<p>For configuration guidance see <a class="reference internal" href="users-guide/ways_to_run.html#explicit-error-terms-ways-to-run"><span class="std std-ref">Explicit Error Terms</span></a>. For detailed background and implementation notes
+see <a class="reference internal" href="dev-guide/explicit-error-terms.html"><span class="doc">Explicit Error Terms</span></a>.</p>
+</section>
 <section id="id13">
 <h4>API<a class="headerlink" href="#id13" title="Permalink to this heading">#</a></h4>
 <span class="target" id="module-activitysim.core.logit"></span><dl class="py class">
+<dt class="sig sig-object py" id="activitysim.core.logit.AltsContext">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">AltsContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_alt_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_alt_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.AltsContext" title="Permalink to this definition">#</a></dt>
+<dd><p>Representation of the alternatives without carrying around that full array.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="activitysim.core.logit.AltsContext.n_alts_to_cover_max_id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_alts_to_cover_max_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></em><a class="headerlink" href="#activitysim.core.logit.AltsContext.n_alts_to_cover_max_id" title="Permalink to this definition">#</a></dt>
+<dd><p>If zones were non-consecutive, this could be a big over-estimate.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.logit.Nest">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">Nest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.Nest" title="Permalink to this definition">#</a></dt>
 <dd><p>Data for a nest-logit node or leaf</p>
@@ -3604,17 +3901,113 @@ len(alternatives) or <cite>sample_size</cite> times.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.logit.make_choices">
 <span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">make_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">probs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_choosers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_bad_probs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">pandas.core.series.Series</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pandas.core.series.Series</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#activitysim.core.logit.make_choices" title="Permalink to this definition">#</a></dt>
-<dd><p>Make choices for each chooser from among a set of alternatives.</p>
+<dd><p>Make choices for each chooser from among a set of alternatives.
+Parameters
+———-
+probs : pandas.DataFrame</p>
+<blockquote>
+<div><p>Rows for choosers and columns for the alternatives from which they
+are choosing. Values are expected to be valid probabilities across
+each row, e.g. they should sum to 1.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>trace_choosers<span class="classifier">pandas.dataframe</span></dt><dd><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+by report_bad_choices because it can’t deduce hh_id from the interaction_dataset
+which is indexed on index values from alternatives df</p>
+</dd>
+</dl>
+<section id="returns">
+<h5>Returns<a class="headerlink" href="#returns" title="Permalink to this heading">#</a></h5>
+<dl class="simple">
+<dt>choices<span class="classifier">pandas.Series</span></dt><dd><p>Maps chooser IDs (from <cite>probs</cite> index) to a choice, where the choice
+is an index into the columns of <cite>probs</cite>.</p>
+</dd>
+<dt>rands<span class="classifier">pandas.Series</span></dt><dd><p>The random numbers used to make the choices (for debugging, tracing)</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.logit.make_choices_explicit_error_term_mnl">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">make_choices_explicit_error_term_mnl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utilities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_choosers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts_context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.core.logit.AltsContext" title="activitysim.core.logit.AltsContext"><span class="pre">AltsContext</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_nrs_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Series</span></span></span><a class="headerlink" href="#activitysim.core.logit.make_choices_explicit_error_term_mnl" title="Permalink to this definition">#</a></dt>
+<dd><p>Make EET choices for a multinomial logit model by adding EV1 errors.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>probs</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>Rows for choosers and columns for the alternatives from which they
-are choosing. Values are expected to be valid probabilities across
-each row, e.g. they should sum to 1.</p>
+<dt><strong>state</strong><span class="classifier">workflow.State</span></dt><dd></dd>
+<dt><strong>utilities</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>Utilities with choosers as rows and alternatives as columns.</p>
+</dd>
+<dt><strong>trace_label</strong><span class="classifier">str</span></dt><dd><p>Trace label for logging and tracing.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>pandas.Series</dt><dd><p>Choice indices aligned to the utilities columns order.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.logit.make_choices_explicit_error_term_nl">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">make_choices_explicit_error_term_nl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_utilities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nest_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_choosers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts_context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.core.logit.AltsContext" title="activitysim.core.logit.AltsContext"><span class="pre">AltsContext</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_nrs_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.make_choices_explicit_error_term_nl" title="Permalink to this definition">#</a></dt>
+<dd><p>Make EET choices for a nested logit model by adding nested-logit errors. Note these are correlated
+among nests.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>state</strong><span class="classifier">workflow.State</span></dt><dd></dd>
+<dt><strong>alt_utilities</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>Utilities for fundamental alternatives (leaf nodes).</p>
+</dd>
+<dt><strong>nest_spec</strong><span class="classifier">dict or LogitNestSpec</span></dt><dd><p>Nest specification for the choice model.</p>
+</dd>
+<dt><strong>trace_label</strong><span class="classifier">str</span></dt><dd><p>Trace label for logging and tracing.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>pandas.Series</dt><dd><p>Choice indices aligned to <cite>alt_utilities</cite> columns.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.logit.make_choices_utility_based">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">make_choices_utility_based</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">utilities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_choosers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nest_spec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts_context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#activitysim.core.logit.AltsContext" title="activitysim.core.logit.AltsContext"><span class="pre">AltsContext</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_nrs_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_zero_probs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">pandas.core.series.Series</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pandas.core.series.Series</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#activitysim.core.logit.make_choices_utility_based" title="Permalink to this definition">#</a></dt>
+<dd><p>Make choices for each chooser from among a set of alternatives based on utilities by adding
+random error terms and choosing the maximum utility alternative.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>utilities</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>Utilities with choosers as rows and alternatives as columns. Note for nested logit models,
+this should include only leaf nodes.</p>
+</dd>
+<dt><strong>trace_label</strong><span class="classifier">str</span></dt><dd><p>Trace label for logging and tracing.</p>
 </dd>
 <dt><strong>trace_choosers</strong><span class="classifier">pandas.dataframe</span></dt><dd><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
 by report_bad_choices because it can’t deduce hh_id from the interaction_dataset
-which is indexed on index values from alternatives df</p>
+which is indexed on index values from alternatives df.</p>
+</dd>
+<dt><strong>nest_spec</strong><span class="classifier">dict or LogitNestSpec, optional</span></dt><dd><p>Nest specification for the choice model. If None, will be treated as a multinomial logit model.</p>
+</dd>
+<dt><strong>alts_context</strong><span class="classifier">AltsContext, optional</span></dt><dd><p>If provided, will be used to determine how many random numbers to sample and how to index them for the EET
+sampling. This is only relevant for multinomial logit models, and should be provided along with alt_nrs_df.</p>
+</dd>
+<dt><strong>alt_nrs_df</strong><span class="classifier">pandas.DataFrame, optional</span></dt><dd><p>DataFrame with same index as <cite>utilities</cite> and columns corresponding to <cite>alts_context.max_alt_id</cite>, containing
+the alt_nrs for each alternative for each chooser. This is used to index into the random numbers when sampling
+EET terms for multinomial logit models, and should contain -999 for any alternatives that are not available
+for a given chooser. Should be provided along with <cite>alts_context</cite>.</p>
+</dd>
+<dt><strong>allow_zero_probs</strong><span class="classifier">bool</span></dt><dd><p>If False, report choosers that have no available alternative at all. This is the
+utility-space counterpart of <cite>allow_bad_probs</cite> in <cite>make_choices</cite>, and takes the
+name <cite>allow_zero_probs</cite> because the condition it suppresses is the same one that
+<cite>validate_utils</cite> and <cite>utils_to_probs</cite> describe by that name.</p>
 </dd>
 </dl>
 </dd>
@@ -3623,11 +4016,19 @@ which is indexed on index values from alternatives df</p>
 <dt><strong>choices</strong><span class="classifier">pandas.Series</span></dt><dd><p>Maps chooser IDs (from <cite>probs</cite> index) to a choice, where the choice
 is an index into the columns of <cite>probs</cite>.</p>
 </dd>
-<dt><strong>rands</strong><span class="classifier">pandas.Series</span></dt><dd><p>The random numbers used to make the choices (for debugging, tracing)</p>
+<dt><strong>rands</strong><span class="classifier">pandas.Series</span></dt><dd><p>A series of 0s for compatibility with make_choices. For EET, we do not have per-row random numbers.</p>
 </dd>
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>An argmax always returns a position, so a chooser with no available alternative gets a
+choice here rather than an error: with every utility at <cite>UTIL_UNAVAILABLE</cite> the alternatives
+are tied and the error terms decide, and with every utility at <cite>-inf</cite> the first column wins.
+The Monte Carlo path does not go quiet in that situation – <cite>make_choices</cite> reports it unless
+<cite>allow_bad_probs</cite> is set – so this function reports it too. Most callers reach here having
+already run <cite>validate_utils</cite>, which makes the same check; the duplication is deliberate and
+mirrors <cite>make_choices</cite> re-checking what <cite>utils_to_probs</cite> has already looked at.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -3679,7 +4080,7 @@ values from alternatives df</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.logit.utils_to_probs">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">utils_to_probs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">utils</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exponentiated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_zero_probs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_choosers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overflow_protection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_failed_choices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_logsums</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.utils_to_probs" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">utils_to_probs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">utils</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exponentiated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_zero_probs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_choosers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overflow_protection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_logsums</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.utils_to_probs" title="Permalink to this definition">#</a></dt>
 <dd><p>Convert a table of utilities to probabilities.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -3711,20 +4112,52 @@ If utility values are certain to be well-behaved and non-extreme, enabling
 overflow_protection will have no benefit but impose a modest computational
 overhead cost.</p>
 </dd>
-<dt><strong>skip_failed_choices</strong><span class="classifier">bool, default True</span></dt><dd><p>If True, when bad choices are detected (all zero probabilities or infinite
-probabilities), the entire household that’s causing bad choices will be skipped instead of
-being masked by overflow protection or causing an error.
-A counter will be incremented for each skipped household. This is useful when running large
-simulations where occasional bad choices are encountered and should not halt the process.
-The counter can be accessed via <cite>state.get(“num_skipped_households”, 0)</cite>.
-The number of skipped households and their IDs will be logged at the end of the simulation.
-When <cite>skip_failed_choices</cite> is True, <cite>overflow_protection</cite> will be forced to False to avoid conflicts.</p>
+<dt><strong>skip_failed_choices behavior</strong></dt><dd><p>Bad-choice handling is controlled by <cite>state.settings.skip_failed_choices</cite>.
+If enabled, choosers with bad probabilities (all zero or infinite
+exponentiated utilities) are skipped instead of raising immediately.
+The number of skipped households and their IDs are tracked on <cite>state</cite>, and
+<cite>overflow_protection</cite> is forced off so those failures are not masked.</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt><strong>probs</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>Will have the same index and columns as <cite>utils</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.logit.validate_utils">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">validate_utils</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">utils</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_zero_probs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_choosers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.validate_utils" title="Permalink to this definition">#</a></dt>
+<dd><p>Validate utilities to ensure non-available choices are treated the same in EET and MC.
+For EET decisions, no conversion to probabilities is required because choices
+are made on the basis of comparing utilities (only differences matter).
+However, large negative utility values are used in practice to make choices
+unavailable based on probability calculations, which boils down to evaluating
+exp(utility). We here use this to define a minimum utility that corresponds
+to an unavailable choice.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>utils</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>Rows should be choosers and columns should be alternatives.</p>
+</dd>
+<dt><strong>trace_label</strong><span class="classifier">str, optional</span></dt><dd><p>label for tracing bad utility or probability values</p>
+</dd>
+<dt><strong>allow_zero_probs</strong><span class="classifier">bool</span></dt><dd><p>if True value rows in which all utility alts are UTIL_MIN will be set to
+UTIL_UNAVAILABLE.</p>
+</dd>
+<dt><strong>trace_choosers</strong><span class="classifier">pandas.dataframe</span></dt><dd><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+by report_bad_choices because it can’t deduce hh_id from the interaction_dataset
+which is indexed on index values from alternatives df</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>utils</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>utils with values that would lead to zero probability replaced by UTIL_UNAVAILABLE</p>
 </dd>
 </dl>
 </dd>
@@ -5046,11 +5479,11 @@ if no output_tables list is specified, then all checkpointed tables will be writ
       </div>
     </a>
     <a class="right-next"
-       href="benchmarking.html"
+       href="dev-guide/explicit-error-terms.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Benchmarking</p>
+        <p class="prev-next-title">Explicit Error Terms</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -5212,9 +5645,13 @@ if no output_tables list is specified, then all checkpointed tables will be writ
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.random.SimpleChannel.begin_step"><code class="docutils literal notranslate"><span class="pre">SimpleChannel.begin_step()</span></code></a></li>
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.random.SimpleChannel.choice_for_df"><code class="docutils literal notranslate"><span class="pre">SimpleChannel.choice_for_df()</span></code></a></li>
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.random.SimpleChannel.extend_domain"><code class="docutils literal notranslate"><span class="pre">SimpleChannel.extend_domain()</span></code></a></li>
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.random.SimpleChannel.gumbel_choice_positions_for_df"><code class="docutils literal notranslate"><span class="pre">SimpleChannel.gumbel_choice_positions_for_df()</span></code></a></li>
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.random.SimpleChannel.gumbel_for_df"><code class="docutils literal notranslate"><span class="pre">SimpleChannel.gumbel_for_df()</span></code></a></li>
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.random.SimpleChannel.gumbel_max_positions_for_df"><code class="docutils literal notranslate"><span class="pre">SimpleChannel.gumbel_max_positions_for_df()</span></code></a></li>
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.random.SimpleChannel.init_row_states_for_step"><code class="docutils literal notranslate"><span class="pre">SimpleChannel.init_row_states_for_step()</span></code></a></li>
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.random.SimpleChannel.normal_for_df"><code class="docutils literal notranslate"><span class="pre">SimpleChannel.normal_for_df()</span></code></a></li>
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.random.SimpleChannel.random_for_df"><code class="docutils literal notranslate"><span class="pre">SimpleChannel.random_for_df()</span></code></a></li>
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.random.SimpleChannel.random_for_df_stable_alt_positions"><code class="docutils literal notranslate"><span class="pre">SimpleChannel.random_for_df_stable_alt_positions()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.random.hash32"><code class="docutils literal notranslate"><span class="pre">hash32()</span></code></a></li>
@@ -5255,15 +5692,20 @@ if no output_tables list is specified, then all checkpointed tables will be writ
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">API</a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.interaction_sample.interaction_sample"><code class="docutils literal notranslate"><span class="pre">interaction_sample()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.interaction_sample.make_sample_choices"><code class="docutils literal notranslate"><span class="pre">make_sample_choices()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.interaction_sample.make_sample_choices_eet"><code class="docutils literal notranslate"><span class="pre">make_sample_choices_eet()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.interaction_sample.make_sample_choices_poisson"><code class="docutils literal notranslate"><span class="pre">make_sample_choices_poisson()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.interaction_sample.resolve_sample_method"><code class="docutils literal notranslate"><span class="pre">resolve_sample_method()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#simulate">Simulate</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.simulate.CustomChooser_T"><code class="docutils literal notranslate"><span class="pre">CustomChooser_T</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.simulate.compute_base_probabilities"><code class="docutils literal notranslate"><span class="pre">compute_base_probabilities()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.simulate.compute_nested_exp_utilities"><code class="docutils literal notranslate"><span class="pre">compute_nested_exp_utilities()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.simulate.compute_nested_probabilities"><code class="docutils literal notranslate"><span class="pre">compute_nested_probabilities()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.simulate.compute_nested_utilities"><code class="docutils literal notranslate"><span class="pre">compute_nested_utilities()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.simulate.dump_mapped_coefficients"><code class="docutils literal notranslate"><span class="pre">dump_mapped_coefficients()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.simulate.eval_mnl"><code class="docutils literal notranslate"><span class="pre">eval_mnl()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.simulate.eval_mnl_logsums"><code class="docutils literal notranslate"><span class="pre">eval_mnl_logsums()</span></code></a></li>
@@ -5313,15 +5755,24 @@ if no output_tables list is specified, then all checkpointed tables will be writ
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choice-models">Choice Models</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#logit">Logit</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-error-terms">Explicit Error Terms</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.AltsContext"><code class="docutils literal notranslate"><span class="pre">AltsContext</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.AltsContext.n_alts_to_cover_max_id"><code class="docutils literal notranslate"><span class="pre">AltsContext.n_alts_to_cover_max_id</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.Nest"><code class="docutils literal notranslate"><span class="pre">Nest</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.count_nests"><code class="docutils literal notranslate"><span class="pre">count_nests()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.each_nest"><code class="docutils literal notranslate"><span class="pre">each_nest()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.interaction_dataset"><code class="docutils literal notranslate"><span class="pre">interaction_dataset()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.make_choices"><code class="docutils literal notranslate"><span class="pre">make_choices()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.make_choices_explicit_error_term_mnl"><code class="docutils literal notranslate"><span class="pre">make_choices_explicit_error_term_mnl()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.make_choices_explicit_error_term_nl"><code class="docutils literal notranslate"><span class="pre">make_choices_explicit_error_term_nl()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.make_choices_utility_based"><code class="docutils literal notranslate"><span class="pre">make_choices_utility_based()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.report_bad_choices"><code class="docutils literal notranslate"><span class="pre">report_bad_choices()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.utils_to_logsums"><code class="docutils literal notranslate"><span class="pre">utils_to_logsums()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.utils_to_probs"><code class="docutils literal notranslate"><span class="pre">utils_to_probs()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.validate_utils"><code class="docutils literal notranslate"><span class="pre">validate_utils()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -5472,7 +5923,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev21+gda4533ef5, documentation last updated Jul 30, 2026.<br/>
+ActivitySim 1.5.2.dev22+g52efeafb5, documentation last updated Jul 30, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

@@ -373,6 +373,8 @@
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explicit-error-terms.html">Explicit Error Terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sampling-methods.html">Sampling Methods for Interaction Sample</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../benchmarking.html">Benchmarking</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../build-docs.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changes.html">Change Log</a></li>
@@ -517,6 +519,7 @@ into the pipeline and initialized with the initialize_household model step.</p>
 <li><p><a class="reference internal" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.ORIGIN_WEIGHTING_COLUMN" title="activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.ORIGIN_WEIGHTING_COLUMN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ORIGIN_WEIGHTING_COLUMN</span> <span class="pre">(str)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.add_size_tables" title="activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.add_size_tables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_size_tables</span> <span class="pre">(bool)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.annotate_proto_tables" title="activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.annotate_proto_tables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_proto_tables</span> <span class="pre">(list[DisaggregateAccessibilityAnnotateSettings])</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.compute_settings" title="activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.compute_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_settings</span> <span class="pre">(ComputeSettings</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.explicit_chunk" title="activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.explicit_chunk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explicit_chunk</span> <span class="pre">(float</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.postprocess_proto_tables" title="activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.postprocess_proto_tables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">postprocess_proto_tables</span> <span class="pre">(list[DisaggregateAccessibilityAnnotateSettings])</span></code></a></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">()</span></code></p></li>
@@ -642,6 +645,11 @@ proto-population beyond basic generation in the YAML.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.compute_settings">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_settings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ComputeSettings</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.compute_settings" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.explicit_chunk">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">explicit_chunk</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.explicit_chunk" title="Permalink to this definition">#</a></dt>
 <dd><p>If &gt; 0, use this chunk size instead of adaptive chunking.
@@ -742,6 +750,7 @@ If not supplied or None, will default to the chunk size in the location choice m
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.ORIGIN_WEIGHTING_COLUMN"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.ORIGIN_WEIGHTING_COLUMN</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.add_size_tables"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.add_size_tables</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.annotate_proto_tables"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.annotate_proto_tables</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.compute_settings"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.compute_settings</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.explicit_chunk"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.explicit_chunk</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.postprocess_proto_tables"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.postprocess_proto_tables</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.disaggregate_accessibility.DisaggregateAccessibilitySettings.suffixes"><code class="docutils literal notranslate"><span class="pre">DisaggregateAccessibilitySettings.suffixes</span></code></a></li>
@@ -787,7 +796,7 @@ If not supplied or None, will default to the chunk size in the location choice m
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev21+gda4533ef5, documentation last updated Jul 30, 2026.<br/>
+ActivitySim 1.5.2.dev22+g52efeafb5, documentation last updated Jul 30, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

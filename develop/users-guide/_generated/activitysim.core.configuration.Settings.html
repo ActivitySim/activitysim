@@ -367,6 +367,7 @@ the model.</p>
 <dt class="field-even">Fields<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">benchmarking</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">bias_location_choice_logsums_for_poisson_sampling</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_for_variability</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_model_settings</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">checkpoint_format</span> <span class="pre">(Literal['hdf',</span> <span class="pre">'parquet'])</span></code></p></li>
@@ -413,6 +414,7 @@ the model.</p>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">resume_after</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rng_base_seed</span> <span class="pre">(int</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rotate_logs</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample_method</span> <span class="pre">(None</span> <span class="pre">|</span> <span class="pre">Literal['monte_carlo',</span> <span class="pre">'eet',</span> <span class="pre">'poisson'])</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sharrow</span> <span class="pre">(bool</span> <span class="pre">|</span> <span class="pre">str)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">skip_failed_choices</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">(list[pathlib.Path])</span></code></p></li>
@@ -421,6 +423,7 @@ the model.</p>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_hh_id</span> <span class="pre">(int</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_od</span> <span class="pre">(tuple[int,</span> <span class="pre">int]</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">treat_warnings_as_errors</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_explicit_error_terms</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_shadow_pricing</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">want_dest_choice_presampling</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">want_dest_choice_sample_tables</span> <span class="pre">(bool)</span></code></p></li>
@@ -449,6 +452,26 @@ component that needs them.  With benchmarking enabled, all data are always
 pre-loaded before any component is run, to ensure that recorded times are
 the runtime of the component itself, and not data I/O operations that are
 neither integral to that component nor necessarily stable over replication.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_store_skims_in_shm</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.bias_location_choice_logsums_for_poisson_sampling">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bias_location_choice_logsums_for_poisson_sampling</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.bias_location_choice_logsums_for_poisson_sampling" title="Permalink to this definition">#</a></dt>
+<dd><p>Whether to apply a bias of <cite>log(sample_size)</cite> to the Poisson sampling results.
+This is a temporary workaround to align Poisson sampling results with the biased
+results of the monte_carlo and eet sampling methods, such that models that were
+estimated with historical biased sampling results can be run with Poisson sampling
+without needing to re-estimate the model.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.6.</span></p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1054,7 +1077,7 @@ Enabling this check does not alter valid results but slows down model runs.</p>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.log_settings">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">log_settings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('households_sample_size',</span> <span class="pre">'chunk_size',</span> <span class="pre">'chunk_method',</span> <span class="pre">'chunk_training_mode',</span> <span class="pre">'multiprocess',</span> <span class="pre">'num_processes',</span> <span class="pre">'resume_after',</span> <span class="pre">'trace_hh_id',</span> <span class="pre">'memory_profile',</span> <span class="pre">'instrument',</span> <span class="pre">'sharrow')</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.log_settings" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">log_settings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('households_sample_size',</span> <span class="pre">'chunk_size',</span> <span class="pre">'chunk_method',</span> <span class="pre">'chunk_training_mode',</span> <span class="pre">'multiprocess',</span> <span class="pre">'num_processes',</span> <span class="pre">'resume_after',</span> <span class="pre">'trace_hh_id',</span> <span class="pre">'memory_profile',</span> <span class="pre">'instrument',</span> <span class="pre">'sharrow',</span> <span class="pre">'use_explicit_error_terms',</span> <span class="pre">'sample_method')</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.log_settings" title="Permalink to this definition">#</a></dt>
 <dd><p>Setting to log on startup.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
@@ -1302,6 +1325,24 @@ compatible with using <a class="reference internal" href="#activitysim.core.conf
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.sample_method">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sample_method</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'monte_carlo'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'eet'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'poisson'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.sample_method" title="Permalink to this definition">#</a></dt>
+<dd><p>Sampling method to use in <cite>activitysim.core.interaction_sample</cite>.</p>
+<p>When unset, <cite>monte_carlo</cite> is used when <cite>use_explicit_error_terms</cite> is false and
+<cite>poisson</cite> is used when it is true.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.6.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_store_skims_in_shm</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.sharrow">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sharrow</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.sharrow" title="Permalink to this definition">#</a></dt>
 <dd><p>Set the sharrow operating mode.</p>
@@ -1443,6 +1484,25 @@ of RAM.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.use_explicit_error_terms">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">use_explicit_error_terms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.use_explicit_error_terms" title="Permalink to this definition">#</a></dt>
+<dd><p>Make choice from random utility model by drawing from distribution of unobserved
+part of utility and taking the maximum of total utility.</p>
+<p>Defaults to standard Monte Carlo method, i.e., calculating probabilities and then
+drawing a single uniform random number to draw from cumulative probabily.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.6.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_store_skims_in_shm</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.use_shadow_pricing">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">use_shadow_pricing</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.use_shadow_pricing" title="Permalink to this definition">#</a></dt>
 <dd><p>turn shadow_pricing on and off for work and school location</p>
@@ -1533,6 +1593,7 @@ recoding).</p>
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings"><code class="docutils literal notranslate"><span class="pre">Settings</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.benchmarking"><code class="docutils literal notranslate"><span class="pre">Settings.benchmarking</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.bias_location_choice_logsums_for_poisson_sampling"><code class="docutils literal notranslate"><span class="pre">Settings.bias_location_choice_logsums_for_poisson_sampling</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.check_for_variability"><code class="docutils literal notranslate"><span class="pre">Settings.check_for_variability</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.check_model_settings"><code class="docutils literal notranslate"><span class="pre">Settings.check_model_settings</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.checkpoint_format"><code class="docutils literal notranslate"><span class="pre">Settings.checkpoint_format</span></code></a></li>
@@ -1579,6 +1640,7 @@ recoding).</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.resume_after"><code class="docutils literal notranslate"><span class="pre">Settings.resume_after</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.rng_base_seed"><code class="docutils literal notranslate"><span class="pre">Settings.rng_base_seed</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.rotate_logs"><code class="docutils literal notranslate"><span class="pre">Settings.rotate_logs</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.sample_method"><code class="docutils literal notranslate"><span class="pre">Settings.sample_method</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.sharrow"><code class="docutils literal notranslate"><span class="pre">Settings.sharrow</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.skip_failed_choices"><code class="docutils literal notranslate"><span class="pre">Settings.skip_failed_choices</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">Settings.source_file_paths</span></code></a></li>
@@ -1587,6 +1649,7 @@ recoding).</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.trace_hh_id"><code class="docutils literal notranslate"><span class="pre">Settings.trace_hh_id</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.trace_od"><code class="docutils literal notranslate"><span class="pre">Settings.trace_od</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.treat_warnings_as_errors"><code class="docutils literal notranslate"><span class="pre">Settings.treat_warnings_as_errors</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.use_explicit_error_terms"><code class="docutils literal notranslate"><span class="pre">Settings.use_explicit_error_terms</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.use_shadow_pricing"><code class="docutils literal notranslate"><span class="pre">Settings.use_shadow_pricing</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.want_dest_choice_presampling"><code class="docutils literal notranslate"><span class="pre">Settings.want_dest_choice_presampling</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.Settings.want_dest_choice_sample_tables"><code class="docutils literal notranslate"><span class="pre">Settings.want_dest_choice_sample_tables</span></code></a></li>
@@ -1628,7 +1691,7 @@ recoding).</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev21+gda4533ef5, documentation last updated Jul 30, 2026.<br/>
+ActivitySim 1.5.2.dev22+g52efeafb5, documentation last updated Jul 30, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

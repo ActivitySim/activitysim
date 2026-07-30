@@ -224,9 +224,23 @@ def run_calibration_loop(
             # at the resume_after point so that _calibrate_component (and its
             # apportion subprocess) starts from the correct state without
             # downstream model data.
-            _prep_model_data(state, [], resume_after=state.settings.resume_after)
-            state.checkpoint.add(state.settings.resume_after)
-            state.checkpoint.close_store()
+            extra_models = _prep_model_data(
+                state, [], resume_after=state.settings.resume_after
+            )
+            if extra_models:
+                # No model-level checkpoint exists for resume_after; we must
+                # run models from the prior step through resume_after to
+                # recreate the correct intermediate state.
+                _run_in_configured_mode(
+                    state,
+                    models=extra_models,
+                    resume_after=None,
+                    memory_sidecar_process=memory_sidecar_process,
+                    shared_data_buffers=shared_data_buffers,
+                )
+            else:
+                state.checkpoint.add(state.settings.resume_after)
+                state.checkpoint.close_store()
 
         for global_iter in range(
             start_global_iter,
@@ -1445,7 +1459,12 @@ def _run_in_configured_mode(
     if not models:
         return
 
-    _prep_model_data(state, models, resume_after=resume_after)
+    extra_models = _prep_model_data(state, models, resume_after=resume_after)
+    if extra_models:
+        # Models from the step beginning through resume_after must run first
+        # to recreate the correct intermediate state (since no model-level
+        # checkpoint existed for resume_after).
+        models = extra_models + models
 
     if state.settings.multiprocess:
         # Write the restored state as a checkpoint so LAST_CHECKPOINT on disk
@@ -1483,19 +1502,22 @@ def _run_in_configured_mode(
 def _prep_model_data(state, models, resume_after=None):
     """Restore the pipeline to the correct state before running models.
 
-    When a specific ``resume_after`` checkpoint exists in the pipeline, we
-    restore from it directly.  This gives the exact state as it was when that
-    model completed — without downstream data that later models may have added
-    (e.g. tours from mandatory_tour_frequency polluting the state for a re-run
-    of that same model).
+    Resolution priority:
+    1. Direct model-level checkpoint in the main pipeline (fastest, exact).
+    2. Subprocess pipelines from a prior multiprocess run — performs a
+       "coalesce at specific checkpoint" to recover the exact intermediate
+       state without re-running anything.
+    3. Previous step checkpoint + re-run models from step begin through
+       resume_after (slowest but always works).
 
-    If ``resume_after`` is not available as a named checkpoint (e.g. first
-    calibration run from a multiprocess pipeline with only step-level
-    checkpoints), fall back to LAST_CHECKPOINT which is the most recently
-    written state.
+    Returns
+    -------
+    list[str]
+        Models that must be prepended to the caller's models list to reach
+        the correct state at ``resume_after``.  Empty when the exact
+        checkpoint was found and restored directly (paths 1 or 2).
     """
     if resume_after:
-        # Try to restore from the exact resume_after checkpoint
         try:
             if state.checkpoint.store_is_open():
                 checkpoint_names = [
@@ -1514,14 +1536,16 @@ def _prep_model_data(state, models, resume_after=None):
                 finally:
                     store.close()
 
+            # Path 1: direct model-level checkpoint in main pipeline
             if resume_after in checkpoint_names:
                 _restore_parent_state_from_pipeline(state, checkpoint_name=resume_after)
-                return
+                return []
 
-            # Resolve to step-level checkpoint if model-level not found.
-            # Find the multiprocess step that contains resume_after and use
-            # its step name as the checkpoint.
-            resolved = None
+            # Path 2: subprocess pipelines (model-level checkpoints preserved)
+            if _restore_from_subprocess_pipelines(state, resume_after):
+                return []
+
+            # Path 3: restore from previous step and re-run
             all_models = state.settings.models
             mp_steps = state.settings.multiprocess_steps
             if mp_steps and resume_after in all_models:
@@ -1530,13 +1554,20 @@ def _prep_model_data(state, models, resume_after=None):
                 step_boundaries.append(len(all_models))
                 for i, step in enumerate(mp_steps):
                     if step_boundaries[i] <= resume_idx < step_boundaries[i + 1]:
-                        if step.name in checkpoint_names:
-                            resolved = step.name
+                        if i > 0 and mp_steps[i - 1].name in checkpoint_names:
+                            _restore_parent_state_from_pipeline(
+                                state, checkpoint_name=mp_steps[i - 1].name
+                            )
+                            step_begin_idx = step_boundaries[i]
+                            extra_models = all_models[step_begin_idx : resume_idx + 1]
+                            return extra_models
+                        elif i == 0:
+                            _restore_parent_state_from_pipeline(
+                                state, checkpoint_name="_"
+                            )
+                            extra_models = all_models[: resume_idx + 1]
+                            return extra_models
                         break
-
-            if resolved:
-                _restore_parent_state_from_pipeline(state, checkpoint_name=resolved)
-                return
         except Exception:
             logger.warning(
                 "calibration: could not restore from checkpoint %r, "
@@ -1547,6 +1578,179 @@ def _prep_model_data(state, models, resume_after=None):
     # Fallback: load LAST_CHECKPOINT (appropriate after a coalesce that
     # only ran the desired models)
     _restore_parent_state_from_pipeline(state)
+    return []
+
+
+def _restore_from_subprocess_pipelines(
+    state: workflow.State, resume_after: str
+) -> bool:
+    """Restore state from subprocess pipelines at a specific model checkpoint.
+
+    Subprocess pipelines retain model-level checkpoints that don't exist in
+    the main pipeline.  This performs a "coalesce at checkpoint" — reading
+    mirrored tables from one subprocess and concatenating sliced tables from
+    all subprocesses at the specified checkpoint name.
+
+    Parameters
+    ----------
+    state : workflow.State
+    resume_after : str
+        Model-level checkpoint name to restore from.
+
+    Returns
+    -------
+    bool
+        True if the restore succeeded; False if subprocess pipelines don't
+        exist or don't contain the requested checkpoint.
+    """
+    from activitysim.core.workflow.checkpoint import (
+        CHECKPOINT_NAME,
+        CHECKPOINT_TABLE_NAME,
+        HdfStore,
+        NON_TABLE_COLUMNS,
+        ParquetStore,
+    )
+
+    all_models = state.settings.models
+    mp_steps = state.settings.multiprocess_steps
+    if not mp_steps or resume_after not in all_models:
+        return False
+
+    # Find the multiprocess step containing resume_after
+    resume_idx = all_models.index(resume_after)
+    step_boundaries = [all_models.index(s.begin) for s in mp_steps]
+    step_boundaries.append(len(all_models))
+
+    enclosing_step = None
+    num_processes = state.settings.num_processes or 2
+    slice_info = None
+    for i, step in enumerate(mp_steps):
+        if step_boundaries[i] <= resume_idx < step_boundaries[i + 1]:
+            enclosing_step = step
+            if step.num_processes:
+                num_processes = step.num_processes
+            if step.slice:
+                slice_info = (
+                    step.slice.model_dump()
+                    if hasattr(step.slice, "model_dump")
+                    else step.slice
+                )
+            break
+
+    if enclosing_step is None or num_processes <= 1:
+        return False
+
+    # Build subprocess pipeline file paths
+    step_name = enclosing_step.name
+    pipeline_file_name = state.filesystem.pipeline_file_name
+    sub_proc_names = [f"{step_name}_{i}" for i in range(num_processes)]
+
+    def _subprocess_path(proc_name):
+        base = state.get_output_file_path(pipeline_file_name, prefix=proc_name)
+        if state.settings.checkpoint_format == "hdf":
+            return base
+        pq = Path(str(base)).with_suffix(ParquetStore.extension)
+        return pq if pq.exists() else base
+
+    first_path = _subprocess_path(sub_proc_names[0])
+    if not first_path.exists():
+        return False
+
+    # Open first subprocess pipeline and verify checkpoint exists
+    if state.settings.checkpoint_format == "hdf":
+        first_store = HdfStore(first_path, mode="r")
+    else:
+        first_store = ParquetStore(first_path, mode="r")
+
+    try:
+        cp_names = first_store.list_checkpoint_names()
+        if resume_after not in cp_names:
+            return False
+
+        # Read checkpoint row to get table→checkpoint mapping
+        cp_df = first_store.get_dataframe(CHECKPOINT_TABLE_NAME)
+        cp_row = cp_df[cp_df[CHECKPOINT_NAME] == resume_after].iloc[-1]
+
+        table_map = {}
+        for col in cp_row.index:
+            if col not in NON_TABLE_COLUMNS and cp_row[col]:
+                table_map[col] = cp_row[col]
+
+        # Read all tables from first subprocess at this checkpoint
+        tables = {}
+        for table_name, cp_for_table in table_map.items():
+            try:
+                tables[table_name] = first_store.get_dataframe(table_name, cp_for_table)
+            except (FileNotFoundError, KeyError):
+                logger.warning(
+                    f"calibration: subprocess pipeline missing table "
+                    f"{table_name} at {cp_for_table}"
+                )
+    finally:
+        first_store.close()
+
+    if not tables:
+        return False
+
+    # Determine sliced tables that need concatenation across processes
+    sliced_table_names = set(slice_info.get("tables", [])) if slice_info else set()
+
+    # Read sliced tables from remaining subprocesses and concatenate
+    if num_processes > 1 and sliced_table_names:
+        omnibus = {t: [tables[t]] for t in sliced_table_names if t in tables}
+
+        for proc_name in sub_proc_names[1:]:
+            proc_path = _subprocess_path(proc_name)
+            if not proc_path.exists():
+                logger.warning(
+                    f"calibration: subprocess pipeline not found: {proc_path}"
+                )
+                return False
+
+            if state.settings.checkpoint_format == "hdf":
+                proc_store = HdfStore(proc_path, mode="r")
+            else:
+                proc_store = ParquetStore(proc_path, mode="r")
+
+            try:
+                proc_cp_df = proc_store.get_dataframe(CHECKPOINT_TABLE_NAME)
+                proc_row = proc_cp_df[proc_cp_df[CHECKPOINT_NAME] == resume_after].iloc[
+                    -1
+                ]
+
+                for table_name in list(omnibus.keys()):
+                    cp_for_table = proc_row.get(table_name, "")
+                    if cp_for_table:
+                        omnibus[table_name].append(
+                            proc_store.get_dataframe(table_name, cp_for_table)
+                        )
+            finally:
+                proc_store.close()
+
+        # Replace sliced tables with concatenated versions
+        for table_name, dfs in omnibus.items():
+            tables[table_name] = pd.concat(dfs, sort=False)
+
+    # Load into parent state
+    state.init_state()
+    if state.checkpoint.store_is_open():
+        state.checkpoint.close_store()
+    state.checkpoint.open_store(overwrite=False)
+
+    for table_name, df in tables.items():
+        state.add_table(table_name, df)
+
+    # Mark all tables dirty for subsequent checkpoint.add
+    for table_name in list(state.existing_table_names):
+        state.existing_table_status[table_name] = True
+
+    logger.info(
+        "calibration: restored %d tables from subprocess pipelines at "
+        "checkpoint '%s'",
+        len(tables),
+        resume_after,
+    )
+    return True
 
 
 def _run_multiprocess_with_overrides(

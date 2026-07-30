@@ -172,3 +172,75 @@ def test_interaction_simulate_eet_large_utilities(state):
     assert not choices_eet.isna().any()
     # With such a large difference, Alt 1 should be the dominant choice
     assert (choices_eet == 1).all()
+
+
+def test_eval_interaction_utilities_global_constants(tmp_path):
+    # global constants (from constants.yaml) should be available to expressions
+    # evaluated for interaction models (e.g. location choice, destination choice,
+    # tour scheduling), see issue #1015
+
+    configs_dir = tmp_path.joinpath("configs")
+    configs_dir.mkdir()
+    configs_dir.joinpath("constants.yaml").write_text("KM_TO_MILE: 0.621371\n")
+    tmp_path.joinpath("data").mkdir()
+
+    state = workflow.State()
+    state.initialize_filesystem(
+        working_dir=tmp_path, configs_dir=("configs",)
+    ).default_settings()
+    state.settings.check_for_variability = False
+
+    df = pd.DataFrame({"distance_km": [1.0, 10.0]}, index=[0, 1])
+
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["distance_km * KM_TO_MILE"], name="Expression"),
+    )
+
+    utilities, _ = interaction_simulate.eval_interaction_utilities(
+        state,
+        spec,
+        df,
+        locals_d=None,
+        trace_label="test_global_constants",
+        trace_rows=None,
+    )
+
+    np.testing.assert_allclose(
+        utilities.utility.to_numpy(), df.distance_km.to_numpy() * 0.621371
+    )
+
+
+def test_eval_interaction_utilities_locals_override_global_constants(tmp_path):
+    # values passed in locals_d take precedence over global constants
+
+    configs_dir = tmp_path.joinpath("configs")
+    configs_dir.mkdir()
+    configs_dir.joinpath("constants.yaml").write_text("KM_TO_MILE: 0.621371\n")
+    tmp_path.joinpath("data").mkdir()
+
+    state = workflow.State()
+    state.initialize_filesystem(
+        working_dir=tmp_path, configs_dir=("configs",)
+    ).default_settings()
+    state.settings.check_for_variability = False
+
+    df = pd.DataFrame({"distance_km": [1.0, 10.0]}, index=[0, 1])
+
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["distance_km * KM_TO_MILE"], name="Expression"),
+    )
+
+    utilities, _ = interaction_simulate.eval_interaction_utilities(
+        state,
+        spec,
+        df,
+        locals_d={"KM_TO_MILE": 1.0},
+        trace_label="test_global_constants_override",
+        trace_rows=None,
+    )
+
+    np.testing.assert_allclose(
+        utilities.utility.to_numpy(), df.distance_km.to_numpy()
+    )

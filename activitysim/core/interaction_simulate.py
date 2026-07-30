@@ -100,7 +100,8 @@ def eval_interaction_utilities(
         assert len(spec.columns) == 1
 
         # avoid altering caller's passed-in locals_d parameter (they may be looping)
-        locals_d = locals_d.copy() if locals_d is not None else {}
+        # global constants are always available, but can be overridden by locals_d
+        locals_d = {**state.get_global_constants(), **(locals_d or {})}
 
         utilities = None
 

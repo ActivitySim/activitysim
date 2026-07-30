@@ -1,0 +1,5 @@
+SPEC: joint_tour_participation.csv
+COEFFICIENTS: joint_tour_participation_coefficients.csv
+participation_choice: participate
+max_participation_choice_iterations: 100
+FORCE_PARTICIPATION: True

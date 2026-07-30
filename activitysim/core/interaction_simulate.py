@@ -15,8 +15,8 @@ import pandas as pd
 
 from activitysim.core import chunk, logit, simulate, timing, tracing, util, workflow
 from activitysim.core.configuration.base import ComputeSettings
-from activitysim.core.fast_eval import fast_eval
 from activitysim.core.exceptions import SegmentedSpecificationError
+from activitysim.core.fast_eval import fast_eval
 
 logger = logging.getLogger(__name__)
 
@@ -904,29 +904,42 @@ def _interaction_simulate(
 
     state.tracing.dump_df(DUMP, utilities, trace_label, "utilities")
 
-    # convert to probabilities (utilities exponentiated and normalized to probs)
-    # probs is same shape as utilities, one row per chooser and one column for alternative
-    probs = logit.utils_to_probs(
-        state, utilities, trace_label=trace_label, trace_choosers=choosers
-    )
-    chunk_sizer.log_df(trace_label, "probs", probs)
-
-    del utilities
-    chunk_sizer.log_df(trace_label, "utilities", None)
-
-    if have_trace_targets:
-        state.tracing.trace_df(
-            probs,
-            tracing.extend_trace_label(trace_label, "probs"),
-            column_labels=["alternative", "probability"],
+    if state.settings.use_explicit_error_terms:
+        utilities = logit.validate_utils(
+            state, utilities, trace_label=trace_label, trace_choosers=choosers
+        )
+        positions, rands = logit.make_choices_utility_based(
+            state, utilities, trace_label=trace_label, trace_choosers=choosers
         )
 
-    # make choices
-    # positions is series with the chosen alternative represented as a column index in probs
-    # which is an integer between zero and num alternatives in the alternative sample
-    positions, rands = logit.make_choices(
-        state, probs, trace_label=trace_label, trace_choosers=choosers
-    )
+        del utilities
+        chunk_sizer.log_df(trace_label, "utilities", None)
+
+    else:
+        # convert to probabilities (utilities exponentiated and normalized to probs)
+        # probs is same shape as utilities, one row per chooser and one column for alternative
+        probs = logit.utils_to_probs(
+            state, utilities, trace_label=trace_label, trace_choosers=choosers
+        )
+        chunk_sizer.log_df(trace_label, "probs", probs)
+
+        del utilities
+        chunk_sizer.log_df(trace_label, "utilities", None)
+
+        if have_trace_targets:
+            state.tracing.trace_df(
+                probs,
+                tracing.extend_trace_label(trace_label, "probs"),
+                column_labels=["alternative", "probability"],
+            )
+
+        # make choices
+        # positions is series with the chosen alternative represented as a column index in probs
+        # which is an integer between zero and num alternatives in the alternative sample
+        positions, rands = logit.make_choices(
+            state, probs, trace_label=trace_label, trace_choosers=choosers
+        )
+
     chunk_sizer.log_df(trace_label, "positions", positions)
     chunk_sizer.log_df(trace_label, "rands", rands)
 

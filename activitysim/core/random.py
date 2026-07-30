@@ -9,8 +9,8 @@ from builtins import object, range
 import numpy as np
 import pandas as pd
 
-from activitysim.core.util import reindex
 from activitysim.core.exceptions import DuplicateLoadableObjectError, TableIndexError
+from activitysim.core.util import reindex
 
 from .tracing import print_elapsed_time
 
@@ -19,6 +19,9 @@ logger = logging.getLogger(__name__)
 # one more than 0xFFFFFFFF so we can wrap using: int64 % _MAX_SEED
 _MAX_SEED = 1 << 32
 _SEED_MASK = 0xFFFFFFFF
+
+# Used by callers of gumbel_choice_positions_for_df to mark padded or unavailable alternative slots in alt_nrs_df
+MASKED_ALT_ID = -999
 
 
 def hash32(s):
@@ -194,6 +197,8 @@ class SimpleChannel(object):
 
         df_row_states = self.row_states.loc[df.index]
 
+        # https://numpy.org/doc/stable/reference/random/generator.html
+        # np.random.default_rng()
         prng = np.random.RandomState()
         for row in df_row_states.itertuples():
             prng.seed(row.row_seed)
@@ -244,6 +249,278 @@ class SimpleChannel(object):
         # update offset for rows we handled
         self.row_states.loc[df.index, "offset"] += n
         return rands
+
+    def random_for_df_stable_alt_positions(
+        self,
+        df,
+        step_name,
+        stable_alt_positions,
+        n_total_alts,
+    ):
+        """
+        Return one uniform draw per stable-universe alternative and chooser row,
+        then project to the active alternative positions.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            DataFrame with one row per chooser and one column per active alternative.
+        stable_alt_positions : 1-D ndarray
+            Mapping from active columns in `df` to positions in the larger stable
+            alternative universe.
+        n_total_alts : int
+            Number of alternatives in the larger stable universe.
+
+        Returns
+        -------
+        rands : 2-D ndarray
+            Array with shape `(len(df), df.shape[1])` containing uniforms aligned to
+            the active alternatives.
+        """
+
+        assert self.step_name
+        assert self.step_name == step_name
+
+        n_alts = df.shape[1]
+        stable_alt_positions = np.asarray(stable_alt_positions)
+        if stable_alt_positions.shape != (n_alts,):
+            raise ValueError(
+                "stable_alt_positions must be a 1-D array aligned to df columns"
+            )
+        if stable_alt_positions.min() < 0 or stable_alt_positions.max() >= n_total_alts:
+            raise ValueError(
+                "stable_alt_positions values must be within [0, n_total_alts)"
+            )
+
+        generators = self._generators_for_df(df)
+        rands = np.asanyarray(
+            [prng.rand(n_total_alts)[stable_alt_positions] for prng in generators]
+        )
+        self.row_states.loc[df.index, "offset"] += n_total_alts
+        return rands
+
+    def gumbel_for_df(self, df, step_name, n=1):
+        """
+        Return n floating point gumbel-distributed numbers for each row in df
+        using the appropriate random channel for each row.
+
+        Subsequent calls (in the same step) will return the next rand for each df row
+
+        The resulting array will be the same length (and order) as df
+        This method is designed to support alternative selection from a probability array
+
+        The columns in df are ignored; the index name and values are used to determine
+        which random number sequence to to use.
+
+        If "true pseudo random" behavior is desired (i.e. NOT repeatable) the set_base_seed
+        method (q.v.) may be used to globally reseed all random streams.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            df with index name and values corresponding to a registered channel
+
+        n : int
+            number of rands desired per df row
+
+        Returns
+        -------
+        rands : 2-D ndarray
+            array the same length as df, with n floats in range [0, 1) for each df row
+        """
+
+        assert self.step_name
+        assert self.step_name == step_name
+
+        # - reminder: prng must be called when yielded as generated sequence, not serialized
+        generators = self._generators_for_df(df)
+
+        # rands = np.asanyarray([prng.gumbel(size=n) for prng in generators])
+        # this is about 20% faster for large arrays, like for destination choice
+        rands = np.asanyarray([-np.log(-np.log(prng.rand(n))) for prng in generators])
+
+        # update offset for rows we handled
+        self.row_states.loc[df.index, "offset"] += n
+        return rands
+
+    def gumbel_max_positions_for_df(
+        self,
+        utilities,
+        step_name,
+        sample_size,
+        stable_alt_positions=None,
+        n_total_alts=None,
+    ):
+        """
+        Return the winning alternative position for each chooser/sample pair
+        without materializing the full chooser-by-alternative-by-sample Gumbel array.
+
+        Parameters
+        ----------
+        utilities : pandas.DataFrame
+            DataFrame with one row per chooser and one column per alternative.
+        sample_size : int
+            Number of repeated sampled choices to make per chooser.
+        stable_alt_positions : 1-D ndarray, optional
+            Mapping from active utility columns to positions in a larger stable
+            alternative universe.
+        n_total_alts : int, optional
+            Number of alternatives in the larger stable universe.
+
+        Returns
+        -------
+        positions : 2-D ndarray of int64
+            Array with shape (len(utilities), sample_size) containing the column
+            position of the winning alternative for each chooser/sample pair.
+        """
+
+        assert self.step_name
+        assert self.step_name == step_name
+
+        utility_values = utilities.to_numpy()
+        n_rows, n_alts = utility_values.shape
+        positions = np.empty((n_rows, sample_size), dtype=np.int64)
+
+        if stable_alt_positions is not None or n_total_alts is not None:
+            if stable_alt_positions is None or n_total_alts is None:
+                raise ValueError(
+                    "stable_alt_positions and n_total_alts must both be provided or omitted together"
+                )
+            stable_alt_positions = np.asarray(stable_alt_positions)
+            if stable_alt_positions.shape != (n_alts,):
+                raise ValueError(
+                    "stable_alt_positions must be a 1-D array aligned to utilities columns"
+                )
+            if (
+                stable_alt_positions.min() < 0
+                or stable_alt_positions.max() >= n_total_alts
+            ):
+                raise ValueError(
+                    "stable_alt_positions values must be within [0, n_total_alts)"
+                )
+            n_gumbels = n_total_alts
+        else:
+            n_gumbels = n_alts
+
+        generators = self._generators_for_df(utilities)
+
+        # for each chooser, generate the error terms for all samples at once. reshaping this
+        # in (default) C order means that the the first n_alts values are the gumbels for the
+        # first sample, the next n_alts values are the gumbels for the second sample, etc.
+        for row_num, prng in enumerate(generators):
+            utility_row = utility_values[row_num]
+            row_uniforms = prng.rand(n_gumbels * sample_size).reshape(
+                (sample_size, n_gumbels)
+            )
+            if stable_alt_positions is not None:
+                row_uniforms = row_uniforms[:, stable_alt_positions]
+            row_gumbels = -np.log(-np.log(row_uniforms))
+            positions[row_num, :] = np.argmax(
+                row_gumbels + utility_row[np.newaxis, :],
+                axis=1,
+            )
+
+        self.row_states.loc[utilities.index, "offset"] += n_gumbels * sample_size
+        return positions
+
+    def gumbel_choice_positions_for_df(
+        self,
+        utilities,
+        step_name,
+        alt_nrs_df=None,
+        n_rands=None,
+    ):
+        """
+        Return the winning alternative position for each chooser row without
+        materializing the utility-plus-error table.
+
+        Parameters
+        ----------
+        utilities : pandas.DataFrame
+            DataFrame with one row per chooser and one column per available alternative.
+        alt_nrs_df : pandas.DataFrame, optional
+            DataFrame aligned to `utilities` whose values identify which dense alternative
+            each utility column corresponds to. Use `MASKED_ALT_ID` (-999) for masked or
+            unavailable positions; any other negative value raises ValueError. A row that
+            is masked in every column is taken to mean the chooser has no alternative to
+            choose from, and returns position 0.
+        n_rands : int, optional
+            Number of EV1 draws to generate per chooser row. Required when `alt_nrs_df`
+            is provided and may exceed the visible number of utility columns.
+
+        Returns
+        -------
+        positions : 1-D ndarray of int64
+            Array with shape (len(utilities),) containing the winning column position
+            for each chooser row.
+        """
+
+        assert self.step_name
+        assert self.step_name == step_name
+
+        utility_values = utilities.to_numpy()
+        n_rows, n_alts = utility_values.shape
+        positions = np.empty(n_rows, dtype=np.int64)
+
+        if alt_nrs_df is not None:
+            assert alt_nrs_df.index.equals(
+                utilities.index
+            ), "alt_nrs_df and utilities must share the same index"
+            assert alt_nrs_df.columns.equals(
+                utilities.columns
+            ), "alt_nrs_df and utilities must share the same columns"
+            if n_rands is None:
+                raise ValueError("n_rands is required when alt_nrs_df is provided")
+            alt_nr_values = alt_nrs_df.to_numpy()
+            # Validate sentinel: MASKED_ALT_ID is the only allowed negative value.
+            bad_negatives = (alt_nr_values < 0) & (alt_nr_values != MASKED_ALT_ID)
+            if bad_negatives.any():
+                offenders = np.unique(alt_nr_values[bad_negatives])
+                raise ValueError(
+                    f"alt_nrs contains negative values other than the "
+                    f"{MASKED_ALT_ID} sentinel: {offenders}"
+                )
+            masked = alt_nr_values == MASKED_ALT_ID
+            active_mask = ~masked
+            safe_alt_nrs = np.where(masked, 0, alt_nr_values)
+        else:
+            if n_rands is None:
+                n_rands = n_alts
+            elif n_rands != n_alts:
+                raise ValueError(
+                    "n_rands must equal utilities.shape[1] when alt_nrs_df is omitted"
+                )
+            alt_nr_values = masked = active_mask = safe_alt_nrs = None
+
+        generators = self._generators_for_df(utilities)
+
+        for row_num, prng in enumerate(generators):
+            utility_row = utility_values[row_num]
+            row_randoms = prng.rand(n_rands)
+
+            if alt_nrs_df is None:
+                positions[row_num] = np.argmax(
+                    utility_row - np.log(-np.log(row_randoms))
+                )
+            else:
+                # Masked positions can never be chosen, so apply the gumbel transform and argmax
+                # only to the active ones. flatnonzero returns ascending indices, so ties resolve
+                # to the lowest column position, which is what a full-width argmax would have done.
+                active = np.flatnonzero(active_mask[row_num])
+                if active.size == 0:
+                    # The chooser has no alternative available at all. Return the first
+                    # column by convention. Note that logit.make_choices_utility_based filters
+                    # out choosers with no available alternatives, so this case will only occur
+                    # when explicitly allowed by the caller.
+                    positions[row_num] = 0
+                    continue
+                gumbel = utility_row[active] - np.log(
+                    -np.log(row_randoms[safe_alt_nrs[row_num, active]])
+                )
+                positions[row_num] = active[np.argmax(gumbel)]
+
+        self.row_states.loc[utilities.index, "offset"] += n_rands
+        return positions
 
     def normal_for_df(self, df, step_name, mu, sigma, lognormal=False, size=None):
         """
@@ -399,7 +676,38 @@ class Random(object):
             raise TableIndexError("No channel with index name '%s'" % df.index.name)
         return self.channels[channel_name]
 
-    # step handling
+    def reset_offsets_for_step(self, step_name):
+        """
+        Reset offsets for all channels for a step
+
+        Parameters
+        ----------
+        step_name : str
+            pipeline step name for this step
+        """
+
+        assert self.step_name == step_name
+
+        for c in self.channels:
+            self.channels[c].row_states["offset"] = 0
+
+    def reset_offsets_for_df(self, df):
+        """
+        Reset offsets for all choosers in df if the channel for a step
+
+        Parameters
+        ----------
+        step_name : str
+            pipeline step name for this step
+        df : pandas.DataFrame
+            df with index name and values corresponding to a registered channel
+        """
+        channel = self.get_channel_for_df(df)
+        channel.row_states.loc[df.index, "offset"] = 0
+        logger.info(
+            f"RNG: resetting random number generator offsets for channel '{channel.channel_name}' for {len(df)} rows"
+            + f" with index name '{df.index.name}'. Total length df: {len(channel.row_states)}"
+        )
 
     def begin_step(self, step_name):
         """
@@ -503,6 +811,17 @@ class Random(object):
         if channel_name in self.channels:
             logger.debug("Dropping channel '%s'" % (channel_name,))
             del self.channels[channel_name]
+            # Also clear any index_to_channel entries that pointed at the
+            # dropped channel; a stale mapping would otherwise survive and
+            # could mis-route a subsequent channel registered against the
+            # same index name.
+            stale_index_names = [
+                index_name
+                for index_name, mapped in self.index_to_channel.items()
+                if mapped == channel_name
+            ]
+            for index_name in stale_index_names:
+                del self.index_to_channel[index_name]
         else:
             logger.error(
                 "drop_channel called with unknown channel '%s'" % (channel_name,)
@@ -616,6 +935,159 @@ class Random(object):
         channel = self.get_channel_for_df(df)
         rands = channel.random_for_df(df, self.step_name, n)
         return rands
+
+    def random_for_df_stable_alt_positions(
+        self,
+        df,
+        stable_alt_positions,
+        n_total_alts,
+    ):
+        """
+        Return per-row uniform draws aligned to active alternatives using a stable
+        larger alternative universe.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            DataFrame with one row per chooser and one column per active alternative.
+        stable_alt_positions : 1-D ndarray
+            Mapping from active columns to positions in the larger stable alternative
+            universe.
+        n_total_alts : int
+            Number of alternatives in the larger stable universe.
+
+        Returns
+        -------
+        rands : 2-D ndarray
+            Array with shape `(len(df), df.shape[1])` containing uniforms aligned to
+            the active alternatives.
+        """
+
+        n_alts = df.shape[1]
+        stable_alt_positions = np.asarray(stable_alt_positions)
+        if stable_alt_positions.shape != (n_alts,):
+            raise ValueError(
+                "stable_alt_positions must be a 1-D array aligned to df columns"
+            )
+        if stable_alt_positions.min() < 0 or stable_alt_positions.max() >= n_total_alts:
+            raise ValueError(
+                "stable_alt_positions values must be within [0, n_total_alts)"
+            )
+
+        if not self.channels:
+            rng = np.random.RandomState(0)
+            return np.asanyarray(
+                [rng.rand(n_total_alts)[stable_alt_positions] for _ in range(len(df))]
+            )
+
+        channel = self.get_channel_for_df(df)
+        return channel.random_for_df_stable_alt_positions(
+            df,
+            self.step_name,
+            stable_alt_positions,
+            n_total_alts,
+        )
+
+    def gumbel_for_df(self, df, n=1):
+        """
+        Return a single floating point gumbel for each row in df
+        using the appropriate random channel for each row.
+
+        Subsequent calls (in the same step) will return the next rand for each df row
+
+        The resulting array will be the same length (and order) as df
+        This method is designed to support alternative selection from a probability array
+
+        The columns in df are ignored; the index name and values are used to determine
+        which random number sequence to to use.
+
+        We assume that we can identify the channel to used based on the name of df.index
+        This channel should have already been registered by a call to add_channel (q.v.)
+
+        If "true pseudo random" behavior is desired (i.e. NOT repeatable) the set_base_seed
+        method (q.v.) may be used to globally reseed all random streams.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            df with index name and values corresponding to a registered channel
+
+        n : int
+            number of rands desired (default 1)
+
+        Returns
+        -------
+        choices : 1-D ndarray the same length as df
+            a single float in range [0, 1) for each row in df
+        """
+        channel = self.get_channel_for_df(df)
+        rands = channel.gumbel_for_df(df, self.step_name, n)
+        return rands
+
+    def gumbel_max_positions_for_df(
+        self,
+        utilities,
+        sample_size,
+        stable_alt_positions=None,
+        n_total_alts=None,
+    ):
+        """
+        Return the winning alternative position for each chooser/sample pair
+        using the appropriate channel for each chooser row.
+
+        Parameters
+        ----------
+        utilities : pandas.DataFrame
+            DataFrame with one row per chooser and one column per alternative.
+        sample_size : int
+            Number of repeated sampled choices to make per chooser.
+        stable_alt_positions : 1-D ndarray, optional
+            Mapping from active utility columns to positions in a larger stable
+            alternative universe.
+        n_total_alts : int, optional
+            Number of alternatives in the larger stable universe.
+
+        Returns
+        -------
+        positions : 2-D ndarray of int64
+            Array with shape (len(utilities), sample_size) containing the column
+            position of the winning alternative for each chooser/sample pair.
+        """
+
+        channel = self.get_channel_for_df(utilities)
+        return channel.gumbel_max_positions_for_df(
+            utilities,
+            self.step_name,
+            sample_size,
+            stable_alt_positions=stable_alt_positions,
+            n_total_alts=n_total_alts,
+        )
+
+    def gumbel_choice_positions_for_df(self, utilities, alt_nrs_df=None, n_rands=None):
+        """
+        Return the winning alternative position for each chooser row.
+
+        Parameters
+        ----------
+        utilities : pandas.DataFrame
+            DataFrame with one row per chooser and one column per available alternative.
+        alt_nrs_df : pandas.DataFrame, optional
+            Dense-alternative mapping aligned to `utilities`.
+        n_rands : int, optional
+            Number of EV1 draws to generate per chooser row.
+
+        Returns
+        -------
+        positions : 1-D ndarray of int64
+        """
+
+        channel = self.get_channel_for_df(utilities)
+        return channel.gumbel_choice_positions_for_df(
+            utilities,
+            self.step_name,
+            alt_nrs_df=alt_nrs_df,
+            n_rands=n_rands,
+        )
 
     def normal_for_df(self, df, mu=0, sigma=1, broadcast=False, size=None):
         """

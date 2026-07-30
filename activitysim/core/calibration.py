@@ -1437,7 +1437,7 @@ def _run_in_configured_mode(
     if not models:
         return
 
-    _prep_model_data(state, models)
+    _prep_model_data(state, models, resume_after=resume_after)
 
     if state.settings.multiprocess:
         _run_multiprocess_with_overrides(
@@ -1464,52 +1464,73 @@ def _run_in_configured_mode(
     )
 
 
-def _prep_model_data(state, models):
-    checkpoint = False
+def _prep_model_data(state, models, resume_after=None):
+    """Restore the pipeline to the correct state before running models.
+
+    When a specific ``resume_after`` checkpoint exists in the pipeline, we
+    restore from it directly.  This gives the exact state as it was when that
+    model completed — without downstream data that later models may have added
+    (e.g. tours from mandatory_tour_frequency polluting the state for a re-run
+    of that same model).
+
+    If ``resume_after`` is not available as a named checkpoint (e.g. first
+    calibration run from a multiprocess pipeline with only step-level
+    checkpoints), fall back to LAST_CHECKPOINT which is the most recently
+    written state.
+    """
+    if resume_after:
+        # Try to restore from the exact resume_after checkpoint
+        try:
+            if state.checkpoint.store_is_open():
+                checkpoint_names = [
+                    cp.get("checkpoint_name", "") for cp in state.checkpoint.checkpoints
+                ]
+            else:
+                from activitysim.core.workflow.checkpoint import HdfStore, ParquetStore
+
+                pipeline_path = Path(state.checkpoint.default_pipeline_file_path())
+                if state.settings.checkpoint_format == "hdf":
+                    store = HdfStore(pipeline_path, mode="r")
+                else:
+                    store = ParquetStore(pipeline_path, mode="r")
+                try:
+                    checkpoint_names = store.list_checkpoint_names()
+                finally:
+                    store.close()
+
+            if resume_after in checkpoint_names:
+                _restore_parent_state_from_pipeline(state, checkpoint_name=resume_after)
+                return
+
+            # Resolve to step-level checkpoint if model-level not found.
+            # Find the multiprocess step that contains resume_after and use
+            # its step name as the checkpoint.
+            resolved = None
+            all_models = state.settings.models
+            mp_steps = state.settings.multiprocess_steps
+            if mp_steps and resume_after in all_models:
+                resume_idx = all_models.index(resume_after)
+                step_boundaries = [all_models.index(s.begin) for s in mp_steps]
+                step_boundaries.append(len(all_models))
+                for i, step in enumerate(mp_steps):
+                    if step_boundaries[i] <= resume_idx < step_boundaries[i + 1]:
+                        if step.name in checkpoint_names:
+                            resolved = step.name
+                        break
+
+            if resolved:
+                _restore_parent_state_from_pipeline(state, checkpoint_name=resolved)
+                return
+        except Exception:
+            logger.warning(
+                "calibration: could not restore from checkpoint %r, "
+                "falling back to LAST_CHECKPOINT",
+                resume_after,
+            )
+
+    # Fallback: load LAST_CHECKPOINT (appropriate after a coalesce that
+    # only ran the desired models)
     _restore_parent_state_from_pipeline(state)
-    if "compute_accessibility" in models and state.is_table("accessibility"):
-        state.add_table(
-            "accessibility", pd.DataFrame(index=state.get_table("accessibility").index)
-        )
-        checkpoint = True
-    if "mandatory_tour_frequency" in models and state.is_table("tours"):
-        state.add_table(
-            "tours",
-            state.get_table("tours")[
-                state.get_table("tours").tour_category != "mandatory"
-            ],
-        )
-        checkpoint = True
-
-    if "non_mandatory_tour_frequency" in models and state.is_table("tours"):
-        state.add_table(
-            "tours",
-            state.get_table("tours")[
-                state.get_table("tours").tour_category != "non_mandatory"
-            ],
-        )
-        checkpoint = True
-
-    if "joint_tour_frequency" in models and state.is_table("tours"):
-        state.add_table(
-            "tours",
-            state.get_table("tours")[state.get_table("tours").tour_category != "joint"],
-        )
-        checkpoint = True
-
-    if (
-        "atwork_subtour_frequency" in models or "tour_mode_choice_simulate" in models
-    ) and state.is_table("tours"):
-        state.add_table(
-            "tours",
-            state.get_table("tours")[
-                state.get_table("tours").tour_category != "atwork"
-            ],
-        )
-        checkpoint = True
-
-    if checkpoint:
-        state.checkpoint.add(state.checkpoint.checkpoints[-1]["checkpoint_name"])
 
 
 def _run_multiprocess_with_overrides(
@@ -1555,12 +1576,24 @@ def _run_multiprocess_with_overrides(
         state.settings.multiprocess_steps = original_mp_steps
 
 
-def _restore_parent_state_from_pipeline(state: workflow.State) -> None:
-    """Restore coalesced pipeline tables into the parent process state.
+def _restore_parent_state_from_pipeline(
+    state: workflow.State, checkpoint_name: str = "_"
+) -> None:
+    """Restore pipeline tables into the parent process state.
 
     After a multiprocess run, the parent's in-memory state is stale.
-    This loads the latest checkpoint from the pipeline store so that
+    This loads a specific checkpoint from the pipeline store so that
     calibration expressions can evaluate against model outputs.
+
+    Parameters
+    ----------
+    checkpoint_name : str, default "_"
+        The checkpoint to restore from.  Use a model-level checkpoint name
+        (e.g. the prior step name) to get the exact state at that point,
+        avoiding pollution from downstream models that may have added rows
+        to shared tables like ``tours``.  The default ``"_"`` loads the
+        last checkpoint, which is appropriate immediately after a coalesce
+        that only ran the desired models.
 
     All tables are explicitly re-checkpointed so that subsequent apportion
     subprocesses can load them from a direct file path without relying on
@@ -1568,7 +1601,7 @@ def _restore_parent_state_from_pipeline(state: workflow.State) -> None:
     """
     if state.checkpoint.store_is_open():
         state.checkpoint.close_store()
-    state.checkpoint.restore(resume_after="_")
+    state.checkpoint.restore(resume_after=checkpoint_name)
 
     # After restore, all tables are clean (status=False). Mark them dirty so
     # the next checkpoint.add() writes them to disk at a known checkpoint name.

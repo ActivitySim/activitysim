@@ -219,6 +219,14 @@ def run_calibration_loop(
                 memory_sidecar_process=memory_sidecar_process,
                 shared_data_buffers=shared_data_buffers,
             )
+        else:
+            # Precursors skipped — but the pipeline must still be initialized
+            # at the resume_after point so that _calibrate_component (and its
+            # apportion subprocess) starts from the correct state without
+            # downstream model data.
+            _prep_model_data(state, [], resume_after=state.settings.resume_after)
+            state.checkpoint.add(state.settings.resume_after)
+            state.checkpoint.close_store()
 
         for global_iter in range(
             start_global_iter,
@@ -1440,6 +1448,14 @@ def _run_in_configured_mode(
     _prep_model_data(state, models, resume_after=resume_after)
 
     if state.settings.multiprocess:
+        # Write the restored state as a checkpoint so LAST_CHECKPOINT on disk
+        # reflects the correct (clean) state for the apportion subprocess.
+        # Without this, Parquet stores retain a stale LAST_CHECKPOINT from a
+        # prior run that may include downstream data (e.g. non-mandatory tours
+        # polluting a re-run of non_mandatory_tour_frequency).
+        state.checkpoint.add(resume_after or models[0])
+        state.checkpoint.close_store()
+
         _run_multiprocess_with_overrides(
             state,
             models=models,

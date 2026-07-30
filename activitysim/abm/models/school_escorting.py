@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
+from pydantic import field_validator
 
 from activitysim.abm.models.util import school_escort_tours_trips
 from activitysim.core import (
@@ -335,7 +337,26 @@ class SchoolEscortSettings(BaseLogitComponentSettings, extra="forbid"):
     GENDER_WEIGHT: float = 10.0
     AGE_WEIGHT: float = 1.0
 
-    SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
+    SIMULATE_CHOOSER_COLUMNS: Any | None = None
+    """Was used to help reduce the memory needed for the model.
+
+    This setting is now obsolete and does nothing. Its functionality has been
+    replaced by :func:`activitysim.core.util.drop_unused_columns`.
+
+    .. deprecated:: 1.4
+    """
+
+    @field_validator("SIMULATE_CHOOSER_COLUMNS", mode="before")
+    @classmethod
+    def _deprecate_simulate_chooser_columns(cls, value):
+        if value is not None:
+            warnings.warn(
+                "SIMULATE_CHOOSER_COLUMNS is deprecated and no longer used, "
+                "unused columns are now dropped automatically",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return None
 
     SPEC: None = None
     """The school escort model does not use this setting."""
@@ -464,17 +485,6 @@ def school_escorting(
         #     locals_dict["_sharrow_skip"] = True
         # else:
         #     locals_dict.pop("_sharrow_skip", None)
-
-        # reduce memory by limiting columns if selected columns are supplied
-        chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-        if chooser_columns is not None:
-            # Drop this when PR #1017 is merged
-            if ("household_id" not in chooser_columns) and (
-                "household_id" in choosers.columns
-            ):
-                chooser_columns = chooser_columns + ["household_id"]
-            chooser_columns = chooser_columns + participant_columns
-            choosers = choosers[chooser_columns]
 
         # add previous data to stage
         if stage_num >= 1:

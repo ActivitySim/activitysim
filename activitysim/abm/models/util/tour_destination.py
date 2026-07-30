@@ -691,23 +691,9 @@ def run_destination_sample(
     chunk_size,
     trace_label,
 ):
-    # FIXME - MEMORY HACK - only include columns actually used in spec (omit them pre-merge)
-    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-
     # if special person id is passed
     chooser_id_column = model_settings.CHOOSER_ID_COLUMN
 
-    # Drop this when PR #1017 is merged
-    if ("household_id" not in chooser_columns) and (
-        "household_id" in persons_merged.columns
-    ):
-        chooser_columns = chooser_columns + ["household_id"]
-    persons_merged = persons_merged[
-        [c for c in persons_merged.columns if c in chooser_columns]
-    ]
-    tours = tours[
-        [c for c in tours.columns if c in chooser_columns or c == chooser_id_column]
-    ]
     choosers = pd.merge(
         tours, persons_merged, left_on=chooser_id_column, right_index=True, how="left"
     )
@@ -805,11 +791,6 @@ def run_destination_logsums(
 
     chunk_tag = "tour_destination.logsums"
 
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    persons_merged = logsum.filter_chooser_columns(
-        persons_merged, logsum_settings, model_settings
-    )
-
     # merge persons into tours
     choosers = pd.merge(
         destination_sample,
@@ -872,23 +853,9 @@ def run_destination_simulate(
         coefficients_file_name=model_settings.COEFFICIENTS,
     )
 
-    # FIXME - MEMORY HACK - only include columns actually used in spec (omit them pre-merge)
-    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-
     # if special person id is passed
     chooser_id_column = model_settings.CHOOSER_ID_COLUMN
 
-    # Drop this when PR #1017 is merged
-    if ("household_id" not in chooser_columns) and (
-        "household_id" in persons_merged.columns
-    ):
-        chooser_columns = chooser_columns + ["household_id"]
-    persons_merged = persons_merged[
-        [c for c in persons_merged.columns if c in chooser_columns]
-    ]
-    tours = tours[
-        [c for c in tours.columns if c in chooser_columns or c == chooser_id_column]
-    ]
     choosers = pd.merge(
         tours, persons_merged, left_on=chooser_id_column, right_index=True, how="left"
     )

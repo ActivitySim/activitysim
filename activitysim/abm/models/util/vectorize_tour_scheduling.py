@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
+from pydantic import field_validator
 
 from activitysim.abm.models.tour_mode_choice import TourModeComponentSettings
 from activitysim.core import chunk, config, expressions, los, simulate
@@ -43,7 +45,26 @@ class TourSchedulingSettings(LogitComponentSettings, extra="forbid"):
     it is assumed to be an unsegmented preprocessor.  Otherwise, the dict keys
     give the segements.
     """
-    SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
+    SIMULATE_CHOOSER_COLUMNS: Any | None = None
+    """Was used to help reduce the memory needed for the model.
+
+    This setting is now obsolete and does nothing. Its functionality has been
+    replaced by :func:`activitysim.core.util.drop_unused_columns`.
+
+    .. deprecated:: 1.4
+    """
+
+    @field_validator("SIMULATE_CHOOSER_COLUMNS", mode="before")
+    @classmethod
+    def _deprecate_simulate_chooser_columns(cls, value):
+        if value is not None:
+            warnings.warn(
+                "SIMULATE_CHOOSER_COLUMNS is deprecated and no longer used, "
+                "unused columns are now dropped automatically",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return None
 
     SPEC_SEGMENTS: dict[str, LogitComponentSettings] = {}
 

@@ -14,6 +14,23 @@ branch (i.e., the main branch on GitHub), but not yet released in a stable versi
 of ActivitySim.  See below under the various version headings for changes in
 released versions.
 
+### Deprecated `SIMULATE_CHOOSER_COLUMNS` and `LOGSUM_CHOOSER_COLUMNS`
+
+The `SIMULATE_CHOOSER_COLUMNS` and `LOGSUM_CHOOSER_COLUMNS` settings were added
+as memory hacks, to reduce the size of the interaction dataframe for components
+that combine a chooser table with an alternatives table.  These settings have
+been superseded by `drop_unused_columns`, which automatically drops the columns
+that are not needed based on the model spec, and which is enabled by default in
+the `compute_settings` for every component.  As such, these settings are now
+unnecessary, and they are a common source of hard-to-diagnose errors when a
+column used by a spec is inadvertently omitted from the list.
+
+These settings are now deprecated.  If either setting appears in a model
+configuration file, a `DeprecationWarning` is issued and the value is ignored.
+Users should remove these settings from their configuration files.  Nothing else
+needs to be done to take advantage of this change; unused columns continue to be
+dropped automatically.
+
 ### Changed Default for Sharrow "Fastmath" Optimization
 
 The default setting for the "fastmath" optimization in sharrow has been changed

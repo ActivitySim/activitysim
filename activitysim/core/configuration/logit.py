@@ -6,7 +6,7 @@ from typing import Any, Literal
 
 import pydantic
 from pydantic import BaseModel as PydanticBase
-from pydantic import model_validator, validator
+from pydantic import field_validator, model_validator, validator
 
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticCompute
 
@@ -261,7 +261,15 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     SEGMENT_IDS: dict[str, int] | dict[str, str] | dict[str, bool] | None = None
     SHADOW_PRICE_TABLE: str | None = None
     MODELED_SIZE_TABLE: str | None = None
-    SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
+    SIMULATE_CHOOSER_COLUMNS: Any | None = None
+    """Was used to help reduce the memory needed for the model.
+
+    This setting is now obsolete and does nothing. Its functionality has been
+    replaced by :func:`activitysim.core.util.drop_unused_columns`.
+
+    .. deprecated:: 1.4
+    """
+
     ALT_DEST_COL_NAME: str
     LOGSUM_TOUR_PURPOSE: str | dict[str, str] | None = None
     MODEL_SELECTOR: str | None = None
@@ -271,6 +279,18 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     ORIG_ZONE_ID: str | None = None
     """This setting appears to do nothing..."""
 
+    @field_validator("SIMULATE_CHOOSER_COLUMNS", mode="before")
+    @classmethod
+    def _deprecate_simulate_chooser_columns(cls, value):
+        if value is not None:
+            warnings.warn(
+                "SIMULATE_CHOOSER_COLUMNS is deprecated and no longer used, "
+                "unused columns are now dropped automatically",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return None
+
 
 class TourModeComponentSettings(TemplatedLogitComponentSettings, extra="forbid"):
     MODE_CHOICE_LOGSUM_COLUMN_NAME: str | None = None
@@ -279,4 +299,23 @@ class TourModeComponentSettings(TemplatedLogitComponentSettings, extra="forbid")
     nontour_preprocessor: PreprocessorSettings | list[
         PreprocessorSettings
     ] | None = None
-    LOGSUM_CHOOSER_COLUMNS: list[str] = []
+    LOGSUM_CHOOSER_COLUMNS: Any | None = None
+    """Was used to help reduce the memory needed for the model.
+
+    This setting is now obsolete and does nothing. Its functionality has been
+    replaced by :func:`activitysim.core.util.drop_unused_columns`.
+
+    .. deprecated:: 1.4
+    """
+
+    @field_validator("LOGSUM_CHOOSER_COLUMNS", mode="before")
+    @classmethod
+    def _deprecate_logsum_chooser_columns(cls, value):
+        if value is not None:
+            warnings.warn(
+                "LOGSUM_CHOOSER_COLUMNS is deprecated and no longer used, "
+                "unused columns are now dropped automatically",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return None

@@ -737,12 +737,6 @@ def run_od_sample(
     )
 
     choosers = tours
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-    # Drop this when PR #1017 is merged
-    if ("household_id" not in chooser_columns) and ("household_id" in choosers.columns):
-        chooser_columns = chooser_columns + ["household_id"]
-    choosers = choosers[chooser_columns]
 
     # interaction_sample requires that choosers.index.is_monotonic_increasing
     if not choosers.index.is_monotonic_increasing:
@@ -819,11 +813,6 @@ def run_od_logsums(
     origin_id_col = model_settings.ORIG_COL_NAME
     dest_id_col = model_settings.DEST_COL_NAME
     tour_od_id_col = get_od_id_col(origin_id_col, dest_id_col)
-
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    tours_merged_df = logsum.filter_chooser_columns(
-        tours_merged_df, logsum_settings, model_settings
-    )
 
     # merge ods into choosers table
     choosers = od_sample.join(tours_merged_df, how="left")
@@ -999,13 +988,6 @@ def run_od_simulate(
 
     # merge persons into tours
     choosers = tours
-
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-    # Drop this when PR #1017 is merged
-    if ("household_id" not in chooser_columns) and ("household_id" in choosers.columns):
-        chooser_columns = chooser_columns + ["household_id"]
-    choosers = choosers[chooser_columns]
 
     # interaction_sample requires that choosers.index.is_monotonic_increasing
     if not choosers.index.is_monotonic_increasing:

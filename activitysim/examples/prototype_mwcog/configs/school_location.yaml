@@ -1,16 +1,5 @@
 SAMPLE_SIZE: 30
 
-SIMULATE_CHOOSER_COLUMNS:
-  - home_zone_id
-  - school_segment
-  - household_id
-  - is_student
-  - age_0_to_5
-  - age_6_to_12
-  - pemploy
-  - income_segment
-  - auto_ownership
-
 # model-specific logsum-related settings
 CHOOSER_ORIG_COL_NAME: home_zone_id
 ALT_DEST_COL_NAME: alt_dest

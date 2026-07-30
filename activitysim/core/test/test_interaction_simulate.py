@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -241,6 +243,4 @@ def test_eval_interaction_utilities_locals_override_global_constants(tmp_path):
         trace_rows=None,
     )
 
-    np.testing.assert_allclose(
-        utilities.utility.to_numpy(), df.distance_km.to_numpy()
-    )
+    np.testing.assert_allclose(utilities.utility.to_numpy(), df.distance_km.to_numpy())

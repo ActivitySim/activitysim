@@ -91,8 +91,7 @@ def _interaction_sample_simulate(
 
         choices : pandas.Series
             A series where index should match the index of the choosers DataFrame
-            and values will match the index of the alternatives DataFrame -
-            choices are simulated in the standard Monte Carlo fashion
+            and values will match the index of the alternatives DataFrame
 
     if want_logsums is True:
 
@@ -546,8 +545,7 @@ def interaction_sample_simulate(
 
         choices : pandas.Series
             A series where index should match the index of the choosers DataFrame
-            and values will match the index of the alternatives DataFrame -
-            choices are simulated in the standard Monte Carlo fashion
+            and values will match the index of the alternatives DataFrame
 
     if want_logsums is True:
 

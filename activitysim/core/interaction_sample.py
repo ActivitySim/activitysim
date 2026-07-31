@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 DUMP = False
 
-InteractionSampleMethod = typing.Literal["monte_carlo", "eet", "poisson"]
+InteractionSampleMethod = typing.Literal["inverse_cdf", "eet", "poisson"]
 
 # Threshold on P0, the probability that a chooser's Poisson draw comes up empty, below
 # which the fallback term is dropped from the reported inclusion probabilities. Choosers
@@ -82,7 +82,7 @@ def resolve_sample_method(
         sampling_method = state.settings.sample_method
     if sampling_method is None:
         sampling_method = (
-            "poisson" if state.settings.use_explicit_error_terms else "monte_carlo"
+            "poisson" if state.settings.use_explicit_error_terms else "inverse_cdf"
         )
     if sampling_method not in typing.get_args(InteractionSampleMethod):
         raise ValueError(
@@ -170,7 +170,7 @@ def make_sample_choices_eet(
 
     Each chooser receives `sample_size` EV1 draw sets and the argmax-over-utility
     winner is recorded per draw, so duplicates are possible (same with-replacement
-    semantics as the Monte Carlo sampling path).
+    semantics as the inverse-CDF sampling path).
 
     `utilities` drives the Gumbel argmax. `probs` (the MNL choice probabilities
     computed from the same utilities by the caller) supplies the `prob` column
@@ -229,7 +229,7 @@ def make_sample_choices_poisson(
 
     where `p_i` is the chooser's MNL choice probability for alternative `i`. That is the
     probability the alternative would have been drawn at least once across `sample_size`
-    Monte Carlo draws, which is what makes Poisson sampling interchangeable with the other
+    inverse-CDF draws, which is what makes Poisson sampling interchangeable with the other
     sampling methods. `pick_count` is 1 by definition (the draw is a yes/no per
     alternative), so the standard sampling correction factor is recoverable in the usual
     way as `np.log(df.pick_count / df.prob)`.
@@ -781,10 +781,10 @@ def _interaction_sample(
 
     sampling_method = resolve_sample_method(state, compute_settings)
 
-    # Estimation requires MC sampling and MC choice for now
-    if estimation.manager.enabled and sampling_method != "monte_carlo":
+    # Estimation requires inverse-CDF sampling and choice for now
+    if estimation.manager.enabled and sampling_method != "inverse_cdf":
         raise ValueError(
-            f"{trace_label}: estimation requires monte_carlo sampling and choice. Set sample_method='monte_carlo'"
+            f"{trace_label}: estimation requires inverse_cdf sampling and choice. Set sample_method='inverse_cdf'"
             + " (or leave it unset) and use_explicit_error_terms=False for estimation runs."
         )
 
@@ -835,7 +835,7 @@ def _interaction_sample(
             column_labels=["alternative", "probability"],
         )
 
-    if sampling_method == "monte_carlo":
+    if sampling_method == "inverse_cdf":
         del utilities
         chunk_sizer.log_df(trace_label, "utilities", None)
 
@@ -890,8 +890,8 @@ def _interaction_sample(
         del probs
         chunk_sizer.log_df(trace_label, "probs", None)
     else:
-        # eet and poisson: optionally trim choosers with all-zero probs. The MC
-        # path handles this inside make_sample_choices
+        # eet and poisson: optionally trim choosers with all-zero probs. The
+        # inverse-CDF path handles this inside make_sample_choices
         if allow_zero_probs:
             non_zero = probs.sum(axis=1) != 0
             if not non_zero.any():
@@ -1093,10 +1093,11 @@ def interaction_sample(
     sampling_method = resolve_sample_method(state, compute_settings)
     logger.debug(f" interaction_sample sample method = {sampling_method}")
 
-    if sampling_method == "monte_carlo":
-        # The MC sampling path (make_sample_choices) does not consume stable_alt_positions
-        # or n_total_alts. Null them out so callers that conservatively pass values along
-        # don't accidentally rely on them under MC sampling.
+    if sampling_method == "inverse_cdf":
+        # The inverse-CDF sampling path (make_sample_choices) does not consume
+        # stable_alt_positions or n_total_alts. Null them out so callers that
+        # conservatively pass values along don't accidentally rely on them under
+        # inverse-CDF sampling.
         stable_alt_positions = None
         n_total_alts = None
 

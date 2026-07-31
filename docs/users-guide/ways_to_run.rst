@@ -291,12 +291,12 @@ ____________________
 
 ActivitySim makes heavy use of micro-simulation. Most model components are discrete choice models with an inherent
 random component, and for each choice situation a single outcome is generated.
-With the default Monte Carlo draw method, ActivitySim first calculates analytical probabilities from the
+With the default inverse-CDF (probability-based) draw method, ActivitySim first calculates analytical probabilities from the
 systematic utilities of a multinomial or nested logit model and then makes one draw from the
 cumulative distribution for each chooser. Explicit Error Terms (EET) replaces that final draw with a direct
 random-utility simulation by drawing the unobserved portion of utility (error term) for each
 chooser-alternative pair, adding it to the systematic utility, and selecting the alternative with the highest
-total utility. Both methods simulate the same underlying model, but EET can be less affected by Monte Carlo
+total utility. Both methods simulate the same underlying model, but EET can be less affected by simulation
 noise when comparing scenarios and can make some comparisons easier to interpret. This is because the
 selected alternative is the one with the highest total utility after adding the explicit
 error term, and if the explicit error term is consistent between a base and scenario run then

@@ -54,17 +54,17 @@ to draw error terms of all fundamental alternatives.
 For EET to reduce simulation noise, it is important that alternatives of a choice situation
 keep the same unobserved error term in different scenario runs. If unchanged alternatives
 keep the same unobserved draws, changes to choices between scenarios can only happen when
-the observed utility of an alternative increases. This is not the case for the Monte Carlo
-simulation method, where the draws are based on probabilities, which necessarily change for
-all alternatives if any observed utility changes. This combined with sensitivity to small
-differences in the final CDF draw when comparing nearby scenarios means that EET removes
-noise from scenario comparisons.
+the observed utility of an alternative increases. This is not the case for the inverse-CDF
+(probability-based) simulation method, where the draws are based on probabilities, which
+necessarily change for all alternatives if any observed utility changes. This combined with
+sensitivity to small differences in the final CDF draw when comparing nearby scenarios means
+that EET removes noise from scenario comparisons.
 
-Note that the both MC and EET are simulating the same model, so individual runs with identical
-inputs but varying global seed will lead to the same statistical results for individual
-output metrics. EET's properties become apparent when comparing two model runs with different
-inputs. Because error terms are aligned, the variance of the estimator of the indicator, e.g.,
-mode choice shift or VMT difference, is reduced. In other words, difference metrics are more
+Note that both inverse-CDF and EET simulation are simulating the same model, so individual runs
+with identical inputs but varying global seed will lead to the same statistical results for
+individual output metrics. EET's properties become apparent when comparing two model runs with
+different inputs. Because error terms are aligned, the variance of the estimator of the indicator,
+e.g., mode choice shift or VMT difference, is reduced. In other words, difference metrics are more
 precise estimators under EET.
 
 In mathematical terms, for any two metrics $X$ (baseline) and $Y$ (scenario), the variance
@@ -75,11 +75,11 @@ $$\text{Var}(X - Y) = \text{Var}(X) + \text{Var}(Y) - 2\,\text{Cov}(X, Y)$$
 EET deliberately drives $\text{Cov}(X, Y)$ up by aligning error terms, so $\text{Var}(X-Y)$
 collapses even though $\text{Var}(X)$ and $\text{Var}(Y)$ individually are unchanged.
 
-In practice, models are often run once for each scenario. EET is still usefull because the
+In practice, models are often run once for each scenario. EET is still useful because the
 lower the noise of the estimator, the higher the chance that a single run is representative.
-In other words, the noise level of comparison metrics is lower. Additionally, under MC small
-but real benefits can show up as negative in a single run. Under EET, the sign of the effect
-is far more trustworthy.
+In other words, the noise level of comparison metrics is lower. Additionally, under inverse-CDF
+simulation small but real benefits can show up as negative in a single run. Under EET, the sign
+of the effect is far more trustworthy.
 
 Independent of any statistical argument, under EET, choice changes between two runs are
 attributable to utility changes which can be helpful for model development, sensitivity
@@ -123,11 +123,11 @@ individual comparison runs.
 
 ### Runtime and memory usage
 EET draws one error term per chooser and alternative, which requires many more random numbers
-than MC's one per chooser. For models with many alternatives, this can lead to a large amount
-of random numbers being calculated. The implementation of EET avoids materialization of large
-chooser-alternative arrays of error terms in memory so that the memory usage is in line with MC
-simulation.
-Regarding runtimes, EET with default settings currently carries a runtime penalty of about 3-10%
+than the inverse-CDF method's one per chooser. For models with many alternatives, this can lead
+to a large amount of random numbers being calculated. The implementation of EET avoids
+materialization of large chooser-alternative arrays of error terms in memory so that the memory
+usage is in line with inverse-CDF simulation.
+Regarding runtimes, EET with default settings currently carries a runtime penalty of a few percent
 per demand model run. However, when run in combination with an assignment model the overall
 system can converge faster and this can reduce the overall model runtime penalty.
 
@@ -167,12 +167,12 @@ do not have a corresponding EET implementation because there are no utilities to
 ### Unavailable choices utility convention
 
 For EET, only utility differences matter, and therefore the outcome for two utilities that are
-very small, say -10000 and -10001, is identical to the outcome for 0 and 1. For MC, utilities
-have to be exponentiated and therefore floating point precision dictates the smallest and largest
-utility that can be used in practice. ActivitySim models historically often use a utility of
--999 to make alternatives practically unavailable. That value is below the utility threshold
-used in the probability-based path, which is about -691 because ActivitySim clips
-exponentiated utilities at 1e-300. To keep behavior consistent, EET treats alternatives with
+very small, say -10001 and -10000, is identical to the outcome for 0 and 1. For inverse-CDF
+simulation, utilities have to be exponentiated and therefore floating point precision dictates
+the smallest and largest utility that can be used in practice. ActivitySim models historically
+often use a utility of -999 to make alternatives practically unavailable. That value is below
+the utility threshold used in the probability-based path, which is about -691 because ActivitySim
+clips exponentiated utilities at 1e-300. To keep behavior consistent, EET treats alternatives with
 utilities at or below that threshold as unavailable; see `activitysim.core.logit.validate_utils`.
 
 ### Normalization

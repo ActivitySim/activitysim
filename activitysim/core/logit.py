@@ -690,15 +690,6 @@ def make_choices_utility_based(
     rands : pandas.Series
         A series of 0s for compatibility with make_choices. For EET, we do not have per-row random numbers.
 
-    Notes
-    -----
-    An argmax always returns a position, so a chooser with no available alternative gets a
-    choice here rather than an error: with every utility at `UTIL_UNAVAILABLE` the alternatives
-    are tied and the error terms decide, and with every utility at `-inf` the first column wins.
-    The Monte Carlo path does not go quiet in that situation -- `make_choices` reports it unless
-    `allow_bad_probs` is set -- so this function reports it too. Most callers reach here having
-    already run `validate_utils`, which makes the same check; the duplication is deliberate and
-    mirrors `make_choices` re-checking what `utils_to_probs` has already looked at.
     """
     trace_label = tracing.extend_trace_label(trace_label, "make_choices_utility_based")
 

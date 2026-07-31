@@ -32,7 +32,7 @@ sampling utilities, while the corresponding final-choice specs in
 
 ## Available Methods
 
-- `monte_carlo`: importance sampling with replacement using probabilities and uniform draws
+- `inverse_cdf`: importance sampling with replacement using probabilities and uniform draws
 - `eet`: importance sampling with replacement using explicit error-term draws
 - `poisson`: importance sampling via independent Poisson inclusion sampling based on probabilities
 
@@ -41,7 +41,7 @@ sampling utilities, while the corresponding final-choice specs in
 At the top level, `sample_method` may be set in `settings.yaml`.
 When it is omitted, ActivitySim preserves the intended default behavior:
 
-- if `use_explicit_error_terms` is `False`, `interaction_sample` defaults to `monte_carlo`
+- if `use_explicit_error_terms` is `False`, `interaction_sample` defaults to `inverse_cdf`
 - if `use_explicit_error_terms` is `True`, `interaction_sample` defaults to `poisson`
 
 Individual models may override this default through:
@@ -64,20 +64,21 @@ The sampled-choice workflow is:
 This is the standard sample-of-alternatives pattern: the sampling stage uses an approximation,
 and the final stage corrects for it.
 
-### Monte Carlo and EET-with-replacement
+### Inverse-CDF and EET-with-replacement
 
-The `monte_carlo` and `eet` sampling methods both draw alternatives with replacement. As a result,
+The `inverse_cdf` and `eet` sampling methods both draw alternatives with replacement. As a result,
 duplicates are possible within a chooser's sampled set, and sampled shares track repeated-draw MNL
 behavior closely.
 
 The difference between them is how each draw is made:
 
-- `monte_carlo` draws from analytical probabilities using uniform random numbers
+- `inverse_cdf` draws from analytical probabilities using uniform random numbers against the
+  cumulative distribution
 - `eet` draws explicit EV1 error terms and chooses the utility-plus-error argmax
 
 `eet` freezes the error terms for each chooser-alternative pair across repeated draws, so that
 unchanged alternatives can keep the same unobserved draws, which can greatly reduce
-scenario-to-scenario sampling noise compared to `monte_carlo`. However, `eet` is more expensive to
+scenario-to-scenario sampling noise compared to `inverse_cdf`. However, `eet` is more expensive to
 run because it requires many more random draws and more complex logic to avoid materializing large
 chooser-alternative arrays of error terms in memory.
 
@@ -87,8 +88,8 @@ chooser-alternative arrays of error terms in memory.
 pair is sampled independently with inclusion probability $1 - (1 - p)^s$, where $p$ is the original
 choice probability and $s$ is the configured sample size.
 A single inclusion draw is made for each alternative. This is much cheaper than repeated draws for
-`eet`, and unlike ``monte_carlo``, it can still benefit from stable alignment of random draws to
-alternatives, so it can provide improved noise reduction compared to `monte_carlo` without the full
+`eet`, and unlike ``inverse_cdf``, it can still benefit from stable alignment of random draws to
+alternatives, so it can provide improved noise reduction compared to `inverse_cdf` without the full
 cost of `eet` and therefore it is the default when running with explicit error terms, see
 {ref}`explicit-error-terms-dev`.
 
@@ -97,7 +98,7 @@ noticeably from repeated-draw MNL shares in highly peaked cases. This is structu
 numerical noise. The interaction-sample tests document this explicitly.
 
 Under `poisson`, the configured sample size $s$ is a rate parameter rather than a count of draws,
-and it is deliberately not clamped to the number of alternatives (`monte_carlo` and `eet` clamp it,
+and it is deliberately not clamped to the number of alternatives (`inverse_cdf` and `eet` clamp it,
 which is statistically harmless for with-replacement draws because the omitted $\log s$ term in the
 correction is constant per chooser). When a chooser has fewer available alternatives than $s$, its
 probability mass is concentrated and the inclusion probabilities saturate towards 1: the chooser
@@ -149,7 +150,7 @@ positive, and the fallback can only add inclusion mass on top of that, never rem
 - `prob`
 - `pick_count`
 
-For `monte_carlo` and `eet`, `pick_count` is the number of times the alternative was selected in
+For `inverse_cdf` and `eet`, `pick_count` is the number of times the alternative was selected in
 the repeated with-replacement draws. For `poisson`, `pick_count` is always `1`, because an
 alternative is either included or not included. For all methods, `prob` is the quantity used in
 the correction term, but it means different things for different methods. ActivitySim's final
@@ -161,7 +162,7 @@ np.log(df.pick_count/df.prob)
 
 This is the sample-of-alternatives correction factor used in the final choice model.
 
-For `monte_carlo` and `eet`, `prob` is the one-draw sampling probability implied by the
+For `inverse_cdf` and `eet`, `prob` is the one-draw sampling probability implied by the
 approximate sampling utility, and `pick_count` is the number of times that alternative appeared in
 the repeated sample. McFadden's utility correction term for repeated with-replacement sampling is
 `log(pick_count / (sample_size * prob)) = log(pick_count / prob) - log(sample_size)`. ActivitySim
@@ -217,26 +218,25 @@ than for the with-replacement methods.
 
 Runtime and noise characteristics differ across methods.
 
-- `monte_carlo` is the fastest method. It draws one uniform random number per repeated sample for
+- `inverse_cdf` is the fastest method. It draws one uniform random number per repeated sample for
   each chooser, but it also has the most simulation noise because small changes in approximate
   probabilities can change the sampled set substantially.
 - `poisson` is also relatively inexpensive. It draws one uniform random number per
   chooser-alternative pair (with stable alternative alignment, one per chooser and
   stable-universe alternative, so inactive alternatives also consume draws). With stable
-  alternative alignment it is much less noisy than Monte Carlo.
+  alternative alignment it is much less noisy than inverse-CDF sampling.
 - `eet` is the slowest sampling method. It draws one EV1 error term per chooser, alternative, and
   repeated sample draw. In return, it produces the most stable sampled sets across scenarios
   because unchanged alternatives keep the same unobserved error draws and only observed utility
   changes can change the sampled set.
 
 Note that `eet` does not remove the dependence on the approximate sampling utility itself: if that
-utility changes, the sampled set can still change. What it removes is the extra Monte Carlo noise
-from the sampling draw. `poisson` also benefits from stable alignment per alternative, but unlike
-`eet` it still depends on probability-based inclusion tests. The practical effect on scenario
-comparisons is ultimately empirical, but expected to be small. This was found to be the case for
-test scenarios with an increase in employment in some zones, and therefore the sampling utility,
-for the SANDAG example model. `poisson` is therefore the default sampling method when running in
-explicit error term simulation mode.
+utility changes, the sampled set can still change. What it removes is the extra noise from the
+probability-space sampling draw. `poisson` also benefits from stable alignment per alternative, but
+unlike `eet` it still depends on probability-based inclusion tests. The practical effect on
+scenario comparisons is expected to be negligible, and empirical tests with an increase in
+employment in some zones for the SANDAG example model confirm this. `poisson` is therefore the
+default sampling method when running in explicit error term simulation mode.
 
 
 ## References

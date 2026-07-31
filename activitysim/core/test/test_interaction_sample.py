@@ -23,7 +23,7 @@ def state() -> workflow.State:
 def test_interaction_sample_ignores_stable_positions_without_global_eet(
     state, monkeypatch
 ):
-    # Do not support stable alt positions or tracking total alts when running with MC sampling
+    # Do not support stable alt positions or tracking total alts when running with inverse-CDF sampling
     # to not introduce any additional changes while adding eet simulation support to ensure no
     # regressions. We can add these features later if desired.
     captured = {}
@@ -139,7 +139,7 @@ def test_interaction_sample_parity(state):
         index=pd.Index(["chooser_attr * alt_attr"], name="Expression"),
     )
 
-    # Run Monte Carlo with replacement.
+    # Run inverse-CDF sampling with replacement.
     state.settings.use_explicit_error_terms = False
     state.rng().set_base_seed(42)
     state.rng().add_channel("person_id", choosers)
@@ -198,14 +198,14 @@ def test_interaction_sample_parity(state):
     assert choices_eet["alt_id"].isin(alternatives.index).all()
 
     shares = {
-        "monte_carlo": _weighted_shares(choices_mnl),
+        "inverse_cdf": _weighted_shares(choices_mnl),
         "poisson": _weighted_shares(choices_poisson),
         "eet": _weighted_shares(choices_eet),
     }
 
     for left, right in [
-        ("monte_carlo", "poisson"),
-        ("monte_carlo", "eet"),
+        ("inverse_cdf", "poisson"),
+        ("inverse_cdf", "eet"),
         ("poisson", "eet"),
     ]:
         all_alts = set(shares[left].index) | set(shares[right].index)
@@ -428,7 +428,7 @@ def _shares_for_sample(
     return choices, _weighted_shares(choices)
 
 
-def test_interaction_sample_eet_sampling_under_mc_simulation(state):
+def test_interaction_sample_eet_sampling_under_inverse_cdf_simulation(state):
     # use_eet=False + sample_method="eet" was silently ignored before the
     # sampling/simulation decoupling. The dispatch now keys on sampling_method
     # only, so this combo must produce shares that match use_eet=True + eet.
@@ -483,9 +483,9 @@ def test_interaction_sample_eet_sampling_under_mc_simulation(state):
         )
 
 
-def test_interaction_sample_poisson_sampling_under_mc_simulation(state):
-    # use_eet=False + sample_method="poisson" used to silently fall through to MC
-    # sampling and then have pick_count forced to 1, corrupting results. After
+def test_interaction_sample_poisson_sampling_under_inverse_cdf_simulation(state):
+    # use_eet=False + sample_method="poisson" used to silently fall through to
+    # inverse-CDF sampling and then have pick_count forced to 1, corrupting results. After
     # decoupling, the combo must run the Poisson path and match use_eet=True + poisson.
     num_choosers = 100_000
     num_alts = 100
@@ -530,7 +530,7 @@ def test_interaction_sample_poisson_sampling_under_mc_simulation(state):
 
     # Poisson contract: pick_count must be uniformly 1
     assert (choices_mc_sim["pick_count"] == 1).all(), (
-        "Poisson sampling under MC simulation must produce pick_count=1; got "
+        "Poisson sampling under inverse-CDF simulation must produce pick_count=1; got "
         f"{choices_mc_sim['pick_count'].value_counts().to_dict()}"
     )
 
@@ -544,7 +544,7 @@ def test_interaction_sample_poisson_sampling_under_mc_simulation(state):
         )
 
 
-def test_interaction_sample_mc_sampling_under_eet_simulation(state):
+def test_interaction_sample_inverse_cdf_sampling_under_eet_simulation(state):
     num_choosers = 100_000
     num_alts = 100
     sample_size = 10
@@ -570,7 +570,7 @@ def test_interaction_sample_mc_sampling_under_eet_simulation(state):
         spec,
         sample_size,
         use_eet=False,
-        sample_method="monte_carlo",
+        sample_method="inverse_cdf",
         seed=42,
         step_name="test_mc_under_mc_sim",
     )
@@ -581,7 +581,7 @@ def test_interaction_sample_mc_sampling_under_eet_simulation(state):
         spec,
         sample_size,
         use_eet=True,
-        sample_method="monte_carlo",
+        sample_method="inverse_cdf",
         seed=42,
         step_name="test_mc_under_eet_sim",
     )
@@ -590,7 +590,7 @@ def test_interaction_sample_mc_sampling_under_eet_simulation(state):
     for alt in all_alts:
         diff = abs(shares_mc_sim.get(alt, 0.0) - shares_eet_sim.get(alt, 0.0))
         assert diff < 0.01, (
-            f"MC sampling shares should not depend on simulation mode at alt {alt}: "
+            f"Inverse-CDF sampling shares should not depend on simulation mode at alt {alt}: "
             f"mc_sim={shares_mc_sim.get(alt, 0.0):.4f}, "
             f"eet_sim={shares_eet_sim.get(alt, 0.0):.4f}, diff={diff:.4f}"
         )

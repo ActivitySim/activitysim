@@ -48,13 +48,15 @@ def mode_choice_simulate(
     nest_spec
     skims
     locals_d
-    chunk_size
     mode_column_name
     logsum_column_name
     trace_label
     trace_choice_name
     estimator
-    compute_settings : ComputeSettings
+    compute_settings : ComputeSettings, optional
+    explicit_chunk_size : float, default 0
+        If > 0, the fixed number of choosers per chunk (explicit chunking); if 0, chunk sizing
+        follows the run's chunk_training_mode / adaptive sizing.
 
     Returns
     -------

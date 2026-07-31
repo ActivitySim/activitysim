@@ -92,9 +92,19 @@ alternatives, so it can provide improved noise reduction compared to `monte_carl
 cost of `eet` and therefore it is the default when running with explicit error terms, see
 {ref}`explicit-error-terms-dev`.
 
-<!-- Because sampled alternatives appear at most once per chooser, raw sampled shares can differ
+Because sampled alternatives appear at most once per chooser, raw sampled shares can differ
 noticeably from repeated-draw MNL shares in highly peaked cases. This is structural behavior, not
-numerical noise. The interaction-sample tests document this explicitly. -->
+numerical noise. The interaction-sample tests document this explicitly.
+
+Under `poisson`, the configured sample size $s$ is a rate parameter rather than a count of draws,
+and it is deliberately not clamped to the number of alternatives (`monte_carlo` and `eet` clamp it,
+which is statistically harmless for with-replacement draws because the omitted $\log s$ term in the
+correction is constant per chooser). When a chooser has fewer available alternatives than $s$, its
+probability mass is concentrated and the inclusion probabilities saturate towards 1: the chooser
+receives essentially its whole availability set, each alternative with a correction term near
+$\log(1/1) = 0$, and the final choice approaches exact MNL over the true availability set. No
+special-casing is needed for such choosers; their expected sample size $\sum_i q_i$ is simply
+smaller than $s$.
 
 A chooser can occasionally receive no sampled alternatives under Poisson sampling, because each
 alternative is tested independently. The probability of this happening for a given chooser is
@@ -107,7 +117,9 @@ Because the probabilities sum to one and $1 - p \le e^{-p}$, this is bounded abo
 regardless of how the probabilities are distributed. It is therefore negligible at the sample sizes
 these models use (at most $10^{-13}$ for a sample size of 30), but not negligible at small sample
 sizes, or for a chooser whose probability mass is spread very thinly. If it happens, that chooser
-falls back to its $s$ highest-probability alternatives.
+falls back to its $\min(s, n)$ highest-probability *available* alternatives, where $n$ is the
+number of alternatives with non-zero probability. Zero-probability alternatives are never included,
+so an unavailable alternative cannot enter the choice set through either branch.
 
 The fallback is deliberately deterministic and draws no random numbers, so every chooser advances
 its random number channel by exactly the same amount whether or not the fallback fires. A retry or
@@ -158,7 +170,7 @@ chooser and therefore does not affect choice probabilities.
 
 For `poisson`, `prob` is the inclusion probability of the alternative in the sampled set, not the
 one-draw choice probability. Specifically, if the original approximate choice probability is $p$
-and the configured sample size is $s$, then the inclusion probably of the Bernoulli trial is
+and the configured sample size is $s$, then the inclusion probability of the Bernoulli trial is
 
 $$
 q_i = 1 - (1 - p_i)^s
@@ -185,7 +197,7 @@ not depend on how many times a given chooser was redrawn.
 
 Ranking the probabilities to find the fallback set costs about as much as the Bernoulli draw itself,
 so the implementation evaluates the fallback term only for choosers whose $P_0$ exceeds
-`POISSON_EMPTY_SAMPLE_TOLERANCE`, which is set to $1e-12$, plus every chooser that actually drew
+`POISSON_EMPTY_SAMPLE_TOLERANCE`, which is set to $10^{-12}$, plus every chooser that actually drew
 nothing. Since $P_0 \le e^{-s}$, this branch is never evaluated above a sample size of 27. Dropping
 the term understates `prob` by $P_0$, so the relative error on the correction is $P_0 / q_i$, which
 is only large for an alternative whose own inclusion probability is far below $P_0$. But such an
@@ -209,8 +221,9 @@ Runtime and noise characteristics differ across methods.
   each chooser, but it also has the most simulation noise because small changes in approximate
   probabilities can change the sampled set substantially.
 - `poisson` is also relatively inexpensive. It draws one uniform random number per
-  chooser-alternative pair. With stable alternative alignment it is much less noisy
-  than Monte Carlo.
+  chooser-alternative pair (with stable alternative alignment, one per chooser and
+  stable-universe alternative, so inactive alternatives also consume draws). With stable
+  alternative alignment it is much less noisy than Monte Carlo.
 - `eet` is the slowest sampling method. It draws one EV1 error term per chooser, alternative, and
   repeated sample draw. In return, it produces the most stable sampled sets across scenarios
   because unchanged alternatives keep the same unobserved error draws and only observed utility

@@ -70,7 +70,7 @@ precise estimators under EET.
 In mathematical terms, for any two metrics $X$ (baseline) and $Y$ (scenario), the variance
 of the difference $X - Y$ is
 
-$$\text{Var}(X - Y) = \text{Var}(X) + \text{Var}(Y) - 2,\text{Cov}(X, Y)$$
+$$\text{Var}(X - Y) = \text{Var}(X) + \text{Var}(Y) - 2\,\text{Cov}(X, Y)$$
 
 EET deliberately drives $\text{Cov}(X, Y)$ up by aligning error terms, so $\text{Var}(X-Y)$
 collapses even though $\text{Var}(X)$ and $\text{Var}(Y)$ individually are unchanged.

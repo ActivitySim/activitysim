@@ -134,6 +134,10 @@ def _poisson_fallback_positions(
     alternatives for each row of `probs_values` (all of them if there are fewer
     than `sample_size` alternatives), with ties broken by column position.
 
+    A row with fewer than `sample_size` positive-probability alternatives gets
+    zero-probability positions in its trailing columns; the caller drops those
+    pairs so that an unavailable alternative can never enter the choice set.
+
     This is deliberately *deterministic* and consumes no random numbers, so every
     chooser row advances its RNG channel by exactly the same amount whether or not
     the fallback fires. That keeps random number streams aligned across scenarios,
@@ -238,8 +242,11 @@ def make_sample_choices_poisson(
     Since the probabilities sum to one and 1 - p <= exp(-p), this is bounded above by
     exp(-sample_size): very small at the sample sizes these models use (~1e-13
     for `sample_size=30`), but not negligible at small sample sizes or for a chooser whose
-    probability mass is spread thinly. Those choosers fall back to the `sample_size`
-    highest-probability alternatives (see `_poisson_fallback_positions`). The fallback is
+    probability mass is spread thinly. Those choosers fall back to their
+    `min(sample_size, n_available)` highest-probability available alternatives, where
+    `n_available` counts the alternatives with non-zero probability (see
+    `_poisson_fallback_positions`) -- an unavailable alternative can never enter the
+    choice set through either branch. The fallback is
     deterministic and draws no random numbers, so every chooser advances its RNG channel by
     exactly the same amount whether or not it fires -- unlike a retry scheme, this cannot
     desynchronise random number streams between scenarios.
@@ -293,9 +300,9 @@ def make_sample_choices_poisson(
     if n_empty > 0:
         logger.warning(
             f"Poisson sampling drew an empty choice set for {n_empty} of {len(probs)} "
-            f"chooser(s) in {trace_label}; falling back to the "
-            f"{min(sample_size, probs_values.shape[1])} highest-probability alternatives "
-            f"for those choosers. Highest empty-sample probability was "
+            f"chooser(s) in {trace_label}; falling back to (at most) the "
+            f"{min(sample_size, probs_values.shape[1])} highest-probability available "
+            f"alternatives for those choosers. Highest empty-sample probability was "
             f"{empty_sample_probs[empty_rows].max():.2g} against a requested sample size "
             f"of {sample_size} and a mean expected sample size of "
             f"{inclusion_probs[empty_rows].sum(axis=1).mean():.1f}."
@@ -312,6 +319,17 @@ def make_sample_choices_poisson(
         )
         row_positions = np.repeat(fallback_rows, fallback_cols.shape[1])
         col_positions = fallback_cols.reshape(-1)
+
+        # drop zero-probability pairs: a chooser with fewer available (p > 0)
+        # alternatives than the fallback window would otherwise get it padded with
+        # unavailable alternatives, which would enter the final choice set carrying a
+        # large positive correction term log(1/P0). The fallback set remains a
+        # deterministic function of the probabilities, so the closed form for the
+        # reported prob is unchanged.
+        available = probs_values[row_positions, col_positions] > 0.0
+        row_positions = row_positions[available]
+        col_positions = col_positions[available]
+
         inclusion_probs[row_positions, col_positions] += empty_sample_probs[
             row_positions
         ]
@@ -1082,13 +1100,17 @@ def interaction_sample(
         stable_alt_positions = None
         n_total_alts = None
 
-    # FIXME - legacy logic - not sure this is needed or even correct?
     if sampling_method != "poisson":
+        # legacy clamp for the with-replacement methods; statistically harmless because
+        # the omitted log(sample_size) term in the correction is constant per chooser
         sample_size = min(sample_size, len(alternatives.index))
-        # with poisson sampling, definitely don't want to reduce sample size - it's not a sample size but a number
-        # of theoretical draws. Another options would be to disable sampling if # alts < sample size to ensure
-        # all are included (but this wouldn't behave well if there were land use changes in the project case which
-        # switched regimes)
+        # with poisson sampling the sample size must not be clamped: it is not a count of
+        # draws but the rate parameter of the inclusion probabilities. When a chooser has
+        # fewer available alternatives than sample_size, its inclusion probabilities
+        # saturate towards 1 and the final choice approaches exact MNL over its full
+        # availability set, which is the desired behavior. (Disabling sampling entirely
+        # in that regime would behave badly if a project-case land use change switched
+        # regimes.)
 
     logger.debug(f" interaction_sample sample size = {sample_size}")
 

@@ -311,6 +311,7 @@ To enable EET for a model run, set the global switch in ``settings.yaml``:
 
 Enable or disable this setting consistently across all runs being compared. For more details, including
 scenario comparison considerations, see :doc:`/dev-guide/explicit-error-terms`.
+
 .. _skip_failed_choices_ways_to_run :
 
 Skip Failed Choices

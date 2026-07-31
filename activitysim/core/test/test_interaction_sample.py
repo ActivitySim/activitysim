@@ -657,8 +657,9 @@ def _reference_poisson_sampled_values(probs_np, draws, sample_size):
 
     An alternative ends up in the choice set if its Bernoulli draw succeeded, or if the
     chooser drew nothing at all and the alternative is one of the `sample_size` most
-    likely. Those events are disjoint, so the probability of an alternative being in the
-    returned set is `q_i + P0 * 1{i in fallback set}` for every chooser and both branches.
+    likely *available* (p > 0) alternatives. Those events are disjoint, so the
+    probability of an alternative being in the returned set is
+    `q_i + P0 * 1{i in fallback set}` for every chooser and both branches.
 
     Returns the sparse chooser-by-alternative array of reported probabilities, with
     np.nan for alternatives that are not in the choice set.
@@ -673,6 +674,8 @@ def _reference_poisson_sampled_values(probs_np, draws, sample_size):
     k = min(sample_size, probs_np.shape[1])
     top_k = np.argsort(-probs_np, axis=1, kind="stable")[:, :k]
     np.put_along_axis(in_fallback, top_k, True, axis=1)
+    # unavailable alternatives never enter the choice set
+    in_fallback &= probs_np > 0
 
     # the implementation skips the P0 term where it cannot matter; mirror that here so
     # the comparison stays exact (see POISSON_EMPTY_SAMPLE_TOLERANCE)
@@ -845,6 +848,56 @@ def test_make_sample_choices_poisson_consumes_no_extra_randoms_on_empty_draw():
     )
 
     pd.testing.assert_frame_equal(choices_df, expected)
+
+
+def test_make_sample_choices_poisson_fallback_excludes_unavailable_alternatives():
+    # a chooser with fewer available (p > 0) alternatives than the fallback window must
+    # not have its fallback set padded with unavailable alternatives: those would enter
+    # the final choice set carrying a large positive correction term log(1/P0)
+    probs = pd.DataFrame(
+        [[0.60, 0.40, 0.00, 0.00]],
+        index=pd.Index([11], name="person_id"),
+        columns=np.arange(4),
+    )
+    sample_size = 3
+    alternatives = pd.DataFrame(index=pd.Index([100, 300, 700, 900], name="alt_id"))
+    # both available alternatives fail their inclusion draw, forcing the fallback
+    fail_draw = np.array([[0.99, 0.99, 0.99, 0.99]], dtype=np.float64)
+    state = _DummyState(_SequentialDummyRng([fail_draw]))
+
+    choices_df = interaction_sample.make_sample_choices_poisson(
+        chunk_sizer=_DummyChunkSizer(),
+        probs=probs,
+        alternatives=alternatives,
+        sample_size=sample_size,
+        alt_col_name="alt_id",
+        state=state,
+        trace_label="test_make_sample_choices_poisson_fallback_excludes_unavailable_alternatives",
+    )
+
+    # only the two available alternatives are returned, each reported at q_i + P0,
+    # even though the fallback window min(sample_size, n_alts) = 3 is wider
+    inclusion_probs = 1 - np.power(1 - probs.to_numpy(), sample_size)
+    empty_sample_prob = np.prod(1 - inclusion_probs, axis=1)[0]
+    expected = pd.DataFrame(
+        {
+            "person_id": [11, 11],
+            "prob": [
+                inclusion_probs[0, 0] + empty_sample_prob,
+                inclusion_probs[0, 1] + empty_sample_prob,
+            ],
+            "alt_id": [100, 300],
+        }
+    )
+    pd.testing.assert_frame_equal(choices_df, expected)
+
+    # the reference implementation agrees
+    pd.testing.assert_frame_equal(
+        choices_df,
+        _reference_poisson_choices_df(
+            probs, fail_draw, sample_size, alternatives, "alt_id"
+        ),
+    )
 
 
 def test_make_sample_choices_poisson_reported_prob_is_total_inclusion_probability():

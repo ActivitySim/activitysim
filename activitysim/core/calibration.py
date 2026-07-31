@@ -1469,10 +1469,14 @@ def _run_in_configured_mode(
     if state.settings.multiprocess:
         # Write the restored state as a checkpoint so LAST_CHECKPOINT on disk
         # reflects the correct (clean) state for the apportion subprocess.
-        # Without this, Parquet stores retain a stale LAST_CHECKPOINT from a
-        # prior run that may include downstream data (e.g. non-mandatory tours
-        # polluting a re-run of non_mandatory_tour_frequency).
-        state.checkpoint.add(resume_after or models[0])
+        # When extra_models were prepended, the state is from a PRIOR step
+        # (not the actual resume_after point) — use a non-conflicting name
+        # so it won't be mistakenly loaded as the resume_after state on a
+        # subsequent restart.
+        if extra_models:
+            state.checkpoint.add(f"_calibration_staging")
+        else:
+            state.checkpoint.add(resume_after or models[0])
         state.checkpoint.close_store()
 
         _run_multiprocess_with_overrides(

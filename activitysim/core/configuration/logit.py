@@ -267,7 +267,7 @@ class TourLocationComponentSettings(LocationComponentSettings, extra="forbid"):
     This setting is now obsolete and does nothing. Its functionality has been
     replaced by :func:`activitysim.core.util.drop_unused_columns`.
 
-    .. deprecated:: 1.4
+    .. deprecated:: 1.6
     """
 
     ALT_DEST_COL_NAME: str
@@ -305,7 +305,7 @@ class TourModeComponentSettings(TemplatedLogitComponentSettings, extra="forbid")
     This setting is now obsolete and does nothing. Its functionality has been
     replaced by :func:`activitysim.core.util.drop_unused_columns`.
 
-    .. deprecated:: 1.4
+    .. deprecated:: 1.6
     """
 
     @field_validator("LOGSUM_CHOOSER_COLUMNS", mode="before")

@@ -637,8 +637,10 @@ def destination_presample(
 
     orig_maz = model_settings.CHOOSER_ORIG_COL_NAME
     assert orig_maz in choosers
-    if ORIG_TAZ not in choosers:
-        choosers[ORIG_TAZ] = network_los.map_maz_to_taz(choosers[orig_maz])
+    # This is the TAZ for the configured tour origin.  A wider chooser table
+    # may already contain a same-named home TAZ, which is incorrect for models
+    # such as at-work subtour destination choice.
+    choosers[ORIG_TAZ] = network_los.map_maz_to_taz(choosers[orig_maz])
 
     # create wrapper with keys for this lookup - in this case there is a HOME_TAZ in the choosers
     # and a DEST_TAZ in the alternatives which get merged during interaction

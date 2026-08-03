@@ -24,6 +24,10 @@ def run_tour_scheduling(
     trace_label: str,
 ):
 
+    # The deprecated chooser-column filter returned a new frame.  Retain that
+    # isolation because vectorized scheduling annotates merged chooser data.
+    persons_merged = persons_merged.copy()
+
     timetable = state.get_injectable("timetable")
 
     # - run preprocessor to annotate choosers

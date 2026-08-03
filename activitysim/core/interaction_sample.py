@@ -572,9 +572,7 @@ def _interaction_sample(
         # written out above, so here we only need to preserve the columns used to
         # identify the traced rows in the interaction dataframe
         trace_columns = (
-            ["person_id", "proto_person_id", "proto_household_id"]
-            if have_trace_targets
-            else []
+            util.traceable_id_columns(choosers) if have_trace_targets else []
         )
 
         choosers = util.drop_unused_columns(

@@ -103,6 +103,42 @@ def test_simple_simulate_chunked(state, data, spec):
     pdt.assert_series_equal(choices, expected, check_dtype=False)
 
 
+def test_simple_simulate_prunes_unused_columns_while_tracing(state, monkeypatch):
+    choosers = pd.DataFrame(
+        {
+            "household_id": [10, 20],
+            "tour_id": [100, 200],
+            "used": [1.0, 2.0],
+            "unused": [100.0, 200.0],
+        },
+        index=pd.Index([1, 2], name="person_id"),
+    )
+    spec = pd.DataFrame(
+        {"alternative": [1.0]},
+        index=pd.Index(["used"], name="Expression"),
+    )
+    captured_columns = None
+
+    monkeypatch.setattr(state.tracing, "has_trace_targets", lambda _df: True)
+
+    def capture_eval_mnl(_state, pruned_choosers, *_args, **_kwargs):
+        nonlocal captured_columns
+        captured_columns = list(pruned_choosers.columns)
+        return pd.Series(0, index=pruned_choosers.index)
+
+    monkeypatch.setattr(simulate, "eval_mnl", capture_eval_mnl)
+
+    simulate.simple_simulate(
+        state,
+        choosers,
+        spec,
+        nest_spec=None,
+        trace_column_names="tour_id",
+    )
+
+    assert captured_columns == ["household_id", "tour_id", "used"]
+
+
 def test_eval_mnl_eet(state):
     # Check that the same counts are returned by eval_mnl when using EET and when not.
 

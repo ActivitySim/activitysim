@@ -343,7 +343,7 @@ class SchoolEscortSettings(BaseLogitComponentSettings, extra="forbid"):
     This setting is now obsolete and does nothing. Its functionality has been
     replaced by :func:`activitysim.core.util.drop_unused_columns`.
 
-    .. deprecated:: 1.4
+    .. deprecated:: 1.6
     """
 
     @field_validator("SIMULATE_CHOOSER_COLUMNS", mode="before")
@@ -576,10 +576,14 @@ def school_escorting(
             )
 
         if stage_num >= 1:
-            choosers["alt"] = choices
-            choosers = choosers.join(alts, how="left", on="alt")
+            # The raw alternative columns are only needed to construct bundle
+            # records.  Do not retain them on the chooser state: the final
+            # stage would otherwise try to join the same columns a second time.
+            bundle_choosers = choosers.assign(alt=choices).join(
+                alts, how="left", on="alt"
+            )
             bundles = create_school_escorting_bundles_table(
-                choosers[choosers["alt"] > 1], tours, stage
+                bundle_choosers[bundle_choosers["alt"] > 1], tours, stage
             )
             escort_bundles.append(bundles)
 

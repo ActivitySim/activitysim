@@ -242,7 +242,10 @@ def location_sample(
     chunk_tag,
     trace_label,
 ):
-    choosers = persons_merged
+    # The former column selection returned an independent frame.  Preserve that
+    # isolation so component preprocessors cannot leak annotations into the
+    # shared persons table or into later location-choice segments.
+    choosers = persons_merged.copy()
 
     # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
     # and a zone_id in the alternatives which get merged during interaction
@@ -434,7 +437,8 @@ def location_presample(
         HOME_TAZ in persons_merged
     )  # 'TAZ' should already be in persons_merged from land_use
 
-    choosers = persons_merged
+    # Keep chooser annotations local to this model segment.
+    choosers = persons_merged.copy()
 
     # create wrapper with keys for this lookup - in this case there is a HOME_TAZ in the choosers
     # and a DEST_TAZ in the alternatives which get merged during interaction
@@ -669,7 +673,9 @@ def run_location_simulate(
     """
     assert not persons_merged.empty
 
-    choosers = persons_merged
+    # Preprocessors annotate choosers in place.  Use a copy so those temporary
+    # columns do not affect subsequent segments that share persons_merged.
+    choosers = persons_merged.copy()
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 

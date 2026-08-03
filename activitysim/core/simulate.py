@@ -1777,13 +1777,16 @@ def _simple_simulate(
     if compute_settings is None:
         compute_settings = ComputeSettings()
 
-    # if tracing is not enabled, drop unused columns
-    # if not estimation mode, drop unused columns
-    if (
-        (not have_trace_targets)
-        and (estimator is None)
-        and (compute_settings.drop_unused_columns)
-    ):
+    if compute_settings.drop_unused_columns:
+        trace_columns = (
+            util.traceable_id_columns(choosers) if have_trace_targets else []
+        )
+        if have_trace_targets and trace_column_names is not None:
+            trace_columns += (
+                [trace_column_names]
+                if isinstance(trace_column_names, str)
+                else list(trace_column_names)
+            )
         # drop unused variables in chooser table
         choosers = util.drop_unused_columns(
             choosers,
@@ -1791,7 +1794,7 @@ def _simple_simulate(
             locals_d,
             custom_chooser,
             sharrow_enabled=sharrow_enabled,
-            additional_columns=compute_settings.protect_columns,
+            additional_columns=trace_columns + compute_settings.protect_columns,
         )
 
     if nest_spec is None:
@@ -2121,8 +2124,10 @@ def _simple_simulate_logsums(
     if compute_settings is None:
         compute_settings = ComputeSettings()
 
-    # if tracing is not enabled, drop unused columns
-    if (not have_trace_targets) and (compute_settings.drop_unused_columns):
+    if compute_settings.drop_unused_columns:
+        trace_columns = (
+            util.traceable_id_columns(choosers) if have_trace_targets else []
+        )
         # drop unused variables in chooser table
         choosers = util.drop_unused_columns(
             choosers,
@@ -2130,7 +2135,7 @@ def _simple_simulate_logsums(
             locals_d,
             custom_chooser=None,
             sharrow_enabled=state.settings.sharrow,
-            additional_columns=compute_settings.protect_columns,
+            additional_columns=trace_columns + compute_settings.protect_columns,
         )
 
     if nest_spec is None:

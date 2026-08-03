@@ -757,22 +757,29 @@ def _interaction_simulate(
     if compute_settings is None:
         compute_settings = ComputeSettings()
 
-    # drop variables before the interaction dataframe is created
-
-    # check if tracing is enabled and if we have trace targets
-    # if not estimation mode, drop unused columns
-    if (
-        (not have_trace_targets)
-        and (estimator is None)
-        and (compute_settings.drop_unused_columns)
-    ):
+    # Pruning is safe for tracing because full inputs were written above, and
+    # safe for estimation because components write their chooser tables before
+    # utility evaluation.
+    if compute_settings.drop_unused_columns:
+        identity_columns = (
+            util.traceable_id_columns(choosers)
+            if have_trace_targets or estimator is not None
+            else []
+        )
+        estimator_columns = (
+            [estimator.chooser_id_column_name]
+            if estimator is not None and estimator.chooser_id_column_name is not None
+            else []
+        )
         choosers = util.drop_unused_columns(
             choosers,
             spec,
             locals_d,
             custom_chooser=None,
             sharrow_enabled=sharrow_enabled,
-            additional_columns=compute_settings.protect_columns,
+            additional_columns=(
+                identity_columns + estimator_columns + compute_settings.protect_columns
+            ),
         )
 
     if (

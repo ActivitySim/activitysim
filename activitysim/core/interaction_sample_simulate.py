@@ -154,20 +154,33 @@ def _interaction_sample_simulate(
     if compute_settings is None:
         compute_settings = ComputeSettings()
 
-    # check if tracing is enabled and if we have trace targets
-    # if not estimation mode, drop unused columns
-    if (
-        (not have_trace_targets)
-        and (estimator is None)
-        and (compute_settings.drop_unused_columns)
-    ):
+    if compute_settings.drop_unused_columns:
+        identity_columns = (
+            util.traceable_id_columns(choosers)
+            if have_trace_targets or estimator is not None
+            else []
+        )
+        estimator_chooser_columns = (
+            [estimator.chooser_id_column_name]
+            if estimator is not None and estimator.chooser_id_column_name is not None
+            else []
+        )
+        estimator_alternative_columns = (
+            [estimator.alt_id_column_name]
+            if estimator is not None and estimator.alt_id_column_name is not None
+            else []
+        )
         choosers = util.drop_unused_columns(
             choosers,
             spec,
             locals_d,
             custom_chooser=None,
             sharrow_enabled=sharrow_enabled,
-            additional_columns=compute_settings.protect_columns,
+            additional_columns=(
+                identity_columns
+                + estimator_chooser_columns
+                + compute_settings.protect_columns
+            ),
         )
 
         alternatives = util.drop_unused_columns(
@@ -176,7 +189,11 @@ def _interaction_sample_simulate(
             locals_d,
             custom_chooser=None,
             sharrow_enabled=sharrow_enabled,
-            additional_columns=["tdd"] + compute_settings.protect_columns,
+            additional_columns=(
+                ["tdd"]
+                + estimator_alternative_columns
+                + compute_settings.protect_columns
+            ),
         )
 
     interaction_df = alternatives.join(choosers, how="left", rsuffix="_chooser")

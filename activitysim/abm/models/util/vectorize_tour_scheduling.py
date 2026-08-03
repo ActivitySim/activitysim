@@ -51,7 +51,7 @@ class TourSchedulingSettings(LogitComponentSettings, extra="forbid"):
     This setting is now obsolete and does nothing. Its functionality has been
     replaced by :func:`activitysim.core.util.drop_unused_columns`.
 
-    .. deprecated:: 1.4
+    .. deprecated:: 1.6
     """
 
     @field_validator("SIMULATE_CHOOSER_COLUMNS", mode="before")

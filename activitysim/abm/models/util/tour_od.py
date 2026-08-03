@@ -736,7 +736,8 @@ def run_od_sample(
         coefficients_file_name=model_settings.COEFFICIENTS,
     )
 
-    choosers = tours
+    # Preserve the independent-frame behavior of the former column subset.
+    choosers = tours.copy()
 
     # interaction_sample requires that choosers.index.is_monotonic_increasing
     if not choosers.index.is_monotonic_increasing:
@@ -987,7 +988,9 @@ def run_od_simulate(
     )
 
     # merge persons into tours
-    choosers = tours
+    # Preprocessors may annotate choosers in place; keep those columns local to
+    # this segment instead of mutating the shared tours table.
+    choosers = tours.copy()
 
     # interaction_sample requires that choosers.index.is_monotonic_increasing
     if not choosers.index.is_monotonic_increasing:

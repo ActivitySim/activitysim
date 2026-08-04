@@ -225,7 +225,7 @@ def run_calibration_loop(
             # apportion subprocess) starts from the correct state without
             # downstream model data.
             extra_models = _prep_model_data(
-                state, [], resume_after=state.settings.resume_after
+                state, resume_after=state.settings.resume_after
             )
             if extra_models:
                 # No model-level checkpoint exists for resume_after; we must
@@ -1459,7 +1459,7 @@ def _run_in_configured_mode(
     if not models:
         return
 
-    extra_models = _prep_model_data(state, models, resume_after=resume_after)
+    extra_models = _prep_model_data(state, resume_after=resume_after)
     if extra_models:
         # Models from the step beginning through resume_after must run first
         # to recreate the correct intermediate state (since no model-level
@@ -1479,11 +1479,19 @@ def _run_in_configured_mode(
             state.checkpoint.add(resume_after or models[0])
         state.checkpoint.close_store()
 
+        # When subprocess pipelines from a prior run already have the
+        # resume_after checkpoint (Path 2 in _prep_model_data), subprocesses
+        # can skip models before resume_after by reusing those pipelines
+        # instead of freshly apportioning.  Signal this by passing
+        # can_reuse_subprocs=True.
+        can_reuse = not extra_models and resume_after is not None
+
         _run_multiprocess_with_overrides(
             state,
             models=models,
             resume_after=resume_after,
             shared_data_buffers=shared_data_buffers,
+            can_reuse_subprocs=can_reuse,
         )
         # After multiprocess completes, the coalesced pipeline exists on disk.
         # Restore it into the parent process state so tables are accessible
@@ -1503,7 +1511,7 @@ def _run_in_configured_mode(
     )
 
 
-def _prep_model_data(state, models, resume_after=None):
+def _prep_model_data(state, resume_after=None):
     """Restore the pipeline to the correct state before running models.
 
     Resolution priority:
@@ -1762,8 +1770,22 @@ def _run_multiprocess_with_overrides(
     models: list[str],
     resume_after: str | None,
     shared_data_buffers: dict | None = None,
+    can_reuse_subprocs: bool = False,
 ) -> None:
-    """Run multiprocess with temporary settings overrides for calibration passes."""
+    """Run multiprocess with temporary settings overrides for calibration passes.
+
+    Parameters
+    ----------
+    can_reuse_subprocs : bool, default False
+        When True, subprocess pipelines from a prior run are assumed to exist
+        and contain the ``resume_after`` checkpoint.  Breadcrumbs are written
+        so that ``get_run_list`` populates ``step_info["resume_after"]``,
+        apportion is skipped (reusing existing subprocess pipelines), and
+        subprocesses resume from their model-level checkpoint — skipping
+        already-completed models.
+    """
+    from collections import OrderedDict
+
     from activitysim.core import mp_tasks
 
     original_models = state.settings.models
@@ -1779,11 +1801,40 @@ def _run_multiprocess_with_overrides(
 
     state.settings.models = models
     state.settings.multiprocess_steps = calibration_mp_steps
-    # Always None: calibration manages pipeline state externally via
-    # _restore_parent_state_from_pipeline and checkpoint.add, so the MP
-    # system's breadcrumb-based resume logic must not be triggered.
-    # Apportion uses LAST_CHECKPOINT to read from the current pipeline state.
-    state.settings.resume_after = None
+
+    if can_reuse_subprocs and resume_after:
+        # Enable the normal resume mechanism: set resume_after in settings
+        # and write breadcrumbs so get_run_list can properly populate
+        # step_info["resume_after"].  Apportion will be skipped (prior
+        # subprocess pipelines reused), and subprocesses will restore from
+        # their existing model-level checkpoint.
+        state.settings.resume_after = resume_after
+
+        # Write minimal breadcrumbs indicating the step containing
+        # resume_after has completed apportion (so it's skipped) but
+        # simulate/coalesce need re-running.
+        breadcrumbs = OrderedDict()
+        for step in calibration_mp_steps:
+            step_dict = {"name": step.name, "apportion": True}
+            breadcrumbs[step.name] = step_dict
+            # Find the step containing resume_after
+            all_models = state.settings.models
+            if resume_after in all_models:
+                step_begin = all_models.index(step.begin)
+                step_models_in_step = [
+                    m for m in all_models[step_begin:] if m in models
+                ]
+                if resume_after in step_models_in_step:
+                    # This step contains resume_after — stop here.
+                    # get_breadcrumbs will mark simulate/coalesce for re-run.
+                    break
+
+        mp_tasks.write_breadcrumbs(state, breadcrumbs)
+    else:
+        # No reuse: calibration manages pipeline state externally via
+        # _restore_parent_state_from_pipeline and checkpoint.add, so the MP
+        # system's breadcrumb-based resume logic must not be triggered.
+        state.settings.resume_after = None
 
     try:
         injectables = _build_calibration_injectables(state)
@@ -1792,7 +1843,7 @@ def _run_multiprocess_with_overrides(
             injectables,
             shared_data_buffers=shared_data_buffers,
             skip_final_checkpoint=True,
-            force_resume=resume_after is not None,
+            force_resume=resume_after is not None and not can_reuse_subprocs,
         )
     finally:
         state.settings.models = original_models

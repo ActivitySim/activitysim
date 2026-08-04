@@ -135,6 +135,15 @@ class ComputeSettings(PydanticBase):
     Sharrow settings for a component.
     """
 
+    sample_method: None | Literal["monte_carlo", "eet", "poisson"] = None
+    """
+    Override the alternative sampling method used by `interaction_sample`.
+
+    When unset, `interaction_sample` preserves legacy behavior: it uses
+    `monte_carlo` when explicit error terms are off and `poisson` when they
+    are on.
+    """
+
     sharrow_skip: bool | dict[str, bool] = False
     """Skip sharrow when evaluating this component.
 
@@ -170,14 +179,14 @@ class ComputeSettings(PydanticBase):
     computations are NaN or Inf.  This can lead to errors when the assumptions
     are violated.  If running in sharrow test mode generates errors, try turning
     this setting off.
-    
+
     .. versionchanged:: 1.6
 
         In ActivitySim versions 1.5 and earlier, the default value for this
         setting was `True`, meant to favor superior runtime performance when
         using sharrow. However, due to the difficulty of diagnosing and fixing
         bugs that arise from the use of `fastmath`, the default setting has been
-        changed to `False`. 
+        changed to `False`.
     """
 
     use_bottleneck: bool | None = None
@@ -274,6 +283,7 @@ class ComputeSettings(PydanticBase):
             use_numba=self.use_numba,
             drop_unused_columns=self.drop_unused_columns,
             protect_columns=self.protect_columns,
+            sample_method=self.sample_method,
         )
 
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import os.path
 
+import numpy as np
 import pandas as pd
 import pandas.testing as pdt
 import pytest
@@ -176,3 +177,84 @@ def test_build_cdap_spec_hhsize2(people, model_settings):
     ).astype("float")
 
     pdt.assert_frame_equal(utils, expected, check_names=False)
+
+
+def test_cdap_explicit_error_terms_parity(people, model_settings):
+    person_type_map = model_settings.get("PERSON_TYPE_MAP", {})
+
+    # Increase population to get more stable distribution for parity check
+    # We'll just duplicate the existing people a few times
+    large_people = pd.concat([people] * 500).reset_index(drop=True)
+    large_people.index.name = "person_id"
+
+    assert people.household_id.is_monotonic_increasing
+    large_people["hhid_diff"] = large_people.household_id.diff().fillna(0).astype(int)
+    large_people.loc[large_people["hhid_diff"] < 0, "hhid_diff"] = 1
+    large_people["household_id"] = large_people.hhid_diff.cumsum()
+
+    assert large_people["household_id"].is_monotonic_increasing
+
+    # Run without explicit error terms
+    state_no_eet = workflow.State.make_default(__file__)
+    cdap_indiv_spec = state_no_eet.filesystem.read_model_spec(
+        file_name="cdap_indiv_and_hhsize1.csv"
+    )
+    interaction_coefficients = pd.read_csv(
+        state_no_eet.filesystem.get_config_file_path(
+            "cdap_interaction_coefficients.csv"
+        ),
+        comment="#",
+    )
+    interaction_coefficients = cdap.preprocess_interaction_coefficients(
+        interaction_coefficients
+    )
+    cdap_fixed_relative_proportions = pd.DataFrame(
+        {"activity": ["M", "N", "H"], "coefficient": [0.33, 0.33, 0.34]}
+    )
+
+    state_no_eet.settings.use_explicit_error_terms = False
+    state_no_eet.rng().set_base_seed(42)
+    state_no_eet.rng().begin_step("test_no_eet")
+    state_no_eet.rng().add_channel("person_id", large_people)
+    state_no_eet.rng().add_channel(
+        "household_id",
+        large_people.drop_duplicates("household_id").set_index("household_id"),
+    )
+
+    choices_no_eet = cdap.run_cdap(
+        state_no_eet,
+        large_people,
+        person_type_map,
+        cdap_indiv_spec,
+        interaction_coefficients,
+        cdap_fixed_relative_proportions,
+        locals_d=None,
+    )
+
+    # Run with explicit error terms
+    state_eet = workflow.State.make_default(__file__)
+    state_eet.settings.use_explicit_error_terms = True
+    state_eet.rng().set_base_seed(42)
+    state_eet.rng().begin_step("test_eet")
+    state_eet.rng().add_channel("person_id", large_people)
+    state_eet.rng().add_channel(
+        "household_id",
+        large_people.drop_duplicates("household_id").set_index("household_id"),
+    )
+
+    choices_eet = cdap.run_cdap(
+        state_eet,
+        large_people,
+        person_type_map,
+        cdap_indiv_spec,
+        interaction_coefficients,
+        cdap_fixed_relative_proportions,
+        locals_d=None,
+    )
+
+    # Compare distributions
+    dist_no_eet = choices_no_eet.value_counts(normalize=True).sort_index()
+    dist_eet = choices_eet.value_counts(normalize=True).sort_index()
+
+    # Check that they are reasonably close
+    pdt.assert_series_equal(dist_no_eet, dist_eet, atol=0.05, check_names=False)

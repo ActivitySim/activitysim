@@ -279,6 +279,15 @@ def run_trip_scheduling_choice(
         ) in chunk.adaptive_chunked_choosers(state, indirect_tours, trace_label):
             # Sort the choosers and get the schedule alternatives
             choosers = choosers.sort_index()
+            # FIXME-EET: For explicit error term choices, we need a stable alternative ID. Currently, we use
+            # SCHEDULE_ID, which justs enumerates all schedule alternatives, of which there are choosers times
+            # alternative, in the order they are processed, which depends on if there stops on outward/return leg.
+            # We might want to change SCHEDULE_ID to a fixed pattern of all possible combinations of
+            # (outbound, main, inbound) duration for the maximum possible tour duration (max time window). For
+            # 30min intervals, this leads to 1225 alternatives and therefore reasonable memory-wise for random numbers.
+            # It looks like all that would need to change for this is the generation of the schedule alternatives and
+            # the lookup of choices as elements in schedule after simulation because choosers are indexed by tour_id.
+
             schedules = generate_schedule_alternatives(choosers).sort_index()
 
             # preprocessing alternatives

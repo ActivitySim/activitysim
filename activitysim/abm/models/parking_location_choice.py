@@ -21,6 +21,7 @@ from activitysim.core import (
 from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
+from activitysim.core.logit import AltsContext
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place, drop_unused_columns
 from activitysim.core.exceptions import DuplicateWorkflowTableError
@@ -112,6 +113,7 @@ def parking_destination_simulate(
     chunk_size,
     trace_hh_id,
     trace_label,
+    alts_context: AltsContext | None = None,
 ):
     """
     Chose destination from destination_sample (with od_logsum and dp_logsum columns added)
@@ -150,6 +152,7 @@ def parking_destination_simulate(
         trace_label=trace_label,
         trace_choice_name="parking_loc",
         explicit_chunk_size=model_settings.explicit_chunk,
+        alts_context=alts_context,
     )
 
     # drop any failed zero_prob destinations
@@ -211,6 +214,9 @@ def choose_parking_location(
     )
     destination_sample.index = np.repeat(trips.index.values, len(alternatives))
     destination_sample.index.name = trips.index.name
+    # use full land_use index to ensure AltsContext spans full range of potential zones
+    land_use = state.get_dataframe("land_use")
+    alts_context = AltsContext.from_series(land_use.index)
 
     destinations = parking_destination_simulate(
         state,
@@ -223,6 +229,7 @@ def choose_parking_location(
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label,
+        alts_context=alts_context,
     )
 
     if want_sample_table:

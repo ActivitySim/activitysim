@@ -60,7 +60,7 @@ necessarily change for all alternatives if any observed utility changes. This co
 sensitivity to small differences in the final CDF draw when comparing nearby scenarios means
 that EET removes noise from scenario comparisons.
 
-Note that both inverse-CDF and EET simulation are simulating the same model, so individual runs
+Note that both inverse-CDF and EET methods simulate the same underlying model, so individual runs
 with identical inputs but varying global seed will lead to the same statistical results for
 individual output metrics. EET's properties become apparent when comparing two model runs with
 different inputs. Because error terms are aligned, the variance of the estimator of the indicator,

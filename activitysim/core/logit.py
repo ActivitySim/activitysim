@@ -584,9 +584,10 @@ def make_choices_explicit_error_term_nl(
     pandas.Series
         Choice indices aligned to `alt_utilities` columns.
     """
-    assert (
-        alts_context is None and alt_nrs_df is None
-    ), f"{trace_label} - Sampling from nested models is not implemented, do not pass alts_context or alt_nrs_df."
+    if alts_context is not None or alt_nrs_df is not None:
+        raise NotImplementedError(
+            f"{trace_label} - Sampling from nested models is not implemented; do not pass alts_context or alt_nrs_df."
+        )
 
     utilities_incl_unobs = sample_nested_logit_exact_leaf_error_terms(
         state,

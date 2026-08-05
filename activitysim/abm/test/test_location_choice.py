@@ -55,7 +55,13 @@ def test_estimation_override_preserves_destination_choice_logsum(monkeypatch):
         LOGSUM_SETTINGS="tour_mode_choice.yaml",
         SEGMENT_IDS={"workers": 1},
     )
-    state = SimpleNamespace(settings=SimpleNamespace(trace_hh_id=None))
+    state = SimpleNamespace(
+        settings=SimpleNamespace(
+            sample_method="monte_carlo",
+            trace_hh_id=None,
+            use_explicit_error_terms=False,
+        )
+    )
     persons = pd.DataFrame({"segment": [1]}, index=person_index)
 
     choices, sample = location_choice.run_location_choice(

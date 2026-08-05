@@ -1803,11 +1803,19 @@ def _run_multiprocess_with_overrides(
     state.settings.multiprocess_steps = calibration_mp_steps
 
     if can_reuse_subprocs and resume_after:
-        # Enable the normal resume mechanism: set resume_after in settings
-        # and write breadcrumbs so get_run_list can properly populate
-        # step_info["resume_after"].  Apportion will be skipped (prior
-        # subprocess pipelines reused), and subprocesses will restore from
-        # their existing model-level checkpoint.
+        # Include resume_after in the models list so get_breadcrumbs can
+        # locate the step containing it.  Subprocesses will skip this model
+        # (it's already checkpointed in their pipeline) and run the rest.
+        models = [resume_after] + models
+
+        # Rebuild steps with resume_after included.
+        calibration_mp_steps = _build_calibration_mp_steps(
+            models=models,
+            original_steps=original_mp_steps,
+            all_models=original_models,
+        )
+        state.settings.models = models
+        state.settings.multiprocess_steps = calibration_mp_steps
         state.settings.resume_after = resume_after
 
         # Write minimal breadcrumbs indicating the step containing

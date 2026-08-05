@@ -85,13 +85,15 @@ def determine_escorting_participants(
     )
 
     chaperones["chaperone_num"] = (
-        chaperones.sort_values("chaperone_weight", ascending=False, kind="stable")
+        chaperones.sort_values(
+            ["chaperone_weight", "person_id"], ascending=[False, True]
+        )
         .groupby("household_id")
         .cumcount()
         + 1
     )
     escortees["escortee_num"] = (
-        escortees.sort_values("age", ascending=True, kind="stable")
+        escortees.sort_values([age_col, "person_id"], ascending=[True, True])
         .groupby("household_id")
         .cumcount()
         + 1
@@ -280,9 +282,13 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     school_time_cols = [
         "time_home_to_school" + str(i) for i in range(1, NUM_ESCORTEES + 1)
     ]
-    bundles["outbound_order"] = list(bundles[school_time_cols].values.argsort() + 1)
+    # Child number is the deterministic tie-breaker when siblings have the same
+    # home-to-school time, so preserve the order of the child-number columns.
+    bundles["outbound_order"] = list(
+        bundles[school_time_cols].values.argsort(kind="stable") + 1
+    )
     bundles["inbound_order"] = list(
-        (-1 * bundles[school_time_cols]).values.argsort() + 1
+        (-1 * bundles[school_time_cols]).values.argsort(kind="stable") + 1
     )  # inbound gets reverse order
     bundles["child_order"] = np.where(
         bundles["school_escort_direction"] == "outbound",
@@ -314,6 +320,54 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     bundles["Description"] = choosers["Description"]
 
     return bundles
+
+
+def assign_school_escort_bundle_ids(escort_bundles: pd.DataFrame) -> pd.DataFrame:
+    """Sort bundles by semantic keys and assign deterministic, unique IDs."""
+    bundle_key_columns = [
+        "household_id",
+        "school_escort_direction",
+        "bundle_num",
+    ]
+    duplicate_keys = escort_bundles.duplicated(bundle_key_columns, keep=False)
+    if duplicate_keys.any():
+        duplicates = escort_bundles.loc[duplicate_keys, bundle_key_columns]
+        raise ValueError(f"Duplicate school escort bundle keys:\n{duplicates}")
+
+    # Inbound bundles were historically appended first and therefore received
+    # the lower IDs. Use an explicit direction rank to preserve that behavior
+    # without depending on categorical or input row ordering.
+    direction = escort_bundles["school_escort_direction"]
+    direction_order = np.select(
+        [direction == "inbound", direction == "outbound"], [0, 1], default=-1
+    )
+    if (direction_order < 0).any():
+        invalid_directions = direction[direction_order < 0].unique().tolist()
+        raise ValueError(
+            f"Invalid school escort bundle directions: {invalid_directions}"
+        )
+
+    escort_bundles = (
+        escort_bundles.assign(_school_escort_direction_order=direction_order)
+        .sort_values(
+            by=[
+                "household_id",
+                "_school_escort_direction_order",
+                "bundle_num",
+            ]
+        )
+        .drop(columns="_school_escort_direction_order")
+    )
+    escort_bundles["bundle_id"] = (
+        escort_bundles["household_id"].astype("int64") * 10
+        + escort_bundles.groupby("household_id").cumcount()
+        + 1
+    ).astype("int64")
+
+    if not escort_bundles["bundle_id"].is_unique:
+        raise ValueError("Generated school escort bundle IDs are not unique")
+
+    return escort_bundles
 
 
 class SchoolEscortSettings(BaseLogitComponentSettings, extra="forbid"):
@@ -579,17 +633,7 @@ def school_escorting(
 
     # Only want to create bundles and tours and trips if at least one household has school escorting
     if len(escort_bundles) > 0:
-        escort_bundles["bundle_id"] = (
-            escort_bundles["household_id"] * 10
-            + escort_bundles.groupby("household_id").cumcount()
-            + 1
-        )
-        escort_bundles.sort_values(
-            by=["household_id", "school_escort_direction"],
-            ascending=[True, False],
-            inplace=True,
-            kind="stable",
-        )
+        escort_bundles = assign_school_escort_bundle_ids(escort_bundles)
 
         school_escort_tours = school_escort_tours_trips.create_pure_school_escort_tours(
             state, escort_bundles

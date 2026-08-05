@@ -1,9 +1,11 @@
-import numpy as np
-import pandas as pd
-import pytest
+from __future__ import annotations
+
 import os
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
+import pytest
 
 from activitysim.abm.models import trip_scheduling_choice as tsc
 from activitysim.abm.tables.skims import skim_dict

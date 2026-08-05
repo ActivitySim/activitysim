@@ -1,0 +1,389 @@
+from __future__ import annotations
+
+import pandas as pd
+
+from activitysim.abm.models import location_choice
+from activitysim.core import workflow
+
+
+class _DummySkimDict:
+    def wrap(self, orig_key, dest_key):
+        return type("WrappedSkims", (), {"orig_key": orig_key, "dest_key": dest_key})()
+
+
+class _DummyNetworkLos:
+    def __init__(self, maz_to_taz):
+        self._maz_to_taz = maz_to_taz
+
+    def map_maz_to_taz(self, maz_index):
+        return pd.Index([self._maz_to_taz[maz] for maz in maz_index], name="TAZ")
+
+    def get_skim_dict(self, layer):
+        assert layer == "taz"
+        return _DummySkimDict()
+
+
+def test_location_presample_uses_taz_stable_mapping(monkeypatch):
+    captured = {}
+
+    def fake_load_shadow_price_calculator(_state, _model_settings):
+        return type(
+            "ShadowPriceCalculator",
+            (),
+            {
+                "use_shadow_pricing": False,
+            },
+        )()
+
+    def fake_location_sample(
+        _state,
+        _segment_name,
+        _choosers,
+        alternatives,
+        _skims,
+        _estimator,
+        _model_settings,
+        alt_dest_col_name,
+        _chunk_size,
+        _chunk_tag,
+        _trace_label,
+        zone_layer=None,
+        stable_alt_positions=None,
+        n_total_alts=None,
+    ):
+        captured["alt_dest_col_name"] = alt_dest_col_name
+        captured["zone_layer"] = zone_layer
+        captured["active_taz_index"] = alternatives.index.copy()
+        captured["stable_alt_positions"] = stable_alt_positions
+        captured["n_total_alts"] = n_total_alts
+        return pd.DataFrame(
+            {"dest_TAZ": [1]},
+            index=pd.Index([1001], name="person_id"),
+        )
+
+    def fake_choose_maz_for_taz(
+        _state,
+        _taz_sample,
+        _maz_size_terms,
+        _trace_label,
+        _model_settings,
+        full_taz_index=None,
+    ):
+        captured["full_taz_index"] = full_taz_index
+        return pd.DataFrame(
+            {"dest_MAZ": [101]},
+            index=pd.Index([1001], name="person_id"),
+        )
+
+    monkeypatch.setattr(
+        location_choice.shadow_pricing,
+        "load_shadow_price_calculator",
+        fake_load_shadow_price_calculator,
+    )
+    monkeypatch.setattr(location_choice, "_location_sample", fake_location_sample)
+    monkeypatch.setattr(
+        location_choice.tour_destination,
+        "choose_MAZ_for_TAZ",
+        fake_choose_maz_for_taz,
+    )
+
+    state = workflow.State().default_settings()
+    model_settings = type(
+        "ModelSettings",
+        (),
+        {
+            "ALT_DEST_COL_NAME": "zone_id",
+            "SIMULATE_CHOOSER_COLUMNS": [location_choice.HOME_MAZ],
+        },
+    )()
+    persons_merged = pd.DataFrame(
+        {
+            location_choice.HOME_MAZ: [9001],
+            location_choice.HOME_TAZ: [90],
+        },
+        index=pd.Index([1001], name="person_id"),
+    )
+    network_los = _DummyNetworkLos({101: 1, 102: 2, 103: 3})
+
+    active_dest_size_terms = pd.DataFrame(
+        {
+            "size_term": [1.0, 2.0],
+            "shadow_price_size_term_adjustment": [1.0, 1.0],
+            "shadow_price_utility_adjustment": [0.0, 0.0],
+        },
+        index=pd.Index([101, 103], name="zone_id"),
+    )
+    full_dest_size_terms = pd.DataFrame(
+        {
+            "size_term": [1.0, 0.0, 2.0],
+            "shadow_price_size_term_adjustment": [1.0, 1.0, 1.0],
+            "shadow_price_utility_adjustment": [0.0, 0.0, 0.0],
+        },
+        index=pd.Index([101, 102, 103], name="zone_id"),
+    )
+
+    out = location_choice.location_presample(
+        state,
+        "segment",
+        persons_merged,
+        network_los,
+        active_dest_size_terms,
+        estimator=None,
+        model_settings=model_settings,
+        chunk_size=0,
+        chunk_tag="test_chunk",
+        trace_label="test_trace",
+        full_dest_size_terms=full_dest_size_terms,
+    )
+
+    pd.testing.assert_frame_equal(
+        out,
+        pd.DataFrame({"zone_id": [101]}, index=pd.Index([1001], name="person_id")),
+    )
+    pd.testing.assert_index_equal(
+        captured["active_taz_index"],
+        pd.Index([1, 3], name=location_choice.DEST_TAZ),
+    )
+    assert captured["alt_dest_col_name"] == location_choice.DEST_TAZ
+    assert captured["zone_layer"] == "taz"
+    assert captured["n_total_alts"] is None
+    assert captured["stable_alt_positions"] is None
+    assert captured["full_taz_index"] is None
+
+
+def test_location_presample_passes_full_taz_index_for_eet_poisson(monkeypatch):
+    captured = {}
+
+    def fake_load_shadow_price_calculator(_state, _model_settings):
+        return type(
+            "ShadowPriceCalculator",
+            (),
+            {
+                "use_shadow_pricing": False,
+            },
+        )()
+
+    def fake_location_sample(
+        _state,
+        _segment_name,
+        _choosers,
+        alternatives,
+        _skims,
+        _estimator,
+        _model_settings,
+        alt_dest_col_name,
+        _chunk_size,
+        _chunk_tag,
+        _trace_label,
+        zone_layer=None,
+        stable_alt_positions=None,
+        n_total_alts=None,
+    ):
+        captured["alt_dest_col_name"] = alt_dest_col_name
+        captured["zone_layer"] = zone_layer
+        captured["active_taz_index"] = alternatives.index.copy()
+        captured["stable_alt_positions"] = stable_alt_positions.copy()
+        captured["n_total_alts"] = n_total_alts
+        return pd.DataFrame(
+            {"dest_TAZ": [1]},
+            index=pd.Index([1001], name="person_id"),
+        )
+
+    def fake_choose_maz_for_taz(
+        _state,
+        _taz_sample,
+        _maz_size_terms,
+        _trace_label,
+        _model_settings,
+        full_taz_index=None,
+    ):
+        captured["full_taz_index"] = full_taz_index
+        return pd.DataFrame(
+            {"dest_MAZ": [101]},
+            index=pd.Index([1001], name="person_id"),
+        )
+
+    monkeypatch.setattr(
+        location_choice.shadow_pricing,
+        "load_shadow_price_calculator",
+        fake_load_shadow_price_calculator,
+    )
+    monkeypatch.setattr(location_choice, "_location_sample", fake_location_sample)
+    monkeypatch.setattr(
+        location_choice.tour_destination,
+        "choose_MAZ_for_TAZ",
+        fake_choose_maz_for_taz,
+    )
+
+    state = workflow.State().default_settings()
+    state.settings.use_explicit_error_terms = True
+    model_settings = type(
+        "ModelSettings",
+        (),
+        {
+            "ALT_DEST_COL_NAME": "zone_id",
+            "SIMULATE_CHOOSER_COLUMNS": [location_choice.HOME_MAZ],
+        },
+    )()
+    persons_merged = pd.DataFrame(
+        {
+            location_choice.HOME_MAZ: [9001],
+            location_choice.HOME_TAZ: [90],
+        },
+        index=pd.Index([1001], name="person_id"),
+    )
+    network_los = _DummyNetworkLos({101: 1, 102: 2, 103: 3})
+
+    active_dest_size_terms = pd.DataFrame(
+        {
+            "size_term": [1.0, 2.0],
+            "shadow_price_size_term_adjustment": [1.0, 1.0],
+            "shadow_price_utility_adjustment": [0.0, 0.0],
+        },
+        index=pd.Index([101, 103], name="zone_id"),
+    )
+    full_dest_size_terms = pd.DataFrame(
+        {
+            "size_term": [1.0, 0.0, 2.0],
+            "shadow_price_size_term_adjustment": [1.0, 1.0, 1.0],
+            "shadow_price_utility_adjustment": [0.0, 0.0, 0.0],
+        },
+        index=pd.Index([101, 102, 103], name="zone_id"),
+    )
+
+    out = location_choice.location_presample(
+        state,
+        "segment",
+        persons_merged,
+        network_los,
+        active_dest_size_terms,
+        estimator=None,
+        model_settings=model_settings,
+        chunk_size=0,
+        chunk_tag="test_chunk",
+        trace_label="test_trace",
+        full_dest_size_terms=full_dest_size_terms,
+    )
+
+    pd.testing.assert_frame_equal(
+        out,
+        pd.DataFrame({"zone_id": [101]}, index=pd.Index([1001], name="person_id")),
+    )
+    pd.testing.assert_index_equal(
+        captured["full_taz_index"],
+        pd.Index([1, 2, 3], name=location_choice.DEST_TAZ),
+    )
+
+
+def test_location_sample_uses_maz_stable_mapping(monkeypatch):
+    captured = {}
+
+    def fake_load_shadow_price_calculator(_state, _model_settings):
+        return type(
+            "ShadowPriceCalculator",
+            (),
+            {
+                "use_shadow_pricing": False,
+            },
+        )()
+
+    def fake_location_sample(
+        _state,
+        _segment_name,
+        _choosers,
+        alternatives,
+        _skims,
+        _estimator,
+        _model_settings,
+        alt_dest_col_name,
+        _chunk_size,
+        _chunk_tag,
+        _trace_label,
+        zone_layer=None,
+        stable_alt_positions=None,
+        n_total_alts=None,
+    ):
+        captured["alt_dest_col_name"] = alt_dest_col_name
+        captured["zone_layer"] = zone_layer
+        captured["active_maz_index"] = alternatives.index.copy()
+        captured["stable_alt_positions"] = stable_alt_positions.copy()
+        captured["n_total_alts"] = n_total_alts
+        return pd.DataFrame(
+            {"zone_id": [101]},
+            index=pd.Index([1001], name="person_id"),
+        )
+
+    monkeypatch.setattr(
+        location_choice.shadow_pricing,
+        "load_shadow_price_calculator",
+        fake_load_shadow_price_calculator,
+    )
+    monkeypatch.setattr(location_choice, "_location_sample", fake_location_sample)
+
+    state = workflow.State().default_settings()
+    state.settings.use_explicit_error_terms = True
+    model_settings = type(
+        "ModelSettings",
+        (),
+        {
+            "ALT_DEST_COL_NAME": "zone_id",
+            "SIMULATE_CHOOSER_COLUMNS": [location_choice.HOME_MAZ],
+        },
+    )()
+    persons_merged = pd.DataFrame(
+        {
+            location_choice.HOME_MAZ: [9001],
+        },
+        index=pd.Index([1001], name="person_id"),
+    )
+    network_los = type(
+        "DummyNetworkLos",
+        (),
+        {
+            "get_default_skim_dict": lambda self: _DummySkimDict(),
+        },
+    )()
+
+    active_dest_size_terms = pd.DataFrame(
+        {
+            "size_term": [1.0, 2.0],
+            "shadow_price_size_term_adjustment": [1.0, 1.0],
+            "shadow_price_utility_adjustment": [0.0, 0.0],
+        },
+        index=pd.Index([101, 103], name="zone_id"),
+    )
+    full_dest_size_terms = pd.DataFrame(
+        {
+            "size_term": [1.0, 0.0, 2.0],
+            "shadow_price_size_term_adjustment": [1.0, 1.0, 1.0],
+            "shadow_price_utility_adjustment": [0.0, 0.0, 0.0],
+        },
+        index=pd.Index([101, 102, 103], name="zone_id"),
+    )
+
+    out = location_choice.location_sample(
+        state,
+        "segment",
+        persons_merged,
+        network_los,
+        active_dest_size_terms,
+        full_dest_size_terms,
+        estimator=None,
+        model_settings=model_settings,
+        chunk_size=0,
+        chunk_tag="test_chunk",
+        trace_label="test_trace",
+    )
+
+    pd.testing.assert_frame_equal(
+        out,
+        pd.DataFrame({"zone_id": [101]}, index=pd.Index([1001], name="person_id")),
+    )
+    pd.testing.assert_index_equal(
+        captured["active_maz_index"],
+        pd.Index([101, 103], name="zone_id"),
+    )
+    assert captured["alt_dest_col_name"] == "zone_id"
+    assert captured["zone_layer"] is None
+    assert captured["n_total_alts"] == 3
+    assert list(captured["stable_alt_positions"]) == [0, 2]

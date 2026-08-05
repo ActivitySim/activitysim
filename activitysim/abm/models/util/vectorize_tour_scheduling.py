@@ -17,6 +17,7 @@ from activitysim.core import tracing, workflow
 from activitysim.core.configuration.base import ComputeSettings, PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
+from activitysim.core.logit import AltsContext
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
@@ -819,6 +820,13 @@ def _schedule_tours(
 
     log_alt_losers = state.settings.log_alt_losers
 
+    if state.settings.use_explicit_error_terms:
+        # use full TDD alternatives index to ensure AltsContext spans full range of potential slots
+        tdd_alts = state.get_injectable("tdd_alts")
+        alts_context = AltsContext.from_series(tdd_alts.index)
+    else:
+        alts_context = None
+
     choices = interaction_sample_simulate(
         state,
         tours,
@@ -831,6 +839,7 @@ def _schedule_tours(
         trace_label=tour_trace_label,
         estimator=estimator,
         compute_settings=compute_settings,
+        alts_context=alts_context,
     )
     chunk_sizer.log_df(tour_trace_label, "choices", choices)
 
@@ -936,7 +945,7 @@ def schedule_tours(
     if len(result_list) > 1:
         choices = pd.concat(result_list)
 
-    assert len(choices.index == len(tours.index))
+    assert len(choices.index) == len(tours.index)
 
     return choices
 

@@ -11,7 +11,7 @@ import pandas as pd
 from activitysim.core.test._tools import assert_frame_substantively_equal
 
 
-def run_test_semcog(multiprocess=False):
+def run_test_semcog(multiprocess=False, use_explicit_error_terms=False):
     def example_path(dirname):
         resource = os.path.join("examples", "production_semcog", dirname)
         return str(importlib.resources.files("activitysim").joinpath(resource))
@@ -19,9 +19,12 @@ def run_test_semcog(multiprocess=False):
     def test_path(dirname):
         return os.path.join(os.path.dirname(__file__), dirname)
 
-    def regress():
+    def regress(use_explicit_error_terms=False):
         regress_trips_df = pd.read_csv(
-            test_path("regress/final_trips.csv"), dtype={"depart": int}
+            test_path(
+                f"regress/final{'_eet' if use_explicit_error_terms else ''}_trips.csv"
+            ),
+            dtype={"depart": int},
         )
         final_trips_df = pd.read_csv(
             test_path("output/final_trips.csv"), dtype={"depart": int}
@@ -30,6 +33,12 @@ def run_test_semcog(multiprocess=False):
 
     file_path = os.path.join(os.path.dirname(__file__), "../simulation.py")
 
+    test_config_files = []
+    if use_explicit_error_terms:
+        test_config_files = [
+            "-c",
+            test_path("configs_eet"),
+        ]
     if multiprocess:
         subprocess.run(
             [
@@ -37,6 +46,7 @@ def run_test_semcog(multiprocess=False):
                 "run",
                 "-a",
                 file_path,
+                *test_config_files,
                 "-c",
                 test_path("configs_mp"),
                 "-c",
@@ -59,6 +69,7 @@ def run_test_semcog(multiprocess=False):
                 "run",
                 "-a",
                 file_path,
+                *test_config_files,
                 "-c",
                 test_path("configs"),
                 "-c",
@@ -73,7 +84,7 @@ def run_test_semcog(multiprocess=False):
             check=True,
         )
 
-    regress()
+    regress(use_explicit_error_terms=use_explicit_error_terms)
 
 
 def test_semcog():
@@ -84,6 +95,16 @@ def test_semcog_mp():
     run_test_semcog(multiprocess=True)
 
 
+def test_semcog_eet():
+    run_test_semcog(multiprocess=False, use_explicit_error_terms=True)
+
+
+def test_semcog_mp_eet():
+    run_test_semcog(multiprocess=True, use_explicit_error_terms=True)
+
+
 if __name__ == "__main__":
     run_test_semcog(multiprocess=False)
     run_test_semcog(multiprocess=True)
+    run_test_semcog(multiprocess=False, use_explicit_error_terms=True)
+    run_test_semcog(multiprocess=True, use_explicit_error_terms=True)

@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Jul 30, 2026"/>
+    <meta name="docbuild:last-update" content="Aug 05, 2026"/>
   </head>
   
   
@@ -468,6 +468,7 @@
 <li><p><a class="reference internal" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.annotate_trips" title="activitysim.core.configuration.logit.TemplatedLogitComponentSettings.annotate_trips"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_trips</span> <span class="pre">()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.annotate_vehicles" title="activitysim.core.configuration.logit.TemplatedLogitComponentSettings.annotate_vehicles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_vehicles</span> <span class="pre">()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.compute_settings" title="activitysim.core.configuration.logit.TemplatedLogitComponentSettings.compute_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_settings</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.explicit_chunk" title="activitysim.core.configuration.logit.TemplatedLogitComponentSettings.explicit_chunk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explicit_chunk</span> <span class="pre">(float)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.preprocessor" title="activitysim.core.configuration.logit.TemplatedLogitComponentSettings.preprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocessor</span> <span class="pre">()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.source_file_paths" title="activitysim.core.configuration.logit.TemplatedLogitComponentSettings.source_file_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">()</span></code></a></p></li>
 </ul>
@@ -680,6 +681,22 @@ additional attributes that are derived from the model results.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.logit.TemplatedLogitComponentSettings.explicit_chunk">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">explicit_chunk</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.explicit_chunk" title="Permalink to this definition">#</a></dt>
+<dd><p>If &gt; 0, use this fixed chunk size (number of chooser rows) instead of adaptive
+chunking. If less than 1, use this fraction of the total number of rows. Plumbed
+through mode_choice_simulate -&gt; simple_simulate so mode-choice models can be chunked
+(default 0 = unchanged chunkless/adaptive behavior).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.update_sharrow_skip" title="activitysim.core.configuration.logit.TemplatedLogitComponentSettings.update_sharrow_skip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.logit.TemplatedLogitComponentSettings.preprocessor">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">preprocessor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="activitysim.core.configuration.base.PreprocessorSettings.html#activitysim.core.configuration.base.PreprocessorSettings" title="activitysim.core.configuration.base.PreprocessorSettings"><span class="pre">PreprocessorSettings</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.preprocessor" title="Permalink to this definition">#</a></dt>
 <dd><p>Chooser preprocessor settings.</p>
@@ -845,6 +862,7 @@ an empty dict or an all-default instance of the validator class.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.annotate_trips"><code class="docutils literal notranslate"><span class="pre">TemplatedLogitComponentSettings.annotate_trips</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.annotate_vehicles"><code class="docutils literal notranslate"><span class="pre">TemplatedLogitComponentSettings.annotate_vehicles</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.compute_settings"><code class="docutils literal notranslate"><span class="pre">TemplatedLogitComponentSettings.compute_settings</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.explicit_chunk"><code class="docutils literal notranslate"><span class="pre">TemplatedLogitComponentSettings.explicit_chunk</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">TemplatedLogitComponentSettings.preprocessor</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">TemplatedLogitComponentSettings.source_file_paths</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.configuration.logit.TemplatedLogitComponentSettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">TemplatedLogitComponentSettings.nests_are_for_nl()</span></code></a></li>
@@ -887,7 +905,7 @@ an empty dict or an all-default instance of the validator class.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev22+g52efeafb5, documentation last updated Jul 30, 2026.<br/>
+ActivitySim 1.5.2.dev23+gda0d9b147, documentation last updated Aug 05, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

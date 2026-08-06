@@ -704,8 +704,7 @@ def _interaction_simulate(
     -------
     ret : pandas.Series
         A series where index should match the index of the choosers DataFrame
-        and values will match the index of the alternatives DataFrame -
-        choices are simulated in the standard Monte Carlo fashion
+        and values will match the index of the alternatives DataFrame
     """
 
     trace_label = tracing.extend_trace_label(trace_label, "interaction_simulate")
@@ -1031,8 +1030,7 @@ def interaction_simulate(
     -------
     choices : pandas.Series
         A series where index should match the index of the choosers DataFrame
-        and values will match the index of the alternatives DataFrame -
-        choices are simulated in the standard Monte Carlo fashion
+        and values will match the index of the alternatives DataFrame
     """
 
     trace_label = tracing.extend_trace_label(trace_label, "interaction_simulate")

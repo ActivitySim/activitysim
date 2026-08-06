@@ -950,34 +950,6 @@ def run_location_choice(
             )
             estimator.write_override_choices(choices_df.choice)
 
-            if want_logsums:
-                # if we override choices, we need to to replace choice logsum with ologsim for override location
-                # fortunately, as long as we aren't sampling dest alts, the logsum will be in location_sample_df
-
-                # if we start sampling dest alts, we will need code below to compute override location logsum
-                assert estimator.want_unsampled_alternatives
-
-                # merge mode_choice_logsum for the overridden location
-                # alt_logsums columns: ['person_id', 'choice', 'logsum']
-                alt_dest_col = model_settings.ALT_DEST_COL_NAME
-                alt_logsums = (
-                    location_sample_df[[alt_dest_col, ALT_LOGSUM]]
-                    .rename(columns={alt_dest_col: "choice", ALT_LOGSUM: "logsum"})
-                    .reset_index()
-                )
-
-                # choices_df columns: ['person_id', 'choice']
-                choices_df = choices_df[["choice"]].reset_index()
-
-                # choices_df columns: ['person_id', 'choice', 'logsum']
-                choices_df = pd.merge(choices_df, alt_logsums, how="left").set_index(
-                    "person_id"
-                )
-
-                logger.debug(
-                    f"{trace_label} segment {segment_name} estimation: override logsums"
-                )
-
             if state.settings.trace_hh_id:
                 estimation_trace_label = tracing.extend_trace_label(
                     trace_label, f"estimation.{segment_name}.survey_choices"

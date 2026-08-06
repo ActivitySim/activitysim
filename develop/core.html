@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Aug 05, 2026"/>
+    <meta name="docbuild:last-update" content="Aug 06, 2026"/>
   </head>
   
   
@@ -2884,7 +2884,7 @@ and columns alt_col_name, prob, rand, pick_count</p>
 <dd><p>Sample alternatives by repeated EET (Gumbel argmax) draws with replacement.</p>
 <p>Each chooser receives <cite>sample_size</cite> EV1 draw sets and the argmax-over-utility
 winner is recorded per draw, so duplicates are possible (same with-replacement
-semantics as the Monte Carlo sampling path).</p>
+semantics as the inverse-CDF sampling path).</p>
 <p><cite>utilities</cite> drives the Gumbel argmax. <cite>probs</cite> (the MNL choice probabilities
 computed from the same utilities by the caller) supplies the <cite>prob</cite> column
 written back into the output for sampling-of-alternative correction factors.</p>
@@ -2901,7 +2901,7 @@ probability</p>
 </div></blockquote>
 <p>where <cite>p_i</cite> is the chooser’s MNL choice probability for alternative <cite>i</cite>. That is the
 probability the alternative would have been drawn at least once across <cite>sample_size</cite>
-Monte Carlo draws, which is what makes Poisson sampling interchangeable with the other
+inverse-CDF draws, which is what makes Poisson sampling interchangeable with the other
 sampling methods. <cite>pick_count</cite> is 1 by definition (the draw is a yes/no per
 alternative), so the standard sampling correction factor is recoverable in the usual
 way as <cite>np.log(df.pick_count / df.prob)</cite>.</p>
@@ -2913,8 +2913,11 @@ at all. That happens with probability</p>
 <p>Since the probabilities sum to one and 1 - p &lt;= exp(-p), this is bounded above by
 exp(-sample_size): very small at the sample sizes these models use (~1e-13
 for <cite>sample_size=30</cite>), but not negligible at small sample sizes or for a chooser whose
-probability mass is spread thinly. Those choosers fall back to the <cite>sample_size</cite>
-highest-probability alternatives (see <cite>_poisson_fallback_positions</cite>). The fallback is
+probability mass is spread thinly. Those choosers fall back to their
+<cite>min(sample_size, n_available)</cite> highest-probability available alternatives, where
+<cite>n_available</cite> counts the alternatives with non-zero probability (see
+<cite>_poisson_fallback_positions</cite>) – an unavailable alternative can never enter the
+choice set through either branch. The fallback is
 deterministic and draws no random numbers, so every chooser advances its RNG channel by
 exactly the same amount whether or not it fires – unlike a retry scheme, this cannot
 desynchronise random number streams between scenarios.</p>
@@ -2941,7 +2944,7 @@ chooser index, alt_col_name, and prob.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.interaction_sample.resolve_sample_method">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.interaction_sample.</span></span><span class="sig-name descname"><span class="pre">resolve_sample_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ComputeSettings</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'monte_carlo'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'eet'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'poisson'</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#activitysim.core.interaction_sample.resolve_sample_method" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.interaction_sample.</span></span><span class="sig-name descname"><span class="pre">resolve_sample_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ComputeSettings</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'inverse_cdf'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'eet'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'poisson'</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#activitysim.core.interaction_sample.resolve_sample_method" title="Permalink to this definition">#</a></dt>
 <dd><p>Resolve the sampling method to use, from most to least specific setting.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -3562,8 +3565,7 @@ simulation. If &lt; 1, specifies the fraction of the total number of choosers.</
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt><strong>choices</strong><span class="classifier">pandas.Series</span></dt><dd><p>A series where index should match the index of the choosers DataFrame
-and values will match the index of the alternatives DataFrame -
-choices are simulated in the standard Monte Carlo fashion</p>
+and values will match the index of the alternatives DataFrame</p>
 </dd>
 </dl>
 </dd>
@@ -3634,8 +3636,7 @@ warning when running with EET, because this may reduce alignment of error terms 
 <dd class="field-even"><dl class="simple">
 <dt>if want_logsums is False:</dt><dd><dl class="simple">
 <dt>choices<span class="classifier">pandas.Series</span></dt><dd><p>A series where index should match the index of the choosers DataFrame
-and values will match the index of the alternatives DataFrame -
-choices are simulated in the standard Monte Carlo fashion</p>
+and values will match the index of the alternatives DataFrame</p>
 </dd>
 </dl>
 </dd>
@@ -4021,14 +4022,6 @@ is an index into the columns of <cite>probs</cite>.</p>
 </dl>
 </dd>
 </dl>
-<p class="rubric">Notes</p>
-<p>An argmax always returns a position, so a chooser with no available alternative gets a
-choice here rather than an error: with every utility at <cite>UTIL_UNAVAILABLE</cite> the alternatives
-are tied and the error terms decide, and with every utility at <cite>-inf</cite> the first column wins.
-The Monte Carlo path does not go quiet in that situation – <cite>make_choices</cite> reports it unless
-<cite>allow_bad_probs</cite> is set – so this function reports it too. Most callers reach here having
-already run <cite>validate_utils</cite>, which makes the same check; the duplication is deliberate and
-mirrors <cite>make_choices</cite> re-checking what <cite>utils_to_probs</cite> has already looked at.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -5923,7 +5916,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev23+gda0d9b147, documentation last updated Aug 05, 2026.<br/>
+ActivitySim 1.5.2.dev24+g2447cc79c, documentation last updated Aug 06, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

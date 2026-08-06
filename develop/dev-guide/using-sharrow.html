@@ -50,6 +50,8 @@
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
     <script src="../_static/design-tabs.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/using-sharrow';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
@@ -65,7 +67,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Aug 05, 2026"/>
+    <meta name="docbuild:last-update" content="Aug 06, 2026"/>
   </head>
   
   
@@ -438,7 +440,7 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="using-sharrow">
+  <section class="tex2jax_ignore mathjax_ignore" id="using-sharrow">
 <h1>Using Sharrow<a class="headerlink" href="#using-sharrow" title="Permalink to this heading">#</a></h1>
 <p>This page will walk through an exercise of running a model with <code class="docutils literal notranslate"><span class="pre">sharrow</span></code>.</p>
 <section id="how-it-works">
@@ -853,9 +855,9 @@ RAM and can still express any value (to two decimal point
 precision) up to positive or negative 327.68.  If the lowest
 values in that range are never needed, it can also be shifted,
 moving both the bottom and top limits by a fixed amount. Then,
-for a particular scale $\mu$ and shift $\xi$ (stored in metadata),
-from any array element $i$ the implied (original) value $x$
-can quickly be recovered by evaluating $(i / \mu) - \xi$.</p>
+for a particular scale <span class="math notranslate nohighlight">\(\mu\)</span> and shift <span class="math notranslate nohighlight">\(\xi\)</span> (stored in metadata),
+from any array element <span class="math notranslate nohighlight">\(i\)</span> the implied (original) value <span class="math notranslate nohighlight">\(x\)</span>
+can quickly be recovered by evaluating <span class="math notranslate nohighlight">\((i / \mu) - \xi\)</span>.</p>
 <p>Fixed point digital encoding can be applied to matrix tables in the skims
 using options in the <code class="docutils literal notranslate"><span class="pre">network_los.yaml</span></code> settings file.  Making transformations
 currently also requires shifting the data from OMX to ZARR file formats;
@@ -1138,7 +1140,7 @@ see <a class="reference internal" href="#performance-considerations">Performance
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev23+gda0d9b147, documentation last updated Aug 05, 2026.<br/>
+ActivitySim 1.5.2.dev24+g2447cc79c, documentation last updated Aug 06, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

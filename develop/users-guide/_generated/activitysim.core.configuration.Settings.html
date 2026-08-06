@@ -63,7 +63,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Aug 05, 2026"/>
+    <meta name="docbuild:last-update" content="Aug 06, 2026"/>
   </head>
   
   
@@ -414,7 +414,7 @@ the model.</p>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">resume_after</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rng_base_seed</span> <span class="pre">(int</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rotate_logs</span> <span class="pre">(bool)</span></code></p></li>
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample_method</span> <span class="pre">(None</span> <span class="pre">|</span> <span class="pre">Literal['monte_carlo',</span> <span class="pre">'eet',</span> <span class="pre">'poisson'])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample_method</span> <span class="pre">(None</span> <span class="pre">|</span> <span class="pre">Literal['inverse_cdf',</span> <span class="pre">'eet',</span> <span class="pre">'poisson'])</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sharrow</span> <span class="pre">(bool</span> <span class="pre">|</span> <span class="pre">str)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">skip_failed_choices</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">(list[pathlib.Path])</span></code></p></li>
@@ -466,7 +466,7 @@ neither integral to that component nor necessarily stable over replication.</p>
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bias_location_choice_logsums_for_poisson_sampling</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.bias_location_choice_logsums_for_poisson_sampling" title="Permalink to this definition">#</a></dt>
 <dd><p>Whether to apply a bias of <cite>log(sample_size)</cite> to the Poisson sampling results.
 This is a temporary workaround to align Poisson sampling results with the biased
-results of the monte_carlo and eet sampling methods, such that models that were
+results of the inverse_cdf and eet sampling methods, such that models that were
 estimated with historical biased sampling results can be run with Poisson sampling
 without needing to re-estimate the model.</p>
 <div class="versionadded">
@@ -1326,9 +1326,9 @@ compatible with using <a class="reference internal" href="#activitysim.core.conf
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.sample_method">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sample_method</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'monte_carlo'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'eet'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'poisson'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.sample_method" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sample_method</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'inverse_cdf'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'eet'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'poisson'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.sample_method" title="Permalink to this definition">#</a></dt>
 <dd><p>Sampling method to use in <cite>activitysim.core.interaction_sample</cite>.</p>
-<p>When unset, <cite>monte_carlo</cite> is used when <cite>use_explicit_error_terms</cite> is false and
+<p>When unset, <cite>inverse_cdf</cite> is used when <cite>use_explicit_error_terms</cite> is false and
 <cite>poisson</cite> is used when it is true.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 1.6.</span></p>
@@ -1488,8 +1488,9 @@ of RAM.</p>
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">use_explicit_error_terms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.use_explicit_error_terms" title="Permalink to this definition">#</a></dt>
 <dd><p>Make choice from random utility model by drawing from distribution of unobserved
 part of utility and taking the maximum of total utility.</p>
-<p>Defaults to standard Monte Carlo method, i.e., calculating probabilities and then
-drawing a single uniform random number to draw from cumulative probabily.</p>
+<p>Defaults to the standard inverse-CDF (probability-based) method, i.e., calculating
+probabilities and then drawing a single uniform random number against the
+cumulative probability.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 1.6.</span></p>
 </div>
@@ -1691,7 +1692,7 @@ recoding).</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev23+gda0d9b147, documentation last updated Aug 05, 2026.<br/>
+ActivitySim 1.5.2.dev24+g2447cc79c, documentation last updated Aug 06, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

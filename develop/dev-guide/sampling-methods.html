@@ -50,6 +50,8 @@
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
     <script src="../_static/design-tabs.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/sampling-methods';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
@@ -65,7 +67,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Aug 05, 2026"/>
+    <meta name="docbuild:last-update" content="Aug 06, 2026"/>
   </head>
   
   
@@ -438,7 +440,7 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="sampling-methods-for-interaction-sample">
+  <section class="tex2jax_ignore mathjax_ignore" id="sampling-methods-for-interaction-sample">
 <span id="sampling-methods-dev"></span><h1>Sampling Methods for Interaction Sample<a class="headerlink" href="#sampling-methods-for-interaction-sample" title="Permalink to this heading">#</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">activitysim.core.interaction_sample</span></code> supports multiple alternative-sampling methods.
 These methods are independent of the global final-choice switch controlled by
@@ -469,7 +471,7 @@ sampling utilities, while the corresponding final-choice specs in
 <section id="available-methods">
 <h2>Available Methods<a class="headerlink" href="#available-methods" title="Permalink to this heading">#</a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code>: importance sampling with replacement using probabilities and uniform draws</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code>: importance sampling with replacement using probabilities and uniform draws</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">eet</span></code>: importance sampling with replacement using explicit error-term draws</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">poisson</span></code>: importance sampling via independent Poisson inclusion sampling based on probabilities</p></li>
 </ul>
@@ -479,7 +481,7 @@ sampling utilities, while the corresponding final-choice specs in
 <p>At the top level, <code class="docutils literal notranslate"><span class="pre">sample_method</span></code> may be set in <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>.
 When it is omitted, ActivitySim preserves the intended default behavior:</p>
 <ul class="simple">
-<li><p>if <code class="docutils literal notranslate"><span class="pre">use_explicit_error_terms</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>, <code class="docutils literal notranslate"><span class="pre">interaction_sample</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code></p></li>
+<li><p>if <code class="docutils literal notranslate"><span class="pre">use_explicit_error_terms</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>, <code class="docutils literal notranslate"><span class="pre">interaction_sample</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code></p></li>
 <li><p>if <code class="docutils literal notranslate"><span class="pre">use_explicit_error_terms</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, <code class="docutils literal notranslate"><span class="pre">interaction_sample</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">poisson</span></code></p></li>
 </ul>
 <p>Individual models may override this default through:</p>
@@ -500,56 +502,69 @@ When it is omitted, ActivitySim preserves the intended default behavior:</p>
 </ol>
 <p>This is the standard sample-of-alternatives pattern: the sampling stage uses an approximation,
 and the final stage corrects for it.</p>
-<section id="monte-carlo-and-eet-with-replacement">
-<h3>Monte Carlo and EET-with-replacement<a class="headerlink" href="#monte-carlo-and-eet-with-replacement" title="Permalink to this heading">#</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code> and <code class="docutils literal notranslate"><span class="pre">eet</span></code> sampling methods both draw alternatives with replacement. As a result,
+<section id="inverse-cdf-and-eet-with-replacement">
+<h3>Inverse-CDF and EET-with-replacement<a class="headerlink" href="#inverse-cdf-and-eet-with-replacement" title="Permalink to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code> and <code class="docutils literal notranslate"><span class="pre">eet</span></code> sampling methods both draw alternatives with replacement. As a result,
 duplicates are possible within a chooser’s sampled set, and sampled shares track repeated-draw MNL
 behavior closely.</p>
 <p>The difference between them is how each draw is made:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code> draws from analytical probabilities using uniform random numbers</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code> draws from analytical probabilities using uniform random numbers against the
+cumulative distribution</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">eet</span></code> draws explicit EV1 error terms and chooses the utility-plus-error argmax</p></li>
 </ul>
 <p><code class="docutils literal notranslate"><span class="pre">eet</span></code> freezes the error terms for each chooser-alternative pair across repeated draws, so that
 unchanged alternatives can keep the same unobserved draws, which can greatly reduce
-scenario-to-scenario sampling noise compared to <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code>. However, <code class="docutils literal notranslate"><span class="pre">eet</span></code> is more expensive to
+scenario-to-scenario sampling noise compared to <code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code>. However, <code class="docutils literal notranslate"><span class="pre">eet</span></code> is more expensive to
 run because it requires many more random draws and more complex logic to avoid materializing large
 chooser-alternative arrays of error terms in memory.</p>
 </section>
 <section id="poisson-sampling">
 <h3>Poisson Sampling<a class="headerlink" href="#poisson-sampling" title="Permalink to this heading">#</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">poisson</span></code> does not perform repeated draws with replacement. Instead, each chooser-alternative
-pair is sampled independently with inclusion probability $1 - (1 - p)^s$, where $p$ is the original
-choice probability and $s$ is the configured sample size.
+pair is sampled independently with inclusion probability <span class="math notranslate nohighlight">\(1 - (1 - p)^s\)</span>, where <span class="math notranslate nohighlight">\(p\)</span> is the original
+choice probability and <span class="math notranslate nohighlight">\(s\)</span> is the configured sample size.
 A single inclusion draw is made for each alternative. This is much cheaper than repeated draws for
-<code class="docutils literal notranslate"><span class="pre">eet</span></code>, and unlike <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code>, it can still benefit from stable alignment of random draws to
-alternatives, so it can provide improved noise reduction compared to <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code> without the full
+<code class="docutils literal notranslate"><span class="pre">eet</span></code>, and unlike <code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code>, it can still benefit from stable alignment of random draws to
+alternatives, so it can provide improved noise reduction compared to <code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code> without the full
 cost of <code class="docutils literal notranslate"><span class="pre">eet</span></code> and therefore it is the default when running with explicit error terms, see
 <a class="reference internal" href="explicit-error-terms.html#explicit-error-terms-dev"><span class="std std-ref">Explicit Error Terms</span></a>.</p>
-<!-- Because sampled alternatives appear at most once per chooser, raw sampled shares can differ
+<p>Because sampled alternatives appear at most once per chooser, raw sampled shares can differ
 noticeably from repeated-draw MNL shares in highly peaked cases. This is structural behavior, not
-numerical noise. The interaction-sample tests document this explicitly. -->
+numerical noise. The interaction-sample tests document this explicitly.</p>
+<p>Under <code class="docutils literal notranslate"><span class="pre">poisson</span></code>, the configured sample size <span class="math notranslate nohighlight">\(s\)</span> is a rate parameter rather than a count of draws,
+and it is deliberately not clamped to the number of alternatives (<code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code> and <code class="docutils literal notranslate"><span class="pre">eet</span></code> clamp it,
+which is statistically harmless for with-replacement draws because the omitted <span class="math notranslate nohighlight">\(\log s\)</span> term in the
+correction is constant per chooser). When a chooser has fewer available alternatives than <span class="math notranslate nohighlight">\(s\)</span>, its
+probability mass is concentrated and the inclusion probabilities saturate towards 1: the chooser
+receives essentially its whole availability set, each alternative with a correction term near
+<span class="math notranslate nohighlight">\(\log(1/1) = 0\)</span>, and the final choice approaches exact MNL over the true availability set. No
+special-casing is needed for such choosers; their expected sample size <span class="math notranslate nohighlight">\(\sum_i q_i\)</span> is simply
+smaller than <span class="math notranslate nohighlight">\(s\)</span>.</p>
 <p>A chooser can occasionally receive no sampled alternatives under Poisson sampling, because each
 alternative is tested independently. The probability of this happening for a given chooser is</p>
-<p>$$
+<div class="math notranslate nohighlight">
+\[
 P_0 = \prod_j (1 - p_j)^s
-$$</p>
-<p>Because the probabilities sum to one and $1 - p \le e^{-p}$, this is bounded above by $e^{-s}$
+\]</div>
+<p>Because the probabilities sum to one and <span class="math notranslate nohighlight">\(1 - p \le e^{-p}\)</span>, this is bounded above by <span class="math notranslate nohighlight">\(e^{-s}\)</span>
 regardless of how the probabilities are distributed. It is therefore negligible at the sample sizes
-these models use (at most $10^{-13}$ for a sample size of 30), but not negligible at small sample
+these models use (at most <span class="math notranslate nohighlight">\(10^{-13}\)</span> for a sample size of 30), but not negligible at small sample
 sizes, or for a chooser whose probability mass is spread very thinly. If it happens, that chooser
-falls back to its $s$ highest-probability alternatives.</p>
+falls back to its <span class="math notranslate nohighlight">\(\min(s, n)\)</span> highest-probability <em>available</em> alternatives, where <span class="math notranslate nohighlight">\(n\)</span> is the
+number of alternatives with non-zero probability. Zero-probability alternatives are never included,
+so an unavailable alternative cannot enter the choice set through either branch.</p>
 <p>The fallback is deliberately deterministic and draws no random numbers, so every chooser advances
 its random number channel by exactly the same amount whether or not the fallback fires. A retry or
 redraw scheme cannot do this: the number of retries is data-dependent, so two nearby scenarios would
 consume different numbers of randoms for the same chooser and desynchronise every draw after it,
 which is undesired when running in explicit error term simulation mode. Determinism also keeps the
 reported <code class="docutils literal notranslate"><span class="pre">prob</span></code> exact, see below.</p>
-<p>Taking the $s$ most likely alternatives is only sound as a rare repair, not as a sampling method in
+<p>Taking the <span class="math notranslate nohighlight">\(s\)</span> most likely alternatives is only sound as a rare repair, not as a sampling method in
 its own right. Used on its own it would give every selected alternative an inclusion probability of
 1 and every other alternative an inclusion probability of 0, so the correction term would be the
 same constant for all selected alternatives and would cancel out of the choice entirely. The result
-is a plain MNL over the top $s$ alternatives, and the choice mass on all remaining alternatives is
+is a plain MNL over the top <span class="math notranslate nohighlight">\(s\)</span> alternatives, and the choice mass on all remaining alternatives is
 lost. Because the sampling utility is a deliberately cheap approximation, the alternatives it ranks
 poorly are not the same ones the final utility ranks poorly, so this is a systematic bias rather
 than sampling noise. The problem is the deterministic <em>exclusion</em>, not the determinism itself: an
@@ -565,7 +580,7 @@ positive, and the fallback can only add inclusion mass on top of that, never rem
 <li><p><code class="docutils literal notranslate"><span class="pre">prob</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">pick_count</span></code></p></li>
 </ul>
-<p>For <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code> and <code class="docutils literal notranslate"><span class="pre">eet</span></code>, <code class="docutils literal notranslate"><span class="pre">pick_count</span></code> is the number of times the alternative was selected in
+<p>For <code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code> and <code class="docutils literal notranslate"><span class="pre">eet</span></code>, <code class="docutils literal notranslate"><span class="pre">pick_count</span></code> is the number of times the alternative was selected in
 the repeated with-replacement draws. For <code class="docutils literal notranslate"><span class="pre">poisson</span></code>, <code class="docutils literal notranslate"><span class="pre">pick_count</span></code> is always <code class="docutils literal notranslate"><span class="pre">1</span></code>, because an
 alternative is either included or not included. For all methods, <code class="docutils literal notranslate"><span class="pre">prob</span></code> is the quantity used in
 the correction term, but it means different things for different methods. ActivitySim’s final
@@ -574,43 +589,45 @@ sampled-choice specs typically include the term:</p>
 </pre></div>
 </div>
 <p>This is the sample-of-alternatives correction factor used in the final choice model.</p>
-<p>For <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code> and <code class="docutils literal notranslate"><span class="pre">eet</span></code>, <code class="docutils literal notranslate"><span class="pre">prob</span></code> is the one-draw sampling probability implied by the
+<p>For <code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code> and <code class="docutils literal notranslate"><span class="pre">eet</span></code>, <code class="docutils literal notranslate"><span class="pre">prob</span></code> is the one-draw sampling probability implied by the
 approximate sampling utility, and <code class="docutils literal notranslate"><span class="pre">pick_count</span></code> is the number of times that alternative appeared in
 the repeated sample. McFadden’s utility correction term for repeated with-replacement sampling is
 <code class="docutils literal notranslate"><span class="pre">log(pick_count</span> <span class="pre">/</span> <span class="pre">(sample_size</span> <span class="pre">*</span> <span class="pre">prob))</span> <span class="pre">=</span> <span class="pre">log(pick_count</span> <span class="pre">/</span> <span class="pre">prob)</span> <span class="pre">-</span> <span class="pre">log(sample_size)</span></code>. ActivitySim
 omits the common <code class="docutils literal notranslate"><span class="pre">sample_size</span></code> term because it is the same for every sampled alternative for that
 chooser and therefore does not affect choice probabilities.</p>
 <p>For <code class="docutils literal notranslate"><span class="pre">poisson</span></code>, <code class="docutils literal notranslate"><span class="pre">prob</span></code> is the inclusion probability of the alternative in the sampled set, not the
-one-draw choice probability. Specifically, if the original approximate choice probability is $p$
-and the configured sample size is $s$, then the inclusion probably of the Bernoulli trial is</p>
-<p>$$
+one-draw choice probability. Specifically, if the original approximate choice probability is <span class="math notranslate nohighlight">\(p\)</span>
+and the configured sample size is <span class="math notranslate nohighlight">\(s\)</span>, then the inclusion probability of the Bernoulli trial is</p>
+<div class="math notranslate nohighlight">
+\[
 q_i = 1 - (1 - p_i)^s
-$$</p>
+\]</div>
 <p>An alternative ends up in the returned choice set either because its inclusion draw succeeded,
 or because the chooser drew nothing at all and the alternative is in the fallback set. Something
 that was drawn cannot also have been part of an empty draw, so these two events are disjoint, and
 because the fallback set is deterministic rather than random the returned <code class="docutils literal notranslate"><span class="pre">prob</span></code> is</p>
-<p>$$
-\text{prob}_i = q_i + P_0 \cdot 1{i \in \text{fallback set}}
-$$</p>
+<div class="math notranslate nohighlight">
+\[
+\text{prob}_i = q_i + P_0 \cdot 1\{i \in \text{fallback set}\}
+\]</div>
 <p>Note this is the <em>unconditional</em> probability, not either branch on its own. Conditional on the draw
-being non-empty the inclusion probability is $q_i / (1 - P_0)$, and conditional on it being empty it
-is $1{i \in \text{fallback set}}$; mixing those with weights $1 - P_0$ and $P_0$ recovers the
+being non-empty the inclusion probability is <span class="math notranslate nohighlight">\(q_i / (1 - P_0)\)</span>, and conditional on it being empty it
+is <span class="math notranslate nohighlight">\(1\{i \in \text{fallback set}\}\)</span>; mixing those with weights <span class="math notranslate nohighlight">\(1 - P_0\)</span> and <span class="math notranslate nohighlight">\(P_0\)</span> recovers the
 expression above. The unconditional form is the one the correction needs, and it is also what makes
 the reported <code class="docutils literal notranslate"><span class="pre">prob</span></code> independent of which branch a given chooser happened to take.</p>
-<p>The conditional form $q_i / (1 - P_0)$ is what a design that retried until the draw was non-empty
+<p>The conditional form <span class="math notranslate nohighlight">\(q_i / (1 - P_0)\)</span> is what a design that retried until the draw was non-empty
 would have to report. Both designs are valid samplers; this one has an exact closed form that does
 not depend on how many times a given chooser was redrawn.</p>
 <p>Ranking the probabilities to find the fallback set costs about as much as the Bernoulli draw itself,
-so the implementation evaluates the fallback term only for choosers whose $P_0$ exceeds
-<code class="docutils literal notranslate"><span class="pre">POISSON_EMPTY_SAMPLE_TOLERANCE</span></code>, which is set to $1e-12$, plus every chooser that actually drew
-nothing. Since $P_0 \le e^{-s}$, this branch is never evaluated above a sample size of 27. Dropping
-the term understates <code class="docutils literal notranslate"><span class="pre">prob</span></code> by $P_0$, so the relative error on the correction is $P_0 / q_i$, which
-is only large for an alternative whose own inclusion probability is far below $P_0$. But such an
-alternative can only be affected if it is sampled, which happens with probability $q_i$, the same
+so the implementation evaluates the fallback term only for choosers whose <span class="math notranslate nohighlight">\(P_0\)</span> exceeds
+<code class="docutils literal notranslate"><span class="pre">POISSON_EMPTY_SAMPLE_TOLERANCE</span></code>, which is set to <span class="math notranslate nohighlight">\(10^{-12}\)</span>, plus every chooser that actually drew
+nothing. Since <span class="math notranslate nohighlight">\(P_0 \le e^{-s}\)</span>, this branch is never evaluated above a sample size of 27. Dropping
+the term understates <code class="docutils literal notranslate"><span class="pre">prob</span></code> by <span class="math notranslate nohighlight">\(P_0\)</span>, so the relative error on the correction is <span class="math notranslate nohighlight">\(P_0 / q_i\)</span>, which
+is only large for an alternative whose own inclusion probability is far below <span class="math notranslate nohighlight">\(P_0\)</span>. But such an
+alternative can only be affected if it is sampled, which happens with probability <span class="math notranslate nohighlight">\(q_i\)</span>, the same
 small quantity. That coupling keeps the expected number of materially wrong corrections far below
 one for any model size.</p>
-<p>Since <code class="docutils literal notranslate"><span class="pre">pick_count</span></code> is always <code class="docutils literal notranslate"><span class="pre">1</span></code> for <code class="docutils literal notranslate"><span class="pre">poisson</span></code>, the correction becomes $\log(1 / \text{prob})$.</p>
+<p>Since <code class="docutils literal notranslate"><span class="pre">pick_count</span></code> is always <code class="docutils literal notranslate"><span class="pre">1</span></code> for <code class="docutils literal notranslate"><span class="pre">poisson</span></code>, the correction becomes <span class="math notranslate nohighlight">\(\log(1 / \text{prob})\)</span>.</p>
 <p>This means that all three methods use the same correction expression,
 <code class="docutils literal notranslate"><span class="pre">np.log(df.pick_count/df.prob)</span></code>, even though <code class="docutils literal notranslate"><span class="pre">prob</span></code> has a different interpretation for <code class="docutils literal notranslate"><span class="pre">poisson</span></code>
 than for the with-replacement methods.</p>
@@ -621,25 +638,25 @@ than for the with-replacement methods.</p>
 <h2>Runtime and Simulation Noise<a class="headerlink" href="#runtime-and-simulation-noise" title="Permalink to this heading">#</a></h2>
 <p>Runtime and noise characteristics differ across methods.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code> is the fastest method. It draws one uniform random number per repeated sample for
+<li><p><code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code> is the fastest method. It draws one uniform random number per repeated sample for
 each chooser, but it also has the most simulation noise because small changes in approximate
 probabilities can change the sampled set substantially.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">poisson</span></code> is also relatively inexpensive. It draws one uniform random number per
-chooser-alternative pair. With stable alternative alignment it is much less noisy
-than Monte Carlo.</p></li>
+chooser-alternative pair (with stable alternative alignment, one per chooser and
+stable-universe alternative, so inactive alternatives also consume draws). With stable
+alternative alignment it is much less noisy than inverse-CDF sampling.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">eet</span></code> is the slowest sampling method. It draws one EV1 error term per chooser, alternative, and
 repeated sample draw. In return, it produces the most stable sampled sets across scenarios
 because unchanged alternatives keep the same unobserved error draws and only observed utility
 changes can change the sampled set.</p></li>
 </ul>
 <p>Note that <code class="docutils literal notranslate"><span class="pre">eet</span></code> does not remove the dependence on the approximate sampling utility itself: if that
-utility changes, the sampled set can still change. What it removes is the extra Monte Carlo noise
-from the sampling draw. <code class="docutils literal notranslate"><span class="pre">poisson</span></code> also benefits from stable alignment per alternative, but unlike
-<code class="docutils literal notranslate"><span class="pre">eet</span></code> it still depends on probability-based inclusion tests. The practical effect on scenario
-comparisons is ultimately empirical, but expected to be small. This was found to be the case for
-test scenarios with an increase in employment in some zones, and therefore the sampling utility,
-for the SANDAG example model. <code class="docutils literal notranslate"><span class="pre">poisson</span></code> is therefore the default sampling method when running in
-explicit error term simulation mode.</p>
+utility changes, the sampled set can still change. What it removes is the extra noise from the
+probability-space sampling draw. <code class="docutils literal notranslate"><span class="pre">poisson</span></code> also benefits from stable alignment per alternative, but
+unlike <code class="docutils literal notranslate"><span class="pre">eet</span></code> it still depends on probability-based inclusion tests. The practical effect on
+scenario comparisons is expected to be negligible, and empirical tests with an increase in
+employment in some zones for the SANDAG example model confirm this. <code class="docutils literal notranslate"><span class="pre">poisson</span></code> is therefore the
+default sampling method when running in explicit error term simulation mode.</p>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this heading">#</a></h2>
@@ -704,7 +721,7 @@ an estimation perspective.</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-methods">Available Methods</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#defaults-and-overrides">Defaults and Overrides</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#workflow">Workflow</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#monte-carlo-and-eet-with-replacement">Monte Carlo and EET-with-replacement</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inverse-cdf-and-eet-with-replacement">Inverse-CDF and EET-with-replacement</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#poisson-sampling">Poisson Sampling</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-correction">Sampling Correction</a></li>
 </ul>
@@ -746,7 +763,7 @@ an estimation perspective.</p></li>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev23+gda0d9b147, documentation last updated Aug 05, 2026.<br/>
+ActivitySim 1.5.2.dev24+g2447cc79c, documentation last updated Aug 06, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

@@ -50,6 +50,8 @@
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
     <script src="../_static/design-tabs.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/explicit-error-terms';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
@@ -65,7 +67,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Aug 05, 2026"/>
+    <meta name="docbuild:last-update" content="Aug 06, 2026"/>
   </head>
   
   
@@ -438,7 +440,7 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="explicit-error-terms">
+  <section class="tex2jax_ignore mathjax_ignore" id="explicit-error-terms">
 <span id="explicit-error-terms-dev"></span><h1>Explicit Error Terms<a class="headerlink" href="#explicit-error-terms" title="Permalink to this heading">#</a></h1>
 <p>Explicit Error Terms (EET) is an alternative way to simulate choices from ActivitySim’s
 logit models. It keeps the same systematic utilities and the same random-utility
@@ -489,27 +491,28 @@ to draw error terms of all fundamental alternatives.</p>
 <p>For EET to reduce simulation noise, it is important that alternatives of a choice situation
 keep the same unobserved error term in different scenario runs. If unchanged alternatives
 keep the same unobserved draws, changes to choices between scenarios can only happen when
-the observed utility of an alternative increases. This is not the case for the Monte Carlo
-simulation method, where the draws are based on probabilities, which necessarily change for
-all alternatives if any observed utility changes. This combined with sensitivity to small
-differences in the final CDF draw when comparing nearby scenarios means that EET removes
-noise from scenario comparisons.</p>
-<p>Note that the both MC and EET are simulating the same model, so individual runs with identical
-inputs but varying global seed will lead to the same statistical results for individual
-output metrics. EET’s properties become apparent when comparing two model runs with different
-inputs. Because error terms are aligned, the variance of the estimator of the indicator, e.g.,
-mode choice shift or VMT difference, is reduced. In other words, difference metrics are more
+the observed utility of an alternative increases. This is not the case for the inverse-CDF
+(probability-based) simulation method, where the draws are based on probabilities, which
+necessarily change for all alternatives if any observed utility changes. This combined with
+sensitivity to small differences in the final CDF draw when comparing nearby scenarios means
+that EET removes noise from scenario comparisons.</p>
+<p>Note that both inverse-CDF and EET methods simulate the same underlying model, so individual runs
+with identical inputs but varying global seed will lead to the same statistical results for
+individual output metrics. EET’s properties become apparent when comparing two model runs with
+different inputs. Because error terms are aligned, the variance of the estimator of the indicator,
+e.g., mode choice shift or VMT difference, is reduced. In other words, difference metrics are more
 precise estimators under EET.</p>
-<p>In mathematical terms, for any two metrics $X$ (baseline) and $Y$ (scenario), the variance
-of the difference $X - Y$ is</p>
-<p>$$\text{Var}(X - Y) = \text{Var}(X) + \text{Var}(Y) - 2,\text{Cov}(X, Y)$$</p>
-<p>EET deliberately drives $\text{Cov}(X, Y)$ up by aligning error terms, so $\text{Var}(X-Y)$
-collapses even though $\text{Var}(X)$ and $\text{Var}(Y)$ individually are unchanged.</p>
-<p>In practice, models are often run once for each scenario. EET is still usefull because the
+<p>In mathematical terms, for any two metrics <span class="math notranslate nohighlight">\(X\)</span> (baseline) and <span class="math notranslate nohighlight">\(Y\)</span> (scenario), the variance
+of the difference <span class="math notranslate nohighlight">\(X - Y\)</span> is</p>
+<div class="math notranslate nohighlight">
+\[\text{Var}(X - Y) = \text{Var}(X) + \text{Var}(Y) - 2\,\text{Cov}(X, Y)\]</div>
+<p>EET deliberately drives <span class="math notranslate nohighlight">\(\text{Cov}(X, Y)\)</span> up by aligning error terms, so <span class="math notranslate nohighlight">\(\text{Var}(X-Y)\)</span>
+collapses even though <span class="math notranslate nohighlight">\(\text{Var}(X)\)</span> and <span class="math notranslate nohighlight">\(\text{Var}(Y)\)</span> individually are unchanged.</p>
+<p>In practice, models are often run once for each scenario. EET is still useful because the
 lower the noise of the estimator, the higher the chance that a single run is representative.
-In other words, the noise level of comparison metrics is lower. Additionally, under MC small
-but real benefits can show up as negative in a single run. Under EET, the sign of the effect
-is far more trustworthy.</p>
+In other words, the noise level of comparison metrics is lower. Additionally, under inverse-CDF
+simulation small but real benefits can show up as negative in a single run. Under EET, the sign
+of the effect is far more trustworthy.</p>
 <p>Independent of any statistical argument, under EET, choice changes between two runs are
 attributable to utility changes which can be helpful for model development, sensitivity
 testing, and presenting results to stakeholders.</p>
@@ -548,11 +551,11 @@ individual comparison runs.</p>
 <section id="runtime-and-memory-usage">
 <h3>Runtime and memory usage<a class="headerlink" href="#runtime-and-memory-usage" title="Permalink to this heading">#</a></h3>
 <p>EET draws one error term per chooser and alternative, which requires many more random numbers
-than MC’s one per chooser. For models with many alternatives, this can lead to a large amount
-of random numbers being calculated. The implementation of EET avoids materialization of large
-chooser-alternative arrays of error terms in memory so that the memory usage is in line with MC
-simulation.
-Regarding runtimes, EET with default settings currently carries a runtime penalty of about 3-10%
+than the inverse-CDF method’s one per chooser. For models with many alternatives, this can lead
+to a large amount of random numbers being calculated. The implementation of EET avoids
+materialization of large chooser-alternative arrays of error terms in memory so that the memory
+usage is in line with inverse-CDF simulation.
+Regarding runtimes, EET with default settings currently carries a runtime penalty of a few percent
 per demand model run. However, when run in combination with an assignment model the overall
 system can converge faster and this can reduce the overall model runtime penalty.</p>
 <!-- For location choice models, keeping error terms aligned to zone IDs also affects runtime and
@@ -589,12 +592,12 @@ do not have a corresponding EET implementation because there are no utilities to
 <section id="unavailable-choices-utility-convention">
 <h3>Unavailable choices utility convention<a class="headerlink" href="#unavailable-choices-utility-convention" title="Permalink to this heading">#</a></h3>
 <p>For EET, only utility differences matter, and therefore the outcome for two utilities that are
-very small, say -10000 and -10001, is identical to the outcome for 0 and 1. For MC, utilities
-have to be exponentiated and therefore floating point precision dictates the smallest and largest
-utility that can be used in practice. ActivitySim models historically often use a utility of
--999 to make alternatives practically unavailable. That value is below the utility threshold
-used in the probability-based path, which is about -691 because ActivitySim clips
-exponentiated utilities at 1e-300. To keep behavior consistent, EET treats alternatives with
+very small, say -10001 and -10000, is identical to the outcome for 0 and 1. For inverse-CDF
+simulation, utilities have to be exponentiated and therefore floating point precision dictates
+the smallest and largest utility that can be used in practice. ActivitySim models historically
+often use a utility of -999 to make alternatives practically unavailable. That value is below
+the utility threshold used in the probability-based path, which is about -691 because ActivitySim
+clips exponentiated utilities at 1e-300. To keep behavior consistent, EET treats alternatives with
 utilities at or below that threshold as unavailable; see <code class="docutils literal notranslate"><span class="pre">activitysim.core.logit.validate_utils</span></code>.</p>
 </section>
 <section id="normalization">
@@ -701,7 +704,7 @@ fixed at 1; the EET implementation relies on that convention.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev23+gda0d9b147, documentation last updated Aug 05, 2026.<br/>
+ActivitySim 1.5.2.dev24+g2447cc79c, documentation last updated Aug 06, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

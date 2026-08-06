@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Aug 05, 2026"/>
+    <meta name="docbuild:last-update" content="Aug 06, 2026"/>
   </head>
   
   
@@ -385,13 +385,13 @@ These methods affect how sampled choice sets are constructed for models such as 
 and location choice.</p>
 <p>Available methods are:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code>: importance sampling with replacement using probabilities and uniform draws</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code>: importance sampling with replacement using probabilities and uniform draws</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">eet</span></code>: importance sampling with replacement using explicit error-term draws</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">poisson</span></code>: independent Poisson inclusion sampling using probabilities</p></li>
 </ul>
 <p>Default behavior depends on the global simulation method setting:</p>
 <ul class="simple">
-<li><p>if <code class="docutils literal notranslate"><span class="pre">use_explicit_error_terms:</span> <span class="pre">False</span></code>, the default sampling method is <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code></p></li>
+<li><p>if <code class="docutils literal notranslate"><span class="pre">use_explicit_error_terms:</span> <span class="pre">False</span></code>, the default sampling method is <code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code></p></li>
 <li><p>if <code class="docutils literal notranslate"><span class="pre">use_explicit_error_terms:</span> <span class="pre">True</span></code>, the default sampling method is <code class="docutils literal notranslate"><span class="pre">poisson</span></code></p></li>
 </ul>
 <p>However, any method can be used with either simulation method and can be set
@@ -408,17 +408,17 @@ globally in the settings:</p>
 are simulated elsewhere in ActivitySim.</p>
 <p>Practical differences:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code> and <code class="docutils literal notranslate"><span class="pre">eet</span></code> both sample with replacement, so duplicated sampled alternatives
+<li><p><code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code> and <code class="docutils literal notranslate"><span class="pre">eet</span></code> both sample with replacement, so duplicated sampled alternatives
 are possible and their aggregate sampled shares track repeated-draw MNL behavior more closely.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">poisson</span></code> samples alternatives by inclusion probability, so each sampled alternative appears
 at most once per chooser. This can change raw sampled shares in highly peaked cases, even though
 the downstream sampling correction remains well defined.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code> is the fastest method, followed by <code class="docutils literal notranslate"><span class="pre">poisson</span></code>, with <code class="docutils literal notranslate"><span class="pre">eet</span></code> being the slowest.
+<li><p><code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code> is the fastest method, followed by <code class="docutils literal notranslate"><span class="pre">poisson</span></code>, with <code class="docutils literal notranslate"><span class="pre">eet</span></code> being the slowest.
 However, for models like location choice, most runtime comes from logsum calculations and the
-total difference between <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code> and <code class="docutils literal notranslate"><span class="pre">poisson</span></code> sampling is usually very small.</p></li>
+total difference between <code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code> and <code class="docutils literal notranslate"><span class="pre">poisson</span></code> sampling is usually very small.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">poisson</span></code> is the current default when running with simulation method explicit error terms
 because it avoids repeated chooser-by-alternative explicit-error draws during sampling while
-still providing improved noise reduction compared to Monte Carlo sampling.</p></li>
+still providing improved noise reduction compared to inverse-CDF sampling.</p></li>
 </ul>
 <p>For implementation details and runtime considerations, see <a class="reference internal" href="../dev-guide/sampling-methods.html"><span class="doc">Sampling Methods for Interaction Sample</span></a>.</p>
 </section>
@@ -494,7 +494,7 @@ still providing improved noise reduction compared to Monte Carlo sampling.</p></
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev23+gda0d9b147, documentation last updated Aug 05, 2026.<br/>
+ActivitySim 1.5.2.dev24+g2447cc79c, documentation last updated Aug 06, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

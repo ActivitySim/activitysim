@@ -53,7 +53,7 @@ remove_from_toctrees = [
     "dev-guide/_generated2/*",
     "users-guide/_generated/*",
 ]
-myst_enable_extensions = ["colon_fence"]
+myst_enable_extensions = ["colon_fence", "dollarmath"]
 myst_heading_anchors = 3
 nb_merge_streams = True
 numpydoc_show_class_members = False

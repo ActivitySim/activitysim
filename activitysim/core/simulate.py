@@ -1849,6 +1849,7 @@ def simple_simulate(
     trace_choice_name=None,
     trace_column_names=None,
     compute_settings: ComputeSettings | None = None,
+    explicit_chunk_size: float = 0,
 ):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
@@ -1867,7 +1868,9 @@ def simple_simulate(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(state, choosers, trace_label):
+    ) in chunk.adaptive_chunked_choosers(
+        state, choosers, trace_label, explicit_chunk_size=explicit_chunk_size
+    ):
         choices = _simple_simulate(
             state,
             chooser_chunk,

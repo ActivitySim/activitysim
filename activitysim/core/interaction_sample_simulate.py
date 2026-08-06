@@ -91,8 +91,7 @@ def _interaction_sample_simulate(
 
         choices : pandas.Series
             A series where index should match the index of the choosers DataFrame
-            and values will match the index of the alternatives DataFrame -
-            choices are simulated in the standard Monte Carlo fashion
+            and values will match the index of the alternatives DataFrame
 
     if want_logsums is True:
 
@@ -563,8 +562,7 @@ def interaction_sample_simulate(
 
         choices : pandas.Series
             A series where index should match the index of the choosers DataFrame
-            and values will match the index of the alternatives DataFrame -
-            choices are simulated in the standard Monte Carlo fashion
+            and values will match the index of the alternatives DataFrame
 
     if want_logsums is True:
 
@@ -582,10 +580,11 @@ def interaction_sample_simulate(
     # are NOT guaranteed to be consistent across scenarios that differ in alternative
     # availability. We cannot make this a hard error today because two production callers
     # rely on the warning-only fallback:
-    #   - trip_scheduling_choice: SCHEDULE_ID is a per-call enumeration that depends on
-    #     chunk composition and tour duration distribution (see FIXME in
-    #     trip_scheduling_choice.py:282-289 for the proposed redesign that would key
-    #     SCHEDULE_ID to a fixed (OB, MAIN, IB) duration tuple).
+    #   - trip_scheduling_choice: draws align positionally to each tour's canonical
+    #     schedule enumeration, which is stable while a tour's stop pattern and duration
+    #     are unchanged but shifts when either changes (see the FIXME-EET in
+    #     trip_scheduling_choice.py for the proposed stable-id redesign; note it calls
+    #     _interaction_sample_simulate directly and so does not pass through this warning).
     #   - tour_od_choice: OD id is a string concatenation `f"{orig}_{dest}"`; a stable
     #     integer universe would be O(n_zones^2) error terms per chooser, which is too
     #     large to allocate.

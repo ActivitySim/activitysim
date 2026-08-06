@@ -228,6 +228,7 @@ def trip_mode_choice(
             trace_choice_name="trip_mode_choice",
             estimator=estimator,
             compute_settings=model_settings.compute_settings,
+            explicit_chunk_size=model_settings.explicit_chunk,
         )
 
         if state.settings.trace_hh_id:

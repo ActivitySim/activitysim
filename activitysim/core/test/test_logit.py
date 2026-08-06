@@ -683,7 +683,7 @@ def test_make_choices_vs_eet_same_distribution():
 
     utils = pd.DataFrame([utils_values] * n_draws, columns=columns)
 
-    # Probability-based (Monte Carlo) path — independent RNG
+    # Probability-based (inverse-CDF) path — independent RNG
     mc_rng = np.random.default_rng(42)
 
     class MCDummyRNG:

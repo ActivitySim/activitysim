@@ -200,6 +200,14 @@ class TemplatedLogitComponentSettings(LogitComponentSettings, extra="forbid"):
     segment-specific names.
     """
 
+    explicit_chunk: float = 0
+    """
+    If > 0, use this fixed chunk size (number of chooser rows) instead of adaptive
+    chunking. If less than 1, use this fraction of the total number of rows. Plumbed
+    through mode_choice_simulate -> simple_simulate so mode-choice models can be chunked
+    (default 0 = unchanged chunkless/adaptive behavior).
+    """
+
 
 class LocationComponentSettings(BaseLogitComponentSettings):
     """

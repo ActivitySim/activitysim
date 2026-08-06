@@ -135,12 +135,12 @@ class ComputeSettings(PydanticBase):
     Sharrow settings for a component.
     """
 
-    sample_method: None | Literal["monte_carlo", "eet", "poisson"] = None
+    sample_method: None | Literal["inverse_cdf", "eet", "poisson"] = None
     """
     Override the alternative sampling method used by `interaction_sample`.
 
     When unset, `interaction_sample` preserves legacy behavior: it uses
-    `monte_carlo` when explicit error terms are off and `poisson` when they
+    `inverse_cdf` when explicit error terms are off and `poisson` when they
     are on.
     """
 

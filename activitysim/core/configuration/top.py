@@ -786,17 +786,18 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     Make choice from random utility model by drawing from distribution of unobserved
     part of utility and taking the maximum of total utility.
 
-    Defaults to standard Monte Carlo method, i.e., calculating probabilities and then
-    drawing a single uniform random number to draw from cumulative probabily.
+    Defaults to the standard inverse-CDF (probability-based) method, i.e., calculating
+    probabilities and then drawing a single uniform random number against the
+    cumulative probability.
 
     .. versionadded:: 1.6
     """
 
-    sample_method: None | Literal["monte_carlo", "eet", "poisson"] = None
+    sample_method: None | Literal["inverse_cdf", "eet", "poisson"] = None
     """
     Sampling method to use in `activitysim.core.interaction_sample`.
 
-    When unset, `monte_carlo` is used when `use_explicit_error_terms` is false and
+    When unset, `inverse_cdf` is used when `use_explicit_error_terms` is false and
     `poisson` is used when it is true.
 
     .. versionadded:: 1.6
@@ -806,7 +807,7 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     """
     Whether to apply a bias of `log(sample_size)` to the Poisson sampling results.
     This is a temporary workaround to align Poisson sampling results with the biased
-    results of the monte_carlo and eet sampling methods, such that models that were
+    results of the inverse_cdf and eet sampling methods, such that models that were
     estimated with historical biased sampling results can be run with Poisson sampling
     without needing to re-estimate the model.
 

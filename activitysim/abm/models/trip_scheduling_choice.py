@@ -279,6 +279,29 @@ def run_trip_scheduling_choice(
         ) in chunk.adaptive_chunked_choosers(state, indirect_tours, trace_label):
             # Sort the choosers and get the schedule alternatives
             choosers = choosers.sort_index()
+            # FIXME-EET: under use_explicit_error_terms, error terms here are aligned positionally, not keyed
+            # to a stable alternative ID: no alts_context is passed to _interaction_sample_simulate (this direct
+            # private call also bypasses the public wrapper's warning about that), so each tour draws one EV1
+            # error per alternative slot from its own tour_id-keyed channel, and the j-th draw attaches to the
+            # j-th row of the tour's block in `schedules`. SCHEDULE_ID plays no role in the alignment; it is a
+            # per-call running enumeration used only to look up the chosen row after the simulation.
+            #
+            # The per-tour row order is canonical: get_pattern_index_and_arrays sorts each tour's feasible
+            # windows lexicographically by (main, outbound, inbound) duration via np.unique, independent of
+            # chunk composition and processing order. Error terms are therefore stable across scenarios for
+            # every tour whose stop pattern (outbound/inbound) and duration are unchanged. They are NOT aligned
+            # for a tour whose duration or stop pattern changes: the lexicographic enumeration shifts, so
+            # position j maps to a different duration triple.
+            #
+            # To keep draws aligned across such changes too, key them to a canonical universe of schedule
+            # patterns -- e.g. all (outbound, inbound) duration pairs up to the maximum time window, with the
+            # main leg implied by the tour duration; for 30min intervals that is 1225 stable IDs, reasonable
+            # memory-wise for random numbers, and a duration change then keeps the error terms of unchanged
+            # (outbound, inbound) allocations. This would mean making SCHEDULE_ID that stable pattern ID and
+            # passing an alts_context (see the alt_nrs_df machinery in _interaction_sample_simulate); the
+            # post-simulation lookup below would then need to match on (tour_id, SCHEDULE_ID) pairs since IDs
+            # would repeat across tours.
+
             schedules = generate_schedule_alternatives(choosers).sort_index()
 
             # preprocessing alternatives

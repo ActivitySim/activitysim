@@ -9,7 +9,7 @@ from collections import OrderedDict
 from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
@@ -31,7 +31,7 @@ from activitysim.core.configuration.logit import (
     LogitNestSpec,
     TemplatedLogitComponentSettings,
 )
-from activitysim.core.estimation import Estimator
+from activitysim.core.exceptions import ModelConfigurationError
 from activitysim.core.fast_eval import fast_eval
 from activitysim.core.simulate_consts import (
     ALT_LOSER_UTIL,
@@ -39,14 +39,48 @@ from activitysim.core.simulate_consts import (
     SPEC_EXPRESSION_NAME,
     SPEC_LABEL_NAME,
 )
-from activitysim.core.exceptions import ModelConfigurationError
+
+if TYPE_CHECKING:
+    from activitysim.core.estimation import Estimator
 
 logger = logging.getLogger(__name__)
 
-CustomChooser_T = Callable[
-    [workflow.State, pd.DataFrame, pd.DataFrame, pd.DataFrame, str],
-    tuple[pd.Series, pd.Series],
-]
+CustomChooser_T = Callable[..., tuple[pd.Series, pd.Series]]
+"""
+Type alias for a custom choice function passed to ``simple_simulate`` /
+``simulate.eval_mnl`` / ``simulate.eval_nl``.
+
+The runtime calling convention is:
+
+- ``custom_chooser(state, utilities_or_probs, choosers, spec, trace_label)``
+  in MC paths (``eval_mnl``, the non-EET branch of ``eval_nl``) and in the
+  EET branch of ``eval_mnl``. Five positional arguments.
+- ``custom_chooser(state, utilities, choosers, spec, trace_label,
+  nest_spec=nest_spec)`` in the EET branch of ``eval_nl`` only. Five
+  positional arguments plus a ``nest_spec`` keyword argument.
+
+The alias is intentionally widened to ``Callable[..., ...]`` rather than
+a fully-specified ``Callable[[State, ...], ...]`` so that:
+
+1. Existing custom choosers written before nested-logit EET landed (5
+   positional args, no ``nest_spec``) remain valid implementations — they
+   are never called with ``nest_spec`` because only the eval_nl EET branch
+   passes it.
+2. New custom choosers that want to support NL+EET can opt in by accepting
+   ``nest_spec`` as a keyword-only argument, e.g.::
+
+       def my_chooser(state, utilities, choosers, spec, trace_label, *,
+                      nest_spec: dict | LogitNestSpec | None = None,
+                      ) -> tuple[pd.Series, pd.Series]:
+           ...
+
+   They MUST give ``nest_spec`` a default of ``None`` so the non-NL-EET call
+   sites (which do not pass it) still work.
+
+Return value is ``(choices, rands)`` where ``choices`` is a Series of
+chosen alternative positions and ``rands`` is the per-row random draw used
+(or zeros for EET, which has no per-row draw to expose).
+"""
 
 
 def random_rows(state: workflow.State, df, n):
@@ -1105,6 +1139,46 @@ def set_skim_wrapper_targets(df, skims, allow_partial_success: bool = True):
 #         )
 
 
+def compute_nested_utilities(raw_utilities, nest_spec):
+    """
+    compute nest utilities based on nesting coefficients
+
+    For nest nodes this is the logsum of alternatives adjusted by nesting coefficient
+
+    leaf <- raw_utility / nest_coefficient
+    nest <- ln(sum of exponentiated raw_utility of leaves) * nest_coefficient)
+
+    Parameters
+    ----------
+    raw_utilities : pandas.DataFrame
+        dataframe with the raw alternative utilities of all leaves
+        (what in non-nested logit would be the utilities of all the alternatives)
+    nest_spec : dict
+        Nest tree dict from the model spec yaml file
+
+    Returns
+    -------
+    nested_utilities : pandas.DataFrame
+        Will have the index of `raw_utilities` and columns for leaf and node utilities
+    """
+    nested_utilities = pd.DataFrame(index=raw_utilities.index)
+
+    for nest in logit.each_nest(nest_spec, post_order=True):
+        name = nest.name
+        if nest.is_leaf:
+            nested_utilities[name] = (
+                raw_utilities[name].astype(float) / nest.product_of_coefficients
+            )
+        else:
+            # the alternative nested_utilities will already have been computed due to post_order
+            with np.errstate(divide="ignore"):
+                nested_utilities[name] = nest.coefficient * np.log(
+                    np.exp(nested_utilities[nest.alternatives]).sum(axis=1)
+                )
+
+    return nested_utilities
+
+
 def compute_nested_exp_utilities(raw_utilities, nest_spec):
     """
     compute exponentiated nest utilities based on nesting coefficients
@@ -1320,47 +1394,65 @@ def eval_mnl(
             column_labels=["alternative", "utility"],
         )
 
-    probs = logit.utils_to_probs(
-        state, utilities, trace_label=trace_label, trace_choosers=choosers
-    )
-    chunk_sizer.log_df(trace_label, "probs", probs)
-
-    # resimulate one of the failed households for tracing
-    if state.settings.skip_failed_choices:
-        _resimulate_failed_choice_for_tracing(
-            state=state,
-            choosers=choosers,
-            spec=spec,
-            locals_d=locals_d,
-            log_alt_losers=log_alt_losers,
-            trace_label=trace_label,
-            have_trace_targets=have_trace_targets,
-            estimator=estimator,
-            trace_column_names=trace_column_names,
-            chunk_sizer=chunk_sizer,
-            compute_settings=compute_settings,
+    if state.settings.use_explicit_error_terms:
+        utilities = logit.validate_utils(
+            state, utilities, trace_label=trace_label, trace_choosers=choosers
         )
 
-    del utilities
-    chunk_sizer.log_df(trace_label, "utilities", None)
+        if custom_chooser:
+            choices, rands = custom_chooser(
+                state, utilities, choosers, spec, trace_label
+            )
+        else:
+            choices, rands = logit.make_choices_utility_based(
+                state, utilities, trace_label=trace_label
+            )
 
-    if have_trace_targets:
-        # report these now in case make_choices throws error on bad_choices
-        state.tracing.trace_df(
-            probs,
-            "%s.probs" % trace_label,
-            column_labels=["alternative", "probability"],
-        )
+        del utilities
+        chunk_sizer.log_df(trace_label, "utilities", None)
 
-    if custom_chooser:
-        choices, rands = custom_chooser(state, probs, choosers, spec, trace_label)
     else:
-        choices, rands = logit.make_choices(
-            state, probs, trace_label=trace_label, trace_choosers=choosers
+        probs = logit.utils_to_probs(
+            state, utilities, trace_label=trace_label, trace_choosers=choosers
         )
+        chunk_sizer.log_df(trace_label, "probs", probs)
 
-    del probs
-    chunk_sizer.log_df(trace_label, "probs", None)
+        # resimulate one of the failed households for tracing
+        if state.settings.skip_failed_choices:
+            _resimulate_failed_choice_for_tracing(
+                state=state,
+                choosers=choosers,
+                spec=spec,
+                locals_d=locals_d,
+                log_alt_losers=log_alt_losers,
+                trace_label=trace_label,
+                have_trace_targets=have_trace_targets,
+                estimator=estimator,
+                trace_column_names=trace_column_names,
+                chunk_sizer=chunk_sizer,
+                compute_settings=compute_settings,
+            )
+
+        del utilities
+        chunk_sizer.log_df(trace_label, "utilities", None)
+
+        if have_trace_targets:
+            # report these now in case make_choices throws error on bad_choices
+            state.tracing.trace_df(
+                probs,
+                "%s.probs" % trace_label,
+                column_labels=["alternative", "probability"],
+            )
+
+        if custom_chooser:
+            choices, rands = custom_chooser(state, probs, choosers, spec, trace_label)
+        else:
+            choices, rands = logit.make_choices(
+                state, probs, trace_label=trace_label, trace_choosers=choosers
+            )
+
+        del probs
+        chunk_sizer.log_df(trace_label, "probs", None)
 
     if have_trace_targets:
         state.tracing.trace_df(
@@ -1459,104 +1551,139 @@ def eval_nl(
             column_labels=["alternative", "utility"],
         )
 
-    # exponentiated utilities of leaves and nests
-    nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
-    chunk_sizer.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
-
-    del raw_utilities
-    chunk_sizer.log_df(trace_label, "raw_utilities", None)
-
-    if have_trace_targets:
-        state.tracing.trace_df(
-            nested_exp_utilities,
-            "%s.nested_exp_utilities" % trace_label,
-            column_labels=["alternative", "utility"],
+    if state.settings.use_explicit_error_terms:
+        raw_utilities = logit.validate_utils(
+            state, raw_utilities, trace_label=trace_label
         )
 
-    # probabilities of alternatives relative to siblings sharing the same nest
-    nested_probabilities = compute_nested_probabilities(
-        state, nested_exp_utilities, nest_spec, trace_label=trace_label
-    )
-    chunk_sizer.log_df(trace_label, "nested_probabilities", nested_probabilities)
-
-    if want_logsums:
-        # logsum of nest root
-        logsums = pd.Series(np.log(nested_exp_utilities.root), index=choosers.index)
-        chunk_sizer.log_df(trace_label, "logsums", logsums)
-
-    del nested_exp_utilities
-    chunk_sizer.log_df(trace_label, "nested_exp_utilities", None)
-
-    if have_trace_targets:
-        state.tracing.trace_df(
-            nested_probabilities,
-            "%s.nested_probabilities" % trace_label,
-            column_labels=["alternative", "probability"],
-        )
-
-    # global (flattened) leaf probabilities based on relative nest coefficients (in spec order)
-    base_probabilities = compute_base_probabilities(
-        nested_probabilities, nest_spec, spec
-    )
-    chunk_sizer.log_df(trace_label, "base_probabilities", base_probabilities)
-
-    del nested_probabilities
-    chunk_sizer.log_df(trace_label, "nested_probabilities", None)
-
-    if have_trace_targets:
-        state.tracing.trace_df(
-            base_probabilities,
-            "%s.base_probabilities" % trace_label,
-            column_labels=["alternative", "probability"],
-        )
-
-    # note base_probabilities could all be zero since we allowed all probs for nests to be zero
-    # check here to print a clear message but make_choices will raise error if probs don't sum to 1
-    BAD_PROB_THRESHOLD = 0.001
-    no_choices = (base_probabilities.sum(axis=1) - 1).abs() > BAD_PROB_THRESHOLD
-
-    if no_choices.any():
-        logit.report_bad_choices(
-            state,
-            no_choices,
-            base_probabilities,
-            state.settings.skip_failed_choices,
-            trace_label=tracing.extend_trace_label(trace_label, "bad_probs"),
-            trace_choosers=choosers,
-            msg="base_probabilities do not sum to one",
-        )
-
-        if state.settings.skip_failed_choices:
-            _resimulate_failed_choice_for_tracing(
-                state=state,
-                choosers=choosers,
-                spec=spec,
-                locals_d=locals_d,
-                log_alt_losers=log_alt_losers,
+        if custom_chooser:
+            choices, rands = custom_chooser(
+                state,
+                raw_utilities,
+                choosers,
+                spec,
+                trace_label,
+                nest_spec=nest_spec,
+            )
+        else:
+            choices, rands = logit.make_choices_utility_based(
+                state,
+                raw_utilities,
                 trace_label=trace_label,
-                have_trace_targets=have_trace_targets,
-                estimator=estimator,
-                trace_column_names=trace_column_names,
-                spec_sh=spec,
-                chunk_sizer=chunk_sizer,
-                compute_settings=compute_settings,
+                nest_spec=nest_spec,
             )
 
-    if custom_chooser:
-        choices, rands = custom_chooser(
-            state,
-            base_probabilities,
-            choosers,
-            spec,
-            trace_label,
-        )
-    else:
-        choices, rands = logit.make_choices(
-            state, base_probabilities, trace_label=trace_label
-        )
+        if want_logsums:
+            # utilities of leaves and nests
+            nested_utilities = compute_nested_utilities(raw_utilities, nest_spec)
+            chunk_sizer.log_df(trace_label, "nested_utilities", nested_utilities)
+            logsums = pd.Series(nested_utilities.root, index=choosers.index)
+            chunk_sizer.log_df(trace_label, "logsums", logsums)
+            del nested_utilities
+            chunk_sizer.log_df(trace_label, "nested_utilities", None)
 
-    del base_probabilities
-    chunk_sizer.log_df(trace_label, "base_probabilities", None)
+        del raw_utilities
+        chunk_sizer.log_df(trace_label, "raw_utilities", None)
+
+    else:
+        # exponentiated utilities of leaves and nests
+        nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
+        chunk_sizer.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
+
+        del raw_utilities
+        chunk_sizer.log_df(trace_label, "raw_utilities", None)
+
+        if have_trace_targets:
+            state.tracing.trace_df(
+                nested_exp_utilities,
+                "%s.nested_exp_utilities" % trace_label,
+                column_labels=["alternative", "utility"],
+            )
+
+        # probabilities of alternatives relative to siblings sharing the same nest
+        nested_probabilities = compute_nested_probabilities(
+            state, nested_exp_utilities, nest_spec, trace_label=trace_label
+        )
+        chunk_sizer.log_df(trace_label, "nested_probabilities", nested_probabilities)
+
+        if want_logsums:
+            # logsum of nest root
+            logsums = pd.Series(np.log(nested_exp_utilities.root), index=choosers.index)
+            chunk_sizer.log_df(trace_label, "logsums", logsums)
+
+        del nested_exp_utilities
+        chunk_sizer.log_df(trace_label, "nested_exp_utilities", None)
+
+        if have_trace_targets:
+            state.tracing.trace_df(
+                nested_probabilities,
+                "%s.nested_probabilities" % trace_label,
+                column_labels=["alternative", "probability"],
+            )
+
+        # global (flattened) leaf probabilities based on relative nest coefficients (in spec order)
+        base_probabilities = compute_base_probabilities(
+            nested_probabilities, nest_spec, spec
+        )
+        chunk_sizer.log_df(trace_label, "base_probabilities", base_probabilities)
+
+        del nested_probabilities
+        chunk_sizer.log_df(trace_label, "nested_probabilities", None)
+
+        if have_trace_targets:
+            state.tracing.trace_df(
+                base_probabilities,
+                "%s.base_probabilities" % trace_label,
+                column_labels=["alternative", "probability"],
+            )
+
+        # note base_probabilities could all be zero since we allowed all probs for nests to be zero
+        # check here to print a clear message but make_choices will raise error if probs don't sum to 1
+        BAD_PROB_THRESHOLD = 0.001
+        no_choices = (base_probabilities.sum(axis=1) - 1).abs() > BAD_PROB_THRESHOLD
+
+        if no_choices.any():
+            logit.report_bad_choices(
+                state,
+                no_choices,
+                base_probabilities,
+                state.settings.skip_failed_choices,
+                trace_label=tracing.extend_trace_label(trace_label, "bad_probs"),
+                trace_choosers=choosers,
+                msg="base_probabilities do not sum to one",
+            )
+
+            if state.settings.skip_failed_choices:
+                _resimulate_failed_choice_for_tracing(
+                    state=state,
+                    choosers=choosers,
+                    spec=spec,
+                    locals_d=locals_d,
+                    log_alt_losers=log_alt_losers,
+                    trace_label=trace_label,
+                    have_trace_targets=have_trace_targets,
+                    estimator=estimator,
+                    trace_column_names=trace_column_names,
+                    spec_sh=spec,
+                    chunk_sizer=chunk_sizer,
+                    compute_settings=compute_settings,
+                )
+
+        if custom_chooser:
+            choices, rands = custom_chooser(
+                state,
+                base_probabilities,
+                choosers,
+                spec,
+                trace_label,
+            )
+        else:
+            choices, rands = logit.make_choices(
+                state, base_probabilities, trace_label=trace_label
+            )
+
+        del base_probabilities
+        chunk_sizer.log_df(trace_label, "base_probabilities", None)
 
     if have_trace_targets:
         state.tracing.trace_df(
@@ -1719,6 +1846,7 @@ def simple_simulate(
     trace_choice_name=None,
     trace_column_names=None,
     compute_settings: ComputeSettings | None = None,
+    explicit_chunk_size: float = 0,
 ):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
@@ -1737,7 +1865,9 @@ def simple_simulate(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(state, choosers, trace_label):
+    ) in chunk.adaptive_chunked_choosers(
+        state, choosers, trace_label, explicit_chunk_size=explicit_chunk_size
+    ):
         choices = _simple_simulate(
             state,
             chooser_chunk,
@@ -2178,7 +2308,7 @@ def _resimulate_failed_choice_for_tracing(
     state.tracing.register_traceable_table(traceable_table_name, failed_choosers)
     try:
         # update the SkimWrapper and Skim3dWrapper objects in the locals_d based on index of failed_choosers
-        from activitysim.core.skim_dictionary import SkimWrapper, Skim3dWrapper
+        from activitysim.core.skim_dictionary import Skim3dWrapper, SkimWrapper
 
         for local_key, local_value in locals_d.items():
             if isinstance(local_value, SkimWrapper):

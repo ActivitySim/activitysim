@@ -38,14 +38,16 @@ def data():
     build_data()
 
 
-def run_test(zone, multiprocess=False):
+def run_test(zone, multiprocess=False, use_explicit_error_terms=False):
     def test_path(dirname):
         return os.path.join(os.path.dirname(__file__), dirname)
 
-    def regress(zone):
+    def regress(zone, use_explicit_error_terms=False):
         # regress tours
         regress_tours_df = pd.read_csv(
-            test_path(f"regress/final_tours_{zone}_zone.csv")
+            test_path(
+                f"regress/final{'_eet' if use_explicit_error_terms else ''}_tours_{zone}_zone.csv"
+            )
         )
         tours_df = pd.read_csv(test_path("output/final_tours.csv"))
         tours_df.to_csv(
@@ -58,7 +60,9 @@ def run_test(zone, multiprocess=False):
 
         # regress trips
         regress_trips_df = pd.read_csv(
-            test_path(f"regress/final_trips_{zone}_zone.csv")
+            test_path(
+                f"regress/final{'_eet' if use_explicit_error_terms else ''}_trips_{zone}_zone.csv"
+            )
         )
         trips_df = pd.read_csv(test_path("output/final_trips.csv"))
         trips_df.to_csv(
@@ -71,7 +75,15 @@ def run_test(zone, multiprocess=False):
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
 
+    test_config_files = []
+    if use_explicit_error_terms:
+        test_config_files = [
+            "-c",
+            test_path("configs_eet"),
+        ]
+
     run_args = [
+        *test_config_files,
         "-c",
         test_path(f"configs_{zone}_zone"),
         "-c",
@@ -92,7 +104,7 @@ def run_test(zone, multiprocess=False):
     else:
         subprocess.run([sys.executable, file_path] + run_args, check=True)
 
-    regress(zone)
+    regress(zone, use_explicit_error_terms=use_explicit_error_terms)
 
 
 def test_2_zone(data):
@@ -101,6 +113,14 @@ def test_2_zone(data):
 
 def test_2_zone_mp(data):
     run_test(zone="2", multiprocess=True)
+
+
+def test_2_zone_eet(data):
+    run_test(zone="2", multiprocess=False, use_explicit_error_terms=True)
+
+
+def test_2_zone_mp_eet(data):
+    run_test(zone="2", multiprocess=True, use_explicit_error_terms=True)
 
 
 EXPECTED_MODELS = [
@@ -189,7 +209,49 @@ def test_multizone_progressive(zone="2"):
             print(f"> {zone} zone {step_name}: ok")
 
 
+@test.run_if_exists("reference_pipeline_2_zone_eet.zip")
+def test_multizone_progressive_eet():
+
+    import activitysim.abm  # register components
+
+    def test_path(dirname):
+        return os.path.join(os.path.dirname(__file__), dirname)
+
+    state = workflow.State.make_default(
+        configs_dir=(
+            test_path(f"configs_eet"),
+            test_path(f"configs_2_zone"),
+            example_path(f"configs_2_zone"),
+            mtc_example_path("configs"),
+        ),
+        data_dir=(example_path(f"data_2"),),
+        output_dir=test_path("output"),
+        settings_file_name="settings.yaml",
+    )
+
+    assert state.settings.models == EXPECTED_MODELS
+    assert state.settings.chunk_size == 0
+    assert state.settings.sharrow == False
+    assert state.settings.use_explicit_error_terms == True
+
+    for step_name in EXPECTED_MODELS:
+        state.run.by_name(step_name)
+        try:
+            state.checkpoint.check_against(
+                Path(__file__).parent.joinpath("reference_pipeline_2_zone_eet.zip"),
+                checkpoint_name=step_name,
+            )
+        except Exception:
+            print(f"> 2 zone eet {step_name}: ERROR")
+            raise
+        else:
+            print(f"> 2 zone {step_name}: ok")
+
+
 if __name__ == "__main__":
     build_data()
+
     run_test(zone="2", multiprocess=False)
     run_test(zone="2", multiprocess=True)
+    run_test(zone="2", multiprocess=False, use_explicit_error_terms=True)
+    run_test(zone="2", multiprocess=True, use_explicit_error_terms=True)

@@ -57,7 +57,7 @@ def test_estimation_override_preserves_destination_choice_logsum(monkeypatch):
     )
     state = SimpleNamespace(
         settings=SimpleNamespace(
-            sample_method="monte_carlo",
+            sample_method="inverse_cdf",
             trace_hh_id=None,
             use_explicit_error_terms=False,
         )

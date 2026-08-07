@@ -6,7 +6,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
-from pandas.testing import assert_frame_equal
 
 from activitysim.abm.models import trip_scheduling_choice as tsc
 from activitysim.abm.tables.skims import skim_dict
@@ -229,9 +228,15 @@ def test_two_way_stop_patterns(tours):
     assert set(output_columns).issubset(windows.columns)
 
 
-def test_run_trip_scheduling_choice(model_spec, tours, skims, locals_dict):
-    # create a temporary workflow state with no content
+def test_run_trip_scheduling_choice(model_spec, tours, skims, locals_dict, monkeypatch):
+    # Keep the module-scoped fixture pristine so both runs start from identical inputs.
+    in_tours = tours.copy(deep=True)
+
+    # Register the tours with the random-number manager so draws remain tied to tour IDs
+    # when the explicit run splits the choosers into multiple chunks.
     state = workflow.State.make_temp()
+    state.rng().add_channel("tours", in_tours)
+    state.rng().begin_step("test_trip_scheduling_choice")
 
     # Define model settings for this test.
     # The settings for this model requires a filename for the spec, but in this test we
@@ -247,15 +252,11 @@ def test_run_trip_scheduling_choice(model_spec, tours, skims, locals_dict):
         }
     )
 
-    # As is common in ActivitySim the component will modify the input dataframe in-place.
-    # For testing we make a copy of the input tours to compare against after running the model.
-    in_tours = tours.copy(deep=True)
-
     # run the trip scheduling choice model
     out_tours = tsc.run_trip_scheduling_choice(
         state,
         model_spec,
-        tours,
+        in_tours.copy(deep=True),
         skims,
         locals_dict,
         trace_label="PyTest Trip Scheduling",
@@ -290,7 +291,10 @@ def test_run_trip_scheduling_choice(model_spec, tours, skims, locals_dict):
     assert out_tours[tsc.IB_DURATION].mask(in_tours[tsc.HAS_IB_STOPS], 0).sum() == 0
 
     # confirm explicit chunking is supported and doesn't affect results
-    state.settings.chunk_training_mode = "explicit"
+    chunked_state = workflow.State.make_temp()
+    chunked_state.settings.chunk_training_mode = "explicit"
+    chunked_state.rng().add_channel("tours", in_tours)
+    chunked_state.rng().begin_step("test_trip_scheduling_choice")
 
     model_settings_explicit_chunk = tsc.TripSchedulingChoiceSettings(
         **{
@@ -301,8 +305,19 @@ def test_run_trip_scheduling_choice(model_spec, tours, skims, locals_dict):
             },
         }
     )
+
+    # Record the real chunker's output sizes to verify the model forwards its setting.
+    explicit_chunk_lengths = []
+    adaptive_chunked_choosers = tsc.chunk.adaptive_chunked_choosers
+
+    def record_explicit_chunks(*args, **kwargs):
+        for chunk_details in adaptive_chunked_choosers(*args, **kwargs):
+            explicit_chunk_lengths.append(len(chunk_details[1]))
+            yield chunk_details
+
+    monkeypatch.setattr(tsc.chunk, "adaptive_chunked_choosers", record_explicit_chunks)
     out_tours_chunked = tsc.run_trip_scheduling_choice(
-        state,
+        chunked_state,
         model_spec,
         in_tours.copy(deep=True),
         skims,
@@ -310,4 +325,5 @@ def test_run_trip_scheduling_choice(model_spec, tours, skims, locals_dict):
         trace_label="PyTest Trip Scheduling",
         model_settings=model_settings_explicit_chunk,
     )
-    assert_frame_equal(out_tours, out_tours_chunked)
+    assert explicit_chunk_lengths == [2, 2, 1]
+    pd.testing.assert_frame_equal(out_tours, out_tours_chunked)

@@ -15,6 +15,7 @@ import openmatrix as omx
 
 from activitysim.core import skim_dictionary, util
 from activitysim.core.exceptions import TableTypeError
+from activitysim.core.skim_parquet import ParquetSkimFile, is_parquet_file
 
 logger = logging.getLogger(__name__)
 
@@ -60,17 +61,23 @@ class SkimInfo(object):
 
         skim_tag:           str             (e.g. 'TAZ')
         dtype_name:         str             (e.g. 'float32')
-        omx_manifest:       dict            dict mapping { omx_key: omx_file_name }
-        omx_shape:          2D tuple        shape of omx matrix: (<number_of_zones>, <number_of_zones>)
-        num_skims:          int             total number of individual skim matrices in omx files
+        omx_manifest:       dict            dict mapping { omx_key: skim_file_name }, whether the skim
+                                            file is an omx file or a parquet file
+        omx_shape:          2D tuple        shape of skim matrix: (<number_of_zones>, <number_of_zones>)
+        num_skims:          int             total number of individual skim matrices in omx/parquet files
         skim_data_shape:    3D tuple        (num_skims, omx_shape[0], omx_shape[1]) if ROW_MAJOR_LAYOUT
-        offset_map:         dict or None    1D ndarray as returned by omx_file.mapentries, if omx file has mappings
-        offset_map_name:    str             name of offset_map in omx_filecorresponding to offset_map, if there was one
+        offset_map:         dict or None    1D ndarray as returned by omx_file.mapentries, if omx file has
+                                            mappings, or the (sorted) zone ids found in a parquet skim file
+        offset_map_name:    str             name of offset_map in omx_file corresponding to offset_map, if there was one
         omx_keys:       dict            dict mapping skim key (str or tuple) to skim key in omx file
                                             {DISTWALK: DISTWALK,
                                             ('DRV_COM_WLK_BOARDS', 'AM'): DRV_COM_WLK_BOARDS__AM, ...}
         base_keys:          list of str     e.g. 'BIKEDIST' or 'SOVTOLL_VTOLL' (base key of 3d skim)
         block_offsets:      dict            dict mapping skim key tuple to offset
+
+        Skim files can be in either OMX or Parquet format; the format is auto-detected
+        from each file's extension (``.omx`` vs ``.parquet``/``.pq``), and OMX and Parquet
+        files can be freely mixed within the list of files for a single skim_tag.
 
         Parameters
         ----------
@@ -91,6 +98,10 @@ class SkimInfo(object):
         self.skim_conflicts = None
         self.base_keys = None
         self.block_offsets = None
+
+        # cache of ParquetSkimFile instances, keyed by file path, so files
+        # opened during load_skim_info are not re-parsed when reading data
+        self.parquet_files = {}
 
         if skim_tag:
             self.load_skim_info(state, skim_tag)
@@ -118,6 +129,44 @@ class SkimInfo(object):
 
         for omx_file_path in self.omx_file_paths:
             logger.debug(f"load_skim_info {skim_tag} reading {omx_file_path}")
+
+            if is_parquet_file(omx_file_path):
+                # Skim data provided as a parquet file (auto-detected by extension)
+                # instead of an omx file. The file is inspected here (and cached)
+                # to determine its zone list, shape, and dense/sparse layout.
+                parquet_skim_file = ParquetSkimFile(omx_file_path)
+                self.parquet_files[omx_file_path] = parquet_skim_file
+
+                # Check the shape of the skims, same as is done for omx files below.
+                if self.omx_shape is None:
+                    self.omx_shape = parquet_skim_file.shape
+                else:
+                    assert (
+                        self.omx_shape == parquet_skim_file.shape
+                    ), f"Mismatch shape {self.omx_shape} != {parquet_skim_file.shape}"
+
+                for skim_name in parquet_skim_file.data_cols:
+                    if skim_name in self.omx_manifest:
+                        warnings.warn(
+                            f"duplicate skim '{skim_name}' found in {self.omx_manifest[skim_name]} and {omx_file_path}"
+                        )
+                    self.omx_manifest[skim_name] = omx_file_path
+
+                # The origin/destination (zone id) values found in the parquet file
+                # serve the same purpose as an omx file's offset mapping.  Each parquet
+                # file is checked independently (it need not have zones in the same
+                # order as other files) but the set of zone ids found must match.
+                if self.offset_map is None:
+                    self.offset_map_name = f"{omx_file_path} zone ids"
+                    self.offset_map = parquet_skim_file.zone_ids
+                    assert len(self.offset_map) == self.omx_shape[0]
+                else:
+                    if not np.array_equal(self.offset_map, parquet_skim_file.zone_ids):
+                        raise RuntimeError(
+                            f"Mismatched zone ids in parquet skim file {omx_file_path}: "
+                            f"expected zone ids consistent with {self.offset_map_name}"
+                        )
+                continue
 
             with omx.open_file(omx_file_path, mode="r") as omx_file:
 
@@ -154,13 +203,14 @@ class SkimInfo(object):
                 # mapping, although it can appear multiple times (e.g. once in
                 # each file).
                 for m in omx_file.listMappings():
+                    omx_zone_ids = np.asarray(omx_file.mapentries(m))
                     if self.offset_map is None:
                         self.offset_map_name = m
-                        self.offset_map = omx_file.mapentries(self.offset_map_name)
+                        self.offset_map = omx_zone_ids
                         assert len(self.offset_map) == self.omx_shape[0]
                     else:
                         # don't really expect more than one, but ok if they are all the same
-                        if not (self.offset_map == omx_file.mapentries(m)):
+                        if not np.array_equal(self.offset_map, omx_zone_ids):
                             raise RuntimeError(
                                 f"Multiple mappings in omx file: {self.offset_map_name} != {m}"
                             )
@@ -322,7 +372,7 @@ class AbstractSkimFactory(ABC):
 
     def _read_skims_from_omx(self, skim_info, skim_data):
         """
-        read skims from omx file into skim_data
+        read skims from omx and/or parquet files into skim_data
         """
 
         skim_tag = skim_info.skim_tag
@@ -333,6 +383,35 @@ class AbstractSkimFactory(ABC):
             num_skims_loaded = 0
 
             logger.info(f"_read_skims_from_omx {omx_file_path}")
+
+            if is_parquet_file(omx_file_path):
+                parquet_skim_file = skim_info.parquet_files.get(omx_file_path)
+                if parquet_skim_file is None:
+                    parquet_skim_file = ParquetSkimFile(omx_file_path)
+                    skim_info.parquet_files[omx_file_path] = parquet_skim_file
+                for skim_key, omx_key in omx_keys.items():
+                    if omx_manifest[omx_key] == omx_file_path:
+                        offset = skim_info.block_offsets[skim_key]
+                        logger.debug(
+                            f"_read_skims_from_omx (parquet) file {omx_file_path} "
+                            f"omx_key {omx_key} skim_key {skim_key} to offset {offset}"
+                        )
+
+                        if skim_dictionary.ROW_MAJOR_LAYOUT:
+                            a = skim_data[offset, :, :]
+                        else:
+                            a = skim_data[:, :, offset]
+
+                        a[:] = parquet_skim_file.read_matrix(
+                            omx_key, dtype=skim_info.dtype_name
+                        )
+
+                        num_skims_loaded += 1
+
+                logger.info(
+                    f"_read_skims_from_omx loaded {num_skims_loaded} skims from {omx_file_path}"
+                )
+                continue
 
             # read skims into skim_data
             with omx.open_file(omx_file_path, mode="r") as omx_file:

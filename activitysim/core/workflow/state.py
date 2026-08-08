@@ -184,11 +184,11 @@ class State:
         try:
             self.settings
         except StateAccessError:
-            channel_type = "fast"
+            channel_type = "simple"
             if base_seed is None:
                 base_seed = 0
         else:
-            channel_type = getattr(self.settings, "rng_channel_type", "fast")
+            channel_type = getattr(self.settings, "rng_channel_type", "simple")
             if base_seed is None:
                 base_seed = self.settings.rng_base_seed
         self._context["prng"] = Random(channel_type=channel_type)

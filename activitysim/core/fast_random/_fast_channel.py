@@ -40,13 +40,13 @@ class FastChannel:
         domain_df: pd.DataFrame,
         step_name: str = "",
         bit_generator: Literal["PCG64", "SFC64"] = "PCG64",
-        entropy_type: Literal["robust", "quick"] = "quick",
+        entropy_type: Literal["robust", "quick"] | None = "quick",
     ) -> None:
         """
-        Create a new FastChannel for vectorised PCG64-based random number generation.
+        Create a new FastChannel for vectorised per-row random number generation.
 
-        Each row in *domain_df* gets its own independent PCG64 bit-generator whose
-        initial state is derived from the combination of *base_seed*,
+        Each row in *domain_df* gets its own independent bit generator whose initial
+        state is derived from the combination of *base_seed*,
         *channel_name*, the current step name, and the row's index value.  This
         guarantees reproducibility across runs while keeping every row's stream
         independent.
@@ -69,10 +69,8 @@ class FastChannel:
             If non-empty, ``begin_step(step_name)`` is called immediately after
             construction so the channel is ready to generate numbers straight
             away.  Defaults to ``""`` (no step started).
-        bit_generator : {"SFC64", "PCG64"}, default: "SFC64"
-            Which bit generator to use for the per-row streams. Defaults to
-            SFC64, which supports using quick-hash random entropy for maximum
-            speed at runtime.
+        bit_generator : {"SFC64", "PCG64"}, default: "PCG64"
+            Which bit generator to use for the per-row streams.
         entropy_type : {"robust", "quick"}, default: "quick"
             The type of entropy used to reseed the bit generators.
             Robust entropy uses the numpy SeedSequence tools to create entropy
@@ -90,7 +88,7 @@ class FastChannel:
         self.step_name = None
         self.step_seed = None
 
-        # If entropy_type is not given, choose a default appropriate for the bit generator
+        # Let callers request the entropy default appropriate for the bit generator.
         if entropy_type is None:
             if bit_generator == "PCG64":
                 entropy_type = "robust"

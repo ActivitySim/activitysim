@@ -667,7 +667,7 @@ class SimpleChannel(object):
 
 
 class Random(object):
-    def __init__(self, channel_type: str = "fast"):
+    def __init__(self, channel_type: str = "simple"):
         self.channels = {}
 
         # dict mapping df index name to channel name

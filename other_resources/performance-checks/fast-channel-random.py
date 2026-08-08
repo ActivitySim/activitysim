@@ -1,12 +1,11 @@
 """
 Random Number Generation Performance Benchmark
 ===============================================
-Compares the "fast" channel (new implementation) vs. the "slow" channel
-(legacy implementation) for various random generation functions in
-activitysim.core.random.
+Compares the recommended ``"fast"`` channel configuration against the legacy
+``"simple"`` channel for random generation functions in activitysim.core.random.
 
 Run this script from the activitysim repo root with:
-    python other_resources/scripts/random-performance.py
+    python other_resources/performance-checks/fast-channel-random.py
 """
 
 from __future__ import annotations
@@ -110,12 +109,12 @@ hh3 = hh.iloc[2:5]
 shh3 = shh.iloc[2:5]
 
 note(
-    "Creating the Random object and registering one FAST channel "
-    "(new implementation) and one SLOW channel (legacy implementation).",
+    'Creating the Random object with channel_type="fast" and registering one '
+    "FastChannel and one legacy SimpleChannel.",
     indent=2,
 )
 
-r = Random(channel_type="faster")
+r = Random(channel_type="fast")
 r.set_base_seed(42)
 r.add_channel("households", hh, fast=True)
 r.add_channel("slow_households", shh, fast=False)
@@ -131,7 +130,7 @@ section("First-call costs (Numba JIT compilation + reseeding)")
 
 note(
     "The very first call to random_for_df on a fast channel within an "
-    "ActivitySim session triggers Numba ahead-of-time compilation.  "
+    "ActivitySim session triggers Numba just-in-time compilation.  "
     "This one-time cost disappears for all subsequent calls in the same "
     "session.  The slow channel does NOT use Numba."
 )

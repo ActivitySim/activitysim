@@ -17,6 +17,7 @@ CHANNEL_TYPES = ("simple", "fast", "faster")
 
 def test_basic():
     rng = random.Random()
+    assert rng.channel_type == "simple"
 
     rng.set_base_seed(0)
 

@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Aug 06, 2026"/>
+    <meta name="docbuild:last-update" content="Aug 08, 2026"/>
   </head>
   
   
@@ -484,6 +484,7 @@ main components of a tour.</p>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_trips" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_trips"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_trips</span> <span class="pre">()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_vehicles" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_vehicles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_vehicles</span> <span class="pre">()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_settings</span> <span class="pre">()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.explicit_chunk" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.explicit_chunk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explicit_chunk</span> <span class="pre">(float)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.preprocessor" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.preprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocessor</span> <span class="pre">()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.source_file_paths" title="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.source_file_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_file_paths</span> <span class="pre">()</span></code></a></p></li>
 </ul>
@@ -671,6 +672,20 @@ additional attributes that are derived from the model results.</p>
 <dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_settings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ComputeSettings</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">ComputeSettings(sample_method=None,</span> <span class="pre">sharrow_skip=False,</span> <span class="pre">fastmath=False,</span> <span class="pre">use_bottleneck=None,</span> <span class="pre">use_numexpr=None,</span> <span class="pre">use_numba=None,</span> <span class="pre">drop_unused_columns=True,</span> <span class="pre">protect_columns=[],</span> <span class="pre">performance_log=None)</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings" title="Permalink to this definition">#</a></dt>
 <dd><p>Sharrow settings for this component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.explicit_chunk">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">explicit_chunk</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.explicit_chunk" title="Permalink to this definition">#</a></dt>
+<dd><p>If &gt; 0, use this chunk size instead of adaptive chunking.
+If less than 1, use this fraction of the total number of rows.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -909,6 +924,7 @@ np.array: array with the number of patterns for each tour</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_trips"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.annotate_trips</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.annotate_vehicles"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.annotate_vehicles</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.compute_settings"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.compute_settings</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.explicit_chunk"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.explicit_chunk</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.preprocessor"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.preprocessor</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.source_file_paths"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.source_file_paths</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_scheduling_choice.TripSchedulingChoiceSettings.nests_are_for_nl"><code class="docutils literal notranslate"><span class="pre">TripSchedulingChoiceSettings.nests_are_for_nl()</span></code></a></li>
@@ -963,7 +979,7 @@ np.array: array with the number of patterns for each tour</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev24+g2447cc79c, documentation last updated Aug 06, 2026.<br/>
+ActivitySim 1.5.2.dev27+g16ab11180, documentation last updated Aug 08, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

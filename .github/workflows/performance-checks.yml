@@ -4,8 +4,6 @@ name: Performance Checks
 # manually on demand.  Use the `scripts` input to choose which scripts to run.
 
 on:
-  push:  # TODO: consider running on a schedule (e.g. weekly) but not on every push
-    branches: ["main", "reroll"]
   workflow_dispatch:
     inputs:
       scripts:
@@ -37,11 +35,13 @@ jobs:
       - name: Build script matrix
         id: build-matrix
         shell: python
+        env:
+          REQUESTED_SCRIPTS: ${{ inputs.scripts }}
         run: |
           import json, os, pathlib, sys
 
           scripts_dir = pathlib.Path("other_resources/performance-checks")
-          requested = "${{ inputs.scripts }}".strip()
+          requested = os.environ.get("REQUESTED_SCRIPTS", "").strip()
 
           all_scripts = sorted(p.name for p in scripts_dir.glob("*.py"))
 
@@ -49,8 +49,7 @@ jobs:
               print("::error::No *.py scripts found in other_resources/performance-checks/")
               sys.exit(1)
 
-          # Empty string occurs on push/schedule triggers where inputs are not set;
-          # treat it the same as the explicit "all" keyword.
+          # Treat an omitted or empty input like the explicit "all" keyword.
           if not requested or requested.lower() == "all":
               selected = all_scripts
           else:

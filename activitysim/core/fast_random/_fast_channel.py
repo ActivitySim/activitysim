@@ -267,6 +267,28 @@ class FastChannel:
         self.step_seed = None
         self._state_array = None
 
+    def reset_offsets_for_step(self) -> None:
+        """Restart every row's random stream for the current step.
+
+        Dropping the materialized states preserves lazy reseeding: the channel is
+        regenerated only if a later operation actually requests random numbers.
+        """
+        if self.step_name is None:
+            raise ValueError("outside of a defined step")
+        self._state_array = None
+
+    def reset_offsets_for_df(self, df: pd.DataFrame) -> None:
+        """Restart selected rows' random streams for the current step."""
+        selected_positions = self._check_valid_df(df)
+        if self._state_array is None:
+            # No rows have consumed random numbers yet, so they are already reset.
+            return
+        reset_states = self._batch_init_states(
+            [self.base_seed, self.channel_seed, self.step_seed],
+            df.index,
+        )
+        self._state_array[selected_positions] = reset_states
+
     def _check_valid_df(self, df: pd.DataFrame) -> np.ndarray:
         """
         Validate *df* against the channel's domain and return row positions.

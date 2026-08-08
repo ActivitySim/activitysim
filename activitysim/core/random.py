@@ -89,6 +89,11 @@ class SimpleChannel(object):
         if step_name:
             self.begin_step(step_name)
 
+    @property
+    def domain_index(self):
+        """Index of every row managed by this channel."""
+        return self.row_states.index
+
     def init_row_states_for_step(self, row_states):
         """
         initialize row states (in place) for new step
@@ -174,6 +179,18 @@ class SimpleChannel(object):
         self.step_seed = None
         self.row_states["offset"] = 0
         self.row_states["row_seed"] = 0
+
+    def reset_offsets_for_step(self):
+        """Restart every row's random stream for the current step."""
+        if self.step_name is None:
+            raise ValueError("outside of a defined step")
+        self.row_states["offset"] = 0
+
+    def reset_offsets_for_df(self, df):
+        """Restart selected rows' random streams for the current step."""
+        if self.step_name is None:
+            raise ValueError("outside of a defined step")
+        self.row_states.loc[df.index, "offset"] = 0
 
     def _generators_for_df(self, df):
         """
@@ -695,8 +712,8 @@ class Random(object):
 
         assert self.step_name == step_name
 
-        for c in self.channels:
-            self.channels[c].row_states["offset"] = 0
+        for channel in self.channels.values():
+            channel.reset_offsets_for_step()
 
     def reset_offsets_for_df(self, df):
         """
@@ -710,10 +727,10 @@ class Random(object):
             df with index name and values corresponding to a registered channel
         """
         channel = self.get_channel_for_df(df)
-        channel.row_states.loc[df.index, "offset"] = 0
+        channel.reset_offsets_for_df(df)
         logger.info(
             f"RNG: resetting random number generator offsets for channel '{channel.channel_name}' for {len(df)} rows"
-            + f" with index name '{df.index.name}'. Total length df: {len(channel.row_states)}"
+            + f" with index name '{df.index.name}'. Total length df: {len(channel.domain_index)}"
         )
 
     def begin_step(self, step_name):

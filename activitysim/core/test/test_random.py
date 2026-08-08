@@ -186,6 +186,48 @@ def test_channel(channel_type: Literal["simple", "fast", "faster"]):
 
 
 @pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
+def test_reset_offsets_for_step_replays_all_rows(channel_type):
+    persons = pd.DataFrame(index=pd.Index([1, 2, 3], name="person_id"))
+    rng = random.Random(channel_type=channel_type)
+    rng.begin_step("test_step")
+    rng.add_channel("persons", persons)
+
+    first = rng.random_for_df(persons)
+    rng.random_for_df(persons)
+    rng.reset_offsets_for_step("test_step")
+    replay = rng.random_for_df(persons)
+
+    npt.assert_array_equal(replay, first)
+
+
+@pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
+def test_reset_offsets_for_df_replays_only_selected_rows(channel_type):
+    persons = pd.DataFrame(index=pd.Index([1, 2, 3], name="person_id"))
+    selected = persons.loc[[1, 3]]
+    unselected = persons.loc[[2]]
+
+    rng = random.Random(channel_type=channel_type)
+    rng.begin_step("test_step")
+    rng.add_channel("persons", persons)
+    first = rng.random_for_df(persons)
+    rng.random_for_df(persons)
+    rng.reset_offsets_for_df(selected)
+
+    replay = rng.random_for_df(selected)
+    unselected_next = rng.random_for_df(unselected)
+
+    baseline = random.Random(channel_type=channel_type)
+    baseline.begin_step("test_step")
+    baseline.add_channel("persons", persons)
+    baseline.random_for_df(persons)
+    baseline.random_for_df(persons)
+    expected_unselected_next = baseline.random_for_df(unselected)
+
+    npt.assert_array_equal(replay, first[[0, 2]])
+    npt.assert_array_equal(unselected_next, expected_unselected_next)
+
+
+@pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
 def test_gumbel_max_positions_for_df_matches_materialized_path_and_offsets(
     channel_type,
 ):

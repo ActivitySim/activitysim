@@ -5,20 +5,15 @@ from typing import Literal
 
 import numpy as np
 import pandas as pd
-from cffi import FFI
 
 from ._entropy import fast_entropy
-from ._fast_random import FastGenerator, quick_entropy
+from ._fast_random import FastGenerator
 
-# one more than 0xFFFFFFFF so we can wrap using: int64 % _MAX_SEED
-_MAX_SEED = 1 << 32
 _SEED_MASK = 0xFFFFFFFF
 
 # Keep this private sentinel aligned with activitysim.core.random.MASKED_ALT_ID.
 # It cannot be imported from random.py here because random.py imports FastChannel.
 _MASKED_ALT_ID = -999
-
-_FFI = FFI()
 
 
 def hash32(s):

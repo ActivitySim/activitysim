@@ -340,7 +340,7 @@ class FastChannel:
         mu: float | np.ndarray = 0,
         sigma: float | np.ndarray = 1,
         lognormal: bool = False,
-        size: int | tuple[int, ...] = 1,
+        size: int | tuple[int, ...] | None = None,
     ) -> np.ndarray:
         """
         Draw normal (or lognormal) random variates for each row in *df*.
@@ -370,7 +370,8 @@ class FastChannel:
             parameters.  Defaults to ``False``.
         size : int or tuple of int, optional
             Number of draws per agent.  A plain ``int`` *k* yields *k* draws
-            per row; a tuple gives the per-row shape.  Defaults to ``1``.
+            per row; a tuple gives the per-row shape.  When omitted, one scalar
+            per row is returned.
 
         Returns
         -------
@@ -389,17 +390,31 @@ class FastChannel:
         assert step_name == self.step_name
         selected_positions = self._check_valid_df(df)
         self._reseed_step()
-        if size is None:
-            size = 1
+        scalar_output = size is None
+        draw_shape = 1 if scalar_output else size
 
-        mu = np.asarray(mu)
-        sigma = np.asarray(sigma)
         result = self._fast_generator.vector_random_standard_normal(
-            self._state_array, selected_positions=selected_positions, shape=size
+            self._state_array, selected_positions=selected_positions, shape=draw_shape
         )
-        result = result * sigma + mu
+
+        def broadcast_parameter(value, name):
+            """Align one scalar or one value per row to the generated draw shape."""
+            value = np.asarray(value)
+            if value.ndim == 0:
+                return value
+            if value.shape != (len(df),):
+                raise ValueError(
+                    f"{name} must be a scalar or a 1-D array with one value per row"
+                )
+            return value.reshape((len(df),) + (1,) * (result.ndim - 1))
+
+        result = result * broadcast_parameter(sigma, "sigma") + broadcast_parameter(
+            mu, "mu"
+        )
         if lognormal:
             result = np.exp(result)
+        if scalar_output:
+            return result[:, 0]
         return result
 
     def random_for_df(

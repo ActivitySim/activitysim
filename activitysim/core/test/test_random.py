@@ -228,6 +228,47 @@ def test_reset_offsets_for_df_replays_only_selected_rows(channel_type):
 
 
 @pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
+def test_normal_for_df_preserves_per_row_shapes(channel_type):
+    persons = pd.DataFrame(index=pd.Index([1, 2, 3], name="person_id"))
+    mu = np.array([10.0, 20.0, 30.0])
+    sigma = np.zeros(3)
+    rng = random.Random(channel_type=channel_type)
+    rng.begin_step("test_step")
+    rng.add_channel("persons", persons)
+
+    scalar_draws = rng.normal_for_df(persons, mu=mu, sigma=sigma)
+    vector_draws = rng.normal_for_df(persons, mu=mu, sigma=sigma, size=2)
+    lognormal_draws = rng.lognormal_for_df(persons, mu=mu, sigma=sigma)
+
+    assert scalar_draws.shape == (3,)
+    assert vector_draws.shape == (3, 2)
+    assert lognormal_draws.shape == (3,)
+    npt.assert_array_equal(scalar_draws, mu)
+    npt.assert_array_equal(vector_draws, np.repeat(mu[:, None], 2, axis=1))
+    npt.assert_array_equal(lognormal_draws, np.exp(mu))
+
+
+@pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
+def test_lognormal_for_df_broadcasts_over_duplicate_rows(channel_type):
+    persons = pd.DataFrame(index=pd.Index([1, 2, 3], name="person_id"))
+    alternatives = pd.DataFrame(index=pd.Index([1, 1, 2, 3, 3], name="person_id"))
+    rng = random.Random(channel_type=channel_type)
+    rng.begin_step("test_step")
+    rng.add_channel("persons", persons)
+
+    draws = rng.lognormal_for_df(
+        alternatives,
+        mu=1.0,
+        sigma=0.5,
+        broadcast=True,
+    )
+
+    assert draws.shape == (5,)
+    assert draws.iloc[0] == draws.iloc[1]
+    assert draws.iloc[3] == draws.iloc[4]
+
+
+@pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
 def test_gumbel_max_positions_for_df_matches_materialized_path_and_offsets(
     channel_type,
 ):

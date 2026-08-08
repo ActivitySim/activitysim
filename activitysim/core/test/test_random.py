@@ -12,6 +12,8 @@ import pytest
 from activitysim.core import random
 from activitysim.core.exceptions import DuplicateLoadableObjectError
 
+CHANNEL_TYPES = ("simple", "fast", "faster")
+
 
 def test_basic():
     rng = random.Random()
@@ -35,7 +37,7 @@ def test_basic():
     assert "call set_base_seed before the first step" in str(excinfo.value)
 
 
-@pytest.mark.parametrize("channel_type", ["simple", "fast", "faster"])
+@pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
 def test_channel(channel_type: Literal["simple", "fast", "faster"]):
     channels = {
         "households": "household_id",
@@ -183,7 +185,10 @@ def test_channel(channel_type: Literal["simple", "fast", "faster"]):
     rng.end_step("test_step")
 
 
-def test_gumbel_max_positions_for_df_matches_materialized_path_and_offsets():
+@pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
+def test_gumbel_max_positions_for_df_matches_materialized_path_and_offsets(
+    channel_type,
+):
     persons = pd.DataFrame(
         {"household_id": [1, 1, 2]},
         index=pd.Index([11, 12, 13], name="person_id"),
@@ -195,7 +200,7 @@ def test_gumbel_max_positions_for_df_matches_materialized_path_and_offsets():
     sample_size = 4
     n_alts = utilities.shape[1]
 
-    baseline_rng = random.Random()
+    baseline_rng = random.Random(channel_type=channel_type)
     baseline_rng.set_base_seed(0)
     baseline_rng.begin_step("test_step")
     baseline_rng.add_channel("persons", persons)
@@ -209,7 +214,7 @@ def test_gumbel_max_positions_for_df_matches_materialized_path_and_offsets():
     next_random_after_materialized = baseline_rng.random_for_df(persons)
     baseline_rng.end_step("test_step")
 
-    fused_rng = random.Random()
+    fused_rng = random.Random(channel_type=channel_type)
     fused_rng.set_base_seed(0)
     fused_rng.begin_step("test_step")
     fused_rng.add_channel("persons", persons)
@@ -222,7 +227,10 @@ def test_gumbel_max_positions_for_df_matches_materialized_path_and_offsets():
     npt.assert_allclose(next_random_after_fused, next_random_after_materialized)
 
 
-def test_gumbel_max_positions_for_df_matches_stable_alt_mapping_and_offsets():
+@pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
+def test_gumbel_max_positions_for_df_matches_stable_alt_mapping_and_offsets(
+    channel_type,
+):
     persons = pd.DataFrame(
         {"household_id": [1, 1, 2]},
         index=pd.Index([41, 42, 43], name="person_id"),
@@ -235,7 +243,7 @@ def test_gumbel_max_positions_for_df_matches_stable_alt_mapping_and_offsets():
     stable_alt_positions = np.array([0, 2, 4], dtype=np.int64)
     n_total_alts = 5
 
-    baseline_rng = random.Random()
+    baseline_rng = random.Random(channel_type=channel_type)
     baseline_rng.set_base_seed(0)
     baseline_rng.begin_step("test_step")
     baseline_rng.add_channel("persons", persons)
@@ -252,7 +260,7 @@ def test_gumbel_max_positions_for_df_matches_stable_alt_mapping_and_offsets():
     next_random_after_materialized = baseline_rng.random_for_df(persons)
     baseline_rng.end_step("test_step")
 
-    fused_rng = random.Random()
+    fused_rng = random.Random(channel_type=channel_type)
     fused_rng.set_base_seed(0)
     fused_rng.begin_step("test_step")
     fused_rng.add_channel("persons", persons)
@@ -270,7 +278,8 @@ def test_gumbel_max_positions_for_df_matches_stable_alt_mapping_and_offsets():
     npt.assert_allclose(next_random_after_fused, next_random_after_materialized)
 
 
-def test_random_for_df_stable_alt_mapping_and_offsets():
+@pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
+def test_random_for_df_stable_alt_mapping_and_offsets(channel_type):
     persons = pd.DataFrame(
         {"household_id": [1, 1, 2]},
         index=pd.Index([51, 52, 53], name="person_id"),
@@ -282,7 +291,7 @@ def test_random_for_df_stable_alt_mapping_and_offsets():
     stable_alt_positions = np.array([0, 2, 4], dtype=np.int64)
     n_total_alts = 5
 
-    baseline_rng = random.Random()
+    baseline_rng = random.Random(channel_type=channel_type)
     baseline_rng.set_base_seed(0)
     baseline_rng.begin_step("test_step")
     baseline_rng.add_channel("persons", persons)
@@ -292,7 +301,7 @@ def test_random_for_df_stable_alt_mapping_and_offsets():
     next_random_after_materialized = baseline_rng.random_for_df(persons)
     baseline_rng.end_step("test_step")
 
-    fused_rng = random.Random()
+    fused_rng = random.Random(channel_type=channel_type)
     fused_rng.set_base_seed(0)
     fused_rng.begin_step("test_step")
     fused_rng.add_channel("persons", persons)
@@ -309,7 +318,10 @@ def test_random_for_df_stable_alt_mapping_and_offsets():
     npt.assert_allclose(next_random_after_fused, next_random_after_materialized)
 
 
-def test_gumbel_choice_positions_for_df_matches_materialized_path_and_offsets():
+@pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
+def test_gumbel_choice_positions_for_df_matches_materialized_path_and_offsets(
+    channel_type,
+):
     persons = pd.DataFrame(
         {"household_id": [1, 1, 2]},
         index=pd.Index([21, 22, 23], name="person_id"),
@@ -319,7 +331,7 @@ def test_gumbel_choice_positions_for_df_matches_materialized_path_and_offsets():
         index=persons.index,
     )
 
-    baseline_rng = random.Random()
+    baseline_rng = random.Random(channel_type=channel_type)
     baseline_rng.set_base_seed(0)
     baseline_rng.begin_step("test_step")
     baseline_rng.add_channel("persons", persons)
@@ -329,7 +341,7 @@ def test_gumbel_choice_positions_for_df_matches_materialized_path_and_offsets():
     next_random_after_materialized = baseline_rng.random_for_df(persons)
     baseline_rng.end_step("test_step")
 
-    fused_rng = random.Random()
+    fused_rng = random.Random(channel_type=channel_type)
     fused_rng.set_base_seed(0)
     fused_rng.begin_step("test_step")
     fused_rng.add_channel("persons", persons)
@@ -342,7 +354,8 @@ def test_gumbel_choice_positions_for_df_matches_materialized_path_and_offsets():
     npt.assert_allclose(next_random_after_fused, next_random_after_materialized)
 
 
-def test_gumbel_choice_positions_for_df_matches_dense_alt_mapping():
+@pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
+def test_gumbel_choice_positions_for_df_matches_dense_alt_mapping(channel_type):
     persons = pd.DataFrame(
         {"household_id": [1, 1]},
         index=pd.Index([31, 32], name="person_id"),
@@ -357,7 +370,7 @@ def test_gumbel_choice_positions_for_df_matches_dense_alt_mapping():
     )
     n_rands = 3
 
-    baseline_rng = random.Random()
+    baseline_rng = random.Random(channel_type=channel_type)
     baseline_rng.set_base_seed(0)
     baseline_rng.begin_step("test_step")
     baseline_rng.add_channel("persons", persons)
@@ -370,7 +383,7 @@ def test_gumbel_choice_positions_for_df_matches_dense_alt_mapping():
     next_random_after_materialized = baseline_rng.random_for_df(persons)
     baseline_rng.end_step("test_step")
 
-    fused_rng = random.Random()
+    fused_rng = random.Random(channel_type=channel_type)
     fused_rng.set_base_seed(0)
     fused_rng.begin_step("test_step")
     fused_rng.add_channel("persons", persons)
@@ -387,7 +400,8 @@ def test_gumbel_choice_positions_for_df_matches_dense_alt_mapping():
     npt.assert_allclose(next_random_after_fused, next_random_after_materialized)
 
 
-def test_gumbel_choice_positions_for_df_masked_columns_never_win():
+@pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
+def test_gumbel_choice_positions_for_df_masked_columns_never_win(channel_type):
     # padded columns carry a high utility here, so if they were eligible they would
     # win every argmax; only the single active column of each row may be returned
     persons = pd.DataFrame(
@@ -407,7 +421,7 @@ def test_gumbel_choice_positions_for_df_masked_columns_never_win():
         index=persons.index,
     )
 
-    rng = random.Random()
+    rng = random.Random(channel_type=channel_type)
     rng.set_base_seed(0)
     rng.begin_step("test_step")
     rng.add_channel("persons", persons)
@@ -419,7 +433,10 @@ def test_gumbel_choice_positions_for_df_masked_columns_never_win():
     npt.assert_array_equal(positions, [0, 1, 2])
 
 
-def test_gumbel_choice_positions_for_df_fully_masked_row_falls_back_to_first_column():
+@pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
+def test_gumbel_choice_positions_for_df_fully_masked_row_falls_back_to_first_column(
+    channel_type,
+):
     # MASKED_ALT_ID marks padded *or unavailable* slots, so an all-masked row means the
     # chooser has no alternative available. That returns position 0, mirroring the Monte
     # Carlo path's probs.loc[zero_probs, 0] = 1.0, and it must not disturb the choice or
@@ -439,7 +456,7 @@ def test_gumbel_choice_positions_for_df_fully_masked_row_falls_back_to_first_col
     )
 
     def run(alt_nrs_df):
-        rng = random.Random()
+        rng = random.Random(channel_type=channel_type)
         rng.set_base_seed(0)
         rng.begin_step("test_step")
         rng.add_channel("persons", persons)

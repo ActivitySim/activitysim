@@ -14,6 +14,10 @@ from ._fast_random import FastGenerator, quick_entropy
 _MAX_SEED = 1 << 32
 _SEED_MASK = 0xFFFFFFFF
 
+# Keep this private sentinel aligned with activitysim.core.random.MASKED_ALT_ID.
+# It cannot be imported from random.py here because random.py imports FastChannel.
+_MASKED_ALT_ID = -999
+
 _FFI = FFI()
 
 
@@ -420,6 +424,144 @@ class FastChannel:
         return self._fast_generator.vector_random_standard_uniform(
             self._state_array, selected_positions=selected_positions, shape=n
         )
+
+    def random_for_df_stable_alt_positions(
+        self,
+        df: pd.DataFrame,
+        step_name: str,
+        stable_alt_positions: np.ndarray,
+        n_total_alts: int,
+    ) -> np.ndarray:
+        """Draw from a stable alternative universe and return active positions.
+
+        Generating the full stable width before selecting active alternatives keeps
+        each row's stream aligned when the active alternative set changes.
+        """
+        n_alts = df.shape[1]
+        stable_alt_positions = np.asarray(stable_alt_positions)
+        if stable_alt_positions.shape != (n_alts,):
+            raise ValueError(
+                "stable_alt_positions must be a 1-D array aligned to df columns"
+            )
+        if stable_alt_positions.min() < 0 or stable_alt_positions.max() >= n_total_alts:
+            raise ValueError(
+                "stable_alt_positions values must be within [0, n_total_alts)"
+            )
+
+        rands = self.random_for_df(df, step_name, n=n_total_alts)
+        return rands[:, stable_alt_positions]
+
+    def gumbel_for_df(
+        self,
+        df: pd.DataFrame,
+        step_name: str,
+        n: int = 1,
+    ) -> np.ndarray:
+        """Draw type-I extreme-value variates for each selected row."""
+        uniforms = self.random_for_df(df, step_name, n=n)
+        return -np.log(-np.log(uniforms))
+
+    def gumbel_max_positions_for_df(
+        self,
+        utilities: pd.DataFrame,
+        step_name: str,
+        sample_size: int,
+        stable_alt_positions: np.ndarray | None = None,
+        n_total_alts: int | None = None,
+    ) -> np.ndarray:
+        """Return winning alternative positions for repeated Gumbel-max draws."""
+        utility_values = utilities.to_numpy()
+        _, n_alts = utility_values.shape
+
+        if stable_alt_positions is not None or n_total_alts is not None:
+            if stable_alt_positions is None or n_total_alts is None:
+                raise ValueError(
+                    "stable_alt_positions and n_total_alts must both be provided or omitted together"
+                )
+            stable_alt_positions = np.asarray(stable_alt_positions)
+            if stable_alt_positions.shape != (n_alts,):
+                raise ValueError(
+                    "stable_alt_positions must be a 1-D array aligned to utilities columns"
+                )
+            if (
+                stable_alt_positions.min() < 0
+                or stable_alt_positions.max() >= n_total_alts
+            ):
+                raise ValueError(
+                    "stable_alt_positions values must be within [0, n_total_alts)"
+                )
+            n_gumbels = n_total_alts
+        else:
+            n_gumbels = n_alts
+
+        uniforms = self.random_for_df(
+            utilities,
+            step_name,
+            n=n_gumbels * sample_size,
+        ).reshape((len(utilities), sample_size, n_gumbels))
+        if stable_alt_positions is not None:
+            uniforms = uniforms[:, :, stable_alt_positions]
+        gumbels = -np.log(-np.log(uniforms))
+        return np.argmax(
+            gumbels + utility_values[:, np.newaxis, :],
+            axis=2,
+        )
+
+    def gumbel_choice_positions_for_df(
+        self,
+        utilities: pd.DataFrame,
+        step_name: str,
+        alt_nrs_df: pd.DataFrame | None = None,
+        n_rands: int | None = None,
+    ) -> np.ndarray:
+        """Return the Gumbel-max winning column for each chooser row."""
+        utility_values = utilities.to_numpy()
+        n_rows, n_alts = utility_values.shape
+
+        if alt_nrs_df is not None:
+            assert alt_nrs_df.index.equals(
+                utilities.index
+            ), "alt_nrs_df and utilities must share the same index"
+            assert alt_nrs_df.columns.equals(
+                utilities.columns
+            ), "alt_nrs_df and utilities must share the same columns"
+            if n_rands is None:
+                raise ValueError("n_rands is required when alt_nrs_df is provided")
+            alt_nr_values = alt_nrs_df.to_numpy()
+            bad_negatives = (alt_nr_values < 0) & (alt_nr_values != _MASKED_ALT_ID)
+            if bad_negatives.any():
+                offenders = np.unique(alt_nr_values[bad_negatives])
+                raise ValueError(
+                    "alt_nrs contains negative values other than the "
+                    f"{_MASKED_ALT_ID} sentinel: {offenders}"
+                )
+            active_mask = alt_nr_values != _MASKED_ALT_ID
+            safe_alt_nrs = np.where(active_mask, alt_nr_values, 0)
+        else:
+            if n_rands is None:
+                n_rands = n_alts
+            elif n_rands != n_alts:
+                raise ValueError(
+                    "n_rands must equal utilities.shape[1] when alt_nrs_df is omitted"
+                )
+            active_mask = safe_alt_nrs = None
+
+        row_randoms = self.random_for_df(utilities, step_name, n=n_rands)
+        if alt_nrs_df is None:
+            return np.argmax(utility_values - np.log(-np.log(row_randoms)), axis=1)
+
+        positions = np.empty(n_rows, dtype=np.int64)
+        for row_num in range(n_rows):
+            # Work only with active columns so padded high-utility columns cannot win.
+            active = np.flatnonzero(active_mask[row_num])
+            if active.size == 0:
+                positions[row_num] = 0
+                continue
+            gumbel = utility_values[row_num, active] - np.log(
+                -np.log(row_randoms[row_num, safe_alt_nrs[row_num, active]])
+            )
+            positions[row_num] = active[np.argmax(gumbel)]
+        return positions
 
     def choice_for_df(
         self,

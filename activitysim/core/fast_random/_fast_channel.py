@@ -40,7 +40,7 @@ class FastChannel:
         domain_df: pd.DataFrame,
         step_name: str = "",
         bit_generator: Literal["PCG64", "SFC64"] = "PCG64",
-        entropy_type: Literal["robust", "quick"] | None = "quick",
+        entropy_type: Literal["robust", "quick"] | None = None,
     ) -> None:
         """
         Create a new FastChannel for vectorised per-row random number generation.
@@ -71,14 +71,13 @@ class FastChannel:
             away.  Defaults to ``""`` (no step started).
         bit_generator : {"SFC64", "PCG64"}, default: "PCG64"
             Which bit generator to use for the per-row streams.
-        entropy_type : {"robust", "quick"}, default: "quick"
+        entropy_type : {"robust", "quick"}, optional
             The type of entropy used to reseed the bit generators.
             Robust entropy uses the numpy SeedSequence tools to create entropy
             with strong statistical properties, but is slower to generate.  Quick
             entropy uses a custom hash-based method that is much faster to generate
-            but may have a slightly greater risk of non-independent streams. Since
-            ActivitySim reseeds quite frequently, the practical risk of problems
-            is low.
+            but may have a slightly greater risk of non-independent streams. When
+            omitted, PCG64 uses robust entropy and SFC64 uses quick entropy.
 
         """
         self.base_seed = base_seed

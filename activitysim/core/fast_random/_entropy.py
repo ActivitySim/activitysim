@@ -88,7 +88,11 @@ _FG_SFC64 = FastGenerator(42, "SFC64")
 
 def fast_entropy_PCG64(base_seeds: int | list[int], index_keys: pd.Index) -> np.ndarray:
     generated_states = _fast_entropy_raw(base_seeds, index_keys)
-    generated_states[:, -1] |= 1  # Ensure the last word is odd for PCG64
+    # PCG64 requires an odd 128-bit increment.  FastGenerator discovers the
+    # raw CFFI state layout at runtime, so use its mapping rather than assuming
+    # which of the four words contains the increment's least-significant bits.
+    increment_low_word = _FG_PCG64._slice_positions[2]
+    generated_states[:, increment_low_word] |= 1
     # make a couple draws to properly mix the state and avoid any initial correlation with the input keys
     _FG_PCG64.vector_random_standard_uniform(generated_states, shape=2)
     return generated_states

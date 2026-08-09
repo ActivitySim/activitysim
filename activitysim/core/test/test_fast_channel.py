@@ -10,6 +10,8 @@ import pandas as pd
 import pytest
 
 from activitysim.core.fast_random import FastChannel
+from activitysim.core.fast_random._entropy import fast_entropy_PCG64
+from activitysim.core.fast_random._fast_random import FastGenerator
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -71,6 +73,26 @@ class TestInit:
         ch_a = FastChannel("alpha", 0, d)
         ch_b = FastChannel("beta", 0, d)
         assert ch_a.channel_seed != ch_b.channel_seed
+
+    @pytest.mark.parametrize(
+        ("bit_generator", "expected_entropy"),
+        [("PCG64", "robust"), ("SFC64", "quick")],
+    )
+    def test_default_entropy_matches_bit_generator(
+        self, bit_generator, expected_entropy
+    ):
+        ch = FastChannel(
+            "households", 0, _make_df([1, 2, 3]), bit_generator=bit_generator
+        )
+        assert ch._entropy_type == expected_entropy
+
+    def test_quick_pcg64_entropy_has_odd_increment(self):
+        states = fast_entropy_PCG64(
+            [123, 456], pd.Index(np.arange(1000, dtype=np.uint64))
+        )
+        generator = FastGenerator(bit_gen="PCG64")
+        increment_low_word = generator._slice_positions[2]
+        assert np.all(states[:, increment_low_word] & np.uint64(1))
 
 
 # ---------------------------------------------------------------------------

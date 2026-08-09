@@ -14,6 +14,47 @@ from activitysim.core.exceptions import DuplicateLoadableObjectError
 
 CHANNEL_TYPES = ("simple", "fast", "faster")
 
+_FAST_CHANNEL_GOLDENS = {
+    "fast": {
+        "uniform": np.array(
+            [
+                [0.8412170922705721, 0.8444598643290162],
+                [0.4851147851611052, 0.31191389673821024],
+                [0.749397127522066, 0.05566740290330263],
+            ]
+        ),
+        "normal": np.array(
+            [0.11495552520758334, -0.25428019721944395, -1.3766521717537907]
+        ),
+        "choice": np.array([10, 50, 10, 20, 40, 50]),
+        "following": np.array(
+            [
+                [0.431261375505242],
+                [0.47379130909715983],
+                [0.23522137228134843],
+            ]
+        ),
+    },
+    "faster": {
+        "uniform": np.array(
+            [
+                [0.35325693076713094, 0.5673606151472527],
+                [0.8601996056684649, 0.5302840828934835],
+                [0.09654885478368846, 0.7308784020261461],
+            ]
+        ),
+        "normal": np.array([1.8144041669988935, 1.0751733769824134, 1.052361487133243]),
+        "choice": np.array([10, 40, 30, 20, 20, 50]),
+        "following": np.array(
+            [
+                [0.0362199624887537],
+                [0.5978910808097496],
+                [0.6610301299479874],
+            ]
+        ),
+    },
+}
+
 
 def test_basic():
     rng = random.Random()
@@ -36,6 +77,60 @@ def test_basic():
     with pytest.raises(DuplicateLoadableObjectError) as excinfo:
         rng.set_base_seed(1)
     assert "call set_base_seed before the first step" in str(excinfo.value)
+
+
+@pytest.mark.parametrize("channel_type", ("fast", "faster"))
+def test_fast_channel_mixed_sequence_matches_golden(channel_type):
+    """Freeze configured fast-channel streams and cross-method consumption."""
+    persons = pd.DataFrame(index=pd.Index([101, 202, 303], name="person_id"))
+    requested = persons.loc[[303, 101, 202]]
+    rng = random.Random(channel_type=channel_type)
+    rng.set_base_seed(17)
+    rng.begin_step("golden_step")
+    rng.add_channel("persons", persons)
+
+    observed = {
+        "uniform": rng.random_for_df(requested, n=2),
+        "normal": rng.normal_for_df(requested),
+        "choice": rng.choice_for_df(
+            requested, np.array([10, 20, 30, 40, 50]), 2, replace=False
+        ),
+        "following": rng.random_for_df(requested),
+    }
+    rng.end_step("golden_step")
+
+    for name, expected in _FAST_CHANNEL_GOLDENS[channel_type].items():
+        npt.assert_array_equal(observed[name], expected)
+
+
+@pytest.mark.parametrize("channel_type", ("fast", "faster"))
+def test_fast_channel_recreation_preserves_subset_and_extension_streams(channel_type):
+    """Recreating a channel at a step boundary must preserve every row stream."""
+
+    def run(domain_order, request_order):
+        persons = pd.DataFrame(index=pd.Index(domain_order, name="person_id"))
+        requested = persons.loc[request_order]
+        rng = random.Random(channel_type=channel_type)
+        rng.set_base_seed(17)
+        rng.begin_step("resume_step")
+        rng.add_channel("persons", persons)
+        uniform = rng.random_for_df(requested, n=2)
+        normal = rng.normal_for_df(requested)
+
+        added = pd.DataFrame(index=pd.Index([404], name="person_id"))
+        rng.add_channel("persons", added)
+        extended = rng.random_for_df(added, n=2)
+        rng.end_step("resume_step")
+        return uniform, normal, extended
+
+    original = run([101, 202, 303], [303, 101])
+    recreated = run([303, 202, 101], [101, 303])
+
+    # The requested row order changes between runs, so reverse those results
+    # before comparing. The newly extended row is independent of domain order.
+    npt.assert_array_equal(original[0], recreated[0][::-1])
+    npt.assert_array_equal(original[1], recreated[1][::-1])
+    npt.assert_array_equal(original[2], recreated[2])
 
 
 @pytest.mark.parametrize("channel_type", CHANNEL_TYPES)

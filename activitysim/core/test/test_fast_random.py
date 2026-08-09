@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from activitysim.core.fast_random._fast_random import FastGenerator
 
@@ -31,6 +32,74 @@ def make_state_array(
         fg._bit_generator.state = np.random.PCG64(seed=base_seed + i).state
         state[i] = uint64_view[fg._slice_start : fg._slice_end].copy()
     return state
+
+
+_MIXED_DRAW_GOLDENS = {
+    "PCG64": {
+        "uniform": np.array(
+            [
+                0.22733602246716966,
+                0.31675833970975287,
+                0.7973654573327341,
+                0.6762546707509746,
+            ]
+        ),
+        "normal": np.array(
+            [
+                -0.07534330701052097,
+                -0.740884652085609,
+                -1.3677927017829434,
+                0.6488928021930399,
+            ]
+        ),
+        "following": np.array(
+            [0.6727560440146213, 0.9418028652699372, 0.248245714629571]
+        ),
+    },
+    "SFC64": {
+        "uniform": np.array(
+            [
+                0.19120274451709907,
+                0.30618034325732313,
+                0.49135809785873485,
+                0.5734727896970208,
+            ]
+        ),
+        "normal": np.array(
+            [
+                0.6189500858397424,
+                0.40745822130897463,
+                -1.7965345809319757,
+                -1.3488330297420248,
+            ]
+        ),
+        "following": np.array(
+            [0.010584846207991938, 0.09323893259291272, 0.7029554329024037]
+        ),
+    },
+}
+
+
+@pytest.mark.parametrize("bit_generator", ("PCG64", "SFC64"))
+def test_mixed_draw_sequence_matches_numpy_and_golden(bit_generator):
+    """Freeze distribution output and state consumption for both generators."""
+    generator = FastGenerator(bit_gen=bit_generator)
+    state = generator.get_state_array(12345)[None, :]
+    uniform = generator.vector_random_standard_uniform(state, shape=4)[0]
+    normal = generator.vector_random_standard_normal(state, shape=4)[0]
+    following = generator.vector_random_standard_uniform(state, shape=3)[0]
+
+    golden = _MIXED_DRAW_GOLDENS[bit_generator]
+    np.testing.assert_array_equal(uniform, golden["uniform"])
+    np.testing.assert_array_equal(normal, golden["normal"])
+    np.testing.assert_array_equal(following, golden["following"])
+
+    # Runtime parity identifies whether a failure comes from ActivitySim's
+    # compiled distributions or an intentional upstream stream change.
+    numpy_generator = np.random.Generator(getattr(np.random, bit_generator)(seed=12345))
+    np.testing.assert_array_equal(uniform, numpy_generator.random(4))
+    np.testing.assert_array_equal(normal, numpy_generator.standard_normal(4))
+    np.testing.assert_array_equal(following, numpy_generator.random(3))
 
 
 # ---------------------------------------------------------------------------

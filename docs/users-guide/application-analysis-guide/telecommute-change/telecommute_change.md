@@ -37,7 +37,7 @@ The guide will calibrate the telecommute frequencies to the following shares:
 
 The coefficients then need to be adjusted based on the natural logarithm of the ratio of the target share to the modeled share. It should be noted that the shares won't match at first, so the process needs to be run iteratively. The next iteration's coefficient $$c_{n+1}$$ on a given iteration $$n$$ is calculated as follows:
 
-$$c_{n+1}=c_{n}+\alpha\ln{(\frac{\hat{s}}{s_{n}}()}$$
+$$c_{n+1}=c_{n}+\alpha\ln{(\frac{\hat{s}}{s_{n}})}$$
 
 Where $$\hat{s}$$ is the target share, $$s_{n}$$ is the share for calibration iteration $$n$$, and $$\alpha$$ is an optional factor to control how quickly convergence is reached (in this example it will be set to 1). This means that the coefficients for the first calibration iteration would be as follows:
 

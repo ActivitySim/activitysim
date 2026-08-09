@@ -768,7 +768,11 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     The ``"simple"`` default preserves results from earlier ActivitySim
     versions. New models should generally prefer ``"fast"`` for statistically
     robust, higher-throughput streams. Use ``"faster"`` only after validating
-    that its lower reseeding overhead is appropriate for the model.
+    that its lower reseeding overhead is appropriate for the model. The names
+    are not an unconditional speed ranking: Numba compilation and robust
+    per-row initialization can make ``"fast"`` slower than ``"simple"`` for
+    cold or short-lived workloads. See :ref:`random_in_detail` for the complete
+    performance, statistical-quality, and reproducibility tradeoffs.
     """
 
     duplicate_step_execution: Literal["error", "allow"] = "error"

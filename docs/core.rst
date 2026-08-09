@@ -103,7 +103,7 @@ implementations:
 
 .. list-table:: Random channel types
    :header-rows: 1
-   :widths: 15 25 25 35
+   :widths: 13 22 25 40
 
    * - Value
      - Bit generator
@@ -116,23 +116,142 @@ implementations:
    * - ``fast``
      - NumPy PCG64
      - NumPy ``SeedSequence``
-     - Vectorized generation with robust per-row state initialization.
+     - Vectorized generation with the strongest assurance about independent
+       per-row state initialization.
    * - ``faster``
      - NumPy SFC64
      - ActivitySim's hash-based quick entropy
      - Experimental option with the lowest state-initialization overhead when
        channels are frequently reseeded.
 
-.. warning::
-   ``faster`` uses a custom state-initialization algorithm.  ActivitySim tests it
-   for state collisions, key diffusion, aggregate uniformity, and correlations
-   between keyed streams, but these focused regression tests are not a substitute
-   for a comprehensive suite such as TestU01.  Prefer ``fast`` for production
-   models unless ``faster`` has been validated for the model's use case.
+The names describe the intended progression for large, repeated workloads; they
+are not an unconditional speed ranking.  In particular, ``fast`` can be slower
+than ``simple`` for a first draw because robust state initialization has a
+substantial fixed cost.
 
-The two vectorized modes reduce Python overhead, particularly when a model draws
-multiple values for many rows.  Their first use in a process also includes Numba
-compilation overhead, so cold-start timings differ from subsequent calls.
+Choosing a channel type
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Choose ``simple`` when exact compatibility with an existing ActivitySim baseline
+is required.  It has little compilation or state-initialization overhead, which
+can also make it the quickest option for small models, short-lived processes, or
+channels that make very few draws.  Its cost is paid during generation: it seeds
+and advances a legacy ``RandomState`` separately for every requested row, so
+repeated or multidimensional draws scale poorly.
+
+Choose ``fast`` when robust initialization is more important than the latency of
+the first draw and the model will make enough draws to amortize that latency.  It
+uses PCG64 and NumPy's `SeedSequence
+<https://numpy.org/doc/stable/reference/random/bit_generators/generated/numpy.random.SeedSequence.html>`__
+to derive a high-quality state independently for every row.  ActivitySim currently
+constructs a Python ``SeedSequence`` and bit-generator object per row; on a large
+channel this work can dominate an otherwise very fast vectorized draw.
+
+Choose ``faster`` when per-step initialization is a material part of total runtime
+and the model team accepts a smaller body of evidence about the independence of
+its keyed streams.  It uses NumPy's `SFC64
+<https://numpy.org/doc/stable/reference/random/bit_generators/sfc64.html>`__ bit
+generator but initializes its state with ActivitySim's compiled hash and mixing
+procedure instead of ``SeedSequence``.  SFC64 itself is an established NumPy bit
+generator; the additional uncertainty is specifically in ActivitySim's custom
+construction of many per-row starting states.
+
+The following table summarizes the usual tradeoffs.  Actual results depend on
+channel size, draw shape, model sequence, hardware, and process lifetime.
+
+.. list-table:: Runtime and compatibility tradeoffs
+   :header-rows: 1
+   :widths: 12 20 22 20 26
+
+   * - Value
+     - First use in a process
+     - First draw in each step
+     - Repeated generation
+     - Primary reason to select it
+   * - ``simple``
+     - Low; no Numba compilation
+     - Low state setup, but generation remains per-row
+     - Slowest for large or repeated draws
+     - Exact legacy outputs and low overhead for small workloads
+   * - ``fast``
+     - High; includes Numba compilation
+     - Potentially high; robust state is initialized for every channel row
+     - Fast vectorized generation
+     - Strongest statistical assurance for new vectorized streams
+   * - ``faster``
+     - High; includes Numba compilation
+     - Low; compiled quick entropy initializes every channel row
+     - Fast vectorized generation
+     - Lowest reseeding latency after model-specific validation
+
+Understanding runtime costs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are three distinct costs to consider when interpreting benchmarks:
+
+#. **Process compilation.** The first use of ``fast`` or ``faster`` compiles
+   Numba kernels.  This is separate from random-state initialization and may be
+   paid by every newly started worker process.  For a short run, compilation can
+   outweigh all later generation savings.
+#. **Per-step initialization.** Fast-channel state is initialized lazily on the
+   first draw of a pipeline step.  The current implementation initializes the
+   full registered channel, even when that draw requests only a small subset of
+   rows.  ``fast`` performs robust per-row initialization in Python; ``faster``
+   performs quick initialization in compiled batches.
+#. **Warm generation.** After initialization, both vectorized modes retain a
+   compact state for every row and generate batches without recreating a NumPy
+   object per row.  This is where they provide their largest advantage over
+   ``simple``, especially for normal, Gumbel, explicit-error-term, and
+   multidimensional draws.
+
+It is therefore expected, rather than necessarily a regression, for ``fast`` to
+lose to ``simple`` in a cold first-draw benchmark while winning repeated calls.
+Evaluate end-to-end model runtime as well as isolated warm throughput.  The
+repository benchmark separates process-first, cold-step, warm-generation,
+memory, and spawned-worker measurements and can be run from the repository root:
+
+.. code-block:: console
+
+   python other_resources/performance-checks/fast-channel-random.py --rows 250000
+
+Statistical assurance versus reproducibility
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Statistical assurance and reproducibility are different properties.  All three
+modes deterministically reproduce their own streams when the base seed, channel
+type, software environment, model sequence, and inputs are held fixed.  Selecting
+``faster`` does not make repeated runs nondeterministic.  It accepts a theoretical
+risk of poorer separation or correlation among the many custom-initialized
+streams compared with NumPy's extensively reviewed ``SeedSequence`` procedure.
+
+ActivitySim's quick-entropy tests cover state collisions among sequential keys,
+key diffusion, aggregate uniformity, correlations between keyed streams, and
+golden-vector reproducibility.  These are useful regression checks, but they are
+not a substitute for a comprehensive statistical suite such as TestU01 or for
+model-level validation.
+
+.. warning::
+   Prefer ``fast`` when the statistical properties of many independently keyed
+   streams have not been evaluated for the model's workload.  Use ``faster`` when
+   its startup benefit is material and the model team has established an
+   appropriate validation baseline.
+
+Validating a change of channel type
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Before adopting ``fast`` or ``faster`` for an established model:
+
+#. Benchmark the full model on deployment hardware, including its actual process
+   count and resume strategy.  A microbenchmark of warm draws alone is not enough.
+#. Run the candidate mode with several ``rng_base_seed`` values and compare key
+   aggregate totals, shares, distributions, and model-specific invariants with a
+   trusted baseline.  Different individual choices are expected because each mode
+   intentionally uses different streams; systematic changes are the concern.
+#. Retain automated regression coverage for reproducibility, chunking, sampling,
+   checkpoint resumes, and any explicit-error-term paths used by the model.
+#. Record the selected channel type, base seed, ActivitySim version, and dependency
+   versions with archived results, and establish a new expected-output baseline.
+#. Do not switch channel type while resuming an existing pipeline checkpoint.
 
 Reproducibility contract
 ^^^^^^^^^^^^^^^^^^^^^^^^

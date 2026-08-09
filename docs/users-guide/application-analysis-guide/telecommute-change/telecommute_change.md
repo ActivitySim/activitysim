@@ -1,7 +1,3 @@
-<script
-  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
-  type="text/javascript">
-</script>
 # Telecommuting Change
 
 Telecommuting has been on planners' minds since the start of the COVID-19 Pandemic in 2020, as the rapid increase in telecommuting at the onset of the pandemic resulted in drastic reductions in VMT and transit boardings, the latter of which hasn't recovered in some places. At the present many employers are pushing for their employees to return to the office, and thus planners would like to test the impacts of such on the transportation network. This guide will demonstrate how to set up an increased return-to-office scenario in ActivitySim.

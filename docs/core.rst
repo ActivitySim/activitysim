@@ -120,7 +120,15 @@ implementations:
    * - ``faster``
      - NumPy SFC64
      - ActivitySim's hash-based quick entropy
-     - Lowest state-initialization overhead when channels are frequently reseeded.
+     - Experimental option with the lowest state-initialization overhead when
+       channels are frequently reseeded.
+
+.. warning::
+   ``faster`` uses a custom state-initialization algorithm.  ActivitySim tests it
+   for state collisions, key diffusion, aggregate uniformity, and correlations
+   between keyed streams, but these focused regression tests are not a substitute
+   for a comprehensive suite such as TestU01.  Prefer ``fast`` for production
+   models unless ``faster`` has been validated for the model's use case.
 
 The two vectorized modes reduce Python overhead, particularly when a model draws
 multiple values for many rows.  Their first use in a process also includes Numba

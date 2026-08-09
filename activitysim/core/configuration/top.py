@@ -762,12 +762,13 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
         vectorised PCG64-based implementation and robust entropy generation.
     * ``"faster"``
         Use :class:`activitysim.core.fast_random.FastChannel`, with a
-        vectorised SFC64-based implementation and hash-based reseeding.
+        vectorised SFC64-based implementation and experimental hash-based
+        reseeding.
 
     The ``"simple"`` default preserves results from earlier ActivitySim
     versions. New models should generally prefer ``"fast"`` for statistically
-    robust, higher-throughput streams, or ``"faster"`` when minimizing reseeding
-    overhead is more important.
+    robust, higher-throughput streams. Use ``"faster"`` only after validating
+    that its lower reseeding overhead is appropriate for the model.
     """
 
     duplicate_step_execution: Literal["error", "allow"] = "error"

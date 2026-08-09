@@ -355,7 +355,7 @@ class FastChannel:
             ``0``.
         sigma : float or array-like, optional
             Standard deviation of the normal distribution.  Same broadcasting
-            rules as *mu*.  Defaults to ``1``.
+            rules as *mu*; every value must be nonnegative.  Defaults to ``1``.
         lognormal : bool, optional
             When ``True``, return ``exp(normal_sample)`` so that the result
             follows a lognormal distribution with the given underlying-normal
@@ -376,21 +376,18 @@ class FastChannel:
             If *step_name* is ``None`` or does not match the active step.
         ValueError
             If *df* fails the domain validation performed by
-            :meth:`_check_valid_df`.
+            :meth:`_check_valid_df`, if *mu* or *sigma* cannot be broadcast to
+            one value per row, or if *sigma* contains a negative value.
         """
         assert step_name is not None
         assert step_name == self.step_name
         selected_positions = self._check_valid_df(df)
-        self._reseed_step()
         scalar_output = size is None
         draw_shape = 1 if scalar_output else size
-
-        result = self._fast_generator.vector_random_standard_normal(
-            self._state_array, selected_positions=selected_positions, shape=draw_shape
-        )
+        result_ndim = 1 + (len(draw_shape) if isinstance(draw_shape, tuple) else 1)
 
         def broadcast_parameter(value, name):
-            """Align one scalar or one value per row to the generated draw shape."""
+            """Validate and align a parameter without advancing the RNG stream."""
             value = np.asarray(value)
             if value.ndim == 0:
                 return value
@@ -398,11 +395,20 @@ class FastChannel:
                 raise ValueError(
                     f"{name} must be a scalar or a 1-D array with one value per row"
                 )
-            return value.reshape((len(df),) + (1,) * (result.ndim - 1))
+            return value.reshape((len(df),) + (1,) * (result_ndim - 1))
 
-        result = result * broadcast_parameter(sigma, "sigma") + broadcast_parameter(
-            mu, "mu"
+        # Validate both parameters before reseeding or drawing. A rejected call
+        # must not change the next value in any row's reproducible stream.
+        sigma = broadcast_parameter(sigma, "sigma")
+        if np.any(sigma < 0):
+            raise ValueError("scale < 0")
+        mu = broadcast_parameter(mu, "mu")
+
+        self._reseed_step()
+        result = self._fast_generator.vector_random_standard_normal(
+            self._state_array, selected_positions=selected_positions, shape=draw_shape
         )
+        result = result * sigma + mu
         if lognormal:
             result = np.exp(result)
         if scalar_output:

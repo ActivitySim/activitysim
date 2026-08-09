@@ -372,6 +372,49 @@ class TestNormalForDf:
         result = ch.normal_for_df(df, "s", mu=5.0, sigma=2.0)
         assert result.shape == (5,)
 
+    @pytest.mark.parametrize(
+        ("parameter", "value"),
+        [
+            ("mu", np.array([0.0, 1.0])),
+            ("sigma", np.array([1.0, 2.0])),
+        ],
+    )
+    def test_invalid_parameter_shape_does_not_advance_stream(self, parameter, value):
+        df = _make_df([1, 2, 3])
+        rejected = FastChannel("h", 7, df)
+        baseline = FastChannel("h", 7, df)
+        rejected.begin_step("s")
+        baseline.begin_step("s")
+
+        with pytest.raises(ValueError, match=f"{parameter} must be"):
+            rejected.normal_for_df(df, "s", **{parameter: value})
+
+        # Validation happens before lazy state initialization, so the rejected
+        # call cannot consume or otherwise alter any per-row stream.
+        assert rejected._state_array is None
+        observed = rejected.normal_for_df(df, "s")
+        expected = baseline.normal_for_df(df, "s")
+        npt.assert_array_equal(observed, expected)
+
+    @pytest.mark.parametrize(
+        "sigma",
+        [-1.0, np.array([1.0, -1.0, 1.0])],
+    )
+    def test_negative_sigma_raises_without_advancing_stream(self, sigma):
+        df = _make_df([1, 2, 3])
+        rejected = FastChannel("h", 7, df)
+        baseline = FastChannel("h", 7, df)
+        rejected.begin_step("s")
+        baseline.begin_step("s")
+
+        with pytest.raises(ValueError, match="scale < 0"):
+            rejected.normal_for_df(df, "s", sigma=sigma)
+
+        assert rejected._state_array is None
+        observed = rejected.normal_for_df(df, "s")
+        expected = baseline.normal_for_df(df, "s")
+        npt.assert_array_equal(observed, expected)
+
     def test_lognormal_vs_normal_exp_relationship(self):
         """exp(normal_for_df) should equal lognormal_for_df for same step."""
         domain_df = _make_df([1, 2, 3, 4, 5])

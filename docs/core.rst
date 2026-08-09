@@ -70,37 +70,84 @@ API
 Random
 ~~~~~~
 
-ActivitySim's random number generation has a number of important features unique to AB modeling:
+ActivitySim assigns a separate pseudo-random stream to every row of each registered
+random-number channel.  A row's stream is derived from the global base seed, channel
+name, pipeline step name, and row index.  Consequently, a row receives the same
+stream when chooser tables are reordered, chunked differently, or reduced to a
+sample, provided the model makes the same sequence of random-number calls for that
+row and step.
 
-* Regression testing, debugging - run the exact model with the same inputs and get exactly the same results.
-* Debugging models - run the exact model with the same inputs but with changes to expression files and get the same results except where the equations differ.
-* Since runs can take a while, the above cases need to work with a restartable pipeline.
-* Debugging Multithreading - run the exact model with different multithreading configurations and get the same results.
-* Repeatable household-level choices - results for a household are repeatable when run with different sample sizes
-* Repeatable household level results with different scenarios - results for a household are repeatable with different scenario configurations sequentially up to the point at which those differences emerge, and in alternate submodels in which those differences do not apply.
+This stream management supports several requirements that are important for
+activity-based models:
 
-Random number generation is done using the `numpy Mersenne Twister PNRG <https://docs.scipy.org/doc/numpy/reference/generated/numpy.random.RandomState.html>`__.
-ActivitySim seeds on-the-fly and uses a stream of random numbers seeded by the household id, person id, tour id, trip id, the model step offset, and the global seed.
-The global seed can be set in the settings.yaml file using the ```rng_base_seed`` option.
-The logic for calculating the seed is something along the lines of:
+* repeated runs with the same inputs and settings produce the same results;
+* expression changes do not perturb unrelated rows' streams;
+* checkpointed runs can be resumed without changing later random choices;
+* chunking and multiprocessing configurations do not determine row streams; and
+* household, person, tour, and trip results remain stable across sample sizes and
+  scenario variants until the model logic for that row diverges.
 
-::
+Configuration
+^^^^^^^^^^^^^
 
-  chooser_table.index * number_of_models_for_chooser + chooser_model_offset + global_seed_offset
+Configure random-number generation in ``settings.yaml``:
 
-  for example
-    1425 * 2 + 0 + 1
-  where:
-    1425 = household table index - households.id
-    2 = number of household level models - auto ownership and cdap
-    0 = first household model - auto ownership
-    1 = global seed offset for testing the same model under different random global seeds
+.. code-block:: yaml
 
-ActivitySim generates a separate, distinct, and stable random number stream for each tour type and tour number in order to maintain as much stability as is
-possible across alternative scenarios.  This is done for trips as well, by direction (inbound versus outbound).
+   rng_base_seed: 0
+   rng_channel_type: simple
 
-.. note::
-   The Random module contains max model steps constants by chooser type - household, person, tour, trip - needs to be equal to the number of chooser sub-models.
+``rng_base_seed`` selects the global family of streams.  Set it to a fixed integer
+for reproducible runs.  ``rng_channel_type`` selects one of three per-row channel
+implementations:
+
+.. list-table:: Random channel types
+   :header-rows: 1
+   :widths: 15 25 25 35
+
+   * - Value
+     - Bit generator
+     - State initialization
+     - Intended use
+   * - ``simple``
+     - NumPy ``RandomState`` (MT19937)
+     - Legacy 32-bit row seeds
+     - Default; preserves random results produced by earlier ActivitySim versions.
+   * - ``fast``
+     - NumPy PCG64
+     - NumPy ``SeedSequence``
+     - Vectorized generation with robust per-row state initialization.
+   * - ``faster``
+     - NumPy SFC64
+     - ActivitySim's hash-based quick entropy
+     - Lowest state-initialization overhead when channels are frequently reseeded.
+
+The two vectorized modes reduce Python overhead, particularly when a model draws
+multiple values for many rows.  Their first use in a process also includes Numba
+compilation overhead, so cold-start timings differ from subsequent calls.
+
+Reproducibility contract
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Each channel type is deterministic, but the three types intentionally produce
+different streams.  Changing ``rng_channel_type`` or ``rng_base_seed`` therefore
+changes model results and should be treated as a model configuration change.  For
+byte-for-byte regression comparisons and checkpoint resumes, keep all of the
+following fixed:
+
+* ``rng_base_seed`` and ``rng_channel_type``;
+* the ActivitySim version and model configuration;
+* the versions of NumPy and Numba; and
+* the ordering and number of random-number calls made for each row within a step.
+
+Do not resume a checkpoint with a different random channel type or base seed.  When
+migrating an existing model, retain ``simple`` for exact legacy outputs or establish
+a new validated model baseline after selecting ``fast`` or ``faster``.  Record the
+RNG settings and dependency versions alongside archived model results.
+
+ActivitySim also generates distinct stable identifiers for tour and trip channels,
+including tour type and number and trip direction.  This preserves as much stream
+stability as possible across alternative scenarios.
 
 API
 ^^^

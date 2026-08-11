@@ -496,7 +496,17 @@ def _calibrate_component(
                 shared_data_buffers=shared_data_buffers,
             )
         else:
-            state.run(models=[run_model_name], resume_after=prior_step)
+            # Restore to prior_step ourselves then run the model directly.
+            # state.run(resume_after=prior_step) would trigger
+            # checkpoint.restore → init_state which creates a fresh RNG.
+            # If prior_step is before the calibrated model created its table
+            # (e.g. vehicles), the table won't be in that checkpoint and the
+            # RNG channel won't be registered — causing a crash when the
+            # model tries to use it.  By restoring here and calling by_name,
+            # we keep the RNG channels from _prep_model_data intact.
+            _prep_model_data(state, resume_after=prior_step)
+            state.checkpoint.add(prior_step)
+            state.run.by_name(run_model_name)
 
         eval_context = _build_expression_context(
             state, helper_symbols, component_name, component_settings

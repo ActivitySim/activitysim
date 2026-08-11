@@ -90,7 +90,7 @@ class CalibrationComponentSettings(PydanticBase):
     helper_module: str | None = None
     submodel_max_iterations: int = 1
     reports: CalibrationReportsSettings = CalibrationReportsSettings()
-    survey_file: str
+    survey_file: Optional[str] = None
 
 
 class CalibrationConfig(PydanticReadable):

@@ -64,3 +64,55 @@ uv run activitysim run -c configs\common -c configs\resident -d data_full -o out
 ```
 
 ## Analyzing the Results
+
+The following code blocks demonstrate how to calculate key metrics from the model outputs. They all assume that the ActivitySim output files will be read in as a data frame where the name will be the same as the file name but without the prefix or the file extension (e.g. final_trips.csv will be read as trips).
+
+### Daily Activity Pattern
+One model result that one would expect to change from a decrease in teleworking is the daily activity pattern. One would expect the use of the "Mandatory" activity pattern to increase and the "Nonmandatory" and "Home" patterns to decrease. For both the baseline and the test runs, one can calculate the share of people choosing each day pattern with the following block of code:
+```
+dap_share = persons["cdap_activity"].value_counts(normalize = True)
+```
+However, one may want to only look at the workers, as the activity pattern of nonworkers should be generally the same between the two scenarios (though intra-household interactions may change the patterns of some of the non-workers):
+```
+worker_dap_share = persons.query("is_worker")["cdap_activity"].value_counts(normalize = True)
+```
+
+### Trips by Purpose for Workers
+A change in telecommute frequency would likely result in a change in the number of tours by purpose for workers. If a worker is teleworking, that gives them more flexibility in their ability to make nonmandatory travel, so one could expect trips within those purposes to increase when comparing to a baseline run. The following calculates the number of trips by purpose for workers:
+```
+trips["is_worker"] = persons.set_index("person_id")["is_worker"].reindex(trips["person_id"])
+trips_by_workers = trips.query("is_worker")
+worker_trips_by_purpose = trips_by_workers["purpose"].value_counts()
+```
+
+### Time of Day Distribution
+Decreased telecommuting should have a strong impact on the time of day distribution. It was observed in multiple places that the AM travel peak effectively disappeared in the years immediately following the onset of the COVID-19 pandemic, so one could reasonably guess that 9-5 workers largely returning to the office would result in that peak reemerging. The time of the trip is stored in the `depart` field of the trips file and is coded in a half-hour bin starting at 3 AM, with time period 1 being 3-3:30 AM, time period 2 being 3:30-4 AM, and so forth. One can group the number of trips by time period and sort them in order. Comparing the `trips_by_time_period` series between the baseline run and the test run will allow the analyst to see if the AM peak returned.
+```
+trips_by_time_period = trips["depart"].value_counts(normalize = True).sort_index()
+```
+
+### Average Distance to Work
+The work location model is run before the telecommute frequency, so one should expect it should not change. However, one may want to check its results to ensure that it doesn't change. The following code block calculates that:
+```
+avg_dist_to_work = persons["distance_to_work"].mean()
+```
+
+### Vehicle Miles Traveled
+While the true modeled VMT requires assignment to be run, one can get a reasonable estimate via the ActivitySim outputs. The output trips table in the SANDAG ABM3 example actually includes fields called `distance` and `weightTrip`, which are created in the preprocessor for writing the outputs (write_trip_matrices_annotate_trips_preprocessor.csv). The `distance` field is created by [reading in the distance skim value](https://github.com/ActivitySim/sandag-abm3-example/blob/main/configs/resident/write_trip_matrices_annotate_trips_preprocessor.csv#L5) and the `weightTrip` field is a weight that [factors in the occupancy](https://github.com/ActivitySim/sandag-abm3-example/blob/main/configs/resident/write_trip_matrices_annotate_trips_preprocessor.csv#L7). The following lines of code compute the VMT using those particular fields:
+```
+auto_modes = ["DRIVEALONE", "SHARED2", "SHARED3", "TNC_SINGLE", "TNC_SHARED", "TAXI"]
+auto_trips = trips[["trip_mode", "distance", "weightTrip"]].query("trip_mode in @auto_modes")
+vmt = (auto_trips["distance"] * auto_trips["weightTrip"]()).sum()
+```
+
+### Number of Transit Trips
+As previously mentioned, teleworking has generally seen a decrease in transit usage. Analysts may want to estimate the impact of return to office on the number of transit trips for purposes such as revenue forecasting. The following code block demonstrates how to calculate the number of transit trips for a given run. One can compare the value of the `transit_trips` series between the test run and a baseline run to get an estimate in the increase, though results from transit assignment would be needed for more detailed calculation, such as boardings on specific lines.
+```
+transit_modes = [
+  "WALK_LOC", "WALK_PRM", "WALK_MIX",
+  "PNR_LOC", "PNR_PRM", "PNR_MIX",
+  "KNR_LOC", "KNR_PRM", "KNR_MIX",
+  "TNC_LOC", "TNC_PRM", "TNC_MIX"
+]
+transit_trips = len(trips.query("trip_mode in @transit_modes"))
+```

@@ -1514,17 +1514,13 @@ def _run_in_configured_mode(
         state.checkpoint.add(models[-1])
         return
 
-    # Ensure rng_channels injectable includes all currently-registered
-    # channels (not just the defaults). checkpoint.load reads this injectable
-    # after init_state() to re-register channels; without this, dynamically-
-    # added channels like "vehicles" are lost mid-run.
-    _sync_rng_channels_injectable(state)
-
-    state.run(
-        models=models,
-        resume_after=resume_after,
-        memory_sidecar_process=memory_sidecar_process,
-    )
+    # Run models individually via by_name, avoiding state.run()'s internal
+    # checkpoint.restore which would create a fresh RNG and lose channels
+    # for tables not yet created at the resume_after checkpoint (e.g. vehicles).
+    _prep_model_data(state, resume_after=resume_after)
+    state.checkpoint.add(resume_after or models[0])
+    for model in models:
+        state.run.by_name(model)
 
 
 def _prep_model_data(state, resume_after=None):
@@ -1878,18 +1874,6 @@ def _run_multiprocess_with_overrides(
         state.settings.models = original_models
         state.settings.resume_after = original_resume_after
         state.settings.multiprocess_steps = original_mp_steps
-
-
-def _sync_rng_channels_injectable(state: workflow.State) -> None:
-    """Update rng_channels injectable and preserve index_to_channel mapping."""
-    rng = state.rng()
-    if hasattr(rng, "channels"):
-        all_channels = list(
-            set(state.get_injectable("rng_channels", [])) | set(rng.channels.keys())
-        )
-        state.add_injectable("rng_channels", all_channels)
-    if hasattr(rng, "index_to_channel"):
-        state.add_injectable("_prior_index_to_channel", dict(rng.index_to_channel))
 
 
 def _reregister_rng_channels(state: workflow.State, prior_channels: list[str], prior_index_to_channel: dict[str, str] = None) -> None:

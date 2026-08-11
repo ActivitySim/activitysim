@@ -1744,6 +1744,8 @@ def _restore_from_subprocess_pipelines(
             tables[table_name] = pd.concat(dfs, sort=False)
 
     # Load into parent state
+    prior_rng_channels = list(state.get_injectable("rng_channels", []))
+
     state.init_state()
     if state.checkpoint.store_is_open():
         state.checkpoint.close_store()
@@ -1751,6 +1753,8 @@ def _restore_from_subprocess_pipelines(
 
     for table_name, df in tables.items():
         state.add_table(table_name, df)
+
+    _reregister_rng_channels(state, prior_rng_channels)
 
     # Mark all tables dirty for subsequent checkpoint.add
     for table_name in list(state.existing_table_names):
@@ -1859,6 +1863,19 @@ def _run_multiprocess_with_overrides(
         state.settings.multiprocess_steps = original_mp_steps
 
 
+def _reregister_rng_channels(state: workflow.State, prior_channels: list[str]) -> None:
+    """Re-register RNG channels that were lost during init_state()."""
+    current_channels = set(state.get_injectable("rng_channels", []))
+    for channel_name in prior_channels:
+        if channel_name not in current_channels and state.is_table(channel_name):
+            try:
+                state.rng().add_channel(channel_name, state.get_dataframe(channel_name))
+                current_channels.add(channel_name)
+            except Exception:
+                pass
+    state.add_injectable("rng_channels", list(current_channels))
+
+
 def _restore_parent_state_from_pipeline(
     state: workflow.State, checkpoint_name: str = "_"
 ) -> None:
@@ -1882,9 +1899,16 @@ def _restore_parent_state_from_pipeline(
     subprocesses can load them from a direct file path without relying on
     checkpoint backtracking through potentially ambiguous checkpoint history.
     """
+    # Capture RNG channels before restore — models may have dynamically
+    # added channels (e.g. "vehicles") that aren't in the default
+    # rng_channels injectable and would be lost by init_state().
+    prior_rng_channels = list(state.get_injectable("rng_channels", []))
+
     if state.checkpoint.store_is_open():
         state.checkpoint.close_store()
     state.checkpoint.restore(resume_after=checkpoint_name)
+
+    _reregister_rng_channels(state, prior_rng_channels)
 
     # After restore, all tables are clean (status=False). Mark them dirty so
     # the next checkpoint.add() writes them to disk at a known checkpoint name.

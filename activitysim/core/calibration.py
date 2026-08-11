@@ -150,7 +150,6 @@ def calibration_enabled(state: workflow.State) -> bool:
 def run_calibration_loop(
     state: workflow.State,
     models: list[str],
-    memory_sidecar_process=None,
 ) -> CalibrationRunResult:
     """
     Run the global calibration workflow.
@@ -216,7 +215,6 @@ def run_calibration_loop(
                 else models[first_model_idx:first_calib_model_idx],
                 resume_after=state.settings.resume_after,
                 global_iter=start_global_iter,
-                memory_sidecar_process=memory_sidecar_process,
                 shared_data_buffers=shared_data_buffers,
             )
         else:
@@ -235,7 +233,6 @@ def run_calibration_loop(
                     state,
                     models=extra_models,
                     resume_after=None,
-                    memory_sidecar_process=memory_sidecar_process,
                     shared_data_buffers=shared_data_buffers,
                 )
             else:
@@ -280,7 +277,6 @@ def run_calibration_loop(
                             + 1 : models.index(component)
                         ],
                         resume_after=last_calibrated_component,
-                        memory_sidecar_process=memory_sidecar_process,
                         shared_data_buffers=shared_data_buffers,
                     )
 
@@ -324,7 +320,6 @@ def run_calibration_loop(
                     if global_iter == start_global_iter
                     and first_model_idx > last_calib_model_idx
                     else last_calibrated_component,
-                    memory_sidecar_process=memory_sidecar_process,
                     shared_data_buffers=shared_data_buffers,
                 )
 
@@ -359,7 +354,6 @@ def _run_precursor_components(
     models: list[str],
     resume_after: str,
     global_iter: int,
-    memory_sidecar_process=None,
     shared_data_buffers: dict | None = None,
 ) -> None:
     """Run the normal ActivitySim model flow for one global calibration iteration."""
@@ -377,7 +371,6 @@ def _run_precursor_components(
         state,
         models=models,
         resume_after=resume_after,
-        memory_sidecar_process=memory_sidecar_process,
         shared_data_buffers=shared_data_buffers,
     )
 
@@ -386,7 +379,6 @@ def _run_intermediate_components(
     state: workflow.State,
     models: list[str],
     resume_after: str,
-    memory_sidecar_process=None,
     shared_data_buffers: dict | None = None,
 ) -> None:
     if len(models) == 0:
@@ -395,7 +387,6 @@ def _run_intermediate_components(
         state,
         models=models,
         resume_after=resume_after,
-        memory_sidecar_process=memory_sidecar_process,
         shared_data_buffers=shared_data_buffers,
     )
 
@@ -404,14 +395,12 @@ def _run_subsequent_components(
     state: workflow.State,
     models: list[str],
     resume_after: str,
-    memory_sidecar_process=None,
     shared_data_buffers: dict | None = None,
 ) -> None:
     _run_in_configured_mode(
         state,
         models=models,
         resume_after=resume_after,
-        memory_sidecar_process=memory_sidecar_process,
         shared_data_buffers=shared_data_buffers,
     )
 
@@ -1462,7 +1451,6 @@ def _run_in_configured_mode(
     state: workflow.State,
     models: list[str],
     resume_after: str | None,
-    memory_sidecar_process=None,
     shared_data_buffers: dict | None = None,
 ) -> None:
     """Run models using the same single/multiprocess mode as the parent run."""

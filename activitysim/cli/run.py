@@ -424,7 +424,6 @@ def run(args):
             calibration_result = calibration.run_calibration_loop(
                 state=state,
                 models=state.settings.models,
-                memory_sidecar_process=memory_sidecar_process,
             )
 
             logger.info(

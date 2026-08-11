@@ -1761,6 +1761,7 @@ def _restore_from_subprocess_pipelines(
 
     # Load into parent state
     prior_rng_channels = list(state.get_injectable("rng_channels", []))
+    prior_index_to_channel = dict(state.rng().index_to_channel) if hasattr(state.rng(), "index_to_channel") else {}
 
     state.init_state()
     if state.checkpoint.store_is_open():
@@ -1770,7 +1771,7 @@ def _restore_from_subprocess_pipelines(
     for table_name, df in tables.items():
         state.add_table(table_name, df)
 
-    _reregister_rng_channels(state, prior_rng_channels)
+    _reregister_rng_channels(state, prior_rng_channels, prior_index_to_channel)
 
     # Mark all tables dirty for subsequent checkpoint.add
     for table_name in list(state.existing_table_names):
@@ -1880,16 +1881,18 @@ def _run_multiprocess_with_overrides(
 
 
 def _sync_rng_channels_injectable(state: workflow.State) -> None:
-    """Update rng_channels injectable to include all registered channels."""
+    """Update rng_channels injectable and preserve index_to_channel mapping."""
     rng = state.rng()
     if hasattr(rng, "channels"):
         all_channels = list(
             set(state.get_injectable("rng_channels", [])) | set(rng.channels.keys())
         )
         state.add_injectable("rng_channels", all_channels)
+    if hasattr(rng, "index_to_channel"):
+        state.add_injectable("_prior_index_to_channel", dict(rng.index_to_channel))
 
 
-def _reregister_rng_channels(state: workflow.State, prior_channels: list[str]) -> None:
+def _reregister_rng_channels(state: workflow.State, prior_channels: list[str], prior_index_to_channel: dict[str, str] = None) -> None:
     """Re-register RNG channels that were lost during init_state()."""
     current_channels = set(state.get_injectable("rng_channels", []))
     for channel_name in prior_channels:
@@ -1899,6 +1902,20 @@ def _reregister_rng_channels(state: workflow.State, prior_channels: list[str]) -
                 current_channels.add(channel_name)
             except Exception:
                 pass
+    # Pre-register empty channels for index_to_channel mappings that were
+    # lost but whose table doesn't exist yet (e.g. vehicles before vehicle
+    # type choice runs). The model will extend the domain via add_channel.
+    if prior_index_to_channel:
+        for index_name, channel_name in prior_index_to_channel.items():
+            if index_name not in state.rng().index_to_channel:
+                if channel_name not in state.rng().channels:
+                    empty_df = pd.DataFrame(
+                        index=pd.Index([], dtype="int64", name=index_name)
+                    )
+                    state.rng().add_channel(channel_name, empty_df)
+                else:
+                    state.rng().index_to_channel[index_name] = channel_name
+                current_channels.add(channel_name)
     state.add_injectable("rng_channels", list(current_channels))
 
 
@@ -1925,16 +1942,17 @@ def _restore_parent_state_from_pipeline(
     subprocesses can load them from a direct file path without relying on
     checkpoint backtracking through potentially ambiguous checkpoint history.
     """
-    # Capture RNG channels before restore — models may have dynamically
+    # Capture RNG state before restore — models may have dynamically
     # added channels (e.g. "vehicles") that aren't in the default
     # rng_channels injectable and would be lost by init_state().
     prior_rng_channels = list(state.get_injectable("rng_channels", []))
+    prior_index_to_channel = dict(state.rng().index_to_channel) if hasattr(state.rng(), "index_to_channel") else {}
 
     if state.checkpoint.store_is_open():
         state.checkpoint.close_store()
     state.checkpoint.restore(resume_after=checkpoint_name)
 
-    _reregister_rng_channels(state, prior_rng_channels)
+    _reregister_rng_channels(state, prior_rng_channels, prior_index_to_channel)
 
     # After restore, all tables are clean (status=False). Mark them dirty so
     # the next checkpoint.add() writes them to disk at a known checkpoint name.

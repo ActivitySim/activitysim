@@ -1937,13 +1937,12 @@ def _restore_parent_state_from_pipeline(
     prior_rng_channels = list(state.get_injectable("rng_channels", []))
     prior_index_to_channel = dict(state.rng().index_to_channel) if hasattr(state.rng(), "index_to_channel") else {}
 
-    # Build map of table_name → checkpoint_name from the in-memory checkpoint
-    # history (which still has entries from the prior iteration, before truncation).
+    # Build map of table_name → checkpoint_name by scanning the full in-memory
+    # checkpoint history for the last non-empty value for each table.
     table_checkpoint_map = {}
     from activitysim.core.workflow.checkpoint import NON_TABLE_COLUMNS
-    if state.checkpoint.checkpoints:
-        last_entry = state.checkpoint.checkpoints[-1]
-        for key, val in last_entry.items():
+    for entry in state.checkpoint.checkpoints:
+        for key, val in entry.items():
             if key not in NON_TABLE_COLUMNS and val:
                 table_checkpoint_map[key] = val
 

@@ -1504,11 +1504,17 @@ def _run_in_configured_mode(
         state.checkpoint.add(models[-1])
         return
 
+    # Single-process: checkpoint.restore inside state.run calls init_state()
+    # which loses dynamically-added RNG channels (e.g. vehicles).
+    prior_rng_channels = list(state.get_injectable("rng_channels", []))
+
     state.run(
         models=models,
         resume_after=resume_after,
         memory_sidecar_process=memory_sidecar_process,
     )
+
+    _reregister_rng_channels(state, prior_rng_channels)
 
 
 def _prep_model_data(state, resume_after=None):

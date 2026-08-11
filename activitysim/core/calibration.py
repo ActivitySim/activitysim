@@ -1937,26 +1937,15 @@ def _restore_parent_state_from_pipeline(
     prior_rng_channels = list(state.get_injectable("rng_channels", []))
     prior_index_to_channel = dict(state.rng().index_to_channel) if hasattr(state.rng(), "index_to_channel") else {}
 
-    # Capture where each table was last written BEFORE the truncating restore,
-    # so we can load actual table data for RNG channels that won't exist at
-    # the restored checkpoint (e.g. vehicles before vehicle_type_choice runs).
+    # Build map of table_name → checkpoint_name from the in-memory checkpoint
+    # history (which still has entries from the prior iteration, before truncation).
     table_checkpoint_map = {}
-    try:
-        if not state.checkpoint.store_is_open():
-            state.checkpoint.open_store(overwrite=False, mode="r")
-            _opened = True
-        else:
-            _opened = False
-        from activitysim.core.workflow.checkpoint import CHECKPOINT_TABLE_NAME, CHECKPOINT_NAME, NON_TABLE_COLUMNS
-        full_cp_df = state.checkpoint.store.get_dataframe(CHECKPOINT_TABLE_NAME)
-        last_row = full_cp_df.iloc[-1]
-        for col in last_row.index:
-            if col not in NON_TABLE_COLUMNS and last_row[col]:
-                table_checkpoint_map[col] = last_row[col]
-        if _opened:
-            state.checkpoint.close_store()
-    except Exception:
-        pass
+    from activitysim.core.workflow.checkpoint import NON_TABLE_COLUMNS
+    if state.checkpoint.checkpoints:
+        last_entry = state.checkpoint.checkpoints[-1]
+        for key, val in last_entry.items():
+            if key not in NON_TABLE_COLUMNS and val:
+                table_checkpoint_map[key] = val
 
     if state.checkpoint.store_is_open():
         state.checkpoint.close_store()

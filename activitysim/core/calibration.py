@@ -1769,7 +1769,11 @@ def _restore_from_subprocess_pipelines(
 
     # Load into parent state
     prior_rng_channels = list(state.get_injectable("rng_channels", []))
-    prior_index_to_channel = dict(state.rng().index_to_channel) if hasattr(state.rng(), "index_to_channel") else {}
+    prior_index_to_channel = (
+        dict(state.rng().index_to_channel)
+        if hasattr(state.rng(), "index_to_channel")
+        else {}
+    )
 
     state.init_state()
     if state.checkpoint.store_is_open():
@@ -1999,7 +2003,11 @@ def _restore_parent_state_from_pipeline(
     # added channels (e.g. "vehicles") that aren't in the default
     # rng_channels injectable and would be lost by init_state().
     prior_rng_channels = list(state.get_injectable("rng_channels", []))
-    prior_index_to_channel = dict(state.rng().index_to_channel) if hasattr(state.rng(), "index_to_channel") else {}
+    prior_index_to_channel = (
+        dict(state.rng().index_to_channel)
+        if hasattr(state.rng(), "index_to_channel")
+        else {}
+    )
 
     if state.checkpoint.store_is_open():
         state.checkpoint.close_store()

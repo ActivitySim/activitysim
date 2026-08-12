@@ -1980,11 +1980,23 @@ def _invalidate_derived_tables(state: workflow.State) -> None:
     if not tables_to_invalidate:
         tables_to_invalidate = _detect_derived_rng_tables(state)
 
+    logger.debug(
+        "calibration: tables detected for invalidation: %s", tables_to_invalidate
+    )
+    tables_before = set(state.existing_table_names)
+
     for table_name in tables_to_invalidate:
         if state.is_table(table_name):
             state.drop_table(table_name)
             state.rng().drop_channel(table_name)
             logger.debug("calibration: invalidated derived table '%s'", table_name)
+
+    tables_after = set(state.existing_table_names)
+    lost = tables_before - tables_after - set(tables_to_invalidate)
+    if lost:
+        logger.error(
+            "calibration: tables unexpectedly removed during invalidation: %s", lost
+        )
 
 
 def _detect_derived_rng_tables(state: workflow.State) -> list[str]:
@@ -1998,9 +2010,15 @@ def _detect_derived_rng_tables(state: workflow.State) -> list[str]:
         if table_name not in RANDOM_CHANNELS:
             continue
         sig = inspect.signature(factory_func)
+        # Only match parameters that are actual table dependencies:
+        # annotated as pd.DataFrame, or positional without a default value.
         has_table_dep = any(
             p.annotation is pd.DataFrame
-            or (p.annotation is inspect.Parameter.empty and p.name != "state")
+            or (
+                p.annotation is inspect.Parameter.empty
+                and p.default is inspect.Parameter.empty
+                and p.name != "state"
+            )
             for p in sig.parameters.values()
             if p.name != "state"
         )

@@ -517,7 +517,12 @@ def _calibrate_component(
             # RNG channel won't be registered — causing a crash when the
             # model tries to use it.  By restoring here and calling by_name,
             # we keep the RNG channels from _prep_model_data intact.
-            _prep_model_data(state, resume_after=prior_step)
+            extra_models = _prep_model_data(state, resume_after=prior_step)
+            if extra_models:
+                # prior_step checkpoint not found directly; run intermediate
+                # models (e.g. annotators) to recreate the correct state.
+                for m in extra_models:
+                    state.run.by_name(m)
             state.checkpoint.add(prior_step)
             state.run.by_name(run_model_name)
 

@@ -75,10 +75,33 @@ class CalibrationRunSettings(PydanticBase):
     global_iterations: int = 1
     complete_steps: bool = False
     invalidate_tables: list[str] | None = None
-    """Tables to drop after each restore so their @workflow.table factories
-    regenerate from current data.  If None (default), automatically detects
-    factory tables that depend on other tables and have RNG channels (e.g.
-    vehicles).  Set to an explicit list to override."""
+    """Tables to drop from state after each calibration restore so their
+    ``@workflow.table`` factories regenerate from current data.
+
+    Default (None): invalidates ``["vehicles"]``.  Set to ``[]`` to disable.
+
+    A table should be listed here when ALL of the following are true:
+
+    1. It is created by a ``@workflow.table`` factory from another table's
+       values (not just from input data files).
+    2. That source table is modified by a calibrated model or by a model
+       whose outputs change when calibrated coefficients change.
+    3. The factory uses source-table values to determine **row identity**
+       (index values) or **row count**, not just column values.
+
+    The canonical example is ``vehicles``: its factory repeats household
+    rows by ``households["auto_ownership"]`` and derives ``vehicle_id``
+    from ``household_id``.  When ``auto_ownership_simulate`` is calibrated,
+    different coefficients produce different ownership counts, so the
+    stale vehicles table loaded from a prior checkpoint would have the
+    wrong number of rows and wrong vehicle IDs.  Dropping it forces the
+    factory to regenerate vehicles consistent with the current households.
+
+    Tables that only read *column values* from upstream tables (without
+    affecting row identity) generally do NOT need invalidation — their
+    content will be correct as long as the upstream table is correct at
+    the restored checkpoint.
+    """
 
 
 class CalibrationReportsSettings(PydanticBase):
@@ -413,6 +436,7 @@ def _run_intermediate_components(
         resume_after=resume_after,
         shared_data_buffers=shared_data_buffers,
     )
+    _invalidate_derived_tables(state)
 
 
 def _run_subsequent_components(
@@ -427,6 +451,7 @@ def _run_subsequent_components(
         resume_after=resume_after,
         shared_data_buffers=shared_data_buffers,
     )
+    _invalidate_derived_tables(state)
 
 
 def _calibrate_component(
@@ -523,35 +548,8 @@ def _calibrate_component(
                 # models (e.g. annotators) to recreate the correct state.
                 for m in extra_models:
                     state.run.by_name(m)
+            _invalidate_derived_tables(state)
             state.checkpoint.add(prior_step)
-
-            # Diagnostic: verify households state before running calibrated model
-            if state.is_table("households"):
-                _hh = state.get_dataframe("households")
-                logger.debug(
-                    "calibration: households before %s has %d rows, columns: %s",
-                    run_model_name,
-                    len(_hh),
-                    list(_hh.columns),
-                )
-                if "num_drivers" not in _hh.columns:
-                    logger.error(
-                        "calibration: households missing 'num_drivers' before %s. "
-                        "prior_step=%r, extra_models=%r, checkpoint_names=%s",
-                        run_model_name,
-                        prior_step,
-                        extra_models,
-                        [
-                            cp.get("checkpoint_name", "")
-                            for cp in state.checkpoint.checkpoints
-                        ],
-                    )
-            else:
-                logger.error(
-                    "calibration: households table not in state before %s",
-                    run_model_name,
-                )
-
             state.run.by_name(run_model_name)
 
         eval_context = _build_expression_context(
@@ -2038,51 +2036,7 @@ def _restore_parent_state_from_pipeline(
         state.checkpoint.close_store()
     state.checkpoint.restore(resume_after=checkpoint_name)
 
-    # DEBUG: trace where num_drivers disappears
-    _trace_col = "num_drivers"
-    if state.is_table("households"):
-        _hh = state.get_dataframe("households")
-        logger.debug(
-            "calibration TRACE [after restore]: households has %d cols, "
-            "%s present=%s, checkpoint=%r",
-            len(_hh.columns),
-            _trace_col,
-            _trace_col in _hh.columns,
-            checkpoint_name,
-        )
-    else:
-        logger.debug(
-            "calibration TRACE [after restore]: households NOT in state, checkpoint=%r",
-            checkpoint_name,
-        )
-
     _reregister_rng_channels(state, prior_rng_channels, prior_index_to_channel)
-
-    if state.is_table("households"):
-        _hh = state.get_dataframe("households")
-        logger.debug(
-            "calibration TRACE [after _reregister_rng_channels]: %s present=%s",
-            _trace_col,
-            _trace_col in _hh.columns,
-        )
-
-    # Drop derived tables so their factories regenerate from current data.
-    # Without this, a stale vehicles table (based on old auto_ownership values)
-    # would be loaded from the checkpoint and never refreshed.
-    _invalidate_derived_tables(state)
-
-    if state.is_table("households"):
-        _hh = state.get_dataframe("households")
-        logger.debug(
-            "calibration TRACE [after _invalidate_derived_tables]: %s present=%s",
-            _trace_col,
-            _trace_col in _hh.columns,
-        )
-    else:
-        logger.debug(
-            "calibration TRACE [after _invalidate_derived_tables]: "
-            "households NOT in state (was it invalidated?)"
-        )
 
     # After restore, all tables are clean (status=False). Mark them dirty so
     # the next checkpoint.add() writes them to disk at a known checkpoint name.

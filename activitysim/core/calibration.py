@@ -1977,8 +1977,10 @@ def _invalidate_derived_tables(state: workflow.State) -> None:
         return
 
     tables_to_invalidate = settings.run.invalidate_tables
-    if not tables_to_invalidate:
-        tables_to_invalidate = _detect_derived_rng_tables(state)
+    if tables_to_invalidate is None:
+        # Default: vehicles is the only RNG-channel table whose row identity
+        # depends on another table's values (households.auto_ownership).
+        tables_to_invalidate = ["vehicles"]
 
     logger.debug(
         "calibration: tables detected for invalidation: %s", tables_to_invalidate
@@ -1997,34 +1999,6 @@ def _invalidate_derived_tables(state: workflow.State) -> None:
         logger.error(
             "calibration: tables unexpectedly removed during invalidation: %s", lost
         )
-
-
-def _detect_derived_rng_tables(state: workflow.State) -> list[str]:
-    """Identify factory tables with table dependencies and RNG channels."""
-    import inspect
-
-    from activitysim.abm.models.util.canonical_ids import RANDOM_CHANNELS
-
-    result = []
-    for table_name, factory_func in state._LOADABLE_TABLES.items():
-        if table_name not in RANDOM_CHANNELS:
-            continue
-        sig = inspect.signature(factory_func)
-        # Only match parameters that are actual table dependencies:
-        # annotated as pd.DataFrame, or positional without a default value.
-        has_table_dep = any(
-            p.annotation is pd.DataFrame
-            or (
-                p.annotation is inspect.Parameter.empty
-                and p.default is inspect.Parameter.empty
-                and p.name != "state"
-            )
-            for p in sig.parameters.values()
-            if p.name != "state"
-        )
-        if has_table_dep:
-            result.append(table_name)
-    return result
 
 
 def _restore_parent_state_from_pipeline(

@@ -1502,10 +1502,10 @@ def _run_in_configured_mode(
         state.checkpoint.add(models[-1])
         return
 
-    # Run models individually via by_name, avoiding state.run()'s internal
-    # checkpoint.restore which would create a fresh RNG and lose channels
-    # for tables not yet created at the resume_after checkpoint (e.g. vehicles).
-    _prep_model_data(state, resume_after=resume_after)
+    # State is already at the correct point from _prep_model_data above.
+    # Do NOT call _prep_model_data again — the second call would build its
+    # table_checkpoint_map from the now-truncated in-memory checkpoint history,
+    # losing references to tables created after resume_after (e.g. vehicles).
     state.checkpoint.add(resume_after or models[0])
     for model in models:
         state.run.by_name(model)
@@ -1892,6 +1892,11 @@ def _reregister_rng_channels(
                         try:
                             df = state.checkpoint._read_df(channel_name, checkpoint_name=cp_name)
                             state.rng().add_channel(channel_name, df)
+                            # Also add the table to state so that @workflow.table
+                            # factories are not re-triggered.  Without this, the
+                            # factory would call add_channel again with the same
+                            # indices, hitting the disjoint-index assertion.
+                            state.add_table(channel_name, df)
                             loaded = True
                         except Exception:
                             pass

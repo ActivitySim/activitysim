@@ -1925,8 +1925,32 @@ def get_run_list(state: workflow.State):
 
     # default settings that can be overridden by settings in individual steps
     global_chunk_size = state.settings.chunk_size
-    default_mp_processes = state.settings.num_processes or int(
-        1 + multiprocessing.cpu_count() / 2.0
+    # Memory-aware auto worker count: when num_processes is unset and chunk_memory_mode is 'auto' with a
+    # per-worker budget target, derive the worker count from the non-reclaimable memory headroom instead
+    # of the cpu-only heuristic (more workers than the RAM can feed just OOMs). Falls through to the
+    # legacy cpu-based default when not configured or not computable.
+    auto_mp_processes = None
+    if (
+        not state.settings.num_processes
+        and getattr(state.settings, "chunk_memory_mode", "fixed") == "auto"
+        and getattr(state.settings, "chunk_worker_target_budget", 0)
+    ):
+        auto_mp_processes = mem.recommend_num_processes(
+            mem.get_memory_limit(),
+            mem.get_nonreclaimable_used(),
+            getattr(state.settings, "chunk_memory_safety_factor", 0.75) or 0.75,
+            state.settings.chunk_worker_target_budget,
+            multiprocessing.cpu_count(),
+        )
+        if auto_mp_processes:
+            logger.info(
+                f"auto num_processes = {auto_mp_processes} "
+                f"(from non-reclaimable memory headroom / chunk_worker_target_budget)"
+            )
+    default_mp_processes = (
+        state.settings.num_processes
+        or auto_mp_processes
+        or int(1 + multiprocessing.cpu_count() / 2.0)
     )
 
     if multiprocess and multiprocessing.cpu_count() == 1:

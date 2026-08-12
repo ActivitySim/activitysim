@@ -399,6 +399,70 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     minimum fraction of total chunk_size to reserve for adaptive chunking
     """
 
+    chunk_memory_mode: Literal["fixed", "auto"] = "fixed"
+    """
+    How the adaptive chunker derives its memory budget (``base_chunk_size``).
+
+    * "fixed" (default, legacy behavior)
+        Use the static :ref:`chunk_size` setting as the memory budget.
+    * "auto"
+        Ignore the static ``chunk_size`` and derive the budget at runtime from the process's real
+        memory ceiling: ``(memory_limit - baseline) * chunk_memory_safety_factor``, where
+        ``memory_limit`` is the cgroup limit (a container/pod limit) or, if not containerized, host
+        RAM, and ``baseline`` is the resident memory already in use when chunking begins (framework +
+        shared skims). This targets the memory that will actually OOM-kill the process instead of a
+        hand-tuned number, and — crucially — respects a container memory limit that psutil can't see.
+    """
+
+    chunk_memory_safety_factor: float = 0.75
+    """
+    Fraction of ``(memory_limit - baseline)`` to use as the chunking budget under
+    ``chunk_memory_mode: auto``. Leaves headroom for measurement lag and transient peaks.
+    """
+
+    chunk_memory_circuit_breaker: bool = False
+    """
+    (Reserved — adaptive circuit breaker.) When True, a memory watchdog aborts and retries a chunk at
+    a smaller size before the OS OOM-killer fires. Off by default.
+    """
+
+    chunk_memory_abort_ratio: float = 0.9
+    """
+    Fraction of the memory ceiling at which the circuit breaker aborts the in-flight chunk.
+    """
+
+    chunk_growth_cap: float = 0.0
+    """
+    Maximum multiplicative growth of rows-per-chunk from one chunk to the next under adaptive sizing
+    (e.g. 2.0 = at most double each step). 0 disables the cap (legacy behavior). Prevents a single
+    over-large jump when extrapolating a big chunk from a small, unrepresentative first chunk.
+    """
+
+    chunk_row_size_margin: float = 1.0
+    """
+    Safety multiplier applied to the estimated per-row memory when sizing chunks (>= 1.0, default 1.0 =
+    off). Because the row-size estimate is a sampled, linear extrapolation that tends to UNDER-estimate
+    a large chunk's true transient peak, inflating it (e.g. 1.3) sizes chunks ~30% smaller for a memory
+    safety buffer. This is the conservative-cache lever: it makes a re-used chunk_cache err toward
+    smaller, safe chunks. Bytes-per-row is machine-independent, and the auto budget already adapts the
+    ceiling to the actual machine/container at runtime, so the cache does not need machine-specific keys.
+    """
+
+    chunk_worker_target_budget: int = 0
+    """
+    Target per-worker chunk memory budget in bytes for MEMORY-AWARE AUTO WORKER COUNT (0 = off). When
+    ``num_processes`` is unset and ``chunk_memory_mode: auto``, the worker count is derived from the
+    non-reclaimable memory headroom instead of a cpu-only heuristic::
+
+        num_processes = clamp( (memory_limit − nonreclaimable) * chunk_memory_safety_factor
+                               // chunk_worker_target_budget,  1, cpu_count )
+
+    i.e. the most workers whose per-worker share of the real (non-reclaimable) memory still meets this
+    budget. Prevents oversubscribing workers a memory-constrained node can't feed (which just OOMs).
+    Reclaimable skim page cache is intentionally not subtracted (the kernel evicts it under pressure).
+    Set it to the memory a single worker needs for the heaviest model's chunks (e.g. 10-12 GB).
+    """
+
     checkpoints: Union[bool, list] = True
     """
     When to write checkpoint (intermediate table states) to disk.

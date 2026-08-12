@@ -649,6 +649,37 @@ Additional chunking settings:
 * keep_chunk_logs: True - whether to preserve or delete subprocess chunk logs when they are consolidated at end of multiprocess run
 * keep_mem_logs: True - whether to preserve or delete subprocess mem logs when they are consolidated at end of multiprocess run
 
+Automatic memory-aware chunking (``chunk_memory_mode: auto``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default (``chunk_memory_mode: fixed``) adaptive chunking sizes chunks against the static
+``chunk_size`` byte budget, which must be hand-tuned per machine and targets host RAM. Setting
+``chunk_memory_mode: auto`` instead derives the budget from the process's real memory ceiling at
+runtime, so ``chunk_size`` need not be set and the run adapts to the actual machine or container
+(this is especially useful inside memory-limited containers, where targeting host RAM can OOM-kill
+the process):
+
+* The budget is ``(memory_limit - current usage) * chunk_memory_safety_factor``, where
+  ``memory_limit`` is read from the Linux cgroup (v2 ``memory.max``, then v1
+  ``memory.limit_in_bytes``, then ``psutil`` host RAM) — the limit that actually OOM-kills the
+  process inside a container.
+* In multiprocess mode the budget is divided by the number of workers. Set ``num_processes: 0`` to
+  additionally derive the worker count automatically from the available (non-reclaimable) memory and
+  the ``chunk_worker_target_budget`` per-worker target.
+* Chunks are sized from the budget against each chunk's incremental memory growth, so a large
+  memory-mapped shared skim buffer (reclaimable page cache) does not distort the sizing.
+
+This mode reuses the existing adaptive-chunking machinery; with the default ``fixed`` mode behavior
+is unchanged. Settings:
+
+* chunk_memory_mode: fixed - ``auto`` derives the chunk budget from the real memory ceiling; ``fixed`` (default) uses the static ``chunk_size``
+* chunk_memory_safety_factor: 0.75 - fraction of the available memory ceiling to use as the budget
+* chunk_worker_target_budget: 0 - per-worker budget in bytes for the automatic worker count when ``num_processes: 0`` (0 = off)
+* chunk_growth_cap: 0 - maximum multiplicative growth of rows-per-chunk between successive chunks (0 = off)
+* chunk_row_size_margin: 1.0 - safety multiplier applied to the estimated per-row memory when sizing chunks
+* chunk_memory_circuit_breaker: false - warn as memory approaches the ceiling
+* chunk_memory_abort_ratio: 0.9 - fraction of the ceiling at which the adaptive back-off / warning triggers
+
 
 API
 ^^^

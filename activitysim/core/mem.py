@@ -8,6 +8,7 @@ import glob
 import logging
 import multiprocessing
 import os
+import sys
 import threading
 import time
 
@@ -16,6 +17,14 @@ import pandas as pd
 import psutil
 
 from activitysim.core import config, util, workflow
+
+try:
+    import resource  # Unix-only (getrusage); not available on Windows
+except ImportError:
+    resource = None
+
+# high-water mark for get_peak_rss's Windows fallback (kept monotonic)
+_PEAK_RSS_FALLBACK = 0
 
 logger = logging.getLogger(__name__)
 
@@ -280,6 +289,191 @@ def get_rss(force_garbage_collect=False, uss=False):
     else:
         info = psutil.Process().memory_info()
         return info.rss, 0
+
+
+# --- real memory-ceiling introspection (cgroup-aware) ----------------------------------------------
+# psutil reports the HOST's RAM, which is wrong inside a container: the process is bounded by its
+# cgroup memory limit (e.g. a Kubernetes pod limit), not the node's total RAM. Chunk sizing that
+# targets host RAM will overshoot the cgroup limit and get OOM-killed. These helpers read the real
+# ceiling from the cgroup (v2, then v1), falling back to psutil when not containerized/unlimited.
+
+# cgroup "unlimited" is reported as a huge sentinel; treat anything at/above it as no-limit.
+_CGROUP_UNLIMITED = 0x7FFFFFFFFFFFF000  # ~9.2e18
+
+
+def _read_cgroup_file(path):
+    try:
+        with open(path) as f:
+            return f.read().strip()
+    except OSError:
+        return None
+
+
+def _finite_limit(raw):
+    """Parse a cgroup limit string; return an int only if it is a real finite limit."""
+    if raw is None or raw == "max":
+        return None
+    try:
+        n = int(raw)
+    except (TypeError, ValueError):
+        return None
+    return n if 0 < n < _CGROUP_UNLIMITED else None
+
+
+def get_memory_limit(cgroup_root: str = "/sys/fs/cgroup") -> int | None:
+    """This process's hard memory ceiling in bytes, or None if it can't be determined.
+
+    Prefers the cgroup limit (what actually OOM-kills us in a container) over host RAM. Tries cgroup
+    v2 (``memory.max``), then cgroup v1 (``memory/memory.limit_in_bytes``), then psutil total RAM.
+    """
+    limit = _finite_limit(_read_cgroup_file(os.path.join(cgroup_root, "memory.max")))
+    if limit is not None:
+        return limit
+    for rel in ("memory/memory.limit_in_bytes", "memory.limit_in_bytes"):
+        limit = _finite_limit(_read_cgroup_file(os.path.join(cgroup_root, rel)))
+        if limit is not None:
+            return limit
+    try:
+        return int(psutil.virtual_memory().total)
+    except Exception:
+        return None
+
+
+def get_available_memory(cgroup_root: str = "/sys/fs/cgroup") -> int | None:
+    """Best-effort bytes still available before this process hits its ceiling.
+
+    Uses (cgroup limit - cgroup current usage) when containerized, else psutil available RAM. Note
+    cgroup ``memory.current`` counts reclaimable page cache as used, so this under-estimates the truly
+    available memory — which is the safe direction for chunk sizing (errs toward smaller chunks).
+    """
+    limit = get_memory_limit(cgroup_root)
+    used = None
+    raw = _read_cgroup_file(os.path.join(cgroup_root, "memory.current"))
+    if raw is not None:
+        try:
+            used = int(raw)
+        except ValueError:
+            used = None
+    if used is None:
+        for rel in ("memory/memory.usage_in_bytes", "memory.usage_in_bytes"):
+            raw = _read_cgroup_file(os.path.join(cgroup_root, rel))
+            if raw is not None:
+                try:
+                    used = int(raw)
+                    break
+                except ValueError:
+                    used = None
+    if limit is not None and used is not None:
+        return max(0, limit - used)
+    try:
+        return int(psutil.virtual_memory().available)
+    except Exception:
+        return limit
+
+
+def get_nonreclaimable_used(cgroup_root: str = "/sys/fs/cgroup") -> int | None:
+    """Bytes of NON-reclaimable memory currently charged to this cgroup, or None.
+
+    = anonymous memory (worker private allocations — chunk DataFrames/arrays) + pinned shared memory
+    (tmpfs/shm). This is the memory the kernel CANNOT reclaim, so it is the true hard constraint for
+    the chunk budget. It deliberately EXCLUDES file-backed page cache: an ActivitySim run memory-maps
+    the skim set from on-disk .mmap files, so the (tens of GB) resident skims are reclaimable page
+    cache that the kernel evicts under pressure — counting them as 'used' (as limit − memory.current
+    does) needlessly starves the budget. Basing the budget on (limit − nonreclaimable) reflects the
+    real room for new chunk allocations, and it still correctly accounts for genuinely-pinned shm.
+    Reads cgroup v2 ``memory.stat`` (``anon`` + ``shmem``); falls back to v1 field names.
+    """
+    fields = {}
+    for rel in ("memory.stat", "memory/memory.stat"):
+        raw = _read_cgroup_file(os.path.join(cgroup_root, rel))
+        if raw:
+            for line in raw.splitlines():
+                parts = line.split()
+                if len(parts) == 2:
+                    try:
+                        fields[parts[0]] = int(parts[1])
+                    except ValueError:
+                        pass
+            break
+    if not fields:
+        return None
+    anon = fields.get("anon", fields.get("rss", 0))
+    shmem = fields.get("shmem", fields.get("total_shmem", 0))
+    return anon + shmem
+
+
+def recommend_num_processes(
+    limit: int | None,
+    nonreclaimable: int | None,
+    safety: float,
+    target_per_worker: int,
+    cpu_count: int,
+) -> int | None:
+    """Memory-aware multiprocess worker count, or None if it can't/shouldn't be computed.
+
+    The most workers whose per-worker share of the non-reclaimable memory headroom still meets the
+    target per-worker chunk budget::
+
+        N = clamp( (limit − nonreclaimable) * safety // target_per_worker, 1, cpu_count )
+
+    Evaluated once at startup (before workers fork), so ``nonreclaimable`` ≈ the parent framework and
+    ``limit − nonreclaimable`` ≈ the full headroom the workers will share. Reclaimable skim page cache
+    is (correctly) NOT subtracted. Returns None when target_per_worker or limit is unset, so the caller
+    keeps its legacy cpu-based default.
+    """
+    if not (limit and target_per_worker and cpu_count):
+        return None
+    available = max(0, limit - (nonreclaimable or 0))
+    n = int((available * safety) // target_per_worker)
+    return max(1, min(n, cpu_count))
+
+
+def get_resident_shm(cgroup_root: str = "/sys/fs/cgroup") -> int | None:
+    """Bytes of shared/tmpfs memory (``/dev/shm`` etc.) currently charged to this cgroup, or None.
+
+    In a multiprocess run this is the portion of the shared skim buffer that has already paged in.
+    Read from cgroup ``memory.stat`` (the ``shmem`` field). Used to reserve only the NOT-yet-resident
+    remainder of the known shared-skim footprint from the chunk budget (subtracting the already-resident
+    part would double-count, since get_available_memory already excludes it). NOTE: do NOT use
+    os.statvfs('/dev/shm') for this — inside a container it reports the node-level tmpfs size, not the
+    pod's emptyDir sizeLimit, which massively over-reserves and collapses the budget.
+    """
+    for rel in ("memory.stat", "memory/memory.stat"):
+        raw = _read_cgroup_file(os.path.join(cgroup_root, rel))
+        if raw:
+            for line in raw.splitlines():
+                parts = line.split()
+                if len(parts) == 2 and parts[0] in ("shmem", "total_shmem"):
+                    try:
+                        return int(parts[1])
+                    except ValueError:
+                        pass
+    return None
+
+
+def get_peak_rss() -> int:
+    """Exact lifetime peak RSS of this process in bytes, from the kernel (``getrusage`` ru_maxrss).
+
+    Unlike the MemMonitor's periodically-sampled high-water mark, this never misses a short-lived
+    transient allocation spike (a common cause of adaptive chunking under-estimating a chunk's true
+    peak). Linux reports ru_maxrss in kilobytes; macOS/BSD report bytes. On Windows (no ``resource``
+    module) there is no getrusage peak, so this tracks a sampled high-water mark of the current RSS,
+    which keeps it monotonic non-decreasing like the real peak."""
+    if resource is None:
+        # Windows: no getrusage; track a sampled high-water mark of current RSS so the result stays
+        # monotonic non-decreasing.
+        global _PEAK_RSS_FALLBACK
+        try:
+            rss = int(psutil.Process().memory_info().rss)
+        except Exception:
+            return _PEAK_RSS_FALLBACK
+        _PEAK_RSS_FALLBACK = max(_PEAK_RSS_FALLBACK, rss)
+        return _PEAK_RSS_FALLBACK
+    try:
+        maxrss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    except (ValueError, OSError):
+        return 0
+    return int(maxrss) * 1024 if sys.platform.startswith("linux") else int(maxrss)
 
 
 def shared_memory_size(data_buffers):

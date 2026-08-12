@@ -74,6 +74,11 @@ class CalibrationRunSettings(PydanticBase):
     calibrate_models: list[str]
     global_iterations: int = 1
     complete_steps: bool = False
+    invalidate_tables: list[str] | None = None
+    """Tables to drop after each restore so their @workflow.table factories
+    regenerate from current data.  If None (default), automatically detects
+    factory tables that depend on other tables and have RNG channels (e.g.
+    vehicles).  Set to an explicit list to override."""
 
 
 class CalibrationReportsSettings(PydanticBase):
@@ -1898,6 +1903,56 @@ def _reregister_rng_channels(
     state.add_injectable("rng_channels", list(current_channels))
 
 
+def _invalidate_derived_tables(state: workflow.State) -> None:
+    """Drop factory-produced tables that may be stale after a calibration restore.
+
+    When a calibrated model (e.g. auto_ownership) changes a table that a
+    @workflow.table factory depends on (e.g. vehicles depends on households),
+    the checkpoint may contain a stale version of that factory table.  Dropping
+    it forces the factory to regenerate from current data on next access.
+
+    Auto-detection rule: invalidate any table that is (a) registered as a
+    @workflow.table factory, (b) has DataFrame parameters (= table dependencies),
+    and (c) is in RANDOM_CHANNELS.  This currently matches only 'vehicles' but
+    will automatically cover future factory tables with the same pattern.
+    """
+    settings = read_calibration_settings(state)
+    if not settings:
+        return
+
+    tables_to_invalidate = settings.run.invalidate_tables
+    if not tables_to_invalidate:
+        tables_to_invalidate = _detect_derived_rng_tables(state)
+
+    for table_name in tables_to_invalidate:
+        if state.is_table(table_name):
+            state.drop_table(table_name)
+            state.rng().drop_channel(table_name)
+            logger.debug("calibration: invalidated derived table '%s'", table_name)
+
+
+def _detect_derived_rng_tables(state: workflow.State) -> list[str]:
+    """Identify factory tables with table dependencies and RNG channels."""
+    import inspect
+
+    from activitysim.abm.models.util.canonical_ids import RANDOM_CHANNELS
+
+    result = []
+    for table_name, factory_func in state._LOADABLE_TABLES.items():
+        if table_name not in RANDOM_CHANNELS:
+            continue
+        sig = inspect.signature(factory_func)
+        has_table_dep = any(
+            p.annotation is pd.DataFrame
+            or (p.annotation is inspect.Parameter.empty and p.name != "state")
+            for p in sig.parameters.values()
+            if p.name != "state"
+        )
+        if has_table_dep:
+            result.append(table_name)
+    return result
+
+
 def _restore_parent_state_from_pipeline(
     state: workflow.State, checkpoint_name: str = "_"
 ) -> None:
@@ -1932,6 +1987,11 @@ def _restore_parent_state_from_pipeline(
     state.checkpoint.restore(resume_after=checkpoint_name)
 
     _reregister_rng_channels(state, prior_rng_channels, prior_index_to_channel)
+
+    # Drop derived tables so their factories regenerate from current data.
+    # Without this, a stale vehicles table (based on old auto_ownership values)
+    # would be loaded from the checkpoint and never refreshed.
+    _invalidate_derived_tables(state)
 
     # After restore, all tables are clean (status=False). Mark them dirty so
     # the next checkpoint.add() writes them to disk at a known checkpoint name.

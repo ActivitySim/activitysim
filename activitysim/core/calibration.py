@@ -240,6 +240,25 @@ def run_calibration_loop(
                     resume_after=None,
                     shared_data_buffers=shared_data_buffers,
                 )
+            elif not any(
+                cp.get("checkpoint_name") == state.settings.resume_after
+                for cp in state.checkpoint.checkpoints
+            ):
+                # _prep_model_data took its fallback path — the pipeline either
+                # doesn't exist or doesn't contain resume_after's checkpoint.
+                # The restored state is incomplete (precursor models never ran).
+                logger.warning(
+                    "calibration: resume_after=%r not found in restored pipeline; "
+                    "running precursor models",
+                    state.settings.resume_after,
+                )
+                _run_precursor_components(
+                    state,
+                    models=models[:first_calib_model_idx],
+                    resume_after=None,
+                    global_iter=start_global_iter,
+                    shared_data_buffers=shared_data_buffers,
+                )
             else:
                 state.checkpoint.add(state.settings.resume_after)
                 state.checkpoint.close_store()

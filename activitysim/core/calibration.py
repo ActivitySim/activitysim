@@ -1564,6 +1564,10 @@ def _run_in_configured_mode(
     state.checkpoint.add(resume_after or models[0])
     for model in models:
         state.run.by_name(model)
+    # Ensure final model's state is persisted even if should_save_checkpoint
+    # returned False for it — _calibrate_component needs to restore to it.
+    if models:
+        state.checkpoint.add(models[-1])
 
 
 def _prep_model_data(state, resume_after=None):

@@ -551,7 +551,7 @@ def run_location_sample(
             estimator,
             model_settings,
             chunk_size,
-            chunk_tag=f"{chunk_tag}.presample",
+            chunk_tag=f"{chunk_tag}.presample.{segment_name}",
             trace_label=trace_label,
             full_dest_size_terms=full_dest_size_terms,
         )
@@ -567,7 +567,7 @@ def run_location_sample(
             estimator,
             model_settings,
             chunk_size,
-            chunk_tag=f"{chunk_tag}.sample",
+            chunk_tag=f"{chunk_tag}.sample.{segment_name}",
             trace_label=trace_label,
         )
 
@@ -880,7 +880,7 @@ def run_location_choice(
                 location_sample_df,
                 model_settings,
                 chunk_size,
-                chunk_tag=f"{chunk_tag}.logsums",
+                chunk_tag=f"{chunk_tag}.logsums.{segment_name}",
                 trace_label=tracing.extend_trace_label(
                     trace_label, "logsums.%s" % segment_name
                 ),
@@ -900,7 +900,7 @@ def run_location_choice(
             estimator,
             model_settings,
             chunk_size,
-            chunk_tag=f"{chunk_tag}.simulate",
+            chunk_tag=f"{chunk_tag}.simulate.{segment_name}",
             trace_label=tracing.extend_trace_label(
                 trace_label, "simulate.%s" % segment_name
             ),

@@ -649,6 +649,42 @@ Additional chunking settings:
 * keep_chunk_logs: True - whether to preserve or delete subprocess chunk logs when they are consolidated at end of multiprocess run
 * keep_mem_logs: True - whether to preserve or delete subprocess mem logs when they are consolidated at end of multiprocess run
 
+Automatic memory-aware chunking (``chunk_size_mode: auto``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default (``chunk_size_mode: fixed``) adaptive chunking sizes chunks against the static
+``chunk_size`` byte budget, which must be hand-tuned per machine and targets host RAM. Setting
+``chunk_size_mode: auto`` instead derives the budget from the process's real memory ceiling at
+runtime, so ``chunk_size`` need not be set and the run adapts to the actual machine or container
+(this is especially useful inside memory-limited containers, where targeting host RAM can OOM-kill
+the process):
+
+* The budget is ``(memory_limit - current usage) * chunk_size_safety_factor``, where
+  ``memory_limit`` is read from the Linux cgroup (v2 ``memory.max``, then v1
+  ``memory.limit_in_bytes``, then ``psutil`` host RAM) — the limit that actually OOM-kills the
+  process inside a container.
+* In multiprocess mode the budget is divided by the number of workers (``num_processes``), so the N
+  workers that share the memory ceiling do not collectively exceed it.
+* Each budget decision is logged together with the process's exact lifetime peak RSS
+  (``getrusage`` ``ru_maxrss`` via ``get_peak_rss``), so a completed run shows how close it came
+  to the ceiling — the number to look at when tuning ``chunk_size_safety_factor``. The
+  ``chunk_row_size_margin`` safety multiplier inflates the estimated per-row memory when sizing
+  chunks.
+* Training-mode probe safety is built in: when a model has no cached per-row size, its first
+  ("probe") chunk is capped at 2000 rows (the smaller of that and ``default_initial_rows_per_chunk`` is used) — that chunk's memory cannot be bounded by the budget
+  because the per-row cost is unknown until measured, and in multiprocess all workers hit it at
+  once. Post-probe growth is capped at 2x per step by default (``chunk_growth_cap``,
+  user-overridable). A runtime budget alone cannot control these two bursts.
+
+This mode reuses the existing adaptive-chunking machinery; with the default ``fixed`` mode behavior
+is unchanged. Settings:
+
+* chunk_size_mode: fixed - ``auto`` derives the chunk budget from the real memory ceiling; ``fixed`` (default) uses the static ``chunk_size``
+* chunk_size_safety_factor: 0.5 - fraction of the available memory ceiling to use as the budget (tolerates ~2x row-size mis-estimates across segments even when all workers hit them at once; raise if the ``peak rss`` log shows ample headroom)
+* chunk_growth_cap: 0 - maximum multiplicative growth of rows-per-chunk between successive chunks (0 = off in ``fixed`` mode; under ``auto`` an unset value defaults to 2.0)
+* chunk_row_size_margin: 1.0 - safety multiplier applied to the estimated per-row memory when sizing chunks
+* chunk_peak_backoff_ratio: 0.9 - fraction of the per-worker budget a chunk's incremental peak may reach before the next chunk is halved
+
 
 API
 ^^^

@@ -1868,7 +1868,6 @@ def _reregister_rng_channels(
     state: workflow.State,
     prior_channels: list[str],
     prior_index_to_channel: dict[str, str] = None,
-    table_checkpoint_map: dict[str, str] = None,
 ) -> None:
     """Re-register RNG channels that were lost during init_state()."""
     current_channels = set(state.get_injectable("rng_channels", []))
@@ -1879,36 +1878,22 @@ def _reregister_rng_channels(
                 current_channels.add(channel_name)
             except Exception:
                 pass
-    # Re-register channels whose tables don't exist at the restored checkpoint
-    # but DO exist elsewhere in the pipeline store (from a prior iteration).
+    # For channels whose tables don't exist at the restored checkpoint,
+    # register an empty channel.  Do NOT pre-load from a later checkpoint
+    # in the store — that data may include modifications from downstream
+    # models and would pollute the pre-model state.  The empty channel
+    # allows the model's normal table factory to create the table fresh
+    # and extend the channel without hitting the disjoint-index assertion.
     if prior_index_to_channel:
         for index_name, channel_name in prior_index_to_channel.items():
             if index_name not in state.rng().index_to_channel:
-                # Try loading the actual table from the store at its last-written checkpoint
-                loaded = False
-                if table_checkpoint_map and channel_name in table_checkpoint_map:
-                    cp_name = table_checkpoint_map[channel_name]
-                    if cp_name and state.checkpoint.store_is_open():
-                        try:
-                            df = state.checkpoint._read_df(channel_name, checkpoint_name=cp_name)
-                            state.rng().add_channel(channel_name, df)
-                            # Also add the table to state so that @workflow.table
-                            # factories are not re-triggered.  Without this, the
-                            # factory would call add_channel again with the same
-                            # indices, hitting the disjoint-index assertion.
-                            state.add_table(channel_name, df)
-                            loaded = True
-                        except Exception:
-                            pass
-                if not loaded:
-                    # Fallback: register with empty domain; model must call add_channel
-                    if channel_name not in state.rng().channels:
-                        empty_df = pd.DataFrame(
-                            index=pd.Index([], dtype="int64", name=index_name)
-                        )
-                        state.rng().add_channel(channel_name, empty_df)
-                    else:
-                        state.rng().index_to_channel[index_name] = channel_name
+                if channel_name not in state.rng().channels:
+                    empty_df = pd.DataFrame(
+                        index=pd.Index([], dtype="int64", name=index_name)
+                    )
+                    state.rng().add_channel(channel_name, empty_df)
+                else:
+                    state.rng().index_to_channel[index_name] = channel_name
                 current_channels.add(channel_name)
     state.add_injectable("rng_channels", list(current_channels))
 
@@ -1942,20 +1927,11 @@ def _restore_parent_state_from_pipeline(
     prior_rng_channels = list(state.get_injectable("rng_channels", []))
     prior_index_to_channel = dict(state.rng().index_to_channel) if hasattr(state.rng(), "index_to_channel") else {}
 
-    # Build map of table_name → checkpoint_name by scanning the full in-memory
-    # checkpoint history for the last non-empty value for each table.
-    table_checkpoint_map = {}
-    from activitysim.core.workflow.checkpoint import NON_TABLE_COLUMNS
-    for entry in state.checkpoint.checkpoints:
-        for key, val in entry.items():
-            if key not in NON_TABLE_COLUMNS and val:
-                table_checkpoint_map[key] = val
-
     if state.checkpoint.store_is_open():
         state.checkpoint.close_store()
     state.checkpoint.restore(resume_after=checkpoint_name)
 
-    _reregister_rng_channels(state, prior_rng_channels, prior_index_to_channel, table_checkpoint_map)
+    _reregister_rng_channels(state, prior_rng_channels, prior_index_to_channel)
 
     # After restore, all tables are clean (status=False). Mark them dirty so
     # the next checkpoint.add() writes them to disk at a known checkpoint name.

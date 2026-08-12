@@ -524,6 +524,34 @@ def _calibrate_component(
                 for m in extra_models:
                     state.run.by_name(m)
             state.checkpoint.add(prior_step)
+
+            # Diagnostic: verify households state before running calibrated model
+            if state.is_table("households"):
+                _hh = state.get_dataframe("households")
+                logger.debug(
+                    "calibration: households before %s has %d rows, columns: %s",
+                    run_model_name,
+                    len(_hh),
+                    list(_hh.columns),
+                )
+                if "num_drivers" not in _hh.columns:
+                    logger.error(
+                        "calibration: households missing 'num_drivers' before %s. "
+                        "prior_step=%r, extra_models=%r, checkpoint_names=%s",
+                        run_model_name,
+                        prior_step,
+                        extra_models,
+                        [
+                            cp.get("checkpoint_name", "")
+                            for cp in state.checkpoint.checkpoints
+                        ],
+                    )
+            else:
+                logger.error(
+                    "calibration: households table not in state before %s",
+                    run_model_name,
+                )
+
             state.run.by_name(run_model_name)
 
         eval_context = _build_expression_context(
@@ -2018,12 +2046,51 @@ def _restore_parent_state_from_pipeline(
         state.checkpoint.close_store()
     state.checkpoint.restore(resume_after=checkpoint_name)
 
+    # DEBUG: trace where num_drivers disappears
+    _trace_col = "num_drivers"
+    if state.is_table("households"):
+        _hh = state.get_dataframe("households")
+        logger.debug(
+            "calibration TRACE [after restore]: households has %d cols, "
+            "%s present=%s, checkpoint=%r",
+            len(_hh.columns),
+            _trace_col,
+            _trace_col in _hh.columns,
+            checkpoint_name,
+        )
+    else:
+        logger.debug(
+            "calibration TRACE [after restore]: households NOT in state, checkpoint=%r",
+            checkpoint_name,
+        )
+
     _reregister_rng_channels(state, prior_rng_channels, prior_index_to_channel)
+
+    if state.is_table("households"):
+        _hh = state.get_dataframe("households")
+        logger.debug(
+            "calibration TRACE [after _reregister_rng_channels]: %s present=%s",
+            _trace_col,
+            _trace_col in _hh.columns,
+        )
 
     # Drop derived tables so their factories regenerate from current data.
     # Without this, a stale vehicles table (based on old auto_ownership values)
     # would be loaded from the checkpoint and never refreshed.
     _invalidate_derived_tables(state)
+
+    if state.is_table("households"):
+        _hh = state.get_dataframe("households")
+        logger.debug(
+            "calibration TRACE [after _invalidate_derived_tables]: %s present=%s",
+            _trace_col,
+            _trace_col in _hh.columns,
+        )
+    else:
+        logger.debug(
+            "calibration TRACE [after _invalidate_derived_tables]: "
+            "households NOT in state (was it invalidated?)"
+        )
 
     # After restore, all tables are clean (status=False). Mark them dirty so
     # the next checkpoint.add() writes them to disk at a known checkpoint name.

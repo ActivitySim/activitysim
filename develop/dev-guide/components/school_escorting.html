@@ -676,7 +676,7 @@ implementation due to a lack of data surrounding the number of escort tours in t
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_SPEC" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.OUTBOUND_SPEC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OUTBOUND_SPEC</span> <span class="pre">(str)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.PERSONTYPE_COLUMN" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.PERSONTYPE_COLUMN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PERSONTYPE_COLUMN</span> <span class="pre">(str)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.PERSON_WEIGHT" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.PERSON_WEIGHT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PERSON_WEIGHT</span> <span class="pre">(float)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIMULATE_CHOOSER_COLUMNS</span> <span class="pre">(list[str]</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIMULATE_CHOOSER_COLUMNS</span> <span class="pre">(Any</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.SPEC" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.SPEC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPEC</span> <span class="pre">(None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.alts_preprocessor" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.alts_preprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">alts_preprocessor</span> <span class="pre">(PreprocessorSettings</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.annotate_households" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.annotate_households"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_households</span> <span class="pre">()</span></code></a></p></li>
@@ -696,6 +696,7 @@ implementation due to a lack of data surrounding the number of escort tours in t
 </dd>
 <dt class="field-odd">Validators<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_deprecate_simulate_chooser_columns</span></code> » <a class="reference internal" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS" title="activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIMULATE_CHOOSER_COLUMNS</span></code></a></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code> » <code class="xref py py-obj docutils literal notranslate"><span class="pre">all</span> <span class="pre">fields</span></code></p></li>
 </ul>
 </dd>
@@ -957,10 +958,17 @@ applications, but may be problematic if used with “estimation mode”.</p>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SIMULATE_CHOOSER_COLUMNS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SIMULATE_CHOOSER_COLUMNS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.school_escorting.SchoolEscortSettings.SIMULATE_CHOOSER_COLUMNS" title="Permalink to this definition">#</a></dt>
+<dd><p>Was used to help reduce the memory needed for the model.</p>
+<p>This setting is now obsolete and does nothing. Its functionality has been
+replaced by <a class="reference internal" href="../../core.html#activitysim.core.util.drop_unused_columns" title="activitysim.core.util.drop_unused_columns"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.util.drop_unused_columns()</span></code></a>.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 1.6.</span></p>
+</div>
+<dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_deprecate_simulate_chooser_columns</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
 </ul>
 </dd>
@@ -1323,7 +1331,7 @@ are used to create school escort tours and trips.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev28+g2b73d5a8b, documentation last updated Aug 13, 2026.<br/>
+ActivitySim 1.5.2.dev29+g131f09a1e, documentation last updated Aug 13, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

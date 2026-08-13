@@ -498,7 +498,7 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">CONSTANTS</span> <span class="pre">(dict[str,</span> <span class="pre">Any])</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH</span> <span class="pre">(bool)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGIT_TYPE</span> <span class="pre">(Literal['MNL',</span> <span class="pre">'NL'])</span></code></p></li>
-<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGSUM_CHOOSER_COLUMNS</span> <span class="pre">(list[str])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGSUM_CHOOSER_COLUMNS</span> <span class="pre">(Any</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">MODE_CHOICE_LOGSUM_COLUMN_NAME</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">NESTS</span> <span class="pre">(LogitNestSpec</span> <span class="pre">|</span> <span class="pre">None)</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPEC</span> <span class="pre">(Path)</span></code></p></li>
@@ -516,6 +516,7 @@ See <a class="reference internal" href="../../users-guide/example_models.html#wr
 </dd>
 <dt class="field-odd">Validators<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_deprecate_logsum_chooser_columns</span></code> » <code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGSUM_CHOOSER_COLUMNS</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code> » <code class="xref py py-obj docutils literal notranslate"><span class="pre">all</span> <span class="pre">fields</span></code></p></li>
 </ul>
 </dd>
@@ -617,10 +618,17 @@ segment-specific names.</p>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.LOGSUM_CHOOSER_COLUMNS">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LOGSUM_CHOOSER_COLUMNS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.LOGSUM_CHOOSER_COLUMNS" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LOGSUM_CHOOSER_COLUMNS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.models.tour_mode_choice.TourModeComponentSettings.LOGSUM_CHOOSER_COLUMNS" title="Permalink to this definition">#</a></dt>
+<dd><p>Was used to help reduce the memory needed for the model.</p>
+<p>This setting is now obsolete and does nothing. Its functionality has been
+replaced by <a class="reference internal" href="../../core.html#activitysim.core.util.drop_unused_columns" title="activitysim.core.util.drop_unused_columns"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.util.drop_unused_columns()</span></code></a>.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 1.6.</span></p>
+</div>
+<dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_deprecate_logsum_chooser_columns</span></code></p></li>
 <li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_sharrow_skip</span></code></p></li>
 </ul>
 </dd>
@@ -1071,7 +1079,7 @@ of any model.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev28+g2b73d5a8b, documentation last updated Aug 13, 2026.<br/>
+ActivitySim 1.5.2.dev29+g131f09a1e, documentation last updated Aug 13, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

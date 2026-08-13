@@ -116,3 +116,7 @@ transit_modes = [
 ]
 transit_trips = len(trips.query("trip_mode in @transit_modes"))
 ```
+
+## Summary
+
+The impacts of returning to the office are something that is on the mind of many transportation planners as we move into the late 2020s. Many employers want to have their employees work from an office more which will result in an increase in travel to work. This will result in an increased strain on the transportation network that needs to be planned for. ActivitySim is capable of modeling an decrease in telecommuting with its Telecommute Frequency model component, though it takes more effort than just simply changing a few model inputs here and there. Because how often people telecommute is an output of that model, it must be calibrated to match the desired telecommuting shares, which will involve iteratively running the component and adjusting calibration coefficients until the results are sufficiently close to the desired targets. After that is done, the full modeling system can be run to estimate the impact of people telecommuting fewer days, which based on the structure of the model will impact things such as the daily activity pattern and number of trips taken by transit, but not where people choose to work as that model component is typically run earlier.

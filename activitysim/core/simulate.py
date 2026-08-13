@@ -655,7 +655,6 @@ def eval_utilities(
         from .flow import apply_flow  # import inside func to prevent circular imports
 
         locals_dict = {}
-        locals_dict.update(state.get_global_constants())
         if locals_d is not None:
             locals_dict.update(locals_d)
         sh_util, sh_flow, sh_tree = apply_flow(

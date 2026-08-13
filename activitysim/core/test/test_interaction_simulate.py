@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from activitysim.core import interaction_simulate, workflow
+from activitysim.core import flow, interaction_simulate, workflow
 
 
 @pytest.fixture
@@ -15,6 +15,39 @@ def state() -> workflow.State:
     state = workflow.State().default_settings()
     state.settings.check_for_variability = False
     return state
+
+
+def test_apply_flow_global_constants_and_local_override(state, monkeypatch):
+    class FakeFlow:
+        name = "test_flow"
+        compiled_recently = False
+        tree = object()
+
+        def dot(self, coefficients, dtype, compile_watch):
+            return np.array([[1.0]])
+
+    captured_locals = {}
+
+    def fake_get_flow(_state, _spec, locals_d, *_args, **_kwargs):
+        captured_locals.update(locals_d)
+        return FakeFlow()
+
+    state.get_global_constants = lambda: {"GLOBAL_SCALE": 2, "GLOBAL_ONLY": 4}
+    monkeypatch.setattr(flow, "sh", object())
+    monkeypatch.setattr(flow, "get_flow", fake_get_flow)
+
+    spec = pd.DataFrame(
+        {"alt": [1.0]}, index=pd.Index(["GLOBAL_SCALE"], name="Expression")
+    )
+    result, _, _ = flow.apply_flow(
+        state,
+        spec,
+        pd.DataFrame({"value": [1.0]}),
+        locals_d={"GLOBAL_SCALE": 3},
+    )
+
+    np.testing.assert_allclose(result, [[1.0]])
+    assert captured_locals == {"GLOBAL_SCALE": 3, "GLOBAL_ONLY": 4}
 
 
 def test_interaction_simulate_explicit_error_terms_parity(state):

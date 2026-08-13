@@ -321,8 +321,8 @@ def annotate_tables(
                     "Failed to set skim wrapper targets: %s. Skims wrappers may not be used in expressions.",
                     e,
                 )
-        if locals_dict:
-            locals_d.update(locals_dict)
+
+        locals_d.update(locals_dict or {})
 
         results = compute_columns(
             state,

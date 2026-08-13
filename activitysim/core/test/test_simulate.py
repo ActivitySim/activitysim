@@ -82,6 +82,33 @@ def test_eval_variables(state, spec, data):
     pdt.assert_frame_equal(result, expected, check_names=False)
 
 
+def test_standard_utilities_global_constants_and_local_override(state):
+    state.get_global_constants = lambda: {"GLOBAL_SCALE": 2}
+    choosers = pd.DataFrame({"value": [1.0, 2.0]})
+    spec = pd.DataFrame(
+        {"alt": [1.0]},
+        index=pd.Index(["@df.value * GLOBAL_SCALE"], name="Expression"),
+    )
+    chunk_sizer = chunk.ChunkSizer(state, "", "", len(choosers))
+
+    utilities = simulate.eval_utilities(
+        state,
+        spec,
+        choosers,
+        chunk_sizer=chunk_sizer,
+    )
+    overridden_utilities = simulate.eval_utilities(
+        state,
+        spec,
+        choosers,
+        locals_d={"GLOBAL_SCALE": 3},
+        chunk_sizer=chunk_sizer,
+    )
+
+    npt.assert_allclose(utilities["alt"], [2.0, 4.0])
+    npt.assert_allclose(overridden_utilities["alt"], [3.0, 6.0])
+
+
 def test_simple_simulate(state, data, spec):
     state.settings.check_for_variability = False
 

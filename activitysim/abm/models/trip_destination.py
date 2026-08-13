@@ -189,7 +189,7 @@ def _destination_sample(
             f"SAMPLE_SIZE set to 0 for {trace_label} because disable_destination_sampling is set"
         )
 
-    locals_dict = state.get_global_constants().copy()
+    locals_dict = {}
     locals_dict.update(model_settings.CONSTANTS)
 
     # size_terms of destination zones are purpose-specific, and trips have various purposes

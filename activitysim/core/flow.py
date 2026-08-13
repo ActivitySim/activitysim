@@ -808,8 +808,10 @@ def apply_flow(
     """
     if sh is None:
         return None, None
-    if locals_d is None:
-        locals_d = {}
+
+    # Global constants are always available, but can be overridden by locals_d.
+    locals_d = {**state.get_global_constants(), **(locals_d or {})}
+
     with logtime("apply_flow"):
         try:
             flow = get_flow(

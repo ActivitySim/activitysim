@@ -100,7 +100,7 @@ def eval_interaction_utilities(
         assert len(spec.columns) == 1
 
         # avoid altering caller's passed-in locals_d parameter (they may be looping)
-        locals_d = locals_d.copy() if locals_d is not None else {}
+        locals_d = dict(locals_d or {})
 
         utilities = None
 
@@ -210,6 +210,9 @@ def eval_interaction_utilities(
             or estimator
             or (sharrow_enabled == "test" and extra_data is None)
         ):
+            # Global constants are always available, but can be overridden by locals_d.
+            # Sharrow calculations receive them in flow.apply_flow instead.
+            locals_d = {**state.get_global_constants(), **locals_d}
 
             def to_series(x):
                 if np.isscalar(x):

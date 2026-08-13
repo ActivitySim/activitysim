@@ -276,7 +276,12 @@ def run_trip_scheduling_choice(
             choosers,
             chunk_trace_label,
             chunk_sizer,
-        ) in chunk.adaptive_chunked_choosers(state, indirect_tours, trace_label):
+        ) in chunk.adaptive_chunked_choosers(
+            state,
+            indirect_tours,
+            trace_label,
+            explicit_chunk_size=model_settings.explicit_chunk,
+        ):
             # Sort the choosers and get the schedule alternatives
             choosers = choosers.sort_index()
             # FIXME-EET: under use_explicit_error_terms, error terms here are aligned positionally, not keyed
@@ -373,7 +378,11 @@ class TripSchedulingChoiceSettings(LogitComponentSettings, extra="forbid"):
     Settings for the `trip_scheduling_choice` component.
     """
 
-    pass
+    explicit_chunk: float = 0
+    """
+    If > 0, use this chunk size instead of adaptive chunking.
+    If less than 1, use this fraction of the total number of rows.
+    """
 
 
 @workflow.step

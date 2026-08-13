@@ -1,28 +1,4 @@
 
-SIMULATE_CHOOSER_COLUMNS:
-  - age
-  - female
-  - ptype
-  - is_university
-  - is_income_less25K
-  - is_income_25K_to_60K
-  - is_income_60K_to_120K
-  - is_income_greater120K
-  - is_pre_drive_child_in_HH
-  - is_non_worker_in_HH
-  - auto_ownership
-  - is_all_adults_full_time_workers
-  - distance_to_school
-  - roundtrip_auto_time_to_work
-  - roundtrip_auto_time_to_school
-  - free_parking_at_work
-  - workplace_zone_id
-  - school_zone_id
-  - home_zone_id
-  - TAZ
-  - transit_pass_ownership
-  - transit_pass_subsidy
-  
 LOGSUM_SETTINGS: tour_mode_choice.yaml
 
 TOUR_SPEC_SEGMENTS:

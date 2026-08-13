@@ -108,6 +108,68 @@ def test_interaction_sample_preserves_stable_positions_with_global_eet(
     assert captured["n_total_alts"] == 3
 
 
+def test_interaction_sample_prunes_unused_columns_while_tracing(state, monkeypatch):
+    choosers = pd.DataFrame(
+        {
+            "household_id": [10, 20],
+            "used": [1.0, 2.0],
+            "unused": [100.0, 200.0],
+        },
+        index=pd.Index([1, 2], name="person_id"),
+    )
+    alternatives = pd.DataFrame(
+        {"alt_attr": [1.0, 2.0]},
+        index=pd.Index([10, 20], name="alt_id"),
+    )
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["used + alt_attr"], name="Expression"),
+    )
+    pruned_chooser_columns = None
+    original_drop_unused_columns = interaction_sample.util.drop_unused_columns
+
+    def capture_drop_unused_columns(df, *args, **kwargs):
+        nonlocal pruned_chooser_columns
+        result = original_drop_unused_columns(df, *args, **kwargs)
+        if df is choosers:
+            pruned_chooser_columns = list(result.columns)
+        return result
+
+    monkeypatch.setattr(
+        interaction_sample.util, "drop_unused_columns", capture_drop_unused_columns
+    )
+    monkeypatch.setattr(state.tracing, "has_trace_targets", lambda _df: True)
+    monkeypatch.setattr(state.tracing, "trace_df", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        state.tracing,
+        "interaction_trace_rows",
+        lambda interaction_df, *_args: (
+            np.ones(len(interaction_df), dtype=bool),
+            ["trace"],
+        ),
+    )
+    monkeypatch.setattr(
+        state.tracing,
+        "trace_interaction_eval_results",
+        lambda *_args, **_kwargs: None,
+    )
+
+    state.rng().set_base_seed(42)
+    state.rng().add_channel("person_id", choosers)
+    state.rng().begin_step("test_traced_pruning")
+
+    interaction_sample.interaction_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size=1,
+        alt_col_name="alt_id",
+    )
+
+    assert pruned_chooser_columns == ["household_id", "used"]
+
+
 def _weighted_shares(df: pd.DataFrame) -> pd.Series:
     counts = df.groupby("alt_id")["pick_count"].sum()
     return (counts / counts.sum()).sort_index()

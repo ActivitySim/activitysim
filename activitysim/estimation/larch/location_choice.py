@@ -63,6 +63,17 @@ LocationChoiceData = collections.namedtuple(
 )
 
 
+def _suffix_overlapping_chooser_columns(chooser_data, alternative_data):
+    """Match ActivitySim's namespace for chooser/alternative name collisions."""
+    overlapping_columns = chooser_data.columns.intersection(alternative_data.columns)
+    if len(overlapping_columns) == 0:
+        return chooser_data
+
+    return chooser_data.rename(
+        columns={name: f"{name}_chooser" for name in overlapping_columns}
+    )
+
+
 def location_choice_model(
     name="workplace_location",
     edb_directory="output/estimation_data_bundle/{name}/",
@@ -435,6 +446,12 @@ def location_choice_model(
 
     assert len(x_co) > 0, "Empty chooser dataframe"
     assert len(x_ca_1) > 0, "Empty alternatives dataframe"
+
+    # ActivitySim gives chooser columns an ``_chooser`` suffix when the same
+    # name is present on an alternative.  Reproduce that namespace in the EDB
+    # so wider automatically-pruned chooser tables do not collide with land-use
+    # variables when the case and alternative datasets are merged.
+    x_co = _suffix_overlapping_chooser_columns(x_co, x_ca_1)
 
     d_ca = lx.Dataset.construct.from_idca(x_ca_1)
     d_co = lx.Dataset.construct.from_idco(x_co)

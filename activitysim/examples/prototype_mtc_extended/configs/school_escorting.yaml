@@ -41,12 +41,6 @@ preprocessor_outbound_cond:
     - persons
     - tours
 
-SIMULATE_CHOOSER_COLUMNS:
-  - home_zone_id
-  - income
-  - auto_ownership
-  - num_workers
-
 CONSTANTS:
   max_bin_difference_between_departure_times: 1
   mins_per_time_bin: 60

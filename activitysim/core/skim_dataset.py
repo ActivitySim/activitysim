@@ -1018,10 +1018,17 @@ def _finalize_skim_dataset(
         logger.info(
             "store_skims_in_shm is False, keeping skims in process-local memory"
         )
-        for f in omx_file_handles:
-            f.close()
-        d = _apply_digital_encoding(d, skim_digital_encoding)
-        return d
+        try:
+            d = _apply_digital_encoding(d, skim_digital_encoding)
+            # `from_omx_3d` can produce dask arrays whose task graph reads
+            # from the supplied PyTables handles.  Materialize them before
+            # closing the handles so the returned process-local dataset has
+            # no deferred dependency on an OMX file.  Use the synchronous
+            # scheduler because PyTables HDF5 reads are not thread-safe.
+            return d.compute(scheduler="synchronous")
+        finally:
+            for f in omx_file_handles:
+                f.close()
     else:
         logger.info("writing skims to shared memory")
         if dask_required:

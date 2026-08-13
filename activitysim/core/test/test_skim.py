@@ -272,6 +272,39 @@ class TestFinalizeSkimDataset:
         assert "DIST" in result
         assert "UNUSED_VAR" not in result
 
+    def test_local_memory_path_materializes_before_closing_omx(self, omx_env):
+        """Lazy OMX skims remain usable after finalization closes their handle."""
+        omx_path, token = omx_env
+
+        from activitysim.core.skim_dataset import _finalize_skim_dataset
+
+        omx_handle = openmatrix.open_file(str(omx_path), mode="r")
+        d = sh.dataset.from_omx_3d(
+            omx_handle,
+            index_names=("otaz", "dtaz", "time_period"),
+            time_periods=TIME_PERIODS,
+            max_float_precision=32,
+        )
+
+        result = _finalize_skim_dataset(
+            d,
+            omx_file_paths=[omx_path],
+            omx_file_handles=[omx_handle],
+            time_periods=TIME_PERIODS,
+            land_use_zone_id=np.arange(N_ZONES),
+            land_use_index=np.arange(N_ZONES),
+            zone_system=1,
+            store_skims_in_shm=False,
+            backing=token,
+            skim_digital_encoding=[],
+        )
+
+        assert not omx_handle.isopen
+        npt.assert_array_equal(
+            result["DIST"].values,
+            np.arange(N_ZONES * N_ZONES).reshape(N_ZONES, N_ZONES) * 0.5,
+        )
+
     # -- store_skims_in_shm=True, no realignment (reload path) ------------
 
     def test_shm_reload_3d_skims(self, omx_env):

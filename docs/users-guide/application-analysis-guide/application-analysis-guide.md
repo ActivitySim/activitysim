@@ -27,6 +27,6 @@ In the case where an output variable name is hardcoded (such as the outputs of t
 There are further settings regarding the structure of any logit model that's used. One setting, `LOGIT_TYPE` will be `MNL` for multinomial logit and `NL` for nested logit. If a nested logit structure is used, then there needs to be a setting called `NESTS` that define how each alternative nests. Further, there is an additional setting called `CONSTANTS` that contains constants that can be refered to in the model component's preprocessor and spec files. If a variable is used in multiple components, then it should be specified in the global settings file `constants.yaml`, which contains constants that can be accessed by all model components.
 
 ## Example scenarios
-[Land Use Change](land-use-change\land_use_change.md)
-[Network Change](network-change\network_change.md)
-[Telecommuting Change](telecommute-change\telecommute_change.md)
+- [Land Use Change](land-use-change\land_use_change.md)
+- [Network Change](network-change\network_change.md)
+- [Telecommuting Change](telecommute-change\telecommute_change.md)

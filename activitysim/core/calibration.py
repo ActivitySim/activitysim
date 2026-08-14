@@ -258,6 +258,14 @@ def run_calibration_loop(
 
     _ensure_calibration_output_dir(state)
 
+    if state.settings.resume_after is None:
+        # compute_accessibility requires its accessibility table to be empty;
+        # unlike most model steps, it will not overwrite a prior result.
+        # Remove a cached result before restore clears table-status metadata,
+        # so the table factory recreates its empty placeholder for the replay.
+        state.drop_table("accessibility")
+        state.checkpoint.restore()
+
     # If there is recoverable calibration progress from a prior interrupted run,
     # continue from that iteration. Coefficient updates are persisted in config
     # coefficient files, so restarting from a later global iteration is compatible

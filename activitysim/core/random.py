@@ -503,6 +503,11 @@ class Random(object):
         if channel_name in self.channels:
             logger.debug("Dropping channel '%s'" % (channel_name,))
             del self.channels[channel_name]
+            self.index_to_channel = {
+                index_name: mapped_channel_name
+                for index_name, mapped_channel_name in self.index_to_channel.items()
+                if mapped_channel_name != channel_name
+            }
         else:
             logger.error(
                 "drop_channel called with unknown channel '%s'" % (channel_name,)

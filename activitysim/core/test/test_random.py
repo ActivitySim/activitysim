@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 from activitysim.core import random
-from activitysim.core.exceptions import DuplicateLoadableObjectError
+from activitysim.core.exceptions import DuplicateLoadableObjectError, TableIndexError
 
 
 def test_basic():
@@ -126,3 +126,15 @@ def test_channel():
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), test1_expected_rands2)
 
     rng.end_step("test_step")
+
+
+def test_drop_channel_removes_index_mapping():
+    rng = random.Random()
+    persons = pd.DataFrame(index=pd.Index([1], name="person_id"))
+
+    rng.add_channel("persons", persons)
+    rng.drop_channel("persons")
+
+    assert "person_id" not in rng.index_to_channel
+    with pytest.raises(TableIndexError, match="No channel with index name 'person_id'"):
+        rng.get_channel_for_df(persons)

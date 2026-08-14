@@ -322,6 +322,7 @@ class Runner(StateAccessor):
             model_name is assumed to be the name of a registered workflow step
         """
         self.t0 = time.time()
+        self.rng_step_name = None
         try:
             should_skip = self._pre_run_step(model_name)
             if should_skip:
@@ -359,7 +360,8 @@ class Runner(StateAccessor):
         except Exception:
             self.t0 = self._log_elapsed_time(f"run.{model_name} UNTIL ERROR", self.t0)
             self._obj.add_injectable("step_args", None)
-            self._obj.rng().end_step(self.rng_step_name)
+            if self.rng_step_name is not None:
+                self._obj.rng().end_step(self.rng_step_name)
             raise
 
         else:

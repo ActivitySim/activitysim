@@ -1,8 +1,6 @@
 # ActivitySim Application and Analysis Guide
 
-This guide is to demonstrate to modelers how to apply ActivitySim for the analysis of various projects. It is intended to both demonstrate exactly how to change the inputs to test a particular project or policy, process the outputs to best answer the question that was asked, and provide a general understanding of what ActivitySim can and can't do.
-
-There are presently three example scenarios using the [SANDAG ABM3 Example model](https://github.com/activitysim/sandag-abm3-example), though more may be added in the future. Before running all of them, it is recommended to run the SANDAG example, as that will download the full data and provide a baseline run to compare each scenario to. For each example scenario, a step-by-step guide for changing the inputs along with notebooks demonstrating how to calculate key metrics from the model outputs.
+This guide is to demonstrate to modelers how to apply ActivitySim for the analysis of various projects. It is intended to both demonstrate exactly how to change the inputs to test a particular project or policy, process the outputs to best answer the question that was asked, and provide a general understanding of what ActivitySim can and can't do. There are presently three example scenarios using the [SANDAG ABM3 Example model](https://github.com/activitysim/sandag-abm3-example), though more may be added in the future. All of these scenarios are designed to be comparable to the example as is.
 
 ## General Configuration
 

@@ -270,7 +270,10 @@ class Runner(StateAccessor):
                     f"Cannot run model '{model_name}' more than once"
                 )
 
-        self._obj.rng().begin_step(model_name)
+        # Parse the canonical workflow step before initializing the RNG.
+        # Arguments appended to a model invocation (for example calibration
+        # iteration labels) may affect logging and checkpoint names, but must
+        # never affect the deterministic random stream for the model itself.
 
         # check for args
         if "." in model_name:
@@ -284,6 +287,11 @@ class Runner(StateAccessor):
         else:
             step_name = model_name
             args = {}
+
+        self.rng_step_name = (
+            step_name[1:] if step_name.startswith(NO_CHECKPOINT_PREFIX) else step_name
+        )
+        self._obj.rng().begin_step(self.rng_step_name)
 
         # check for no_checkpoint prefix
         if step_name[0] == NO_CHECKPOINT_PREFIX:
@@ -351,7 +359,7 @@ class Runner(StateAccessor):
         except Exception:
             self.t0 = self._log_elapsed_time(f"run.{model_name} UNTIL ERROR", self.t0)
             self._obj.add_injectable("step_args", None)
-            self._obj.rng().end_step(model_name)
+            self._obj.rng().end_step(self.rng_step_name)
             raise
 
         else:
@@ -361,7 +369,7 @@ class Runner(StateAccessor):
 
             self._obj.add_injectable("step_args", None)
 
-            self._obj.rng().end_step(model_name)
+            self._obj.rng().end_step(self.rng_step_name)
             if self.checkpoint:
                 self._obj.checkpoint.add(model_name)
             else:

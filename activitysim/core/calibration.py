@@ -75,6 +75,15 @@ class CalibrationRunSettings(PydanticBase):
     global_iterations: int = 1
     complete_steps: bool = False
     invalidate_tables: list[str] | None = None
+
+    @model_validator(mode="after")
+    def validate_run_settings(self):
+        if not self.calibrate_models:
+            raise ValueError(
+                "calibration.run.calibrate_models must contain at least one model name"
+            )
+        return self
+
     """Tables to drop from state after each calibration restore so their
     ``@workflow.table`` factories regenerate from current data.
 
@@ -196,9 +205,29 @@ def run_calibration_loop(
             "Overriding duplicate_step_execution setting: must be enabled for calibration"
         )
 
-    assert all(
-        [c in models for c in calibration_settings.run.calibrate_models]
-    ), f"settings.yaml steps list does not include calibration model{'s' if len([c for c in calibration_settings.run.calibrate_models if c not in models]) != 1 else ''} {[c for c in calibration_settings.run.calibrate_models if c not in models]}"
+    if not calibration_settings.run.calibrate_models:
+        raise ValueError(
+            "calibration.run.calibrate_models must contain at least one model name"
+        )
+
+    missing_calibration_models = [
+        component
+        for component in calibration_settings.run.calibrate_models
+        if component not in models
+    ]
+    if missing_calibration_models:
+        raise ValueError(
+            "settings.yaml models list does not include configured calibration "
+            f"model(s): {missing_calibration_models}"
+        )
+
+    resume_after = state.settings.resume_after
+    if resume_after is not None and resume_after not in models:
+        raise ValueError(
+            f"settings.yaml resume_after={resume_after!r} is not present in the "
+            "settings.yaml models list. Calibration requires resume_after to be "
+            "a model-level checkpoint name."
+        )
 
     # sort calibration models into main model order
     calibration_settings.run.calibrate_models = sorted(
@@ -206,11 +235,26 @@ def run_calibration_loop(
     )
     first_calib_model_idx = models.index(calibration_settings.run.calibrate_models[0])
     last_calib_model_idx = models.index(calibration_settings.run.calibrate_models[-1])
-    first_model_idx = (
-        models.index(state.settings.resume_after) + 1
-        if state.settings.resume_after
-        else None
+    first_model_idx = models.index(resume_after) + 1 if resume_after else None
+    first_calibration_restart_step = _prior_step_name(
+        models, calibration_settings.run.calibrate_models[0]
     )
+
+    if resume_after is not None:
+        skipped_calibration_models = [
+            component
+            for component in calibration_settings.run.calibrate_models
+            if models.index(component) <= models.index(resume_after)
+        ]
+        if skipped_calibration_models:
+            logger.warning(
+                "Calibration is honoring settings.yaml resume_after=%r using strict "
+                "ActivitySim semantics. The following calibrated model(s) occur at "
+                "or before resume_after and will be skipped during the first global "
+                "iteration: %s",
+                resume_after,
+                skipped_calibration_models,
+            )
 
     _ensure_calibration_output_dir(state)
 
@@ -290,6 +334,31 @@ def run_calibration_loop(
             start_global_iter,
             start_global_iter + calibration_settings.run.global_iterations,
         ):
+            # Every global iteration after the first begins from the immutable
+            # checkpoint directly before the first calibrated model. This makes
+            # global reruns independent of the state left by the final calibrated
+            # model in the preceding iteration.
+            if global_iter > start_global_iter:
+                logger.info(
+                    "Restarting global calibration iteration %s from checkpoint %r",
+                    global_iter,
+                    first_calibration_restart_step,
+                )
+                extra_models = _prep_model_data(
+                    state, resume_after=first_calibration_restart_step
+                )
+                if extra_models:
+                    _run_in_configured_mode(
+                        state,
+                        models=extra_models,
+                        resume_after=None,
+                        shared_data_buffers=shared_data_buffers,
+                    )
+                _invalidate_derived_tables(state)
+                if first_calibration_restart_step is not None:
+                    state.checkpoint.add(first_calibration_restart_step)
+                    state.checkpoint.close_store()
+
             logger.info(
                 "calibration global iteration %s/%s",
                 global_iter - start_global_iter,
@@ -528,9 +597,10 @@ def _calibrate_component(
             _run_mp_single_component(
                 state,
                 component_name=component_name,
-                restore_checkpoint=mp_restore_checkpoint
-                if component_iter == 1
-                else "_",
+                # Always restore from the same immutable pre-component
+                # checkpoint. LAST_CHECKPOINT may point to the prior iteration's
+                # coalesced component output and is therefore not a safe baseline.
+                restore_checkpoint=mp_restore_checkpoint,
                 shared_data_buffers=shared_data_buffers,
             )
         else:

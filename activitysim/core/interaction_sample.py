@@ -583,18 +583,23 @@ def _interaction_sample(
     if compute_settings is None:
         compute_settings = ComputeSettings()
 
-    # drop variables before the interaction dataframe is created
+    # drop variables before the interaction dataframe is created, otherwise the
+    # cross join of choosers and alternatives can blow up memory usage
+    if compute_settings.drop_unused_columns:
+        # when tracing, the unpruned choosers and alternatives have already been
+        # written out above, so here we only need to preserve the columns used to
+        # identify the traced rows in the interaction dataframe
+        trace_columns = (
+            util.traceable_id_columns(choosers) if have_trace_targets else []
+        )
 
-    # check if tracing is enabled and if we have trace targets
-    # if not estimation mode, drop unused columns
-    if (not have_trace_targets) and (compute_settings.drop_unused_columns):
         choosers = util.drop_unused_columns(
             choosers,
             spec,
             locals_d,
             custom_chooser=None,
             sharrow_enabled=sharrow_enabled,
-            additional_columns=compute_settings.protect_columns,
+            additional_columns=trace_columns + compute_settings.protect_columns,
         )
 
         alternatives = util.drop_unused_columns(

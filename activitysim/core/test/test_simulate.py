@@ -82,6 +82,33 @@ def test_eval_variables(state, spec, data):
     pdt.assert_frame_equal(result, expected, check_names=False)
 
 
+def test_standard_utilities_global_constants_and_local_override(state):
+    state.get_global_constants = lambda: {"GLOBAL_SCALE": 2}
+    choosers = pd.DataFrame({"value": [1.0, 2.0]})
+    spec = pd.DataFrame(
+        {"alt": [1.0]},
+        index=pd.Index(["@df.value * GLOBAL_SCALE"], name="Expression"),
+    )
+    chunk_sizer = chunk.ChunkSizer(state, "", "", len(choosers))
+
+    utilities = simulate.eval_utilities(
+        state,
+        spec,
+        choosers,
+        chunk_sizer=chunk_sizer,
+    )
+    overridden_utilities = simulate.eval_utilities(
+        state,
+        spec,
+        choosers,
+        locals_d={"GLOBAL_SCALE": 3},
+        chunk_sizer=chunk_sizer,
+    )
+
+    npt.assert_allclose(utilities["alt"], [2.0, 4.0])
+    npt.assert_allclose(overridden_utilities["alt"], [3.0, 6.0])
+
+
 def test_simple_simulate(state, data, spec):
     state.settings.check_for_variability = False
 
@@ -101,6 +128,42 @@ def test_simple_simulate_chunked(state, data, spec):
     )
     expected = pd.Series([1, 1, 1], index=data.index)
     pdt.assert_series_equal(choices, expected, check_dtype=False)
+
+
+def test_simple_simulate_prunes_unused_columns_while_tracing(state, monkeypatch):
+    choosers = pd.DataFrame(
+        {
+            "household_id": [10, 20],
+            "tour_id": [100, 200],
+            "used": [1.0, 2.0],
+            "unused": [100.0, 200.0],
+        },
+        index=pd.Index([1, 2], name="person_id"),
+    )
+    spec = pd.DataFrame(
+        {"alternative": [1.0]},
+        index=pd.Index(["used"], name="Expression"),
+    )
+    captured_columns = None
+
+    monkeypatch.setattr(state.tracing, "has_trace_targets", lambda _df: True)
+
+    def capture_eval_mnl(_state, pruned_choosers, *_args, **_kwargs):
+        nonlocal captured_columns
+        captured_columns = list(pruned_choosers.columns)
+        return pd.Series(0, index=pruned_choosers.index)
+
+    monkeypatch.setattr(simulate, "eval_mnl", capture_eval_mnl)
+
+    simulate.simple_simulate(
+        state,
+        choosers,
+        spec,
+        nest_spec=None,
+        trace_column_names="tour_id",
+    )
+
+    assert captured_columns == ["household_id", "tour_id", "used"]
 
 
 def test_eval_mnl_eet(state):

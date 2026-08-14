@@ -637,8 +637,10 @@ def destination_presample(
 
     orig_maz = model_settings.CHOOSER_ORIG_COL_NAME
     assert orig_maz in choosers
-    if ORIG_TAZ not in choosers:
-        choosers[ORIG_TAZ] = network_los.map_maz_to_taz(choosers[orig_maz])
+    # This is the TAZ for the configured tour origin.  A wider chooser table
+    # may already contain a same-named home TAZ, which is incorrect for models
+    # such as at-work subtour destination choice.
+    choosers[ORIG_TAZ] = network_los.map_maz_to_taz(choosers[orig_maz])
 
     # create wrapper with keys for this lookup - in this case there is a HOME_TAZ in the choosers
     # and a DEST_TAZ in the alternatives which get merged during interaction
@@ -691,23 +693,9 @@ def run_destination_sample(
     chunk_size,
     trace_label,
 ):
-    # FIXME - MEMORY HACK - only include columns actually used in spec (omit them pre-merge)
-    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-
     # if special person id is passed
     chooser_id_column = model_settings.CHOOSER_ID_COLUMN
 
-    # Drop this when PR #1017 is merged
-    if ("household_id" not in chooser_columns) and (
-        "household_id" in persons_merged.columns
-    ):
-        chooser_columns = chooser_columns + ["household_id"]
-    persons_merged = persons_merged[
-        [c for c in persons_merged.columns if c in chooser_columns]
-    ]
-    tours = tours[
-        [c for c in tours.columns if c in chooser_columns or c == chooser_id_column]
-    ]
     choosers = pd.merge(
         tours, persons_merged, left_on=chooser_id_column, right_index=True, how="left"
     )
@@ -805,11 +793,6 @@ def run_destination_logsums(
 
     chunk_tag = "tour_destination.logsums"
 
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    persons_merged = logsum.filter_chooser_columns(
-        persons_merged, logsum_settings, model_settings
-    )
-
     # merge persons into tours
     choosers = pd.merge(
         destination_sample,
@@ -872,23 +855,9 @@ def run_destination_simulate(
         coefficients_file_name=model_settings.COEFFICIENTS,
     )
 
-    # FIXME - MEMORY HACK - only include columns actually used in spec (omit them pre-merge)
-    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-
     # if special person id is passed
     chooser_id_column = model_settings.CHOOSER_ID_COLUMN
 
-    # Drop this when PR #1017 is merged
-    if ("household_id" not in chooser_columns) and (
-        "household_id" in persons_merged.columns
-    ):
-        chooser_columns = chooser_columns + ["household_id"]
-    persons_merged = persons_merged[
-        [c for c in persons_merged.columns if c in chooser_columns]
-    ]
-    tours = tours[
-        [c for c in tours.columns if c in chooser_columns or c == chooser_id_column]
-    ]
     choosers = pd.merge(
         tours, persons_merged, left_on=chooser_id_column, right_index=True, how="left"
     )

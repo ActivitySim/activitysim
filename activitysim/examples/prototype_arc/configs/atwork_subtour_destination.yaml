@@ -5,14 +5,6 @@ COEFFICIENTS: atwork_subtour_destination_coeffs.csv
 
 SAMPLE_SIZE: 30
 
-SIMULATE_CHOOSER_COLUMNS:
-  - person_id
-  - ptype
-  - home_zone_id
-  - tour_type
-  - tour_mode
-  - workplace_zone_id
-
 LOGSUM_SETTINGS: tour_mode_choice.yaml
 
 # model-specific logsum-related settings

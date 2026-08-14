@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from activitysim.core import interaction_sample_simulate, workflow
+from activitysim.core import interaction_sample, interaction_sample_simulate, workflow
 from activitysim.core.logit import AltsContext
 
 
@@ -16,6 +16,64 @@ def state() -> workflow.State:
     state = workflow.State().default_settings()
     state.settings.check_for_variability = False
     return state
+
+
+def test_global_constants_available_in_sampling_and_simulation(tmp_path):
+    """Global constants are available in both destination-choice substeps."""
+    configs_dir = tmp_path.joinpath("configs")
+    configs_dir.mkdir()
+    configs_dir.joinpath("constants.yaml").write_text(
+        "SAMPLE_SCALE: 3.0\nSIMULATE_SCALE: 2.0\n"
+    )
+    tmp_path.joinpath("data").mkdir()
+
+    state = workflow.State()
+    state.initialize_filesystem(
+        working_dir=tmp_path, configs_dir=("configs",)
+    ).default_settings()
+    state.settings.check_for_variability = False
+
+    choosers = pd.DataFrame(
+        {"chooser_attr": [1.0, 2.0]},
+        index=pd.Index([0, 1], name="person_id"),
+    )
+    alternatives = pd.DataFrame(
+        {"alt_attr": [1.0, 2.0]},
+        index=pd.Index([10, 20], name="alt_id"),
+    )
+
+    # Sampling and simulation use separate specifications in location and
+    # destination choice, so exercise each expression-evaluation path.
+    sample_spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["alt_attr * SAMPLE_SCALE"], name="Expression"),
+    )
+    sample = interaction_sample.interaction_sample(
+        state,
+        choosers,
+        alternatives,
+        sample_spec,
+        sample_size=0,
+        alt_col_name="alt_id",
+    )
+    sampled_alternatives = sample.join(alternatives, on="alt_id")
+
+    simulate_spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["alt_attr * SIMULATE_SCALE"], name="Expression"),
+    )
+    results = interaction_sample_simulate.interaction_sample_simulate(
+        state,
+        choosers,
+        sampled_alternatives,
+        simulate_spec,
+        choice_column="alt_id",
+        want_logsums=True,
+        skip_choice=True,
+    )
+
+    expected_logsum = np.logaddexp(2.0, 4.0)
+    np.testing.assert_allclose(results["logsums"], expected_logsum)
 
 
 def test_interaction_sample_simulate_parity(state):

@@ -19,6 +19,7 @@ The files that define these are CSV files with three fields:
 - `Target`: The name of the field to be added.
 - `Expression`: An expression defining how to calculate the field.
 In the case where an output variable name is hardcoded (such as the outputs of the [trip mode choice](https://github.com/ActivitySim/activitysim/blob/main/activitysim/abm/models/trip_mode_choice.py#L81) model), one can use an annotator to get around that by creating a variable on the same table with a custom name by just setting that field to be equivalent to the hardcoded field via the expression. For example, after running trip mode choice, if one were to create a field called `modeTrip` that was a copy of the hardcoded `trip_mode` field, they would need to have a line in the annotator that's run after trip mode choice as follows:
+
 | Description                  | Target   | Expression |
 | ---------------------------- | -------- | ---------- |
 | New name for trip mode field | modeTrip | trip_mode  |

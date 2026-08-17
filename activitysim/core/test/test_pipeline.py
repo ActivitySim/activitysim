@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 
+import pandas as pd
 import pytest
 import tables
 
@@ -123,6 +124,21 @@ def test_pipeline_checkpoint_drop(state):
 
     # ensure that we can still get table3 from a checkpoint at which it existed
     state.checkpoint.load_dataframe("table3", checkpoint_name="step3")
+
+    state.checkpoint.close_store()
+    close_handlers()
+
+
+def test_get_table_returns_current_table_after_recreation(state):
+    original = pd.DataFrame({"value": [1]}, index=pd.Index([1], name="id"))
+    recreated = pd.DataFrame({"value": [2]}, index=pd.Index([1], name="id"))
+
+    state.add_table("recreated_table", original)
+    state.checkpoint.add("before_drop")
+    state.drop_table("recreated_table")
+    state.add_table("recreated_table", recreated)
+
+    pd.testing.assert_frame_equal(state.get_table("recreated_table"), recreated)
 
     state.checkpoint.close_store()
     close_handlers()

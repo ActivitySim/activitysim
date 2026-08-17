@@ -20,7 +20,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from pydantic import model_validator
 
-from activitysim.core import workflow
+from activitysim.core import simulate, workflow
 from activitysim.core.configuration import PydanticReadable
 from activitysim.core.configuration.base import PydanticBase
 from activitysim.core.configuration.top import MultiprocessStep
@@ -38,7 +38,7 @@ CALIBRATION_SUMMARY_FILE = "calibration/calibration_iteration_summary.csv"
 CALIBRATION_FINAL_COEFFICIENTS_FILE = "calibration/final_calibrated_coefficients.csv"
 
 DEFAULT_INCREMENT = 2.0
-MAX_COEFFS_IN_GRAPH = 10
+MAX_COEFFS_IN_GRAPH = 15
 
 CALIBRATION_REQUIRED_COLUMNS = [
     "description",
@@ -513,7 +513,6 @@ def _run_intermediate_components(
         resume_after=resume_after,
         shared_data_buffers=shared_data_buffers,
     )
-    _invalidate_derived_tables(state)
 
 
 def _run_subsequent_components(
@@ -528,7 +527,6 @@ def _run_subsequent_components(
         resume_after=resume_after,
         shared_data_buffers=shared_data_buffers,
     )
-    _invalidate_derived_tables(state)
 
 
 def _calibrate_component(
@@ -721,11 +719,18 @@ def _extract_utility_coefficient_names(
     model_settings: dict[str, Any] | Any,
 ) -> set[str]:
     """
-    Extract coefficient tokens from configured utility spec files.
+    Extract coefficient names used by the configured utility specifications.
 
-    The extraction scans all settings keys ending with "SPEC" and parses
-    tokens from utility columns (all non-description/expression columns).
+    Templated logit models map utility-spec row labels to actual coefficient
+    names by segment, so their template cell values are the source of truth.
+    Other models use coefficient tokens in utility-spec columns.
     """
+    if _setting_value(model_settings, "COEFFICIENT_TEMPLATE"):
+        template = simulate.read_model_coefficient_template(
+            state.filesystem, model_settings
+        )
+        return {str(name) for name in template.to_numpy().ravel()}
+
     names: set[str] = set()
 
     model_settings_dict = _settings_to_dict(model_settings)
@@ -1147,14 +1152,22 @@ def _append_iteration_records(
 
     # Save a global iteration history file
     global_path = state.get_output_file_path(CALIBRATION_ITERATION_FILE)
-    _append_csv(df, global_path)
+    _append_csv(
+        df,
+        global_path,
+        unique_on=["global_iter", "component_iter", "component", "coefficient"],
+    )
 
     # Also write component-local iteration history
     component_path = (
         _component_output_dir(state, component_name)
         / Path(CALIBRATION_ITERATION_FILE).name
     )
-    _append_csv(df, component_path)
+    _append_csv(
+        df,
+        component_path,
+        unique_on=["global_iter", "component_iter", "component", "coefficient"],
+    )
 
 
 def _append_summary_records(
@@ -1165,12 +1178,26 @@ def _append_summary_records(
         return
     path = state.get_output_file_path(CALIBRATION_SUMMARY_FILE)
     df = pd.DataFrame(records)
-    _append_csv(df, path)
+    _append_csv(
+        df,
+        path,
+        unique_on=["global_iter", "component_iter", "component"],
+    )
 
 
-def _append_csv(df: pd.DataFrame, path: Path) -> None:
-    """Append a dataframe to a CSV file with header-once behavior."""
+def _append_csv(
+    df: pd.DataFrame, path: Path, unique_on: list[str] | None = None
+) -> None:
+    """Append a dataframe to a CSV file, replacing rows with matching keys."""
     os.makedirs(path.parent, exist_ok=True)
+    if unique_on and path.exists():
+        existing = pd.read_csv(path)
+        df = pd.concat([existing, df], ignore_index=True).drop_duplicates(
+            subset=unique_on, keep="last"
+        )
+        df.to_csv(path, index=False)
+        return
+
     write_header = not path.exists()
     df.to_csv(path, mode="a", index=False, header=write_header)
 
@@ -1317,7 +1344,11 @@ def _write_generic_report(
     )
 
     path = _component_output_dir(state, component_name) / "generic_report.csv"
-    _append_csv(report, path)
+    _append_csv(
+        report,
+        path,
+        unique_on=["global_iter", "component_iter", "component", "description"],
+    )
 
 
 def _load_helper_symbols(
@@ -2058,9 +2089,14 @@ def _invalidate_derived_tables(state: workflow.State) -> None:
 
     tables_to_invalidate = settings.run.invalidate_tables
     if tables_to_invalidate is None:
-        # Default: vehicles is the only RNG-channel table whose row identity
-        # depends on another table's values (households.auto_ownership).
-        tables_to_invalidate = ["vehicles"]
+        # Vehicles needs regeneration only when calibration changes
+        # households.auto_ownership. Downstream calibration components must
+        # retain vehicle_type_choice's vehicle attributes.
+        tables_to_invalidate = (
+            ["vehicles"]
+            if "auto_ownership_simulate" in settings.run.calibrate_models
+            else []
+        )
 
     logger.debug(
         "calibration: tables detected for invalidation: %s", tables_to_invalidate
@@ -2071,6 +2107,7 @@ def _invalidate_derived_tables(state: workflow.State) -> None:
         if state.is_table(table_name):
             state.drop_table(table_name)
             state.rng().drop_channel(table_name)
+            state.get_dataframe(table_name, as_copy=False)
             logger.debug("calibration: invalidated derived table '%s'", table_name)
 
     tables_after = set(state.existing_table_names)

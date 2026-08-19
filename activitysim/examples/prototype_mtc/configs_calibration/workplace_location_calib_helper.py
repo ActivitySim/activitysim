@@ -3,7 +3,8 @@ Workplace location calibration helper functions.
 
 Notes:
     The lru_cache decorator to ensure that survey data is loaded and computed only once per Python process.
-    Context is developed in _build_expression_context() in activitysim.core.calibration.
+Context is developed in _build_expression_context() in
+activitysim.core.calibration.expressions.
 """
 
 import matplotlib.pyplot as plt

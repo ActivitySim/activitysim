@@ -82,4 +82,3 @@ def _calibration_coefficient_paths(
             seen.add(key)
 
     return paths
-

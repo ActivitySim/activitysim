@@ -125,9 +125,7 @@ def run_calibration_loop(
             ),
         )
 
-    interrupted_iteration = (
-        progress.get("in_progress_iteration") if progress else None
-    )
+    interrupted_iteration = progress.get("in_progress_iteration") if progress else None
     if interrupted_iteration is not None:
         interrupted_iteration = int(interrupted_iteration)
         logger.warning(

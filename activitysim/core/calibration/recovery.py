@@ -100,4 +100,3 @@ def _write_completed_progress(
             "converged": converged,
         },
     )
-

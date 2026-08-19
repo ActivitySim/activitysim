@@ -129,4 +129,3 @@ def calibration_enabled(state: workflow.State) -> bool:
     """Return True when calibration.yaml exists and is enabled."""
     settings = read_calibration_settings(state)
     return bool(settings and settings.enable)
-

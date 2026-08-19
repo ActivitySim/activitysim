@@ -323,19 +323,24 @@ def run_calibration_loop(
 
                 last_calibrated_component = component
 
+            iteration_is_complete = (
+                all_converged
+                or global_iter == calibration_settings.run.global_iterations
+            )
+            resumed_after_all_calibrated_models = (
+                global_iter == start_global_iter
+                and state.settings.resume_after is not None
+                and first_model_idx > last_calib_model_idx
+            )
+
             if (
                 calibration_settings.run.complete_steps
-                or global_iter == calibration_settings.run.global_iterations
-                or (
-                    global_iter == start_global_iter
-                    and state.settings.resume_after is not None
-                    and first_model_idx > last_calib_model_idx
-                )
+                or iteration_is_complete
+                or resumed_after_all_calibrated_models
             ):
                 subsequent_components = (
                     models[first_model_idx:]
-                    if global_iter == start_global_iter
-                    and first_model_idx > last_calib_model_idx
+                    if resumed_after_all_calibrated_models
                     else models[models.index(last_calibrated_component) + 1 :]
                 )
                 # finish the full model chain
@@ -343,17 +348,12 @@ def run_calibration_loop(
                     state,
                     models=subsequent_components,
                     resume_after=state.settings.resume_after
-                    if global_iter == start_global_iter
-                    and first_model_idx > last_calib_model_idx
+                    if resumed_after_all_calibrated_models
                     else last_calibrated_component,
                     shared_data_buffers=shared_data_buffers,
                 )
 
             completed_global_iterations = global_iter
-            iteration_is_complete = (
-                all_converged
-                or global_iter == calibration_settings.run.global_iterations
-            )
             if not iteration_is_complete:
                 _write_progress(
                     state,
@@ -452,4 +452,3 @@ def _prior_step_name(models: list[str], component_name: str) -> str | None:
     if idx == 0:
         return None
     return models[idx - 1]
-

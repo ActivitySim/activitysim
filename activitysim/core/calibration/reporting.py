@@ -13,7 +13,7 @@ import pandas as pd
 
 from activitysim.core import workflow
 
-from .coefficients import _infer_model_settings_file
+from .coefficients import _resolve_model_settings_file
 from .settings import CalibrationConfig
 
 plt.style.use("seaborn-v0_8-darkgrid")
@@ -242,7 +242,10 @@ def _write_final_coefficients_snapshot(
     """Write a combined final coefficients file snapshot for calibrated components."""
     frames = []
     for component_name in calibration_settings.run.calibrate_models:
-        model_settings_file = _infer_model_settings_file(component_name)
+        component_settings = calibration_settings.model_settings[component_name]
+        model_settings_file = _resolve_model_settings_file(
+            component_name, component_settings
+        )
         model_settings = state.filesystem.read_model_settings(
             model_settings_file, mandatory=True
         )

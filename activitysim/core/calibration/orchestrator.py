@@ -15,9 +15,8 @@ from .execution import (
 from .multiprocess import _initialize_mp_shared_resources
 from .recovery import (
     CALIBRATION_PROGRESS_FILE,
-    _begin_global_iteration_transaction,
+    _mark_global_iteration_in_progress,
     _read_progress,
-    _restore_coefficient_backups,
     _write_completed_progress,
     _write_progress,
 )
@@ -110,6 +109,14 @@ def run_calibration_loop(
 
     progress = _read_progress(state)
     if progress and progress.get("complete"):
+        if resume_after is not None:
+            raise RuntimeError(
+                f"settings.yaml resume_after={resume_after!r} cannot be honored "
+                "because calibration progress is already complete. Remove "
+                f"{CALIBRATION_PROGRESS_FILE} or use a new output directory to "
+                "start a new calibration run; current coefficient values will "
+                "be preserved."
+            )
         logger.info(
             "calibration progress is already complete; remove %s to start a "
             "fresh calibration run",
@@ -127,22 +134,18 @@ def run_calibration_loop(
 
     interrupted_iteration = progress.get("in_progress_iteration") if progress else None
     if interrupted_iteration is not None:
-        interrupted_iteration = int(interrupted_iteration)
+        start_global_iter = int(interrupted_iteration)
         logger.warning(
-            "recovering interrupted calibration global iteration %s",
-            interrupted_iteration,
+            "continuing interrupted calibration global iteration %s using the "
+            "current coefficient files",
+            start_global_iter,
         )
-        _restore_coefficient_backups(state, calibration_settings)
-        progress = {
-            "in_progress_iteration": None,
-            "next_global_iteration": interrupted_iteration,
-            "last_completed_global_iteration": interrupted_iteration - 1,
-        }
-        _write_progress(state, progress)
-
-    # Progress files from earlier versions contain next_global_iteration, so
-    # they remain compatible with the corrected total-count semantics.
-    start_global_iter = int(progress.get("next_global_iteration", 1)) if progress else 1
+    else:
+        # Progress files from earlier versions contain next_global_iteration, so
+        # they remain compatible with the corrected total-count semantics.
+        start_global_iter = (
+            int(progress.get("next_global_iteration", 1)) if progress else 1
+        )
     completed_global_iterations = start_global_iter - 1
 
     if start_global_iter > calibration_settings.run.global_iterations:
@@ -239,9 +242,8 @@ def run_calibration_loop(
             start_global_iter,
             calibration_settings.run.global_iterations + 1,
         ):
-            _begin_global_iteration_transaction(
+            _mark_global_iteration_in_progress(
                 state,
-                calibration_settings,
                 global_iter,
             )
 

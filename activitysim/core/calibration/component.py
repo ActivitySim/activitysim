@@ -13,8 +13,8 @@ import pandas as pd
 from activitysim.core import simulate, workflow
 
 from .coefficients import (
-    _infer_model_settings_file,
     _persist_coefficients_to_config,
+    _resolve_model_settings_file,
     _setting_value,
     _settings_to_dict,
 )
@@ -59,7 +59,9 @@ def _calibrate_component(
     shared_data_buffers: dict | None = None,
 ) -> CalibrationComponentResult:
     """Run iterative coefficient calibration for one component."""
-    model_settings_file = _infer_model_settings_file(component_name)
+    model_settings_file = _resolve_model_settings_file(
+        component_name, component_settings
+    )
     model_settings = state.filesystem.read_model_settings(
         model_settings_file, mandatory=True
     )

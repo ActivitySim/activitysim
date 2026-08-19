@@ -71,6 +71,7 @@ class CalibrationComponentSettings(PydanticBase):
     """Settings for one calibratable model component."""
 
     calibration_spec: str
+    model_settings_file: str | None = None
     helper_module: str | None = None
     submodel_max_iterations: int = 1
     reports: CalibrationReportsSettings = CalibrationReportsSettings()

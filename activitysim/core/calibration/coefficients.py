@@ -10,7 +10,7 @@ import pandas as pd
 
 from activitysim.core import workflow
 
-from .settings import CalibrationConfig
+from .settings import CalibrationComponentSettings
 
 
 def _persist_coefficients_to_config(
@@ -26,8 +26,10 @@ def _persist_coefficients_to_config(
     output = coefficients_df.copy()
     output.index.name = "coefficient_name"
 
-    coeff_path = state.filesystem.get_config_file_path(coeff_file)
-    output.to_csv(coeff_path)
+    coeff_path = Path(state.filesystem.get_config_file_path(coeff_file))
+    temporary_path = coeff_path.with_name(f".{coeff_path.name}.tmp")
+    output.to_csv(temporary_path)
+    os.replace(temporary_path, coeff_path)
 
 
 def _infer_model_settings_file(component_name: str) -> str:
@@ -38,6 +40,16 @@ def _infer_model_settings_file(component_name: str) -> str:
     else:
         base = component_name
     return f"{base}.yaml"
+
+
+def _resolve_model_settings_file(
+    component_name: str,
+    component_settings: CalibrationComponentSettings,
+) -> str:
+    """Return an explicit component settings file or infer the conventional name."""
+    return component_settings.model_settings_file or _infer_model_settings_file(
+        component_name
+    )
 
 
 def _settings_to_dict(model_settings: dict[str, Any] | Any) -> dict[str, Any]:
@@ -54,31 +66,3 @@ def _setting_value(model_settings: dict[str, Any] | Any, key: str, default=None)
     if isinstance(model_settings, dict):
         return model_settings.get(key, default)
     return getattr(model_settings, key, default)
-
-
-def _calibration_coefficient_paths(
-    state: workflow.State,
-    calibration_settings: CalibrationConfig,
-) -> list[Path]:
-    """Return the unique coefficient files modified by this calibration run."""
-    paths: list[Path] = []
-    seen: set[str] = set()
-
-    for component_name in calibration_settings.run.calibrate_models:
-        model_settings_file = _infer_model_settings_file(component_name)
-        model_settings = state.filesystem.read_model_settings(
-            model_settings_file, mandatory=True
-        )
-        coefficient_file = _setting_value(model_settings, "COEFFICIENTS")
-        if not coefficient_file:
-            raise RuntimeError(
-                f"component {component_name} model settings missing COEFFICIENTS"
-            )
-
-        path = Path(state.filesystem.get_config_file_path(coefficient_file)).resolve()
-        key = os.path.normcase(str(path))
-        if key not in seen:
-            paths.append(path)
-            seen.add(key)
-
-    return paths

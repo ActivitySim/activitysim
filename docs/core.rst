@@ -208,11 +208,30 @@ It is therefore expected, rather than necessarily a regression, for ``fast`` to
 lose to ``simple`` in a cold first-draw benchmark while winning repeated calls.
 Evaluate end-to-end model runtime as well as isolated warm throughput.  The
 repository benchmark separates process-first, cold-step, warm-generation,
-memory, and spawned-worker measurements and can be run from the repository root:
+memory, and spawned-worker measurements.  Its quick profile can be run from the
+repository root:
 
 .. code-block:: console
 
-   python other_resources/performance-checks/fast-channel-random.py --rows 250000
+   python other_resources/performance-checks/fast-channel-random.py --profile quick
+
+The EET scaling benchmark exercises the production stable-alternative uniform,
+repeated Gumbel-max, and mapped Gumbel-choice paths.  It sweeps chooser count,
+stable-universe size, sample size, and prior stream offset.  It reports generated
+versus useful shock throughput so sparse alternative identifiers are visible as
+a waste factor, and shows the replay cost that accumulated offsets impose on the
+``simple`` channel:
+
+.. code-block:: console
+
+   python other_resources/performance-checks/eet-random-scaling.py --profile quick
+
+Use ``--profile full`` for broader manual studies.  Both scripts write CSV, JSON,
+and Markdown artifacts with raw timing samples, summary statistics, environment
+metadata, and deterministic-stream invariance results below
+``output/performance-checks``.  The EET benchmark also writes scaling plots when
+Matplotlib is available.  The Performance Checks GitHub workflow runs either
+profile on Linux and Windows and retains both console logs and result artifacts.
 
 Statistical assurance versus reproducibility
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

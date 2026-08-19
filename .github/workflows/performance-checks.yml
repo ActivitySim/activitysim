@@ -1,7 +1,7 @@
 name: Performance Checks
 
 # Runs performance benchmark scripts from other_resources/performance-checks/
-# manually on demand.  Use the `scripts` input to choose which scripts to run.
+# manually on demand. Each script accepts the common profile/output arguments.
 
 on:
   workflow_dispatch:
@@ -10,7 +10,8 @@ on:
         description: >-
           Comma-separated list of script filenames to run from
           other_resources/performance-checks/ (e.g.
-          "fast-channel-random.py" or "fast-channel-random.py,other-script.py").
+          "fast-channel-random.py" or
+          "fast-channel-random.py,eet-random-scaling.py").
           Use "all" to run every *.py script found in that directory.
         required: false
         default: "all"
@@ -22,6 +23,16 @@ on:
         required: false
         default: "3.11"
         type: string
+      profile:
+        description: >-
+          Benchmark workload profile. Quick is bounded for routine comparisons;
+          full runs broader sweeps intended for deliberate performance studies.
+        required: false
+        default: "quick"
+        type: choice
+        options:
+          - quick
+          - full
 
 jobs:
   discover:
@@ -43,7 +54,9 @@ jobs:
           scripts_dir = pathlib.Path("other_resources/performance-checks")
           requested = os.environ.get("REQUESTED_SCRIPTS", "").strip()
 
-          all_scripts = sorted(p.name for p in scripts_dir.glob("*.py"))
+          all_scripts = sorted(
+              p.name for p in scripts_dir.glob("*.py") if not p.name.startswith("_")
+          )
 
           if not all_scripts:
               print("::error::No *.py scripts found in other_resources/performance-checks/")
@@ -109,6 +122,8 @@ jobs:
         run: |
           set -o pipefail
           uv run python other_resources/performance-checks/${{ matrix.script }} \
+            --profile ${{ inputs.profile || 'quick' }} \
+            --output-dir perf-results-${{ matrix.os }}-${{ matrix.script }} \
             2>&1 | tee perf-output-${{ matrix.os }}-${{ matrix.script }}.txt
 
       - name: Upload output
@@ -117,5 +132,7 @@ jobs:
         with:
           # artifact names must be unique across the matrix, so include the OS
           name: perf-output-${{ matrix.os }}-${{ matrix.script }}
-          path: perf-output-${{ matrix.os }}-${{ matrix.script }}.txt
+          path: |
+            perf-output-${{ matrix.os }}-${{ matrix.script }}.txt
+            perf-results-${{ matrix.os }}-${{ matrix.script }}/
           retention-days: 90

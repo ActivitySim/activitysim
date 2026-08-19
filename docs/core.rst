@@ -70,37 +70,230 @@ API
 Random
 ~~~~~~
 
-ActivitySim's random number generation has a number of important features unique to AB modeling:
+ActivitySim assigns a separate pseudo-random stream to every row of each registered
+random-number channel.  A row's stream is derived from the global base seed, channel
+name, pipeline step name, and row index.  Consequently, a row receives the same
+stream when chooser tables are reordered, chunked differently, or reduced to a
+sample, provided the model makes the same sequence of random-number calls for that
+row and step.
 
-* Regression testing, debugging - run the exact model with the same inputs and get exactly the same results.
-* Debugging models - run the exact model with the same inputs but with changes to expression files and get the same results except where the equations differ.
-* Since runs can take a while, the above cases need to work with a restartable pipeline.
-* Debugging Multithreading - run the exact model with different multithreading configurations and get the same results.
-* Repeatable household-level choices - results for a household are repeatable when run with different sample sizes
-* Repeatable household level results with different scenarios - results for a household are repeatable with different scenario configurations sequentially up to the point at which those differences emerge, and in alternate submodels in which those differences do not apply.
+This stream management supports several requirements that are important for
+activity-based models:
 
-Random number generation is done using the `numpy Mersenne Twister PNRG <https://docs.scipy.org/doc/numpy/reference/generated/numpy.random.RandomState.html>`__.
-ActivitySim seeds on-the-fly and uses a stream of random numbers seeded by the household id, person id, tour id, trip id, the model step offset, and the global seed.
-The global seed can be set in the settings.yaml file using the ```rng_base_seed`` option.
-The logic for calculating the seed is something along the lines of:
+* repeated runs with the same inputs and settings produce the same results;
+* expression changes do not perturb unrelated rows' streams;
+* checkpointed runs can be resumed without changing later random choices;
+* chunking and multiprocessing configurations do not determine row streams; and
+* household, person, tour, and trip results remain stable across sample sizes and
+  scenario variants until the model logic for that row diverges.
 
-::
+Configuration
+^^^^^^^^^^^^^
 
-  chooser_table.index * number_of_models_for_chooser + chooser_model_offset + global_seed_offset
+Configure random-number generation in ``settings.yaml``:
 
-  for example
-    1425 * 2 + 0 + 1
-  where:
-    1425 = household table index - households.id
-    2 = number of household level models - auto ownership and cdap
-    0 = first household model - auto ownership
-    1 = global seed offset for testing the same model under different random global seeds
+.. code-block:: yaml
 
-ActivitySim generates a separate, distinct, and stable random number stream for each tour type and tour number in order to maintain as much stability as is
-possible across alternative scenarios.  This is done for trips as well, by direction (inbound versus outbound).
+   rng_base_seed: 0
+   rng_channel_type: simple
 
-.. note::
-   The Random module contains max model steps constants by chooser type - household, person, tour, trip - needs to be equal to the number of chooser sub-models.
+``rng_base_seed`` selects the global family of streams.  Set it to a fixed integer
+for reproducible runs.  ``rng_channel_type`` selects one of three per-row channel
+implementations:
+
+.. list-table:: Random channel types
+   :header-rows: 1
+   :widths: 13 22 25 40
+
+   * - Value
+     - Bit generator
+     - State initialization
+     - Intended use
+   * - ``simple``
+     - NumPy ``RandomState`` (MT19937)
+     - Legacy 32-bit row seeds
+     - Default; preserves random results produced by earlier ActivitySim versions.
+   * - ``fast``
+     - NumPy PCG64
+     - NumPy ``SeedSequence``
+     - Vectorized generation with the strongest assurance about independent
+       per-row state initialization.
+   * - ``faster``
+     - NumPy SFC64
+     - ActivitySim's hash-based quick entropy
+     - Experimental option with the lowest state-initialization overhead when
+       channels are frequently reseeded.
+
+The names describe the intended progression for large, repeated workloads; they
+are not an unconditional speed ranking.  In particular, ``fast`` can be slower
+than ``simple`` for a first draw because robust state initialization has a
+substantial fixed cost.
+
+Choosing a channel type
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Choose ``simple`` when exact compatibility with an existing ActivitySim baseline
+is required.  It has little compilation or state-initialization overhead, which
+can also make it the quickest option for small models, short-lived processes, or
+channels that make very few draws.  Its cost is paid during generation: it seeds
+and advances a legacy ``RandomState`` separately for every requested row, so
+repeated or multidimensional draws scale poorly.
+
+Choose ``fast`` when robust initialization is more important than the latency of
+the first draw and the model will make enough draws to amortize that latency.  It
+uses PCG64 and NumPy's `SeedSequence
+<https://numpy.org/doc/stable/reference/random/bit_generators/generated/numpy.random.SeedSequence.html>`__
+to derive a high-quality state independently for every row.  ActivitySim currently
+constructs a Python ``SeedSequence`` and bit-generator object per row; on a large
+channel this work can dominate an otherwise very fast vectorized draw.
+
+Choose ``faster`` when per-step initialization is a material part of total runtime
+and the model team accepts a smaller body of evidence about the independence of
+its keyed streams.  It uses NumPy's `SFC64
+<https://numpy.org/doc/stable/reference/random/bit_generators/sfc64.html>`__ bit
+generator but initializes its state with ActivitySim's compiled hash and mixing
+procedure instead of ``SeedSequence``.  SFC64 itself is an established NumPy bit
+generator; the additional uncertainty is specifically in ActivitySim's custom
+construction of many per-row starting states.
+
+The following table summarizes the usual tradeoffs.  Actual results depend on
+channel size, draw shape, model sequence, hardware, and process lifetime.
+
+.. list-table:: Runtime and compatibility tradeoffs
+   :header-rows: 1
+   :widths: 12 20 22 20 26
+
+   * - Value
+     - First use in a process
+     - First draw in each step
+     - Repeated generation
+     - Primary reason to select it
+   * - ``simple``
+     - Low; no Numba compilation
+     - Low state setup, but generation remains per-row
+     - Slowest for large or repeated draws
+     - Exact legacy outputs and low overhead for small workloads
+   * - ``fast``
+     - High; includes Numba compilation
+     - Potentially high; robust state is initialized for every channel row
+     - Fast vectorized generation
+     - Strongest statistical assurance for new vectorized streams
+   * - ``faster``
+     - High; includes Numba compilation
+     - Low; compiled quick entropy initializes every channel row
+     - Fast vectorized generation
+     - Lowest reseeding latency after model-specific validation
+
+Understanding runtime costs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are three distinct costs to consider when interpreting benchmarks:
+
+#. **Process compilation.** The first use of ``fast`` or ``faster`` compiles
+   Numba kernels.  This is separate from random-state initialization and may be
+   paid by every newly started worker process.  For a short run, compilation can
+   outweigh all later generation savings.
+#. **Per-step initialization.** Fast-channel state is initialized lazily on the
+   first draw of a pipeline step.  The current implementation initializes the
+   full registered channel, even when that draw requests only a small subset of
+   rows.  ``fast`` performs robust per-row initialization in Python; ``faster``
+   performs quick initialization in compiled batches.
+#. **Warm generation.** After initialization, both vectorized modes retain a
+   compact state for every row and generate batches without recreating a NumPy
+   object per row.  This is where they provide their largest advantage over
+   ``simple``, especially for normal, Gumbel, explicit-error-term, and
+   multidimensional draws.
+
+It is therefore expected, rather than necessarily a regression, for ``fast`` to
+lose to ``simple`` in a cold first-draw benchmark while winning repeated calls.
+Evaluate end-to-end model runtime as well as isolated warm throughput.  The
+repository benchmark separates process-first, cold-step, warm-generation,
+memory, and spawned-worker measurements.  Its quick profile can be run from the
+repository root:
+
+.. code-block:: console
+
+   python other_resources/performance-checks/fast-channel-random.py --profile quick
+
+The EET scaling benchmark exercises the production stable-alternative uniform,
+repeated Gumbel-max, and mapped Gumbel-choice paths.  It sweeps chooser count,
+stable-universe size, sample size, and prior stream offset.  It reports generated
+versus useful shock throughput so sparse alternative identifiers are visible as
+a waste factor, and shows the replay cost that accumulated offsets impose on the
+``simple`` channel:
+
+.. code-block:: console
+
+   python other_resources/performance-checks/eet-random-scaling.py --profile quick
+
+Use ``--profile full`` for broader manual studies.  Both scripts write CSV, JSON,
+and Markdown artifacts with raw timing samples, summary statistics, environment
+metadata, and deterministic-stream invariance results below
+``output/performance-checks``.  The EET benchmark also writes scaling plots when
+Matplotlib is available.  The Performance Checks GitHub workflow runs either
+profile on Linux and Windows and retains both console logs and result artifacts.
+
+Statistical assurance versus reproducibility
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Statistical assurance and reproducibility are different properties.  All three
+modes deterministically reproduce their own streams when the base seed, channel
+type, software environment, model sequence, and inputs are held fixed.  Selecting
+``faster`` does not make repeated runs nondeterministic.  It accepts a theoretical
+risk of poorer separation or correlation among the many custom-initialized
+streams compared with NumPy's extensively reviewed ``SeedSequence`` procedure.
+
+ActivitySim's quick-entropy tests cover state collisions among sequential keys,
+key diffusion, aggregate uniformity, correlations between keyed streams, and
+golden-vector reproducibility.  These are useful regression checks, but they are
+not a substitute for a comprehensive statistical suite such as TestU01 or for
+model-level validation.
+
+.. warning::
+   Prefer ``fast`` when the statistical properties of many independently keyed
+   streams have not been evaluated for the model's workload.  Use ``faster`` when
+   its startup benefit is material and the model team has established an
+   appropriate validation baseline.
+
+Validating a change of channel type
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Before adopting ``fast`` or ``faster`` for an established model:
+
+#. Benchmark the full model on deployment hardware, including its actual process
+   count and resume strategy.  A microbenchmark of warm draws alone is not enough.
+#. Run the candidate mode with several ``rng_base_seed`` values and compare key
+   aggregate totals, shares, distributions, and model-specific invariants with a
+   trusted baseline.  Different individual choices are expected because each mode
+   intentionally uses different streams; systematic changes are the concern.
+#. Retain automated regression coverage for reproducibility, chunking, sampling,
+   checkpoint resumes, and any explicit-error-term paths used by the model.
+#. Record the selected channel type, base seed, ActivitySim version, and dependency
+   versions with archived results, and establish a new expected-output baseline.
+#. Do not switch channel type while resuming an existing pipeline checkpoint.
+
+Reproducibility contract
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Each channel type is deterministic, but the three types intentionally produce
+different streams.  Changing ``rng_channel_type`` or ``rng_base_seed`` therefore
+changes model results and should be treated as a model configuration change.  For
+byte-for-byte regression comparisons and checkpoint resumes, keep all of the
+following fixed:
+
+* ``rng_base_seed`` and ``rng_channel_type``;
+* the ActivitySim version and model configuration;
+* the versions of NumPy and Numba; and
+* the ordering and number of random-number calls made for each row within a step.
+
+Do not resume a checkpoint with a different random channel type or base seed.  When
+migrating an existing model, retain ``simple`` for exact legacy outputs or establish
+a new validated model baseline after selecting ``fast`` or ``faster``.  Record the
+RNG settings and dependency versions alongside archived model results.
+
+ActivitySim also generates distinct stable identifiers for tour and trip channels,
+including tour type and number and trip direction.  This preserves as much stream
+stability as possible across alternative scenarios.
 
 API
 ^^^

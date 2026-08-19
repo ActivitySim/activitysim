@@ -1,0 +1,691 @@
+from __future__ import annotations
+
+import hashlib
+from typing import Literal
+
+import numpy as np
+import pandas as pd
+
+from ._entropy import fast_entropy
+from ._fast_random import FastGenerator
+
+_SEED_MASK = 0xFFFFFFFF
+
+# Keep this private sentinel aligned with activitysim.core.random.MASKED_ALT_ID.
+# It cannot be imported from random.py here because random.py imports FastChannel.
+_MASKED_ALT_ID = -999
+
+
+def hash32(s):
+    """
+
+    Parameters
+    ----------
+    s: str
+
+    Returns
+    -------
+        32 bit unsigned hash
+    """
+    s = s.encode("utf8")
+    h = hashlib.md5(s).hexdigest()
+    return int(h, base=16) & _SEED_MASK
+
+
+class FastChannel:
+    def __init__(
+        self,
+        channel_name: str,
+        base_seed: int,
+        domain_df: pd.DataFrame,
+        step_name: str = "",
+        bit_generator: Literal["PCG64", "SFC64"] = "PCG64",
+        entropy_type: Literal["robust", "quick"] | None = None,
+    ) -> None:
+        """
+        Create a new FastChannel for vectorised per-row random number generation.
+
+        Each row in *domain_df* gets its own independent bit generator whose initial
+        state is derived from the combination of *base_seed*,
+        *channel_name*, the current step name, and the row's index value.  This
+        guarantees reproducibility across runs while keeping every row's stream
+        independent.
+
+        Parameters
+        ----------
+        channel_name : str
+            Unique name for this channel (e.g. ``"households"``, ``"persons"``).
+            Hashed into the per-row seed so that different channels produce
+            distinct streams even when their domain index values overlap.
+        base_seed : int
+            Global base seed added to every per-row seed sequence.  Change this
+            value to shift all random streams without breaking their relative
+            independence.
+        domain_df : pandas.DataFrame
+            DataFrame whose index defines the set of agents (rows) managed by
+            this channel.  The index is copied and stored; the DataFrame columns
+            are ignored.
+        step_name : str, optional
+            If non-empty, ``begin_step(step_name)`` is called immediately after
+            construction so the channel is ready to generate numbers straight
+            away.  Defaults to ``""`` (no step started).
+        bit_generator : {"SFC64", "PCG64"}, default: "PCG64"
+            Which bit generator to use for the per-row streams.
+        entropy_type : {"robust", "quick"}, optional
+            The type of entropy used to reseed the bit generators.
+            Robust entropy uses the numpy SeedSequence tools to create entropy
+            with strong statistical properties, but is slower to generate.  Quick
+            entropy uses a custom hash-based method that is much faster to generate
+            but may have a slightly greater risk of non-independent streams. When
+            omitted, PCG64 uses robust entropy and SFC64 uses quick entropy.
+
+        """
+        self.base_seed = base_seed
+        self.channel_name = channel_name
+        self.channel_seed = hash32(self.channel_name)
+        self.domain_index = domain_df.index[:0].copy()
+        self.step_name = None
+        self.step_seed = None
+
+        # Let callers request the entropy default appropriate for the bit generator.
+        if entropy_type is None:
+            if bit_generator == "PCG64":
+                entropy_type = "robust"
+            elif bit_generator == "SFC64":
+                entropy_type = "quick"
+            else:
+                raise ValueError(f"unsupported bit generator class: {bit_generator}")
+
+        if entropy_type not in {"robust", "quick"}:
+            raise ValueError("entropy_type must be 'robust' or 'quick'")
+        self._entropy_type = entropy_type
+        self._fast_generator = FastGenerator(bit_gen=bit_generator)
+        self._state_array = None
+        self.extend_domain(domain_df)
+        if step_name:
+            self.begin_step(step_name)
+
+    def _batch_init_states(self, base_seeds, index_seeds):
+        if self._entropy_type == "quick":
+            return fast_entropy(
+                base_seeds, index_seeds, self._fast_generator._bit_gen_class
+            )
+        elif self._entropy_type == "robust":
+            new_state = np.empty(shape=[len(index_seeds), 4], dtype=np.uint64)
+            for n, i in enumerate(index_seeds):
+                new_state[n, :] = self._fast_generator.get_state_array(
+                    np.random.SeedSequence([*base_seeds, i])
+                )
+            return new_state
+        else:
+            raise ValueError("entropy_type must be 'robust' or 'quick'")
+
+    def extend_domain(self, domain_df: pd.DataFrame) -> None:
+        """
+        Extend the channel's domain by adding new rows from *domain_df*.
+
+        If a step is currently active, the per-row PCG64 state for the new rows
+        is initialised immediately (using the current ``step_seed``) and
+        appended to ``self._state_array`` so that random draws can be made for
+        the extended rows within the same step.
+
+        The index values of *domain_df* must be disjoint from the channel's
+        existing ``domain_index`` so there is no ambiguity / collision between
+        rows.
+
+        Parameters
+        ----------
+        domain_df : pandas.DataFrame
+            DataFrame whose index defines the new agents (rows) to add to the
+            channel.  Columns are ignored.
+
+        Raises
+        ------
+        AssertionError
+            If any index value in *domain_df* already exists in the channel's
+            domain.
+        """
+        new_index = domain_df.index
+
+        if new_index.empty:
+            return
+
+        # new rows must be disjoint from existing domain
+        assert (
+            len(self.domain_index.intersection(new_index)) == 0
+        ), "extend_domain: new domain_df index overlaps existing domain"
+
+        if self._state_array is not None:
+            # we already have state for some rows, so we also need to
+            # generate state for the new rows and append to existing state array
+            new_state = self._batch_init_states(
+                [self.base_seed, self.channel_seed, self.step_seed], new_index
+            )
+            self._state_array = np.concatenate([self._state_array, new_state], axis=0)
+
+        if len(self.domain_index) == 0:
+            self.domain_index = new_index.copy()
+        else:
+            self.domain_index = self.domain_index.append(new_index)
+
+    def _reseed_step(self, force: bool = False) -> None:
+        """
+        Initialise (or re-initialise) the per-row PCG64 states for a new step.
+
+        Must be called before any random-number methods are used within a step.
+        The method seeds every row's bit-generator from the four-integer sequence
+        ``[base_seed, channel_seed, step_seed, row_index]`` via
+        :class:`numpy.random.SeedSequence`, ensuring that:
+
+        * the same step always produces the same stream (reproducibility), and
+        * different steps produce independent streams (no cross-step correlation).
+
+        Parameters
+        ----------
+        step_name : str
+            Name of the pipeline step being started (e.g. ``"auto_ownership"``).
+            Hashed into the seed so that different steps yield distinct streams.
+
+        Raises
+        ------
+        AssertionError
+            If a step is already active (``end_step`` was not called first).
+        """
+
+        if self._state_array is None or force:
+            # Seed the bit generators, extracting state along the way
+            self._state_array = self._batch_init_states(
+                [self.base_seed, self.channel_seed, self.step_seed], self.domain_index
+            )
+
+    def begin_step(self, step_name: str) -> None:
+        """
+        Initialise (or re-initialise) the per-row PCG64 states for a new step.
+
+        Must be called before any random-number methods are used within a step.
+        The method seeds every row's bit-generator from the four-integer sequence
+        ``[base_seed, channel_seed, step_seed, row_index]`` via
+        :class:`numpy.random.SeedSequence`, ensuring that:
+
+        * the same step always produces the same stream (reproducibility), and
+        * different steps produce independent streams (no cross-step correlation).
+
+        Parameters
+        ----------
+        step_name : str
+            Name of the pipeline step being started (e.g. ``"auto_ownership"``).
+            Hashed into the seed so that different steps yield distinct streams.
+
+        Raises
+        ------
+        AssertionError
+            If a step is already active (``end_step`` was not called first).
+        """
+
+        assert self.step_name is None
+
+        self.step_name = step_name
+        self.step_seed = hash32(self.step_name)
+
+        # do NOT reseed immediately, defer until the first call to generate
+        # any random numbers using this channel.  There may not be any such
+        # calls (most ActivitySim steps only use one of many channels), and
+        # we want to avoid the overhead of seeding every channel in every
+        # step when many channels are unused.
+
+    def end_step(self, step_name: str = "") -> None:
+        """
+        Tear down the per-row PCG64 states at the end of a step.
+
+        Clears ``step_name``, ``step_seed``, ``_bitgenerator``, and
+        ``_state_array`` so that accidental use of stale state after a step
+        boundary raises an error rather than silently producing wrong numbers.
+
+        Parameters
+        ----------
+        step_name : str, optional
+            When provided, asserts that the currently active step matches
+            *step_name* as a consistency check.  Pass an empty string (the
+            default) to skip the check.
+
+        Raises
+        ------
+        AssertionError
+            If *step_name* is provided and does not match the active step name.
+        """
+        if step_name:
+            assert self.step_name == step_name
+        self.step_name = None
+        self.step_seed = None
+        self._state_array = None
+
+    def reset_offsets_for_step(self) -> None:
+        """Restart every row's random stream for the current step.
+
+        Dropping the materialized states preserves lazy reseeding: the channel is
+        regenerated only if a later operation actually requests random numbers.
+        """
+        if self.step_name is None:
+            raise ValueError("outside of a defined step")
+        self._state_array = None
+
+    def reset_offsets_for_df(self, df: pd.DataFrame) -> None:
+        """Restart selected rows' random streams for the current step."""
+        selected_positions = self._check_valid_df(df)
+        if self._state_array is None:
+            # No rows have consumed random numbers yet, so they are already reset.
+            return
+        reset_states = self._batch_init_states(
+            [self.base_seed, self.channel_seed, self.step_seed],
+            df.index,
+        )
+        self._state_array[selected_positions] = reset_states
+
+    def _check_valid_df(self, df: pd.DataFrame) -> np.ndarray:
+        """
+        Validate *df* against the channel's domain and return row positions.
+
+        Performs three checks:
+
+        1. *df* has no duplicate index values.
+        2. Every index value in *df* exists in the channel's domain index.
+        3. A step is currently active (``_state_array`` is not ``None``).
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            DataFrame whose index is to be validated.  Columns are ignored.
+
+        Returns
+        -------
+        selected_positions : numpy.ndarray
+            1-D integer array of shape ``(len(df),)`` containing the positional
+            indices into ``self.domain_index`` (and therefore into
+            ``self._state_array``) that correspond to each row of *df*.
+
+        Raises
+        ------
+        ValueError
+            If *df* contains duplicate index values, if any index value is
+            absent from the domain, or if no step is currently active.
+        """
+        # check that df.index has no duplicates
+        if len(df.index.unique()) != len(df.index):
+            raise ValueError("DataFrame must have unique index")
+
+        selected_positions = self.domain_index.get_indexer(df.index)
+
+        # check that all df.index values were found in self.domain_index
+        # (skip the check for empty input – min() on a zero-size array errors)
+        if selected_positions.size and selected_positions.min() < 0:
+            raise ValueError("DataFrame has index values not found in the domain")
+
+        if self.step_name is None:
+            raise ValueError("outside of a defined step")
+
+        return selected_positions
+
+    def normal_for_df(
+        self,
+        df: pd.DataFrame,
+        step_name: str,
+        mu: float | np.ndarray = 0,
+        sigma: float | np.ndarray = 1,
+        lognormal: bool = False,
+        size: int | tuple[int, ...] | None = None,
+    ) -> np.ndarray:
+        """
+        Draw normal (or lognormal) random variates for each row in *df*.
+
+        Uses the vectorised PCG64 state array to generate standard-normal
+        samples, then affinely transforms them with *mu* and *sigma*.
+        Successive calls within the same step advance each row's stream
+        independently.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            DataFrame whose index selects which agents receive draws.  Columns
+            are ignored.
+        step_name : str
+            Name of the currently active step; checked for consistency.
+        mu : float or array-like, optional
+            Mean of the normal distribution.  A scalar is broadcast across all
+            rows; an array must have one element per row in *df*.  Defaults to
+            ``0``.
+        sigma : float or array-like, optional
+            Standard deviation of the normal distribution.  Same broadcasting
+            rules as *mu*; every value must be nonnegative.  Defaults to ``1``.
+        lognormal : bool, optional
+            When ``True``, return ``exp(normal_sample)`` so that the result
+            follows a lognormal distribution with the given underlying-normal
+            parameters.  Defaults to ``False``.
+        size : int or tuple of int, optional
+            Number of draws per agent.  A plain ``int`` *k* yields *k* draws
+            per row; a tuple gives the per-row shape.  When omitted, one scalar
+            per row is returned.
+
+        Returns
+        -------
+        result : numpy.ndarray
+            Array of shape ``(len(df), *size)`` containing the random variates.
+
+        Raises
+        ------
+        AssertionError
+            If *step_name* is ``None`` or does not match the active step.
+        ValueError
+            If *df* fails the domain validation performed by
+            :meth:`_check_valid_df`, if *mu* or *sigma* cannot be broadcast to
+            one value per row, or if *sigma* contains a negative value.
+        """
+        assert step_name is not None
+        assert step_name == self.step_name
+        selected_positions = self._check_valid_df(df)
+        scalar_output = size is None
+        draw_shape = 1 if scalar_output else size
+        result_ndim = 1 + (len(draw_shape) if isinstance(draw_shape, tuple) else 1)
+
+        def broadcast_parameter(value, name):
+            """Validate and align a parameter without advancing the RNG stream."""
+            value = np.asarray(value)
+            if value.ndim == 0:
+                return value
+            if value.shape != (len(df),):
+                raise ValueError(
+                    f"{name} must be a scalar or a 1-D array with one value per row"
+                )
+            return value.reshape((len(df),) + (1,) * (result_ndim - 1))
+
+        # Validate both parameters before reseeding or drawing. A rejected call
+        # must not change the next value in any row's reproducible stream.
+        sigma = broadcast_parameter(sigma, "sigma")
+        if np.any(sigma < 0):
+            raise ValueError("scale < 0")
+        mu = broadcast_parameter(mu, "mu")
+
+        self._reseed_step()
+        result = self._fast_generator.vector_random_standard_normal(
+            self._state_array, selected_positions=selected_positions, shape=draw_shape
+        )
+        result = result * sigma + mu
+        if lognormal:
+            result = np.exp(result)
+        if scalar_output:
+            return result[:, 0]
+        return result
+
+    def random_for_df(
+        self,
+        df: pd.DataFrame,
+        step_name: str,
+        n: int | tuple[int, ...] = 1,
+    ) -> np.ndarray:
+        """
+        Draw standard-uniform random variates for each row in *df*.
+
+        Uses the vectorised PCG64 state array to generate draws from U[0, 1).
+        Successive calls within the same step advance each row's stream
+        independently.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            DataFrame whose index selects which agents receive draws.  Columns
+            are ignored.
+        step_name : str
+            Name of the currently active step; checked for consistency.
+        n : int or tuple of int, optional
+            Number of draws per agent.  A plain ``int`` *k* yields *k* draws
+            per row; a tuple gives the per-row shape.  Defaults to ``1``.
+
+        Returns
+        -------
+        rands : numpy.ndarray
+            Array of shape ``(len(df), *n)`` with values in U[0, 1).
+
+        Raises
+        ------
+        AssertionError
+            If *step_name* is ``None`` or does not match the active step.
+        ValueError
+            If *df* fails the domain validation performed by
+            :meth:`_check_valid_df`.
+        """
+        assert step_name is not None
+        assert step_name == self.step_name
+        selected_positions = self._check_valid_df(df)
+        self._reseed_step()
+        return self._fast_generator.vector_random_standard_uniform(
+            self._state_array, selected_positions=selected_positions, shape=n
+        )
+
+    def random_for_df_stable_alt_positions(
+        self,
+        df: pd.DataFrame,
+        step_name: str,
+        stable_alt_positions: np.ndarray,
+        n_total_alts: int,
+    ) -> np.ndarray:
+        """Draw from a stable alternative universe and return active positions.
+
+        Generating the full stable width before selecting active alternatives keeps
+        each row's stream aligned when the active alternative set changes.
+        """
+        n_alts = df.shape[1]
+        stable_alt_positions = np.asarray(stable_alt_positions)
+        if stable_alt_positions.shape != (n_alts,):
+            raise ValueError(
+                "stable_alt_positions must be a 1-D array aligned to df columns"
+            )
+        if stable_alt_positions.min() < 0 or stable_alt_positions.max() >= n_total_alts:
+            raise ValueError(
+                "stable_alt_positions values must be within [0, n_total_alts)"
+            )
+
+        rands = self.random_for_df(df, step_name, n=n_total_alts)
+        return rands[:, stable_alt_positions]
+
+    def gumbel_for_df(
+        self,
+        df: pd.DataFrame,
+        step_name: str,
+        n: int | tuple[int, ...] = 1,
+    ) -> np.ndarray:
+        """Draw type-I extreme-value variates for each selected row."""
+        assert step_name is not None
+        assert step_name == self.step_name
+        selected_positions = self._check_valid_df(df)
+        self._reseed_step()
+        return self._fast_generator.vector_random_standard_gumbel(
+            self._state_array,
+            selected_positions=selected_positions,
+            shape=n,
+        )
+
+    def gumbel_max_positions_for_df(
+        self,
+        utilities: pd.DataFrame,
+        step_name: str,
+        sample_size: int,
+        stable_alt_positions: np.ndarray | None = None,
+        n_total_alts: int | None = None,
+    ) -> np.ndarray:
+        """Return winning alternative positions for repeated Gumbel-max draws."""
+        utility_values = utilities.to_numpy()
+        _, n_alts = utility_values.shape
+
+        if stable_alt_positions is not None or n_total_alts is not None:
+            if stable_alt_positions is None or n_total_alts is None:
+                raise ValueError(
+                    "stable_alt_positions and n_total_alts must both be provided or omitted together"
+                )
+            stable_alt_positions = np.asarray(stable_alt_positions)
+            if stable_alt_positions.shape != (n_alts,):
+                raise ValueError(
+                    "stable_alt_positions must be a 1-D array aligned to utilities columns"
+                )
+            if (
+                stable_alt_positions.min() < 0
+                or stable_alt_positions.max() >= n_total_alts
+            ):
+                raise ValueError(
+                    "stable_alt_positions values must be within [0, n_total_alts)"
+                )
+            n_gumbels = n_total_alts
+        else:
+            n_gumbels = n_alts
+
+        gumbels = self.gumbel_for_df(
+            utilities,
+            step_name,
+            n=n_gumbels * sample_size,
+        ).reshape((len(utilities), sample_size, n_gumbels))
+        if stable_alt_positions is not None:
+            gumbels = gumbels[:, :, stable_alt_positions]
+        return np.argmax(
+            gumbels + utility_values[:, np.newaxis, :],
+            axis=2,
+        )
+
+    def gumbel_choice_positions_for_df(
+        self,
+        utilities: pd.DataFrame,
+        step_name: str,
+        alt_nrs_df: pd.DataFrame | None = None,
+        n_rands: int | None = None,
+    ) -> np.ndarray:
+        """Return the Gumbel-max winning column for each chooser row."""
+        utility_values = utilities.to_numpy()
+        n_rows, n_alts = utility_values.shape
+
+        if alt_nrs_df is not None:
+            assert alt_nrs_df.index.equals(
+                utilities.index
+            ), "alt_nrs_df and utilities must share the same index"
+            assert alt_nrs_df.columns.equals(
+                utilities.columns
+            ), "alt_nrs_df and utilities must share the same columns"
+            if n_rands is None:
+                raise ValueError("n_rands is required when alt_nrs_df is provided")
+            alt_nr_values = alt_nrs_df.to_numpy()
+            bad_negatives = (alt_nr_values < 0) & (alt_nr_values != _MASKED_ALT_ID)
+            if bad_negatives.any():
+                offenders = np.unique(alt_nr_values[bad_negatives])
+                raise ValueError(
+                    "alt_nrs contains negative values other than the "
+                    f"{_MASKED_ALT_ID} sentinel: {offenders}"
+                )
+            active_mask = alt_nr_values != _MASKED_ALT_ID
+            safe_alt_nrs = np.where(active_mask, alt_nr_values, 0)
+        else:
+            if n_rands is None:
+                n_rands = n_alts
+            elif n_rands != n_alts:
+                raise ValueError(
+                    "n_rands must equal utilities.shape[1] when alt_nrs_df is omitted"
+                )
+            active_mask = safe_alt_nrs = None
+
+        row_gumbels = self.gumbel_for_df(utilities, step_name, n=n_rands)
+        if alt_nrs_df is None:
+            return np.argmax(utility_values + row_gumbels, axis=1)
+
+        positions = np.empty(n_rows, dtype=np.int64)
+        for row_num in range(n_rows):
+            # Work only with active columns so padded high-utility columns cannot win.
+            active = np.flatnonzero(active_mask[row_num])
+            if active.size == 0:
+                positions[row_num] = 0
+                continue
+            gumbel = (
+                utility_values[row_num, active]
+                + row_gumbels[row_num, safe_alt_nrs[row_num, active]]
+            )
+            positions[row_num] = active[np.argmax(gumbel)]
+        return positions
+
+    def choice_for_df(
+        self,
+        df: pd.DataFrame,
+        step_name: str,
+        a: int | np.ndarray,
+        size: int | tuple[int, ...] = 1,
+        replace: bool = False,
+    ) -> np.ndarray:
+        """
+        Apply numpy.random.choice once for each row in df
+        using the appropriate random channel for each row.
+
+        Concatenate the the choice arrays for every row into a single 1-D ndarray
+        The resulting array will be of length: size * len(df.index)
+        This method is designed to support creation of a interaction_dataset
+
+        The columns in df are ignored; the index name and values are used to determine
+        which random number sequence to to use.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            df with index name and values corresponding to a registered channel
+        step_name : str
+            current step name so we can update row_states seed info
+        a : 1-D array-like or int
+            If an ndarray, a random sample is generated from its elements.
+            If an int, the random sample is generated as if a was np.arange(a).
+        size : int or tuple of ints
+            Output shape (per df row).
+        replace : bool
+            Whether the sample is with or without replacement.
+
+        Returns
+        -------
+        choices : 1-D ndarray of length: prod(size) * len(df.index)
+            The generated random samples for each row concatenated into a
+            single (flat) array.
+        """
+        assert step_name is not None
+        assert step_name == self.step_name
+        selected_positions = self._check_valid_df(df)
+        self._reseed_step()
+
+        # total number of draws required per row
+        if isinstance(size, (int, np.integer)):
+            total = int(size)
+        else:
+            total = int(np.prod(size))
+
+        # population to sample from
+        if isinstance(a, (int, np.integer)):
+            a_arr = np.arange(int(a))
+        else:
+            a_arr = np.asarray(a)
+        n_pop = len(a_arr)
+
+        if replace:
+            # draw `total` uniforms per selected row and map to indices in a
+            rands = self._fast_generator.vector_random_standard_uniform(
+                self._state_array,
+                selected_positions=selected_positions,
+                shape=total,
+            )
+            idx = (rands * n_pop).astype(np.int64)
+            # guard against the (vanishingly rare) case rands == 1.0 - epsilon edge
+            np.minimum(idx, n_pop - 1, out=idx)
+            sample = a_arr[idx].reshape(-1)
+        else:
+            if total > n_pop:
+                raise ValueError(
+                    "Cannot take a larger sample than population when 'replace=False'"
+                )
+            # draw n_pop uniforms per selected row; argsort produces a random
+            # permutation of [0, n_pop), and we take the first `total` entries.
+            rands = self._fast_generator.vector_random_standard_uniform(
+                self._state_array,
+                selected_positions=selected_positions,
+                shape=n_pop,
+            )
+            order = np.argsort(rands, axis=1)[:, :total]
+            sample = a_arr[order].reshape(-1)
+
+        return sample

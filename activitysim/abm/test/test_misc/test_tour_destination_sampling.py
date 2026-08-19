@@ -60,7 +60,7 @@ def test_destination_presample_uses_taz_stable_mapping(monkeypatch):
     def fake_destination_sample(
         _state,
         _spec_segment_name,
-        _choosers,
+        choosers,
         destination_size_terms,
         _skims,
         _estimator,
@@ -72,6 +72,7 @@ def test_destination_presample_uses_taz_stable_mapping(monkeypatch):
         stable_alt_positions=None,
         n_total_alts=None,
     ):
+        captured["origin_taz"] = choosers[tour_destination.ORIG_TAZ].copy()
         captured["alt_dest_col_name"] = alt_dest_col_name
         captured["zone_layer"] = zone_layer
         captured["active_taz_index"] = destination_size_terms.index.copy()
@@ -106,7 +107,12 @@ def test_destination_presample_uses_taz_stable_mapping(monkeypatch):
     state = workflow.State().default_settings()
     state.settings.use_explicit_error_terms = True
     choosers = pd.DataFrame(
-        {"origin": [101]},
+        {
+            "origin": [101],
+            # A merged person table may carry a home TAZ that does not match
+            # the configured tour origin.
+            tour_destination.ORIG_TAZ: [99],
+        },
         index=pd.Index([7001], name="tour_id"),
     )
     model_settings = type(
@@ -152,6 +158,10 @@ def test_destination_presample_uses_taz_stable_mapping(monkeypatch):
     assert captured["zone_layer"] == "taz"
     assert captured["n_total_alts"] == 3
     assert list(captured["stable_alt_positions"]) == [0, 2]
+    pd.testing.assert_series_equal(
+        captured["origin_taz"],
+        pd.Series([1], index=choosers.index, name=tour_destination.ORIG_TAZ),
+    )
     pd.testing.assert_index_equal(
         captured["full_taz_index"],
         pd.Index([1, 2, 3], name=tour_destination.DEST_TAZ),

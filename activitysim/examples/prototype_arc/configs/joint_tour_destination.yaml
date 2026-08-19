@@ -19,16 +19,6 @@ SEGMENTS:
 
 SAMPLE_SIZE: 30
 
-SIMULATE_CHOOSER_COLUMNS:
-  - tour_type
-  - home_zone_id
-# - household_id
-  - person_id
-  - income_in_thousands
-  - num_nondriving_age_children
-  - is_CBD
-  - is_urban
-
 LOGSUM_SETTINGS: tour_mode_choice.yaml
 
 # model-specific logsum-related settings

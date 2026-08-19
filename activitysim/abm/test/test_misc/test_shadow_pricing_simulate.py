@@ -122,14 +122,6 @@ util_sample_of_corrections_factor,Sample of alternatives correction factor,"@np.
         choice_sizes[col] = 0
 
     school_location_settings = """
-        SIMULATE_CHOOSER_COLUMNS:
-            - home_zone_id
-            - school_segment
-            - household_id
-            - is_student
-            - age_0_to_5
-            - age_6_to_12
-            - pemploy
         CHOOSER_ORIG_COL_NAME: home_zone_id
         ALT_DEST_COL_NAME: alt_dest
         SAMPLE_SIZE: 30

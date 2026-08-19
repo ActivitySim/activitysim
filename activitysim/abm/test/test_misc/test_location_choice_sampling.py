@@ -93,7 +93,6 @@ def test_location_presample_uses_taz_stable_mapping(monkeypatch):
         (),
         {
             "ALT_DEST_COL_NAME": "zone_id",
-            "SIMULATE_CHOOSER_COLUMNS": [location_choice.HOME_MAZ],
         },
     )()
     persons_merged = pd.DataFrame(
@@ -222,7 +221,6 @@ def test_location_presample_passes_full_taz_index_for_eet_poisson(monkeypatch):
         (),
         {
             "ALT_DEST_COL_NAME": "zone_id",
-            "SIMULATE_CHOOSER_COLUMNS": [location_choice.HOME_MAZ],
         },
     )()
     persons_merged = pd.DataFrame(
@@ -327,7 +325,6 @@ def test_location_sample_uses_maz_stable_mapping(monkeypatch):
         (),
         {
             "ALT_DEST_COL_NAME": "zone_id",
-            "SIMULATE_CHOOSER_COLUMNS": [location_choice.HOME_MAZ],
         },
     )()
     persons_merged = pd.DataFrame(

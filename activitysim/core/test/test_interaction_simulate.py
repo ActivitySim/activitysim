@@ -1,11 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import pytest
 
-from activitysim.core import interaction_simulate, workflow
+from activitysim.core import flow, interaction_simulate, workflow
 
 
 @pytest.fixture
@@ -13,6 +15,39 @@ def state() -> workflow.State:
     state = workflow.State().default_settings()
     state.settings.check_for_variability = False
     return state
+
+
+def test_apply_flow_global_constants_and_local_override(state, monkeypatch):
+    class FakeFlow:
+        name = "test_flow"
+        compiled_recently = False
+        tree = object()
+
+        def dot(self, coefficients, dtype, compile_watch):
+            return np.array([[1.0]])
+
+    captured_locals = {}
+
+    def fake_get_flow(_state, _spec, locals_d, *_args, **_kwargs):
+        captured_locals.update(locals_d)
+        return FakeFlow()
+
+    state.get_global_constants = lambda: {"GLOBAL_SCALE": 2, "GLOBAL_ONLY": 4}
+    monkeypatch.setattr(flow, "sh", object())
+    monkeypatch.setattr(flow, "get_flow", fake_get_flow)
+
+    spec = pd.DataFrame(
+        {"alt": [1.0]}, index=pd.Index(["GLOBAL_SCALE"], name="Expression")
+    )
+    result, _, _ = flow.apply_flow(
+        state,
+        spec,
+        pd.DataFrame({"value": [1.0]}),
+        locals_d={"GLOBAL_SCALE": 3},
+    )
+
+    np.testing.assert_allclose(result, [[1.0]])
+    assert captured_locals == {"GLOBAL_SCALE": 3, "GLOBAL_ONLY": 4}
 
 
 def test_interaction_simulate_explicit_error_terms_parity(state):
@@ -172,3 +207,73 @@ def test_interaction_simulate_eet_large_utilities(state):
     assert not choices_eet.isna().any()
     # With such a large difference, Alt 1 should be the dominant choice
     assert (choices_eet == 1).all()
+
+
+def test_eval_interaction_utilities_global_constants(tmp_path):
+    # global constants (from constants.yaml) should be available to expressions
+    # evaluated for interaction models (e.g. location choice, destination choice,
+    # tour scheduling), see issue #1015
+
+    configs_dir = tmp_path.joinpath("configs")
+    configs_dir.mkdir()
+    configs_dir.joinpath("constants.yaml").write_text("KM_TO_MILE: 0.621371\n")
+    tmp_path.joinpath("data").mkdir()
+
+    state = workflow.State()
+    state.initialize_filesystem(
+        working_dir=tmp_path, configs_dir=("configs",)
+    ).default_settings()
+    state.settings.check_for_variability = False
+
+    df = pd.DataFrame({"distance_km": [1.0, 10.0]}, index=[0, 1])
+
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["distance_km * KM_TO_MILE"], name="Expression"),
+    )
+
+    utilities, _ = interaction_simulate.eval_interaction_utilities(
+        state,
+        spec,
+        df,
+        locals_d=None,
+        trace_label="test_global_constants",
+        trace_rows=None,
+    )
+
+    np.testing.assert_allclose(
+        utilities.utility.to_numpy(), df.distance_km.to_numpy() * 0.621371
+    )
+
+
+def test_eval_interaction_utilities_locals_override_global_constants(tmp_path):
+    # values passed in locals_d take precedence over global constants
+
+    configs_dir = tmp_path.joinpath("configs")
+    configs_dir.mkdir()
+    configs_dir.joinpath("constants.yaml").write_text("KM_TO_MILE: 0.621371\n")
+    tmp_path.joinpath("data").mkdir()
+
+    state = workflow.State()
+    state.initialize_filesystem(
+        working_dir=tmp_path, configs_dir=("configs",)
+    ).default_settings()
+    state.settings.check_for_variability = False
+
+    df = pd.DataFrame({"distance_km": [1.0, 10.0]}, index=[0, 1])
+
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["distance_km * KM_TO_MILE"], name="Expression"),
+    )
+
+    utilities, _ = interaction_simulate.eval_interaction_utilities(
+        state,
+        spec,
+        df,
+        locals_d={"KM_TO_MILE": 1.0},
+        trace_label="test_global_constants_override",
+        trace_rows=None,
+    )
+
+    np.testing.assert_allclose(utilities.utility.to_numpy(), df.distance_km.to_numpy())

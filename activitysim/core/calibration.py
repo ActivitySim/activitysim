@@ -10,6 +10,7 @@ import math
 import multiprocessing
 import os
 import re
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
@@ -36,6 +37,7 @@ CALIBRATION_PROGRESS_FILE = "calibration/calibration_progress.json"
 CALIBRATION_ITERATION_FILE = "calibration/calibration_iteration_records.csv"
 CALIBRATION_SUMMARY_FILE = "calibration/calibration_iteration_summary.csv"
 CALIBRATION_FINAL_COEFFICIENTS_FILE = "calibration/final_calibrated_coefficients.csv"
+CALIBRATION_RECOVERY_DIR = "calibration/recovery"
 
 DEFAULT_INCREMENT = 2.0
 MAX_COEFFS_IN_GRAPH = 15
@@ -258,6 +260,62 @@ def run_calibration_loop(
 
     _ensure_calibration_output_dir(state)
 
+    progress = _read_progress(state)
+    if progress and progress.get("complete"):
+        logger.info(
+            "calibration progress is already complete; remove %s to start a "
+            "fresh calibration run",
+            CALIBRATION_PROGRESS_FILE,
+        )
+        return CalibrationRunResult(
+            converged=bool(progress.get("converged", False)),
+            completed_global_iterations=int(
+                progress.get(
+                    "last_completed_global_iteration",
+                    calibration_settings.run.global_iterations,
+                )
+            ),
+        )
+
+    interrupted_iteration = (
+        progress.get("in_progress_iteration") if progress else None
+    )
+    if interrupted_iteration is not None:
+        interrupted_iteration = int(interrupted_iteration)
+        logger.warning(
+            "recovering interrupted calibration global iteration %s",
+            interrupted_iteration,
+        )
+        _restore_coefficient_backups(state, calibration_settings)
+        progress = {
+            "in_progress_iteration": None,
+            "next_global_iteration": interrupted_iteration,
+            "last_completed_global_iteration": interrupted_iteration - 1,
+        }
+        _write_progress(state, progress)
+
+    # Progress files from earlier versions contain next_global_iteration, so
+    # they remain compatible with the corrected total-count semantics.
+    start_global_iter = int(progress.get("next_global_iteration", 1)) if progress else 1
+    completed_global_iterations = start_global_iter - 1
+
+    if start_global_iter > calibration_settings.run.global_iterations:
+        logger.info(
+            "calibration progress already reached configured global_iterations=%s",
+            calibration_settings.run.global_iterations,
+        )
+        converged = bool(progress.get("converged", False)) if progress else False
+        _write_final_coefficients_snapshot(state, calibration_settings)
+        _write_completed_progress(
+            state,
+            completed_global_iterations,
+            converged,
+        )
+        return CalibrationRunResult(
+            converged=converged,
+            completed_global_iterations=completed_global_iterations,
+        )
+
     if state.settings.resume_after is None:
         # compute_accessibility requires its accessibility table to be empty;
         # unlike most model steps, it will not overwrite a prior result.
@@ -265,13 +323,6 @@ def run_calibration_loop(
         # so the table factory recreates its empty placeholder for the replay.
         state.drop_table("accessibility")
         state.checkpoint.restore()
-
-    # If there is recoverable calibration progress from a prior interrupted run,
-    # continue from that iteration. Coefficient updates are persisted in config
-    # coefficient files, so restarting from a later global iteration is compatible
-    # with current checkpoint semantics.
-    progress = _read_progress(state)
-    start_global_iter = int(progress.get("next_global_iteration", 1)) if progress else 1
 
     original_pipeline_name = state.filesystem.pipeline_file_name
 
@@ -340,8 +391,14 @@ def run_calibration_loop(
 
         for global_iter in range(
             start_global_iter,
-            start_global_iter + calibration_settings.run.global_iterations,
+            calibration_settings.run.global_iterations + 1,
         ):
+            _begin_global_iteration_transaction(
+                state,
+                calibration_settings,
+                global_iter,
+            )
+
             # Every global iteration after the first begins from the immutable
             # checkpoint directly before the first calibrated model. This makes
             # global reruns independent of the state left by the final calibrated
@@ -369,7 +426,7 @@ def run_calibration_loop(
 
             logger.info(
                 "calibration global iteration %s/%s",
-                global_iter - start_global_iter,
+                global_iter,
                 calibration_settings.run.global_iterations,
             )
 
@@ -420,10 +477,7 @@ def run_calibration_loop(
 
             if (
                 calibration_settings.run.complete_steps
-                or (
-                    start_global_iter + calibration_settings.run.global_iterations
-                    == global_iter + 1
-                )
+                or global_iter == calibration_settings.run.global_iterations
                 or (
                     global_iter == start_global_iter
                     and state.settings.resume_after is not None
@@ -447,27 +501,40 @@ def run_calibration_loop(
                     shared_data_buffers=shared_data_buffers,
                 )
 
-            _write_progress(
-                state,
-                {
-                    "next_global_iteration": global_iter + 1,
-                    "last_completed_global_iteration": global_iter,
-                },
+            completed_global_iterations = global_iter
+            iteration_is_complete = (
+                all_converged
+                or global_iter == calibration_settings.run.global_iterations
             )
+            if not iteration_is_complete:
+                _write_progress(
+                    state,
+                    {
+                        "in_progress_iteration": None,
+                        "next_global_iteration": global_iter + 1,
+                        "last_completed_global_iteration": global_iter,
+                        "converged": all_converged,
+                    },
+                )
 
             if all_converged:
                 logger.info(
                     "calibration converged after global iteration %s/%s",
-                    global_iter - start_global_iter,
+                    global_iter,
                     calibration_settings.run.global_iterations,
                 )
                 break
 
         _write_final_coefficients_snapshot(state, calibration_settings)
+        _write_completed_progress(
+            state,
+            completed_global_iterations,
+            all_converged,
+        )
 
         return CalibrationRunResult(
             converged=all_converged,
-            completed_global_iterations=calibration_settings.run.global_iterations,
+            completed_global_iterations=completed_global_iterations,
         )
     finally:
         state.filesystem.pipeline_file_name = original_pipeline_name
@@ -1466,6 +1533,83 @@ def _ensure_calibration_output_dir(state: workflow.State) -> None:
     os.makedirs(path, exist_ok=True)
 
 
+def _calibration_coefficient_paths(
+    state: workflow.State,
+    calibration_settings: CalibrationConfig,
+) -> list[Path]:
+    """Return the unique coefficient files modified by this calibration run."""
+    paths: list[Path] = []
+    seen: set[str] = set()
+
+    for component_name in calibration_settings.run.calibrate_models:
+        model_settings_file = _infer_model_settings_file(component_name)
+        model_settings = state.filesystem.read_model_settings(
+            model_settings_file, mandatory=True
+        )
+        coefficient_file = _setting_value(model_settings, "COEFFICIENTS")
+        if not coefficient_file:
+            raise RuntimeError(
+                f"component {component_name} model settings missing COEFFICIENTS"
+            )
+
+        path = Path(state.filesystem.get_config_file_path(coefficient_file)).resolve()
+        key = os.path.normcase(str(path))
+        if key not in seen:
+            paths.append(path)
+            seen.add(key)
+
+    return paths
+
+
+def _begin_global_iteration_transaction(
+    state: workflow.State,
+    calibration_settings: CalibrationConfig,
+    global_iteration: int,
+) -> None:
+    """Snapshot coefficients and durably mark a global iteration in progress."""
+    recovery_dir = state.get_output_file_path(CALIBRATION_RECOVERY_DIR)
+    os.makedirs(recovery_dir, exist_ok=True)
+
+    for file_number, coefficient_path in enumerate(
+        _calibration_coefficient_paths(state, calibration_settings)
+    ):
+        if not coefficient_path.exists():
+            raise FileNotFoundError(
+                f"calibration coefficient file not found: {coefficient_path}"
+            )
+
+        backup_name = f"{file_number:03d}_{coefficient_path.name}"
+        shutil.copyfile(coefficient_path, recovery_dir / backup_name)
+
+    # Write the marker only after all backups exist. If backup creation is
+    # interrupted, the previous between-iteration progress remains valid.
+    _write_progress(
+        state,
+        {
+            "in_progress_iteration": global_iteration,
+            "next_global_iteration": global_iteration,
+            "last_completed_global_iteration": global_iteration - 1,
+        },
+    )
+
+
+def _restore_coefficient_backups(
+    state: workflow.State,
+    calibration_settings: CalibrationConfig,
+) -> None:
+    """Restore the coefficient backups for an interrupted global iteration."""
+    recovery_dir = state.get_output_file_path(CALIBRATION_RECOVERY_DIR)
+    for file_number, coefficient_path in enumerate(
+        _calibration_coefficient_paths(state, calibration_settings)
+    ):
+        backup_path = recovery_dir / f"{file_number:03d}_{coefficient_path.name}"
+        if not backup_path.exists():
+            raise RuntimeError(
+                f"cannot recover interrupted calibration iteration: missing {backup_path}"
+            )
+        shutil.copyfile(backup_path, coefficient_path)
+
+
 def _read_progress(state: workflow.State) -> dict[str, Any] | None:
     """Read persisted calibration progress metadata if it exists."""
     path = state.get_output_file_path(CALIBRATION_PROGRESS_FILE)
@@ -1476,11 +1620,31 @@ def _read_progress(state: workflow.State) -> dict[str, Any] | None:
 
 
 def _write_progress(state: workflow.State, payload: dict[str, Any]) -> None:
-    """Write calibration progress metadata."""
+    """Atomically write calibration progress metadata."""
     path = state.get_output_file_path(CALIBRATION_PROGRESS_FILE)
     os.makedirs(path.parent, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
+    temporary_path = path.with_name(f".{path.name}.tmp")
+    with open(temporary_path, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2)
+    os.replace(temporary_path, path)
+
+
+def _write_completed_progress(
+    state: workflow.State,
+    completed_global_iterations: int,
+    converged: bool,
+) -> None:
+    """Mark calibration complete after all final output has been written."""
+    _write_progress(
+        state,
+        {
+            "complete": True,
+            "in_progress_iteration": None,
+            "next_global_iteration": completed_global_iterations + 1,
+            "last_completed_global_iteration": completed_global_iterations,
+            "converged": converged,
+        },
+    )
 
 
 def _run_mp_single_component(

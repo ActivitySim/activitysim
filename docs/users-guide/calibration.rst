@@ -541,9 +541,11 @@ Global Files
    * - File
      - Description
    * - ``calibration_progress.json``
-     - Tracks ``next_global_iteration`` for crash recovery. If a run is
-       interrupted, restarting will resume from the last completed global
-       iteration.
+     - Tracks the active and next global iterations for crash recovery, and
+       whether calibration is complete.
+   * - ``recovery/``
+     - Reusable start-of-iteration coefficient backups used to roll back and
+       replay an interrupted global iteration.
    * - ``calibration_iteration_records.csv``
      - Appended per-coefficient detail for every iteration across all
        components. Columns include ``global_iter``, ``component_iter``,
@@ -584,7 +586,7 @@ Updated Config Files
 ---------------------
 
 Coefficient CSV files in the configs directory are **updated in-place** after
-each iteration. This means:
+each component iteration. This means:
 
 - The calibrated coefficients persist across runs.
 - You can inspect intermediate coefficient values at any time.
@@ -594,15 +596,23 @@ each iteration. This means:
 Crash Recovery
 ==============
 
-Calibration progress is persisted to ``calibration_progress.json`` after each
-completed global iteration. If a run is interrupted:
+Before each global iteration, calibration replaces the files in its recovery
+directory with a copy of every coefficient file that it may modify, then records
+the active iteration in ``calibration_progress.json``. If a run is interrupted:
 
-1. The coefficient files on disk reflect the state at the last completed iteration.
-2. Restarting ``activitysim run`` with the same configuration will resume from
-   the ``next_global_iteration`` recorded in the progress file.
+1. Restarting ``activitysim run`` restores all coefficient files from the
+   start-of-iteration recovery snapshot.
+2. The interrupted global iteration is replayed from that consistent boundary.
+3. Remaining iterations run only until the configured total
+   ``global_iterations`` is reached.
+
+The progress file is written using atomic replacement. Once progress is marked
+complete, rerunning with the same output directory does not apply additional
+calibration iterations.
 
 To force a fresh start, delete ``output/calibration/calibration_progress.json``
-and restore original coefficient files.
+and restore original coefficient files. Recovery snapshots can also be removed
+after a completed run if they are no longer needed.
 
 
 Multiprocess Mode

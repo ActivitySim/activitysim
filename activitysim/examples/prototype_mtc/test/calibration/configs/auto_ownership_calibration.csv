@@ -1,0 +1,2 @@
+description,coefficient,model_value,target_value,hold_fast,min,max,damping,method,tolerance
+Zero-auto household share,coef_calib_auto_0,len(households[households.auto_ownership == 0]) / len(households),0.271828,FALSE,-10,10,1,log_ratio,0

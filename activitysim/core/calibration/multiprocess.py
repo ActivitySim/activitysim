@@ -441,12 +441,13 @@ def _reregister_rng_channels(
     """Re-register RNG channels that were lost during init_state()."""
     current_channels = set(state.get_injectable("rng_channels", []))
     for channel_name in prior_channels:
-        if channel_name not in current_channels and state.is_table(channel_name):
+        if channel_name not in state.rng().channels and state.is_table(channel_name):
             try:
                 state.rng().add_channel(channel_name, state.get_dataframe(channel_name))
-                current_channels.add(channel_name)
             except Exception:
                 pass
+        if channel_name in state.rng().channels:
+            current_channels.add(channel_name)
     # For channels whose tables don't exist at the restored checkpoint,
     # register an empty channel.  Do NOT pre-load from a later checkpoint
     # in the store — that data may include modifications from downstream
@@ -457,12 +458,23 @@ def _reregister_rng_channels(
         for index_name, channel_name in prior_index_to_channel.items():
             if index_name not in state.rng().index_to_channel:
                 if channel_name not in state.rng().channels:
-                    empty_df = pd.DataFrame(
-                        index=pd.Index([], dtype="int64", name=index_name)
-                    )
-                    state.rng().add_channel(channel_name, empty_df)
+                    if state.is_table(channel_name):
+                        # The channel may have been registered dynamically and
+                        # therefore be absent from the rng_channels injectable.
+                        # Populate it from the exact table restored from the
+                        # target checkpoint rather than creating an empty
+                        # channel for an existing domain.
+                        state.rng().add_channel(
+                            channel_name, state.get_dataframe(channel_name)
+                        )
+                    else:
+                        empty_df = pd.DataFrame(
+                            index=pd.Index([], dtype="int64", name=index_name)
+                        )
+                        state.rng().add_channel(channel_name, empty_df)
                 else:
                     state.rng().index_to_channel[index_name] = channel_name
+            if channel_name in state.rng().channels:
                 current_channels.add(channel_name)
     state.add_injectable("rng_channels", list(current_channels))
 

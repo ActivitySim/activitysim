@@ -20,6 +20,7 @@ from .multiprocess import (
     _restore_from_subprocess_pipelines,
     _run_multiprocess_with_overrides,
 )
+
 logger = logging.getLogger("calibration")
 
 
@@ -53,19 +54,16 @@ def _run_in_configured_mode(
             state.checkpoint.add(resume_after or models[0])
         state.checkpoint.close_store()
 
-        # When subprocess pipelines from a prior run already have the
-        # resume_after checkpoint (Path 2 in _prep_model_data), subprocesses
-        # can skip models before resume_after by reusing those pipelines
-        # instead of freshly apportioning.  Signal this by passing
-        # can_reuse_subprocs=True.
-        can_reuse = not extra_models and resume_after is not None
-
         _run_multiprocess_with_overrides(
             state,
             models=models,
             resume_after=resume_after,
             shared_data_buffers=shared_data_buffers,
-            can_reuse_subprocs=can_reuse,
+            # _prep_model_data may have restored either the main pipeline or
+            # coalesced subprocess pipelines. Freshly apportion the exact
+            # restored parent state in both cases; an empty extra_models list
+            # alone is not evidence that subprocess pipelines are reusable.
+            can_reuse_subprocs=False,
         )
         # After multiprocess completes, the coalesced pipeline exists on disk.
         # Restore it into the parent process state so tables are accessible
@@ -144,7 +142,7 @@ def _prep_model_data(state, resume_after=None):
                 resume_idx = all_models.index(resume_after)
                 step_boundaries = [all_models.index(s.begin) for s in mp_steps]
                 step_boundaries.append(len(all_models))
-                for i, step in enumerate(mp_steps):
+                for i, _step in enumerate(mp_steps):
                     if step_boundaries[i] <= resume_idx < step_boundaries[i + 1]:
                         if i > 0 and mp_steps[i - 1].name in checkpoint_names:
                             _restore_parent_state_from_pipeline(

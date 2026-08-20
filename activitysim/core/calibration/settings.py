@@ -33,6 +33,7 @@ class CalibrationRunSettings(PydanticBase):
             )
         return self
 
+
 class CalibrationReportsSettings(PydanticBase):
     """Reporting settings for a calibrated component."""
 

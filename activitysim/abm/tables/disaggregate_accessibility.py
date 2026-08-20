@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def find_nearest_accessibility_zone(
-    state: workflow.State, model_settings, choosers, accessibility_df, method="skims"
+    state: workflow.State, choosers, accessibility_df, method="skims"
 ):
     """
     Matches choosers zone to the nearest accessibility zones.
@@ -218,7 +218,6 @@ def disaggregate_accessibility(state: workflow.State) -> pd.DataFrame:
     if "nearest_accessibility_zone_id" not in persons_merged_df.columns:
         persons_merged_df = find_nearest_accessibility_zone(
             state,
-            model_settings,
             persons_merged_df,
             proto_accessibility_df,
             nearest_method,

@@ -64,8 +64,6 @@ class ParkAndRideCapacity:
         ----------
         choices : pandas.Series
             zone id of location choice indexed by person_id
-        segment_ids : pandas.Series
-            segment id tag for this individual indexed by person_id
 
         Returns
         -------
@@ -155,8 +153,13 @@ class ParkAndRideCapacity:
                 # sort by index (tour_id)
                 synced_choices = synced_choices.sort_index()
 
-                # now append any additional rows need to get size back to original length
                 pad = len(self.shared_pnr_choice) - len(synced_choices)
+                if pad < 0:
+                    raise RuntimeError(
+                        f"PNR shared buffer overflow: {len(synced_choices)} tours exceed "
+                        f"buffer size {len(self.shared_pnr_choice)}. Increase the buffer "
+                        "by setting it to at least the number of PNR tours in your population."
+                    )
                 new_arr_values = np.concatenate(
                     [
                         synced_choices["pnr_zone_id"].to_numpy(np.int64),
@@ -354,12 +357,12 @@ class ParkAndRideCapacity:
             zonal_sample_rate = zonal_sample_rate[zonal_sample_rate > 1]
             zonal_sample_rate = (zonal_sample_rate - 1).clip(lower=0, upper=1)
 
-            # person's probability of being selected for re-simulation is from the zonal sample rate
+            # tours in capacitated but not over-capacity zones get 0 resample probability
             sample_rates = tours_in_cap_zones.pnr_zone_id.map(
                 zonal_sample_rate.to_dict()
-            )
+            ).fillna(0)
             probs = pd.DataFrame(
-                data={"0": 1 - sample_rates, "1": sample_rates},
+                data={0: 1 - sample_rates, 1: sample_rates},
                 index=tours_in_cap_zones.index,
             )
             # using ActivitySim's RNG to make choices for repeatability
@@ -371,7 +374,8 @@ class ParkAndRideCapacity:
 
             # count the total number of pnr choices being resimulated
             pnr_counts = (
-                current_sample.pnr_zone_id.value_counts()
+                tours_in_cap_zones.loc[current_sample.index, "pnr_zone_id"]
+                .value_counts()
                 .reindex(self.shared_pnr_occupancy_df.index)
                 .fillna(0)
                 .astype(int)

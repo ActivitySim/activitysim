@@ -66,22 +66,23 @@ def atwork_subtour_mode_choice(
     constants = {}
     constants.update(model_settings.CONSTANTS)
 
-    if "pnr_zone_id" in subtours_merged.columns:
-        if model_settings.run_atwork_pnr_lot_choice:
-            subtours_merged["pnr_zone_id"] = run_park_and_ride_lot_choice(
-                state,
-                choosers=subtours_merged.copy(),
-                land_use=state.get_dataframe("land_use"),
-                network_los=network_los,
-                model_settings=None,
-                choosers_dest_col_name="destination",
-                choosers_origin_col_name="workplace_zone_id",
-                estimator=None,
-                pnr_capacity_cls=None,
-                trace_label=tracing.extend_trace_label(trace_label, "pnr_lot_choice"),
-            )
-        else:
-            subtours_merged["pnr_zone_id"].fillna(-1, inplace=True)
+    if model_settings.run_atwork_pnr_lot_choice:
+        subtours_merged["pnr_zone_id"] = run_park_and_ride_lot_choice(
+            state,
+            choosers=subtours_merged.copy(),
+            land_use=state.get_dataframe("land_use"),
+            network_los=network_los,
+            model_settings=None,
+            choosers_dest_col_name="destination",
+            choosers_origin_col_name="workplace_zone_id",
+            estimator=None,
+            pnr_capacity_cls=None,
+            trace_label=tracing.extend_trace_label(trace_label, "pnr_lot_choice"),
+        )
+    elif "pnr_zone_id" in subtours_merged.columns:
+        # if the pnr_zone_id column is present in the tours table, fill any
+        # missing values with -1 to indicate no park-and-ride lot choice
+        subtours_merged["pnr_zone_id"].fillna(-1, inplace=True)
 
     # setup skim keys
     skims = setup_skims(
@@ -116,6 +117,8 @@ def atwork_subtour_mode_choice(
         trace_label=trace_label,
         trace_choice_name="tour_mode_choice",
     )
+    if "pnr_zone_id" in subtours_merged:
+        choices_df["pnr_zone_id"] = subtours_merged["pnr_zone_id"]
 
     if estimator:
         estimator.write_choices(choices_df[mode_column_name])

@@ -163,8 +163,9 @@ def return_no_choices(state, choosers: pd.DataFrame, original_index=None) -> pd.
     logger.debug(
         "No choosers with transit accessible destinations found. Returning -1 as park-and-ride lot choice."
     )
-    # need to drop rng channel that we created before trn_accessible_choosers
-    state.get_rn_generator().drop_channel("pnr_lot_choice")
+    # Drop the RNG channel if it was created for non-unique index handling
+    if "pnr_lot_choice" in state.get_rn_generator().channels:
+        state.get_rn_generator().drop_channel("pnr_lot_choice")
     index = choosers.index if original_index is None else original_index
     return pd.Series(data=-1, index=index)
 
@@ -181,7 +182,7 @@ def run_park_and_ride_lot_choice(
     model_settings_file_name: str = "park_and_ride_lot_choice.yaml",
     pnr_capacity_cls: ParkAndRideCapacity | None = None,
     trace_label: str = "park_and_ride_lot_choice",
-) -> None:
+) -> pd.Series:
     """
     Run the park-and-ride lot choice model.
 
@@ -191,7 +192,7 @@ def run_park_and_ride_lot_choice(
     if model_settings is None:
         model_settings = ParkAndRideLotChoiceSettings.read_settings_file(
             state.filesystem,
-            "park_and_ride_lot_choice.yaml",
+            model_settings_file_name,
         )
 
     spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
@@ -264,7 +265,7 @@ def run_park_and_ride_lot_choice(
     )
     locals_dict.update(skims)
 
-    if model_settings.preprocessor.TABLES:
+    if model_settings.preprocessor and model_settings.preprocessor.TABLES:
         # Need to check whether the table exists in the state.
         # This can happen if you have preprocessor settings that reference tours
         # but the tours table doesn't exist yet because you are calculating logsums.

@@ -317,7 +317,7 @@ class TourModeComponentSettings(TemplatedLogitComponentSettings, extra="forbid")
     Flag to determine whether to include park-and-ride lot locations in the logsum calculations.
     This means that every OD pair for which a logsum is created will also run the park-and-ride lot choice model.
     """
-    
+
     LOGSUM_CHOOSER_COLUMNS: Any | None = None
     """Was used to help reduce the memory needed for the model.
 

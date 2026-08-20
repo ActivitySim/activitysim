@@ -505,6 +505,63 @@ def test_capacity_select_new_choosers_latest_strategy(state):
     assert cap.shared_pnr_occupancy_df["pnr_occupancy"].to_dict() == {1: 2, 2: 0}
 
 
+def test_capacity_select_new_choosers_random_strategy(state, monkeypatch):
+    """Randomly resamples over-capacity tours without sampling full lots."""
+    land_use = pd.DataFrame(
+        {"pnr_spaces": [2, 2]},
+        index=pd.Index([1, 2], name="zone_id"),
+    )
+    households = pd.DataFrame(
+        {"sample_rate": [1.0]}, index=pd.Index([1], name="household_id")
+    )
+    state.add_table("land_use", land_use)
+    state.add_table("households", households)
+    state.add_injectable("num_processes", 1)
+
+    settings = types.SimpleNamespace(
+        LANDUSE_PNR_SPACES_COLUMN="pnr_spaces",
+        PARK_AND_RIDE_MODES=["PNR"],
+        ACCEPTED_TOLERANCE=1.0,
+        RESAMPLE_STRATEGY="random",
+        TRACE_PNR_CAPACITIES_PER_ITERATION=False,
+    )
+
+    cap = pnr_capacity.ParkAndRideCapacity(state, settings)
+    all_choosers = pd.DataFrame(
+        {"destination": [10, 11, 12, 13, 14]},
+        index=pd.Index([100, 101, 102, 103, 104], name="tour_id"),
+    )
+    choices = pd.DataFrame(
+        {
+            "tour_mode": ["PNR"] * 5,
+            "pnr_zone_id": [1, 1, 1, 2, 2],
+            "start": [8, 9, 10, 8, 9],
+        },
+        index=all_choosers.index,
+    )
+    cap.set_choices(choices)
+
+    def choose_one_over_capacity_tour(state, probs):
+        expected = pd.DataFrame(
+            {
+                0: [0.5, 0.5, 0.5, 1.0, 1.0],
+                1: [0.5, 0.5, 0.5, 0.0, 0.0],
+            },
+            index=all_choosers.index,
+        )
+        pd.testing.assert_frame_equal(probs, expected)
+        return pd.Series([1, 0, 0, 0, 0], index=probs.index), None
+
+    monkeypatch.setattr(
+        pnr_capacity.logit, "make_choices", choose_one_over_capacity_tour
+    )
+
+    selected = cap.select_new_choosers(state, all_choosers)
+
+    assert selected.index.tolist() == [100]
+    assert cap.shared_pnr_occupancy_df["pnr_occupancy"].to_dict() == {1: 2, 2: 2}
+
+
 def test_create_capacity_data_buffers(state):
     """Creates and initializes shared multiprocessing buffers for park-and-ride capacity."""
     persons = pd.DataFrame(index=pd.Index([1, 2, 3, 4], name="person_id"))

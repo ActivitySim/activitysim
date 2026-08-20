@@ -3,6 +3,7 @@ import openmatrix as omx
 import pandas as pd
 import pytest
 
+from activitysim.abm.models import atwork_subtour_mode_choice as atwork_tmc
 from activitysim.abm.models import tour_mode_choice as tmc
 from activitysim.core import los, workflow
 
@@ -29,7 +30,7 @@ def _write_text(path, text):
     path.write_text(text.strip())
 
 
-def _tour_mode_settings(spec_file):
+def _tour_mode_settings(spec_file, run_atwork_pnr_lot_choice=False):
     return _Settings(
         SPEC=spec_file,
         COEFFICIENTS="test_tour_mode_choice_coefficients.csv",
@@ -59,6 +60,8 @@ def _tour_mode_settings(spec_file):
         COMPUTE_TRIP_MODE_CHOICE_LOGSUMS=False,
         FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH=False,
         tvpb_mode_path_types=None,
+        run_atwork_pnr_lot_choice=run_atwork_pnr_lot_choice,
+        explicit_chunk=0,
         compute_settings=None,
     )
 
@@ -98,14 +101,14 @@ skim_time_periods:
     _write_text(
         config_dir / "test_tour_mode_choice_coefficients_template.csv",
         """
-coefficient_name,work,nonmand
-coef_nest_root,coef_nest_root,coef_nest_root
-coef_nest_drive,coef_nest_drive,coef_nest_drive
-coef_nest_hov2,coef_nest_hov2,coef_nest_hov2
-coef_da_time,coef_da_time_work,coef_da_time_nonmand
-coef_hov2_time,coef_hov2_time_work,coef_hov2_time_nonmand
-coef_walk_time,coef_walk_time_work,coef_walk_time_nonmand
-coef_transit_time,coef_transit_time_work,coef_transit_time_nonmand
+coefficient_name,work,nonmand,atwork
+coef_nest_root,coef_nest_root,coef_nest_root,coef_nest_root
+coef_nest_drive,coef_nest_drive,coef_nest_drive,coef_nest_drive
+coef_nest_hov2,coef_nest_hov2,coef_nest_hov2,coef_nest_hov2
+coef_da_time,coef_da_time_work,coef_da_time_nonmand,coef_da_time_atwork
+coef_hov2_time,coef_hov2_time_work,coef_hov2_time_nonmand,coef_hov2_time_atwork
+coef_walk_time,coef_walk_time_work,coef_walk_time_nonmand,coef_walk_time_atwork
+coef_transit_time,coef_transit_time_work,coef_transit_time_nonmand,coef_transit_time_atwork
 """,
     )
 
@@ -124,6 +127,10 @@ coef_walk_time_work,-0.5,F
 coef_walk_time_nonmand,-0.5,F
 coef_transit_time_work,-1.0,F
 coef_transit_time_nonmand,-1.0,F
+coef_da_time_atwork,-1.0,F
+coef_hov2_time_atwork,-2.0,F
+coef_walk_time_atwork,-0.5,F
+coef_transit_time_atwork,-1.0,F
 """,
     )
 
@@ -318,6 +325,7 @@ def _make_persons_merged():
     return pd.DataFrame(
         {
             "is_university": [False, False, False],
+            "workplace_zone_id": [3, 4, 3],
         },
         index=pd.Index([1, 2, 3], name="person_id"),
     )
@@ -418,3 +426,40 @@ def test_tour_mode_choice_simulate_with_pnr_iteration(state, network_los, monkey
         106: "TRANSIT",
         107: "DRIVEALONE",
     }
+
+
+def test_atwork_subtour_mode_choice_with_pnr(state, network_los):
+    """Chooses PNR lots from the workplace for at-work subtours."""
+    tours = pd.DataFrame(
+        {
+            "person_id": [1, 2],
+            "tour_category": ["atwork", "atwork"],
+            "tour_type": ["eat", "business"],
+            "start": [12, 13],
+            "end": [13, 14],
+            "destination": [5, 5],
+        },
+        index=pd.Index([200, 201], name="tour_id"),
+    )
+    persons_merged = _make_persons_merged()
+    model_settings = _tour_mode_settings(
+        "test_tour_mode_choice_with_pnr.csv", run_atwork_pnr_lot_choice=True
+    )
+
+    state.get_rn_generator().begin_step("atwork_subtour_mode_choice")
+    atwork_tmc.atwork_subtour_mode_choice(
+        state=state,
+        tours=tours,
+        persons_merged=persons_merged,
+        network_los=network_los,
+        model_settings=model_settings,
+    )
+    state.get_rn_generator().end_step("atwork_subtour_mode_choice")
+
+    result = state.get_dataframe("tours")
+    assert result["pnr_zone_id"].to_dict() == {200: 2, 201: 2}
+    assert result["tour_mode"].astype(str).to_dict() == {
+        200: "TRANSIT",
+        201: "WALK",
+    }
+    assert result["mode_choice_logsum"].notna().all()

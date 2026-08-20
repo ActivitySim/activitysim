@@ -187,3 +187,60 @@ def test_apply_stage_two_model(model_spec, trips):
     pd.testing.assert_index_equal(departures.index, trips.index)
 
     departures = pd.concat([trips, departures], axis=1)
+
+
+def test_tdc_explicit_error_terms_parity(model_spec, trips):
+    setup_dirs()
+    model_settings = tdc.TripDepartureChoiceSettings()
+
+    # Increase population for statistical convergence
+    large_trips = pd.concat([trips] * 500).reset_index(drop=True)
+    large_trips.index.name = "trip_id"
+    # Ensure tour_ids are distinct for the expanded set
+    large_trips["tour_id"] = (
+        large_trips.groupby("tour_id").cumcount() * 1000 + large_trips["tour_id"]
+    )
+
+    # Trip departure choice uses tour_leg_id as the random channel index
+    tour_legs = tdc.get_tour_legs(large_trips)
+
+    # Run without explicit error terms
+    state_no_eet = add_canonical_dirs("configs_test_misc").default_settings()
+    state_no_eet.settings.use_explicit_error_terms = False
+    state_no_eet.rng().set_base_seed(42)
+    state_no_eet.rng().begin_step("test_no_eet")
+    state_no_eet.rng().add_channel("trip_id", large_trips)
+    state_no_eet.rng().add_channel("tour_leg_id", tour_legs)
+
+    departures_no_eet = tdc.apply_stage_two_model(
+        state_no_eet,
+        model_spec,
+        large_trips,
+        0,
+        "TEST Trip Departure No EET",
+        model_settings=model_settings,
+    )
+
+    # Run with explicit error terms
+    state_eet = add_canonical_dirs("configs_test_misc").default_settings()
+    state_eet.settings.use_explicit_error_terms = True
+    state_eet.rng().set_base_seed(42)
+    state_eet.rng().begin_step("test_eet")
+    state_eet.rng().add_channel("trip_id", large_trips)
+    state_eet.rng().add_channel("tour_leg_id", tour_legs)
+
+    departures_eet = tdc.apply_stage_two_model(
+        state_eet,
+        model_spec,
+        large_trips,
+        0,
+        "TEST Trip Departure EET",
+        model_settings=model_settings,
+    )
+
+    # Compare distributions
+    dist_no_eet = departures_no_eet.value_counts(normalize=True).sort_index()
+    dist_eet = departures_eet.value_counts(normalize=True).sort_index()
+
+    # Check that they are reasonably close (within 5% for this sample size)
+    pd.testing.assert_series_equal(dist_no_eet, dist_eet, atol=0.05, check_names=False)

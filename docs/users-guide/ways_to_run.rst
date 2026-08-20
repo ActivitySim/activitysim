@@ -80,7 +80,7 @@ Refer to the :ref:`Run the Primary Example` section to learn how to run the prim
 Using Jupyter Notebook
 ______________________
 
-ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book with interactive examples. 
+ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book with interactive examples.
 
 * To start JupyterLab, from the ActivitySim project directory run ``uv run jupyter lab``. This will start the JupyterLab server and pop up a browser window with the interactive development environment.
 * Navigate to the ``examples/prototype_mtc/notebooks`` folder and select a notebook to learn more:
@@ -284,39 +284,67 @@ help debug data and/or logic errors.
 
 Refer to :ref:`trace` for more details on configuring tracing and the various output files.
 
+.. _explicit_error_terms_ways_to_run :
+
+Explicit Error Terms
+____________________
+
+ActivitySim makes heavy use of micro-simulation. Most model components are discrete choice models with an inherent
+random component, and for each choice situation a single outcome is generated.
+With the default inverse-CDF (probability-based) draw method, ActivitySim first calculates analytical probabilities from the
+systematic utilities of a multinomial or nested logit model and then makes one draw from the
+cumulative distribution for each chooser. Explicit Error Terms (EET) replaces that final draw with a direct
+random-utility simulation by drawing the unobserved portion of utility (error term) for each
+chooser-alternative pair, adding it to the systematic utility, and selecting the alternative with the highest
+total utility. Both methods simulate the same underlying model, but EET can be less affected by simulation
+noise when comparing scenarios and can make some comparisons easier to interpret. This is because the
+selected alternative is the one with the highest total utility after adding the explicit
+error term, and if the explicit error term is consistent between a base and scenario run then
+only (relative) increases in the observed utility can lead to previously un-chosen alternatives
+being chosen.
+
+To enable EET for a model run, set the global switch in ``settings.yaml``:
+
+.. code-block:: yaml
+
+  use_explicit_error_terms: True
+
+Enable or disable this setting consistently across all runs being compared. For more details, including
+scenario comparison considerations, see :doc:`/dev-guide/explicit-error-terms`.
+
 .. _skip_failed_choices_ways_to_run :
 
 Skip Failed Choices
 ______________________
 
-By default, ActivitySim will skip any failed choices during model execution, i.e., ``skip_failed_choices`` is set to ``True``. 
-A failed choice occurs when the computed utilities for all alternatives are zero, or infinite, or nan, which can happen due to 
-data issues or model specification problems. A warning message is logged when a failed choice is encountered, 
+By default, ActivitySim will skip any failed choices during model execution, i.e., ``skip_failed_choices`` is set to ``True``.
+A failed choice occurs when the computed utilities for all alternatives are zero, or infinite, or nan, which can happen due to
+data issues or model specification problems. A warning message is logged when a failed choice is encountered,
 and the corresponding household (along with its persons, vehicles, tours, trips, etc) will be excluded from further model steps.
-At the end of the model run, a summary of all skipped households is provided in the log file for user reference. This feature 
-helps to ensure that the model can continue running even in the presence of data or specification issues, 
+At the end of the model run, a summary of all skipped households is provided in the log file for user reference. This feature
+helps to ensure that the model can continue running even in the presence of data or specification issues,
 while also providing visibility into any potential problems that need to be addressed.
 
-Users can optionally set a ``fraction_of_failed_choices_allowed`` parameter in the settings file to specify a threshold for the 
-maximum allowable fraction of failed households, this value is expected to be between 0 and 1. 
+Users can optionally set a ``fraction_of_failed_choices_allowed`` parameter in the settings file to specify a threshold for the
+maximum allowable fraction of failed households, this value is expected to be between 0 and 1.
 If the fraction of failed households exceeds this threshold, ActivitySim will raise a RuntimeError and terminate the model run.
 If the fraction is within the allowable limit, the model will proceed with the skipped households as described above. This threshold
 provides an additional layer of control for users to skip problems when they are small, and stop the model when they are large.
 
-When ``skip_failed_choices`` is enabled, ActivitySim will automatically perform debug tracing for one of the failed households within each 
-model step where failed choices occur. The trace files will be saved in the output/trace directory with folders suffixed by 
-``_resimulate``. This automatic tracing feature allows users to easily investigate the reasons behind the failed choices without needing to 
+When ``skip_failed_choices`` is enabled, ActivitySim will automatically perform debug tracing for one of the failed households within each
+model step where failed choices occur. The trace files will be saved in the output/trace directory with folders suffixed by
+``_resimulate``. This automatic tracing feature allows users to easily investigate the reasons behind the failed choices without needing to
 manually specify trace IDs. This feature is implemented for simple simulate models only, and is not yet available for interaction_simulate models.
 For interaction_simulate models, users can manually specify trace IDs to perform tracing of failed choices.
 
-Users can configure ActivitySim to not skip failed choices by setting the 
+Users can configure ActivitySim to not skip failed choices by setting the
 ``skip_failed_choices`` option to ``False`` in the settings file. When this option is disabled, the system will fall back to
-using the legacy ``overflow_protection`` mechanism to handle such cases. Specifically, if the computed utilities lead to zero or infinite exponentiated values, 
-the legacy ``overflow_protection`` will adjust the utilities to prevent numerical overflow during exponentiation and arbitarily making a choice, however, no loggings will be made for these cases. 
+using the legacy ``overflow_protection`` mechanism to handle such cases. Specifically, if the computed utilities lead to zero or infinite exponentiated values,
+the legacy ``overflow_protection`` will adjust the utilities to prevent numerical overflow during exponentiation and arbitarily making a choice, however, no loggings will be made for these cases.
 When ``skip_failed_choices`` is enabled, ActivitySim will not use the legacy ``overflow_protection`` mechanism to handle failed choices.
 
 .. note::
-  When an agency turns on ``skip_failed_choices`` for the first time in an existing ActivitySim implementation, 
-  warning messages may appear in the log for failed choices that were previously handled silently by the legacy ``overflow_protection`` mechanism. 
-  These warnings are expected and reflect the change in behavior: failed choices are now explicitly skipped and traced rather than silently handled. 
+  When an agency turns on ``skip_failed_choices`` for the first time in an existing ActivitySim implementation,
+  warning messages may appear in the log for failed choices that were previously handled silently by the legacy ``overflow_protection`` mechanism.
+  These warnings are expected and reflect the change in behavior: failed choices are now explicitly skipped and traced rather than silently handled.
   In some cases, model runs may crash if the number of skipped failed choices exceeds the configured ``fraction_of_failed_choices_allowed`` threshold.

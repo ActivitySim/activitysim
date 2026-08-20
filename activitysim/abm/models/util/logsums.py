@@ -5,9 +5,9 @@ from __future__ import annotations
 import logging
 
 import pandas as pd
+from pydantic import BaseModel as PydanticBase
 
 from activitysim.core import config, expressions, los, simulate, tracing, workflow
-from activitysim.core.configuration import PydanticBase
 from activitysim.core.configuration.logit import (
     TourLocationComponentSettings,
     TourModeComponentSettings,

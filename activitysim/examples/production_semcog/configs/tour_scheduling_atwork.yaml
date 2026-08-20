@@ -9,8 +9,5 @@ preprocessor:
 #    - land_use
 #    - tours
 
-SIMULATE_CHOOSER_COLUMNS:
-  - od_distance
-  
 CONSTANTS:
   time_cap: 30

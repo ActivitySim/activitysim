@@ -999,11 +999,18 @@ def household_activity_choices(
         # add joint util to util
         utils = utils.add(joint_tour_utils)
 
-    probs = logit.utils_to_probs(state, utils, trace_label=trace_label)
+    if state.settings.use_explicit_error_terms:
+        utils = logit.validate_utils(state, utils, trace_label=trace_label)
 
-    # select an activity pattern alternative for each household based on probability
-    # result is a series indexed on _hh_index_ with the (0 based) index of the column from probs
-    idx_choices, rands = logit.make_choices(state, probs, trace_label=trace_label)
+        idx_choices, rands = logit.make_choices_utility_based(
+            state, utils, trace_label=trace_label
+        )
+    else:
+        probs = logit.utils_to_probs(state, utils, trace_label=trace_label)
+
+        # select an activity pattern alternative for each household based on probability
+        # result is a series indexed on _hh_index_ with the (0 based) index of the column from probs
+        idx_choices, rands = logit.make_choices(state, probs, trace_label=trace_label)
 
     # convert choice expressed as index into alternative name from util column label
     choices = pd.Series(utils.columns[idx_choices].values, index=utils.index)
@@ -1021,16 +1028,20 @@ def household_activity_choices(
             "%s.hhsize%d_utils" % (trace_label, hhsize),
             column_labels=["expression", "household"],
         )
-        state.tracing.trace_df(
-            probs,
-            "%s.hhsize%d_probs" % (trace_label, hhsize),
-            column_labels=["expression", "household"],
-        )
+
+        if not state.settings.use_explicit_error_terms:
+            state.tracing.trace_df(
+                probs,
+                "%s.hhsize%d_probs" % (trace_label, hhsize),
+                column_labels=["expression", "household"],
+            )
+
         state.tracing.trace_df(
             choices,
             "%s.hhsize%d_activity_choices" % (trace_label, hhsize),
             column_labels=["expression", "household"],
         )
+
         state.tracing.trace_df(
             rands, "%s.hhsize%d_rands" % (trace_label, hhsize), columns=[None, "rand"]
         )

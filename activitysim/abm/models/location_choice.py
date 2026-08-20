@@ -9,16 +9,21 @@ import pandas as pd
 
 from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.models.util import tour_destination
+from activitysim.abm.models.util.bias_logsums import maybe_bias_logsums
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core import estimation, expressions, los, simulate, tracing, workflow
 from activitysim.core.configuration.logit import (
     TourLocationComponentSettings,
     TourModeComponentSettings,
 )
-from activitysim.core.interaction_sample import interaction_sample
-from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
-from activitysim.core.util import reindex
 from activitysim.core.exceptions import DuplicateWorkflowTableError
+from activitysim.core.interaction_sample import (
+    interaction_sample,
+    resolve_sample_method,
+)
+from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
+from activitysim.core.logit import AltsContext
+from activitysim.core.util import reindex
 
 """
 The school/workplace location model predicts the zones in which various people will
@@ -116,6 +121,8 @@ def _location_sample(
     chunk_tag,
     trace_label,
     zone_layer=None,
+    stable_alt_positions=None,
+    n_total_alts=None,
 ):
     """
     select a sample of alternative locations.
@@ -211,6 +218,8 @@ def _location_sample(
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer=zone_layer,
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
         explicit_chunk_size=model_settings.explicit_chunk,
         compute_settings=model_settings.compute_settings.subcomponent_settings(
             "sample"
@@ -226,20 +235,17 @@ def location_sample(
     persons_merged,
     network_los,
     dest_size_terms,
+    full_dest_size_terms,
     estimator,
     model_settings: TourLocationComponentSettings,
     chunk_size,
     chunk_tag,
     trace_label,
 ):
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-    # Drop this when PR #1017 is merged
-    if ("household_id" not in chooser_columns) and (
-        "household_id" in persons_merged.columns
-    ):
-        chooser_columns = chooser_columns + ["household_id"]
-    choosers = persons_merged[chooser_columns]
+    # The former column selection returned an independent frame.  Preserve that
+    # isolation so component preprocessors cannot leak annotations into the
+    # shared persons table or into later location-choice segments.
+    choosers = persons_merged.copy()
 
     # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
     # and a zone_id in the alternatives which get merged during interaction
@@ -249,6 +255,16 @@ def location_sample(
     skims = skim_dict.wrap("home_zone_id", "zone_id")
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
+
+    if state.settings.use_explicit_error_terms:
+        stable_alt_positions = full_dest_size_terms.index.get_indexer(
+            dest_size_terms.index
+        )
+        assert (stable_alt_positions >= 0).all()
+        n_total_alts = len(full_dest_size_terms)
+    else:
+        stable_alt_positions = None
+        n_total_alts = None
 
     choices = _location_sample(
         state,
@@ -262,6 +278,8 @@ def location_sample(
         chunk_size,
         chunk_tag,
         trace_label,
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
     )
 
     return choices
@@ -371,6 +389,7 @@ def location_presample(
     chunk_size,
     chunk_tag,
     trace_label,
+    full_dest_size_terms=None,
 ):
     trace_label = tracing.extend_trace_label(trace_label, "presample")
 
@@ -383,6 +402,34 @@ def location_presample(
         state, dest_size_terms, network_los, model_settings
     )
 
+    if full_dest_size_terms is None:
+        full_dest_size_terms = dest_size_terms
+
+    if state.settings.use_explicit_error_terms:
+        full_taz_index = pd.Index(
+            network_los.map_maz_to_taz(full_dest_size_terms.index), name=DEST_TAZ
+        )
+        full_taz_index = full_taz_index[~full_taz_index.duplicated()]
+        stable_alt_positions = full_taz_index.get_indexer(TAZ_size_terms.index)
+        assert (stable_alt_positions >= 0).all()
+        n_total_alts = len(full_taz_index)
+
+        # The TAZ presample call below passes stable_alt_positions for both EET and Poisson sampling, so each TAZ is
+        # keyed to its position in the full TAZ universe. The MAZ-for-TAZ second stage only receives full_taz_index for
+        # Poisson: that stage uses one per-(chooser, TAZ) uniform to pick a MAZ within each sampled TAZ. Under Poisson
+        # each sampled TAZ appears at most once per chooser, so the per-TAZ uniform produces an independent MAZ choice.
+        # Under EET sampling (importance sampling with replacement) the same TAZ can appear multiple times in a
+        # chooser's sample and would all share one uniform, forcing every duplicate to pick the same MAZ. An EET-stable
+        # MAZ-for-TAZ would need a (TAZ, occurrence-rank)-keyed draw and many more random numbers per chooser; that's
+        # too expensive with the current RNG, revisit if a counter-based RNG is adapted.
+        taz_sample_method = resolve_sample_method(state, model_settings)
+        use_stable_taz_index = taz_sample_method == "poisson"
+    else:
+        full_taz_index = None
+        stable_alt_positions = None
+        n_total_alts = None
+        use_stable_taz_index = False
+
     # convert MAZ zone_id to 'TAZ' in choosers (persons_merged)
     # persons_merged[HOME_TAZ] = persons_merged[HOME_MAZ].map(maz_to_taz)
     assert HOME_MAZ in persons_merged
@@ -390,17 +437,8 @@ def location_presample(
         HOME_TAZ in persons_merged
     )  # 'TAZ' should already be in persons_merged from land_use
 
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    # FIXME we don't actually require that land_use provide a TAZ crosswalk
-    # FIXME maybe we should add it for multi-zone (from maz_taz) if missing?
-    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-    chooser_columns = [HOME_TAZ if c == HOME_MAZ else c for c in chooser_columns]
-    # Drop this when PR #1017 is merged
-    if ("household_id" not in chooser_columns) and (
-        "household_id" in persons_merged.columns
-    ):
-        chooser_columns = chooser_columns + ["household_id"]
-    choosers = persons_merged[chooser_columns]
+    # Keep chooser annotations local to this model segment.
+    choosers = persons_merged.copy()
 
     # create wrapper with keys for this lookup - in this case there is a HOME_TAZ in the choosers
     # and a DEST_TAZ in the alternatives which get merged during interaction
@@ -421,6 +459,8 @@ def location_presample(
         chunk_tag,
         trace_label,
         zone_layer="taz",
+        stable_alt_positions=stable_alt_positions,
+        n_total_alts=n_total_alts,
     )
 
     # print(f"taz_sample\n{taz_sample}")
@@ -433,7 +473,12 @@ def location_presample(
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
     maz_choices = tour_destination.choose_MAZ_for_TAZ(
-        state, taz_sample, MAZ_size_terms, trace_label, model_settings
+        state,
+        taz_sample,
+        MAZ_size_terms,
+        trace_label,
+        model_settings,
+        full_taz_index=full_taz_index if use_stable_taz_index else None,
     )
 
     assert DEST_MAZ in maz_choices
@@ -472,6 +517,8 @@ def run_location_sample(
     23751,      14,           0.972732479292,  2
     """
 
+    full_dest_size_terms = dest_size_terms
+
     logger.debug(
         f"dropping {(~(dest_size_terms.size_term > 0)).sum()} "
         f"of {len(dest_size_terms)} rows where size_term is zero"
@@ -506,6 +553,7 @@ def run_location_sample(
             chunk_size,
             chunk_tag=f"{chunk_tag}.presample",
             trace_label=trace_label,
+            full_dest_size_terms=full_dest_size_terms,
         )
 
     else:
@@ -515,6 +563,7 @@ def run_location_sample(
             persons_merged,
             network_los,
             dest_size_terms,
+            full_dest_size_terms,
             estimator,
             model_settings,
             chunk_size,
@@ -565,11 +614,6 @@ def run_location_logsums(
         mandatory=False,
     )
 
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    persons_merged_df = logsum.filter_chooser_columns(
-        persons_merged_df, logsum_settings, model_settings
-    )
-
     logger.info(f"Running {trace_label} with {len(location_sample_df.index)} rows")
 
     choosers = location_sample_df.join(persons_merged_df, how="left")
@@ -613,6 +657,7 @@ def run_location_simulate(
     chunk_tag,
     trace_label,
     skip_choice=False,
+    alts_context: AltsContext | None = None,
 ):
     """
     run location model on location_sample annotated with mode_choice logsum
@@ -628,14 +673,9 @@ def run_location_simulate(
     """
     assert not persons_merged.empty
 
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-    # Drop this when PR #1017 is merged
-    if ("household_id" not in chooser_columns) and (
-        "household_id" in persons_merged.columns
-    ):
-        chooser_columns = chooser_columns + ["household_id"]
-    choosers = persons_merged[chooser_columns]
+    # Preprocessors annotate choosers in place.  Use a copy so those temporary
+    # columns do not affect subsequent segments that share persons_merged.
+    choosers = persons_merged.copy()
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
@@ -727,6 +767,7 @@ def run_location_simulate(
         compute_settings=model_settings.compute_settings.subcomponent_settings(
             "simulate"
         ),
+        alts_context=alts_context,
     )
 
     if not want_logsums:
@@ -771,6 +812,7 @@ def run_location_choice(
     model_settings : dict
     chunk_size : int
     trace_label : str
+    skip_choice : bool
 
     Returns
     -------
@@ -803,6 +845,13 @@ def run_location_choice(
         if choosers.shape[0] == 0:
             logger.info(f"{trace_label} skipping segment {segment_name}: no choosers")
             continue
+
+        if state.settings.use_explicit_error_terms:
+            # dest_size_terms contains 0-attraction zones so using this directly here, important for stable error terms
+            # when a zone goes from 0 base -> nonzero project
+            alts_context = AltsContext.from_series(dest_size_terms.index)
+        else:
+            alts_context = None
 
         # - location_sample
         location_sample_df = run_location_sample(
@@ -856,7 +905,12 @@ def run_location_choice(
                 trace_label, "simulate.%s" % segment_name
             ),
             skip_choice=skip_choice,
+            alts_context=alts_context,
         )
+
+        # Check for temporary fix to bias logsums for Poisson sampling results to align with MC/eet sampling.
+        if want_logsums:
+            choices_df = maybe_bias_logsums(state, choices_df, model_settings)
 
         if estimator:
             if state.settings.trace_hh_id:
@@ -872,34 +926,6 @@ def run_location_choice(
                 column_names=model_settings.DEST_CHOICE_COLUMN_NAME,
             )
             estimator.write_override_choices(choices_df.choice)
-
-            if want_logsums:
-                # if we override choices, we need to to replace choice logsum with ologsim for override location
-                # fortunately, as long as we aren't sampling dest alts, the logsum will be in location_sample_df
-
-                # if we start sampling dest alts, we will need code below to compute override location logsum
-                assert estimator.want_unsampled_alternatives
-
-                # merge mode_choice_logsum for the overridden location
-                # alt_logsums columns: ['person_id', 'choice', 'logsum']
-                alt_dest_col = model_settings.ALT_DEST_COL_NAME
-                alt_logsums = (
-                    location_sample_df[[alt_dest_col, ALT_LOGSUM]]
-                    .rename(columns={alt_dest_col: "choice", ALT_LOGSUM: "logsum"})
-                    .reset_index()
-                )
-
-                # choices_df columns: ['person_id', 'choice']
-                choices_df = choices_df[["choice"]].reset_index()
-
-                # choices_df columns: ['person_id', 'choice', 'logsum']
-                choices_df = pd.merge(choices_df, alt_logsums, how="left").set_index(
-                    "person_id"
-                )
-
-                logger.debug(
-                    f"{trace_label} segment {segment_name} estimation: override logsums"
-                )
 
             if state.settings.trace_hh_id:
                 estimation_trace_label = tracing.extend_trace_label(
@@ -1046,6 +1072,18 @@ def iterate_location_choice(
                 ]
                 persons_merged_df_ = persons_merged_df_.sort_index()
 
+        # reset rng offsets to identical state on each iteration. This ensures that the same set of random numbers is
+        # used on each iteration for the persons being re-simulated, so sampling and final choice draws are
+        # reproducible across shadow-pricing iterations.
+        # Scoped to the persons channel for these specific rows via reset_offsets_for_df so the dedicated
+        # shadow_pricing_persons channel (registered under EET) keeps its offset across iterations and advances
+        # naturally on each iteration's update_shadow_prices call.
+        if state.settings.use_explicit_error_terms and iteration > 1:
+            logger.debug(
+                f"{trace_label} resetting random number generator offsets for iteration {iteration}"
+            )
+            state.get_rn_generator().reset_offsets_for_df(persons_merged_df_)
+
         choices_df_, save_sample_df = run_location_choice(
             state,
             persons_merged_df_,
@@ -1133,6 +1171,10 @@ def iterate_location_choice(
                 )
             )
             break
+    # Drop the dedicated shadow_pricing RNG channel (registered lazily under EET by spc.update_shadow_prices) so it
+    # doesn't survive into the next location_choice model (e.g., school after work) — both models share the same
+    # channel name and would otherwise collide on the no-overlap assert in SimpleChannel.extend_domain. No-op for MC.
+    spc.cleanup_rng_channel(state)
 
     # - shadow price table
     if locutor:

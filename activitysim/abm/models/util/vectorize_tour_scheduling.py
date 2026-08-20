@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
+from pydantic import field_validator
 
 from activitysim.abm.models.tour_mode_choice import TourModeComponentSettings
 from activitysim.core import chunk, config, expressions, los, simulate
@@ -17,6 +19,7 @@ from activitysim.core import tracing, workflow
 from activitysim.core.configuration.base import ComputeSettings, PreprocessorSettings
 from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
+from activitysim.core.logit import AltsContext
 from activitysim.core.util import reindex
 from activitysim.abm.models.util.logsums import setup_skims
 from activitysim.abm.models.park_and_ride_lot_choice import run_park_and_ride_lot_choice
@@ -44,7 +47,26 @@ class TourSchedulingSettings(LogitComponentSettings, extra="forbid"):
     it is assumed to be an unsegmented preprocessor.  Otherwise, the dict keys
     give the segements.
     """
-    SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
+    SIMULATE_CHOOSER_COLUMNS: Any | None = None
+    """Was used to help reduce the memory needed for the model.
+
+    This setting is now obsolete and does nothing. Its functionality has been
+    replaced by :func:`activitysim.core.util.drop_unused_columns`.
+
+    .. deprecated:: 1.6
+    """
+
+    @field_validator("SIMULATE_CHOOSER_COLUMNS", mode="before")
+    @classmethod
+    def _deprecate_simulate_chooser_columns(cls, value):
+        if value is not None:
+            warnings.warn(
+                "SIMULATE_CHOOSER_COLUMNS is deprecated and no longer used, "
+                "unused columns are now dropped automatically",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return None
 
     SPEC_SEGMENTS: dict[str, LogitComponentSettings] = {}
 
@@ -850,6 +872,13 @@ def _schedule_tours(
 
     log_alt_losers = state.settings.log_alt_losers
 
+    if state.settings.use_explicit_error_terms:
+        # use full TDD alternatives index to ensure AltsContext spans full range of potential slots
+        tdd_alts = state.get_injectable("tdd_alts")
+        alts_context = AltsContext.from_series(tdd_alts.index)
+    else:
+        alts_context = None
+
     choices = interaction_sample_simulate(
         state,
         tours,
@@ -862,6 +891,7 @@ def _schedule_tours(
         trace_label=tour_trace_label,
         estimator=estimator,
         compute_settings=compute_settings,
+        alts_context=alts_context,
     )
     chunk_sizer.log_df(tour_trace_label, "choices", choices)
 
@@ -966,7 +996,7 @@ def schedule_tours(
     if len(result_list) > 1:
         choices = pd.concat(result_list)
 
-    assert len(choices.index == len(tours.index))
+    assert len(choices.index) == len(tours.index)
 
     return choices
 

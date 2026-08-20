@@ -351,36 +351,50 @@ def choose_tour_leg_pattern(
             column_labels=["alternative", "utility"],
         )
 
-    # convert to probabilities (utilities exponentiated and normalized to probs)
-    # probs is same shape as utilities, one row per chooser and one column for alternative
-    probs = logit.utils_to_probs(
-        state, utilities_df, trace_label=trace_label, trace_choosers=trip_segment
-    )
-
-    chunk_sizer.log_df(trace_label, "probs", probs)
-
-    del utilities_df
-    chunk_sizer.log_df(trace_label, "utilities_df", None)
-
-    if have_trace_targets:
-        state.tracing.trace_df(
-            probs,
-            tracing.extend_trace_label(trace_label, "probs"),
-            column_labels=["alternative", "probability"],
+    if state.settings.use_explicit_error_terms:
+        utilities_df = logit.validate_utils(
+            state, utilities_df, trace_label=trace_label, trace_choosers=trip_segment
+        )
+        # make choices
+        # positions is series with the chosen alternative represented as a column index in probs
+        # which is an integer between zero and num alternatives in the alternative sample
+        positions, rands = logit.make_choices_utility_based(
+            state, utilities_df, trace_label=trace_label, trace_choosers=trip_segment
         )
 
-    # make choices
-    # positions is series with the chosen alternative represented as a column index in probs
-    # which is an integer between zero and num alternatives in the alternative sample
-    positions, rands = logit.make_choices(
-        state, probs, trace_label=trace_label, trace_choosers=trip_segment
-    )
+        del utilities_df
+        chunk_sizer.log_df(trace_label, "utilities_df", None)
+    else:
+        # convert to probabilities (utilities exponentiated and normalized to probs)
+        # probs is same shape as utilities, one row per chooser and one column for alternative
+        probs = logit.utils_to_probs(
+            state, utilities_df, trace_label=trace_label, trace_choosers=trip_segment
+        )
+
+        chunk_sizer.log_df(trace_label, "probs", probs)
+
+        del utilities_df
+        chunk_sizer.log_df(trace_label, "utilities_df", None)
+
+        if have_trace_targets:
+            state.tracing.trace_df(
+                probs,
+                tracing.extend_trace_label(trace_label, "probs"),
+                column_labels=["alternative", "probability"],
+            )
+
+        # make choices
+        # positions is series with the chosen alternative represented as a column index in probs
+        # which is an integer between zero and num alternatives in the alternative sample
+        positions, rands = logit.make_choices(
+            state, probs, trace_label=trace_label, trace_choosers=trip_segment
+        )
+
+        del probs
+        chunk_sizer.log_df(trace_label, "probs", None)
 
     chunk_sizer.log_df(trace_label, "positions", positions)
     chunk_sizer.log_df(trace_label, "rands", rands)
-
-    del probs
-    chunk_sizer.log_df(trace_label, "probs", None)
 
     # shouldn't have chosen any of the dummy pad utilities
     assert positions.max() < max_sample_count

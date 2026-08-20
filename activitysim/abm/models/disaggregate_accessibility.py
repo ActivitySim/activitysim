@@ -15,7 +15,11 @@ from activitysim.abm.models import initialize, location_choice
 from activitysim.abm.models.util import tour_destination
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core import estimation, los, tracing, util, workflow
-from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
+from activitysim.core.configuration.base import (
+    ComputeSettings,
+    PreprocessorSettings,
+    PydanticReadable,
+)
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.expressions import assign_columns
 
@@ -185,6 +189,8 @@ class DisaggregateAccessibilitySettings(PydanticReadable, extra="forbid"):
     """
     NEAREST_ZONE_SKIM: str = "DIST"
     """The skim to use for finding the nearest zone when distributing logsums to un-sampled zones."""
+
+    compute_settings: ComputeSettings | None = None
 
 
 def read_disaggregate_accessibility_yaml(
@@ -796,6 +802,11 @@ def get_disaggregate_logsums(
         # Otherwise the explict_chunk will be set to whatever is in the location model settings
         if disagg_model_settings.explicit_chunk is not None:
             model_settings.explicit_chunk = disagg_model_settings.explicit_chunk
+
+        # Can set compute settings for disaggregate accessibility
+        # Otherwise this will be set to whatever is in the location model settings
+        if disagg_model_settings.compute_settings is not None:
+            model_settings.compute_settings = disagg_model_settings.compute_settings
 
         # Include the suffix tags to pass onto downstream logsum models (e.g., tour mode choice)
         if model_settings.LOGSUM_SETTINGS:

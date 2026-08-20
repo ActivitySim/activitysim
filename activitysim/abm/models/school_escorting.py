@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
+from pydantic import field_validator
 
 from activitysim.abm.models.util import school_escort_tours_trips
 from activitysim.core import (
@@ -85,13 +87,17 @@ def determine_escorting_participants(
     )
 
     chaperones["chaperone_num"] = (
-        chaperones.sort_values("chaperone_weight", ascending=False)
+        chaperones.sort_values(
+            ["chaperone_weight", "person_id"], ascending=[False, True]
+        )
         .groupby("household_id")
         .cumcount()
         + 1
     )
     escortees["escortee_num"] = (
-        escortees.sort_values("age", ascending=True).groupby("household_id").cumcount()
+        escortees.sort_values([age_col, "person_id"], ascending=[True, True])
+        .groupby("household_id")
+        .cumcount()
         + 1
     )
 
@@ -247,7 +253,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
         )
 
     # each chauffeur option has ride share or pure escort
-    bundles["chauf_num"] = np.ceil(bundles["chauf_type_num"].div(2)).astype(int)
+    bundles["chauf_num"] = ((bundles["chauf_type_num"] + 1) // 2).astype("int64")
 
     # getting bundle chauffeur id based on the chauffeur num
     bundles["chauf_id"] = -1
@@ -257,7 +263,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
             choosers["chauf_id" + str(i)],
             bundles["chauf_id"],
         )
-    bundles["chauf_id"] = bundles["chauf_id"].astype(int)
+    bundles["chauf_id"] = bundles["chauf_id"].astype("int64")
     assert (
         bundles["chauf_id"] > 0
     ).all(), "Invalid chauf_id's for school escort bundles!"
@@ -278,9 +284,13 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     school_time_cols = [
         "time_home_to_school" + str(i) for i in range(1, NUM_ESCORTEES + 1)
     ]
-    bundles["outbound_order"] = list(bundles[school_time_cols].values.argsort() + 1)
+    # Child number is the deterministic tie-breaker when siblings have the same
+    # home-to-school time, so preserve the order of the child-number columns.
+    bundles["outbound_order"] = list(
+        bundles[school_time_cols].values.argsort(kind="stable") + 1
+    )
     bundles["inbound_order"] = list(
-        (-1 * bundles[school_time_cols]).values.argsort() + 1
+        (-1 * bundles[school_time_cols]).values.argsort(kind="stable") + 1
     )  # inbound gets reverse order
     bundles["child_order"] = np.where(
         bundles["school_escort_direction"] == "outbound",
@@ -314,6 +324,54 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     return bundles
 
 
+def assign_school_escort_bundle_ids(escort_bundles: pd.DataFrame) -> pd.DataFrame:
+    """Sort bundles by semantic keys and assign deterministic, unique IDs."""
+    bundle_key_columns = [
+        "household_id",
+        "school_escort_direction",
+        "bundle_num",
+    ]
+    duplicate_keys = escort_bundles.duplicated(bundle_key_columns, keep=False)
+    if duplicate_keys.any():
+        duplicates = escort_bundles.loc[duplicate_keys, bundle_key_columns]
+        raise ValueError(f"Duplicate school escort bundle keys:\n{duplicates}")
+
+    # Inbound bundles were historically appended first and therefore received
+    # the lower IDs. Use an explicit direction rank to preserve that behavior
+    # without depending on categorical or input row ordering.
+    direction = escort_bundles["school_escort_direction"]
+    direction_order = np.select(
+        [direction == "inbound", direction == "outbound"], [0, 1], default=-1
+    )
+    if (direction_order < 0).any():
+        invalid_directions = direction[direction_order < 0].unique().tolist()
+        raise ValueError(
+            f"Invalid school escort bundle directions: {invalid_directions}"
+        )
+
+    escort_bundles = (
+        escort_bundles.assign(_school_escort_direction_order=direction_order)
+        .sort_values(
+            by=[
+                "household_id",
+                "_school_escort_direction_order",
+                "bundle_num",
+            ]
+        )
+        .drop(columns="_school_escort_direction_order")
+    )
+    escort_bundles["bundle_id"] = (
+        escort_bundles["household_id"].astype("int64") * 10
+        + escort_bundles.groupby("household_id").cumcount()
+        + 1
+    ).astype("int64")
+
+    if not escort_bundles["bundle_id"].is_unique:
+        raise ValueError("Generated school escort bundle IDs are not unique")
+
+    return escort_bundles
+
+
 class SchoolEscortSettings(BaseLogitComponentSettings, extra="forbid"):
     """
     Settings for the `telecommute_frequency` component.
@@ -335,7 +393,26 @@ class SchoolEscortSettings(BaseLogitComponentSettings, extra="forbid"):
     GENDER_WEIGHT: float = 10.0
     AGE_WEIGHT: float = 1.0
 
-    SIMULATE_CHOOSER_COLUMNS: list[str] | None = None
+    SIMULATE_CHOOSER_COLUMNS: Any | None = None
+    """Was used to help reduce the memory needed for the model.
+
+    This setting is now obsolete and does nothing. Its functionality has been
+    replaced by :func:`activitysim.core.util.drop_unused_columns`.
+
+    .. deprecated:: 1.6
+    """
+
+    @field_validator("SIMULATE_CHOOSER_COLUMNS", mode="before")
+    @classmethod
+    def _deprecate_simulate_chooser_columns(cls, value):
+        if value is not None:
+            warnings.warn(
+                "SIMULATE_CHOOSER_COLUMNS is deprecated and no longer used, "
+                "unused columns are now dropped automatically",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return None
 
     SPEC: None = None
     """The school escort model does not use this setting."""
@@ -465,17 +542,6 @@ def school_escorting(
         # else:
         #     locals_dict.pop("_sharrow_skip", None)
 
-        # reduce memory by limiting columns if selected columns are supplied
-        chooser_columns = model_settings.SIMULATE_CHOOSER_COLUMNS
-        if chooser_columns is not None:
-            # Drop this when PR #1017 is merged
-            if ("household_id" not in chooser_columns) and (
-                "household_id" in choosers.columns
-            ):
-                chooser_columns = chooser_columns + ["household_id"]
-            chooser_columns = chooser_columns + participant_columns
-            choosers = choosers[chooser_columns]
-
         # add previous data to stage
         if stage_num >= 1:
             choosers = add_prev_choices_to_choosers(
@@ -566,10 +632,14 @@ def school_escorting(
             )
 
         if stage_num >= 1:
-            choosers["alt"] = choices
-            choosers = choosers.join(alts, how="left", on="alt")
+            # The raw alternative columns are only needed to construct bundle
+            # records.  Do not retain them on the chooser state: the final
+            # stage would otherwise try to join the same columns a second time.
+            bundle_choosers = choosers.assign(alt=choices).join(
+                alts, how="left", on="alt"
+            )
             bundles = create_school_escorting_bundles_table(
-                choosers[choosers["alt"] > 1], tours, stage
+                bundle_choosers[bundle_choosers["alt"] > 1], tours, stage
             )
             escort_bundles.append(bundles)
 
@@ -577,16 +647,7 @@ def school_escorting(
 
     # Only want to create bundles and tours and trips if at least one household has school escorting
     if len(escort_bundles) > 0:
-        escort_bundles["bundle_id"] = (
-            escort_bundles["household_id"] * 10
-            + escort_bundles.groupby("household_id").cumcount()
-            + 1
-        )
-        escort_bundles.sort_values(
-            by=["household_id", "school_escort_direction"],
-            ascending=[True, False],
-            inplace=True,
-        )
+        escort_bundles = assign_school_escort_bundle_ids(escort_bundles)
 
         school_escort_tours = school_escort_tours_trips.create_pure_school_escort_tours(
             state, escort_bundles

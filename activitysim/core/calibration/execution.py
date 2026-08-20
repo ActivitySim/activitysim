@@ -5,15 +5,21 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+import pandas as pd
+
 from activitysim.core import workflow
+from activitysim.core.workflow.checkpoint import (
+    CHECKPOINT_NAME,
+    CHECKPOINT_TABLE_NAME,
+    LAST_CHECKPOINT,
+    NON_TABLE_COLUMNS,
+)
 
 from .multiprocess import (
     _reregister_rng_channels,
     _restore_from_subprocess_pipelines,
     _run_multiprocess_with_overrides,
 )
-from .settings import read_calibration_settings
-
 logger = logging.getLogger("calibration")
 
 
@@ -167,62 +173,15 @@ def _prep_model_data(state, resume_after=None):
     return []
 
 
-def _invalidate_derived_tables(state: workflow.State) -> None:
-    """Drop factory-produced tables that may be stale after a calibration restore.
-
-    When a calibrated model (e.g. auto_ownership) changes a table that a
-    @workflow.table factory depends on (e.g. vehicles depends on households),
-    the checkpoint may contain a stale version of that factory table.  Dropping
-    it forces the factory to regenerate from current data on next access.
-
-    Auto-detection rule: invalidate any table that is (a) registered as a
-    @workflow.table factory, (b) has DataFrame parameters (= table dependencies),
-    and (c) is in RANDOM_CHANNELS.  This currently matches only 'vehicles' but
-    will automatically cover future factory tables with the same pattern.
-    """
-    settings = read_calibration_settings(state)
-    if not settings:
-        return
-
-    tables_to_invalidate = settings.run.invalidate_tables
-    if tables_to_invalidate is None:
-        # Vehicles needs regeneration only when calibration changes
-        # households.auto_ownership. Downstream calibration components must
-        # retain vehicle_type_choice's vehicle attributes.
-        tables_to_invalidate = (
-            ["vehicles"]
-            if "auto_ownership_simulate" in settings.run.calibrate_models
-            else []
-        )
-
-    logger.debug(
-        "calibration: tables detected for invalidation: %s", tables_to_invalidate
-    )
-    tables_before = set(state.existing_table_names)
-
-    for table_name in tables_to_invalidate:
-        if state.is_table(table_name):
-            state.drop_table(table_name)
-            state.rng().drop_channel(table_name)
-            state.get_dataframe(table_name, as_copy=False)
-            logger.debug("calibration: invalidated derived table '%s'", table_name)
-
-    tables_after = set(state.existing_table_names)
-    lost = tables_before - tables_after - set(tables_to_invalidate)
-    if lost:
-        logger.error(
-            "calibration: tables unexpectedly removed during invalidation: %s", lost
-        )
-
-
 def _restore_parent_state_from_pipeline(
     state: workflow.State, checkpoint_name: str = "_"
 ) -> None:
     """Restore pipeline tables into the parent process state.
 
-    After a multiprocess run, the parent's in-memory state is stale.
-    This loads a specific checkpoint from the pipeline store so that
-    calibration expressions can evaluate against model outputs.
+    After a multiprocess run or calibration rewind, the parent's in-memory
+    state may contain tables created after the requested checkpoint.  Remove
+    those tables before loading the checkpoint so the restored state exactly
+    represents that point in the model sequence.
 
     Parameters
     ----------
@@ -238,15 +197,65 @@ def _restore_parent_state_from_pipeline(
     subprocesses can load them from a direct file path without relying on
     checkpoint backtracking through potentially ambiguous checkpoint history.
     """
-    # Capture RNG state before restore — models may have dynamically
-    # added channels (e.g. "vehicles") that aren't in the default
-    # rng_channels injectable and would be lost by init_state().
-    prior_rng_channels = list(state.get_injectable("rng_channels", []))
-    prior_index_to_channel = (
-        dict(state.rng().index_to_channel)
-        if hasattr(state.rng(), "index_to_channel")
-        else {}
-    )
+    # Read the target checkpoint manifest before restore truncates checkpoint
+    # history. Tables represented by columns in this manifest are pipeline-
+    # managed; a false/empty value means the table did not yet exist.
+    checkpoints = state.checkpoint.store.get_dataframe(CHECKPOINT_TABLE_NAME)
+    if checkpoint_name == LAST_CHECKPOINT:
+        target_checkpoint = checkpoints.iloc[-1]
+    else:
+        matching_checkpoints = checkpoints[
+            checkpoints[CHECKPOINT_NAME] == checkpoint_name
+        ]
+        if matching_checkpoints.empty:
+            # Let checkpoint.restore raise its normal, more specific exception.
+            target_checkpoint = None
+        else:
+            target_checkpoint = matching_checkpoints.iloc[-1]
+
+    stale_tables: set[str] = set()
+    if target_checkpoint is not None:
+        pipeline_tables = set(checkpoints.columns) - set(NON_TABLE_COLUMNS)
+        target_tables = {
+            table_name
+            for table_name in pipeline_tables
+            if pd.notna(target_checkpoint[table_name])
+            and bool(target_checkpoint[table_name])
+        }
+        stale_tables = pipeline_tables - target_tables
+
+    # Capture RNG state before restore — models may have dynamically added
+    # channels that aren't in the default rng_channels injectable. Do not carry
+    # channels for stale tables across the rewind; their table factories will
+    # register fresh channels when normal downstream execution recreates them.
+    prior_rng_channels = [
+        channel_name
+        for channel_name in state.get_injectable("rng_channels", [])
+        if channel_name not in stale_tables
+    ]
+    prior_index_to_channel = {
+        index_name: channel_name
+        for index_name, channel_name in getattr(
+            state.rng(), "index_to_channel", {}
+        ).items()
+        if channel_name not in stale_tables
+    }
+
+    for table_name in stale_tables:
+        # Use State.drop rather than drop_table: a prior restore may have reset
+        # salient-table metadata while leaving the cached DataFrame in context.
+        if table_name in state:
+            state.drop(table_name)
+            logger.debug(
+                "calibration: exact restore removed post-checkpoint table '%s'",
+                table_name,
+            )
+        if table_name in state.rng().channels:
+            state.rng().drop_channel(table_name)
+
+    # checkpoint.load uses this injectable to decide which restored tables get
+    # RNG channels. Remove stale channel names before it performs that work.
+    state.add_injectable("rng_channels", prior_rng_channels)
 
     if state.checkpoint.store_is_open():
         state.checkpoint.close_store()

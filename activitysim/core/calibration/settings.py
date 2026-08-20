@@ -21,6 +21,8 @@ class CalibrationRunSettings(PydanticBase):
     calibrate_models: list[str]
     global_iterations: int = 1
     complete_steps: bool = False
+    # Deprecated compatibility setting retained so existing configurations
+    # continue to parse. Exact calibration restores supersede this setting.
     invalidate_tables: list[str] | None = None
 
     @model_validator(mode="after")
@@ -30,35 +32,6 @@ class CalibrationRunSettings(PydanticBase):
                 "calibration.run.calibrate_models must contain at least one model name"
             )
         return self
-
-    """Tables to drop from state after each calibration restore so their
-    ``@workflow.table`` factories regenerate from current data.
-
-    Default (None): invalidates ``["vehicles"]``.  Set to ``[]`` to disable.
-
-    A table should be listed here when ALL of the following are true:
-
-    1. It is created by a ``@workflow.table`` factory from another table's
-       values (not just from input data files).
-    2. That source table is modified by a calibrated model or by a model
-       whose outputs change when calibrated coefficients change.
-    3. The factory uses source-table values to determine **row identity**
-       (index values) or **row count**, not just column values.
-
-    The canonical example is ``vehicles``: its factory repeats household
-    rows by ``households["auto_ownership"]`` and derives ``vehicle_id``
-    from ``household_id``.  When ``auto_ownership_simulate`` is calibrated,
-    different coefficients produce different ownership counts, so the
-    stale vehicles table loaded from a prior checkpoint would have the
-    wrong number of rows and wrong vehicle IDs.  Dropping it forces the
-    factory to regenerate vehicles consistent with the current households.
-
-    Tables that only read *column values* from upstream tables (without
-    affecting row identity) generally do NOT need invalidation — their
-    content will be correct as long as the upstream table is correct at
-    the restored checkpoint.
-    """
-
 
 class CalibrationReportsSettings(PydanticBase):
     """Reporting settings for a calibrated component."""

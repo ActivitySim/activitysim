@@ -18,7 +18,7 @@ from .coefficients import (
     _setting_value,
     _settings_to_dict,
 )
-from .execution import _invalidate_derived_tables, _prep_model_data
+from .execution import _prep_model_data
 from .expressions import (
     _build_expression_context,
     _compute_delta,
@@ -136,18 +136,15 @@ def _calibrate_component(
             # Restore to prior_step ourselves then run the model directly.
             # state.run(resume_after=prior_step) would trigger
             # checkpoint.restore → init_state which creates a fresh RNG.
-            # If prior_step is before the calibrated model created its table
-            # (e.g. vehicles), the table won't be in that checkpoint and the
-            # RNG channel won't be registered — causing a crash when the
-            # model tries to use it.  By restoring here and calling by_name,
-            # we keep the RNG channels from _prep_model_data intact.
+            # _prep_model_data also performs an exact calibration rewind,
+            # removing tables and RNG channels that do not exist at prior_step
+            # so normal model execution can recreate them at the right point.
             extra_models = _prep_model_data(state, resume_after=prior_step)
             if extra_models:
                 # prior_step checkpoint not found directly; run intermediate
                 # models (e.g. annotators) to recreate the correct state.
                 for m in extra_models:
                     state.run.by_name(m)
-            _invalidate_derived_tables(state)
             state.checkpoint.add(prior_step)
             state.run.by_name(run_model_name)
 

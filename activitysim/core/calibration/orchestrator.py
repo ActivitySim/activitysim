@@ -8,7 +8,6 @@ from activitysim.core import workflow
 
 from .component import _calibrate_component
 from .execution import (
-    _invalidate_derived_tables,
     _prep_model_data,
     _run_in_configured_mode,
 )
@@ -267,7 +266,6 @@ def run_calibration_loop(
                         resume_after=None,
                         shared_data_buffers=shared_data_buffers,
                     )
-                _invalidate_derived_tables(state)
                 if first_calibration_restart_step is not None:
                     state.checkpoint.add(first_calibration_restart_step)
                     state.checkpoint.close_store()

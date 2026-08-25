@@ -112,9 +112,7 @@ def run_calibration_loop(
             progress.get("last_completed_global_iteration", 0)
         )
         completed_for_global_iterations = int(
-            progress.get(
-                "configured_global_iterations", completed_global_iterations
-            )
+            progress.get("configured_global_iterations", completed_global_iterations)
         )
         if calibration_settings.run.global_iterations > completed_for_global_iterations:
             logger.info(

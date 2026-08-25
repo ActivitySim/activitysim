@@ -181,9 +181,7 @@ def _run_with_increased_global_iterations(
     assert progress["last_completed_global_iteration"] == 2
     assert progress["configured_global_iterations"] == 2
 
-    records = pd.read_csv(
-        output / "calibration" / "calibration_iteration_records.csv"
-    )
+    records = pd.read_csv(output / "calibration" / "calibration_iteration_records.csv")
     assert set(records["global_iter"]) == {1, 2}
     return output
 
@@ -205,9 +203,7 @@ def _run_rewound_attempt(root: Path, name: str, multiprocess: bool) -> Path:
 
     records_path = output / "calibration" / "calibration_iteration_records.csv"
     first_attempt = pd.read_csv(records_path)
-    workplace_first = first_attempt[
-        first_attempt["component"] == "workplace_location"
-    ]
+    workplace_first = first_attempt[first_attempt["component"] == "workplace_location"]
     assert set(workplace_first["attempt"]) == {1}
 
     _resume(configs, resume_after="initialize_landuse")
@@ -222,15 +218,10 @@ def _run_rewound_attempt(root: Path, name: str, multiprocess: bool) -> Path:
 
     attempt_1 = workplace[workplace["attempt"] == 1].iloc[-1]
     attempt_2 = workplace[workplace["attempt"] == 2].iloc[0]
-    assert attempt_2["prev_coefficient"] == pytest.approx(
-        attempt_1["next_coefficient"]
-    )
+    assert attempt_2["prev_coefficient"] == pytest.approx(attempt_1["next_coefficient"])
 
     assert (
-        output
-        / "calibration"
-        / "workplace_location"
-        / "coefficient_progress_set_0.png"
+        output / "calibration" / "workplace_location" / "coefficient_progress_set_0.png"
     ).exists()
 
     with open(progress_path, encoding="utf-8") as stream:
@@ -270,9 +261,7 @@ def multiprocess_resumed_output(run_root: Path) -> Path:
 
 
 @pytest.fixture(scope="module")
-def single_increased_iterations_output(
-    run_root: Path, single_output: Path
-) -> Path:
+def single_increased_iterations_output(run_root: Path, single_output: Path) -> Path:
     return _run_with_increased_global_iterations(
         run_root,
         "single_increased_iterations",

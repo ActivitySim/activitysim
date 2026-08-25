@@ -145,8 +145,7 @@ def _calibrate_component(
     for component_iter in range(1, component_settings.submodel_max_iterations + 1):
         component_iterations = component_iter
         run_model_name = (
-            f"{component_name}.c_i{component_iter};"
-            f"g_i{global_iter};a_i{attempt}"
+            f"{component_name}.c_i{component_iter};" f"g_i{global_iter};a_i{attempt}"
         )
         _run_component_model(
             state=state,

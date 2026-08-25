@@ -139,9 +139,7 @@ def _read_component_iteration_records(
     if not path.exists():
         return None
 
-    iteration_records = (
-        pd.read_csv(path)
-    )
+    iteration_records = pd.read_csv(path)
     if "attempt" not in iteration_records.columns:
         iteration_records["attempt"] = 1
     iteration_records = iteration_records.set_index(
@@ -194,7 +192,10 @@ def _coefficient_trajectory(
         .reindex(history.columns)
     )
     trajectory = pd.concat(
-        [pd.DataFrame([initial_values], index=["Start"]), history.reset_index(drop=True)]
+        [
+            pd.DataFrame([initial_values], index=["Start"]),
+            history.reset_index(drop=True),
+        ]
     )
     step_labels = ["Start"] + [
         f"G{global_iter}-A{attempt}-C{component_iter}"
@@ -208,10 +209,9 @@ def _component_last_records(recs: pd.DataFrame, set_coefs: list[str]) -> pd.Data
     filtered = recs[recs.index.get_level_values("coefficient").isin(set_coefs)]
     last_global = filtered.index.get_level_values("global_iter")[-1]
     last_attempt = filtered.loc[last_global].index.get_level_values("attempt")[-1]
-    last_comp = (
-        filtered.loc[(last_global, last_attempt)]
-        .index.get_level_values("component_iter")[-1]
-    )
+    last_comp = filtered.loc[(last_global, last_attempt)].index.get_level_values(
+        "component_iter"
+    )[-1]
     return filtered.xs(
         (last_global, last_attempt, last_comp),
         level=("global_iter", "attempt", "component_iter"),
@@ -277,9 +277,7 @@ def _write_generic_report(
             ]
         ]
         .copy()
-        .sort_values(
-            ["global_iter", "attempt", "component_iter", "description"]
-        )
+        .sort_values(["global_iter", "attempt", "component_iter", "description"])
     )
 
     path = _component_output_dir(state, component_name) / "generic_report.csv"

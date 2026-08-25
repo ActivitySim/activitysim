@@ -46,9 +46,7 @@ def test_recovery_attempts_preserve_complete_coefficient_trajectory(tmp_path):
     _append_iteration_records(state, "model_a", [_record(1, 1.0, 1.5)])
     _append_iteration_records(state, "model_a", [_record(2, 1.5, 1.75)])
 
-    stored = pd.read_csv(
-        tmp_path / "calibration" / "calibration_iteration_records.csv"
-    )
+    stored = pd.read_csv(tmp_path / "calibration" / "calibration_iteration_records.csv")
     assert list(stored["attempt"]) == [1, 2]
     assert stored.loc[1, "prev_coefficient"] == stored.loc[0, "next_coefficient"]
 

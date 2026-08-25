@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 from pydantic import model_validator
 
@@ -17,7 +16,6 @@ CALIBRATION_SETTINGS_FILE_NAME = "calibration.yaml"
 class CalibrationRunSettings(PydanticBase):
     """Run-control settings for calibration."""
 
-    resume_after: Optional[str] = None
     calibrate_models: list[str]
     global_iterations: int = 1
     complete_steps: bool = False
@@ -49,7 +47,6 @@ class CalibrationComponentSettings(PydanticBase):
     helper_module: str | None = None
     submodel_max_iterations: int = 1
     reports: CalibrationReportsSettings = CalibrationReportsSettings()
-    survey_file: Optional[str] = None
 
 
 class CalibrationConfig(PydanticReadable):

@@ -49,8 +49,6 @@ strict ActivitySim semantics: the named model is treated as complete, its
 checkpoint is restored, and execution begins with the following model. The name
 must occur in the top-level `models` list and must be a model-level checkpoint;
 the `_` shorthand for the last checkpoint is not accepted in calibration mode.
-The similarly named `calibration.yaml` `run.resume_after` compatibility field is
-not used by the orchestrator.
 
 On the first global iteration entered by an invocation, calibrated models at or
 before `resume_after` are skipped. Later global iterations in the same invocation

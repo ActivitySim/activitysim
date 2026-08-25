@@ -14,7 +14,6 @@ model_settings:
     reports:
       generic: true
       bespoke: report_workplace_location
-    survey_file: survey_persons.csv
 
   auto_ownership_simulate:
     calibration_spec: auto_ownership_calibration.csv
@@ -23,7 +22,6 @@ model_settings:
     reports:
       generic: true
       bespoke: report_auto_ownership
-    survey_file: survey_households.csv
 
   tour_mode_choice_simulate:
     calibration_spec: tour_mode_choice_calibration.csv
@@ -32,5 +30,4 @@ model_settings:
     reports:
       generic: true
       bespoke: report_tour_mode_choice
-    survey_file: survey_tours.csv
 

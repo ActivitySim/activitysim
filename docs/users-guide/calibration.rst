@@ -58,7 +58,6 @@ calibration-specific overlay directory):
        - workplace_location
        - auto_ownership_simulate
        - tour_mode_choice_simulate
-     resume_after: null        # checkpoint to resume from on global iteration 1
      restart_after: []          # components after which to restart (advanced)
      global_iterations: 3       # number of full calibration passes
      complete_steps: false      # run model steps after the last calibrated component
@@ -68,7 +67,6 @@ calibration-specific overlay directory):
        calibration_spec: workplace_location_calibration.csv
        helper_module: workplace_location_calib_helper.py
        submodel_max_iterations: 3
-       survey_file: survey_persons.csv
        reports:
          generic: true
          bespoke: report_workplace_location
@@ -77,7 +75,6 @@ calibration-specific overlay directory):
        calibration_spec: auto_ownership_calibration.csv
        helper_module: auto_ownership_calib_helper.py
        submodel_max_iterations: 3
-       survey_file: survey_households.csv
        reports:
          generic: true
          bespoke: report_auto_ownership
@@ -86,7 +83,6 @@ calibration-specific overlay directory):
        calibration_spec: tour_mode_choice_calibration.csv
        helper_module: tour_mode_choice_calib_helper.py
        submodel_max_iterations: 3
-       survey_file: survey_tours.csv
        reports:
          generic: true
          bespoke: report_tour_mode_choice
@@ -158,12 +154,6 @@ Configuration Reference
      - *required*
      - Model component names to calibrate. Must match names in ``settings.yaml``
        ``models`` list.
-   * - ``resume_after``
-     - ``str`` or ``null``
-     - ``null``
-     - Checkpoint to resume from on the first global iteration. Equivalent to
-       ``resume_after`` in ``settings.yaml``. Use this to skip expensive
-       initialization steps that do not change across calibration iterations.
    * - ``restart_after``
      - ``list[str]``
      - ``[]``
@@ -208,11 +198,6 @@ Configuration Reference
      - ``1``
      - Maximum number of inner-loop iterations per component per global
        iteration. The component re-runs from its prior checkpoint each iteration.
-   * - ``survey_file``
-     - ``str``
-     - *required*
-     - Survey data CSV filename. Made available via
-       ``component_settings.survey_file`` in the expression context.
    * - ``reports.generic``
      - ``bool``
      - ``True``
@@ -718,6 +703,6 @@ Tips
   (e.g., for trip generation downstream of mode choice).
 - **Version control your coefficient files** so you can diff changes and reset to
   initial values.
-- **Use the** ``resume_after`` **setting** to skip expensive upstream steps (like
-  skims loading or accessibility computation) that don't change across
-  calibration iterations.
+- **Use the top-level** ``settings.yaml`` ``resume_after`` **setting** to skip
+  expensive upstream steps (like skims loading or accessibility computation)
+  that don't change across calibration iterations.

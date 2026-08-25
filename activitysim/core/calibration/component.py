@@ -50,12 +50,40 @@ CALIBRATION_REQUIRED_COLUMNS = [
 ]
 
 
+def _run_component_model(
+    state: workflow.State,
+    component_name: str,
+    run_model_name: str,
+    prior_step: str | None,
+    mp_restore_checkpoint: str | None,
+    shared_data_buffers: dict | None,
+) -> None:
+    """Run one component simulation from its fixed pre-component state."""
+    if state.settings.multiprocess and shared_data_buffers is not None:
+        _run_mp_single_component(
+            state,
+            component_name=component_name,
+            run_label=run_model_name.replace(";", "_").replace(".", "_"),
+            restore_checkpoint=mp_restore_checkpoint,
+            shared_data_buffers=shared_data_buffers,
+        )
+        return
+
+    extra_models = _prep_model_data(state, resume_after=prior_step)
+    if extra_models:
+        for model_name in extra_models:
+            state.run.by_name(model_name)
+    state.checkpoint.add(prior_step)
+    state.run.by_name(run_model_name)
+
+
 def _calibrate_component(
     state: workflow.State,
     component_name: str,
     component_settings: CalibrationComponentSettings,
     prior_step: str,
     global_iter: int,
+    attempt: int,
     shared_data_buffers: dict | None = None,
 ) -> CalibrationComponentResult:
     """Run iterative coefficient calibration for one component."""
@@ -116,41 +144,25 @@ def _calibrate_component(
 
     for component_iter in range(1, component_settings.submodel_max_iterations + 1):
         component_iterations = component_iter
-        run_model_name = f"{component_name}.c_i{component_iter};" f"g_i{global_iter}"
-        # Re-run only this component from its prior checkpoint so model values
-        # reflect the current candidate coefficients for this component.
-        if state.settings.multiprocess and shared_data_buffers is not None:
-            # Use direct MP orchestration with explicit checkpoint control.
-            # This ensures we always apportion from prior_step's state,
-            # even after multiple component iterations.
-            _run_mp_single_component(
-                state,
-                component_name=component_name,
-                # Always restore from the same immutable pre-component
-                # checkpoint. LAST_CHECKPOINT may point to the prior iteration's
-                # coalesced component output and is therefore not a safe baseline.
-                restore_checkpoint=mp_restore_checkpoint,
-                shared_data_buffers=shared_data_buffers,
-            )
-        else:
-            # Restore to prior_step ourselves then run the model directly.
-            # state.run(resume_after=prior_step) would trigger
-            # checkpoint.restore → init_state which creates a fresh RNG.
-            # _prep_model_data also performs an exact calibration rewind,
-            # removing tables and RNG channels that do not exist at prior_step
-            # so normal model execution can recreate them at the right point.
-            extra_models = _prep_model_data(state, resume_after=prior_step)
-            if extra_models:
-                # prior_step checkpoint not found directly; run intermediate
-                # models (e.g. annotators) to recreate the correct state.
-                for m in extra_models:
-                    state.run.by_name(m)
-            state.checkpoint.add(prior_step)
-            state.run.by_name(run_model_name)
+        run_model_name = (
+            f"{component_name}.c_i{component_iter};"
+            f"g_i{global_iter};a_i{attempt}"
+        )
+        _run_component_model(
+            state=state,
+            component_name=component_name,
+            run_model_name=run_model_name,
+            prior_step=prior_step,
+            mp_restore_checkpoint=mp_restore_checkpoint,
+            shared_data_buffers=shared_data_buffers,
+        )
 
         eval_context = _build_expression_context(
             state, helper_symbols, component_name, component_settings
         )
+        eval_context["calibration_global_iteration"] = global_iter
+        eval_context["calibration_attempt"] = attempt
+        eval_context["calibration_component_iteration"] = component_iter
 
         (
             row_records,
@@ -164,6 +176,7 @@ def _calibrate_component(
             eval_context=eval_context,
             global_iter=global_iter,
             component_iter=component_iter,
+            attempt=attempt,
         )
 
         coefficients_df = new_coefficients_df
@@ -180,6 +193,21 @@ def _calibrate_component(
 
         if component_converged:
             break
+
+        if component_iter == component_settings.submodel_max_iterations:
+            # The update just persisted above has not yet been simulated. Run
+            # the component once more so final pipeline tables and downstream
+            # models use the coefficient values left in the config file.
+            _run_component_model(
+                state=state,
+                component_name=component_name,
+                run_model_name=(
+                    f"{component_name}.c_final;g_i{global_iter};a_i{attempt}"
+                ),
+                prior_step=prior_step,
+                mp_restore_checkpoint=mp_restore_checkpoint,
+                shared_data_buffers=shared_data_buffers,
+            )
 
     state.checkpoint.add(component_name)
 
@@ -371,6 +399,7 @@ def _evaluate_and_update(
     eval_context: dict[str, Any],
     global_iter: int,
     component_iter: int,
+    attempt: int = 1,
 ) -> tuple[list[dict[str, Any]], dict[str, Any], pd.DataFrame, bool]:
     """Evaluate spec rows, update coefficients, and return detailed records."""
     updated = coefficients_df.copy()
@@ -429,7 +458,9 @@ def _evaluate_and_update(
             default_increment=default_increment,
         )
 
-        candidate_value = prev_value if hold_fast else prev_value + raw_delta
+        candidate_value = (
+            prev_value if hold_fast or converged else prev_value + raw_delta
+        )
 
         at_min = False
         at_max = False
@@ -468,6 +499,7 @@ def _evaluate_and_update(
         records.append(
             {
                 "global_iter": global_iter,
+                "attempt": attempt,
                 "component_iter": component_iter,
                 "description": description,
                 "component": component_name,
@@ -492,6 +524,7 @@ def _evaluate_and_update(
 
     summary_record = {
         "global_iter": global_iter,
+        "attempt": attempt,
         "component_iter": component_iter,
         "component": component_name,
         "max_difference": max_difference if max_difference != -math.inf else 0.0,

@@ -108,36 +108,62 @@ def run_calibration_loop(
 
     progress = _read_progress(state)
     if progress and progress.get("complete"):
-        if resume_after is not None:
-            raise RuntimeError(
-                f"settings.yaml resume_after={resume_after!r} cannot be honored "
-                "because calibration progress is already complete. Remove "
-                f"{CALIBRATION_PROGRESS_FILE} or use a new output directory to "
-                "start a new calibration run; current coefficient values will "
-                "be preserved."
+        completed_global_iterations = int(
+            progress.get("last_completed_global_iteration", 0)
+        )
+        completed_for_global_iterations = int(
+            progress.get(
+                "configured_global_iterations", completed_global_iterations
             )
-        logger.info(
-            "calibration progress is already complete; remove %s to start a "
-            "fresh calibration run",
-            CALIBRATION_PROGRESS_FILE,
         )
-        return CalibrationRunResult(
-            converged=bool(progress.get("converged", False)),
-            completed_global_iterations=int(
-                progress.get(
-                    "last_completed_global_iteration",
-                    calibration_settings.run.global_iterations,
+        if calibration_settings.run.global_iterations > completed_for_global_iterations:
+            logger.info(
+                "calibration global_iterations increased from %s to %s; "
+                "continuing with global iteration %s",
+                completed_for_global_iterations,
+                calibration_settings.run.global_iterations,
+                completed_global_iterations + 1,
+            )
+            progress = {
+                "complete": False,
+                "in_progress_iteration": None,
+                "next_global_iteration": completed_global_iterations + 1,
+                "last_completed_global_iteration": completed_global_iterations,
+                "converged": bool(progress.get("converged", False)),
+                "configured_global_iterations": calibration_settings.run.global_iterations,
+                "attempt": 0,
+                "completed_components": {},
+            }
+            _write_progress(state, progress)
+        else:
+            if resume_after is not None:
+                raise RuntimeError(
+                    f"settings.yaml resume_after={resume_after!r} cannot be honored "
+                    "because calibration progress is already complete. Remove "
+                    f"{CALIBRATION_PROGRESS_FILE} or use a new output directory to "
+                    "start a new calibration run; current coefficient values will "
+                    "be preserved."
                 )
-            ),
-        )
+            logger.info(
+                "calibration progress is already complete; remove %s to start a "
+                "fresh calibration run",
+                CALIBRATION_PROGRESS_FILE,
+            )
+            return CalibrationRunResult(
+                converged=bool(progress.get("converged", False)),
+                completed_global_iterations=completed_global_iterations,
+            )
 
     interrupted_iteration = progress.get("in_progress_iteration") if progress else None
     if interrupted_iteration is not None:
         start_global_iter = int(interrupted_iteration)
+        start_attempt = int(progress.get("attempt", 1)) + 1
+        start_completed_components = dict(progress.get("completed_components", {}))
         logger.warning(
-            "continuing interrupted calibration global iteration %s using the "
-            "current coefficient files",
+            "continuing interrupted calibration global iteration %s as attempt %s "
+            "using the current coefficient files",
             start_global_iter,
+            start_attempt,
         )
     else:
         # Progress files from earlier versions contain next_global_iteration, so
@@ -145,7 +171,27 @@ def run_calibration_loop(
         start_global_iter = (
             int(progress.get("next_global_iteration", 1)) if progress else 1
         )
+        start_attempt = 1
+        start_completed_components = {}
     completed_global_iterations = start_global_iter - 1
+
+    if interrupted_iteration is not None and resume_after is not None:
+        rerun_completed_components = [
+            component
+            for component in start_completed_components
+            if component in calibration_settings.run.calibrate_models
+            and models.index(component) > models.index(resume_after)
+        ]
+        if rerun_completed_components:
+            logger.warning(
+                "resume_after=%r rewinds across completed calibrated component(s) "
+                "%s. Their coefficient values will not be rolled back; rerun "
+                "results will be appended as attempt %s of global iteration %s.",
+                resume_after,
+                rerun_completed_components,
+                start_attempt,
+                start_global_iter,
+            )
 
     if start_global_iter > calibration_settings.run.global_iterations:
         logger.info(
@@ -158,6 +204,11 @@ def run_calibration_loop(
             state,
             completed_global_iterations,
             converged,
+            calibration_settings.run.global_iterations,
+            attempt=int(progress.get("attempt", 1)) if progress else 1,
+            completed_components=(
+                dict(progress.get("completed_components", {})) if progress else {}
+            ),
         )
         return CalibrationRunResult(
             converged=converged,
@@ -241,9 +292,17 @@ def run_calibration_loop(
             start_global_iter,
             calibration_settings.run.global_iterations + 1,
         ):
+            attempt = start_attempt if global_iter == start_global_iter else 1
+            completed_components = (
+                dict(start_completed_components)
+                if global_iter == start_global_iter
+                else {}
+            )
             _mark_global_iteration_in_progress(
                 state,
                 global_iter,
+                attempt,
+                completed_components,
             )
 
             # Every global iteration after the first begins from the immutable
@@ -271,24 +330,36 @@ def run_calibration_loop(
                     state.checkpoint.close_store()
 
             logger.info(
-                "calibration global iteration %s/%s",
+                "calibration global iteration %s/%s attempt %s",
                 global_iter,
                 calibration_settings.run.global_iterations,
+                attempt,
             )
 
-            # suppress early termination on first iteration if resume_after is after all calibrated models
-            all_converged = (
-                first_model_idx is not None and first_model_idx <= last_calib_model_idx
-            ) or global_iter > start_global_iter
+            skipped_components = _skipped_calibration_components(
+                calibration_models=calibration_settings.run.calibrate_models,
+                models=models,
+                first_model_idx=first_model_idx,
+                global_iter=global_iter,
+                start_global_iter=start_global_iter,
+            )
+            if skipped_components:
+                all_converged = all(
+                    bool(completed_components.get(component, {}).get("converged"))
+                    for component in skipped_components
+                )
+            else:
+                all_converged = _components_ran_for_convergence(
+                    first_model_idx=first_model_idx,
+                    last_calib_model_idx=last_calib_model_idx,
+                    global_iter=global_iter,
+                    start_global_iter=start_global_iter,
+                )
 
             last_calibrated_component = None
             for component in calibration_settings.run.calibrate_models:
                 # on the first global iter, skip model if it's before or == resume_after
-                if (
-                    global_iter == start_global_iter
-                    and first_model_idx is not None
-                    and first_model_idx > models.index(component)
-                ):
+                if component in skipped_components:
                     continue
                 component_settings = calibration_settings.model_settings[component]
 
@@ -313,11 +384,24 @@ def run_calibration_loop(
                     component_settings=component_settings,
                     prior_step=prior_step,
                     global_iter=global_iter,
+                    attempt=attempt,
                     shared_data_buffers=shared_data_buffers,
                 )
                 _write_component_plots(state, component)
 
                 all_converged = all_converged and component_result.converged
+
+                completed_components[component] = {
+                    "attempt": attempt,
+                    "converged": component_result.converged,
+                    "component_iterations": component_result.component_iterations,
+                }
+                _mark_global_iteration_in_progress(
+                    state,
+                    global_iter,
+                    attempt,
+                    completed_components,
+                )
 
                 last_calibrated_component = component
 
@@ -360,6 +444,8 @@ def run_calibration_loop(
                         "next_global_iteration": global_iter + 1,
                         "last_completed_global_iteration": global_iter,
                         "converged": all_converged,
+                        "attempt": 0,
+                        "completed_components": {},
                     },
                 )
 
@@ -376,6 +462,9 @@ def run_calibration_loop(
             state,
             completed_global_iterations,
             all_converged,
+            calibration_settings.run.global_iterations,
+            attempt=attempt,
+            completed_components=completed_components,
         )
 
         return CalibrationRunResult(
@@ -450,3 +539,34 @@ def _prior_step_name(models: list[str], component_name: str) -> str | None:
     if idx == 0:
         return None
     return models[idx - 1]
+
+
+def _components_ran_for_convergence(
+    first_model_idx: int | None,
+    last_calib_model_idx: int,
+    global_iter: int,
+    start_global_iter: int,
+) -> bool:
+    """Return whether component results can establish convergence this iteration."""
+    return (
+        first_model_idx is None
+        or first_model_idx <= last_calib_model_idx
+        or global_iter > start_global_iter
+    )
+
+
+def _skipped_calibration_components(
+    calibration_models: list[str],
+    models: list[str],
+    first_model_idx: int | None,
+    global_iter: int,
+    start_global_iter: int,
+) -> list[str]:
+    """Return calibrated components skipped by resume_after this iteration."""
+    if global_iter != start_global_iter or first_model_idx is None:
+        return []
+    return [
+        component
+        for component in calibration_models
+        if first_model_idx > models.index(component)
+    ]

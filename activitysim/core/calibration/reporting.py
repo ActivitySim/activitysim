@@ -39,7 +39,13 @@ def _append_iteration_records(
     _append_csv(
         df,
         global_path,
-        unique_on=["global_iter", "component_iter", "component", "coefficient"],
+        unique_on=[
+            "global_iter",
+            "attempt",
+            "component_iter",
+            "component",
+            "coefficient",
+        ],
     )
 
     # Also write component-local iteration history
@@ -50,7 +56,13 @@ def _append_iteration_records(
     _append_csv(
         df,
         component_path,
-        unique_on=["global_iter", "component_iter", "component", "coefficient"],
+        unique_on=[
+            "global_iter",
+            "attempt",
+            "component_iter",
+            "component",
+            "coefficient",
+        ],
     )
 
 
@@ -65,7 +77,7 @@ def _append_summary_records(
     _append_csv(
         df,
         path,
-        unique_on=["global_iter", "component_iter", "component"],
+        unique_on=["global_iter", "attempt", "component_iter", "component"],
     )
 
 
@@ -76,6 +88,10 @@ def _append_csv(
     os.makedirs(path.parent, exist_ok=True)
     if unique_on and path.exists():
         existing = pd.read_csv(path)
+        if "attempt" in unique_on and "attempt" not in existing.columns:
+            # Histories created before recovery attempts were introduced belong
+            # to the first attempt of their logical global iteration.
+            existing["attempt"] = 1
         df = pd.concat([existing, df], ignore_index=True).drop_duplicates(
             subset=unique_on, keep="last"
         )
@@ -125,9 +141,12 @@ def _read_component_iteration_records(
 
     iteration_records = (
         pd.read_csv(path)
-        .set_index(["global_iter", "component_iter", "coefficient"])
-        .sort_index()
     )
+    if "attempt" not in iteration_records.columns:
+        iteration_records["attempt"] = 1
+    iteration_records = iteration_records.set_index(
+        ["global_iter", "attempt", "component_iter", "coefficient"]
+    ).sort_index()
     return iteration_records.loc[iteration_records.component == component_name]
 
 
@@ -140,12 +159,11 @@ def _plot_coefficient_progress(
 ) -> None:
     """Plot coefficient value progression for one coefficient subset."""
     component_dir = _component_output_dir(state, component_name)
-    ax = (
-        recs[recs.index.get_level_values("coefficient").isin(set_coefs)]
-        .next_coefficient.unstack("coefficient")
-        .plot(figsize=(10, 5))
-    )
-    ax.xaxis.set_label_text("Component iteration")
+    trajectory, step_labels = _coefficient_trajectory(recs, set_coefs)
+    ax = trajectory.plot(figsize=(10, 5))
+    ax.set_xticks(range(len(step_labels)))
+    ax.set_xticklabels(step_labels, rotation=45, ha="right")
+    ax.xaxis.set_label_text("Calibration update (global-attempt-component)")
     ax.yaxis.set_label_text("Coefficient value")
     ax.legend(title="Coefficient label", loc="center left", bbox_to_anchor=(1.02, 0.5))
     plt.tight_layout()
@@ -156,13 +174,47 @@ def _plot_coefficient_progress(
     plt.close(ax.figure)
 
 
+def _coefficient_trajectory(
+    recs: pd.DataFrame,
+    set_coefs: list[str],
+) -> tuple[pd.DataFrame, list[str]]:
+    """Build the complete ordered coefficient path and compact step labels."""
+    filtered = recs[
+        recs.index.get_level_values("coefficient").isin(set_coefs)
+    ].reset_index()
+    history = filtered.pivot(
+        index=["global_iter", "attempt", "component_iter"],
+        columns="coefficient",
+        values="next_coefficient",
+    ).sort_index()
+    initial_values = (
+        filtered.sort_values(["global_iter", "attempt", "component_iter"])
+        .groupby("coefficient", sort=False)
+        .first()["prev_coefficient"]
+        .reindex(history.columns)
+    )
+    trajectory = pd.concat(
+        [pd.DataFrame([initial_values], index=["Start"]), history.reset_index(drop=True)]
+    )
+    step_labels = ["Start"] + [
+        f"G{global_iter}-A{attempt}-C{component_iter}"
+        for global_iter, attempt, component_iter in history.index
+    ]
+    return trajectory, step_labels
+
+
 def _component_last_records(recs: pd.DataFrame, set_coefs: list[str]) -> pd.DataFrame:
     """Select target/model values for the latest iteration and coefficient subset."""
     filtered = recs[recs.index.get_level_values("coefficient").isin(set_coefs)]
     last_global = filtered.index.get_level_values("global_iter")[-1]
-    last_comp = filtered.loc[last_global].index.get_level_values("component_iter")[-1]
+    last_attempt = filtered.loc[last_global].index.get_level_values("attempt")[-1]
+    last_comp = (
+        filtered.loc[(last_global, last_attempt)]
+        .index.get_level_values("component_iter")[-1]
+    )
     return filtered.xs(
-        (last_global, last_comp), level=("global_iter", "component_iter")
+        (last_global, last_attempt, last_comp),
+        level=("global_iter", "attempt", "component_iter"),
     )[["target_value", "model_value"]]
 
 
@@ -215,6 +267,7 @@ def _write_generic_report(
         df[
             [
                 "global_iter",
+                "attempt",
                 "component_iter",
                 "component",
                 "description",
@@ -224,14 +277,22 @@ def _write_generic_report(
             ]
         ]
         .copy()
-        .sort_values(["global_iter", "component_iter", "description"])
+        .sort_values(
+            ["global_iter", "attempt", "component_iter", "description"]
+        )
     )
 
     path = _component_output_dir(state, component_name) / "generic_report.csv"
     _append_csv(
         report,
         path,
-        unique_on=["global_iter", "component_iter", "component", "description"],
+        unique_on=[
+            "global_iter",
+            "attempt",
+            "component_iter",
+            "component",
+            "description",
+        ],
     )
 
 

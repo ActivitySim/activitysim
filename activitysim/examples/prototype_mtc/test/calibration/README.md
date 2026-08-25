@@ -12,6 +12,10 @@ that global iteration 1 remains in progress, replaces the expression, and
 restarts with `resume_after: non_mandatory_tour_scheduling`. The resumed runs
 must preserve the workplace and auto-ownership coefficient files and match the
 uninterrupted final tables and calibrated coefficients across both modes.
+The fixture also rewinds a failed run to `initialize_landuse`, verifies that the
+completed calibrated models rerun as attempt 2 of the same global iteration,
+and confirms that attempt-1 and attempt-2 coefficient transitions are both
+retained with a continuous `next_coefficient` to `prev_coefficient` chain.
 
 Each run copies mutable coefficient files into its temporary config directory;
 the shared prototype MTC configs and data remain unchanged. The 25-household

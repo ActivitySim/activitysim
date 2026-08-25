@@ -31,6 +31,7 @@ MP_INJECTABLES = [
 def _run_mp_single_component(
     state: workflow.State,
     component_name: str,
+    run_label: str,
     restore_checkpoint: str,
     shared_data_buffers: dict,
 ) -> None:
@@ -47,6 +48,10 @@ def _run_mp_single_component(
     state : workflow.State
     component_name : str
         The model component to run.
+    run_label : str
+        Unique name for this calibration execution's subprocess pipelines and
+        checkpoint. It must differ from ``component_name`` so restoring the
+        apportioned checkpoint does not cause ActivitySim to skip the model.
     restore_checkpoint : str
         The checkpoint name to restore from before apportioning.
         This should be the checkpoint representing prior_step's state.
@@ -84,7 +89,7 @@ def _run_mp_single_component(
 
     # Build step_info dict matching what mp_tasks functions expect
     step_info = {
-        "name": component_name,
+        "name": run_label,
         "models": [component_name],
         "num_processes": num_processes,
         "chunk_size": chunk_size,
@@ -96,9 +101,9 @@ def _run_mp_single_component(
     injectables = _build_calibration_injectables(state)
 
     if num_processes == 1:
-        sub_proc_names = [component_name]
+        sub_proc_names = [run_label]
     else:
-        sub_proc_names = [f"{component_name}_{i}" for i in range(num_processes)]
+        sub_proc_names = [f"{run_label}_{i}" for i in range(num_processes)]
 
     fail_fast = state.settings.fail_fast
 
@@ -108,7 +113,7 @@ def _run_mp_single_component(
             state,
             multiprocessing.Process(
                 target=mp_tasks.mp_apportion_pipeline,
-                name=f"{component_name}_apportion",
+                name=f"{run_label}_apportion",
                 args=(injectables, sub_proc_names, step_info),
             ),
         )
@@ -149,7 +154,7 @@ def _run_mp_single_component(
             state,
             multiprocessing.Process(
                 target=mp_tasks.mp_coalesce_pipelines,
-                name=f"{component_name}_coalesce",
+                name=f"{run_label}_coalesce",
                 args=(injectables, sub_proc_names, slice_info),
             ),
         )

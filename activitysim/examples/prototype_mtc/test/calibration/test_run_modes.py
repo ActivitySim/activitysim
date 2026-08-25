@@ -81,7 +81,10 @@ def _run(configs_dir: Path, output_dir: Path, multiprocess: bool):
     return subprocess.run(args, check=False, capture_output=True, text=True)
 
 
-def _resume(configs_dir: Path):
+def _resume(
+    configs_dir: Path,
+    resume_after: str = "non_mandatory_tour_scheduling",
+):
     shutil.copyfile(
         HERE / "configs" / "tour_mode_choice_calibration.csv",
         configs_dir / "tour_mode_choice_calibration.csv",
@@ -89,9 +92,18 @@ def _resume(configs_dir: Path):
     settings_path = configs_dir / "settings.yaml"
     with open(settings_path, encoding="utf-8") as stream:
         settings = yaml.safe_load(stream)
-    settings["resume_after"] = "non_mandatory_tour_scheduling"
+    settings["resume_after"] = resume_after
     with open(settings_path, "w", encoding="utf-8") as stream:
         yaml.safe_dump(settings, stream, sort_keys=False)
+
+
+def _set_global_iterations(configs_dir: Path, global_iterations: int):
+    calibration_path = configs_dir / "calibration.yaml"
+    with open(calibration_path, encoding="utf-8") as stream:
+        calibration = yaml.safe_load(stream)
+    calibration["run"]["global_iterations"] = global_iterations
+    with open(calibration_path, "w", encoding="utf-8") as stream:
+        yaml.safe_dump(calibration, stream, sort_keys=False)
 
 
 def _assert_success(result: subprocess.CompletedProcess):
@@ -149,6 +161,89 @@ def _run_resumed(root: Path, name: str, multiprocess: bool) -> Path:
     return output
 
 
+def _run_with_increased_global_iterations(
+    root: Path, name: str, completed_output: Path, multiprocess: bool
+) -> Path:
+    run_dir = root / name
+    configs = run_dir / "configs"
+    output = run_dir / "output"
+    shutil.copytree(completed_output.parent / "configs", configs)
+    shutil.copytree(completed_output, output)
+
+    _set_global_iterations(configs, 2)
+    _assert_success(_run(configs, output, multiprocess))
+
+    with open(
+        output / "calibration" / "calibration_progress.json", encoding="utf-8"
+    ) as stream:
+        progress = json.load(stream)
+    assert progress["complete"] is True
+    assert progress["last_completed_global_iteration"] == 2
+    assert progress["configured_global_iterations"] == 2
+
+    records = pd.read_csv(
+        output / "calibration" / "calibration_iteration_records.csv"
+    )
+    assert set(records["global_iter"]) == {1, 2}
+    return output
+
+
+def _run_rewound_attempt(root: Path, name: str, multiprocess: bool) -> Path:
+    configs, output = _prepare_run(root, name, multiprocess, failing=True)
+    failed = _run(configs, output, multiprocess)
+    assert failed.returncode != 0
+
+    progress_path = output / "calibration" / "calibration_progress.json"
+    with open(progress_path, encoding="utf-8") as stream:
+        progress = json.load(stream)
+    assert progress["in_progress_iteration"] == 1
+    assert progress["attempt"] == 1
+    assert set(progress["completed_components"]) == {
+        "workplace_location",
+        "auto_ownership_simulate",
+    }
+
+    records_path = output / "calibration" / "calibration_iteration_records.csv"
+    first_attempt = pd.read_csv(records_path)
+    workplace_first = first_attempt[
+        first_attempt["component"] == "workplace_location"
+    ]
+    assert set(workplace_first["attempt"]) == {1}
+
+    _resume(configs, resume_after="initialize_landuse")
+    _assert_success(_run(configs, output, multiprocess))
+
+    records = pd.read_csv(records_path)
+    workplace = records[records["component"] == "workplace_location"].sort_values(
+        ["global_iter", "attempt", "component_iter"]
+    )
+    assert set(workplace["global_iter"]) == {1}
+    assert set(workplace["attempt"]) == {1, 2}
+
+    attempt_1 = workplace[workplace["attempt"] == 1].iloc[-1]
+    attempt_2 = workplace[workplace["attempt"] == 2].iloc[0]
+    assert attempt_2["prev_coefficient"] == pytest.approx(
+        attempt_1["next_coefficient"]
+    )
+
+    assert (
+        output
+        / "calibration"
+        / "workplace_location"
+        / "coefficient_progress_set_0.png"
+    ).exists()
+
+    with open(progress_path, encoding="utf-8") as stream:
+        progress = json.load(stream)
+    assert progress["complete"] is True
+    assert progress["attempt"] == 2
+    assert all(
+        component["attempt"] == 2
+        for component in progress["completed_components"].values()
+    )
+    return output
+
+
 @pytest.fixture(scope="module")
 def run_root(tmp_path_factory) -> Path:
     return tmp_path_factory.mktemp("calibration_run_modes")
@@ -172,6 +267,40 @@ def single_resumed_output(run_root: Path) -> Path:
 @pytest.fixture(scope="module")
 def multiprocess_resumed_output(run_root: Path) -> Path:
     return _run_resumed(run_root, "multiprocess_resumed", multiprocess=True)
+
+
+@pytest.fixture(scope="module")
+def single_increased_iterations_output(
+    run_root: Path, single_output: Path
+) -> Path:
+    return _run_with_increased_global_iterations(
+        run_root,
+        "single_increased_iterations",
+        completed_output=single_output,
+        multiprocess=False,
+    )
+
+
+@pytest.fixture(scope="module")
+def multiprocess_increased_iterations_output(
+    run_root: Path, multiprocess_output: Path
+) -> Path:
+    return _run_with_increased_global_iterations(
+        run_root,
+        "multiprocess_increased_iterations",
+        completed_output=multiprocess_output,
+        multiprocess=True,
+    )
+
+
+@pytest.fixture(scope="module")
+def single_rewound_output(run_root: Path) -> Path:
+    return _run_rewound_attempt(run_root, "single_rewound", multiprocess=False)
+
+
+@pytest.fixture(scope="module")
+def multiprocess_rewound_output(run_root: Path) -> Path:
+    return _run_rewound_attempt(run_root, "multiprocess_rewound", multiprocess=True)
 
 
 def test_single_and_multiprocess_are_equivalent(
@@ -200,3 +329,20 @@ def test_resumed_single_and_multiprocess_are_equivalent(
     multiprocess_resumed_output: Path,
 ):
     _assert_equivalent(single_resumed_output, multiprocess_resumed_output)
+
+
+def test_increased_global_iterations_continue_completed_run_in_all_modes(
+    single_increased_iterations_output: Path,
+    multiprocess_increased_iterations_output: Path,
+):
+    _assert_equivalent(
+        single_increased_iterations_output,
+        multiprocess_increased_iterations_output,
+    )
+
+
+def test_rewinding_completed_calibrated_model_appends_attempt_in_all_modes(
+    single_rewound_output: Path,
+    multiprocess_rewound_output: Path,
+):
+    _assert_equivalent(single_rewound_output, multiprocess_rewound_output)

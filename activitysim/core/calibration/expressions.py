@@ -107,7 +107,9 @@ def _compute_delta(
     if method == "log_ratio":
         if model_value <= 0 or target_value <= 0:
             logger.warning(
-                f"log_ratio requires positive model and target values for {component_name} / {description}. Falling back to default increment {default_increment}"
+                f"log_ratio requires positive model and target values for "
+                f"{component_name} / {description}. Falling back to default "
+                f"increment {default_increment}"
             )
             if model_value <= 0 and target_value > 0:
                 return default_increment
@@ -118,22 +120,20 @@ def _compute_delta(
         delta = math.log(target_value / model_value) * damping
 
     elif method == "odds_ratio":
-        # Formula requested by the calibration outline.
-        numerator = (target_value * model_value) - target_value
-        denominator = (target_value * model_value) - model_value
-
-        if numerator <= 0 or denominator <= 0:
+        if not (0 < model_value < 1 and 0 < target_value < 1):
             logger.warning(
-                f"odds_ratio produced invalid numerator/denominator for {component_name} / {description}. Falling back to default increment {default_increment}"
+                f"odds_ratio requires model and target values strictly between "
+                f"zero and one for {component_name} / {description}. Falling "
+                f"back to default increment {default_increment}"
             )
-            if model_value <= 0 and target_value > 0:
+            if target_value > model_value:
                 return default_increment
-            elif model_value > 0 and target_value <= 0:
+            elif target_value < model_value:
                 return -default_increment
             else:
                 return 0
 
-        ratio = numerator / denominator
+        ratio = (target_value * (1 - model_value)) / (model_value * (1 - target_value))
         if ratio <= 0 or not np.isfinite(ratio):
             raise RuntimeError(
                 f"odds_ratio produced invalid ratio for {component_name} / {description}"

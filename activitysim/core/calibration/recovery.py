@@ -14,6 +14,8 @@ CALIBRATION_PROGRESS_FILE = "calibration/calibration_progress.json"
 def _mark_global_iteration_in_progress(
     state: workflow.State,
     global_iteration: int,
+    attempt: int,
+    completed_components: dict[str, dict[str, Any]] | None = None,
 ) -> None:
     """Durably mark a global iteration in progress."""
     _write_progress(
@@ -22,6 +24,8 @@ def _mark_global_iteration_in_progress(
             "in_progress_iteration": global_iteration,
             "next_global_iteration": global_iteration,
             "last_completed_global_iteration": global_iteration - 1,
+            "attempt": attempt,
+            "completed_components": completed_components or {},
         },
     )
 
@@ -49,6 +53,9 @@ def _write_completed_progress(
     state: workflow.State,
     completed_global_iterations: int,
     converged: bool,
+    configured_global_iterations: int,
+    attempt: int = 1,
+    completed_components: dict[str, dict[str, Any]] | None = None,
 ) -> None:
     """Mark calibration complete after all final output has been written."""
     _write_progress(
@@ -59,5 +66,8 @@ def _write_completed_progress(
             "next_global_iteration": completed_global_iterations + 1,
             "last_completed_global_iteration": completed_global_iterations,
             "converged": converged,
+            "configured_global_iterations": configured_global_iterations,
+            "attempt": attempt,
+            "completed_components": completed_components or {},
         },
     )

@@ -44,24 +44,36 @@ global iteration is attempt 1. Restarting an interrupted global iteration create
 attempt 2, then attempt 3 if another restart is needed. A recovery attempt does
 not consume an additional global iteration.
 
-Calibration uses the top-level `settings.yaml` `resume_after` setting. It has
-strict ActivitySim semantics: the named model is treated as complete, its
-checkpoint is restored, and execution begins with the following model. The name
-must occur in the top-level `models` list and must be a model-level checkpoint;
-the `_` shorthand for the last checkpoint is not accepted in calibration mode.
+Calibration uses only the top-level `settings.yaml` `resume_after` setting. On
+the first global iteration executed by an ActivitySim invocation, including a
+new attempt of an interrupted iteration, it behaves like `resume_after` in a
+non-calibration run:
 
-On the first global iteration entered by an invocation, calibrated models at or
-before `resume_after` are skipped. Later global iterations in the same invocation
-restart immediately before the first calibrated model and run the normal complete
-calibration sequence. For example, if global iteration 3 was interrupted after
+- when set to a model name, that model is treated as complete, its checkpoint is
+  restored, and execution begins with the following model; and
+- when unset or `null`, execution starts at the beginning of the top-level
+  `models` list. Calibration does not automatically continue after the last
+  model completed by the preceding attempt.
+
+A named value must occur in the top-level `models` list and must identify a
+model-level checkpoint. Calibration does not define a special `initialize`
+value. A value such as `initialize_landuse` has ordinary model-name semantics:
+that model is skipped and execution begins with the next model. The `_` shorthand
+for the last checkpoint is not accepted in calibration mode.
+
+`resume_after` affects only the first global iteration entered by the current
+invocation. Calibrated models at or before a named resume point are skipped in
+that iteration. Any later global iterations in the same invocation ignore
+`resume_after`, restart immediately before the first calibrated model, and run
+the normal complete calibration sequence.
+
+For example, suppose global iteration 3 attempt 1 was interrupted after
 calibrated `model_a` completed:
 
-- `resume_after: model_a` preserves model A's attempt-1 result and resumes with
-  the following model under attempt 2;
-- `resume_after: initialize` rewinds pipeline state and reruns model A under
-  attempt 2; and
-- no `resume_after` replays the interrupted iteration from the beginning under
-  attempt 2.
+- `resume_after: model_a` starts attempt 2 after model A, preserving its
+  attempt-1 result; and
+- `resume_after: null` starts attempt 2 at the beginning of the complete model
+  list, so model A runs again.
 
 Coefficient files are the authoritative current state and are never rolled back
 during recovery. Updates written before the interruption, along with subsequent

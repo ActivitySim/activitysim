@@ -7,7 +7,7 @@ import os.path
 
 import pandas as pd
 import pandas.testing as pdt
-import pandera as pa
+import pandera.pandas as pa
 import pytest
 import yaml
 

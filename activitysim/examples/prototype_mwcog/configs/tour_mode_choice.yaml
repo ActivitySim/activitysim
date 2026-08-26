@@ -96,19 +96,4 @@ nontour_preprocessor:
   TABLES:
     - land_use
 
-# to reduce memory needs filter chooser table to these fields
-LOGSUM_CHOOSER_COLUMNS:
-  - tour_type
-  - hhsize
-  - density_index
-  - age
-  - age_16_p
-  - age_16_to_19
-  - auto_ownership
-  - number_of_participants
-  - tour_category
-  - num_workers
-  - value_of_time
-  - free_parking_at_work
-
 MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum

@@ -10,6 +10,8 @@ import numpy as np
 import pandas as pd
 from pydantic import root_validator
 
+from activitysim.abm.models.util.bias_logsums import maybe_bias_logsums
+from activitysim.abm.models.util.maz_sampling import draw_maz_rands
 from activitysim.abm.models.util.school_escort_tours_trips import (
     split_out_school_escorting_trips,
 )
@@ -30,12 +32,16 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LocationComponentSettings
-from activitysim.core.interaction_sample import interaction_sample
+from activitysim.core.exceptions import DuplicateWorkflowTableError, InvalidTravelError
+from activitysim.core.interaction_sample import (
+    interaction_sample,
+    resolve_sample_method,
+)
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
+from activitysim.core.logit import AltsContext
 from activitysim.core.skim_dictionary import DataFrameMatrix
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place, reindex
-from activitysim.core.exceptions import InvalidTravelError, DuplicateWorkflowTableError
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +189,7 @@ def _destination_sample(
             f"SAMPLE_SIZE set to 0 for {trace_label} because disable_destination_sampling is set"
         )
 
-    locals_dict = state.get_global_constants().copy()
+    locals_dict = {}
     locals_dict.update(model_settings.CONSTANTS)
 
     # size_terms of destination zones are purpose-specific, and trips have various purposes
@@ -214,6 +220,7 @@ def _destination_sample(
         preprocessor_setting_name="alts_preprocessor_sample",
     )
 
+    # Trip destination keeps the alternative universe here so stable_alt_positions is not needed.
     choices = interaction_sample(
         state,
         choosers=trips,
@@ -273,12 +280,16 @@ def destination_sample(
     return choices
 
 
-def aggregate_size_term_matrix(maz_size_term_matrix, network_los):
+def aggregate_size_term_matrix(maz_size_term_matrix, network_los, all_tazs=None):
     df = maz_size_term_matrix.df
     assert ALT_DEST_TAZ not in df
 
     dest_taz = network_los.map_maz_to_taz(df.index)
     taz_size_term_matrix = df.groupby(dest_taz).sum()
+    if all_tazs is not None:
+        taz_size_term_matrix = taz_size_term_matrix.reindex(
+            all_tazs, fill_value=0
+        ).rename_axis(taz_size_term_matrix.index.name, axis=0)
 
     taz_size_term_matrix = DataFrameMatrix(taz_size_term_matrix)
 
@@ -294,6 +305,7 @@ def choose_MAZ_for_TAZ(
     alt_dest_col_name,
     trace_label,
     model_settings,
+    full_taz_index=None,
 ):
     """
     Convert taz_sample table with TAZ zone sample choices to a table with a MAZ zone chosen for each TAZ
@@ -366,17 +378,24 @@ def choose_MAZ_for_TAZ(
 
     # for random_for_df, we need df with de-duplicated chooser canonical index
     chooser_df = pd.DataFrame(index=taz_sample.index[~taz_sample.index.duplicated()])
-    num_choosers = len(chooser_df)
     assert chooser_df.index.name == chooser_id_col
 
-    # to make choices, <taz_sample_size> rands for each chooser (one rand for each sampled TAZ)
-    # taz_sample_size will be model_settings['SAMPLE_SIZE'] samples, except if we are estimating
-    taz_sample_size = taz_choices.groupby(chooser_id_col)[DEST_TAZ].count().max()
+    # to make choices, draw enough rands for the chooser with the largest TAZ sample,
+    # then keep only the draws corresponding to actual TAZ rows for each chooser.
+    taz_choice_counts = (
+        taz_choices.groupby(chooser_id_col)[DEST_TAZ]
+        .count()
+        .reindex(chooser_df.index)
+        .astype(np.int64)
+    )
+    taz_sample_size = taz_choice_counts.max()
+    uniform_taz_choice_counts = (taz_choice_counts == taz_sample_size).all()
 
-    # taz_choices index values should be contiguous
-    assert (
-        taz_choices[chooser_id_col] == np.repeat(chooser_df.index, taz_sample_size)
-    ).all()
+    # taz_choices rows should remain grouped by chooser in chooser_df order
+    expected_chooser_ids = np.repeat(
+        chooser_df.index.to_numpy(), taz_choice_counts.to_numpy()
+    )
+    assert (taz_choices[chooser_id_col].to_numpy() == expected_chooser_ids).all()
 
     # we need to choose a MAZ for each DEST_TAZ choice
     # probability of choosing MAZ based on MAZ size_term fraction of TAZ total
@@ -444,15 +463,18 @@ def choose_MAZ_for_TAZ(
     # prob array with one row TAZ_choice, one column per alternative
     row_sums = padded_maz_sizes.sum(axis=1)
     maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
-    assert maz_probs.shape == (num_choosers * taz_sample_size, max_maz_count)
-
-    rands = (
-        state.get_rn_generator()
-        .random_for_df(chooser_df, n=taz_sample_size)
-        .reshape(-1, 1)
+    rands = draw_maz_rands(
+        state=state,
+        chooser_df=chooser_df,
+        taz_choices=taz_choices,
+        taz_choice_counts=taz_choice_counts,
+        taz_sample_size=taz_sample_size,
+        maz_probs=maz_probs,
+        max_maz_count=max_maz_count,
+        uniform_taz_choice_counts=uniform_taz_choice_counts,
+        dest_taz_col=DEST_TAZ,
+        full_taz_index=full_taz_index,
     )
-    assert len(rands) == num_choosers * taz_sample_size
-    assert len(rands) == maz_probs.shape[0]
 
     # make choices
     # positions is array with the chosen alternative represented as a column index in probs
@@ -612,7 +634,17 @@ def destination_presample(
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
-    TAZ_size_term_matrix = aggregate_size_term_matrix(size_term_matrix, network_los)
+    if state.settings.sharrow or state.settings.use_explicit_error_terms:
+        # when using sharrow, we use the skim_dataset structure, and need to ensure
+        # that all TAZs are represented in the size_term_matrix, even those with no MAZs.
+        # we also need to do this when using eet for consistent error terms.
+        all_tazs = state.get_dataframe("land_use_taz").index
+    else:
+        all_tazs = None
+
+    TAZ_size_term_matrix = aggregate_size_term_matrix(
+        size_term_matrix, network_los, all_tazs
+    )
 
     TRIP_ORIGIN = model_settings.TRIP_ORIGIN
     PRIMARY_DEST = model_settings.PRIMARY_DEST
@@ -626,6 +658,35 @@ def destination_presample(
     alternatives = alternatives.groupby(
         network_los.map_maz_to_taz(alternatives.index)
     ).sum()
+
+    # We now have aggregated alternatives indexed by TAZ instead of MAZ.
+    # For sharrow, we need the TAZ indexing to be "complete", i.e. include all TAZ ids,
+    # even those that had no MAZs (and so were missing from the aggregation result).
+    # this is needed because we are going to taking the entire set of TAZ alternatives
+    # as a vector which will need to align with the TAZ skims.
+    if state.settings.sharrow or state.settings.use_explicit_error_terms:
+        all_tazs = state.get_dataframe("land_use_taz").index
+        alternatives = alternatives.reindex(all_tazs, fill_value=0).rename_axis(
+            alternatives.index.name, axis=0
+        )
+
+    # Trip destination keeps the alternative universe in `alternatives`, so the active TAZ set after aggregation always
+    # equals the full TAZ universe and stable_alt_positions is not needed at the TAZ presample call itself (unlike
+    # tour_destination / location_choice, which filter zero-attraction zones before presampling). full_taz_index is
+    # still computed here for the MAZ-for-TAZ second stage, but only for Poisson sampling: that stage uses one
+    # per-(chooser, TAZ) uniform to pick a MAZ within each sampled TAZ. Under Poisson each sampled TAZ appears at most
+    # once per chooser, so the per-TAZ uniform produces an independent MAZ choice. Under EET sampling (importance
+    # sampling with replacement) the same TAZ can appear multiple times in a chooser's sample and would allshare one
+    # uniform, forcing every duplicate to pick the same MAZ. An EET-stable MAZ-for-TAZ would need a
+    # (TAZ, occurrence-rank)-keyed draw and many more random numbers per chooser; that's too expensive with the
+    # current RNG, revisit if a counter-based RNG is adapted.
+    full_taz_index = None
+    if state.settings.use_explicit_error_terms:
+        taz_sample_method = resolve_sample_method(state, model_settings)
+        if taz_sample_method == "poisson":
+            full_taz_index = pd.Index(
+                alternatives.index, name=f"{alt_dest_col_name}_TAZ"
+            )
 
     # # i did this but after changing alt_dest_col_name to 'trip_dest' it
     # # shouldn't be needed anymore
@@ -658,6 +719,7 @@ def destination_presample(
         alt_dest_col_name,
         trace_label,
         model_settings,
+        full_taz_index=full_taz_index,
     )
 
     assert alt_dest_col_name in maz_sample
@@ -921,6 +983,7 @@ def trip_destination_simulate(
     skim_hotel,
     estimator,
     trace_label,
+    alts_context: AltsContext | None = None,
 ):
     """
     Chose destination from destination_sample (with od_logsum and dp_logsum columns added)
@@ -1007,6 +1070,7 @@ def trip_destination_simulate(
         trace_choice_name="trip_dest",
         estimator=estimator,
         explicit_chunk_size=model_settings.explicit_chunk,
+        alts_context=alts_context,
     )
 
     if not want_logsums:
@@ -1050,6 +1114,10 @@ def choose_trip_destination(
     logger.info("choose_trip_destination %s with %d trips", trace_label, trips.shape[0])
 
     t0 = print_elapsed_time()
+
+    # use full index (including zero-size zones) to ensure stable random results
+    # fetch alts_context early so we don't worry about mutating alternatives first
+    alts_context = AltsContext.from_series(alternatives.index)
 
     # - trip_destination_sample
     destination_sample = trip_destination_sample(
@@ -1097,7 +1165,6 @@ def choose_trip_destination(
         destination_sample["dp_logsum"] = 0.0
 
     t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0, debug=True)
-
     destinations = trip_destination_simulate(
         state,
         primary_purpose=primary_purpose,
@@ -1109,7 +1176,12 @@ def choose_trip_destination(
         skim_hotel=skim_hotel,
         estimator=estimator,
         trace_label=trace_label,
+        alts_context=alts_context,
     )
+
+    # Check for temporary fix to bias logsums for Poisson sampling results to align with MC/eet sampling.
+    if want_logsums:
+        destinations = maybe_bias_logsums(state, destinations, model_settings)
 
     dropped_trips = ~trips.index.isin(destinations.index)
     if dropped_trips.any():
@@ -1445,13 +1517,13 @@ def run_trip_destination(
                             """
 
                         When using the trip destination model with sharrow, it is necessary
-                        to set a value for `purpose_index_num` in the trip destination 
-                        annotate trips preprocessor.  This allows for an optimized compiled 
+                        to set a value for `purpose_index_num` in the trip destination
+                        annotate trips preprocessor.  This allows for an optimized compiled
                         lookup of the size term from the array of size terms.  The value of
-                        `purpose_index_num` should be the integer column position in the size 
-                        matrix, with usual zero-based numpy indexing semantics (i.e. the first 
+                        `purpose_index_num` should be the integer column position in the size
+                        matrix, with usual zero-based numpy indexing semantics (i.e. the first
                         column is zero).  The preprocessor expression most likely needs to be
-                        "size_terms.get_cols(df.purpose)" unless some unusual transform of 
+                        "size_terms.get_cols(df.purpose)" unless some unusual transform of
                         size terms has been employed.
 
                         """

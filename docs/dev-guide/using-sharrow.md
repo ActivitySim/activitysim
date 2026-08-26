@@ -111,7 +111,9 @@ decoded in various output files.  Generally, for columns that are fully populate
 with zone id's (e.g. tour and trip ends) we can apply the `decode_columns` settings
 to reverse the mapping and restore the nominal zone id's globally for the entire
 column of data.  For columns where there is some missing data flagged by negative
-values, the "nonnegative" filter is prepended to the instruction.
+values, the "nonnegative" filter is prepended to the instruction. If the column
+may also contain nulls, use "nullable_nonnegative" to leave those values
+unchanged while decoding the non-negative indexes.
 
 ```yaml
 output_tables:
@@ -127,7 +129,7 @@ output_tables:
       decode_columns:
         home_zone_id: land_use.zone_id
         school_zone_id: nonnegative | land_use.zone_id
-        workplace_zone_id: nonnegative | land_use.zone_id
+        workplace_zone_id: nullable_nonnegative | land_use.zone_id
     - tablename: tours
       decode_columns:
         origin: land_use.zone_id

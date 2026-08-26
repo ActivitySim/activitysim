@@ -36,6 +36,7 @@ Contents
 
    modelsetup
    ways_to_run
+   sampling-methods
    performance/index
    run_primary_example
    model_anatomy

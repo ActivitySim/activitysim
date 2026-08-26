@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any, Literal
 import struct
 import time
+from pathlib import Path
+from typing import Any, Literal
 
 from pydantic import model_validator, validator
 
@@ -114,6 +114,9 @@ class OutputTable(PydanticBase):
     should be decoded, as negative values indicate an absence of choice.  In
     these cases, the "tablename.fieldname" can be prefixed with a "nonnegative"
     filter, seperated by a pipe character (e.g. "nonnegative | land_use.zone_id").
+    If the column may also contain null values, use "nullable_nonnegative"
+    instead to pass nulls through unchanged while still preserving negative
+    sentinel values.
     """
 
 
@@ -703,6 +706,8 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
         "memory_profile",
         "instrument",
         "sharrow",
+        "use_explicit_error_terms",
+        "sample_method",
     )
     """
     Setting to log on startup.
@@ -776,11 +781,44 @@ class Settings(PydanticBase, extra="allow", validate_assignment=True):
     .. versionadded:: 1.3
     """
 
+    use_explicit_error_terms: bool = False
+    """
+    Make choice from random utility model by drawing from distribution of unobserved
+    part of utility and taking the maximum of total utility.
+
+    Defaults to the standard inverse-CDF (probability-based) method, i.e., calculating
+    probabilities and then drawing a single uniform random number against the
+    cumulative probability.
+
+    .. versionadded:: 1.6
+    """
+
+    sample_method: None | Literal["inverse_cdf", "eet", "poisson"] = None
+    """
+    Sampling method to use in `activitysim.core.interaction_sample`.
+
+    When unset, `inverse_cdf` is used when `use_explicit_error_terms` is false and
+    `poisson` is used when it is true.
+
+    .. versionadded:: 1.6
+    """
+
+    bias_location_choice_logsums_for_poisson_sampling: bool = False
+    """
+    Whether to apply a bias of `log(sample_size)` to the Poisson sampling results.
+    This is a temporary workaround to align Poisson sampling results with the biased
+    results of the inverse_cdf and eet sampling methods, such that models that were
+    estimated with historical biased sampling results can be run with Poisson sampling
+    without needing to re-estimate the model.
+
+    .. versionadded:: 1.6
+    """
+
     check_model_settings: bool = True
     """
     run checks to validate that YAML settings files are loadable and spec and coefficient csv can be resolved.
 
-    should catch many common errors early, including missing required configurations or specified coefficient labels without defined values.  
+    should catch many common errors early, including missing required configurations or specified coefficient labels without defined values.
     """
 
     skip_failed_choices: bool = True

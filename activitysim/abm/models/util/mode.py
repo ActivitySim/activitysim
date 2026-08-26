@@ -36,6 +36,7 @@ def mode_choice_simulate(
     trace_column_names=None,
     estimator: Optional[Estimator] = None,
     compute_settings: ComputeSettings | None = None,
+    explicit_chunk_size: float = 0,
 ):
     """
     common method for  both tour_mode_choice and trip_mode_choice
@@ -47,13 +48,15 @@ def mode_choice_simulate(
     nest_spec
     skims
     locals_d
-    chunk_size
     mode_column_name
     logsum_column_name
     trace_label
     trace_choice_name
     estimator
-    compute_settings : ComputeSettings
+    compute_settings : ComputeSettings, optional
+    explicit_chunk_size : float, default 0
+        If > 0, the fixed number of choosers per chunk (explicit chunking); if 0, chunk sizing
+        follows the run's chunk_training_mode / adaptive sizing.
 
     Returns
     -------
@@ -74,6 +77,7 @@ def mode_choice_simulate(
         estimator=estimator,
         trace_column_names=trace_column_names,
         compute_settings=compute_settings,
+        explicit_chunk_size=explicit_chunk_size,
     )
 
     # for consistency, always return dataframe, whether or not logsums were requested
@@ -176,6 +180,7 @@ def run_tour_mode_choice_simulate(
         trace_column_names=trace_column_names,
         estimator=estimator,
         compute_settings=model_settings.compute_settings,
+        explicit_chunk_size=model_settings.explicit_chunk,
     )
 
     return choices

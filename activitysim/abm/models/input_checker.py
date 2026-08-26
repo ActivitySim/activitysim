@@ -8,12 +8,12 @@ from collections import defaultdict
 
 import numpy as np
 import pandas as pd
-import pandera as pa
+import pandera.pandas as pa
 import pydantic
 
 from activitysim.core import workflow
-from activitysim.core.input import read_input_table
 from activitysim.core.exceptions import ModelConfigurationError
+from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
 file_logger = logger.getChild("logfile")

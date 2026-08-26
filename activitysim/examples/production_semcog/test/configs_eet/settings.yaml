@@ -1,0 +1,5 @@
+inherit_settings: True
+
+use_explicit_error_terms: True
+
+rng_base_seed: 999

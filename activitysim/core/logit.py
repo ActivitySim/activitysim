@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 import warnings
+from dataclasses import dataclass
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -19,11 +21,50 @@ from activitysim.core.exceptions import (
 
 logger = logging.getLogger(__name__)
 
+EXACT_NESTED_LOGIT_DTYPE = np.float64
+
 EXP_UTIL_MIN = 1e-300
 EXP_UTIL_MAX = np.inf
 
+UTIL_MIN = np.log(EXP_UTIL_MIN, dtype=np.float64)
+UTIL_UNAVAILABLE = 1000.0 * (UTIL_MIN - 1.0)
+
+# Utility assigned to an alternative that must be chosen over UTIL_UNAVAILABLE
+# alternatives, e.g. when forcing a choice for a chooser that would otherwise
+# have no available alternative. Any finite value works: the gap to
+# UTIL_UNAVAILABLE is many orders of magnitude larger than the EV1 error terms
+# added by the explicit error term choice methods.
+UTIL_LARGE_ENOUGH = 3.0
+
 PROB_MIN = 0.0
 PROB_MAX = 1.0
+
+
+@dataclass
+class AltsContext:
+    """Representation of the alternatives without carrying around that full array."""
+
+    min_alt_id: int
+    max_alt_id: int
+
+    @classmethod
+    def from_series(cls, ser: Union[pd.Series, pd.Index]) -> "AltsContext":
+        min_alt_id = ser.min()
+        max_alt_id = ser.max()
+        return cls(min_alt_id, max_alt_id)
+
+    @classmethod
+    def from_num_alts(cls, num_alts: int, zero_based: bool = True) -> "AltsContext":
+        if zero_based:
+            offset = -1
+        else:
+            offset = 0
+        return cls(min_alt_id=1 + offset, max_alt_id=num_alts + offset)
+
+    @property
+    def n_alts_to_cover_max_id(self) -> int:
+        """If zones were non-consecutive, this could be a big over-estimate."""
+        return self.max_alt_id + 1
 
 
 def report_bad_choices(
@@ -168,6 +209,71 @@ def utils_to_logsums(utils, exponentiated=False, allow_zero_probs=False):
     return logsums
 
 
+def validate_utils(
+    state: workflow.State,
+    utils,
+    trace_label=None,
+    allow_zero_probs=False,
+    trace_choosers=None,
+):
+    """
+    Validate utilities to ensure non-available choices are treated the same in EET and MC.
+    For EET decisions, no conversion to probabilities is required because choices
+    are made on the basis of comparing utilities (only differences matter).
+    However, large negative utility values are used in practice to make choices
+    unavailable based on probability calculations, which boils down to evaluating
+    exp(utility). We here use this to define a minimum utility that corresponds
+    to an unavailable choice.
+
+    Parameters
+    ----------
+    utils : pandas.DataFrame
+        Rows should be choosers and columns should be alternatives.
+
+    trace_label : str, optional
+        label for tracing bad utility or probability values
+
+    allow_zero_probs : bool
+        if True value rows in which all utility alts are UTIL_MIN will be set to
+        UTIL_UNAVAILABLE.
+
+    trace_choosers : pandas.dataframe
+        the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+        by report_bad_choices because it can't deduce hh_id from the interaction_dataset
+        which is indexed on index values from alternatives df
+
+    Returns
+    -------
+    utils : pandas.DataFrame
+        utils with values that would lead to zero probability replaced by UTIL_UNAVAILABLE
+
+    """
+    trace_label = tracing.extend_trace_label(trace_label, "validate_utils")
+
+    utils_arr = utils.values
+
+    np.putmask(utils_arr, utils_arr <= UTIL_MIN, UTIL_UNAVAILABLE)
+
+    arr_sum = utils_arr.sum(axis=1)
+
+    if not allow_zero_probs:
+        zero_probs = arr_sum <= utils_arr.shape[1] * UTIL_UNAVAILABLE
+        if zero_probs.any():
+            report_bad_choices(
+                state,
+                zero_probs,
+                utils,
+                state.settings.skip_failed_choices,
+                trace_label=tracing.extend_trace_label(trace_label, "zero_prob_utils"),
+                msg="all probabilities are zero",
+                trace_choosers=trace_choosers,
+            )
+
+    utils = pd.DataFrame(utils_arr, columns=utils.columns, index=utils.index)
+
+    return utils
+
+
 def utils_to_probs(
     state: workflow.State,
     utils,
@@ -176,7 +282,6 @@ def utils_to_probs(
     allow_zero_probs=False,
     trace_choosers=None,
     overflow_protection: bool = True,
-    skip_failed_choices: bool = True,
     return_logsums: bool = False,
 ):
     """
@@ -217,15 +322,12 @@ def utils_to_probs(
         overflow_protection will have no benefit but impose a modest computational
         overhead cost.
 
-    skip_failed_choices : bool, default True
-        If True, when bad choices are detected (all zero probabilities or infinite
-        probabilities), the entire household that's causing bad choices will be skipped instead of
-        being masked by overflow protection or causing an error.
-        A counter will be incremented for each skipped household. This is useful when running large
-        simulations where occasional bad choices are encountered and should not halt the process.
-        The counter can be accessed via `state.get("num_skipped_households", 0)`.
-        The number of skipped households and their IDs will be logged at the end of the simulation.
-        When `skip_failed_choices` is True, `overflow_protection` will be forced to False to avoid conflicts.
+    skip_failed_choices behavior
+        Bad-choice handling is controlled by `state.settings.skip_failed_choices`.
+        If enabled, choosers with bad probabilities (all zero or infinite
+        exponentiated utilities) are skipped instead of raising immediately.
+        The number of skipped households and their IDs are tracked on `state`, and
+        `overflow_protection` is forced off so those failures are not masked.
 
     Returns
     -------
@@ -254,7 +356,6 @@ def utils_to_probs(
             utils_arr.dtype == np.float32 and utils_arr.max() > 85
         )
 
-    # get skip_failed_choices from state
     skip_failed_choices = state.settings.skip_failed_choices
     # when skipping failed choices, we cannot use overflow protection
     # because it would mask the underlying issue causing bad choices
@@ -348,6 +449,301 @@ def utils_to_probs(
     return probs
 
 
+def _log_positive_stable_for_df(
+    state: workflow.State, df: pd.DataFrame, alpha: float
+) -> np.ndarray:
+    alpha = EXACT_NESTED_LOGIT_DTYPE(alpha)
+    eps = np.finfo(EXACT_NESTED_LOGIT_DTYPE).eps
+    uniforms = np.asarray(
+        state.get_rn_generator().random_for_df(df, n=2),
+        dtype=EXACT_NESTED_LOGIT_DTYPE,
+    )
+
+    if np.isclose(alpha, 1.0):
+        # degenerate nest: positive-stable variate is deterministically 1, so log = 0.
+        # This early exit needs to happen after drawing the two uniform randoms so the channel
+        # offset advances by the same amount independent of alpha.
+        return np.zeros(len(df), dtype=EXACT_NESTED_LOGIT_DTYPE)
+
+    angle_uniform = np.clip(uniforms[:, 0], eps, 1.0 - eps)
+    exp_uniform = np.clip(uniforms[:, 1], eps, 1.0 - eps)
+
+    u = eps + (np.pi - 2.0 * eps) * angle_uniform
+    w = -np.log(exp_uniform)
+
+    return (
+        np.log(np.sin(alpha * u))
+        - np.log(np.sin(u)) / alpha
+        + ((1.0 - alpha) / alpha) * (np.log(np.sin((1.0 - alpha) * u)) - np.log(w))
+    )
+
+
+def _leaf_path_coefficients(
+    nest_spec: dict | LogitNestSpec, alt_order_array: np.ndarray
+) -> pd.Series:
+    coefficients = pd.Series(
+        {
+            nest.name: nest.product_of_coefficients
+            for nest in each_nest(nest_spec, type="leaf")
+        },
+        dtype=EXACT_NESTED_LOGIT_DTYPE,
+    ).reindex(alt_order_array)
+
+    if coefficients.isna().any():
+        missing = coefficients[coefficients.isna()].index.tolist()
+        raise ValueError(f"leaf alternatives missing from nest spec: {missing}")
+
+    return coefficients
+
+
+def sample_nested_logit_exact_leaf_error_terms(
+    state: workflow.State,
+    alt_utilities: pd.DataFrame,
+    nest_spec: dict | LogitNestSpec,
+) -> pd.DataFrame:
+    # Galichon writes the error term for alternative (leaf) j as
+    # $\sum_{t=1}^{n} path_coeff_up_to_t * log_positive_stable_draw(nest_coeff_t) + path_coeff_j leaf_gumbel_j$
+    # with nest_coeff_0 = 1.0
+
+    error_terms = pd.DataFrame(
+        0.0,
+        index=alt_utilities.index,
+        columns=alt_utilities.columns.to_numpy(),
+        dtype=EXACT_NESTED_LOGIT_DTYPE,
+    )
+
+    leaf_children_for_each_node = get_leaf_children_for_nodes(nest_spec)
+
+    for i, nest in enumerate(each_nest(nest_spec, post_order=False)):
+        # skip root.
+        if i == 0:
+            assert np.isclose(
+                nest.coefficient, 1.0
+            ), "EET for nested logit requires root coefficient of 1.0"
+            continue
+
+        if nest.type == "node":
+            all_leaf_children = leaf_children_for_each_node.get(nest.name, [])
+            log_stable_for_node = (
+                nest.product_of_coefficients
+                * _log_positive_stable_for_df(state, alt_utilities, nest.coefficient)
+            )
+            if not all_leaf_children:
+                logger.warning(
+                    f"Node nest {nest.name} has no leaf children; discarding draw."
+                )
+                continue
+
+            # All alternatives for a chooser (row) get the same term.
+            col_idx = error_terms.columns.get_indexer(all_leaf_children)
+            error_terms.values[:, col_idx] += log_stable_for_node[:, None]
+            # Now using direct numpy broadcasting into the underlying values array — avoids the `.repeat()`
+            # materialization and pandas label alignment overhead.
+            # error_terms.loc[:, all_leaf_children] += log_stable_for_node.reshape(-1, 1
+            # ).repeat(len(all_leaf_children), axis=1)
+
+    leaf_path_coefficients = _leaf_path_coefficients(
+        nest_spec, alt_utilities.columns.to_numpy()
+    )
+    leaf_gumbels = pd.DataFrame(
+        state.get_rn_generator().gumbel_for_df(alt_utilities, n=alt_utilities.shape[1]),
+        index=alt_utilities.index,
+        columns=alt_utilities.columns.to_numpy(),
+    ).mul(leaf_path_coefficients, axis=1)
+
+    error_terms += leaf_gumbels
+
+    return error_terms
+
+
+def make_choices_explicit_error_term_nl(
+    state,
+    alt_utilities,
+    nest_spec,
+    trace_label,
+    trace_choosers=None,
+    alts_context: AltsContext | None = None,
+    alt_nrs_df: pd.DataFrame | None = None,
+):
+    """
+    Make EET choices for a nested logit model by adding nested-logit errors. Note these are correlated
+    among nests.
+
+    Parameters
+    ----------
+    state : workflow.State
+    alt_utilities : pandas.DataFrame
+        Utilities for fundamental alternatives (leaf nodes).
+    nest_spec : dict or LogitNestSpec
+        Nest specification for the choice model.
+    trace_label : str
+        Trace label for logging and tracing.
+
+    Returns
+    -------
+    pandas.Series
+        Choice indices aligned to `alt_utilities` columns.
+    """
+    if alts_context is not None or alt_nrs_df is not None:
+        raise NotImplementedError(
+            f"{trace_label} - Sampling from nested models is not implemented; do not pass alts_context or alt_nrs_df."
+        )
+
+    utilities_incl_unobs = sample_nested_logit_exact_leaf_error_terms(
+        state,
+        alt_utilities,
+        nest_spec,
+    )
+    utilities_incl_unobs += alt_utilities
+
+    if trace_label:
+        state.tracing.trace_df(
+            utilities_incl_unobs,
+            tracing.extend_trace_label(trace_label, "leaf_utilities_eet_exact"),
+        )
+
+    choices = np.argmax(utilities_incl_unobs.to_numpy(), axis=1)
+    return pd.Series(choices, index=utilities_incl_unobs.index)
+
+
+def make_choices_explicit_error_term_mnl(
+    state,
+    utilities,
+    trace_label,
+    trace_choosers=None,
+    alts_context: AltsContext | None = None,
+    alt_nrs_df: pd.DataFrame | None = None,
+) -> pd.Series:
+    """
+    Make EET choices for a multinomial logit model by adding EV1 errors.
+
+    Parameters
+    ----------
+    state : workflow.State
+    utilities : pandas.DataFrame
+        Utilities with choosers as rows and alternatives as columns.
+    trace_label : str
+        Trace label for logging and tracing.
+
+    Returns
+    -------
+    pandas.Series
+        Choice indices aligned to the utilities columns order.
+    """
+    if alts_context is None:
+        choices = state.get_rn_generator().gumbel_choice_positions_for_df(utilities)
+    else:
+        choices = state.get_rn_generator().gumbel_choice_positions_for_df(
+            utilities,
+            alt_nrs_df=alt_nrs_df,
+            n_rands=alts_context.n_alts_to_cover_max_id,
+        )
+
+    return pd.Series(choices, index=utilities.index)
+
+
+def make_choices_utility_based(
+    state: workflow.State,
+    utilities: pd.DataFrame,
+    trace_label: str = None,
+    trace_choosers=None,
+    nest_spec=None,
+    alts_context: AltsContext | None = None,
+    alt_nrs_df: pd.DataFrame | None = None,
+    allow_zero_probs: bool = False,
+) -> tuple[pd.Series, pd.Series]:
+    """
+    Make choices for each chooser from among a set of alternatives based on utilities by adding
+    random error terms and choosing the maximum utility alternative.
+
+    Parameters
+    ----------
+    utilities : pandas.DataFrame
+        Utilities with choosers as rows and alternatives as columns. Note for nested logit models,
+        this should include only leaf nodes.
+    trace_label : str
+        Trace label for logging and tracing.
+    trace_choosers : pandas.dataframe
+        the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+        by report_bad_choices because it can't deduce hh_id from the interaction_dataset
+        which is indexed on index values from alternatives df.
+    nest_spec : dict or LogitNestSpec, optional
+        Nest specification for the choice model. If None, will be treated as a multinomial logit model.
+    alts_context : AltsContext, optional
+        If provided, will be used to determine how many random numbers to sample and how to index them for the EET
+        sampling. This is only relevant for multinomial logit models, and should be provided along with alt_nrs_df.
+    alt_nrs_df : pandas.DataFrame, optional
+        DataFrame with same index as `utilities` and columns corresponding to `alts_context.max_alt_id`, containing
+        the alt_nrs for each alternative for each chooser. This is used to index into the random numbers when sampling
+        EET terms for multinomial logit models, and should contain -999 for any alternatives that are not available
+        for a given chooser. Should be provided along with `alts_context`.
+    allow_zero_probs : bool
+        If False, report choosers that have no available alternative at all. This is the
+        utility-space counterpart of `allow_bad_probs` in `make_choices`, and takes the
+        name `allow_zero_probs` because the condition it suppresses is the same one that
+        `validate_utils` and `utils_to_probs` describe by that name.
+
+    Returns
+    -------
+    choices : pandas.Series
+        Maps chooser IDs (from `probs` index) to a choice, where the choice
+        is an index into the columns of `probs`.
+    rands : pandas.Series
+        A series of 0s for compatibility with make_choices. For EET, we do not have per-row random numbers.
+
+    """
+    trace_label = tracing.extend_trace_label(trace_label, "make_choices_utility_based")
+
+    if not allow_zero_probs:
+        # An alternative counts as available when its utility exceeds UTIL_MIN, which is the
+        # same threshold validate_utils uses before clamping to UTIL_UNAVAILABLE. Testing the
+        # threshold directly rather than testing the row sum against a multiple of
+        # UTIL_UNAVAILABLE means this also holds for callers that arrive without having run
+        # validate_utils, where unavailable alternatives may still carry their raw value.
+        no_available_alts = ~(utilities.to_numpy() > UTIL_MIN).any(axis=1)
+        if no_available_alts.any():
+            report_bad_choices(
+                state,
+                no_available_alts,
+                utilities,
+                state.settings.skip_failed_choices,
+                trace_label=tracing.extend_trace_label(
+                    trace_label, "no_available_alts"
+                ),
+                msg="no alternative is available",
+                trace_choosers=trace_choosers,
+            )
+
+    if nest_spec is None:
+        choices = make_choices_explicit_error_term_mnl(
+            state,
+            utilities,
+            trace_label,
+            trace_choosers,
+            alts_context,
+            alt_nrs_df,
+        )
+    else:
+        # Nested-logit EET expects leaf utilities and returns indices aligned to
+        # the leaf alternative column order.
+        choices = make_choices_explicit_error_term_nl(
+            state,
+            utilities,
+            nest_spec,
+            trace_label,
+            trace_choosers,
+            alts_context,
+            alt_nrs_df,
+        )
+
+    # EET does not expose per-row random draws; return zeros for compatibility.
+    # Maybe exposing the seed of the chooser could be an alternative to re-create the random number for
+    # debugging/tracing purposes?
+    rands = pd.Series(np.zeros_like(utilities.index.values), index=utilities.index)
+
+    return choices, rands
+
+
 def make_choices(
     state: workflow.State,
     probs: pd.DataFrame,
@@ -357,28 +753,23 @@ def make_choices(
 ) -> tuple[pd.Series, pd.Series]:
     """
     Make choices for each chooser from among a set of alternatives.
-
     Parameters
     ----------
     probs : pandas.DataFrame
         Rows for choosers and columns for the alternatives from which they
         are choosing. Values are expected to be valid probabilities across
         each row, e.g. they should sum to 1.
-
     trace_choosers : pandas.dataframe
         the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
         by report_bad_choices because it can't deduce hh_id from the interaction_dataset
         which is indexed on index values from alternatives df
-
     Returns
     -------
     choices : pandas.Series
         Maps chooser IDs (from `probs` index) to a choice, where the choice
         is an index into the columns of `probs`.
-
     rands : pandas.Series
         The random numbers used to make the choices (for debugging, tracing)
-
     """
     trace_label = tracing.extend_trace_label(trace_label, "make_choices")
 
@@ -624,6 +1015,7 @@ def _each_nest(spec: LogitNestSpec, parent_nest, post_order):
         nest.level = parent_nest.level + 1
         nest.product_of_coefficients = parent_nest.product_of_coefficients
         nest.ancestors = parent_nest.ancestors + [name]
+        nest.coefficient = parent_nest.coefficient
 
         yield spec, nest
 
@@ -680,3 +1072,19 @@ def count_nests(nest_spec):
             return 1
 
     return count_each_nest(nest_spec, 0) if nest_spec is not None else 0
+
+
+def get_leaf_children_for_nodes(nest_spec, include_self=False):
+    leaf_ancestors = {
+        nest.name: [ancestor for ancestor in nest.ancestors]
+        for nest in each_nest(nest_spec, type="leaf")
+    }
+
+    leaf_children_for_each_node = {}
+    for alt, ancestor_nodes in leaf_ancestors.items():
+        for ancestor in ancestor_nodes:
+            # skip the leaf itself unless include_self is True
+            if (ancestor != alt) or include_self:
+                leaf_children_for_each_node.setdefault(ancestor, list()).append(alt)
+
+    return leaf_children_for_each_node

@@ -1,0 +1,56 @@
+sharrow: test
+recode_pipeline_columns: true
+
+expression_profile: False
+households_sample_size: 0
+sharrow_cache_dir: sharrow_cache
+chunk_training_mode: explicit
+check_for_variability: False
+use_shadow_pricing: False
+want_dest_choice_sample_tables: False
+trace_hh_id: 
+cleanup_trace_files_on_resume: True
+
+input_table_list:
+  - tablename: households
+    filename: households.csv
+    index_col: household_id
+    rename_columns:
+      MAZ: home_zone_id
+      hhno: household_id
+    recode_columns:
+      home_zone_id: land_use.zone_id
+    keep_columns:
+      - home_zone_id
+      - income
+  - tablename: persons
+    filename: persons.csv
+    index_col: person_id
+    rename_columns:
+      PERID: person_id
+    keep_columns:
+      - household_id
+      - age
+      - PNUM
+  - tablename: land_use # MAZ,TAZ,Acres,Population
+    filename: land_use.csv
+    index_col: zone_id
+    rename_columns:
+      MAZ: zone_id
+    recode_columns:
+      zone_id: zero-based
+      TAZ: land_use_taz.TAZ
+    keep_columns:
+      - TAZ
+      - Acres
+      - Population
+  - tablename: land_use_taz
+    filename: taz.csv
+    index_col: TAZ
+    recode_columns:
+      TAZ: zero-based
+
+resume_after:
+
+models:
+  - trip_destination

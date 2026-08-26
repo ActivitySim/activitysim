@@ -10,7 +10,7 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-from activitysim.core import simulate, workflow
+from activitysim.core import chunk, simulate, workflow
 
 
 @pytest.fixture
@@ -42,6 +42,19 @@ def data(data_dir):
     return pd.read_csv(os.path.join(data_dir, "data.csv"))
 
 
+@pytest.fixture
+def nest_spec():
+    nest_spec = {
+        "name": "root",
+        "coefficient": 1.0,
+        "alternatives": [
+            {"name": "alt0", "coefficient": 0.5, "alternatives": ["alt0.0", "alt0.1"]},
+            "alt1",
+        ],
+    }
+    return nest_spec
+
+
 def test_read_model_spec(state, spec_name):
     spec = state.filesystem.read_model_spec(file_name=spec_name)
 
@@ -69,6 +82,33 @@ def test_eval_variables(state, spec, data):
     pdt.assert_frame_equal(result, expected, check_names=False)
 
 
+def test_standard_utilities_global_constants_and_local_override(state):
+    state.get_global_constants = lambda: {"GLOBAL_SCALE": 2}
+    choosers = pd.DataFrame({"value": [1.0, 2.0]})
+    spec = pd.DataFrame(
+        {"alt": [1.0]},
+        index=pd.Index(["@df.value * GLOBAL_SCALE"], name="Expression"),
+    )
+    chunk_sizer = chunk.ChunkSizer(state, "", "", len(choosers))
+
+    utilities = simulate.eval_utilities(
+        state,
+        spec,
+        choosers,
+        chunk_sizer=chunk_sizer,
+    )
+    overridden_utilities = simulate.eval_utilities(
+        state,
+        spec,
+        choosers,
+        locals_d={"GLOBAL_SCALE": 3},
+        chunk_sizer=chunk_sizer,
+    )
+
+    npt.assert_allclose(utilities["alt"], [2.0, 4.0])
+    npt.assert_allclose(overridden_utilities["alt"], [3.0, 6.0])
+
+
 def test_simple_simulate(state, data, spec):
     state.settings.check_for_variability = False
 
@@ -88,3 +128,270 @@ def test_simple_simulate_chunked(state, data, spec):
     )
     expected = pd.Series([1, 1, 1], index=data.index)
     pdt.assert_series_equal(choices, expected, check_dtype=False)
+
+
+def test_simple_simulate_prunes_unused_columns_while_tracing(state, monkeypatch):
+    choosers = pd.DataFrame(
+        {
+            "household_id": [10, 20],
+            "tour_id": [100, 200],
+            "used": [1.0, 2.0],
+            "unused": [100.0, 200.0],
+        },
+        index=pd.Index([1, 2], name="person_id"),
+    )
+    spec = pd.DataFrame(
+        {"alternative": [1.0]},
+        index=pd.Index(["used"], name="Expression"),
+    )
+    captured_columns = None
+
+    monkeypatch.setattr(state.tracing, "has_trace_targets", lambda _df: True)
+
+    def capture_eval_mnl(_state, pruned_choosers, *_args, **_kwargs):
+        nonlocal captured_columns
+        captured_columns = list(pruned_choosers.columns)
+        return pd.Series(0, index=pruned_choosers.index)
+
+    monkeypatch.setattr(simulate, "eval_mnl", capture_eval_mnl)
+
+    simulate.simple_simulate(
+        state,
+        choosers,
+        spec,
+        nest_spec=None,
+        trace_column_names="tour_id",
+    )
+
+    assert captured_columns == ["household_id", "tour_id", "used"]
+
+
+def test_eval_mnl_eet(state):
+    # Check that the same counts are returned by eval_mnl when using EET and when not.
+
+    num_choosers = 100_000
+
+    np.random.seed(42)
+    data2 = pd.DataFrame(
+        {
+            "chooser_attr": np.random.rand(num_choosers),
+        },
+        index=pd.Index(range(num_choosers), name="person_id"),
+    )
+
+    spec2 = pd.DataFrame(
+        {"alt0": [1.0], "alt1": [2.0]},
+        index=pd.Index(["chooser_attr"], name="Expression"),
+    )
+
+    # Set up a state with EET enabled
+    state.settings.use_explicit_error_terms = True
+    state.rng().set_base_seed(42)
+    state.rng().add_channel("person_id", data2)
+    state.rng().begin_step("test_step_mnl")
+
+    chunk_sizer = chunk.ChunkSizer(state, "", "", num_choosers)
+
+    # run eval_mnl with EET enabled
+    choices_eet = simulate.eval_mnl(
+        state=state,
+        choosers=data2,
+        spec=spec2,
+        locals_d=None,
+        custom_chooser=None,
+        estimator=None,
+        chunk_sizer=chunk_sizer,
+    )
+
+    # Reset the state, without EET enabled
+    state.settings.use_explicit_error_terms = False
+
+    state.rng().end_step("test_step_mnl")
+    state.rng().begin_step("test_step_mnl")
+
+    choices_mnl = simulate.eval_mnl(
+        state=state,
+        choosers=data2,
+        spec=spec2,
+        locals_d=None,
+        custom_chooser=None,
+        estimator=None,
+        chunk_sizer=chunk_sizer,
+    )
+
+    # Compare counts
+    mnl_counts = choices_mnl.value_counts(normalize=True)
+    explicit_counts = choices_eet.value_counts(normalize=True)
+    assert np.allclose(mnl_counts, explicit_counts, atol=0.01)
+
+
+def test_eval_nl_eet(state, nest_spec):
+    # Check that the same counts are returned by eval_nl when using EET and when not.
+
+    num_choosers = 100_000
+
+    np.random.seed(42)
+    data2 = pd.DataFrame(
+        {
+            "chooser_attr": np.random.rand(num_choosers),
+        },
+        index=pd.Index(range(num_choosers), name="person_id"),
+    )
+
+    spec2 = pd.DataFrame(
+        {"alt1": [2.0], "alt0.0": [0.5], "alt0.1": [0.2]},
+        index=pd.Index(["chooser_attr"], name="Expression"),
+    )
+
+    # Set up a state with EET enabled
+    state.settings.use_explicit_error_terms = True
+    state.rng().set_base_seed(42)
+    state.rng().add_channel("person_id", data2)
+    state.rng().begin_step("test_step_mnl")
+
+    chunk_sizer = chunk.ChunkSizer(state, "", "", num_choosers)
+
+    # run eval_nl with EET enabled
+    choices_eet = simulate.eval_nl(
+        state=state,
+        choosers=data2,
+        spec=spec2,
+        nest_spec=nest_spec,
+        locals_d={},
+        custom_chooser=None,
+        estimator=None,
+        trace_label="test",
+        chunk_sizer=chunk_sizer,
+    )
+
+    # Reset the state, without EET enabled
+    state.settings.use_explicit_error_terms = False
+
+    state.rng().end_step("test_step_mnl")
+    state.rng().begin_step("test_step_mnl")
+
+    choices_mnl = simulate.eval_nl(
+        state=state,
+        choosers=data2,
+        spec=spec2,
+        nest_spec=nest_spec,
+        locals_d={},
+        custom_chooser=None,
+        trace_label="test",
+        estimator=None,
+        chunk_sizer=chunk_sizer,
+    )
+
+    # Compare counts
+    mnl_counts = choices_mnl.value_counts(normalize=True)
+    explicit_counts = choices_eet.value_counts(normalize=True)
+    assert np.allclose(mnl_counts, explicit_counts, atol=0.01)
+
+
+def test_compute_nested_utilities(nest_spec):
+    # computes nested utilities manually and using the function and checks that
+    # the utilities are the same
+
+    num_choosers = 2
+    raw_utilities = pd.DataFrame(
+        {"alt1": [1, 10], "alt0.0": [2, 3], "alt0.1": [4, 5]},
+        index=pd.Index(range(num_choosers)),
+    )
+
+    nested_utilities = simulate.compute_nested_utilities(raw_utilities, nest_spec)
+
+    # these are from the definition of nest_spec
+    alt0_nest_coefficient = nest_spec["alternatives"][0]["coefficient"]
+    alt0_leaf_product_of_coefficients = nest_spec["coefficient"] * alt0_nest_coefficient
+    assert alt0_leaf_product_of_coefficients == 0.5  # 1 * 0.5
+
+    product_of_coefficientss = pd.DataFrame(
+        {
+            "alt1": [nest_spec["coefficient"]],
+            "alt0.0": [alt0_leaf_product_of_coefficients],
+            "alt0.1": [alt0_leaf_product_of_coefficients],
+        },
+        index=[0],
+    )
+    leaf_utilities = raw_utilities / product_of_coefficientss.iloc[0]
+
+    constructed_nested_utilities = pd.DataFrame(index=raw_utilities.index)
+
+    constructed_nested_utilities[leaf_utilities.columns] = leaf_utilities
+    constructed_nested_utilities["alt0"] = alt0_nest_coefficient * np.log(
+        np.exp(leaf_utilities[["alt0.0", "alt0.1"]]).sum(axis=1)
+    )
+    constructed_nested_utilities["root"] = nest_spec["coefficient"] * np.log(
+        np.exp(constructed_nested_utilities[["alt1", "alt0"]]).sum(axis=1)
+    )
+
+    assert np.allclose(
+        nested_utilities, constructed_nested_utilities[nested_utilities.columns]
+    ), "Mismatch in nested utilities"
+
+
+def test_eval_nl_logsums_eet_vs_non_eet(state, nest_spec):
+    """eval_nl with want_logsums=True must produce identical logsums under
+    EET and non-EET modes"""
+
+    num_choosers = 100
+
+    np.random.seed(42)
+    data2 = pd.DataFrame(
+        {"chooser_attr": np.random.rand(num_choosers)},
+        index=pd.Index(range(num_choosers), name="person_id"),
+    )
+
+    spec2 = pd.DataFrame(
+        {"alt1": [2.0], "alt0.0": [0.5], "alt0.1": [0.2]},
+        index=pd.Index(["chooser_attr"], name="Expression"),
+    )
+
+    chunk_sizer = chunk.ChunkSizer(state, "", "", num_choosers)
+
+    state.settings.use_explicit_error_terms = True
+    state.rng().set_base_seed(42)
+    state.rng().add_channel("person_id", data2)
+    state.rng().begin_step("test_step_logsums")
+
+    result_eet = simulate.eval_nl(
+        state=state,
+        choosers=data2,
+        spec=spec2,
+        nest_spec=nest_spec,
+        locals_d={},
+        custom_chooser=None,
+        estimator=None,
+        want_logsums=True,
+        trace_label="test",
+        chunk_sizer=chunk_sizer,
+    )
+
+    state.rng().end_step("test_step_logsums")
+
+    state.settings.use_explicit_error_terms = False
+    state.rng().begin_step("test_step_logsums")
+
+    result_non_eet = simulate.eval_nl(
+        state=state,
+        choosers=data2,
+        spec=spec2,
+        nest_spec=nest_spec,
+        locals_d={},
+        custom_chooser=None,
+        estimator=None,
+        want_logsums=True,
+        trace_label="test",
+        chunk_sizer=chunk_sizer,
+    )
+
+    state.rng().end_step("test_step_logsums")
+
+    # Both paths should return a DataFrame with 'choice' and 'logsum' columns
+    assert "logsum" in result_eet.columns, "EET result missing logsum column"
+    assert "logsum" in result_non_eet.columns, "non-EET result missing logsum column"
+
+    # Logsums are deterministic — they must be identical across paths
+    assert np.allclose(
+        result_eet["logsum"].values, result_non_eet["logsum"].values, rtol=1e-10
+    )

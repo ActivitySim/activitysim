@@ -17,7 +17,7 @@ from . import (
     reporting,
     settings,
 )
-from .orchestrator import run_calibration_loop
+from .orchestrator import calibration_run_should_preserve_outputs, run_calibration_loop
 from .settings import (
     CalibrationComponentResult,
     CalibrationComponentSettings,
@@ -36,6 +36,7 @@ __all__ = [
     "CalibrationReportsSettings",
     "CalibrationRunResult",
     "CalibrationRunSettings",
+    "calibration_run_should_preserve_outputs",
     "calibration_enabled",
     "read_calibration_settings",
     "run_calibration_loop",

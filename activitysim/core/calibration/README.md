@@ -27,17 +27,33 @@ that share model settings may point to the same coefficient file.
 
 ## Global iterations, recovery attempts, and `resume_after`
 
-`calibration.yaml` `run.global_iterations` is the maximum total number of
-logical global calibration iterations, not the number to execute on each
-ActivitySim invocation. Calibration records durable progress in
-`output/calibration/calibration_progress.json`:
+`calibration.yaml` `run.global_iterations` is the desired total number of
+completed logical calibration iterations, not the number to execute on each
+ActivitySim invocation. The run-control contract is:
 
-- a new output directory starts at global iteration 1;
-- a crash re-enters the interrupted global iteration;
-- a cleanly completed iteration advances to the next global iteration;
-- convergence can finish the run before the configured maximum; and
-- after a completed run, increasing `global_iterations` continues at the next
-  unfinished global iteration. An unchanged or lower value remains a no-op.
+1. An unchanged setting on a completed run is a no-op, detected before normal
+   output cleanup so the pipeline and final outputs are preserved.
+2. If a completed run's setting is changed to a value greater than the number
+   actually completed, calibration continues until the new total. This includes
+   lowering a previous maximum after early convergence, such as changing 5 to 3
+   after convergence completed iteration 2.
+3. A changed setting less than or equal to the number already completed is a
+   no-op; completed coefficient updates are never undone implicitly.
+4. Top-level `settings.yaml` `resume_after` has normal ActivitySim semantics for
+   the first global iteration entered by the current invocation. Later global
+   iterations ignore it and execute every calibrated component.
+5. A global iteration counts only if it has at least one durable calibrated
+   component result, either from the current attempt or an earlier attempt of
+   that same logical iteration.
+6. `global_iterations` cannot be lowered below an interrupted iteration because
+   its coefficient files may already contain updates from that iteration. The
+   run stops with instructions to resume the iteration or deliberately reset
+   progress and coefficients.
+7. Startup logs report the detected completed count, requested target, selected
+   action, starting iteration and attempt, and `resume_after` value.
+
+Calibration records the state needed to apply this contract in
+`output/calibration/calibration_progress.json`.
 
 Recovery attempts are distinct from global iterations. The first execution of a
 global iteration is attempt 1. Restarting an interrupted global iteration creates

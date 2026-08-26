@@ -58,7 +58,6 @@ calibration-specific overlay directory):
        - workplace_location
        - auto_ownership_simulate
        - tour_mode_choice_simulate
-     restart_after: []          # components after which to restart (advanced)
      global_iterations: 3       # number of full calibration passes
      complete_steps: false      # run model steps after the last calibrated component
 
@@ -135,8 +134,13 @@ Configuration Reference
 
 - Every component listed in ``run.calibrate_models`` must have a corresponding
   entry in ``model_settings``.
-- Every component in ``run.restart_after`` must also appear in ``run.calibrate_models``.
 - ``run.global_iterations`` must be ≥ 1.
+- Unknown fields are rejected at every level of ``calibration.yaml``, following
+  the same strict settings-model convention used by checked ActivitySim model
+  settings. When the settings checker is enabled, calibration validation errors
+  are included in its normal aggregated error report. General run settings such
+  as ``cleanup_pipeline_after_run`` belong in the top-level ``settings.yaml``
+  file.
 
 ``run`` — Run Control Settings
 -------------------------------
@@ -154,10 +158,6 @@ Configuration Reference
      - *required*
      - Model component names to calibrate. Must match names in ``settings.yaml``
        ``models`` list.
-   * - ``restart_after``
-     - ``list[str]``
-     - ``[]``
-     - Components after which to restart.
    * - ``global_iterations``
      - ``int``
      - ``1``
@@ -581,23 +581,47 @@ each component iteration. This means:
 Crash Recovery
 ==============
 
-Before each global iteration, calibration replaces the files in its recovery
-directory with a copy of every coefficient file that it may modify, then records
-the active iteration in ``calibration_progress.json``. If a run is interrupted:
+Calibration follows this run-control contract:
 
-1. Restarting ``activitysim run`` restores all coefficient files from the
-   start-of-iteration recovery snapshot.
-2. The interrupted global iteration is replayed from that consistent boundary.
-3. Remaining iterations run only until the configured total
-   ``global_iterations`` is reached.
+1. ``global_iterations`` is the desired total number of calibration iterations.
+2. If a completed run's setting is changed to a value greater than the number
+   actually completed, calibration continues until the new total. This applies
+   even when the new value is below the previous maximum after early convergence.
+   For example, changing 5 to 3 after convergence at iteration 2 requests one
+   additional iteration.
+3. A changed setting less than or equal to the number already completed will not
+   run and an error message is thrown; completed coefficient updates are not
+   implicitly undone.
+4. Top-level ``settings.yaml`` ``resume_after`` follows normal ActivitySim
+   semantics for the first global iteration entered by the current invocation.
+   Later global iterations ignore it and run every calibrated component.
+5. A logical global iteration counts only if it has at least one durable
+   calibrated-component result from the current attempt or an earlier attempt
+   of that iteration. A new iteration cannot be consumed by a ``resume_after``
+   value that skips every calibrated model.
+6. ``global_iterations`` cannot be lowered below an interrupted iteration.
+   ActivitySim raises an error explaining that coefficient files may already
+   contain updates from the active iteration and instructs the user either to
+   resume it or deliberately reset progress and coefficient files.
+7. At startup, ActivitySim logs the detected completed count, requested target,
+   selected action, starting iteration and attempt, and ``resume_after`` value.
+8. Coefficient updates are stored in the configs directory and are **not**
+   rolled back after an interruption. This allows a new run to resume from the
+   last known coefficients and allows the user to update coefficients manually.
+9. Coefficient updates are uniquely numbered by global iteration, calibration
+   iteration, and attempt. Attempt number is typically only 1 unless the model
+   crashes after coefficient updates are made but before component fully
+   completes (e.g. plotting functions cause crash).
 
-The progress file is written using atomic replacement. Once progress is marked
-complete, rerunning with the same output directory does not apply additional
-calibration iterations.
+Calibration records the active global iteration and recovery attempt in
+``calibration_progress.json``. Coefficient files are the authoritative current
+state and are not rolled back after an interruption. Restarting re-enters the
+interrupted global iteration using those current coefficients; the top-level
+``settings.yaml`` ``resume_after`` value determines where model execution
+resumes.
 
 To force a fresh start, delete ``output/calibration/calibration_progress.json``
-and restore original coefficient files. Recovery snapshots can also be removed
-after a completed run if they are no longer needed.
+and restore the desired starting coefficient files.
 
 
 Multiprocess Mode

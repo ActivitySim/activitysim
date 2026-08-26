@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
+from typing import Literal
 
 from activitysim.core import workflow
 
@@ -25,11 +27,132 @@ from .reporting import (
     _write_final_coefficients_snapshot,
 )
 from .settings import (
+    CALIBRATION_SETTINGS_FILE_NAME,
     CalibrationRunResult,
     read_calibration_settings,
 )
 
 logger = logging.getLogger("calibration")
+
+
+@dataclass(frozen=True)
+class CalibrationRestartPlan:
+    """Side-effect-free decision about how persisted calibration should continue."""
+
+    action: Literal["run", "finalize", "noop", "error"]
+    start_global_iteration: int | None
+    attempt: int | None
+    completed_global_iterations: int
+    completed_components: dict
+    message: str | None = None
+
+
+def _plan_calibration_restart(
+    progress: dict | None,
+    global_iterations: int,
+) -> CalibrationRestartPlan:
+    """Apply the user-facing global-iteration restart contract.
+
+    The contract is intentionally based on completed logical iterations:
+
+    1. An unchanged target on a completed run is a no-op.
+    2. A changed target above the completed count extends to that new total,
+       even when it is below the previous maximum after early convergence.
+    3. A changed target already satisfied by the completed count is a no-op.
+    4. ``resume_after`` is applied separately by the orchestrator, only to the
+       first global iteration entered by the current invocation.
+    5. The orchestrator counts an iteration only when it has a durable
+       calibrated-component result from some attempt of that iteration.
+    6. An active iteration cannot be discarded by lowering the target.
+    7. A lower target at a clean boundary is finalized without another
+       coefficient update so downstream outputs reflect current coefficients.
+    """
+    if not progress:
+        return CalibrationRestartPlan("run", 1, 1, 0, {})
+
+    completed = int(progress.get("last_completed_global_iteration", 0))
+    completed_components = dict(progress.get("completed_components", {}))
+
+    if progress.get("complete"):
+        previous_target = int(progress.get("configured_global_iterations", completed))
+        if global_iterations == previous_target or global_iterations <= completed:
+            return CalibrationRestartPlan(
+                "noop", None, None, completed, completed_components
+            )
+        return CalibrationRestartPlan("run", completed + 1, 1, completed, {})
+
+    interrupted = progress.get("in_progress_iteration")
+    if interrupted is not None:
+        interrupted = int(interrupted)
+        if global_iterations < interrupted:
+            return CalibrationRestartPlan(
+                "error",
+                None,
+                None,
+                completed,
+                completed_components,
+                "Cannot set calibration run.global_iterations to "
+                f"{global_iterations} because global iteration {interrupted} is "
+                "currently in progress and coefficient files may already contain "
+                f"iteration {interrupted} updates. Set global_iterations to at "
+                f"least {interrupted} to resume, or deliberately reset calibration "
+                "progress and restore the desired coefficient files before starting "
+                "a new run.",
+            )
+        return CalibrationRestartPlan(
+            "run",
+            interrupted,
+            int(progress.get("attempt", 1)) + 1,
+            completed,
+            completed_components,
+        )
+
+    next_iteration = int(progress.get("next_global_iteration", completed + 1))
+    if next_iteration > global_iterations:
+        return CalibrationRestartPlan("finalize", next_iteration, 1, completed, {})
+    return CalibrationRestartPlan("run", next_iteration, 1, completed, {})
+
+
+def calibration_run_should_preserve_outputs(state: workflow.State) -> bool:
+    """Return whether preflight must preserve outputs before orchestration."""
+    # Read the small set of preflight fields without schema validation. The
+    # normal settings checker runs after cleanup selection and must remain the
+    # place that aggregates calibration.yaml validation errors.
+    calibration_settings = state.filesystem.read_settings_file(
+        CALIBRATION_SETTINGS_FILE_NAME,
+        mandatory=False,
+    )
+    if not calibration_settings or not calibration_settings.get("enable", False):
+        return False
+
+    progress = _read_progress(state)
+    if not progress or not progress.get("complete"):
+        if not progress:
+            return False
+    configured_global_iterations = int(
+        calibration_settings.get("run", {}).get("global_iterations", 1)
+    )
+    plan = _plan_calibration_restart(progress, configured_global_iterations)
+    return plan.action in {"noop", "error"}
+
+
+def _validate_counted_iteration_has_calibration(
+    calibration_models: list[str],
+    skipped_components: list[str],
+    completed_components: dict,
+) -> None:
+    """Do not count a new logical iteration that has no calibration result."""
+    if set(skipped_components) != set(calibration_models):
+        return
+    if any(component in completed_components for component in calibration_models):
+        return
+    raise RuntimeError(
+        "settings.yaml resume_after skips every calibrated model in the first "
+        "pending global iteration, and that iteration has no durable calibrated "
+        "component result from an earlier attempt. Choose a resume_after before "
+        "the last calibrated model, or remove resume_after, so the requested "
+        "global calibration iteration performs a coefficient update."
+    )
 
 
 def run_calibration_loop(
@@ -88,6 +211,7 @@ def run_calibration_loop(
         models, calibration_settings.run.calibrate_models[0]
     )
 
+    skipped_calibration_models = []
     if resume_after is not None:
         skipped_calibration_models = [
             component
@@ -107,71 +231,82 @@ def run_calibration_loop(
     _ensure_calibration_output_dir(state)
 
     progress = _read_progress(state)
-    if progress and progress.get("complete"):
-        completed_global_iterations = int(
-            progress.get("last_completed_global_iteration", 0)
+    restart_plan = _plan_calibration_restart(
+        progress,
+        calibration_settings.run.global_iterations,
+    )
+    logger.info(
+        "calibration restart plan: action=%s completed=%s requested=%s "
+        "start_iteration=%s attempt=%s resume_after=%r",
+        restart_plan.action,
+        restart_plan.completed_global_iterations,
+        calibration_settings.run.global_iterations,
+        restart_plan.start_global_iteration,
+        restart_plan.attempt,
+        resume_after,
+    )
+    if restart_plan.action == "error":
+        raise RuntimeError(restart_plan.message)
+    if restart_plan.action == "noop":
+        logger.info(
+            "calibration progress is already complete for the requested target; "
+            "remove %s to start a fresh calibration run",
+            CALIBRATION_PROGRESS_FILE,
         )
-        completed_for_global_iterations = int(
-            progress.get("configured_global_iterations", completed_global_iterations)
+        return CalibrationRunResult(
+            converged=bool(progress.get("converged", False)),
+            completed_global_iterations=restart_plan.completed_global_iterations,
         )
-        if calibration_settings.run.global_iterations > completed_for_global_iterations:
-            logger.info(
-                "calibration global_iterations increased from %s to %s; "
-                "continuing with global iteration %s",
-                completed_for_global_iterations,
-                calibration_settings.run.global_iterations,
-                completed_global_iterations + 1,
+
+    progress_was_complete = bool(progress and progress.get("complete"))
+    if progress_was_complete:
+        previous_target = int(
+            progress.get(
+                "configured_global_iterations",
+                restart_plan.completed_global_iterations,
             )
-            progress = {
-                "complete": False,
-                "in_progress_iteration": None,
-                "next_global_iteration": completed_global_iterations + 1,
-                "last_completed_global_iteration": completed_global_iterations,
-                "converged": bool(progress.get("converged", False)),
-                "configured_global_iterations": calibration_settings.run.global_iterations,
-                "attempt": 0,
-                "completed_components": {},
-            }
-            _write_progress(state, progress)
-        else:
-            if resume_after is not None:
-                raise RuntimeError(
-                    f"settings.yaml resume_after={resume_after!r} cannot be honored "
-                    "because calibration progress is already complete. Remove "
-                    f"{CALIBRATION_PROGRESS_FILE} or use a new output directory to "
-                    "start a new calibration run; current coefficient values will "
-                    "be preserved."
-                )
-            logger.info(
-                "calibration progress is already complete; remove %s to start a "
-                "fresh calibration run",
-                CALIBRATION_PROGRESS_FILE,
-            )
-            return CalibrationRunResult(
-                converged=bool(progress.get("converged", False)),
-                completed_global_iterations=completed_global_iterations,
-            )
+        )
+        logger.info(
+            "calibration global_iterations changed from %s to %s; continuing "
+            "with global iteration %s",
+            previous_target,
+            calibration_settings.run.global_iterations,
+            restart_plan.start_global_iteration,
+        )
+        progress = {
+            "complete": False,
+            "in_progress_iteration": None,
+            "next_global_iteration": restart_plan.start_global_iteration,
+            "last_completed_global_iteration": (
+                restart_plan.completed_global_iterations
+            ),
+            "converged": bool(progress.get("converged", False)),
+            "configured_global_iterations": calibration_settings.run.global_iterations,
+            "attempt": 0,
+            "completed_components": {},
+        }
+        _write_progress(state, progress)
 
     interrupted_iteration = progress.get("in_progress_iteration") if progress else None
+    start_global_iter = restart_plan.start_global_iteration
+    start_attempt = restart_plan.attempt
+    start_completed_components = restart_plan.completed_components
+    completed_global_iterations = restart_plan.completed_global_iterations
+
     if interrupted_iteration is not None:
-        start_global_iter = int(interrupted_iteration)
-        start_attempt = int(progress.get("attempt", 1)) + 1
-        start_completed_components = dict(progress.get("completed_components", {}))
         logger.warning(
             "continuing interrupted calibration global iteration %s as attempt %s "
             "using the current coefficient files",
             start_global_iter,
             start_attempt,
         )
-    else:
-        # Progress files from earlier versions contain next_global_iteration, so
-        # they remain compatible with the corrected total-count semantics.
-        start_global_iter = (
-            int(progress.get("next_global_iteration", 1)) if progress else 1
+
+    if restart_plan.action == "run":
+        _validate_counted_iteration_has_calibration(
+            calibration_settings.run.calibrate_models,
+            skipped_calibration_models,
+            start_completed_components,
         )
-        start_attempt = 1
-        start_completed_components = {}
-    completed_global_iterations = start_global_iter - 1
 
     if interrupted_iteration is not None and resume_after is not None:
         rerun_completed_components = [
@@ -191,28 +326,6 @@ def run_calibration_loop(
                 start_global_iter,
             )
 
-    if start_global_iter > calibration_settings.run.global_iterations:
-        logger.info(
-            "calibration progress already reached configured global_iterations=%s",
-            calibration_settings.run.global_iterations,
-        )
-        converged = bool(progress.get("converged", False)) if progress else False
-        _write_final_coefficients_snapshot(state, calibration_settings)
-        _write_completed_progress(
-            state,
-            completed_global_iterations,
-            converged,
-            calibration_settings.run.global_iterations,
-            attempt=int(progress.get("attempt", 1)) if progress else 1,
-            completed_components=(
-                dict(progress.get("completed_components", {})) if progress else {}
-            ),
-        )
-        return CalibrationRunResult(
-            converged=converged,
-            completed_global_iterations=completed_global_iterations,
-        )
-
     if state.settings.resume_after is None:
         # compute_accessibility requires its accessibility table to be empty;
         # unlike most model steps, it will not overwrite a prior result.
@@ -230,6 +343,42 @@ def run_calibration_loop(
         shared_data_buffers = _initialize_mp_shared_resources(state)
 
     try:
+        if restart_plan.action == "finalize":
+            # The target was lowered at a clean boundary between iterations.
+            # No active coefficient update is being discarded, but the normal
+            # model sequence still runs so final outputs use current coefficients.
+            logger.info(
+                "calibration global_iterations=%s is below next global iteration "
+                "%s; running the final model sequence without another "
+                "calibration update",
+                calibration_settings.run.global_iterations,
+                start_global_iter,
+            )
+            final_models = (
+                models if first_model_idx is None else models[first_model_idx:]
+            )
+            _run_in_configured_mode(
+                state,
+                models=final_models,
+                resume_after=state.settings.resume_after,
+                shared_data_buffers=shared_data_buffers,
+            )
+            completed_global_iterations = restart_plan.completed_global_iterations
+            converged = bool(progress.get("converged", False)) if progress else False
+            _write_final_coefficients_snapshot(state, calibration_settings)
+            _write_completed_progress(
+                state,
+                completed_global_iterations,
+                converged,
+                calibration_settings.run.global_iterations,
+                attempt=int(progress.get("attempt", 1)) if progress else 1,
+                completed_components={},
+            )
+            return CalibrationRunResult(
+                converged=converged,
+                completed_global_iterations=completed_global_iterations,
+            )
+
         # skip precursors if, on first iter, resume_after exists and is >= first_calib_model_idx
         if (
             state.settings.resume_after is None
@@ -385,8 +534,6 @@ def run_calibration_loop(
                     attempt=attempt,
                     shared_data_buffers=shared_data_buffers,
                 )
-                _write_component_plots(state, component)
-
                 all_converged = all_converged and component_result.converged
 
                 completed_components[component] = {
@@ -400,6 +547,15 @@ def run_calibration_loop(
                     attempt,
                     completed_components,
                 )
+
+                try:
+                    _write_component_plots(state, component)
+                except Exception:
+                    logger.exception(
+                        "calibration component %s completed, but its optional "
+                        "standard plots could not be written",
+                        component,
+                    )
 
                 last_calibrated_component = component
 

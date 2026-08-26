@@ -13,7 +13,7 @@ from activitysim.core.configuration.base import PydanticBase
 CALIBRATION_SETTINGS_FILE_NAME = "calibration.yaml"
 
 
-class CalibrationRunSettings(PydanticBase):
+class CalibrationRunSettings(PydanticBase, extra="forbid"):
     """Run-control settings for calibration."""
 
     calibrate_models: list[str]
@@ -32,14 +32,14 @@ class CalibrationRunSettings(PydanticBase):
         return self
 
 
-class CalibrationReportsSettings(PydanticBase):
+class CalibrationReportsSettings(PydanticBase, extra="forbid"):
     """Reporting settings for a calibrated component."""
 
     generic: bool = True
     bespoke: str | None = None
 
 
-class CalibrationComponentSettings(PydanticBase):
+class CalibrationComponentSettings(PydanticBase, extra="forbid"):
     """Settings for one calibratable model component."""
 
     calibration_spec: str
@@ -49,7 +49,7 @@ class CalibrationComponentSettings(PydanticBase):
     reports: CalibrationReportsSettings = CalibrationReportsSettings()
 
 
-class CalibrationConfig(PydanticReadable):
+class CalibrationConfig(PydanticReadable, extra="forbid"):
     """Top-level calibration configuration."""
 
     enable: bool = False

@@ -336,8 +336,13 @@ def run(args):
     resume_after = state.settings.resume_after
 
     # cleanup if not resuming
-    if not resume_after:
+    preserve_calibration_outputs = calibration.calibration_run_should_preserve_outputs(
+        state
+    )
+    if not resume_after and not preserve_calibration_outputs:
         cleanup_output_files(state)
+    elif preserve_calibration_outputs:
+        logger.info("preserving output files based on calibration restart preflight")
     elif state.settings.cleanup_trace_files_on_resume:
         tracing.delete_trace_files(state)
 

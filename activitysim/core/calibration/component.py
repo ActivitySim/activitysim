@@ -185,10 +185,28 @@ def _calibrate_component(
         _append_summary_records(state, [summary_record])
 
         if component_settings.reports.generic:
-            _write_generic_report(state, component_name, row_records)
+            try:
+                _write_generic_report(state, component_name, row_records)
+            except Exception as e:
+                logger.exception(
+                    "calibration component %s iteration %s completed, but its "
+                    "optional generic report could not be written: %s",
+                    component_name,
+                    component_iter,
+                    e,
+                )
 
         if bespoke_callable is not None:
-            bespoke_callable(eval_context)
+            try:
+                bespoke_callable(eval_context)
+            except Exception as e:
+                logger.exception(
+                    "calibration component %s iteration %s completed, but its "
+                    "optional bespoke report could not be written: %s",
+                    component_name,
+                    component_iter,
+                    e,
+                )
 
         if component_converged:
             break

@@ -1,15 +1,18 @@
 from __future__ import annotations
 
-import math
 import copy
+import math
+from pathlib import Path
 
 import pandas as pd
 import pytest
-from pathlib import Path
 from pydantic import ValidationError
 
 from activitysim.core.calibration.component import _evaluate_and_update
 from activitysim.core.calibration.expressions import _compute_delta
+from activitysim.core.calibration.multiprocess import (
+    _install_restored_subprocess_state,
+)
 from activitysim.core.calibration.orchestrator import (
     _components_ran_for_convergence,
 )
@@ -19,6 +22,7 @@ from activitysim.core.calibration.reporting import (
     _read_component_iteration_records,
 )
 from activitysim.core.calibration.settings import CalibrationConfig
+from activitysim.core.random import Random
 
 
 @pytest.mark.parametrize(
@@ -295,6 +299,107 @@ def test_calibration_models_must_be_unique():
 
     with pytest.raises(ValidationError, match="duplicate model name"):
         CalibrationConfig.model_validate(settings)
+
+
+class _RestoreCheckpoint:
+    def __init__(self, state):
+        self.state = state
+        self.is_open = True
+        self.added = []
+        self.last_checkpoint = {}
+
+    def initialize(self):
+        self.is_open = False
+        self.last_checkpoint = {}
+
+    def store_is_open(self):
+        return self.is_open
+
+    def close_store(self):
+        self.is_open = False
+
+    def open_store(self, overwrite=False):
+        assert overwrite is False
+        self.is_open = True
+
+    def add(self, checkpoint_name):
+        self.added.append(checkpoint_name)
+        self.last_checkpoint = {"checkpoint_name": checkpoint_name}
+        for table_name in self.state.existing_table_status:
+            self.state.existing_table_status[table_name] = False
+
+
+class _RestoreState:
+    def __init__(self):
+        households = pd.DataFrame(index=pd.Index([1], name="household_id"))
+        tours = pd.DataFrame(index=pd.Index([10], name="tour_id"))
+        self.context = {
+            "households": households,
+            "tours": tours,
+            "rng_channels": ["households", "tours"],
+        }
+        self.existing_table_status = {"households": False, "tours": False}
+        self._rng = Random()
+        self._rng.add_channel("households", households)
+        self._rng.add_channel("tours", tours)
+        self.checkpoint = _RestoreCheckpoint(self)
+
+    def __contains__(self, key):
+        return key in self.context
+
+    def registered_tables(self):
+        return [name for name in self.existing_table_status if name in self.context]
+
+    def get_injectable(self, name, default=None):
+        return self.context.get(name, default)
+
+    def add_injectable(self, name, value):
+        self.context[name] = value
+
+    def rng(self):
+        return self._rng
+
+    def drop(self, name):
+        del self.context[name]
+
+    def init_state(self):
+        # Match workflow.State: reset bookkeeping and RNG, retain context.
+        self.checkpoint.initialize()
+        self._rng = Random()
+        self.existing_table_status = {}
+
+    def add_table(self, name, table):
+        self.context[name] = table
+        self.existing_table_status[name] = True
+
+    def is_table(self, name):
+        return name in self.existing_table_status
+
+    def get_dataframe(self, name):
+        return self.context[name].copy()
+
+
+def test_subprocess_restore_is_exact_and_durable():
+    state = _RestoreState()
+    restored_households = pd.DataFrame(
+        {"value": [2]}, index=pd.Index([1], name="household_id")
+    )
+
+    _install_restored_subprocess_state(
+        state,
+        tables={"households": restored_households},
+        checkpoint_name="model_a",
+    )
+
+    assert "tours" not in state.context
+    assert "tours" not in state.rng().channels
+    assert "tour_id" not in state.rng().index_to_channel
+    assert state.get_injectable("rng_channels") == ["households"]
+    pd.testing.assert_frame_equal(
+        state.get_dataframe("households"), restored_households
+    )
+    assert state.checkpoint.last_checkpoint == {"checkpoint_name": "model_a"}
+    assert state.checkpoint.added == ["model_a"]
 
 
 class _State:

@@ -816,7 +816,7 @@ class Random(object):
                 for index_name, mapped_channel_name in self.index_to_channel.items()
                 if mapped_channel_name != channel_name
             }
-            
+
             # Also clear any index_to_channel entries that pointed at the
             # dropped channel; a stale mapping would otherwise survive and
             # could mis-route a subsequent channel registered against the

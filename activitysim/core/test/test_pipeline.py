@@ -144,6 +144,32 @@ def test_get_table_returns_current_table_after_recreation(state):
     close_handlers()
 
 
+def test_runner_rng_name_override_is_explicit(state):
+    state.run.by_name("_record_random_draw.label=one")
+    state.run.by_name("_record_random_draw.label=two")
+    default_one, default_two = state.get_injectable("recorded_random_draws")
+
+    # Normal parameterized invocations retain distinct ActivitySim streams.
+    assert default_one != default_two
+
+    state.run.by_name_with_rng(
+        "_record_random_draw.calibration=one",
+        rng_step_name="record_random_draw",
+    )
+    state.run.by_name_with_rng(
+        "_record_random_draw.calibration=two",
+        rng_step_name="record_random_draw",
+    )
+    override_one, override_two = state.get_injectable("recorded_random_draws")[-2:]
+
+    # Calibration can explicitly request common random numbers while keeping
+    # distinct invocation names for logging and checkpoint management.
+    assert override_one == override_two
+
+    state.checkpoint.close_store()
+    close_handlers()
+
+
 # if __name__ == "__main__":
 #
 #     print "\n\ntest_pipeline_run"

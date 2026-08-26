@@ -455,7 +455,15 @@ def run_calibration_loop(
                     shared_data_buffers=shared_data_buffers,
                 )
             else:
-                state.checkpoint.add(state.settings.resume_after)
+                # Direct restores already end at this checkpoint, while a
+                # subprocess restore now persists it in the parent pipeline.
+                # Only add it here for an alternate restore implementation
+                # that made the checkpoint visible but did not select it.
+                if (
+                    state.checkpoint.last_checkpoint.get("checkpoint_name")
+                    != state.settings.resume_after
+                ):
+                    state.checkpoint.add(state.settings.resume_after)
                 state.checkpoint.close_store()
 
         for global_iter in range(

@@ -188,8 +188,8 @@ def _restore_from_subprocess_pipelines(
     from activitysim.core.workflow.checkpoint import (
         CHECKPOINT_NAME,
         CHECKPOINT_TABLE_NAME,
-        HdfStore,
         NON_TABLE_COLUMNS,
+        HdfStore,
         ParquetStore,
     )
 
@@ -313,27 +313,7 @@ def _restore_from_subprocess_pipelines(
         for table_name, dfs in omnibus.items():
             tables[table_name] = pd.concat(dfs, sort=False)
 
-    # Load into parent state
-    prior_rng_channels = list(state.get_injectable("rng_channels", []))
-    prior_index_to_channel = (
-        dict(state.rng().index_to_channel)
-        if hasattr(state.rng(), "index_to_channel")
-        else {}
-    )
-
-    state.init_state()
-    if state.checkpoint.store_is_open():
-        state.checkpoint.close_store()
-    state.checkpoint.open_store(overwrite=False)
-
-    for table_name, df in tables.items():
-        state.add_table(table_name, df)
-
-    _reregister_rng_channels(state, prior_rng_channels, prior_index_to_channel)
-
-    # Mark all tables dirty for subsequent checkpoint.add
-    for table_name in list(state.existing_table_names):
-        state.existing_table_status[table_name] = True
+    _install_restored_subprocess_state(state, tables, resume_after)
 
     logger.info(
         "calibration: restored %d tables from subprocess pipelines at "
@@ -342,6 +322,55 @@ def _restore_from_subprocess_pipelines(
         resume_after,
     )
     return True
+
+
+def _install_restored_subprocess_state(
+    state: workflow.State,
+    tables: dict[str, pd.DataFrame],
+    checkpoint_name: str,
+) -> None:
+    """Install an exact subprocess snapshot and make it a parent checkpoint."""
+    restored_table_names = set(tables)
+
+    # init_state() resets salient-table and RNG bookkeeping but deliberately
+    # retains cached context values. Remove later tables before that reset so
+    # they cannot be returned from the context after this rewind.
+    stale_table_names = set(state.registered_tables()) - restored_table_names
+    prior_rng_channels = [
+        channel_name
+        for channel_name in state.get_injectable("rng_channels", [])
+        if channel_name in restored_table_names
+    ]
+    prior_index_to_channel = {
+        index_name: channel_name
+        for index_name, channel_name in getattr(
+            state.rng(), "index_to_channel", {}
+        ).items()
+        if channel_name in restored_table_names
+    }
+
+    for table_name in stale_table_names:
+        if table_name in state:
+            state.drop(table_name)
+        if table_name in state.rng().channels:
+            state.rng().drop_channel(table_name)
+
+    # Close the current handle before init_state() forgets it.
+    if state.checkpoint.store_is_open():
+        state.checkpoint.close_store()
+    state.init_state()
+    state.checkpoint.open_store(overwrite=False)
+
+    for table_name, df in tables.items():
+        state.add_table(table_name, df)
+
+    state.add_injectable("rng_channels", prior_rng_channels)
+    _reregister_rng_channels(state, prior_rng_channels, prior_index_to_channel)
+
+    # Persist the reconstructed model-level state in the parent pipeline. This
+    # both makes resume_after observable to the caller and avoids repeating the
+    # subprocess coalesce on later restores.
+    state.checkpoint.add(checkpoint_name)
 
 
 def _run_multiprocess_with_overrides(

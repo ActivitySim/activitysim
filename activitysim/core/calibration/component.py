@@ -74,7 +74,10 @@ def _run_component_model(
         for model_name in extra_models:
             state.run.by_name(model_name)
     state.checkpoint.add(prior_step)
-    state.run.by_name(run_model_name)
+    # The labeled invocation keeps calibration checkpoints unique, while the
+    # canonical component RNG name supplies common random numbers across
+    # component iterations, global iterations, and recovery attempts.
+    state.run.by_name_with_rng(run_model_name, rng_step_name=component_name)
 
 
 def _calibrate_component(

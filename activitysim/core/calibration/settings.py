@@ -95,6 +95,8 @@ class CalibrationRunResult:
 
     converged: bool
     completed_global_iterations: int
+    configured_global_iterations: int
+    model_system_ran: bool = True
 
 
 def read_calibration_settings(state: workflow.State) -> CalibrationConfig | None:

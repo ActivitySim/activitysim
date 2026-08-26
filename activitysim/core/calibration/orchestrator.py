@@ -276,6 +276,8 @@ def run_calibration_loop(
         return CalibrationRunResult(
             converged=bool(progress.get("converged", False)),
             completed_global_iterations=restart_plan.completed_global_iterations,
+            configured_global_iterations=(calibration_settings.run.global_iterations),
+            model_system_ran=False,
         )
 
     # Validate the requested restart before changing a formerly complete
@@ -400,6 +402,9 @@ def run_calibration_loop(
             return CalibrationRunResult(
                 converged=converged,
                 completed_global_iterations=completed_global_iterations,
+                configured_global_iterations=(
+                    calibration_settings.run.global_iterations
+                ),
             )
 
         # skip precursors if, on first iter, resume_after exists and is >= first_calib_model_idx
@@ -655,6 +660,7 @@ def run_calibration_loop(
         return CalibrationRunResult(
             converged=all_converged,
             completed_global_iterations=completed_global_iterations,
+            configured_global_iterations=calibration_settings.run.global_iterations,
         )
     finally:
         state.filesystem.pipeline_file_name = original_pipeline_name

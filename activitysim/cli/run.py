@@ -424,18 +424,46 @@ def run(args):
 
     try:
         if calibration.calibration_enabled(state):
-            logger.info("run calibration workflow")
+            logger.info("evaluate calibration workflow")
 
             calibration_result = calibration.run_calibration_loop(
                 state=state,
                 models=state.settings.models,
             )
 
-            logger.info(
-                "calibration workflow complete converged=%s completed_global_iterations=%s",
-                calibration_result.converged,
-                calibration_result.completed_global_iterations,
-            )
+            if calibration_result.model_system_ran:
+                logger.info(
+                    "calibration workflow complete converged=%s "
+                    "completed_global_iterations=%s configured_global_iterations=%s",
+                    calibration_result.converged,
+                    calibration_result.completed_global_iterations,
+                    calibration_result.configured_global_iterations,
+                )
+            else:
+                if (
+                    calibration_result.completed_global_iterations
+                    >= calibration_result.configured_global_iterations
+                ):
+                    logger.info(
+                        "calibration workflow skipped: no model system steps were run "
+                        "because completed_global_iterations=%s has reached the "
+                        "configured run.global_iterations=%s limit. Increase "
+                        "run.global_iterations to request additional iterations, or "
+                        "remove output/calibration/calibration_progress.json to start a fresh run.",
+                        calibration_result.completed_global_iterations,
+                        calibration_result.configured_global_iterations,
+                    )
+                else:
+                    logger.info(
+                        "calibration workflow skipped: no model system steps were run "
+                        "because the prior calibration run is already complete "
+                        "(completed_global_iterations=%s, run.global_iterations=%s). "
+                        "Change run.global_iterations to a new value above the completed "
+                        "count to request additional iterations, or remove "
+                        "output/calibration/calibration_progress.json to start a fresh run.",
+                        calibration_result.completed_global_iterations,
+                        calibration_result.configured_global_iterations,
+                    )
 
             if state.settings.cleanup_pipeline_after_run:
                 state.checkpoint.cleanup()

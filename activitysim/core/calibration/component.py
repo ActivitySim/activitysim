@@ -190,11 +190,11 @@ def _calibrate_component(
             except Exception as e:
                 logger.exception(
                     "calibration component %s iteration %s completed, but its "
-                    "optional generic report could not be written: %s",
+                    "generic report could not be written.",
                     component_name,
                     component_iter,
-                    e,
                 )
+                raise RuntimeError(e)
 
         if bespoke_callable is not None:
             try:
@@ -202,11 +202,11 @@ def _calibrate_component(
             except Exception as e:
                 logger.exception(
                     "calibration component %s iteration %s completed, but its "
-                    "optional bespoke report could not be written: %s",
+                    "bespoke report could not be written.",
                     component_name,
                     component_iter,
-                    e,
                 )
+                raise RuntimeError(e)
 
         if component_converged:
             break

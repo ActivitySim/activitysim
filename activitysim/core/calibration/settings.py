@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 
 from activitysim.core import workflow
 from activitysim.core.configuration import PydanticReadable
@@ -17,7 +17,7 @@ class CalibrationRunSettings(PydanticBase, extra="forbid"):
     """Run-control settings for calibration."""
 
     calibrate_models: list[str]
-    global_iterations: int = 1
+    global_iterations: int = Field(default=1, ge=1)
     complete_steps: bool = False
     # Deprecated compatibility setting retained so existing configurations
     # continue to parse. Exact calibration restores supersede this setting.
@@ -28,6 +28,18 @@ class CalibrationRunSettings(PydanticBase, extra="forbid"):
         if not self.calibrate_models:
             raise ValueError(
                 "calibration.run.calibrate_models must contain at least one model name"
+            )
+        duplicate_models = sorted(
+            {
+                model
+                for model in self.calibrate_models
+                if self.calibrate_models.count(model) > 1
+            }
+        )
+        if duplicate_models:
+            raise ValueError(
+                "calibration.run.calibrate_models contains duplicate model "
+                f"name(s): {duplicate_models}"
             )
         return self
 
@@ -45,7 +57,7 @@ class CalibrationComponentSettings(PydanticBase, extra="forbid"):
     calibration_spec: str
     model_settings_file: str | None = None
     helper_module: str | None = None
-    submodel_max_iterations: int = 1
+    submodel_max_iterations: int = Field(default=1, ge=1)
     reports: CalibrationReportsSettings = CalibrationReportsSettings()
 
 
@@ -64,9 +76,6 @@ class CalibrationConfig(PydanticReadable, extra="forbid"):
                 raise ValueError(
                     f"calibration model '{component}' is not in model_settings"
                 )
-
-        if self.run.global_iterations < 1:
-            raise ValueError("max_iterations must be >= 1")
 
         return self
 

@@ -3,10 +3,52 @@ from __future__ import annotations
 import pytest
 
 from activitysim.core.calibration.orchestrator import (
+    calibration_run_should_preserve_outputs,
     _plan_calibration_restart,
     _skipped_calibration_components,
     _validate_counted_iteration_has_calibration,
 )
+
+
+class _PreflightFilesystem:
+    def __init__(self, calibration_settings):
+        self.calibration_settings = calibration_settings
+
+    def read_settings_file(self, _file_name, mandatory=False):
+        assert mandatory is False
+        return self.calibration_settings
+
+
+class _PreflightState:
+    def __init__(self, calibration_settings):
+        self.filesystem = _PreflightFilesystem(calibration_settings)
+
+
+def test_preflight_preserves_outputs_when_calibration_settings_are_invalid(monkeypatch):
+    def invalid_settings(_state):
+        raise ValueError("invalid calibration settings")
+
+    monkeypatch.setattr(
+        "activitysim.core.calibration.orchestrator.read_calibration_settings",
+        invalid_settings,
+    )
+
+    state = _PreflightState({"enable": True})
+
+    assert calibration_run_should_preserve_outputs(state) is True
+
+
+@pytest.mark.parametrize("calibration_settings", [None, {"enable": False}])
+def test_preflight_leaves_non_calibration_cleanup_unchanged(
+    monkeypatch, calibration_settings
+):
+    monkeypatch.setattr(
+        "activitysim.core.calibration.orchestrator.read_calibration_settings",
+        lambda _state: pytest.fail("non-calibration settings must not be validated"),
+    )
+    state = _PreflightState(calibration_settings)
+
+    assert calibration_run_should_preserve_outputs(state) is False
 
 
 @pytest.mark.parametrize(

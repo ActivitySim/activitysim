@@ -251,6 +251,52 @@ def test_calibration_settings_reject_unknown_fields(location, unknown_setting):
     assert error.value.errors()[0]["loc"] == (*location, unknown_setting)
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("global_iterations", 0),
+        ("submodel_max_iterations", 0),
+    ],
+)
+def test_calibration_iteration_limits_must_be_positive(field, value):
+    settings = {
+        "enable": True,
+        "run": {
+            "calibrate_models": ["test_component"],
+            "global_iterations": value if field == "global_iterations" else 1,
+        },
+        "model_settings": {
+            "test_component": {
+                "calibration_spec": "test_calibration.csv",
+                "submodel_max_iterations": (
+                    value if field == "submodel_max_iterations" else 1
+                ),
+            }
+        },
+    }
+
+    with pytest.raises(ValidationError) as error:
+        CalibrationConfig.model_validate(settings)
+
+    assert error.value.errors()[0]["type"] == "greater_than_equal"
+
+
+def test_calibration_models_must_be_unique():
+    settings = {
+        "enable": True,
+        "run": {
+            "calibrate_models": ["test_component", "test_component"],
+            "global_iterations": 1,
+        },
+        "model_settings": {
+            "test_component": {"calibration_spec": "test_calibration.csv"}
+        },
+    }
+
+    with pytest.raises(ValidationError, match="duplicate model name"):
+        CalibrationConfig.model_validate(settings)
+
+
 class _State:
     def __init__(self, output_dir: Path):
         self.output_dir = output_dir

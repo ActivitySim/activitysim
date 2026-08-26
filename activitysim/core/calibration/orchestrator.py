@@ -115,23 +115,43 @@ def _plan_calibration_restart(
 
 def calibration_run_should_preserve_outputs(state: workflow.State) -> bool:
     """Return whether preflight must preserve outputs before orchestration."""
-    # Read the small set of preflight fields without schema validation. The
-    # normal settings checker runs after cleanup selection and must remain the
-    # place that aggregates calibration.yaml validation errors.
-    calibration_settings = state.filesystem.read_settings_file(
-        CALIBRATION_SETTINGS_FILE_NAME,
-        mandatory=False,
-    )
-    if not calibration_settings or not calibration_settings.get("enable", False):
+    # Keep missing and disabled calibration files on the ordinary ActivitySim
+    # cleanup path. Only enabled calibration runs get calibration-specific
+    # protection during preflight.
+    try:
+        raw_settings = state.filesystem.read_settings_file(
+            CALIBRATION_SETTINGS_FILE_NAME,
+            mandatory=False,
+        )
+    except Exception:
+        logger.debug(
+            "preserving outputs because calibration settings could not be read",
+            exc_info=True,
+        )
+        return True
+    if not raw_settings or not raw_settings.get("enable", False):
+        return False
+
+    # Calibration validation normally runs after output cleanup. Preserve the
+    # outputs if enabled settings are invalid, then let the normal settings
+    # checker aggregate and report the validation error later.
+    try:
+        calibration_settings = read_calibration_settings(state)
+    except Exception:
+        logger.debug(
+            "preserving outputs because calibration settings validation failed",
+            exc_info=True,
+        )
+        return True
+
+    if not calibration_settings or not calibration_settings.enable:
         return False
 
     progress = _read_progress(state)
     if not progress or not progress.get("complete"):
         if not progress:
             return False
-    configured_global_iterations = int(
-        calibration_settings.get("run", {}).get("global_iterations", 1)
-    )
+    configured_global_iterations = calibration_settings.run.global_iterations
     plan = _plan_calibration_restart(progress, configured_global_iterations)
     return plan.action in {"noop", "error"}
 
@@ -258,6 +278,16 @@ def run_calibration_loop(
             completed_global_iterations=restart_plan.completed_global_iterations,
         )
 
+    # Validate the requested restart before changing a formerly complete
+    # progress record. A rejected resume_after must leave durable progress in
+    # exactly the state in which it was found.
+    if restart_plan.action == "run":
+        _validate_counted_iteration_has_calibration(
+            calibration_settings.run.calibrate_models,
+            skipped_calibration_models,
+            restart_plan.completed_components,
+        )
+
     progress_was_complete = bool(progress and progress.get("complete"))
     if progress_was_complete:
         previous_target = int(
@@ -299,13 +329,6 @@ def run_calibration_loop(
             "using the current coefficient files",
             start_global_iter,
             start_attempt,
-        )
-
-    if restart_plan.action == "run":
-        _validate_counted_iteration_has_calibration(
-            calibration_settings.run.calibrate_models,
-            skipped_calibration_models,
-            start_completed_components,
         )
 
     if interrupted_iteration is not None and resume_after is not None:

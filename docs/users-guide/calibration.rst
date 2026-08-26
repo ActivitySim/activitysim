@@ -134,7 +134,9 @@ Configuration Reference
 
 - Every component listed in ``run.calibrate_models`` must have a corresponding
   entry in ``model_settings``.
+- Component names in ``run.calibrate_models`` must be unique.
 - ``run.global_iterations`` must be ≥ 1.
+- Each component's ``submodel_max_iterations`` must be ≥ 1.
 - Unknown fields are rejected at every level of ``calibration.yaml``, following
   the same strict settings-model convention used by checked ActivitySim model
   settings. When the settings checker is enabled, calibration validation errors
@@ -653,15 +655,15 @@ A coefficient is considered **converged** when:
 
 .. math::
 
-  \text{target_value} - \text{model_value} \leq \text{tolerance}
+  \left|\text{target_value} - \text{model_value}\right| \leq \text{tolerance}
 
 A component is converged when **all** of its coefficients are converged. The
 component inner loop stops early upon convergence.
 
-The overall calibration run completes after all ``global_iterations`` have
-executed. Global convergence is tracked but does not currently trigger early
-termination of the outer loop — use ``global_iterations`` to control the total
-number of passes.
+The outer loop also stops early when every calibrated component converges in
+the same global iteration. Otherwise, it runs until ``global_iterations`` have
+completed. In either case, the remaining downstream models run once with the
+final coefficient values before the calibration run is marked complete.
 
 
 Coefficient Requirements

@@ -548,8 +548,8 @@ def test_capacity_select_new_choosers_random_strategy(state, monkeypatch):
     def choose_one_over_capacity_tour(state, probs):
         expected = pd.DataFrame(
             {
-                0: [0.5, 0.5, 0.5, 1.0, 1.0],
-                1: [0.5, 0.5, 0.5, 0.0, 0.0],
+                0: [2.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0, 1.0, 1.0],
+                1: [1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0, 0.0, 0.0],
             },
             index=all_choosers.index,
         )

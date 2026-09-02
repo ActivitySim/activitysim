@@ -12,7 +12,9 @@ import numpy as np
 import pandas as pd
 from pydantic import field_validator
 
+from activitysim.abm.models.park_and_ride_lot_choice import run_park_and_ride_lot_choice
 from activitysim.abm.models.tour_mode_choice import TourModeComponentSettings
+from activitysim.abm.models.util.logsums import setup_skims
 from activitysim.core import chunk, config, expressions, los, simulate
 from activitysim.core import timetable as tt
 from activitysim.core import tracing, workflow
@@ -21,8 +23,6 @@ from activitysim.core.configuration.logit import LogitComponentSettings
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.logit import AltsContext
 from activitysim.core.util import reindex
-from activitysim.abm.models.util.logsums import setup_skims
-from activitysim.abm.models.park_and_ride_lot_choice import run_park_and_ride_lot_choice
 
 logger = logging.getLogger(__name__)
 
@@ -163,6 +163,18 @@ def _compute_logsums(
             f"{trace_label} compute_logsums for {choosers.shape[0]} choosers {alt_tdd.shape[0]} alts"
         )
 
+        # Resolve the purpose-specific destination before lot choice so PNR lot
+        # utilities and the subsequent mode-choice logsums use the same endpoint.
+        destination_for_tour_purpose = model_settings.DESTINATION_FOR_TOUR_PURPOSE
+        if isinstance(destination_for_tour_purpose, str):
+            dest_col_name = destination_for_tour_purpose
+        elif isinstance(destination_for_tour_purpose, dict):
+            dest_col_name = destination_for_tour_purpose.get(tour_purpose)
+        else:
+            raise RuntimeError(
+                f"expected string or dict DESTINATION_FOR_TOUR_PURPOSE model_setting for {tour_purpose}"
+            )
+
         if logsum_settings.include_pnr_for_logsums:
             # if the logsum settings include explicit PNR, then we need to add the
             # PNR lot destination column to the choosers table by running PnR lot choice
@@ -172,22 +184,11 @@ def _compute_logsums(
                 land_use=state.get_dataframe("land_use"),
                 network_los=state.get_injectable("network_los"),
                 model_settings=None,
-                choosers_dest_col_name="destination",
+                choosers_dest_col_name=dest_col_name,
                 choosers_origin_col_name="home_zone_id",
                 estimator=None,
                 pnr_capacity_cls=None,
                 trace_label=tracing.extend_trace_label(trace_label, "pnr_lot_choice"),
-            )
-
-        # set destination column name for skims used in logsums
-        destination_for_tour_purpose = model_settings.DESTINATION_FOR_TOUR_PURPOSE
-        if isinstance(destination_for_tour_purpose, str):
-            dest_col_name = destination_for_tour_purpose
-        elif isinstance(destination_for_tour_purpose, dict):
-            dest_col_name = destination_for_tour_purpose.get(tour_purpose)
-        else:
-            raise RuntimeError(
-                f"expected string or dict DESTINATION_FOR_TOUR_PURPOSE model_setting for {tour_purpose}"
             )
 
         skims = setup_skims(

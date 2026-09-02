@@ -7,28 +7,28 @@ import logging
 import numpy as np
 import pandas as pd
 
+from activitysim.abm.models.park_and_ride_lot_choice import (
+    ParkAndRideLotChoiceSettings,
+    run_park_and_ride_lot_choice,
+)
 from activitysim.abm.models.util import (
-    school_escort_tours_trips,
-    trip,
     logsums,
     park_and_ride_capacity,
+    school_escort_tours_trips,
+    trip,
 )
 from activitysim.abm.models.util.mode import run_tour_mode_choice_simulate
 from activitysim.core import (
     config,
     estimation,
+    expressions,
     logit,
     los,
     simulate,
     tracing,
     workflow,
-    expressions,
 )
 from activitysim.core.configuration.logit import TourModeComponentSettings
-from activitysim.abm.models.park_and_ride_lot_choice import (
-    ParkAndRideLotChoiceSettings,
-    run_park_and_ride_lot_choice,
-)
 from activitysim.core.util import assign_in_place, reindex
 
 logger = logging.getLogger(__name__)
@@ -366,6 +366,12 @@ def tour_mode_choice_simulate(
             choices_list.append(choices_df)
 
         choices_i = pd.concat(choices_list)
+
+        # Keep the lot used for this iteration with its mode result so an
+        # iteratively reselected lot is written back to the tours table.
+        if "pnr_zone_id" in choosers:
+            choices_i["pnr_zone_id"] = choosers["pnr_zone_id"].reindex(choices_i.index)
+
         if final_choices is None:
             final_choices = choices_i.copy()
         else:
@@ -375,8 +381,6 @@ def tour_mode_choice_simulate(
         if (max_iterations > 1) and (i < max_iterations - 1):
             # need to update the park-and-ride lot capacities and select new choosers
             pnr_capacity_cls.iteration = i
-            # grabbing pnr_zone_id to calculate capacities
-            choices_i["pnr_zone_id"] = choosers["pnr_zone_id"].reindex(choices_i.index)
             # grabbing start time to help determine which tours need to get resimulated
             choices_i["start"] = choosers["start"].reindex(choices_i.index)
             pnr_capacity_cls.set_choices(choices_i)

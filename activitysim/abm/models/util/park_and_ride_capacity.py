@@ -1,11 +1,14 @@
-import pandas as pd
-import numpy as np
+from __future__ import annotations
+
 import ctypes
 import logging
 import multiprocessing as mp
 import time
 
-from activitysim.core import util, logit, tracing
+import numpy as np
+import pandas as pd
+
+from activitysim.core import logit, tracing, util
 
 logger = logging.getLogger(__name__)
 
@@ -349,32 +352,49 @@ class ParkAndRideCapacity:
             )
 
         elif self.model_settings.RESAMPLE_STRATEGY == "random":
-            # first determine sample rate for each zone
-            zonal_sample_rate = (
-                self.shared_pnr_occupancy_df["pnr_occupancy"]
-                / self.scaled_pnr_capacity_df["pnr_capacity"]
+            occupancy = self.shared_pnr_occupancy_df["pnr_occupancy"]
+            capacity = self.scaled_pnr_capacity_df["pnr_capacity"]
+            # Sample the excess share of occupants so the expected number
+            # selected is the number of tours above capacity.
+            zonal_sample_rate = ((occupancy - capacity) / occupancy).clip(
+                lower=0, upper=1
             )
-            zonal_sample_rate = zonal_sample_rate[zonal_sample_rate > 1]
-            zonal_sample_rate = (zonal_sample_rate - 1).clip(lower=0, upper=1)
+
+            # Draw only for this process's tours; its RNG channel does not own
+            # tour IDs synchronized from the other processes.
+            local_tours_in_cap_zones = tours_in_cap_zones[
+                tours_in_cap_zones.index.isin(choosers.index)
+            ]
 
             # tours in capacitated but not over-capacity zones get 0 resample probability
-            sample_rates = tours_in_cap_zones.pnr_zone_id.map(
+            sample_rates = local_tours_in_cap_zones.pnr_zone_id.map(
                 zonal_sample_rate.to_dict()
             ).fillna(0)
             probs = pd.DataFrame(
                 data={0: 1 - sample_rates, 1: sample_rates},
-                index=tours_in_cap_zones.index,
+                index=local_tours_in_cap_zones.index,
             )
             # using ActivitySim's RNG to make choices for repeatability
-            current_sample, rands = logit.make_choices(state, probs)
-            current_sample = current_sample[current_sample == 1]
+            if probs.empty:
+                # An empty worker still participates in synchronization below,
+                # but has no RNG-owned tours from which to draw.
+                current_sample = pd.Series(index=probs.index, dtype=np.int64)
+            else:
+                current_sample, rands = logit.make_choices(state, probs)
+                current_sample = current_sample[current_sample == 1]
 
             # filtering choosers to only those tours selected for resimulation in this subprocess
             choosers = choosers[choosers.index.isin(current_sample.index)]
 
+            selected_tours = local_tours_in_cap_zones.loc[current_sample.index]
+            if self.num_processes > 1:
+                # Synchronize local random draws so every process removes the
+                # same global selections from its occupancy accounting.
+                selected_tours = self.synchronize_choices(selected_tours)
+
             # count the total number of pnr choices being resimulated
             pnr_counts = (
-                tours_in_cap_zones.loc[current_sample.index, "pnr_zone_id"]
+                selected_tours["pnr_zone_id"]
                 .value_counts()
                 .reindex(self.shared_pnr_occupancy_df.index)
                 .fillna(0)

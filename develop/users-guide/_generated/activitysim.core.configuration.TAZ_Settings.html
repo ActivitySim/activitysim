@@ -63,7 +63,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Aug 13, 2026"/>
+    <meta name="docbuild:last-update" content="Sep 02, 2026"/>
   </head>
   
   
@@ -369,6 +369,19 @@
 <dd><p>The filename of the data stored in OMX format.</p>
 <p>This is treated as a fallback for the raw input data, if ZARR format data
 is not available.</p>
+<p>As an alternative to OMX, skim files can instead be provided in Parquet
+format (using a <code class="docutils literal notranslate"><span class="pre">.parquet</span></code> or <code class="docutils literal notranslate"><span class="pre">.pq</span></code> file extension). The input format is
+auto-detected from the file extension, so no other settings need to
+change to use Parquet input. Parquet skim files should have an origin
+column and a destination column (the first two columns in the file),
+followed by one column for each named skim matrix (matching the naming
+conventions used for OMX skims, including double-underscore delimited
+time periods). Parquet skim data may be dense (one row for every
+origin-destination combination, sorted in row-major or column-major order
+using any stable zone-ID order) or sparse (only some origin-destination
+combinations present, in any order). Parquet inputs are supported by both
+the legacy skim-dictionary loaders and Sharrow when Sharrow 2.16 or newer
+is installed.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
@@ -470,7 +483,7 @@ the underlying data.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev30+ge23bb128b, documentation last updated Aug 13, 2026.<br/>
+ActivitySim 1.5.2.dev31+g2ba265604, documentation last updated Sep 02, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

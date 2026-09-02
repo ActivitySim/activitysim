@@ -63,7 +63,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Aug 13, 2026"/>
+    <meta name="docbuild:last-update" content="Sep 02, 2026"/>
   </head>
   
   
@@ -436,10 +436,11 @@ of the model.</p>
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">taz_skims</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="activitysim.core.configuration.TAZ_Settings.html#activitysim.core.configuration.TAZ_Settings" title="activitysim.core.configuration.TAZ_Settings"><span class="pre">TAZ_Settings</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings.taz_skims" title="Permalink to this definition">#</a></dt>
 <dd><p>Instructions for how to load and pre-process skim matrices.</p>
 <p>If given as a string or a list of strings, it is interpreted as the location
-for OMX file(s), either as a single file or as a glob-matching pattern for
-multiple files. The time period for the matrix must be represented at the end
-of the matrix name and be seperated by a double_underscore (e.g. <cite>BUS_IVT__AM</cite>
-indicates base skim BUS_IVT with a time period of AM.</p>
+for OMX or Parquet skim file(s), either as a single file or as a glob-matching
+pattern for multiple files. Formats are detected from each file’s extension
+and may be mixed. The time period for the matrix must be represented at the
+end of the matrix name and be separated by a double underscore (e.g.
+<cite>BUS_IVT__AM</cite> indicates base skim BUS_IVT with a time period of AM).</p>
 <p>Alternatively, this can be given as a nested dictionary defined via the
 TAZ_Settings class, which allows for ZARR transformation and pre-processing.</p>
 </dd></dl>
@@ -544,7 +545,7 @@ runs.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev30+ge23bb128b, documentation last updated Aug 13, 2026.<br/>
+ActivitySim 1.5.2.dev31+g2ba265604, documentation last updated Sep 02, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import types
 from concurrent.futures import ThreadPoolExecutor
 
@@ -7,9 +9,11 @@ import pandas as pd
 import pytest
 
 from activitysim.abm.models import park_and_ride_lot_choice as pnr_lot_choice
+from activitysim.abm.models import tour_mode_choice as tmc
 from activitysim.abm.models.util import park_and_ride_capacity as pnr_capacity
-from activitysim.core.configuration.base import ComputeSettings
+from activitysim.abm.models.util import vectorize_tour_scheduling as vts
 from activitysim.core import los, workflow
+from activitysim.core.configuration.base import ComputeSettings
 
 
 class _Settings(dict):
@@ -768,3 +772,218 @@ def test_set_choices_single_and_multiprocess_aggregate_match(state):
     pd.testing.assert_series_equal(
         cap_b.shared_pnr_occupancy_df["pnr_occupancy"], expected_occ
     )
+
+
+def test_tour_mode_choice_persists_reselected_pnr_lot(state, network_los, monkeypatch):
+    """Writes an iteratively reselected PNR lot back to the final tours table.
+
+    The first lot choice is deliberately different from the lot returned during
+    capacity iteration. The mode-choice result must therefore retain the new lot,
+    so downstream trip construction and matrix writing use the same lot that was
+    used to calculate the final mode utility.
+    """
+    tours = pd.DataFrame(
+        {
+            "person_id": [1],
+            "tour_category": ["mandatory"],
+            "tour_type": ["work"],
+            "start": [8],
+            "end": [17],
+            "destination": [5],
+            "home_zone_id": [3],
+            "pnr_zone_id": [1],
+        },
+        index=pd.Index([100], name="tour_id"),
+    )
+    persons_merged = pd.DataFrame(
+        {"is_university": [False]},
+        index=pd.Index([1], name="person_id"),
+    )
+    tour_mode_settings = _Settings(
+        MODE_CHOICE_LOGSUM_COLUMN_NAME="mode_choice_logsum",
+        CONSTANTS={},
+        COMPUTE_TRIP_MODE_CHOICE_LOGSUMS=False,
+        FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH=False,
+    )
+    pnr_settings = types.SimpleNamespace(
+        ITERATE_WITH_TOUR_MODE_CHOICE=True,
+        MAX_ITERATIONS=2,
+    )
+
+    class _CapacityStub:
+        """Selects the tour once so a second lot choice and mode choice occur."""
+
+        def __init__(self, state, model_settings):
+            self.model_settings = model_settings
+            self.num_processes = 1
+            self.iteration = 0
+
+        def set_choices(self, choices):
+            pass
+
+        def select_new_choosers(self, state, choosers):
+            return choosers.copy()
+
+    def choose_pnr_mode(state, choosers, *args, **kwargs):
+        return pd.DataFrame(
+            {
+                "tour_mode": ["PNR"] * len(choosers),
+                "mode_choice_logsum": [0.0] * len(choosers),
+            },
+            index=choosers.index,
+        )
+
+    def choose_replacement_lot(state, choosers, *args, **kwargs):
+        return pd.Series(2, index=choosers.index, name="pnr_zone_id")
+
+    monkeypatch.setattr(
+        tmc.ParkAndRideLotChoiceSettings,
+        "read_settings_file",
+        classmethod(lambda cls, *args, **kwargs: pnr_settings),
+    )
+    monkeypatch.setattr(
+        tmc.park_and_ride_capacity, "ParkAndRideCapacity", _CapacityStub
+    )
+    monkeypatch.setattr(tmc, "run_tour_mode_choice_simulate", choose_pnr_mode)
+    monkeypatch.setattr(tmc, "run_park_and_ride_lot_choice", choose_replacement_lot)
+    monkeypatch.setattr(
+        tmc.expressions, "annotate_tables", lambda *args, **kwargs: None
+    )
+
+    tmc.tour_mode_choice_simulate(
+        state=state,
+        tours=tours,
+        persons_merged=persons_merged,
+        network_los=network_los,
+        model_settings=tour_mode_settings,
+    )
+
+    result = state.get_dataframe("tours")
+    assert result.loc[100, "tour_mode"] == "PNR"
+    assert result.loc[100, "pnr_zone_id"] == 2
+
+
+def test_tour_scheduling_pnr_logsums_use_configured_destination(
+    state, network_los, monkeypatch
+):
+    """Uses the purpose-specific destination when adding PNR lots to logsums.
+
+    Mandatory scheduling choosers use columns such as ``workplace_zone_id`` and
+    ``school_zone_id`` rather than the generic ``destination`` column. This test
+    exercises the work-tour case and verifies the selected PNR lot is based on
+    the configured work destination before the mode-choice logsum is computed.
+    """
+    state.add_injectable("network_los", network_los)
+    alt_tdd = pd.DataFrame(index=pd.Index([100], name="tour_id"))
+    tours_merged = pd.DataFrame(
+        {
+            "home_zone_id": [3],
+            "workplace_zone_id": [5],
+        },
+        index=pd.Index([100], name="tour_id"),
+    )
+    scheduling_settings = _Settings(
+        LOGSUM_SETTINGS="tour_mode_choice.yaml",
+        DESTINATION_FOR_TOUR_PURPOSE={"work": "workplace_zone_id"},
+    )
+    logsum_settings = _Settings(include_pnr_for_logsums=True)
+    pnr_destinations = []
+
+    class _LotChoiceObserved(Exception):
+        """Stops the unit test after its relevant behavior has been observed."""
+
+    def choose_lot_for_configured_destination(
+        state, choosers, choosers_dest_col_name, **kwargs
+    ):
+        # Access through the supplied name, just as the real PNR model does. A
+        # generic hard-coded destination therefore cannot satisfy this behavior.
+        pnr_destinations.extend(choosers[choosers_dest_col_name].tolist())
+        raise _LotChoiceObserved
+
+    monkeypatch.setattr(
+        vts.TourModeComponentSettings,
+        "read_settings_file",
+        classmethod(lambda cls, *args, **kwargs: logsum_settings),
+    )
+    monkeypatch.setattr(
+        vts, "run_park_and_ride_lot_choice", choose_lot_for_configured_destination
+    )
+
+    # Stop after lot choice so unrelated logsum/spec setup is not part of this
+    # minimum reproduction. The expected exception is reached only when the
+    # configured destination column can actually be read by the PNR model.
+    with pytest.raises(_LotChoiceObserved):
+        vts._compute_logsums(
+            state=state,
+            alt_tdd=alt_tdd,
+            tours_merged=tours_merged,
+            tour_purpose="work",
+            model_settings=scheduling_settings,
+            network_los=network_los,
+            trace_label="test_mandatory_scheduling_pnr_logsums",
+        )
+
+    assert pnr_destinations == [5]
+
+
+def test_random_resampling_uses_local_choosers_and_excess_share(state, monkeypatch):
+    """Builds random-resampling probabilities safe for a sliced worker.
+
+    ``choices_synced`` intentionally contains the global PNR choices, while the
+    chooser frame contains only one worker's slice. Random draws must only be
+    requested for that local slice because each subprocess owns RNG state for
+    its own tour IDs. For three occupants in a two-space lot, each candidate's
+    resampling probability is one excess tour divided by three occupants.
+    """
+    land_use = pd.DataFrame(
+        {"pnr_spaces": [2, 2]}, index=pd.Index([1, 2], name="zone_id")
+    )
+    state.add_table("land_use", land_use)
+    state.add_injectable("num_processes", 1)
+    settings = types.SimpleNamespace(
+        LANDUSE_PNR_SPACES_COLUMN="pnr_spaces",
+        PARK_AND_RIDE_MODES=["PNR"],
+        ACCEPTED_TOLERANCE=1.0,
+        RESAMPLE_STRATEGY="random",
+        TRACE_PNR_CAPACITIES_PER_ITERATION=False,
+    )
+    cap = pnr_capacity.ParkAndRideCapacity(state, settings)
+    all_choosers = pd.DataFrame(
+        {"destination": [10, 11, 12]},
+        index=pd.Index([100, 101, 102], name="tour_id"),
+    )
+    local_choosers = all_choosers.loc[[100, 101]]
+    choices = pd.DataFrame(
+        {
+            "tour_mode": ["PNR", "PNR", "PNR"],
+            "pnr_zone_id": [1, 1, 1],
+            "start": [8, 9, 10],
+        },
+        index=all_choosers.index,
+    )
+    cap.set_choices(choices)
+    observed_probs = []
+
+    def make_local_choices(state, probs):
+        observed_probs.append(probs.copy())
+        # The selection itself is immaterial here; returning no selected tours
+        # keeps the test focused on the worker-safe probability frame.
+        return pd.Series(0, index=probs.index), None
+
+    monkeypatch.setattr(pnr_capacity.logit, "make_choices", make_local_choices)
+
+    selected = cap.select_new_choosers(state, local_choosers)
+
+    expected_probs = pd.DataFrame(
+        {
+            0: [2.0 / 3.0, 2.0 / 3.0],
+            1: [1.0 / 3.0, 1.0 / 3.0],
+        },
+        index=local_choosers.index,
+    )
+    pd.testing.assert_frame_equal(observed_probs[0], expected_probs)
+    assert selected.empty
+
+    # TODO: Once the cross-process selection synchronization contract is
+    # finalized, extend this test to assert that the union of all worker slices
+    # contains exactly the number of tours above capacity.

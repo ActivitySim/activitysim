@@ -87,6 +87,7 @@ def check_outputs(tours):
         "od_distance_wrapper",
         "od_sov_time",
         "constant_test",
+        "global_constant_test",
     ]
 
     # check all new columns are added
@@ -109,6 +110,7 @@ def check_outputs(tours):
             "od_distance_wrapper": [0.24, 0.28, 0.57],
             "od_sov_time": [0.78, 0.89, 1.76],
             "constant_test": [21, 21, 21],
+            "global_constant_test": [21, 21, 21],
         }
     ).set_index("tour_id")
     pd.testing.assert_frame_equal(tours[new_cols], exppected_output, check_dtype=False)
@@ -124,7 +126,11 @@ def setup_skims(state: workflow.State):
     return {"skims3d": skims3d, "skims2d": skims2d}
 
 
-def test_preprocessor(state: workflow.State, households, persons, tours):
+def test_preprocessor(state: workflow.State, households, persons, tours, monkeypatch):
+    monkeypatch.setattr(
+        state, "get_global_constants", lambda: {"global_test_constant": 42}
+    )
+
     # adding dataframes to state so they can be accessed in preprocessor
     state.add_table("households", households)
     state.add_table("persons", persons)
@@ -156,7 +162,11 @@ def test_preprocessor(state: workflow.State, households, persons, tours):
     pd.testing.assert_frame_equal(state_tours, original_tours)
 
 
-def test_annotator(state, households, persons, tours):
+def test_annotator(state, households, persons, tours, monkeypatch):
+    monkeypatch.setattr(
+        state, "get_global_constants", lambda: {"global_test_constant": 42}
+    )
+
     # adding dataframes to state so they can be accessed in annotator
     state.add_table("households", households)
     state.add_table("persons", persons)

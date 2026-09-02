@@ -660,6 +660,20 @@ def zarr_file_modification_time(zarr_dir: Path):
     return t
 
 
+def traceable_id_columns(choosers):
+    """Return non-index identifiers needed to slice interaction trace rows."""
+    return [
+        column
+        for column in (
+            "household_id",
+            "person_id",
+            "proto_household_id",
+            "proto_person_id",
+        )
+        if column in choosers.columns
+    ]
+
+
 def drop_unused_columns(
     choosers,
     spec,

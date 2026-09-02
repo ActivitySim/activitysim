@@ -24,18 +24,6 @@ SEGMENTS:
   - social
   - escort
 
-SIMULATE_CHOOSER_COLUMNS:
-  - tour_type
-  - home_zone_id
-  - person_id
-  - income_segment
-  - pemploy
-  - is_student
-  - age_0_to_5
-  - age_6_to_12
-  - hh_child
-  - home_county
-
 LOGSUM_SETTINGS: tour_mode_choice.yaml
 
 # model-specific logsum-related settings

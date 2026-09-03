@@ -18,6 +18,7 @@ from activitysim.core import config
 from activitysim.core import flow as __flow  # noqa: 401
 from activitysim.core import workflow
 from activitysim.core.input import read_input_file
+from activitysim.core.skim_parquet import SPARSE, ParquetSkimFile, is_parquet_file
 
 logger = logging.getLogger(__name__)
 
@@ -698,6 +699,235 @@ def load_sparse_maz_skims(
     return dataset
 
 
+def _matrix_time_periods(matrix_names, ignore):
+    """Collect the time-period pages physically present in a source group."""
+    if isinstance(ignore, str):
+        ignore = [ignore]
+
+    available_periods = {}
+    for matrix_name in matrix_names:
+        if ignore and any(re.match(pattern, matrix_name) for pattern in ignore):
+            continue
+        base_name, separator, period_name = matrix_name.partition("__")
+        if separator:
+            available_periods.setdefault(base_name, set()).add(period_name)
+    return available_periods
+
+
+def _mask_synthetic_time_periods(dataset, available_periods):
+    """Replace loader-created zero pages with missing values before merging."""
+
+    for base_name, periods in available_periods.items():
+        if base_name not in dataset or "time_period" not in dataset[base_name].dims:
+            continue
+        if not set(dataset.time_period.values).issubset(periods):
+            dataset[base_name] = dataset[base_name].where(
+                dataset.time_period.isin(list(periods))
+            )
+    return dataset
+
+
+def _restore_synthetic_time_periods(dataset, available_periods):
+    """Restore zero pages for periods absent from every physical source."""
+    for base_name, periods in available_periods.items():
+        if base_name not in dataset or "time_period" not in dataset[base_name].dims:
+            continue
+        if not set(dataset.time_period.values).issubset(periods):
+            dataset[base_name] = dataset[base_name].where(
+                dataset.time_period.isin(list(periods)), 0
+            )
+    return dataset
+
+
+def _zero_fill_sparse_parquet(dataset, parquet_sources, ignore):
+    """Match the legacy loader's zero fill for absent sparse OD pairs."""
+    if isinstance(ignore, str):
+        ignore = [ignore]
+
+    # Sharrow's duplicate-column behavior is last-file-wins, so use the same
+    # source when selecting the OD pairs that are physically present.
+    matrix_sources = {}
+    for _, parquet_file in parquet_sources:
+        for matrix_name in parquet_file.data_cols:
+            if ignore and any(re.match(pattern, matrix_name) for pattern in ignore):
+                continue
+            matrix_sources[matrix_name] = parquet_file
+
+    presence_by_file = {}
+    for matrix_name, parquet_file in matrix_sources.items():
+        if parquet_file.layout != SPARSE:
+            continue
+
+        presence = presence_by_file.get(parquet_file)
+        if presence is None:
+            presence = np.zeros(parquet_file.shape, dtype=bool)
+            presence[parquet_file._orig_idx, parquet_file._dest_idx] = True
+            presence = xr.DataArray(
+                presence,
+                dims=("otaz", "dtaz"),
+                coords={
+                    "otaz": parquet_file.zone_ids,
+                    "dtaz": parquet_file.zone_ids,
+                },
+            )
+            presence_by_file[parquet_file] = presence
+
+        base_name, separator, period_name = matrix_name.partition("__")
+        if separator:
+            if base_name not in dataset:
+                continue
+            # Preserve explicit NaNs at present OD pairs and other periods;
+            # only combinations absent from this physical page become zero.
+            keep_value = presence | (dataset.time_period != period_name)
+            dataset[base_name] = dataset[base_name].where(keep_value, 0)
+        elif matrix_name in dataset:
+            dataset[matrix_name] = dataset[matrix_name].where(presence, 0)
+    return dataset
+
+
+def _load_skim_dataset_from_sources(
+    skim_file_paths,
+    *,
+    time_periods,
+    max_float_precision,
+    ignore,
+    parquet_file_metadata=None,
+):
+    """
+    Load OMX and/or Parquet skim files into one Sharrow-compatible Dataset.
+
+    Parquet index columns are identified from the first two columns in each
+    file, consistent with the legacy skim reader. Files with different index
+    column names are loaded in separate groups and aligned by their zone labels.
+
+    Returns
+    -------
+    dataset : xarray.Dataset
+    omx_file_handles : list
+        Open OMX handles retained for the optimized shared-memory reload path.
+    """
+    omx_file_paths = [f for f in skim_file_paths if not is_parquet_file(f)]
+    parquet_file_paths = [f for f in skim_file_paths if is_parquet_file(f)]
+    omx_file_handles = []
+    datasets = []
+
+    try:
+        if omx_file_paths:
+            omx_file_handles = [
+                openmatrix.open_file(f, mode="r") for f in omx_file_paths
+            ]
+            omx_dataset = sh.dataset.from_omx_3d(
+                omx_file_handles,
+                index_names=("otaz", "dtaz", "time_period"),
+                time_periods=time_periods,
+                max_float_precision=max_float_precision,
+                ignore=ignore,
+            )
+            omx_matrix_names = [
+                matrix_name
+                for handle in omx_file_handles
+                for matrix_name in handle.listMatrices()
+            ]
+            datasets.append((omx_dataset, omx_matrix_names))
+
+        if parquet_file_paths:
+            if not hasattr(sh.dataset, "from_parquet_3d"):
+                raise ImportError(
+                    "Parquet skims with Sharrow require Sharrow 2.16 or newer"
+                )
+            metadata_by_path = {
+                os.fspath(path): metadata
+                for path, metadata in (parquet_file_metadata or {}).items()
+            }
+            parquet_groups = {}
+            for file_path in parquet_file_paths:
+                parquet_file = metadata_by_path.get(os.fspath(file_path))
+                if parquet_file is None:
+                    parquet_file = ParquetSkimFile(file_path)
+                # Load sparse files independently. Sharrow derives each sparse
+                # axis only from labels present on that axis, so grouping a
+                # sparse file that omits an entire origin or destination can
+                # otherwise discard valid rows from another file in the group.
+                sparse_source = file_path if parquet_file.layout == SPARSE else None
+                group_key = (
+                    parquet_file.orig_col,
+                    parquet_file.dest_col,
+                    sparse_source,
+                )
+                parquet_groups.setdefault(group_key, []).append(
+                    (file_path, parquet_file)
+                )
+
+            for (orig_col, dest_col, _), parquet_sources in parquet_groups.items():
+                file_paths = [source[0] for source in parquet_sources]
+                parquet_dataset = sh.dataset.from_parquet_3d(
+                    file_paths,
+                    index_names=(orig_col, dest_col, "time_period"),
+                    time_periods=time_periods,
+                    max_float_precision=max_float_precision,
+                    ignore=ignore,
+                )
+
+                # Rename through temporary names so even swapped source names
+                # (e.g. dtaz/otaz) cannot collide during the rename.
+                parquet_dataset = parquet_dataset.rename(
+                    {
+                        orig_col: "__activitysim_parquet_origin__",
+                        dest_col: "__activitysim_parquet_destination__",
+                    }
+                ).rename(
+                    {
+                        "__activitysim_parquet_origin__": "otaz",
+                        "__activitysim_parquet_destination__": "dtaz",
+                    }
+                )
+                # Sparse xarray expansion can omit an entire coordinate when no
+                # row uses it. Normalize both dimensions to the full zone set,
+                # which also gives dense nonascending inputs legacy-compatible
+                # canonical ordering.
+                parquet_zone_ids = parquet_sources[0][1].zone_ids
+                parquet_dataset = parquet_dataset.reindex(
+                    otaz=parquet_zone_ids, dtaz=parquet_zone_ids
+                )
+                parquet_dataset = _zero_fill_sparse_parquet(
+                    parquet_dataset, parquet_sources, ignore
+                )
+                parquet_matrix_names = [
+                    matrix_name
+                    for _, parquet_file in parquet_sources
+                    for matrix_name in parquet_file.data_cols
+                ]
+                datasets.append((parquet_dataset, parquet_matrix_names))
+
+        if not datasets:
+            raise ValueError("no OMX or Parquet skim files were provided")
+        if len(datasets) == 1:
+            dataset = datasets[0][0]
+        else:
+            all_available_periods = {}
+            masked_datasets = []
+            for source_dataset, matrix_names in datasets:
+                source_periods = _matrix_time_periods(matrix_names, ignore)
+                for base_name, periods in source_periods.items():
+                    all_available_periods.setdefault(base_name, set()).update(periods)
+                masked_datasets.append(
+                    _mask_synthetic_time_periods(source_dataset, source_periods)
+                )
+            dataset = xr.merge(masked_datasets, compat="no_conflicts", join="outer")
+            dataset = _restore_synthetic_time_periods(dataset, all_available_periods)
+
+        # SkimDataset expects this coordinate even when all source matrices are
+        # time-agnostic and therefore do not otherwise create the dimension.
+        if "time_period" not in dataset.coords:
+            dataset = dataset.assign_coords(time_period=time_periods)
+
+        return dataset, omx_file_handles
+    except Exception:
+        for handle in omx_file_handles:
+            handle.close()
+        raise
+
+
 def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
     """
     Load skims from disk into shared memory.
@@ -718,11 +948,12 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
     if network_los_preload is None:
         raise ValueError("missing network_los_preload")
 
-    # find which OMX files are to be used.
+    # Find the source skim files to use; formats may be mixed.
     omx_file_paths = state.filesystem.expand_input_file_list(
         network_los_preload.omx_file_names(skim_tag),
     )
     omx_file_handles = []
+    source_has_parquet = any(is_parquet_file(f) for f in omx_file_paths)
     zarr_file = network_los_preload.zarr_file_name(skim_tag)
 
     if state.settings.disable_zarr:
@@ -834,23 +1065,22 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
             d = sh.dataset.from_zarr_with_attr(zarr_file)
             zarr_write_time = d.attrs.get("ZARR_WRITE_TIME", 0)
             if zarr_write_time < latest_file_modification_time(omx_file_paths):
-                logger.warning("zarr skims older than omx, not using them")
+                logger.warning("zarr skims older than source skims, not using them")
                 do_not_save_zarr = True
                 d = None
             else:
                 d = d.max_float_precision(max_float_precision)
         if d is None:
             if zarr_file and not do_not_save_zarr:
-                logger.info("did not find zarr skims, loading omx")
-            omx_file_handles = [
-                openmatrix.open_file(f, mode="r") for f in omx_file_paths
-            ]
-            d = sh.dataset.from_omx_3d(
-                omx_file_handles,
-                index_names=("otaz", "dtaz", "time_period"),
+                logger.info("did not find zarr skims, loading source skim files")
+            d, omx_file_handles = _load_skim_dataset_from_sources(
+                omx_file_paths,
                 time_periods=time_periods,
                 max_float_precision=max_float_precision,
                 ignore=state.settings.omx_ignore_patterns,
+                parquet_file_metadata=network_los_preload.skims_info[
+                    skim_tag
+                ].parquet_files,
             )
 
             if zarr_file:
@@ -896,8 +1126,8 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
                 )
 
         d = _drop_unused_names(state, d)
-        # apply non-zarr dependent digital encoding
-        d = _apply_digital_encoding(d, skim_digital_encoding)
+        # note: digital encoding is deferred and applied later, after
+        # data is in its final memory location (shared memory or local)
 
     if skim_tag in ("taz", "maz"):
         # check alignment of TAZs that it matches land_use table
@@ -909,11 +1139,79 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
     else:
         land_use_zone_id = None
 
+    time_periods = _dedupe_time_periods(network_los_preload)
+    return _finalize_skim_dataset(
+        d,
+        omx_file_paths=omx_file_paths,
+        omx_file_handles=omx_file_handles,
+        time_periods=time_periods,
+        land_use_zone_id=land_use_zone_id,
+        land_use_index=land_use.index.to_numpy(),
+        zone_system=network_los_preload.zone_system,
+        store_skims_in_shm=state.settings.store_skims_in_shm,
+        backing=backing,
+        skim_digital_encoding=skim_digital_encoding,
+        omx_ignore_patterns=state.settings.omx_ignore_patterns,
+    )
+
+
+def _finalize_skim_dataset(
+    d,
+    omx_file_paths,
+    omx_file_handles,
+    time_periods,
+    land_use_zone_id,
+    land_use_index,
+    zone_system,
+    store_skims_in_shm,
+    backing,
+    skim_digital_encoding,
+    omx_ignore_patterns=None,
+):
+    """
+    Align, optionally share, and encode a skim dataset.
+
+    This covers the final phase of ``load_skim_dataset_to_shared_memory``:
+    zone alignment checks, writing into shared memory (with the deferred
+    ``reload_from_omx_3d`` path when possible), and digital encoding.
+
+    Parameters
+    ----------
+    d : xr.Dataset
+        The dataset as loaded from OMX / zarr, with unused variables already
+        dropped.  May be backed by dask arrays.
+    omx_file_paths : list[Path]
+        Paths to the OMX source files (needed for `reload_from_omx_3d`).
+    omx_file_handles : list[openmatrix.File]
+        Already-open OMX file handles.  Closed before returning.
+    time_periods : list[str]
+        Deduplicated time-period labels (e.g. ``["AM", "MD", "PM"]``).
+    land_use_zone_id : array-like or None
+        Original (pre-remap) zone IDs from the land-use table, or ``None``
+        for non-taz/maz skim tags.
+    land_use_index : array-like or None
+        Zero-based contiguous land-use index, or ``None``.
+    zone_system : int
+        ``ONE_ZONE``, ``TWO_ZONE``, or ``THREE_ZONE``.
+    store_skims_in_shm : bool
+        Whether to store the dataset in shared memory.
+    backing : str
+        Shared-memory backing token / memmap path.
+    skim_digital_encoding : list[dict]
+        Digital encoding instructions to apply after data is in its final
+        memory location.
+    omx_ignore_patterns : list[str] or None
+        User-supplied OMX ignore patterns (from settings).
+
+    Returns
+    -------
+    xr.Dataset
+    """
+    from activitysim.core.los import ONE_ZONE
+
     dask_required = False
-    if network_los_preload.zone_system == ONE_ZONE:
+    if zone_system == ONE_ZONE and land_use_zone_id is not None:
         # check TAZ alignment for ONE_ZONE system.
-        # other systems use MAZ for most lookups, which dynamically
-        # resolves to TAZ inside the Dataset code.
         if d["otaz"].attrs.get("preprocessed") != "zero-based-contiguous":
             try:
                 np.testing.assert_array_equal(land_use_zone_id, d.otaz)
@@ -923,10 +1221,10 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
                 dask_required = True
             else:
                 logger.info("otaz alignment ok")
-            d["otaz"] = land_use.index.to_numpy()
+            d["otaz"] = np.asarray(land_use_index)
             d["otaz"].attrs["preprocessed"] = "zero-based-contiguous"
         else:
-            np.testing.assert_array_equal(land_use.index, d.otaz)
+            np.testing.assert_array_equal(land_use_index, d.otaz)
 
         if d["dtaz"].attrs.get("preprocessed") != "zero-based-contiguous":
             try:
@@ -937,24 +1235,38 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
                 dask_required = True
             else:
                 logger.info("dtaz alignment ok")
-            d["dtaz"] = land_use.index.to_numpy()
+            d["dtaz"] = np.asarray(land_use_index)
             d["dtaz"].attrs["preprocessed"] = "zero-based-contiguous"
         else:
-            np.testing.assert_array_equal(land_use.index, d.dtaz)
+            np.testing.assert_array_equal(land_use_index, d.dtaz)
 
     if d.shm.is_shared_memory:
         for f in omx_file_handles:
             f.close()
         return d
-    elif not state.settings.store_skims_in_shm:
+    elif not store_skims_in_shm:
         logger.info(
             "store_skims_in_shm is False, keeping skims in process-local memory"
         )
-        return d
+        try:
+            d = _apply_digital_encoding(d, skim_digital_encoding)
+            # `from_omx_3d` can produce dask arrays whose task graph reads
+            # from the supplied PyTables handles.  Materialize them before
+            # closing the handles so the returned process-local dataset has
+            # no deferred dependency on an OMX file.  Use the synchronous
+            # scheduler because PyTables HDF5 reads are not thread-safe.
+            return d.compute(scheduler="synchronous")
+        finally:
+            for f in omx_file_handles:
+                f.close()
     else:
         logger.info("writing skims to shared memory")
-        if dask_required:
+        if dask_required or any(is_parquet_file(f) for f in omx_file_paths):
             # setting `load` to True uses dask to load the data into memory
+            d = _apply_digital_encoding(d, skim_digital_encoding)
+            # Parquet-backed datasets cannot use reload_from_omx_3d, so copy
+            # their already-loaded data into shared memory. The same path is
+            # required when coordinate realignment created a dask graph.
             d_shared_mem = d.shm.to_shared_memory(backing, mode="r", load=True)
         else:
             # setting `load` to false then calling `reload_from_omx_3d` avoids
@@ -963,11 +1275,34 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
             # requires no realignment (i.e. the land use table and skims match
             # exactly in order and length).
             d_shared_mem = d.shm.to_shared_memory(backing, mode="r", load=False)
+            # Build an extended ignore list that includes any skims that were
+            # dropped as unused, so reload_from_omx_3d doesn't try to load them.
+            # We must account for 3D skims where OMX names have time period
+            # suffixes (e.g. WLK_Bus_Ivtt__AM) but the dataset variable is
+            # the collapsed name (e.g. WLK_Bus_Ivtt).
+            reload_ignore = list(omx_ignore_patterns or [])
+            ds_var_names = set(d.variables.keys())
+            # expand dataset variable names to include their time-period
+            # suffixed OMX equivalents, so we don't accidentally drop them
+            ds_omx_names = set()
+            for var_name in ds_var_names:
+                ds_omx_names.add(var_name)
+                for tp in time_periods:
+                    ds_omx_names.add(f"{var_name}__{tp}")
+            all_omx_names = set()
+            for f in omx_file_handles:
+                all_omx_names.update(f.list_matrices())
+            dropped_names = all_omx_names - ds_omx_names
+            for name in dropped_names:
+                reload_ignore.append(f"^{re.escape(name)}$")
             sh.dataset.reload_from_omx_3d(
                 d_shared_mem,
                 [str(i) for i in omx_file_paths],
-                ignore=state.settings.omx_ignore_patterns,
+                ignore=reload_ignore,
             )
+            # apply digital encoding AFTER reload so raw OMX values are
+            # properly encoded in the shared memory dataset
+            d_shared_mem = _apply_digital_encoding(d_shared_mem, skim_digital_encoding)
         for f in omx_file_handles:
             f.close()
         return d_shared_mem

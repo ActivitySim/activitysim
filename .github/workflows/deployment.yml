@@ -66,14 +66,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install dist/activitysim*.whl
           python -m activitysim --version
-      - name: Publish package to TestPyPI
-        if: github.event_name == 'push'
-        uses: pypa/gh-action-pypi-publish@v1.13.0
-        with:
-          user: __token__
-          password: ${{ secrets.TESTPYPI_TOKEN }}
-          repository_url: https://test.pypi.org/legacy/
-          verbose: true
 
   docbuild:
     needs: test-built-dist

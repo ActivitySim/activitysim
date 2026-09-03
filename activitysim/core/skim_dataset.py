@@ -1261,7 +1261,7 @@ def _finalize_skim_dataset(
                 f.close()
     else:
         logger.info("writing skims to shared memory")
-        if dask_required or source_has_parquet:
+        if dask_required or any(is_parquet_file(f) for f in omx_file_paths):
             # setting `load` to True uses dask to load the data into memory
             d = _apply_digital_encoding(d, skim_digital_encoding)
             # Parquet-backed datasets cannot use reload_from_omx_3d, so copy

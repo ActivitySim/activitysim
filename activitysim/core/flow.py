@@ -150,6 +150,7 @@ def get_flow(
     stop_col_name = None
     parking_col_name = None
     primary_origin_col_name = None
+    pnr_lot_dest_col_name = local_d.get("pnr_lot_dest_col_name", None)
     timeframe = local_d.get("timeframe", "tour")
     if timeframe == "trip":
         orig_col_name = local_d.get("ORIGIN", orig_col_name)
@@ -180,6 +181,7 @@ def get_flow(
         choosers=choosers,
         stop_col_name=stop_col_name,
         parking_col_name=parking_col_name,
+        pnr_lot_dest_col_name=pnr_lot_dest_col_name,
         size_term_mapping=size_term_mapping,
         interacts=interacts,
         zone_layer=zone_layer,
@@ -267,6 +269,7 @@ def skims_mapping(
     timeframe="tour",
     stop_col_name=None,
     parking_col_name=None,
+    pnr_lot_dest_col_name=None,
     zone_layer=None,
     primary_origin_col_name=None,
     predigitized_time_periods=False,
@@ -344,30 +347,73 @@ def skims_mapping(
                 time_rel = "_code ->"
             else:
                 time_rel = " @"
-            return dict(
-                # TODO:SHARROW: organize dimensions.
+            # Base skim mappings for tour timeframe
+            result = dict(
                 odt_skims=skim_dataset,
                 dot_skims=skim_dataset,
                 odr_skims=skim_dataset,
                 dor_skims=skim_dataset,
                 od_skims=skim_dataset,
-                relationships=(
-                    f"df._orig_col_name -> odt_skims.{odim}",
-                    f"df._dest_col_name -> odt_skims.{ddim}",
-                    f"df.out_period{time_rel} odt_skims.time_period",
-                    f"df._dest_col_name -> dot_skims.{odim}",
-                    f"df._orig_col_name -> dot_skims.{ddim}",
-                    f"df.in_period{time_rel} dot_skims.time_period",
-                    f"df._orig_col_name -> odr_skims.{odim}",
-                    f"df._dest_col_name -> odr_skims.{ddim}",
-                    f"df.in_period{time_rel} odr_skims.time_period",
-                    f"df._dest_col_name -> dor_skims.{odim}",
-                    f"df._orig_col_name -> dor_skims.{ddim}",
-                    f"df.out_period{time_rel} dor_skims.time_period",
-                    f"df._orig_col_name -> od_skims.{odim}",
-                    f"df._dest_col_name -> od_skims.{ddim}",
-                ),
+                do_skims=skim_dataset,
             )
+            relationships = [
+                f"df._orig_col_name -> odt_skims.{odim}",
+                f"df._dest_col_name -> odt_skims.{ddim}",
+                f"df.out_period{time_rel} odt_skims.time_period",
+                f"df._dest_col_name -> dot_skims.{odim}",
+                f"df._orig_col_name -> dot_skims.{ddim}",
+                f"df.in_period{time_rel} dot_skims.time_period",
+                f"df._orig_col_name -> odr_skims.{odim}",
+                f"df._dest_col_name -> odr_skims.{ddim}",
+                f"df.in_period{time_rel} odr_skims.time_period",
+                f"df._dest_col_name -> dor_skims.{odim}",
+                f"df._orig_col_name -> dor_skims.{ddim}",
+                f"df.out_period{time_rel} dor_skims.time_period",
+                f"df._orig_col_name -> od_skims.{odim}",
+                f"df._dest_col_name -> od_skims.{ddim}",
+                f"df._dest_col_name -> do_skims.{odim}",
+                f"df._orig_col_name -> do_skims.{ddim}",
+            ]
+
+            # Add PNR skims if pnr_lot_dest_col_name is provided
+            if pnr_lot_dest_col_name is not None:
+                result.update(
+                    olt_skims=skim_dataset,  # origin to lot, outbound time
+                    ldt_skims=skim_dataset,  # lot to destination, outbound time
+                    dlt_skims=skim_dataset,  # destination to lot, inbound time
+                    lot_skims=skim_dataset,  # lot to origin, inbound time
+                    ol_skims=skim_dataset,  # origin to lot (timeless)
+                    ld_skims=skim_dataset,  # lot to destination (timeless)
+                )
+                relationships.extend(
+                    [
+                        # origin to lot, outbound
+                        f"df._orig_col_name -> olt_skims.{odim}",
+                        f"df._pnr_lot_dest_col_name -> olt_skims.{ddim}",
+                        f"df.out_period{time_rel} olt_skims.time_period",
+                        # lot to destination, outbound
+                        f"df._pnr_lot_dest_col_name -> ldt_skims.{odim}",
+                        f"df._dest_col_name -> ldt_skims.{ddim}",
+                        f"df.out_period{time_rel} ldt_skims.time_period",
+                        # destination to lot, inbound
+                        f"df._dest_col_name -> dlt_skims.{odim}",
+                        f"df._pnr_lot_dest_col_name -> dlt_skims.{ddim}",
+                        f"df.in_period{time_rel} dlt_skims.time_period",
+                        # lot to origin, inbound
+                        f"df._pnr_lot_dest_col_name -> lot_skims.{odim}",
+                        f"df._orig_col_name -> lot_skims.{ddim}",
+                        f"df.in_period{time_rel} lot_skims.time_period",
+                        # timeless origin to lot
+                        f"df._orig_col_name -> ol_skims.{odim}",
+                        f"df._pnr_lot_dest_col_name -> ol_skims.{ddim}",
+                        # timeless lot to destination
+                        f"df._pnr_lot_dest_col_name -> ld_skims.{odim}",
+                        f"df._dest_col_name -> ld_skims.{ddim}",
+                    ]
+                )
+
+            result["relationships"] = tuple(relationships)
+            return result
     elif stop_col_name is not None:  # trip_destination
         return dict(
             od_skims=skim_dataset,
@@ -465,6 +511,7 @@ def new_flow(
     choosers=None,
     stop_col_name=None,
     parking_col_name=None,
+    pnr_lot_dest_col_name=None,
     size_term_mapping=None,
     interacts=None,
     zone_layer=None,
@@ -555,6 +602,7 @@ def new_flow(
             timeframe,
             stop_col_name,
             parking_col_name=parking_col_name,
+            pnr_lot_dest_col_name=pnr_lot_dest_col_name,
             zone_layer=zone_layer,
             primary_origin_col_name=primary_origin_col_name,
             predigitized_time_periods=predigitized_time_periods,
@@ -588,6 +636,10 @@ def new_flow(
                 rename_dataset_cols.append((stop_col_name, "_stop_col_name"))
             if parking_col_name is not None:
                 rename_dataset_cols.append((parking_col_name, "_park_col_name"))
+            if pnr_lot_dest_col_name is not None:
+                rename_dataset_cols.append(
+                    (pnr_lot_dest_col_name, "_pnr_lot_dest_col_name")
+                )
             if primary_origin_col_name is not None:
                 rename_dataset_cols.append(
                     (primary_origin_col_name, "_primary_origin_col_name")
@@ -615,6 +667,10 @@ def new_flow(
                 rename_dataset_cols.append((stop_col_name, "_stop_col_name"))
             if parking_col_name is not None:
                 rename_dataset_cols.append((parking_col_name, "_park_col_name"))
+            if pnr_lot_dest_col_name is not None:
+                rename_dataset_cols.append(
+                    (pnr_lot_dest_col_name, "_pnr_lot_dest_col_name")
+                )
             if primary_origin_col_name is not None:
                 rename_dataset_cols.append(
                     (primary_origin_col_name, "_primary_origin_col_name")

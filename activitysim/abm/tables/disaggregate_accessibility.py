@@ -217,7 +217,10 @@ def disaggregate_accessibility(state: workflow.State) -> pd.DataFrame:
     # Note that from here on the 'home_zone_id' is the matched name
     if "nearest_accessibility_zone_id" not in persons_merged_df.columns:
         persons_merged_df = find_nearest_accessibility_zone(
-            state, persons_merged_df, proto_accessibility_df, nearest_method
+            state,
+            persons_merged_df,
+            proto_accessibility_df,
+            nearest_method,
         )
 
     # Copy home_zone_id in proto-table to match the temporary 'nearest_zone_id'

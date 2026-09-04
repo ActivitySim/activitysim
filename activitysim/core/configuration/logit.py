@@ -307,6 +307,17 @@ class TourModeComponentSettings(TemplatedLogitComponentSettings, extra="forbid")
     nontour_preprocessor: PreprocessorSettings | list[
         PreprocessorSettings
     ] | None = None
+
+    run_atwork_pnr_lot_choice: bool = False
+    """
+    Flag to determine whether to include explicit park-and-ride lot locations for atwork subtours
+    """
+    include_pnr_for_logsums: bool = False
+    """
+    Flag to determine whether to include park-and-ride lot locations in the logsum calculations.
+    This means that every OD pair for which a logsum is created will also run the park-and-ride lot choice model.
+    """
+
     LOGSUM_CHOOSER_COLUMNS: Any | None = None
     """Was used to help reduce the memory needed for the model.
 

@@ -798,8 +798,9 @@ class EstimationManager(object):
         if not self.settings:
             # if the model self.settings file is not found, we are not in estimation mode.
             self.enabled = False
-        else:
-            self.enabled = self.settings.enable
+            return
+
+        self.enabled = self.settings.enable
         self.bundles = self.settings.bundles
 
         self.estimation_table_types = self.settings.estimation_table_types

@@ -1,0 +1,5 @@
+description,coefficient,model_value,target_value,hold_fast,min,max,damping,method,tolerance
+0 auto ownership share,coef_calib_auto_0,len(households[households.auto_ownership ==0]) / len(households),0.06812,FALSE,-5,5,1,log_ratio,0.02
+2 auto ownership share,coef_calib_auto_2,len(households[households.auto_ownership ==2]) / len(households),0.348413,FALSE,-5,5,1,log_ratio,0.01
+3 auto ownership share,coef_calib_auto_3,len(households[households.auto_ownership ==3]) / len(households),0.13718,FALSE,-5,5,1,log_ratio,0.01
+4 auto ownership share,coef_calib_auto_4,len(households[households.auto_ownership ==4]) / len(households),0.057501,FALSE,-5,5,1,log_ratio,0.01

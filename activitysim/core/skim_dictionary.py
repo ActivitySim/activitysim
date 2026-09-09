@@ -407,11 +407,19 @@ class SkimDict:
         # map dim3 to block_offsets
         skim_keys_to_indexes = self.skim_dim3[key]
 
-        # skim_indexes = dim3.map(skim_keys_to_indexes).astype('int')
         try:
-            block_offsets = np.vectorize(skim_keys_to_indexes.get)(
-                dim3
-            )  # this should be faster than map
+            dim3_items = tuple(skim_keys_to_indexes.items())
+            dim3_labels = [label for label, _ in dim3_items]
+            dim3_offsets = np.fromiter(
+                (offset for _, offset in dim3_items),
+                dtype=np.intp,
+                count=len(dim3_items),
+            )
+            dim3_codes = pd.Categorical(dim3, categories=dim3_labels).codes
+            if (dim3_codes < 0).any():
+                bad_dim3 = np.unique(np.asarray(dim3)[dim3_codes < 0])
+                raise KeyError(f"unknown dim3 labels for {key}: {bad_dim3}")
+            block_offsets = dim3_offsets[dim3_codes]
             result = self._lookup(orig, dest, block_offsets)
         except Exception as err:
             logger.error(

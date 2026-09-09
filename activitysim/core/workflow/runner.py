@@ -5,6 +5,7 @@ import multiprocessing
 import time
 from collections.abc import Callable, Iterable
 from datetime import timedelta
+from typing import Any
 
 from activitysim.core import tracing
 from activitysim.core.exceptions import DuplicateWorkflowNameError
@@ -266,8 +267,7 @@ class Runner(StateAccessor):
             if self._obj.settings.duplicate_step_execution == "error":
                 checkpointed_model_bullets = "\n - ".join(checkpointed_models)
                 raise DuplicateWorkflowNameError(
-                    f"Checkpointed Models:\n - {checkpointed_model_bullets}\n"
-                    f"Cannot run model '{model_name}' more than once"
+                    f"Checkpointed Models:\n - {checkpointed_model_bullets}\nCannot run model '{model_name}' more than once"
                 )
 
         self._obj.rng().begin_step(model_name)
@@ -412,7 +412,19 @@ class Runner(StateAccessor):
                 from activitysim.cli.run import INJECTABLES
                 from activitysim.core import mp_tasks
 
-                injectables = {k: self._obj.get_injectable(k) for k in INJECTABLES}
+                # ``run_id`` is initialized lazily by the tracing accessor and
+                # is not necessarily present as a top-level injectable when a
+                # caller constructs State programmatically. The CLI mirrors it
+                # explicitly in ``handle_standard_args``; do the equivalent
+                # here so ``State.run.all()`` works for multiprocessing too.
+                injectables = {
+                    key: (
+                        self._obj.tracing.run_id
+                        if key == "run_id"
+                        else self._obj.get_injectable(key)
+                    )
+                    for key in INJECTABLES
+                }
                 injectables["settings"] = self._obj.settings
                 # injectables["settings_package"] = state.settings.dict()
                 mp_tasks.run_multiprocess(self._obj, injectables)

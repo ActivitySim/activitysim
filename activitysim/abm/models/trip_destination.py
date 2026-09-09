@@ -26,11 +26,11 @@ from activitysim.core import (
     estimation,
     expressions,
     los,
+    mem,
     simulate,
     tracing,
     workflow,
 )
-from activitysim.core.configuration.base import PreprocessorSettings
 from activitysim.core.configuration.logit import LocationComponentSettings
 from activitysim.core.exceptions import DuplicateWorkflowTableError, InvalidTravelError
 from activitysim.core.interaction_sample import (
@@ -82,8 +82,7 @@ class TripDestinationSettings(LocationComponentSettings, extra="forbid"):
                     if values[badkey] != values[goodkey]:
                         # both keys are given, with different values -> error
                         raise ValueError(
-                            f"Deprecated `{badkey}` field must have the "
-                            f"same value as `{goodkey}` if both are provided."
+                            f"Deprecated `{badkey}` field must have the same value as `{goodkey}` if both are provided."
                         )
                     else:
                         # both keys are given, with same values -> warning
@@ -98,9 +97,7 @@ class TripDestinationSettings(LocationComponentSettings, extra="forbid"):
                 else:
                     # only the wrong key is given -> warning
                     warnings.warn(
-                        f"Use of the field `{badkey}` in the "
-                        "trip_destination configuration file is deprecated, use "
-                        f"`{goodkey}` instead.",
+                        f"Use of the field `{badkey}` in the trip_destination configuration file is deprecated, use `{goodkey}` instead.",
                         FutureWarning,
                         stacklevel=2,
                     )
@@ -149,6 +146,7 @@ def _destination_sample(
     chunk_tag: str,
     trace_label: str,
     zone_layer=None,
+    preprocess_alternatives: bool = True,
 ):
     """
 
@@ -209,16 +207,17 @@ def _destination_sample(
 
     log_alt_losers = state.settings.log_alt_losers
 
-    # preprocessing alternatives
-    expressions.annotate_preprocessors(
-        state,
-        df=alternatives,
-        locals_dict=locals_dict,
-        skims=skims,
-        model_settings=model_settings,
-        trace_label=trace_label,
-        preprocessor_setting_name="alts_preprocessor_sample",
-    )
+    if preprocess_alternatives:
+        # preprocessing alternatives
+        expressions.annotate_preprocessors(
+            state,
+            df=alternatives,
+            locals_dict=locals_dict,
+            skims=skims,
+            model_settings=model_settings,
+            trace_label=trace_label,
+            preprocessor_setting_name="alts_preprocessor_sample",
+        )
 
     # Trip destination keeps the alternative universe here so stable_alt_positions is not needed.
     choices = interaction_sample(
@@ -694,33 +693,78 @@ def destination_presample(
 
     skims = skim_hotel.sample_skims(presample=True)
 
-    taz_sample = _destination_sample(
-        state,
-        primary_purpose,
-        trips_taz,
-        alternatives,
-        model_settings,
-        TAZ_size_term_matrix,
-        skims,
-        alt_dest_col_name,
-        estimator,
-        chunk_tag=chunk_tag,
-        trace_label=trace_label,
-        zone_layer="taz",
-    )
+    explicit_chunk_size = getattr(model_settings, "explicit_chunk", 0)
+    if (
+        explicit_chunk_size
+        and state.settings.chunk_training_mode != chunk.MODE_EXPLICIT
+    ):
+        # Adaptive sampling already owns a ledger; do not nest an additional
+        # pipeline ledger merely because the model has an explicit setting.
+        explicit_chunk_size = 0
+    if explicit_chunk_size:
+        chooser_chunks = chunk.adaptive_chunked_choosers(
+            state,
+            trips_taz,
+            trace_label,
+            f"{chunk_tag}.pipeline",
+            chunk_size=state.settings.chunk_size,
+            explicit_chunk_size=explicit_chunk_size,
+        )
+    else:
+        # Preserve the legacy unchunked call contract, including compatibility
+        # with callers that supply a lightweight settings object.
+        chooser_chunks = ((0, trips_taz, trace_label, None),)
 
-    # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
-    maz_sample = choose_MAZ_for_TAZ(
-        state,
-        taz_sample,
-        size_term_matrix,
-        trips,
-        network_los,
-        alt_dest_col_name,
-        trace_label,
-        model_settings,
-        full_taz_index=full_taz_index,
-    )
+    # Bound the entire two-stage sampling pipeline, not just utility
+    # evaluation inside interaction_sample. choose_MAZ_for_TAZ temporarily
+    # expands every sampled TAZ by its constituent MAZs; doing that for a full
+    # trip-purpose segment can consume many GiB even when interaction_sample is
+    # itself chunked. Keeping both stages inside this outer chooser loop lets
+    # each expanded MAZ frame be released before the next chunk.
+    maz_sample_chunks = []
+    preprocess_alternatives = True
+    for _i, trips_taz_chunk, chunk_trace_label, _chunk_sizer in chooser_chunks:
+        sample_kwargs = {}
+        if explicit_chunk_size:
+            sample_kwargs["preprocess_alternatives"] = preprocess_alternatives
+
+        taz_sample = _destination_sample(
+            state,
+            primary_purpose,
+            trips_taz_chunk,
+            alternatives,
+            model_settings,
+            TAZ_size_term_matrix,
+            skims,
+            alt_dest_col_name,
+            estimator,
+            chunk_tag=chunk_tag,
+            trace_label=chunk_trace_label,
+            zone_layer="taz",
+            **sample_kwargs,
+        )
+        if explicit_chunk_size:
+            preprocess_alternatives = False
+
+        # Choose a MAZ for each DEST_TAZ choice, with probability based on its
+        # share of the TAZ's purpose-specific size term.
+        maz_sample_chunk = choose_MAZ_for_TAZ(
+            state,
+            taz_sample,
+            size_term_matrix,
+            trips,
+            network_los,
+            alt_dest_col_name,
+            chunk_trace_label,
+            model_settings,
+            full_taz_index=full_taz_index,
+        )
+        maz_sample_chunks.append(maz_sample_chunk)
+        del taz_sample, maz_sample_chunk
+        if explicit_chunk_size:
+            mem.release_memory()
+
+    maz_sample = pd.concat(maz_sample_chunks)
 
     assert alt_dest_col_name in maz_sample
 
@@ -766,8 +810,7 @@ def trip_destination_sample(
     if pre_sample_taz and not state.settings.want_dest_choice_presampling:
         pre_sample_taz = False
         logger.info(
-            f"Disabled destination zone presampling for {trace_label} "
-            f"because 'want_dest_choice_presampling' setting is False"
+            f"Disabled destination zone presampling for {trace_label} because 'want_dest_choice_presampling' setting is False"
         )
 
     if pre_sample_taz:
@@ -878,26 +921,11 @@ def compute_logsums(
     # chunk usage is uniform so better to combine
     chunk_tag = "trip_destination.compute_logsums"
 
-    # FIXME should pass this in?
-    network_los = state.get_injectable("network_los")
-
     # - trips_merged - merge trips and tours_merged
     trips_merged = pd.merge(
         trips, tours_merged, left_on="tour_id", right_index=True, how="left"
     )
     assert trips_merged.index.equals(trips.index)
-
-    # - choosers - merge destination_sample and trips_merged
-    # re/set index because pandas merge does not preserve left index if it has duplicate values!
-    choosers = pd.merge(
-        destination_sample,
-        trips_merged.reset_index(),
-        left_index=True,
-        right_on="trip_id",
-        how="left",
-        suffixes=("", "_r"),
-    ).set_index("trip_id")
-    assert choosers.index.equals(destination_sample.index)
 
     logsum_settings = state.filesystem.read_model_settings(
         model_settings.LOGSUM_SETTINGS
@@ -932,20 +960,6 @@ def compute_logsums(
         "timeframe": "trip",
     }
 
-    destination_sample["od_logsum"] = compute_ood_logsums(
-        state,
-        choosers,
-        logsum_settings,
-        nest_spec,
-        logsum_spec,
-        od_skims,
-        locals_dict,
-        state.settings.chunk_size,
-        trace_label=tracing.extend_trace_label(trace_label, "od"),
-        chunk_tag=chunk_tag,
-        explicit_chunk_size=model_settings.explicit_chunk,
-    )
-
     # - dp_logsums
     dp_skims = {
         "ORIGIN": model_settings.ALT_DEST_COL_NAME,
@@ -955,19 +969,83 @@ def compute_logsums(
         "od_skims": skims["dp_skims"],
     }
 
-    destination_sample["dp_logsum"] = compute_ood_logsums(
+    # Merge sampled alternatives with chooser attributes inside the chunk loop.
+    # Previously this merge and both preprocessors ran on the full sample table
+    # before ``simple_simulate_logsums`` chunked utility evaluation. For large
+    # trip models, that briefly retained millions of rows and dozens of derived
+    # columns per process, defeating the purpose of explicit chunking.
+    od_logsum_chunks = []
+    dp_logsum_chunks = []
+    for (
+        _i,
+        trips_chunk,
+        destination_sample_chunk,
+        chunk_trace_label,
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers_and_alts(
         state,
-        choosers,
-        logsum_settings,
-        nest_spec,
-        logsum_spec,
-        dp_skims,
-        locals_dict,
-        state.settings.chunk_size,
-        trace_label=tracing.extend_trace_label(trace_label, "dp"),
-        chunk_tag=chunk_tag,
+        trips_merged,
+        destination_sample,
+        trace_label,
+        chunk_tag,
+        chunk_size=state.settings.chunk_size,
         explicit_chunk_size=model_settings.explicit_chunk,
-    )
+    ):
+        # Re/set the index because pandas merge does not preserve the left index
+        # when it contains the repeated trip ids of sampled alternatives.
+        choosers = pd.merge(
+            destination_sample_chunk,
+            trips_chunk.reset_index(),
+            left_index=True,
+            right_on="trip_id",
+            how="left",
+            suffixes=("", "_r"),
+        ).set_index("trip_id")
+        assert choosers.index.equals(destination_sample_chunk.index)
+        chunk_sizer.log_df(chunk_trace_label, "logsum_choosers", choosers)
+
+        # The outer loop now owns chunking. Disable nested chunking so each
+        # merged/preprocessed sample chunk can be released before constructing
+        # the next one.
+        od_logsum_chunk = compute_ood_logsums(
+            state,
+            choosers,
+            logsum_settings,
+            nest_spec,
+            logsum_spec,
+            od_skims,
+            locals_dict,
+            0,
+            trace_label=tracing.extend_trace_label(chunk_trace_label, "od"),
+            chunk_tag=chunk_tag,
+            explicit_chunk_size=0,
+        )
+        dp_logsum_chunk = compute_ood_logsums(
+            state,
+            choosers,
+            logsum_settings,
+            nest_spec,
+            logsum_spec,
+            dp_skims,
+            locals_dict,
+            0,
+            trace_label=tracing.extend_trace_label(chunk_trace_label, "dp"),
+            chunk_tag=chunk_tag,
+            explicit_chunk_size=0,
+        )
+        od_logsum_chunks.append(od_logsum_chunk)
+        dp_logsum_chunks.append(dp_logsum_chunk)
+        chunk_sizer.log_df(chunk_trace_label, "logsum_choosers", None)
+        del choosers, od_logsum_chunk, dp_logsum_chunk
+        mem.release_memory()
+
+    od_logsums = pd.concat(od_logsum_chunks)
+    dp_logsums = pd.concat(dp_logsum_chunks)
+    assert od_logsums.index.equals(destination_sample.index)
+    assert dp_logsums.index.equals(destination_sample.index)
+
+    destination_sample["od_logsum"] = od_logsums
+    destination_sample["dp_logsum"] = dp_logsums
 
     return destination_sample
 
@@ -1026,9 +1104,6 @@ def trip_destination_simulate(
             trip_period_idx = skims["odt_skims"].map_time_periods(trips)
             if trip_period_idx is not None:
                 trips["trip_period"] = trip_period_idx
-    else:
-        None
-
     locals_dict = model_settings.CONSTANTS.copy()
     locals_dict.update(
         {
@@ -1040,38 +1115,94 @@ def trip_destination_simulate(
     )
     locals_dict.update(skims)
 
-    # preprocessing alternatives
-    expressions.annotate_preprocessors(
-        state,
-        df=destination_sample,
-        locals_dict=locals_dict,
-        skims=skims,
-        model_settings=model_settings,
-        trace_label=trace_label,
-        preprocessor_setting_name="alts_preprocessor_simulate",
-    )
-
     log_alt_losers = state.settings.log_alt_losers
-    destinations = interaction_sample_simulate(
-        state,
-        choosers=trips,
-        alternatives=destination_sample,
-        spec=spec,
-        choice_column=alt_dest_col_name,
-        log_alt_losers=log_alt_losers,
-        want_logsums=want_logsums,
-        allow_zero_probs=True,
-        zero_prob_choice_val=NO_DESTINATION,
-        skims=skims,
-        locals_d=locals_dict,
-        chunk_size=state.settings.chunk_size,
-        chunk_tag=chunk_tag,
-        trace_label=trace_label,
-        trace_choice_name="trip_dest",
-        estimator=estimator,
-        explicit_chunk_size=model_settings.explicit_chunk,
-        alts_context=alts_context,
-    )
+    if estimator:
+        # Preserve the estimator's single-call lifecycle and output bundle.
+        expressions.annotate_preprocessors(
+            state,
+            df=destination_sample,
+            locals_dict=locals_dict,
+            skims=skims,
+            model_settings=model_settings,
+            trace_label=trace_label,
+            preprocessor_setting_name="alts_preprocessor_simulate",
+        )
+        destinations = interaction_sample_simulate(
+            state,
+            choosers=trips,
+            alternatives=destination_sample,
+            spec=spec,
+            choice_column=alt_dest_col_name,
+            log_alt_losers=log_alt_losers,
+            want_logsums=want_logsums,
+            allow_zero_probs=True,
+            zero_prob_choice_val=NO_DESTINATION,
+            skims=skims,
+            locals_d=locals_dict,
+            chunk_size=state.settings.chunk_size,
+            chunk_tag=chunk_tag,
+            trace_label=trace_label,
+            trace_choice_name="trip_dest",
+            estimator=estimator,
+            explicit_chunk_size=model_settings.explicit_chunk,
+            alts_context=alts_context,
+        )
+    else:
+        # The alternative preprocessor can add several derived columns. Running
+        # it on the complete sampled table before interaction_sample_simulate
+        # briefly materializes millions of rows per worker and defeats the
+        # evaluator's internal chunking. Preprocess and simulate each sampled
+        # chooser chunk end-to-end instead.
+        destination_chunks = []
+        for (
+            _i,
+            trips_chunk,
+            destination_sample_chunk,
+            chunk_trace_label,
+            _chunk_sizer,
+        ) in chunk.adaptive_chunked_choosers_and_alts(
+            state,
+            trips,
+            destination_sample,
+            trace_label,
+            chunk_tag,
+            chunk_size=state.settings.chunk_size,
+            explicit_chunk_size=model_settings.explicit_chunk,
+        ):
+            expressions.annotate_preprocessors(
+                state,
+                df=destination_sample_chunk,
+                locals_dict=locals_dict,
+                skims=skims,
+                model_settings=model_settings,
+                trace_label=chunk_trace_label,
+                preprocessor_setting_name="alts_preprocessor_simulate",
+            )
+            destination_chunk = interaction_sample_simulate(
+                state,
+                choosers=trips_chunk,
+                alternatives=destination_sample_chunk,
+                spec=spec,
+                choice_column=alt_dest_col_name,
+                log_alt_losers=log_alt_losers,
+                want_logsums=want_logsums,
+                allow_zero_probs=True,
+                zero_prob_choice_val=NO_DESTINATION,
+                skims=skims,
+                locals_d=locals_dict,
+                chunk_size=0,
+                chunk_tag=chunk_tag,
+                trace_label=chunk_trace_label,
+                trace_choice_name="trip_dest",
+                estimator=None,
+                explicit_chunk_size=0,
+                alts_context=alts_context,
+            )
+            destination_chunks.append(destination_chunk)
+            del destination_chunk
+            mem.release_memory()
+
+        destinations = pd.concat(destination_chunks)
 
     if not want_logsums:
         # for consistency, always return a dataframe with canonical column name
@@ -1095,8 +1226,7 @@ def trip_destination_simulate(
     return destinations
 
 
-@workflow.func
-def choose_trip_destination(
+def _choose_trip_destination_unchunked(
     state: workflow.State,
     primary_purpose,
     trips,
@@ -1136,8 +1266,7 @@ def choose_trip_destination(
     dropped_trips = ~trips.index.isin(destination_sample.index.unique())
     if dropped_trips.any():
         logger.warning(
-            "%s trip_destination_sample %s trips "
-            "without viable destination alternatives"
+            "%s trip_destination_sample %s trips without viable destination alternatives"
             % (trace_label, dropped_trips.sum())
         )
         trips = trips[~dropped_trips]
@@ -1186,8 +1315,7 @@ def choose_trip_destination(
     dropped_trips = ~trips.index.isin(destinations.index)
     if dropped_trips.any():
         logger.warning(
-            "%s trip_destination_simulate %s trips "
-            "without viable destination alternatives"
+            "%s trip_destination_simulate %s trips without viable destination alternatives"
             % (trace_label, dropped_trips.sum())
         )
 
@@ -1204,6 +1332,98 @@ def choose_trip_destination(
     )
 
     return destinations, destination_sample
+
+
+@workflow.func
+def choose_trip_destination(
+    state: workflow.State,
+    primary_purpose,
+    trips,
+    alternatives,
+    tours_merged,
+    model_settings: TripDestinationSettings,
+    want_logsums,
+    want_sample_table,
+    size_term_matrix,
+    skim_hotel,
+    estimator,
+    chunk_size,
+    trace_label,
+):
+    """Run the complete destination-choice pipeline in bounded chooser chunks.
+
+    Sampling, logsum calculation, and final simulation used to be chunked
+    independently.  That bounded each temporary calculation, but the complete
+    sampled-alternative table for a purpose remained live between stages.  For
+    large trip-purpose segments this retained millions of rows per worker and
+    made memory grow again as the next trip number began.
+
+    When explicit chunking is configured, stream each chooser chunk through
+    all three stages and retain only its final one-row-per-trip choice.  The
+    estimator and sample-table paths keep their original whole-segment
+    lifecycle because they intentionally consume the complete sample table.
+    """
+
+    if (
+        state.settings.chunk_training_mode != chunk.MODE_EXPLICIT
+        or estimator
+        or want_sample_table
+        or not model_settings.explicit_chunk
+    ):
+        return _choose_trip_destination_unchunked(
+            state,
+            primary_purpose,
+            trips,
+            alternatives,
+            tours_merged,
+            model_settings,
+            want_logsums,
+            want_sample_table,
+            size_term_matrix,
+            skim_hotel,
+            estimator,
+            chunk_size,
+            trace_label,
+        )
+
+    # The outer pipeline owns the chunk boundary. In particular, a fractional
+    # size must not be applied again to each already bounded chooser chunk.
+    inner_settings = model_settings.model_copy(update={"explicit_chunk": 0})
+    destination_chunks = []
+    for (
+        _i,
+        trips_chunk,
+        chunk_trace_label,
+        _chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers(
+        state,
+        trips,
+        trace_label,
+        "trip_destination.pipeline",
+        chunk_size=state.settings.chunk_size,
+        explicit_chunk_size=model_settings.explicit_chunk,
+    ):
+        destinations_chunk, destination_sample = _choose_trip_destination_unchunked(
+            state,
+            primary_purpose,
+            trips_chunk,
+            alternatives,
+            tours_merged,
+            inner_settings,
+            want_logsums,
+            want_sample_table=False,
+            size_term_matrix=size_term_matrix,
+            skim_hotel=skim_hotel,
+            estimator=None,
+            chunk_size=chunk_size,
+            trace_label=chunk_trace_label,
+        )
+        assert destination_sample is None
+        destination_chunks.append(destinations_chunk)
+        del destinations_chunk, destination_sample
+        mem.release_memory()
+
+    return pd.concat(destination_chunks), None
 
 
 class SkimHotel:
@@ -1331,8 +1551,6 @@ def run_trip_destination(
         model_settings = TripDestinationSettings.read_settings_file(
             state.filesystem, model_settings_file_name
         )
-    preprocessor_settings = model_settings.preprocessor
-
     # read in logsum settings if they exist, otherwise logsum calculations are skipped
     if model_settings.LOGSUM_SETTINGS:
         logsum_settings = state.filesystem.read_model_settings(
@@ -1481,9 +1699,6 @@ def run_trip_destination(
                     )
                     if trip_period_idx is not None:
                         nth_trips["trip_period"] = trip_period_idx
-            else:
-                None
-
             logger.debug(
                 "Running %s with %d trips", nth_trace_label, nth_trips.shape[0]
             )
@@ -1534,6 +1749,14 @@ def run_trip_destination(
                 if want_sample_table:
                     assert destination_sample is not None
                     sample_list.append(destination_sample)
+
+                # Each purpose can create very large temporary TAZ-to-MAZ and
+                # logsum arrays. Explicit chunking bounds one allocation, while
+                # allocator pressure relief prevents freed chunks from
+                # accumulating in a long-lived multiprocess worker before the
+                # next purpose begins.
+                if model_settings.explicit_chunk:
+                    mem.release_memory()
 
             destinations_df = pd.concat(choices_list)
 

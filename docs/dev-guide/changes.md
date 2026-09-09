@@ -14,6 +14,35 @@ branch (i.e., the main branch on GitHub), but not yet released in a stable versi
 of ActivitySim.  See below under the various version headings for changes in
 released versions.
 
+### Automatic Chunk Sizing from the Real Memory Limit (`chunk_size_mode: auto`)
+
+A new optional setting `chunk_size_mode` controls where adaptive chunking's memory
+budget comes from.  The default, `fixed`, preserves the existing behavior: the static
+user-supplied `chunk_size` is used verbatim.  Setting `chunk_size_mode: auto` ignores
+`chunk_size` and derives the budget at runtime from the process's actual memory
+ceiling — the Linux cgroup limit when running in a container (the limit that would
+otherwise OOM-kill the run), or host RAM — minus current usage, scaled by the new
+`chunk_size_safety_factor` setting (default 0.5), and divided across the multiprocess
+worker count.  The budget is recomputed at the start of every model component, so it
+tracks memory actually in use.  This removes the need to hand-tune `chunk_size` per
+machine, and makes the same configuration portable across machines and containers of
+different sizes.
+
+Auto mode also adds runtime safeguards that a static budget cannot provide: the first
+("probe") chunk of any model with no cached row size is capped at 2000 rows, and
+rows-per-chunk growth between successive chunks is capped (new `chunk_growth_cap`
+setting; defaults to 2x under auto, off under fixed).  A new `chunk_row_size_margin`
+setting optionally inflates the estimated per-row memory when sizing chunks.
+
+Relatedly, the chunk cache tags for the `location_choice`, `tour_destination`, and
+`trip_destination` components are now segmented by chooser segment (e.g.
+`workplace_location.sample.work_high`), matching what `vectorize_tour_scheduling`
+already does.  Per-row memory can differ by more than 2x between segments of the same
+component, so sizing one segment's chunks from another segment's cached row size could
+badly overshoot.  Existing `chunk_cache.csv` files will not match the new tags for
+these components; a training-mode run rebuilds the cache (in the meantime the capped
+probe keeps the first chunks safe).
+
 ### Deprecated `SIMULATE_CHOOSER_COLUMNS` and `LOGSUM_CHOOSER_COLUMNS`
 
 The `SIMULATE_CHOOSER_COLUMNS` and `LOGSUM_CHOOSER_COLUMNS` settings were added

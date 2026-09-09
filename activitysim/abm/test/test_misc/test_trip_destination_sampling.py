@@ -115,7 +115,7 @@ def test_destination_sample_retains_full_maz_universe(monkeypatch):
         pd.Index([101, 102, 103], name="dest_taz"),
     )
     assert captured["alt_dest_col_name"] == "dest_taz"
-    assert captured["chunk_tag"] == "trip_destination.sample"
+    assert captured["chunk_tag"] == "trip_destination.sample.eatout"
     assert captured["zone_layer"] is None
     assert captured["presample"] is False
 
@@ -219,7 +219,7 @@ def test_destination_presample_retains_full_taz_universe(monkeypatch):
         pd.Index([1, 2, 3], name="zone_id"),
     )
     assert captured["alt_dest_col_name"] == "dest_taz"
-    assert captured["chunk_tag"] == "trip_destination.presample"
+    assert captured["chunk_tag"] == "trip_destination.presample.eatout"
     assert captured["zone_layer"] == "taz"
     assert captured["presample"] is True
     assert captured["full_taz_index"] is None

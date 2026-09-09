@@ -33,6 +33,7 @@ Components
    trip_destination
    work_from_home
    work_location_choice
+   park_and_ride_lot_choice
    tour_mode_choice
    atwork_subtour_frequency
    atwork_subtour_destination

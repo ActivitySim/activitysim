@@ -28,3 +28,7 @@ util_retail_transit_workers,"Retail accessibility (0.66*PK + 0.34*OP) by transit
 util_retail_non_motor_no_workers,"Retail accessibility by non-motorized, if 0 workers",(num_workers==0)*nmRetail,,coef_retail_non_motor,coef_retail_non_motor,coef_retail_non_motor,coef_retail_non_motor
 util_retail_non_motor_workers,"Retail accessibility by non-motorized, if 1+ workers",(num_workers>0)*nmRetail,,coef_retail_non_motor,coef_retail_non_motor,coef_retail_non_motor,coef_retail_non_motor
 util_auto_time_saving_per_worker,Auto time savings per worker to work,"@np.where(df.num_workers > 0, df.hh_work_auto_savings_ratio / df.num_workers, 0)",,coef_cars1_auto_time_saving_per_worker,coef_cars2_auto_time_saving_per_worker,coef_cars3_auto_time_saving_per_worker,coef_cars4_auto_time_saving_per_worker
+util_calib_auto_0,Calibration utility for 0 autos,"@df.auto_ownership == 0",,coef_calib_auto_0
+util_calib_auto_2,Calibration utility for 2 autos,"@df.auto_ownership == 2",,coef_calib_auto_2
+util_calib_auto_3,Calibration utility for 3 autos,"@df.auto_ownership == 3",,coef_calib_auto_3
+util_calib_auto_4,Calibration utility for 4 autos,"@df.auto_ownership == 4",,coef_calib_auto_4

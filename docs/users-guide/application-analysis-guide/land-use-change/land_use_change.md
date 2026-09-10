@@ -64,8 +64,8 @@ Next, `repop_control_file_name: repop_controls.csv` should be added to the setti
 | num_hh                | mgra      | households | 1000000000 | Total_HH             | (households.WGTP > 0) & (households.WGTP < np.inf)                |
 | HHSize_1              | mgra      | households | 250000     | HHSize_1             | households.NP == 1                                                |
 | HHSize_2              | mgra      | households | 250000     | HHSize_2             | households.NP == 2                                                |
-| HHSize_3              | mgra      | households | 250000     | HHSize_4             | households.NP == 3                                                |
-| HHSize_4Plus          | mgra      | households | 250000     | HHSize_2             | households.NP == 2                                                |
+| HHSize_3              | mgra      | households | 250000     | HHSize_3             | households.NP == 3                                                |
+| HHSize_4Plus          | mgra      | households | 250000     | HHSize_4             | households.NP >= 4                                                |
 | HHInc_0to14999        | mgra      | households | 100000     | HHInc_0to14999       | (households.HHADJINC >= 0) & (households.HHADJINC <= 14999)       |
 | HHInc_15000to29999    | mgra      | households | 100000     | HHInc_15000to29999   | (households.HHADJINC >= 15000) & (households.HHADJINC <= 29999)   |
 | HHInc_30000to59999    | mgra      | households | 100000     | HHInc_30000to59999   | (households.HHADJINC >= 30000) & (households.HHADJINC <= 59999)   |

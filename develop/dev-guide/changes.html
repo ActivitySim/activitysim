@@ -64,7 +64,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Sep 09, 2026"/>
+    <meta name="docbuild:last-update" content="Sep 17, 2026"/>
   </head>
   
   
@@ -447,8 +447,94 @@ configurations or code to fail to run correctly.</p>
 <h2>Upcoming Changes<a class="headerlink" href="#upcoming-changes" title="Permalink to this heading">#</a></h2>
 <p>This section describes changes that are implemented in current development
 branch (i.e., the main branch on GitHub), but not yet released in a stable version
-of ActivitySim.  See below under the various version headings for changes in
-released versions.</p>
+of ActivitySim.
+No unreleased changes are currently documented.</p>
+</section>
+<section id="v1-6">
+<h2>v1.6<a class="headerlink" href="#v1-6" title="Permalink to this heading">#</a></h2>
+<p>This release adds explicit error-term simulation and new alternative-sampling
+methods, park-and-ride lot choice with capacity constraints, and support for
+reading skims from Parquet files. It also expands explicit chunking, improves
+performance and reproducibility, and includes several simulation and estimation
+fixes. Users upgrading an existing model should review the breaking and
+behavior-changing items below.</p>
+<section id="removal-of-three-zone-models">
+<h3>Removal of Three-Zone Models<a class="headerlink" href="#removal-of-three-zone-models" title="Permalink to this heading">#</a></h3>
+<p>The legacy three-zone level-of-service implementation, including the TAP/TVPB
+pathbuilder, three-zone configuration settings, and bundled three-zone examples,
+has been removed. ActivitySim continues to support one- and two-zone models.
+Existing three-zone model implementations cannot be run with ActivitySim 1.6
+without replacing or independently maintaining the removed functionality. See
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1056">PR #1056</a> and
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1072">PR #1072</a>.</p>
+</section>
+<section id="updated-dependency-requirements">
+<h3>Updated Dependency Requirements<a class="headerlink" href="#updated-dependency-requirements" title="Permalink to this heading">#</a></h3>
+<p>ActivitySim now requires NumPy 2.x, Pandera 0.30 or newer, and Sharrow 2.16 or
+newer. The upper bound on supported pandas versions is now pandas 2.x.</p>
+</section>
+<section id="explicit-error-terms-and-sampling-methods">
+<h3>Explicit Error Terms and Sampling Methods<a class="headerlink" href="#explicit-error-terms-and-sampling-methods" title="Permalink to this heading">#</a></h3>
+<p>ActivitySim can now make choices by drawing the unobserved portion of utility
+explicitly and selecting the alternative with the greatest total utility. This
+simulation method is enabled by setting <code class="docutils literal notranslate"><span class="pre">use_explicit_error_terms</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<p>Alternative sampling is now configured separately with <code class="docutils literal notranslate"><span class="pre">sample_method</span></code>. The
+available methods are <code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code>, <code class="docutils literal notranslate"><span class="pre">eet</span></code>, and <code class="docutils literal notranslate"><span class="pre">poisson</span></code>. When <code class="docutils literal notranslate"><span class="pre">sample_method</span></code>
+is not set, ActivitySim uses <code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code> for the standard simulation method
+and <code class="docutils literal notranslate"><span class="pre">poisson</span></code> when explicit error terms are enabled. A component can override
+the global sampling method in its <code class="docutils literal notranslate"><span class="pre">compute_settings</span></code>.</p>
+<p>See <a class="reference internal" href="explicit-error-terms.html"><span class="doc std std-doc">Explicit Error Terms</span></a> and
+<a class="reference internal" href="sampling-methods.html"><span class="doc std std-doc">Sampling Methods</span></a> for details, including guidance on
+reproducibility and location-choice logsum bias. This functionality was added
+in <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1064">PR #1064</a>.</p>
+</section>
+<section id="park-and-ride-lot-choice-and-capacity">
+<h3>Park-and-Ride Lot Choice and Capacity<a class="headerlink" href="#park-and-ride-lot-choice-and-capacity" title="Permalink to this heading">#</a></h3>
+<p>A new park-and-ride lot choice component predicts the lot used for a
+park-and-ride tour. It can be integrated with tour mode choice and can enforce
+lot capacity constraints by iteratively resampling tours assigned to full lots.
+The implementation supports single- and multiprocess runs, Sharrow skim access,
+park-and-ride logsums, and park-and-ride trip-matrix output. See
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1001">PR #1001</a>.</p>
+</section>
+<section id="parquet-skim-files">
+<h3>Parquet Skim Files<a class="headerlink" href="#parquet-skim-files" title="Permalink to this heading">#</a></h3>
+<p>Skims can now be read from Parquet files in addition to OMX files. Parquet
+inputs may be dense or sparse, and OMX and Parquet sources may be mixed in the
+same configuration. The format is detected from the filename extension, so no
+settings other than the skim filename need to change. Parquet skims are
+supported by both the legacy skim-dictionary loaders and Sharrow. See
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1101">PR #1101</a>.</p>
+</section>
+<section id="explicit-chunking-and-performance">
+<h3>Explicit Chunking and Performance<a class="headerlink" href="#explicit-chunking-and-performance" title="Permalink to this heading">#</a></h3>
+<p>Explicit chunking is now supported by mode-choice components and trip scheduling
+choice. The nearest-zone calculation used by disaggregate accessibility has also
+been optimized. See <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1088">PR #1088</a>,
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1102">PR #1102</a>, and
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1031">PR #1031</a>.</p>
+<p>Sharrow users can now exclude unused skims while loading skim data. Sharrow
+thread limits are also managed more consistently, and a script is available for
+clearing the Sharrow cache. See
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1036">PR #1036</a> and
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1032">PR #1032</a>.</p>
+</section>
+<section id="reproducibility-and-model-results">
+<h3>Reproducibility and Model Results<a class="headerlink" href="#reproducibility-and-model-results" title="Permalink to this heading">#</a></h3>
+<p>Trip scheduling choice now generates alternatives in a stable order so that
+single- and multiprocess runs produce the same results. School escorting also
+uses stable, semantic tie-breakers so its assignments do not depend on input
+row order. These fixes may change individual choices relative to ActivitySim
+1.5. See <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1005">PR #1005</a> and
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1085">PR #1085</a>.</p>
+<p>Household sample rates are no longer rounded to three decimal places. This
+preserves the full precision of the ratio between the sampled and total number
+of households and may slightly change expansion factors and outputs. See
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1073">PR #1073</a>.</p>
+<p>Global constants are now available in interaction-based model expressions in
+both legacy and Sharrow execution modes. See
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1095">PR #1095</a>.</p>
+</section>
 <section id="deprecated-simulate-chooser-columns-and-logsum-chooser-columns">
 <h3>Deprecated <code class="docutils literal notranslate"><span class="pre">SIMULATE_CHOOSER_COLUMNS</span></code> and <code class="docutils literal notranslate"><span class="pre">LOGSUM_CHOOSER_COLUMNS</span></code><a class="headerlink" href="#deprecated-simulate-chooser-columns-and-logsum-chooser-columns" title="Permalink to this heading">#</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">SIMULATE_CHOOSER_COLUMNS</span></code> and <code class="docutils literal notranslate"><span class="pre">LOGSUM_CHOOSER_COLUMNS</span></code> settings were added
@@ -496,7 +582,7 @@ the model run will be terminated with an error. The default threshold is set to 
 while also providing visibility into such issues that need to be addressed.
 See more information in ActivitySim’s users guide “Skip Failed Choices” and code updates in <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1023">PR #1023</a></p>
 <section id="potential-impact-on-existing-model-runs">
-<h4>Potential Impact on Existing Model Runs:<a class="headerlink" href="#potential-impact-on-existing-model-runs" title="Permalink to this heading">#</a></h4>
+<h4>Potential Impact on Existing Model Runs<a class="headerlink" href="#potential-impact-on-existing-model-runs" title="Permalink to this heading">#</a></h4>
 <p>With <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> defaulted to <code class="docutils literal notranslate"><span class="pre">True</span></code> and an allowed failure threshold defaulted as 0.1% of households,
 failures that were previously silently masked will now generate warnings, be explicitly skipped, and counted toward the threshold.
 As a result, model runs that previously completed “successfully” may now fail earlier,
@@ -540,7 +626,7 @@ characteristics of 3, 4, and 5-person households are expected to be somewhat
 similar to each other in any case.  If users wish to formally correct their model
 to reflect the mathematical formulation that was actually estimated in prior
 versions of ActivitySim without re-estimating the entire model, they can set
-<code class="docutils literal notranslate"><span class="pre">coef_[M,N,H]_xxx</span> </code>and <code class="docutils literal notranslate"><span class="pre">coef_[M,N,H]_xxxx</span></code> to have the same value as
+<code class="docutils literal notranslate"><span class="pre">coef_[M,N,H]_xxx</span></code> and <code class="docutils literal notranslate"><span class="pre">coef_[M,N,H]_xxxx</span></code> to have the same value as
 <code class="docutils literal notranslate"><span class="pre">coef_[M,N,H]_xxxxx</span></code>. This change may impact model calibration, so it is recommended
 to proceed with caution if choosing this option. For an existing well calibrated model,
 the calibration may have already compensated for this error in the estimation,
@@ -940,11 +1026,19 @@ development cycle, including:</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upcoming-changes">Upcoming Changes</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upcoming-changes">Upcoming Changes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-6">v1.6</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#removal-of-three-zone-models">Removal of Three-Zone Models</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#updated-dependency-requirements">Updated Dependency Requirements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-error-terms-and-sampling-methods">Explicit Error Terms and Sampling Methods</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#park-and-ride-lot-choice-and-capacity">Park-and-Ride Lot Choice and Capacity</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parquet-skim-files">Parquet Skim Files</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-chunking-and-performance">Explicit Chunking and Performance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducibility-and-model-results">Reproducibility and Model Results</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deprecated-simulate-chooser-columns-and-logsum-chooser-columns">Deprecated <code class="docutils literal notranslate"><span class="pre">SIMULATE_CHOOSER_COLUMNS</span></code> and <code class="docutils literal notranslate"><span class="pre">LOGSUM_CHOOSER_COLUMNS</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#changed-default-for-sharrow-fastmath-optimization">Changed Default for Sharrow “Fastmath” Optimization</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skipping-failed-choices">Skipping Failed Choices</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#potential-impact-on-existing-model-runs">Potential Impact on Existing Model Runs:</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#potential-impact-on-existing-model-runs">Potential Impact on Existing Model Runs</a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shadow-price-zones-reopening">Shadow Price Zones Reopening</a></li>
@@ -1016,7 +1110,7 @@ development cycle, including:</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev35+g5c6fae24a, documentation last updated Sep 09, 2026.<br/>
+ActivitySim 1.5.2.dev37+g8ca6741c8, documentation last updated Sep 17, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

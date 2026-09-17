@@ -3,24 +3,21 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
-import numpy as np
 import pandas as pd
 
 from activitysim.abm.models.util import school_escort_tours_trips
 from activitysim.abm.models.util.mode import mode_choice_simulate
 from activitysim.core import (
-    chunk,
     config,
     estimation,
     expressions,
     los,
+    mem,
     simulate,
     tracing,
     workflow,
 )
-from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.configuration.logit import TemplatedLogitComponentSettings
 from activitysim.core.util import assign_in_place
 
@@ -44,7 +41,7 @@ class TripModeChoiceSettings(TemplatedLogitComponentSettings, extra="forbid"):
     FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH: bool = True
     """
     If True, overwrite the trip mode of escortee trips to match the mode selected
-    by the chauffeur. This is useful for school escort tours where the escortee trip 
+    by the chauffeur. This is useful for school escort tours where the escortee trip
     mode (e.g., "transit") should match the chauffeur trip mode.
     """
 
@@ -96,21 +93,12 @@ def trip_mode_choice(
     else:
         tours_merged = pd.DataFrame()
 
-    # - trips_merged - merge trips and tours_merged
-    trips_merged = pd.merge(
-        trips_df, tours_merged, left_on="tour_id", right_index=True, how="left"
-    )
-    assert trips_merged.index.equals(trips.index)
-
     tracing.print_summary(
         "primary_purpose", trips_df.primary_purpose, value_counts=True
     )
 
     # setup skim keys
-    assert "trip_period" not in trips_merged
-    trips_merged["trip_period"] = network_los.skim_time_period_label(
-        trips_merged.depart, as_cat=True
-    )
+    assert "trip_period" not in trips_df
 
     orig_col = "origin"
     dest_col = "destination"
@@ -130,6 +118,17 @@ def trip_mode_choice(
 
     skim_dict = network_los.get_default_skim_dict()
 
+    def add_trip_period(choosers):
+        choosers["trip_period"] = network_los.skim_time_period_label(
+            choosers.depart, as_cat=True
+        )
+        if hasattr(skim_dict, "map_time_periods_from_series"):
+            trip_period_idx = skim_dict.map_time_periods_from_series(
+                choosers["trip_period"]
+            )
+            if trip_period_idx is not None:
+                choosers["trip_period"] = trip_period_idx
+
     odt_skim_stack_wrapper = skim_dict.wrap_3d(
         orig_key=orig_col, dest_key=dest_col, dim3_key="trip_period"
     )
@@ -137,13 +136,6 @@ def trip_mode_choice(
         orig_key=dest_col, dest_key=orig_col, dim3_key="trip_period"
     )
     od_skim_wrapper = skim_dict.wrap("origin", "destination")
-
-    if hasattr(skim_dict, "map_time_periods_from_series"):
-        trip_period_idx = skim_dict.map_time_periods_from_series(
-            trips_merged["trip_period"]
-        )
-        if trip_period_idx is not None:
-            trips_merged["trip_period"] = trip_period_idx
 
     skims = {
         "odt_skims": odt_skim_stack_wrapper,
@@ -169,10 +161,26 @@ def trip_mode_choice(
 
     choices_list = []
     cols_to_keep_list = []
-    for primary_purpose, trips_segment in trips_merged.groupby(
+    for primary_purpose, base_trips_segment in trips_df.groupby(
         "primary_purpose", observed=True
     ):
         segment_trace_label = tracing.extend_trace_label(trace_label, primary_purpose)
+
+        # A full trips/tours merge duplicates several gigabytes at production
+        # scale. Materialize only the chooser rows for the active purpose.
+        if len(tours_cols) > 0:
+            trips_segment = pd.merge(
+                base_trips_segment,
+                tours_merged,
+                left_on="tour_id",
+                right_index=True,
+                how="left",
+            )
+        else:
+            trips_segment = base_trips_segment.copy()
+        assert trips_segment.index.equals(base_trips_segment.index)
+
+        add_trip_period(trips_segment)
 
         logger.info(
             "trip_mode_choice tour_type '%s' (%s trips)"
@@ -266,6 +274,14 @@ def trip_mode_choice(
             ), "{cols_not_in_choosers} from CHOOSER_COLS_TO_KEEP is not in the choosers dataframe"
             cols_to_keep_list.append(trips_segment[cols_to_keep])
 
+        # Wrappers retain their last chooser frame (and possibly array views).
+        # Retarget to an independent empty frame before releasing this purpose.
+        simulate.set_skim_wrapper_targets(
+            trips_segment.iloc[:0].copy(), skims, allow_partial_success=False
+        )
+        del trips_segment, base_trips_segment
+        mem.release_memory()
+
     choices_df = pd.concat(choices_list)
 
     if estimator:
@@ -294,8 +310,6 @@ def trip_mode_choice(
                 state, trips_df
             )
         )
-
-    tracing.print_summary("trip_modes", trips_merged.tour_mode, value_counts=True)
 
     tracing.print_summary(
         "trip_mode_choice choices", trips_df[mode_column_name], value_counts=True
@@ -330,15 +344,28 @@ def trip_mode_choice(
     # need to update locals_dict to access skims that are the same .shape as trips table
     locals_dict = {}
     locals_dict.update(constants)
-    if state.settings.skip_failed_choices:
-        trips_merged = trips_merged.loc[~mask_skipped]
-    simulate.set_skim_wrapper_targets(trips_merged, skims)
     locals_dict.update(skims)
     locals_dict["timeframe"] = "trip"
-    expressions.annotate_tables(
-        state,
-        locals_dict=locals_dict,
-        skims=skims,
-        model_settings=model_settings,
-        trace_label=trace_label,
-    )
+    # Three-dimensional skim wrappers require trip_period. It is normally only
+    # needed in the purpose-sized chooser frames above, but post-choice table
+    # annotators may also use those skims. Add it to the full trips table only
+    # for annotation, then restore the original table schema.
+    temporary_trip_period = "trip_period" not in trips_df.columns
+    if temporary_trip_period:
+        add_trip_period(trips_df)
+    try:
+        expressions.annotate_tables(
+            state,
+            locals_dict=locals_dict,
+            skims=skims,
+            model_settings=model_settings,
+            trace_label=trace_label,
+        )
+    finally:
+        # CHOOSER_COLS_TO_KEEP may have made trip_period an output column.
+        # Remove it only when this annotation block created it temporarily.
+        if temporary_trip_period:
+            trips_df.drop(columns="trip_period", inplace=True)
+            state_trips = state.get_dataframe("trips", as_copy=False)
+            if state_trips is not trips_df:
+                state_trips.drop(columns="trip_period", inplace=True)

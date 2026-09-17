@@ -48,6 +48,12 @@ exclude = [
     "activitysim/abm/models/util/test*",
 ]
 
+# Explicitly include the example resources used by ``activitysim create``.
+# Relying on setuptools-scm's implicit file list works in a Git checkout, but
+# produces an incomplete wheel in Docker and other source-only build contexts.
+[tool.setuptools.package-data]
+activitysim = ["examples/**/*"]
+
 [tool.setuptools_scm]
 fallback_version = "999"
 write_to = "activitysim/_generated_version.py"

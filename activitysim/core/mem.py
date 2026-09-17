@@ -2,12 +2,14 @@
 # See full license in LICENSE.txt.
 from __future__ import annotations
 
+import ctypes
 import datetime
 import gc
 import glob
 import logging
 import multiprocessing
 import os
+import sys
 import threading
 import time
 
@@ -15,7 +17,7 @@ import numpy as np
 import pandas as pd
 import psutil
 
-from activitysim.core import config, util, workflow
+from activitysim.core import util, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -29,11 +31,77 @@ MEM_SNOOP_TICK_LEN = 5
 MEM_TICK = 0
 
 MEM_LOG_FILE_NAME = "mem.csv"
-OMNIBUS_LOG_FILE_NAME = f"omnibus_mem.csv"
+OMNIBUS_LOG_FILE_NAME = "omnibus_mem.csv"
 
 SUMMARY_BIN_SIZE_IN_SECONDS = 15
 
 mem_log_lock = threading.Lock()
+
+
+def release_memory():
+    """Return unused allocator pages to the operating system when possible.
+
+    Garbage collection destroys unreachable Python objects, but native arrays
+    created by pandas, NumPy, and compiled model evaluators can leave free pages
+    in the process allocator. Long, segmented model steps may therefore retain
+    a high resident set even after each segment's temporary frames are gone.
+
+    The allocator-pressure calls below are advisory and platform specific. A
+    failed or unavailable call is harmless: collection has still occurred and
+    the model continues normally.
+    """
+
+    was_disabled = not gc.isenabled()
+    if was_disabled:
+        gc.enable()
+    gc.collect()
+    if was_disabled:
+        gc.disable()
+
+    try:
+        if sys.platform.startswith("linux"):
+            libc = ctypes.CDLL(None)
+            malloc_trim = getattr(libc, "malloc_trim", None)
+            if malloc_trim is not None:
+                malloc_trim.argtypes = [ctypes.c_size_t]
+                malloc_trim.restype = ctypes.c_int
+                return bool(malloc_trim(0))
+
+        elif sys.platform == "darwin":
+            libc = ctypes.CDLL(None)
+            malloc_default_zone = getattr(libc, "malloc_default_zone", None)
+            pressure_relief = getattr(libc, "malloc_zone_pressure_relief", None)
+            if malloc_default_zone is not None and pressure_relief is not None:
+                malloc_default_zone.argtypes = []
+                malloc_default_zone.restype = ctypes.c_void_p
+                pressure_relief.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
+                pressure_relief.restype = ctypes.c_size_t
+                return bool(pressure_relief(malloc_default_zone(), 0))
+
+        elif sys.platform == "win32":
+            kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+            get_current_process = kernel32.GetCurrentProcess
+            get_current_process.argtypes = []
+            get_current_process.restype = ctypes.c_void_p
+            set_working_set_size = kernel32.SetProcessWorkingSetSize
+            set_working_set_size.argtypes = [
+                ctypes.c_void_p,
+                ctypes.c_size_t,
+                ctypes.c_size_t,
+            ]
+            set_working_set_size.restype = ctypes.c_int
+            maximum_size = ctypes.c_size_t(-1).value
+            return bool(
+                set_working_set_size(
+                    get_current_process(),
+                    maximum_size,
+                    maximum_size,
+                )
+            )
+    except (AttributeError, OSError, TypeError, ValueError):
+        logger.debug("Platform allocator did not release memory", exc_info=True)
+
+    return False
 
 
 def time_bin(timestamps):
@@ -217,7 +285,7 @@ def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False, *, stat
             child_info = child.memory_info()
             full_rss += child_info.rss
             num_children += 1
-        except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
 
     noteworthy = (
@@ -296,7 +364,7 @@ def shared_memory_size(data_buffers):
     if data_buffers is None:
         data_buffers = {}
 
-    for k, data_buffer in data_buffers.items():
+    for _k, data_buffer in data_buffers.items():
         if isinstance(data_buffer, str) and data_buffer.startswith("sh.Dataset:"):
             from sharrow import Dataset
 

@@ -1,0 +1,6 @@
+State.get\_expr\_performance\_log\_file\_path
+=============================================
+
+.. currentmodule:: activitysim.core.workflow
+
+.. automethod:: State.get_expr_performance_log_file_path

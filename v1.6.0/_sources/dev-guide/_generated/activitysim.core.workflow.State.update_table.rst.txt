@@ -1,0 +1,6 @@
+State.update\_table
+===================
+
+.. currentmodule:: activitysim.core.workflow
+
+.. automethod:: State.update_table

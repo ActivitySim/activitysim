@@ -1,0 +1,1142 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Change Log &#8212; ActivitySim</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/design-tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/changes';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.6.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Documentation" href="build-docs.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.6.0" />
+    <meta name="docbuild:last-update" content="Sep 17, 2026"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">ActivitySim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../users-guide/index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../users-guide/index.html">
+    Users Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Developer Installation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="core-workflow.html">Workflow State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="core-workflow-api.html">State API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.__init__.html">State.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.make_default.html">State.make_default</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.make_temp.html">State.make_temp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.create_example.html">create_example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.run.heading_level.html">State.run.heading_level</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.checkpoint.last_checkpoint.html">State.checkpoint.last_checkpoint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.checkpoint.checkpoints.html">State.checkpoint.checkpoints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.checkpoint.store.html">State.checkpoint.store</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.initialize.html">State.tracing.initialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.register_traceable_table.html">State.tracing.register_traceable_table</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.deregister_traceable_table.html">State.tracing.deregister_traceable_table</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.write_csv.html">State.tracing.write_csv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.trace_df.html">State.tracing.trace_df</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.trace_interaction_eval_results.html">State.tracing.trace_interaction_eval_results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.get_trace_target.html">State.tracing.get_trace_target</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.trace_targets.html">State.tracing.trace_targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.has_trace_targets.html">State.tracing.has_trace_targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.dump_df.html">State.tracing.dump_df</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.delete_output_files.html">State.tracing.delete_output_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.delete_trace_files.html">State.tracing.delete_trace_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.extend.declare_table.html">State.extend.declare_table</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="core-workflow-steps.html">Workflow Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-workflow-table.html">Workflow Tables</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="using-sharrow.html">Using Sharrow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="skim-dataset.html">Using Skim Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="checkpointing.html">Checkpointing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Software Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="component-configs.html">Component Configuration</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="components/index.html">Components</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="components/input_checker.html">Input Checker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/initialize.html">Initialize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/initialize_tours.html">Initialize Tours</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/accessibility.html">Accessibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/auto_ownership.html">Auto Ownership</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/vehicle_type_choice.html">Vehicle Type Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/telecommute_frequency.html">Telecommute Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/cdap.html">Coordinated Daily Activity Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/mandatory_tour_frequency.html">Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/school_escorting.html">School Escorting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/joint_tour_composition.html">Joint Tour Composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/joint_tour_participation.html">Joint Tour Participation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/joint_tour_destination.html">Joint Tour Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/joint_tour_scheduling.html">Joint Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/non_mandatory_tour_frequency.html">Non-Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/non_mandatory_destination.html">Non-Mandatory Destination Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/non_mandatory_scheduling.html">Non-Mandatory Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/mandatory_scheduling.html">Mandatory Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/disaggregate_accessibility.html">Disaggregate Accessibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/free_parking.html">Free Parking Eligibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/school_location_choice.html">School Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/transit_pass_ownership.html">Transit Pass Ownership</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/transit_pass_subsidy.html">Transit Pass Subsidy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_destination.html">Trip Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/work_from_home.html">Work from Home</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/work_location_choice.html">Work Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/tour_mode_choice.html">Tour Mode Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/atwork_subtour_frequency.html">At-work Subtours Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/atwork_subtour_destination.html">At-work Subtours Destination Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/atwork_subtour_scheduling.html">At-work Subtour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/atwork_subtour_mode_choice.html">At-work Subtour Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/stop_frequency.html">Stop Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_purpose.html">Trip Purpose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_destination.html">Trip Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_purpose_and_destination.html">Trip Purpose and Destination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_scheduling_choice.html">Trip Scheduling Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_departure_choice.html">Trip Departure Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_mode_choice.html">Trip Mode Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/parking_location_choice.html">Parking Location Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components/write_trip_matrices.html">Write Trip Matrices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="explicit-error-terms.html">Explicit Error Terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling-methods.html">Sampling Methods for Interaction Sample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../benchmarking.html">Benchmarking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build-docs.html">Documentation</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Change Log</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Developers</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Change Log</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="change-log">
+<h1>Change Log<a class="headerlink" href="#change-log" title="Permalink to this heading">#</a></h1>
+<p>This document describes significant changes to ActivitySim.  This includes
+major new features that may require modifications to existing model configurations
+or code to utilize, as well as breaking changes that may cause existing model
+configurations or code to fail to run correctly.</p>
+<section id="upcoming-changes">
+<h2>Upcoming Changes<a class="headerlink" href="#upcoming-changes" title="Permalink to this heading">#</a></h2>
+<p>This section describes changes that are implemented in current development
+branch (i.e., the main branch on GitHub), but not yet released in a stable version
+of ActivitySim.
+No unreleased changes are currently documented.</p>
+</section>
+<section id="v1-6">
+<h2>v1.6<a class="headerlink" href="#v1-6" title="Permalink to this heading">#</a></h2>
+<p>This release adds explicit error-term simulation and new alternative-sampling
+methods, park-and-ride lot choice with capacity constraints, and support for
+reading skims from Parquet files. It also expands explicit chunking, improves
+performance and reproducibility, and includes several simulation and estimation
+fixes. Users upgrading an existing model should review the breaking and
+behavior-changing items below.</p>
+<section id="removal-of-three-zone-models">
+<h3>Removal of Three-Zone Models<a class="headerlink" href="#removal-of-three-zone-models" title="Permalink to this heading">#</a></h3>
+<p>The legacy three-zone level-of-service implementation, including the TAP/TVPB
+pathbuilder, three-zone configuration settings, and bundled three-zone examples,
+has been removed. ActivitySim continues to support one- and two-zone models.
+Existing three-zone model implementations cannot be run with ActivitySim 1.6
+without replacing or independently maintaining the removed functionality. See
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1056">PR #1056</a> and
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1072">PR #1072</a>.</p>
+</section>
+<section id="updated-dependency-requirements">
+<h3>Updated Dependency Requirements<a class="headerlink" href="#updated-dependency-requirements" title="Permalink to this heading">#</a></h3>
+<p>ActivitySim now requires NumPy 2.x, Pandera 0.30 or newer, and Sharrow 2.16 or
+newer. The upper bound on supported pandas versions is now pandas 2.x.</p>
+</section>
+<section id="explicit-error-terms-and-sampling-methods">
+<h3>Explicit Error Terms and Sampling Methods<a class="headerlink" href="#explicit-error-terms-and-sampling-methods" title="Permalink to this heading">#</a></h3>
+<p>ActivitySim can now make choices by drawing the unobserved portion of utility
+explicitly and selecting the alternative with the greatest total utility. This
+simulation method is enabled by setting <code class="docutils literal notranslate"><span class="pre">use_explicit_error_terms</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<p>Alternative sampling is now configured separately with <code class="docutils literal notranslate"><span class="pre">sample_method</span></code>. The
+available methods are <code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code>, <code class="docutils literal notranslate"><span class="pre">eet</span></code>, and <code class="docutils literal notranslate"><span class="pre">poisson</span></code>. When <code class="docutils literal notranslate"><span class="pre">sample_method</span></code>
+is not set, ActivitySim uses <code class="docutils literal notranslate"><span class="pre">inverse_cdf</span></code> for the standard simulation method
+and <code class="docutils literal notranslate"><span class="pre">poisson</span></code> when explicit error terms are enabled. A component can override
+the global sampling method in its <code class="docutils literal notranslate"><span class="pre">compute_settings</span></code>.</p>
+<p>See <a class="reference internal" href="explicit-error-terms.html"><span class="doc std std-doc">Explicit Error Terms</span></a> and
+<a class="reference internal" href="sampling-methods.html"><span class="doc std std-doc">Sampling Methods</span></a> for details, including guidance on
+reproducibility and location-choice logsum bias. This functionality was added
+in <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1064">PR #1064</a>.</p>
+</section>
+<section id="park-and-ride-lot-choice-and-capacity">
+<h3>Park-and-Ride Lot Choice and Capacity<a class="headerlink" href="#park-and-ride-lot-choice-and-capacity" title="Permalink to this heading">#</a></h3>
+<p>A new park-and-ride lot choice component predicts the lot used for a
+park-and-ride tour. It can be integrated with tour mode choice and can enforce
+lot capacity constraints by iteratively resampling tours assigned to full lots.
+The implementation supports single- and multiprocess runs, Sharrow skim access,
+park-and-ride logsums, and park-and-ride trip-matrix output. See
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1001">PR #1001</a>.</p>
+</section>
+<section id="parquet-skim-files">
+<h3>Parquet Skim Files<a class="headerlink" href="#parquet-skim-files" title="Permalink to this heading">#</a></h3>
+<p>Skims can now be read from Parquet files in addition to OMX files. Parquet
+inputs may be dense or sparse, and OMX and Parquet sources may be mixed in the
+same configuration. The format is detected from the filename extension, so no
+settings other than the skim filename need to change. Parquet skims are
+supported by both the legacy skim-dictionary loaders and Sharrow. See
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1101">PR #1101</a>.</p>
+</section>
+<section id="explicit-chunking-and-performance">
+<h3>Explicit Chunking and Performance<a class="headerlink" href="#explicit-chunking-and-performance" title="Permalink to this heading">#</a></h3>
+<p>Explicit chunking is now supported by mode-choice components and trip scheduling
+choice. The nearest-zone calculation used by disaggregate accessibility has also
+been optimized. See <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1088">PR #1088</a>,
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1102">PR #1102</a>, and
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1031">PR #1031</a>.</p>
+<p>Sharrow users can now exclude unused skims while loading skim data. Sharrow
+thread limits are also managed more consistently, and a script is available for
+clearing the Sharrow cache. See
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1036">PR #1036</a> and
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1032">PR #1032</a>.</p>
+</section>
+<section id="reproducibility-and-model-results">
+<h3>Reproducibility and Model Results<a class="headerlink" href="#reproducibility-and-model-results" title="Permalink to this heading">#</a></h3>
+<p>Trip scheduling choice now generates alternatives in a stable order so that
+single- and multiprocess runs produce the same results. School escorting also
+uses stable, semantic tie-breakers so its assignments do not depend on input
+row order. These fixes may change individual choices relative to ActivitySim
+1.5. See <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1005">PR #1005</a> and
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1085">PR #1085</a>.</p>
+<p>Household sample rates are no longer rounded to three decimal places. This
+preserves the full precision of the ratio between the sampled and total number
+of households and may slightly change expansion factors and outputs. See
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1073">PR #1073</a>.</p>
+<p>Global constants are now available in interaction-based model expressions in
+both legacy and Sharrow execution modes. See
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1095">PR #1095</a>.</p>
+</section>
+<section id="deprecated-simulate-chooser-columns-and-logsum-chooser-columns">
+<h3>Deprecated <code class="docutils literal notranslate"><span class="pre">SIMULATE_CHOOSER_COLUMNS</span></code> and <code class="docutils literal notranslate"><span class="pre">LOGSUM_CHOOSER_COLUMNS</span></code><a class="headerlink" href="#deprecated-simulate-chooser-columns-and-logsum-chooser-columns" title="Permalink to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">SIMULATE_CHOOSER_COLUMNS</span></code> and <code class="docutils literal notranslate"><span class="pre">LOGSUM_CHOOSER_COLUMNS</span></code> settings were added
+as memory hacks, to reduce the size of the interaction dataframe for components
+that combine a chooser table with an alternatives table.  These settings have
+been superseded by <code class="docutils literal notranslate"><span class="pre">drop_unused_columns</span></code>, which automatically drops the columns
+that are not needed based on the model spec, and which is enabled by default in
+the <code class="docutils literal notranslate"><span class="pre">compute_settings</span></code> for every component.  As such, these settings are now
+unnecessary, and they are a common source of hard-to-diagnose errors when a
+column used by a spec is inadvertently omitted from the list.</p>
+<p>These settings are now deprecated.  If either setting appears in a model
+configuration file, a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code> is issued and the value is ignored.
+Users should remove these settings from their configuration files.  Nothing else
+needs to be done to take advantage of this change; unused columns continue to be
+dropped automatically.</p>
+<p>Relatedly, <code class="docutils literal notranslate"><span class="pre">interaction_sample</span></code> (used for destination sampling) previously
+skipped dropping unused columns entirely when a run had trace targets, which
+could result in very large interaction dataframes for traced runs.  Unused
+columns are now dropped in that case as well, retaining only the columns needed
+to identify the traced rows.  The complete chooser and alternatives tables are
+still written to the trace output before the columns are dropped.</p>
+</section>
+<section id="changed-default-for-sharrow-fastmath-optimization">
+<h3>Changed Default for Sharrow “Fastmath” Optimization<a class="headerlink" href="#changed-default-for-sharrow-fastmath-optimization" title="Permalink to this heading">#</a></h3>
+<p>The default setting for the “fastmath” optimization in sharrow has been changed
+from <code class="docutils literal notranslate"><span class="pre">True</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code>.  This optimization can improve performance in some cases,
+but can also cause subtle and hard to diagnose bugs, particularly when the
+data being processed contains <code class="docutils literal notranslate"><span class="pre">NaN</span></code> or <code class="docutils literal notranslate"><span class="pre">Inf</span></code> values.  By defaulting to
+<code class="docutils literal notranslate"><span class="pre">False</span></code>, we aim to improve platform stability for most users.  Users who wish
+to enable the “fastmath” optimization can do so by setting the <code class="docutils literal notranslate"><span class="pre">fastmath</span></code> option
+to <code class="docutils literal notranslate"><span class="pre">True</span></code> in the <code class="docutils literal notranslate"><span class="pre">compute_settings</span></code> for each model component where it is desired.</p>
+</section>
+<section id="skipping-failed-choices">
+<h3>Skipping Failed Choices<a class="headerlink" href="#skipping-failed-choices" title="Permalink to this heading">#</a></h3>
+<p>A new feature is introduced to ActivitySim to skip failed choices during model execution.
+By default, ActivitySim will skip any failed choices during a model run, i.e., <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>.
+A failed choice occurs when the computed utilities for all alternatives are zero, or infinite, or nan, which can happen due to
+data issues or model specification problems. A warning message is logged when a failed choice is encountered,
+and the corresponding household (along with its persons, vehicles, tours, trips, etc) will be excluded from further model steps.
+At the end of the model run, a summary of all skipped households is provided in the log file for user reference. Users can set
+a threshold for the maximum allowed percentage of skipped households <code class="docutils literal notranslate"><span class="pre">fraction_of_failed_choices_allowed</span></code>,
+and if the percentage of skipped households exceeds this threshold,
+the model run will be terminated with an error. The default threshold is set to <code class="docutils literal notranslate"><span class="pre">0.001</span></code>, 0.1% of households.</p>
+<p>This feature helps to ensure that the model can continue running even in the presence of data or specification issues,
+while also providing visibility into such issues that need to be addressed.
+See more information in ActivitySim’s users guide “Skip Failed Choices” and code updates in <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1023">PR #1023</a></p>
+<section id="potential-impact-on-existing-model-runs">
+<h4>Potential Impact on Existing Model Runs<a class="headerlink" href="#potential-impact-on-existing-model-runs" title="Permalink to this heading">#</a></h4>
+<p>With <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> defaulted to <code class="docutils literal notranslate"><span class="pre">True</span></code> and an allowed failure threshold defaulted as 0.1% of households,
+failures that were previously silently masked will now generate warnings, be explicitly skipped, and counted toward the threshold.
+As a result, model runs that previously completed “successfully” may now fail earlier,
+surfacing underlying specification or data issues that require attention rather than being silently absorbed. If an agency does not
+want to address the underlying issues immediately, they can set <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> to maintain the previous model results,
+but it is recommended to review the log file for any warnings about failed choices and address them as soon as possible to ensure model quality.</p>
+</section>
+</section>
+<section id="shadow-price-zones-reopening">
+<h3>Shadow Price Zones Reopening<a class="headerlink" href="#shadow-price-zones-reopening" title="Permalink to this heading">#</a></h3>
+<p>We fixed an issue with reopening work and school zones during iterative shadow pricing using the
+simulation-based constraint mechanism. Now, when zones are closed, they remained closed. (See
+ActivitySim <a class="reference external" href="https://github.com/ActivitySim/activitysim/issues/820">Issue #820</a> for more details.)
+There is nothing for the user to do to take advantage of this fix, but it may slightly change
+results for models that use shadow pricing. Aggregate level outputs should remain very stable, but
+some individual choices of school and work locations may change due to the fix.</p>
+</section>
+<section id="alternative-file-naming-consistency">
+<h3>Alternative file naming consistency<a class="headerlink" href="#alternative-file-naming-consistency" title="Permalink to this heading">#</a></h3>
+<p>We have enforced a naming scheme for alternative config files to have the index name
+be ‘alt’ instead of ‘Alt’. This is to maintain consistency across all config files.
+The code will handle this for you, but you will get a deprecation warning if you
+are using ‘Alt’ in your config files. Please update your config files to use ‘alt’.
+See ActivitySim issue <a class="reference external" href="https://github.com/ActivitySim/activitysim/issues/846">#846</a></p>
+</section>
+<section id="cdap-estimation-mode">
+<h3>CDAP Estimation Mode<a class="headerlink" href="#cdap-estimation-mode" title="Permalink to this heading">#</a></h3>
+<p>A bug has been fixed in the Larch portion of code for the re-estimation of CDAP
+parameters.  Prior to this fix, interaction terms for 3 and 4 person households
+were not being correctly specified in the Larch model.  Each of these household
+sizes is supposed to have three unique interaction terms, one each for the
+entire household adopting the same daily activity pattern (M, N or H).  However,
+due to a coding error, the same parameter was being used across all three household
+sizes.  This has now been fixed, and the correct interaction terms are now specified
+for each household size.  Users who re-estimated CDAP parameters using Larch with
+prior versions of ActivitySim may want to review and/or re-estimate any CDAP
+parameters to ensure that they are correct.  It is not expected that this error
+will have a significant impact on simulated travel behavior outcomes, as it is only
+a few parameters with a large and complex model, and the overall behavioral
+characteristics of 3, 4, and 5-person households are expected to be somewhat
+similar to each other in any case.  If users wish to formally correct their model
+to reflect the mathematical formulation that was actually estimated in prior
+versions of ActivitySim without re-estimating the entire model, they can set
+<code class="docutils literal notranslate"><span class="pre">coef_[M,N,H]_xxx</span></code> and <code class="docutils literal notranslate"><span class="pre">coef_[M,N,H]_xxxx</span></code> to have the same value as
+<code class="docutils literal notranslate"><span class="pre">coef_[M,N,H]_xxxxx</span></code>. This change may impact model calibration, so it is recommended
+to proceed with caution if choosing this option. For an existing well calibrated model,
+the calibration may have already compensated for this error in the estimation,
+so changing the coefficients may lead to degraded model quality.</p>
+</section>
+</section>
+<section id="v1-5-1">
+<h2>v1.5.1<a class="headerlink" href="#v1-5-1" title="Permalink to this heading">#</a></h2>
+<p>This release includes a handful of minor updates and fixes, as well as enhancements
+to the ActivtySim documentation. Users should generally not expect any breaking
+changes relative to v1.5.0, except that when running a simulation there will be a
+significant reduction in logging messages displayed on screen and written to the run log.</p>
+</section>
+<section id="v1-5">
+<h2>v1.5<a class="headerlink" href="#v1-5" title="Permalink to this heading">#</a></h2>
+<p>This release includes most of the new features and enhancements developed as part
+of the Phase 10 work.</p>
+<section id="preprocessing-annotation">
+<h3>Preprocessing &amp; Annotation<a class="headerlink" href="#preprocessing-annotation" title="Permalink to this heading">#</a></h3>
+<p>We have expanded preprocessing &amp; annotation functionality, which is now standardized
+in formatting and available on most model components.  Existing model implementations
+may need to make minor upgrades to model configuration files to conform with the new
+standardized formatting.</p>
+</section>
+<section id="estimation-mode">
+<h3>Estimation Mode<a class="headerlink" href="#estimation-mode" title="Permalink to this heading">#</a></h3>
+<p>Estimation mode has been updated to work with Larch v6.  This new version of Larch
+is modernized and more stable across platforms, and is more consistent with ActivitySim
+spec files (as both are now built on Sharrow).  The overall workflow for re-estimating
+model parameters is very similar to before, but users will need to use Larch v6 instead
+of Larch v5.  In addition, some new capabilities have been added for modifying model
+specifications in Larch (instead of re-running ActivitySim).</p>
+</section>
+<section id="using-uv-for-dependency-management">
+<h3>Using UV for Dependency Management<a class="headerlink" href="#using-uv-for-dependency-management" title="Permalink to this heading">#</a></h3>
+<p>Beginning with version 1.5, ActivitySim uses <a class="reference external" href="https://uv.dev/">UV</a> for dependency
+management.  UV is a modern dependency management tool that is designed to be
+simple to use and easy to understand.  See <a class="reference internal" href="#Installing-ActivitySim"><span class="xref myst">Installing ActivitySim</span></a>
+for details on how to install ActivitySim using UV.</p>
+</section>
+<section id="skim-naming-conflict-resolution">
+<h3>Skim Naming Conflict Resolution<a class="headerlink" href="#skim-naming-conflict-resolution" title="Permalink to this heading">#</a></h3>
+<p>The SkimDataset structure (required when using sharrow, optional in legacy mode)
+requires every skim variable to have a unique name. It also merges OMX variables
+based on time period, so that e.g. <code class="docutils literal notranslate"><span class="pre">BIKETIME__AM</span></code> and <code class="docutils literal notranslate"><span class="pre">BIKETIME__PM</span></code>, which would
+be 2-d arrays in the OMX file, become just two different parts of a 3-d array
+called <code class="docutils literal notranslate"><span class="pre">BIKETIME</span></code> in the SkimDataset. This is problematic when the skims also
+contain a 2-d array called <code class="docutils literal notranslate"><span class="pre">BIKETIME</span></code>, as that has no temporal dimension, and it
+gets loaded into a 2-d array in the SkimDataset, with the same name as the 3-d array,
+and thus one is overwritten and lost.</p>
+<p>ActivitySim now includes a skims input check to identify this overwriting condition,
+and raise an error if it is happening, so that the user can correct the condition
+via (1) the <code class="docutils literal notranslate"><span class="pre">omx_ignore_patterns</span></code> setting, (2) revising the skim generation process
+to not create the overlapping named skims in the file in the first place,
+or (3) renaming one or both skims if the users actually wants both skims variables
+in the model. The error message generated includes a link to instructions and
+discussion of these alternatives.</p>
+</section>
+<section id="settings-checker">
+<h3>Settings Checker<a class="headerlink" href="#settings-checker" title="Permalink to this heading">#</a></h3>
+<p>A new settings checker has been added to validate model configuration files
+before running the model.  This tool checks for common configuration errors,
+such as missing required settings, incorrect data types, and invalid values.
+This can help users identify and fix configuration issues before running
+the model, which can save time and effort.  In prior versions, configuration
+errors would often only be discovered when the model was run, which could
+lead to long run times before the error was encountered.</p>
+</section>
+<section id="expression-profiling-legacy-mode-only">
+<h3>Expression Profiling (legacy mode only)<a class="headerlink" href="#expression-profiling-legacy-mode-only" title="Permalink to this heading">#</a></h3>
+<p>ActivitySim now includes a new performance profiling feature for expression evaluation
+in the ActivitySim framework. The feature allows developers to track and log the
+runtime of individual expressions, providing insights into potential bottlenecks
+in complex models. Key changes include the integration of a performance timer,
+updates to various core functions to support profiling, and new configuration
+settings for controlling profiling behavior.
+See <a class="reference internal" href="#Expression-Profiling"><span class="xref myst">Expression Profiling</span></a> for details.</p>
+</section>
+<section id="telecommute-status-model">
+<h3>Telecommute Status Model<a class="headerlink" href="#telecommute-status-model" title="Permalink to this heading">#</a></h3>
+<p>A new telecommute status model component has been added to ActivitySim. This component
+models the telecommute status of workers, which can be used to determine
+whether a worker telecommutes full-time, part-time, or not at all. A simple
+implementation of the telecommute status model can be based on the worker’s telecommute
+frequency. For example, if a worker telecommutes 4 days a week, then there is
+a 80% probability for them to telecommute on the simulation day. The telecommute
+status model software can accommodate more complex model forms if needed. An example
+telecommute status model specification can be found in
+<a class="reference external" href="https://github.com/ActivitySim/sandag-abm3-example/pull/30">ActivitySim/sandag-abm3-example#30</a>.</p>
+</section>
+</section>
+<section id="v1-4">
+<h2>v1.4<a class="headerlink" href="#v1-4" title="Permalink to this heading">#</a></h2>
+<section id="improved-estimation-mode">
+<h3>Improved Estimation Mode<a class="headerlink" href="#improved-estimation-mode" title="Permalink to this heading">#</a></h3>
+<p>Version 1.4 includes several improvements to the estimation mode, including:</p>
+<ul class="simple">
+<li><p>The ability to run estimation mode in parallel, which can significantly
+speed up the estimation process for large models.</p></li>
+<li><p>The ability to modify the model specification and coefficients file(s) for
+the estimated submodels without re-running ActivitySim, which allows for more
+flexibility in the estimation process.</p></li>
+<li><p>Other improvements to the estimation mode workflow, including better error
+handling, logging, and model evaluation tools.</p></li>
+</ul>
+</section>
+</section>
+<section id="v1-3">
+<h2>v1.3<a class="headerlink" href="#v1-3" title="Permalink to this heading">#</a></h2>
+<section id="new-canonical-examples">
+<h3>New Canonical Examples<a class="headerlink" href="#new-canonical-examples" title="Permalink to this heading">#</a></h3>
+<p>Beginning with version 1.3, ActivitySim provides two supported “canonical” example
+implementations:</p>
+<ul class="simple">
+<li><p>the <a class="reference external" href="https://github.com/ActivitySim/sandag-abm3-example">SANDAG Model</a> is a two-zone
+model based on the SANDAG ABM3 model, and</p></li>
+<li><p>the <a class="reference external" href="https://github.com/ActivitySim/activitysim-prototype-mtc">MTC Model</a> is a
+one-zone model based on the MTC’s Travel Model One.</p></li>
+</ul>
+<p>Each example implementation includes a complete set of model components, input data,
+and configuration files, and is intended to serve as a reference for users to build
+their own models. They are provided as stand-alone repositories, to highlight the
+fact that model implementations are separate from the ActivitySim core codebase,
+and to make it easier for users to fork and modify the examples for their own use
+without needing to modify the ActivitySim core codebase. The examples are maintained
+by the ActivitySim Consortium and are kept up-to-date with the latest version of
+ActivitySim.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The two example models are not identical to the original agency models from which
+they were created. They are generally similar to those models, and have been calibrated
+and validated to reproduce reasonable results. They are intended to demonstrate the
+capabilities of ActivitySim and to provide a starting point for users to build their own
+models. However, they are not intended to be used as-is for policy analysis or forecasting.</p>
+</div>
+</section>
+<section id="logging">
+<h3>Logging<a class="headerlink" href="#logging" title="Permalink to this heading">#</a></h3>
+<p>The reading of YAML configuration files has been modified to use the “safe” reader,
+which prohibits the use of arbitrary Python code in configuration files. This is a
+security enhancement, but it requires some changes to the way logging is configured.</p>
+<p>In previous versions, the logging configuration file could contain Python code to
+place log files in various subdirectories of the output directory, which might
+vary for different subprocesses of the model, like this:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">logging</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">handlers</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">logfile</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">logging.FileHandler</span>
+<span class="w">      </span><span class="nt">filename</span><span class="p">:</span><span class="w"> </span><span class="kt">!!python/object/apply:activitysim.core.config.log_file_path</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;activitysim.log&#39;</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">w</span>
+<span class="w">      </span><span class="nt">formatter</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fileFormatter</span>
+<span class="w">      </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NOTSET</span>
+</pre></div>
+</div>
+<p>In the new version, the use of <code class="docutils literal notranslate"><span class="pre">!!python/object/apply</span></code> is prohibited. Instead of using
+this directive, the <code class="docutils literal notranslate"><span class="pre">log_file_path</span></code> function can be invoked in the configuration file
+by using the <code class="docutils literal notranslate"><span class="pre">get_log_file_path</span></code> key, like this:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">logging</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">handlers</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">logfile</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">logging.FileHandler</span>
+<span class="w">      </span><span class="nt">filename</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">get_log_file_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">activitysim.log</span>
+<span class="w">      </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">w</span>
+<span class="w">      </span><span class="nt">formatter</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fileFormatter</span>
+<span class="w">      </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NOTSET</span>
+</pre></div>
+</div>
+<p>Similarly, previous use of the <code class="docutils literal notranslate"><span class="pre">if_sub_task</span></code> directive in the logging level
+configuration like this:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">logging</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">handlers</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">console</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">logging.StreamHandler</span>
+<span class="w">      </span><span class="nt">stream</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ext://sys.stdout</span>
+<span class="w">      </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="kt">!!python/object/apply:activitysim.core.mp_tasks.if_sub_task</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">WARNING</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">NOTSET</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">formatter</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">elapsedFormatter</span>
+</pre></div>
+</div>
+<p>can be replaced with the <code class="docutils literal notranslate"><span class="pre">if_sub_task</span></code> and <code class="docutils literal notranslate"><span class="pre">if_not_sub_task</span></code> keys, like this:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">logging</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">handlers</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">console</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">logging.StreamHandler</span>
+<span class="w">      </span><span class="nt">stream</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ext://sys.stdout</span>
+<span class="w">      </span><span class="nt">level</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">if_sub_task</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">WARNING</span>
+<span class="w">        </span><span class="nt">if_not_sub_task</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NOTSET</span>
+<span class="w">      </span><span class="nt">formatter</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">elapsedFormatter</span>
+</pre></div>
+</div>
+<p>For more details, see <a class="reference internal" href="../users-guide/model_anatomy.html#logging"><span class="std std-ref">logging</span></a>.</p>
+</section>
+<section id="chunking">
+<h3>Chunking<a class="headerlink" href="#chunking" title="Permalink to this heading">#</a></h3>
+<p>Version 1.3 introduces a new “<a class="reference internal" href="#Explicit-Chunking"><span class="xref myst">explicit</span></a>” chunking mechanism.</p>
+<p>Explicit chunking is simpler to use and understand than dynamic chunking, and in
+practice has been found to be more robust and reliable. It requires no “training”
+and is activated in the top level model configuration file (typically <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>):</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">chunk_training_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">explicit</span>
+</pre></div>
+</div>
+<p>Then, for model components that may stress the memory limits of the machine,
+the user can specify the number of choosers in each chunk explicitly, either as an integer
+number of choosers per chunk, or as a fraction of the overall number of choosers.
+This is done by setting the <code class="docutils literal notranslate"><span class="pre">explicit_chunk</span></code> configuration setting in the model
+component’s settings.  For this setting, integer values greater than or equal to 1
+correspond to the number of chooser rows in each explicit chunk. Fractional values
+less than 1 correspond to the fraction of the total number of choosers.
+If the <code class="docutils literal notranslate"><span class="pre">explicit_chunk</span></code> value is 0 or missing, then no chunking
+is applied for that component.  The <code class="docutils literal notranslate"><span class="pre">explicit_chunk</span></code> values in each component’s
+settings are ignored if the <code class="docutils literal notranslate"><span class="pre">chunk_training_mode</span></code> is not set to <code class="docutils literal notranslate"><span class="pre">explicit</span></code>.
+Refer to each model component’s configuration documentation for details.</p>
+<p>Refer to code updates that implement explicit chunking for accessibility in
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/759">PR #759</a>, for
+vehicle type choice, non-mandatory tour frequency, school escorting, and
+joint tour frequency in  <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/804">PR #804</a>,
+and all remaining interaction-simulate components in
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/870">PR #870</a>.</p>
+</section>
+<section id="automatic-dropping-of-unused-columns">
+<h3>Automatic dropping of unused columns<a class="headerlink" href="#automatic-dropping-of-unused-columns" title="Permalink to this heading">#</a></h3>
+<p>Variables that are not used in a model component are now automatically dropped
+from the chooser table before the component is run. Whether a variable is deemed
+as “used” is determined by a text search of the model component code and specification
+files for the variable name.  Dropping unused columns can be disabled by setting
+<a class="reference internal" href="#activitysim.core.configuration.base.ComputeSettings.drop_unused_columns"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">drop_unused_columns</span></code></span></a>
+to <code class="docutils literal notranslate"><span class="pre">False</span></code> in the <a class="reference internal" href="#activitysim.core.configuration.base.ComputeSettings"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">compute_settings</span></code></span></a>
+for any model component, but by default this setting is <code class="docutils literal notranslate"><span class="pre">True</span></code>, as it can result in a
+significant reduction in memory usage for large models.</p>
+<p>Dropping columns may also cause problems if the model is not correctly configured.
+If it is desired to use this feature, but some required columns are being dropped
+incorrectly, the user can specify columns that should not be dropped by setting the
+<a class="reference internal" href="#activitysim.core.configuration.base.ComputeSettings.protect_columns"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">protect_columns</span></code></span></a>
+setting under <a class="reference internal" href="#activitysim.core.configuration.base.ComputeSettings"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">compute_settings</span></code></span></a>.
+This allows the user to specify columns that should not be dropped, even if they are
+not apparently used in the model component.  For <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/67820ad32789f59217608b5311e9a2a322d029ed/activitysim/examples/prototype_sandag_xborder/configs/tour_od_choice.yaml#L59-L61">example</a>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">compute_settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">protect_columns</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">origin_destination</span>
+</pre></div>
+</div>
+<p>Code updates to drop unused columns are in
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/833">PR #833</a> and to protect
+columns in <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/871">PR #871</a>.</p>
+</section>
+<section id="automatic-conversion-of-string-data-to-categorical">
+<h3>Automatic conversion of string data to categorical<a class="headerlink" href="#automatic-conversion-of-string-data-to-categorical" title="Permalink to this heading">#</a></h3>
+<p>Version 1.3 introduces a new feature that automatically converts string data
+to categorical data.  This reduces memory usage and speeds up processing for
+large models.  The conversion is done automatically for string columns
+in most chooser tables.</p>
+<p>To further reduce memory usage, there is also an optional downcasting of numeric
+data available. For example, this allows storing integers that never exceed 255
+as <code class="docutils literal notranslate"><span class="pre">int8</span></code> instead of <code class="docutils literal notranslate"><span class="pre">int64</span></code>.  This feature is controlled by the <code class="docutils literal notranslate"><span class="pre">downcast_int</span></code>
+and <code class="docutils literal notranslate"><span class="pre">downcast_float</span></code> settings in the top level model configuration file (typically
+<code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>).   The default value for these settings is <code class="docutils literal notranslate"><span class="pre">False</span></code>, meaning that
+downcasting is not applied.  It is recommended to leave these settings at their
+default values unless memory availability is severely constrained, as downcasting
+can cause numerical instability in some cases.  First, changing the precision of
+numeric data could cause results to change slightly and impact a previous calibrated
+model result.  Second, downcasting to lower byte data types, e.g., int8, can cause
+numeric overflow in downstream components if the numeric variable is used in
+mathematical calculations that would result in values beyond the lower bit width
+limit (e.g. squaring the value). If downcasting is desired, it is strongly recommended
+to review all model specifications for compatability, and to review model results
+to verify if the changes are acceptable.</p>
+<p>See code updates in <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/782">PR #782</a>
+and <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/863">PR #863</a></p>
+</section>
+<section id="alternatives-preprocessors-for-trip-destination">
+<h3>Alternatives preprocessors for trip destination.<a class="headerlink" href="#alternatives-preprocessors-for-trip-destination" title="Permalink to this heading">#</a></h3>
+<p>Added alternatives preprocessor in
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/869">PR #865</a>,
+and converted to separate preprocessors for sample (at the TAZ level) and
+simulate (at the MAZ level for 2 zone systems) in
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/869">PR #869</a>.</p>
+</section>
+<section id="per-component-sharrow-controls">
+<h3>Per-component sharrow controls<a class="headerlink" href="#per-component-sharrow-controls" title="Permalink to this heading">#</a></h3>
+<p>This version adds a uniform interface for controlling sharrow optimizations
+at the component level. This allows users to disable sharrow entirely,
+or to disable the “fastmath” optimization for individual components.
+Controls for sharrow are set in each component’s settings under <code class="docutils literal notranslate"><span class="pre">compute_settings</span></code>.
+For example, to disable sharrow entirely for a component, use:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">compute_settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">sharrow_skip</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+<p>This overrides the global sharrow setting, and is useful if you want to skip
+sharrow for particular components, either because their specifications are
+not compatible with sharrow or if the sharrow performance is known to be
+poor on this component.</p>
+<p>When a component has multiple subcomponents, the <code class="docutils literal notranslate"><span class="pre">sharrow_skip</span></code> setting can be
+a dictionary that maps the names of the subcomponents to boolean values.
+For example, in the school escorting component, to skip sharrow for an
+OUTBOUND and OUTBOUND_COND subcomponent but not the INBOUND subcomponent,
+use the following settings:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">compute_settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">sharrow_skip</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">OUTBOUND</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">INBOUND</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">    </span><span class="nt">OUTBOUND_COND</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">compute_settings</span></code> can also be used to disable the “fastmath” optimization.
+This is useful if the component is known to have numerical stability issues
+with the fastmath optimization enabled, usually when the component potentially
+works with data that includes <code class="docutils literal notranslate"><span class="pre">NaN</span></code> or <code class="docutils literal notranslate"><span class="pre">Inf</span></code> values. To disable fastmath for
+a component, use:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">compute_settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">fastmath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</pre></div>
+</div>
+<p>Code updates that apply these settings are in
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/824">PR #824</a>.</p>
+</section>
+<section id="configuration-validation">
+<h3>Configuration validation<a class="headerlink" href="#configuration-validation" title="Permalink to this heading">#</a></h3>
+<p>Version 1.3 adds a configuration validation system using the Pydantic library.
+Previously, the YAML-based configuration files were allowed to contain arbitrary
+keys and values, which could lead to errors if the configuration was not correctly
+specified. The new validation system checks the configuration files for correctness,
+and provides useful error messages if the configuration is invalid.  Invalid
+conditions include missing required keys, incorrect data types, and the presence
+of unexpected keys.  Existing models may need to be cleaned up (i.e. extraneous settings
+in config files removed) to conform to the new validation system.</p>
+<p>See <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/758">PR #758</a> for code updates.</p>
+</section>
+<section id="input-checker">
+<h3>Input checker<a class="headerlink" href="#input-checker" title="Permalink to this heading">#</a></h3>
+<p>Version 1.3 adds an input checker that verifies that the input data is consistent
+with expectations. This tool can help identify problems with the input data before
+the model is run, and can be used to ensure that the input data is correctly
+formatted and complete.</p>
+<p>See <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/753">PR #753</a> for code updates.</p>
+</section>
+<section id="removal-of-orca-dependency">
+<h3>Removal of orca dependency<a class="headerlink" href="#removal-of-orca-dependency" title="Permalink to this heading">#</a></h3>
+<p>This new version of ActivitySim does not use <code class="docutils literal notranslate"><span class="pre">orca</span></code> as a dependency, and thus does
+not rely on orca’s global state to manage data. Instead, a new <a class="reference internal" href="_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.State"><span class="xref myst py py-class"><code class="docutils literal notranslate"><span class="pre">State</span></code></span></a>
+class is introduced, which encapsulates the current state of a simulation including
+all data tables. This is a significant change “under the hood”, which may be
+particularly consequential for model that use “extensions” to the ActivitySim framework.
+See <a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/654">PR #654</a> for code updates.</p>
+</section>
+</section>
+<section id="v1-2">
+<h2>v1.2<a class="headerlink" href="#v1-2" title="Permalink to this heading">#</a></h2>
+<p>The <a class="reference external" href="https://github.com/ActivitySim/activitysim/releases/tag/v1.2.0">v1.2</a> release
+includes all updates and enhancements complete in the ActivitySim Consortium’s Phase 7
+development cycle, including:</p>
+<ul class="simple">
+<li><p>Sharrow performance enhancement</p></li>
+<li><p>Explicit school escorting</p></li>
+<li><p>Disaggregate accessibility</p></li>
+<li><p>Simulation-based shadow pricing</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="build-docs.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Documentation</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upcoming-changes">Upcoming Changes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-6">v1.6</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#removal-of-three-zone-models">Removal of Three-Zone Models</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#updated-dependency-requirements">Updated Dependency Requirements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-error-terms-and-sampling-methods">Explicit Error Terms and Sampling Methods</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#park-and-ride-lot-choice-and-capacity">Park-and-Ride Lot Choice and Capacity</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parquet-skim-files">Parquet Skim Files</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-chunking-and-performance">Explicit Chunking and Performance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducibility-and-model-results">Reproducibility and Model Results</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deprecated-simulate-chooser-columns-and-logsum-chooser-columns">Deprecated <code class="docutils literal notranslate"><span class="pre">SIMULATE_CHOOSER_COLUMNS</span></code> and <code class="docutils literal notranslate"><span class="pre">LOGSUM_CHOOSER_COLUMNS</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#changed-default-for-sharrow-fastmath-optimization">Changed Default for Sharrow “Fastmath” Optimization</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skipping-failed-choices">Skipping Failed Choices</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#potential-impact-on-existing-model-runs">Potential Impact on Existing Model Runs</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shadow-price-zones-reopening">Shadow Price Zones Reopening</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#alternative-file-naming-consistency">Alternative file naming consistency</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cdap-estimation-mode">CDAP Estimation Mode</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-5-1">v1.5.1</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-5">v1.5</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessing-annotation">Preprocessing &amp; Annotation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#estimation-mode">Estimation Mode</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-uv-for-dependency-management">Using UV for Dependency Management</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skim-naming-conflict-resolution">Skim Naming Conflict Resolution</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#settings-checker">Settings Checker</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#expression-profiling-legacy-mode-only">Expression Profiling (legacy mode only)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#telecommute-status-model">Telecommute Status Model</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-4">v1.4</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#improved-estimation-mode">Improved Estimation Mode</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-3">v1.3</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-canonical-examples">New Canonical Examples</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#logging">Logging</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#chunking">Chunking</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-dropping-of-unused-columns">Automatic dropping of unused columns</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-conversion-of-string-data-to-categorical">Automatic conversion of string data to categorical</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#alternatives-preprocessors-for-trip-destination">Alternatives preprocessors for trip destination.</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#per-component-sharrow-controls">Per-component sharrow controls</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration-validation">Configuration validation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#input-checker">Input checker</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#removal-of-orca-dependency">Removal of orca dependency</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-2">v1.2</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/dev-guide/changes.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><!-- This will display the version of the docs -->
+<p class="last-updated">
+ActivitySim 1.6.0, documentation last updated Sep 17, 2026.<br/>
+</p></div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

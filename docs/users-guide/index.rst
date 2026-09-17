@@ -46,6 +46,7 @@ Contents
    example_models
    example_performance
    estimation-mode/index
+   calibration
    .. toctree::
    :maxdepth: 1
    other_examples

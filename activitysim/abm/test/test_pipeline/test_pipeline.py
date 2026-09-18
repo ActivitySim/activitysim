@@ -43,7 +43,7 @@ def example_path(dirname):
 # output directories so checkpoint stores written by one channel type cannot
 # be read by the other, and (c) look up the appropriate regression-expected
 # values from per-channel-type tables defined below.
-CHANNEL_TYPES = ("simple", "fast", "faster")
+CHANNEL_TYPES = ("legacy", "pcg64", "sfc64_hash")
 
 
 @pytest.fixture(params=CHANNEL_TYPES)
@@ -51,7 +51,7 @@ def channel_type(request):
     return request.param
 
 
-def setup_dirs(ancillary_configs_dir=None, data_dir=None, channel_type="fast"):
+def setup_dirs(ancillary_configs_dir=None, data_dir=None, channel_type="pcg64"):
     # ancillary_configs_dir is used by run_mp to test multiprocess
 
     test_pipeline_configs_dir = os.path.join(os.path.dirname(__file__), "configs")
@@ -115,30 +115,30 @@ def test_rng_access(channel_type):
 
 
 # Per-channel-type regression-expected values for the mini-pipeline tests.
-# The "simple" values are the long-standing reference values; the "fast"
+# The "legacy" values are the long-standing reference values; the "pcg64"
 # values were captured from a clean run with the FastChannel implementation
 # and are checked here to guard against unintended drift in the new
 # vectorised PCG64 streams.
 _MINI_AUTO_HH_IDS = [1099626, 1173905, 1196298, 1286259]
 _MINI_AUTO_EXPECTED = {
-    "simple": [1, 1, 0, 0],
-    "fast": [0, 0, 1, 0],
-    "faster": [2, 0, 0, 1],
+    "legacy": [1, 1, 0, 0],
+    "pcg64": [0, 0, 1, 0],
+    "sfc64_hash": [2, 0, 0, 1],
 }
 
 _MINI_MTF_PER_IDS = {
-    "simple": [2566701, 2566702, 3061895],
-    "fast": [3188482, 3188483, 3188484],
-    "faster": [2566701, 2566702, 3188482],
+    "legacy": [2566701, 2566702, 3061895],
+    "pcg64": [3188482, 3188483, 3188484],
+    "sfc64_hash": [2566701, 2566702, 3188482],
 }
 _MINI_MTF_EXPECTED = {
-    "simple": ["school1", "school1", "work1"],
-    "fast": ["work1", "work1", "work_and_school"],
-    "faster": ["school1", "school1", "work1"],
+    "legacy": ["school1", "school1", "work1"],
+    "pcg64": ["work1", "work1", "work_and_school"],
+    "sfc64_hash": ["school1", "school1", "work1"],
 }
 
 
-def regress_mini_auto(state: workflow.State, channel_type: str = "simple"):
+def regress_mini_auto(state: workflow.State, channel_type: str = "legacy"):
     # regression test: these are among the middle households in households table
     # should be the same results as in run_mp (multiprocessing) test case
     hh_ids = _MINI_AUTO_HH_IDS
@@ -162,7 +162,7 @@ def regress_mini_auto(state: workflow.State, channel_type: str = "simple"):
     auto_choice = auto_choice.reindex(hh_ids)
 
     """
-    auto_choice  (simple channel)
+    auto_choice  (legacy channel)
     household_id
     1099626    1
     1173905    1
@@ -173,7 +173,7 @@ def regress_mini_auto(state: workflow.State, channel_type: str = "simple"):
     pdt.assert_series_equal(auto_choice, expected_choice, check_dtype=False)
 
 
-def regress_mini_mtf(state: workflow.State, channel_type: str = "simple"):
+def regress_mini_mtf(state: workflow.State, channel_type: str = "legacy"):
     mtf_choice = (
         state.checkpoint.load_dataframe("persons").sort_index().mandatory_tour_frequency
     )
@@ -199,7 +199,7 @@ def regress_mini_mtf(state: workflow.State, channel_type: str = "simple"):
     )
 
     """
-    mtf_choice  (simple channel)
+    mtf_choice  (legacy channel)
     person_id
     2566701    school1
     2566702    school1
@@ -351,7 +351,7 @@ def full_run(
     trace_hh_id=None,
     trace_od=None,
     check_for_variability=False,
-    channel_type="fast",
+    channel_type="pcg64",
 ):
     state = setup_dirs(channel_type=channel_type)
 
@@ -377,9 +377,9 @@ def full_run(
 
 
 EXPECT_TOUR_COUNT = {
-    "simple": 121,
-    "fast": 108,
-    "faster": 102,
+    "legacy": 121,
+    "pcg64": 108,
+    "sfc64_hash": 102,
 }
 
 
@@ -387,25 +387,25 @@ EXPECT_TOUR_COUNT = {
 # (person_id, tour_category, tour_num).  These were captured from clean
 # reference runs and are checked here to guard against unintended drift.
 _EXPECT_PERSON_IDS = {
-    "simple": [325051, 325051, 325051, 325052, 325052, 325052],
-    "fast": [325051, 325051, 325051, 325052],
-    "faster": [325051, 325052],
+    "legacy": [325051, 325051, 325051, 325052, 325052, 325052],
+    "pcg64": [325051, 325051, 325051, 325052],
+    "sfc64_hash": [325051, 325052],
 }
 
 _EXPECT_TOUR_TYPES = {
-    "simple": ["othdiscr", "work", "work", "business", "work", "othmaint"],
-    "fast": ["work", "escort", "eatout", "work"],
-    "faster": ["shopping", "work"],
+    "legacy": ["othdiscr", "work", "work", "business", "work", "othmaint"],
+    "pcg64": ["work", "escort", "eatout", "work"],
+    "sfc64_hash": ["shopping", "work"],
 }
 
 _EXPECT_MODES = {
-    "simple": ["WALK", "WALK", "SHARED3FREE", "WALK", "WALK_LOC", "WALK"],
-    "fast": ["WALK", "TNC_SHARED", "WALK", "WALK"],
-    "faster": ["WALK", "WALK_LOC"],
+    "legacy": ["WALK", "WALK", "SHARED3FREE", "WALK", "WALK_LOC", "WALK"],
+    "pcg64": ["WALK", "TNC_SHARED", "WALK", "WALK"],
+    "sfc64_hash": ["WALK", "WALK_LOC"],
 }
 
 
-def regress_tour_modes(tours_df, channel_type: str = "simple"):
+def regress_tour_modes(tours_df, channel_type: str = "legacy"):
     mode_cols = ["tour_mode", "person_id", "tour_type", "tour_num", "tour_category"]
 
     tours_df = tours_df[tours_df.household_id == HH_ID]
@@ -416,7 +416,7 @@ def regress_tour_modes(tours_df, channel_type: str = "simple"):
     print("mode_df (channel=%s)\n%s" % (channel_type, tours_df[mode_cols]))
 
     """
-    simple channel:
+    legacy channel:
                  tour_mode  person_id tour_type  tour_num  tour_category
     tour_id
     13327106         WALK     325051  othdiscr         1          joint
@@ -426,7 +426,7 @@ def regress_tour_modes(tours_df, channel_type: str = "simple"):
     13327171     WALK_LOC     325052      work         1      mandatory
     13327160         WALK     325052  othmaint         1  non_mandatory
 
-    fast channel:
+    pcg64 channel:
                  tour_mode  person_id tour_type  tour_num  tour_category
     tour_id
     13327130         WALK     325051      work         1      mandatory
@@ -445,7 +445,7 @@ def regress_tour_modes(tours_df, channel_type: str = "simple"):
     assert (tours_df.tour_mode.astype(str).values == EXPECT_MODES).all()
 
 
-def regress(state: workflow.State, channel_type: str = "simple"):
+def regress(state: workflow.State, channel_type: str = "legacy"):
     persons_df = state.checkpoint.load_dataframe("persons")
     persons_df = persons_df[persons_df.household_id == HH_ID]
     print("persons_df\n%s" % persons_df[["value_of_time", "distance_to_work"]])
@@ -611,5 +611,5 @@ def test_full_run5_singleton(channel_type):
 
 if __name__ == "__main__":
     print("running test_full_run1")
-    test_full_run1("simple")
+    test_full_run1("legacy")
     # teardown_function(None)

@@ -95,7 +95,7 @@ Configure random-number generation in ``settings.yaml``:
 .. code-block:: yaml
 
    rng_base_seed: 0
-   rng_channel_type: simple
+   rng_channel_type: legacy
 
 ``rng_base_seed`` selects the global family of streams.  Set it to a fixed integer
 for reproducible runs.  ``rng_channel_type`` selects one of three per-row channel
@@ -109,37 +109,41 @@ implementations:
      - Bit generator
      - State initialization
      - Intended use
-   * - ``simple``
+   * - ``legacy``
      - NumPy ``RandomState`` (MT19937)
      - Legacy 32-bit row seeds
      - Default; preserves random results produced by earlier ActivitySim versions.
-   * - ``fast``
+   * - ``pcg64``
      - NumPy PCG64
      - NumPy ``SeedSequence``
      - Vectorized generation with the strongest assurance about independent
        per-row state initialization.
-   * - ``faster``
+   * - ``sfc64_hash``
      - NumPy SFC64
      - ActivitySim's hash-based quick entropy
      - Experimental option with the lowest state-initialization overhead when
        channels are frequently reseeded.
 
-The names describe the intended progression for large, repeated workloads; they
-are not an unconditional speed ranking.  In particular, ``fast`` can be slower
-than ``simple`` for a first draw because robust state initialization has a
-substantial fixed cost.
+The names identify the implementations and the custom seeding used by
+``sfc64_hash``; they are not an unconditional speed ranking.  In particular,
+``pcg64`` can be slower than ``legacy`` for a first draw because robust state
+initialization has a substantial fixed cost.
+
+These replace the pre-release configuration labels ``simple``, ``fast``, and
+``faster``, respectively. Update explicit settings to the new names; ``legacy``
+remains the default.
 
 Choosing a channel type
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Choose ``simple`` when exact compatibility with an existing ActivitySim baseline
+Choose ``legacy`` when exact compatibility with an existing ActivitySim baseline
 is required.  It has little compilation or state-initialization overhead, which
 can also make it the quickest option for small models, short-lived processes, or
 channels that make very few draws.  Its cost is paid during generation: it seeds
 and advances a legacy ``RandomState`` separately for every requested row, so
 repeated or multidimensional draws scale poorly.
 
-Choose ``fast`` when robust initialization is more important than the latency of
+Choose ``pcg64`` when robust initialization is more important than the latency of
 the first draw and the model will make enough draws to amortize that latency.  It
 uses PCG64 and NumPy's `SeedSequence
 <https://numpy.org/doc/stable/reference/random/bit_generators/generated/numpy.random.SeedSequence.html>`__
@@ -147,7 +151,7 @@ to derive a high-quality state independently for every row.  ActivitySim current
 constructs a Python ``SeedSequence`` and bit-generator object per row; on a large
 channel this work can dominate an otherwise very fast vectorized draw.
 
-Choose ``faster`` when per-step initialization is a material part of total runtime
+Choose ``sfc64_hash`` when per-step initialization is a material part of total runtime
 and the model team accepts a smaller body of evidence about the independence of
 its keyed streams.  It uses NumPy's `SFC64
 <https://numpy.org/doc/stable/reference/random/bit_generators/sfc64.html>`__ bit
@@ -168,17 +172,17 @@ channel size, draw shape, model sequence, hardware, and process lifetime.
      - First draw in each step
      - Repeated generation
      - Primary reason to select it
-   * - ``simple``
+   * - ``legacy``
      - Low; no Numba compilation
      - Low state setup, but generation remains per-row
      - Slowest for large or repeated draws
      - Exact legacy outputs and low overhead for small workloads
-   * - ``fast``
+   * - ``pcg64``
      - High; includes Numba compilation
      - Potentially high; robust state is initialized for every channel row
      - Fast vectorized generation
      - Strongest statistical assurance for new vectorized streams
-   * - ``faster``
+   * - ``sfc64_hash``
      - High; includes Numba compilation
      - Low; compiled quick entropy initializes every channel row
      - Fast vectorized generation
@@ -189,23 +193,23 @@ Understanding runtime costs
 
 There are three distinct costs to consider when interpreting benchmarks:
 
-#. **Process compilation.** The first use of ``fast`` or ``faster`` compiles
+#. **Process compilation.** The first use of ``pcg64`` or ``sfc64_hash`` compiles
    Numba kernels.  This is separate from random-state initialization and may be
    paid by every newly started worker process.  For a short run, compilation can
    outweigh all later generation savings.
 #. **Per-step initialization.** Fast-channel state is initialized lazily on the
    first draw of a pipeline step.  The current implementation initializes the
    full registered channel, even when that draw requests only a small subset of
-   rows.  ``fast`` performs robust per-row initialization in Python; ``faster``
+   rows.  ``pcg64`` performs robust per-row initialization in Python; ``sfc64_hash``
    performs quick initialization in compiled batches.
 #. **Warm generation.** After initialization, both vectorized modes retain a
    compact state for every row and generate batches without recreating a NumPy
    object per row.  This is where they provide their largest advantage over
-   ``simple``, especially for normal, Gumbel, explicit-error-term, and
+   ``legacy``, especially for normal, Gumbel, explicit-error-term, and
    multidimensional draws.
 
-It is therefore expected, rather than necessarily a regression, for ``fast`` to
-lose to ``simple`` in a cold first-draw benchmark while winning repeated calls.
+It is therefore expected, rather than necessarily a regression, for ``pcg64`` to
+lose to ``legacy`` in a cold first-draw benchmark while winning repeated calls.
 Evaluate end-to-end model runtime as well as isolated warm throughput.  The
 repository benchmark separates process-first, cold-step, warm-generation,
 memory, and spawned-worker measurements.  Its quick profile can be run from the
@@ -220,7 +224,7 @@ repeated Gumbel-max, and mapped Gumbel-choice paths.  It sweeps chooser count,
 stable-universe size, sample size, and prior stream offset.  It reports generated
 versus useful shock throughput so sparse alternative identifiers are visible as
 a waste factor, and shows the replay cost that accumulated offsets impose on the
-``simple`` channel:
+``legacy`` channel:
 
 .. code-block:: console
 
@@ -239,7 +243,7 @@ Statistical assurance versus reproducibility
 Statistical assurance and reproducibility are different properties.  All three
 modes deterministically reproduce their own streams when the base seed, channel
 type, software environment, model sequence, and inputs are held fixed.  Selecting
-``faster`` does not make repeated runs nondeterministic.  It accepts a theoretical
+``sfc64_hash`` does not make repeated runs nondeterministic.  It accepts a theoretical
 risk of poorer separation or correlation among the many custom-initialized
 streams compared with NumPy's extensively reviewed ``SeedSequence`` procedure.
 
@@ -250,15 +254,15 @@ not a substitute for a comprehensive statistical suite such as TestU01 or for
 model-level validation.
 
 .. warning::
-   Prefer ``fast`` when the statistical properties of many independently keyed
-   streams have not been evaluated for the model's workload.  Use ``faster`` when
+   Prefer ``pcg64`` when the statistical properties of many independently keyed
+   streams have not been evaluated for the model's workload.  Use ``sfc64_hash`` when
    its startup benefit is material and the model team has established an
    appropriate validation baseline.
 
 Validating a change of channel type
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Before adopting ``fast`` or ``faster`` for an established model:
+Before adopting ``pcg64`` or ``sfc64_hash`` for an established model:
 
 #. Benchmark the full model on deployment hardware, including its actual process
    count and resume strategy.  A microbenchmark of warm draws alone is not enough.
@@ -287,8 +291,8 @@ following fixed:
 * the ordering and number of random-number calls made for each row within a step.
 
 Do not resume a checkpoint with a different random channel type or base seed.  When
-migrating an existing model, retain ``simple`` for exact legacy outputs or establish
-a new validated model baseline after selecting ``fast`` or ``faster``.  Record the
+migrating an existing model, retain ``legacy`` for exact legacy outputs or establish
+a new validated model baseline after selecting ``pcg64`` or ``sfc64_hash``.  Record the
 RNG settings and dependency versions alongside archived model results.
 
 ActivitySim also generates distinct stable identifiers for tour and trip channels,

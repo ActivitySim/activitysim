@@ -34,7 +34,7 @@ import pandas as pd
 
 from activitysim.core.random import Random
 
-CHANNEL_TYPES = ("simple", "fast", "faster")
+CHANNEL_TYPES = ("legacy", "pcg64", "sfc64_hash")
 OPERATIONS = (
     "stable uniforms",
     "repeated Gumbel max",
@@ -149,7 +149,7 @@ def parse_args():
     parser.add_argument(
         "--channels",
         default=",".join(CHANNEL_TYPES),
-        help="comma-separated subset of simple,fast,faster",
+        help="comma-separated subset of legacy,pcg64,sfc64_hash",
     )
     parser.add_argument(
         "--max-scenarios",
@@ -349,7 +349,7 @@ def benchmark_operation(channel_type, scenario, operation, repeat, number):
 def warm_compiled_kernels():
     """Compile every production fast-channel path with a tiny workload."""
     scenario = ScenarioSpec("warmup", "warmup", 8, 4, 16, 2)
-    for channel_type in ("fast", "faster"):
+    for channel_type in ("pcg64", "sfc64_hash"):
         choosers, utilities, alt_nrs, positions = make_inputs(scenario)
         rng = make_manager(channel_type, choosers, "eet_warmup")
         for operation in OPERATIONS:

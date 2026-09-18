@@ -12,10 +12,10 @@ import pytest
 from activitysim.core import random
 from activitysim.core.exceptions import DuplicateLoadableObjectError
 
-CHANNEL_TYPES = ("simple", "fast", "faster")
+CHANNEL_TYPES = ("legacy", "pcg64", "sfc64_hash")
 
 _FAST_CHANNEL_GOLDENS = {
-    "fast": {
+    "pcg64": {
         "uniform": np.array(
             [
                 [0.8412170922705721, 0.8444598643290162],
@@ -35,7 +35,7 @@ _FAST_CHANNEL_GOLDENS = {
             ]
         ),
     },
-    "faster": {
+    "sfc64_hash": {
         "uniform": np.array(
             [
                 [0.35325693076713094, 0.5673606151472527],
@@ -58,7 +58,7 @@ _FAST_CHANNEL_GOLDENS = {
 
 def test_basic():
     rng = random.Random()
-    assert rng.channel_type == "simple"
+    assert rng.channel_type == "legacy"
 
     rng.set_base_seed(0)
 
@@ -79,7 +79,7 @@ def test_basic():
     assert "call set_base_seed before the first step" in str(excinfo.value)
 
 
-@pytest.mark.parametrize("channel_type", ("fast", "faster"))
+@pytest.mark.parametrize("channel_type", ("pcg64", "sfc64_hash"))
 def test_fast_channel_mixed_sequence_matches_golden(channel_type):
     """Freeze configured fast-channel streams and cross-method consumption."""
     persons = pd.DataFrame(index=pd.Index([101, 202, 303], name="person_id"))
@@ -103,7 +103,7 @@ def test_fast_channel_mixed_sequence_matches_golden(channel_type):
         npt.assert_array_equal(observed[name], expected)
 
 
-@pytest.mark.parametrize("channel_type", ("fast", "faster"))
+@pytest.mark.parametrize("channel_type", ("pcg64", "sfc64_hash"))
 def test_fast_channel_recreation_preserves_subset_and_extension_streams(channel_type):
     """Recreating a channel at a step boundary must preserve every row stream."""
 
@@ -134,7 +134,7 @@ def test_fast_channel_recreation_preserves_subset_and_extension_streams(channel_
 
 
 @pytest.mark.parametrize("channel_type", CHANNEL_TYPES)
-def test_channel(channel_type: Literal["simple", "fast", "faster"]):
+def test_channel(channel_type: Literal["legacy", "pcg64", "sfc64_hash"]):
     channels = {
         "households": "household_id",
         "persons": "person_id",
@@ -167,9 +167,9 @@ def test_channel(channel_type: Literal["simple", "fast", "faster"]):
     print("rands", np.asanyarray(rands).flatten())
 
     assert rands.shape == (5, 1)
-    if channel_type == "fast":
+    if channel_type == "pcg64":
         test1_expected_rands = [0.4072658, 0.5591271, 0.0297283, 0.6235138, 0.6921163]
-    elif channel_type == "faster":
+    elif channel_type == "sfc64_hash":
         test1_expected_rands = [0.4580108, 0.531716, 0.6470319, 0.6762532, 0.7392374]
     else:
         test1_expected_rands = [0.1733218, 0.1255693, 0.7384256, 0.3485183, 0.9012387]
@@ -177,9 +177,9 @@ def test_channel(channel_type: Literal["simple", "fast", "faster"]):
 
     # second call should return something different
     rands = rng.random_for_df(persons)
-    if channel_type == "fast":
+    if channel_type == "pcg64":
         test1_expected_rands2 = [0.336963, 0.5420581, 0.4396565, 0.9702927, 0.0251327]
-    elif channel_type == "faster":
+    elif channel_type == "sfc64_hash":
         test1_expected_rands2 = [0.1690983, 0.933964, 0.3887059, 0.7922818, 0.4179632]
     else:
         test1_expected_rands2 = [0.9105223, 0.5718418, 0.7222742, 0.9062284, 0.3929369]
@@ -190,18 +190,18 @@ def test_channel(channel_type: Literal["simple", "fast", "faster"]):
     rng.begin_step("test_step2")
 
     rands = rng.random_for_df(households)
-    if channel_type == "fast":
+    if channel_type == "pcg64":
         expected_rands = [0.1571023, 0.2709219, 0.2515827, 0.9444831, 0.6816792]
-    elif channel_type == "faster":
+    elif channel_type == "sfc64_hash":
         expected_rands = [0.1934219, 0.3369451, 0.8455883, 0.6440651, 0.3889942]
     else:
         expected_rands = [0.417278, 0.2994774, 0.8653719, 0.4429748, 0.5101697]
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), expected_rands)
 
     choices = rng.choice_for_df(households, [1, 2, 3, 4], 2, replace=True)
-    if channel_type == "fast":
+    if channel_type == "pcg64":
         expected_choices = [4, 1, 4, 3, 2, 1, 3, 1, 1, 4]
-    elif channel_type == "faster":
+    elif channel_type == "sfc64_hash":
         expected_choices = [3, 4, 4, 3, 4, 2, 4, 1, 2, 3]
     else:
         expected_choices = [2, 1, 3, 3, 4, 2, 4, 1, 4, 1]
@@ -209,9 +209,9 @@ def test_channel(channel_type: Literal["simple", "fast", "faster"]):
 
     # should be DIFFERENT the second time
     choices = rng.choice_for_df(households, [1, 2, 3, 4], 2, replace=True)
-    if channel_type == "fast":
+    if channel_type == "pcg64":
         expected_choices = [1, 4, 2, 1, 2, 3, 1, 2, 2, 4]
-    elif channel_type == "faster":
+    elif channel_type == "sfc64_hash":
         expected_choices = [4, 1, 3, 3, 4, 1, 4, 2, 3, 2]
     else:
         expected_choices = [3, 1, 4, 3, 3, 2, 2, 1, 4, 2]
@@ -223,7 +223,7 @@ def test_channel(channel_type: Literal["simple", "fast", "faster"]):
 
     rands = rng.random_for_df(households, n=2)
 
-    if channel_type == "fast":
+    if channel_type == "pcg64":
         expected_rands = [
             0.0728735,
             0.9764697,
@@ -236,7 +236,7 @@ def test_channel(channel_type: Literal["simple", "fast", "faster"]):
             0.6051138,
             0.1666114,
         ]
-    elif channel_type == "faster":
+    elif channel_type == "sfc64_hash":
         expected_rands = [
             0.2677105,
             0.7688408,
@@ -655,7 +655,7 @@ def test_gumbel_choice_positions_for_df_fully_masked_row_falls_back_to_first_col
     npt.assert_allclose(masked_following, baseline_following)
 
 
-@pytest.mark.parametrize("channel_type", ("fast", "faster"))
+@pytest.mark.parametrize("channel_type", ("pcg64", "sfc64_hash"))
 @pytest.mark.parametrize(
     "operation", ("uniform", "max", "stable_max", "choice", "mapped_choice")
 )
@@ -804,11 +804,11 @@ def test_invalid_choice_inputs_do_not_change_stream(
     with pytest.raises(error):
         np.random.RandomState(0).choice(**options)
     channel = rng.get_channel_for_df(persons)
-    if channel_type != "simple":
+    if channel_type != "legacy":
         before = None if channel._state_array is None else channel._state_array.copy()
     with pytest.raises(error):
         rng.choice_for_df(persons, **options)
-    if channel_type != "simple":
+    if channel_type != "legacy":
         if before is None:
             assert channel._state_array is None
         else:
@@ -816,7 +816,7 @@ def test_invalid_choice_inputs_do_not_change_stream(
     npt.assert_array_equal(rng.random_for_df(persons), baseline.random_for_df(persons))
 
 
-@pytest.mark.parametrize("channel_type", ("fast", "faster"))
+@pytest.mark.parametrize("channel_type", ("pcg64", "sfc64_hash"))
 @pytest.mark.parametrize(
     "population", (np.int64(5), np.array(["a", "b", "c", "d", "e"]))
 )

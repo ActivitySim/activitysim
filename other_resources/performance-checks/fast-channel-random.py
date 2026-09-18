@@ -37,7 +37,7 @@ import pandas as pd
 
 from activitysim.core.random import Random
 
-CHANNEL_TYPES = ("simple", "fast", "faster")
+CHANNEL_TYPES = ("legacy", "pcg64", "sfc64_hash")
 INDENT = "  "
 SEP = "=" * 100
 PROFILE_DEFAULTS = {
@@ -205,7 +205,7 @@ def warm_compiled_kernels(households):
     utilities = pd.DataFrame(
         np.tile(np.linspace(-1.0, 1.0, 4), (len(tiny), 1)), index=tiny.index
     )
-    for channel_type in ("fast", "faster"):
+    for channel_type in ("pcg64", "sfc64_hash"):
         rng = make_manager(channel_type, tiny)
         rng.begin_step("jit_warmup")
         rng.random_for_df(tiny, n=2)
@@ -608,7 +608,7 @@ def main():
             ),
         }
 
-    for operation_name in operations["simple"]:
+    for operation_name in operations["legacy"]:
         for channel_type in CHANNEL_TYPES:
             timing = Timing(
                 "warm generation",

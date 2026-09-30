@@ -54,7 +54,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.5.2';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.6.1';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -64,8 +64,8 @@
     <link rel="prev" title="Model Development" href="model_dev.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="1.5.2" />
-    <meta name="docbuild:last-update" content="Sep 17, 2026"/>
+  <meta name="docsearch:version" content="1.6.1" />
+    <meta name="docbuild:last-update" content="Sep 30, 2026"/>
   </head>
   
   
@@ -408,6 +408,15 @@
 </ul>
 <p>Rows with output values that begin with an alphanumeric character will be saved to a CSV (e.g., <code class="docutils literal notranslate"><span class="pre">output_name</span></code> –&gt; <code class="docutils literal notranslate"><span class="pre">output_name.csv</span></code>). These expressions must yield a Pandas Series, DataFrame, or another object with a <code class="docutils literal notranslate"><span class="pre">to_csv</span></code> method.</p>
 <p>Rows with output values that begin with underscores (e.g., <code class="docutils literal notranslate"><span class="pre">_output_name</span></code>) will be stored as temporary variables in the local namespace so they can be used in following expressions. Expressions defining temporary variables can produce any data type. Users are encouraged to follow the ActivitySim convention using capitals to denote constants (e.g., <code class="docutils literal notranslate"><span class="pre">_TEMP_CONSTANT</span></code>), though this convention is not formally enforced for summarize expressions.</p>
+<p>Temporary variables that are no longer needed can be removed from the local
+namespace, allowing their memory to be reclaimed when no other references
+remain. Set the <code class="docutils literal notranslate"><span class="pre">Output</span></code> column to the reserved value <code class="docutils literal notranslate"><span class="pre">_del</span></code> and list one or more
+comma-separated temporary variable names in <code class="docutils literal notranslate"><span class="pre">Expression</span></code>. Missing names are
+ignored, and the row does not create an output file. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Description</span><span class="p">,</span><span class="n">Output</span><span class="p">,</span><span class="n">Expression</span>
+<span class="n">Delete</span> <span class="n">intermediate</span> <span class="n">tables</span><span class="p">,</span><span class="n">_del</span><span class="p">,</span><span class="s2">&quot;_trips_with_income, _work_tours&quot;</span>
+</pre></div>
+</div>
 <p>Summarize expressions can make use of several convenience functions for binning numeric Pandas Series’ into quantiles, equal intervals, or manually-specified ranges. These functions are available in the local namespace used to evaluate summarize expressions (as well as for preprocessing the <code class="docutils literal notranslate"><span class="pre">trips_merged</span></code> table; see below), so they can be used directly in summary expressions. These functions include:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">quantiles</span></code>: Construct quantiles from a Series given a number of bins.</p></li>
@@ -627,7 +636,7 @@ However, panning and zooming on any one map object controls all maps on both sid
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.5.2.dev37+g8ca6741c8, documentation last updated Sep 17, 2026.<br/>
+ActivitySim 1.6.1.dev1+g46c9a91fc, documentation last updated Sep 30, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

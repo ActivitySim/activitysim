@@ -356,6 +356,7 @@
 <li class="toctree-l2"><a class="reference internal" href="trip_destination.html">Trip Destination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="work_from_home.html">Work from Home</a></li>
 <li class="toctree-l2"><a class="reference internal" href="work_location_choice.html">Work Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="park_and_ride_lot_choice.html">Park-and-Ride Lot Choice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tour_mode_choice.html">Tour Mode Choice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atwork_subtour_frequency.html">At-work Subtours Frequency</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atwork_subtour_destination.html">At-work Subtours Destination Choice</a></li>
@@ -458,6 +459,55 @@ This function is registered as an Inject step in the example Pipeline.</p>
 </ul>
 <p>This model generates only True or False outcomes, and is structured as a binary
 logit model.</p>
+</section>
+<section id="park-and-ride-legs">
+<h2>Park-and-Ride Legs<a class="headerlink" href="#park-and-ride-legs" title="Permalink to this heading">#</a></h2>
+<p>Each entry in <code class="docutils literal notranslate"><span class="pre">MATRICES[].tables</span></code> can specify <code class="docutils literal notranslate"><span class="pre">origin</span></code> and <code class="docutils literal notranslate"><span class="pre">destination</span></code>
+columns; they default to <code class="docutils literal notranslate"><span class="pre">origin</span></code> and <code class="docutils literal notranslate"><span class="pre">destination</span></code>. This allows a trip using
+<a class="reference internal" href="park_and_ride_lot_choice.html#component-park-and-ride-lot-choice"><span class="std std-ref">Park-and-Ride Lot Choice</span></a> to contribute drive and transit legs
+through <code class="docutils literal notranslate"><span class="pre">pnr_zone_id</span></code>. Entries with the same <code class="docutils literal notranslate"><span class="pre">name</span></code> within one output file
+accumulate into the same OMX matrix.</p>
+<p>For example, the following fragment routes outbound drive access to the lot and
+outbound transit from the lot to the destination, and adds them to the existing
+auto and transit output demand matrices:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">MATRICES</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">file_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">trip_matrices.omx</span>
+<span class="w">    </span><span class="nt">tables</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">auto</span>
+<span class="w">        </span><span class="nt">data_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sov_auto</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transit</span>
+<span class="w">        </span><span class="nt">data_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">walk_transit</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">auto</span>
+<span class="w">        </span><span class="nt">data_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pnr_outbound</span>
+<span class="w">        </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">origin</span>
+<span class="w">        </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pnr_zone_id</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transit</span>
+<span class="w">        </span><span class="nt">data_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pnr_outbound</span>
+<span class="w">        </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pnr_zone_id</span>
+<span class="w">        </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">destination</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">auto</span>
+<span class="w">        </span><span class="nt">data_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pnr_inbound</span>
+<span class="w">        </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pnr_zone_id</span>
+<span class="w">        </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">destination</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transit</span>
+<span class="w">        </span><span class="nt">data_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pnr_inbound</span>
+<span class="w">        </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">origin</span>
+<span class="w">        </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pnr_zone_id</span>
+</pre></div>
+</div>
+<p>Before writing matrices, use the <code class="docutils literal notranslate"><span class="pre">preprocessor</span></code> to map the final tour lot onto
+the trips table by <code class="docutils literal notranslate"><span class="pre">tour_id</span></code> and create the data fields to aggregate. In this
+example, <code class="docutils literal notranslate"><span class="pre">pnr_outbound</span></code> is a count or weight for the applicable outbound
+park-and-ride trips and zero for other trips. It must check actual mode use
+and a valid lot, since a candidate lot alone does not imply park-and-ride use.
+Create corresponding inbound fields and entries for destination-side origin
+to lot (transit), then lot to home-side destination (auto). Implementations
+with intermediate stops must define which trips use each portion of the path.</p>
+<p>These column names are illustrative, not automatically generated fields. The
+writer does not split trips automatically. Supply endpoint columns in a
+consistent zone system suitable for the output domain; for two-zone outputs,
+land-use <code class="docutils literal notranslate"><span class="pre">TAZ</span></code> mappings are used when conversion is needed. Household expansion
+weights apply to these entries as they do to other matrices.</p>
 </section>
 <section id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">#</a></h2>
@@ -581,6 +631,7 @@ tazs.</p>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#structure">Structure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#park-and-ride-legs">Park-and-Ride Legs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_matrices.WriteTripMatricesSettings"><code class="docutils literal notranslate"><span class="pre">WriteTripMatricesSettings</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.models.trip_matrices.WriteTripMatricesSettings.CONSTANTS"><code class="docutils literal notranslate"><span class="pre">WriteTripMatricesSettings.CONSTANTS</span></code></a></li>
@@ -632,7 +683,7 @@ tazs.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.6.1.dev1+g46c9a91fc, documentation last updated Sep 30, 2026.<br/>
+ActivitySim 1.6.1.dev2+ge44be4dc2, documentation last updated Sep 30, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

@@ -164,10 +164,14 @@ jobs:
   builtin_regional_models:
     needs: foundation
     env:
-      python-version: "3.11"
+      UV_PYTHON: ${{ matrix.python-version }}
       label: win-64
     strategy:
       matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
         region:
           - prototype_mtc
           - placeholder_psrc
@@ -179,7 +183,7 @@ jobs:
     defaults:
       run:
         shell: pwsh
-    name: ${{ matrix.region }}
+    name: ${{ matrix.region }}-py${{ matrix.python-version }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -194,7 +198,7 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install activitysim
         run: |

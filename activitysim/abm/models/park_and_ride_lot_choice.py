@@ -184,6 +184,9 @@ def run_park_and_ride_lot_choice(
     model_settings_file_name: str = "park_and_ride_lot_choice.yaml",
     pnr_capacity_cls: ParkAndRideCapacity | None = None,
     trace_label: str = "park_and_ride_lot_choice",
+    chunk_size: int | None = None,
+    explicit_chunk_size: float | None = None,
+    chooser_index_multiplier: int | None = None,
 ) -> pd.Series:
     """
     Run the park-and-ride lot choice model.
@@ -219,7 +222,7 @@ def run_park_and_ride_lot_choice(
         pnr_alts["pnr_lot_full"] = 0
 
     original_index = None
-    if not choosers.index.is_unique:
+    if chooser_index_multiplier is not None or not choosers.index.is_unique:
         # non-unique index will crash interaction_simulate
         # so we need to reset the index and add it to ActivitySim's rng
         # this happens while the disaggregate accessibility model is running pnr lot choice
@@ -227,9 +230,13 @@ def run_park_and_ride_lot_choice(
         oi_name = original_index.name
         oi_name = oi_name if oi_name else "index"
         choosers = choosers.reset_index(drop=False)
-        idx_multiplier = choosers.groupby(oi_name).size().max()
-        # round to the nearest 10's place
-        idx_multiplier = int(np.ceil(idx_multiplier / 10.0) * 10)
+        # A logsum caller supplies the full segment's multiplier. Use it even
+        # when this chunk happens to have unique indices, so all chunks use the
+        # same synthetic RNG channel and keys as the unchunked segment.
+        idx_multiplier = chooser_index_multiplier
+        if idx_multiplier is None:
+            idx_multiplier = choosers.groupby(oi_name).size().max()
+            idx_multiplier = int(np.ceil(idx_multiplier / 10.0) * 10)
         choosers.index = (
             original_index * idx_multiplier + choosers.groupby(oi_name).cumcount()
         )
@@ -347,7 +354,12 @@ def run_park_and_ride_lot_choice(
         trace_label=trace_label,
         trace_choice_name=trace_label,
         estimator=estimator,
-        explicit_chunk_size=model_settings.explicit_chunk,
+        chunk_size=chunk_size,
+        explicit_chunk_size=(
+            model_settings.explicit_chunk
+            if explicit_chunk_size is None
+            else explicit_chunk_size
+        ),
         compute_settings=model_settings.compute_settings,
     )
 

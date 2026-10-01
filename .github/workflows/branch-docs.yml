@@ -23,17 +23,17 @@ jobs:
         with:
           fetch-depth: 0  # get all tags, lets setuptools_scm do its thing
 
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.UV_PYTHON }}
+
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
           version: "0.12.21"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
-
-      - name: "Set up Python"
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.UV_PYTHON }}
 
       - name: Install activitysim
         run: |

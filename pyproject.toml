@@ -29,6 +29,7 @@ dependencies = [
     "sparse",
     "tables >= 3.9",  # pytables is tables in pypi
     "xarray >= 2024.05",
+    "zarr>=2,<3"
 ]
 readme = "README.md"
 # Python 3.14 is blocked by Sharrow 2.16.2 using the removed ast.Str API.
@@ -151,7 +152,6 @@ dev = [
     "sphinx-argparse==0.4",
     "xlsxwriter==3.2.5",
     "xmle",
-    "zarr>=2,<3",
     "zstandard"
 ]
 

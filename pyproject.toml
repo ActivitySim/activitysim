@@ -132,7 +132,7 @@ dev = [
     "pycodestyle",
     "pydata-sphinx-theme",
     "pydot>=4.0.1",
-    "pyinstrument==4.4",
+    "pyinstrument>=4.7.2",
     "pytest>=8.4.2",
     "pytest-cov",
     "pytest-regressions",

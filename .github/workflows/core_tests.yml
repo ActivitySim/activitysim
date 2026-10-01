@@ -13,6 +13,7 @@ on:
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
+  UV_PYTHON: "3.11"
 
 jobs:
   foundation:
@@ -234,7 +235,6 @@ jobs:
   external_regional_models:
     needs: foundation
     env:
-      python-version: "3.11"
       label: win-64
     strategy:
       matrix:
@@ -267,7 +267,7 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
 
       - name: Install activitysim
         run: |
@@ -288,7 +288,6 @@ jobs:
   random_seed_generation:
     needs: foundation
     env:
-      python-version: "3.11"
       label: win-64
     defaults:
       run:
@@ -309,7 +308,7 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
 
       - name: Install activitysim
         run: |
@@ -322,12 +321,18 @@ jobs:
   estimation_mode:
     needs: foundation
     env:
-      python-version: "3.11"
-      label: win-64
+      UV_PYTHON: ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
     defaults:
       run:
         shell: pwsh
-    name: Estimation Mode Unit Tests
+    name: Estimation Mode Unit Tests py${{ matrix.python-version }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -342,7 +347,7 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
 
       - name: Install activitysim
         run: |
@@ -355,12 +360,18 @@ jobs:
   estimation_notebooks:
     needs: foundation
     env:
-      python-version: "3.11"
-      label: win-64
+      UV_PYTHON: ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
     defaults:
       run:
         shell: pwsh
-    name: Estimation Notebooks Test
+    name: Estimation Notebooks Test py${{ matrix.python-version }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -368,7 +379,7 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -399,12 +410,18 @@ jobs:
   estimation_edb_creation:
     needs: foundation
     env:
-      python-version: "3.11"
-      label: win-64
+      UV_PYTHON: ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
     defaults:
       run:
         shell: pwsh
-    name: estimation_edb_creation_test
+    name: estimation_edb_creation_test py${{ matrix.python-version }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -419,7 +436,7 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
 
       - name: Install activitysim
         run: |
@@ -432,12 +449,18 @@ jobs:
   expression-profiling:
     needs: foundation
     env:
-      python-version: "3.11"
-      label: win-64
+      UV_PYTHON: ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
     defaults:
       run:
         shell: pwsh
-    name: Expression Profiling Tests
+    name: Expression Profiling Tests py${{ matrix.python-version }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -452,7 +475,7 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
 
       - name: Install activitysim
         run: |
@@ -485,7 +508,7 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
       - name: Install activitysim
         run: |
           uv sync --locked

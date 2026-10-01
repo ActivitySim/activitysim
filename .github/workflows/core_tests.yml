@@ -38,7 +38,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.7.12"
+          version: "0.12.21"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -123,7 +123,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.7.12"
+          version: "0.12.21"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -192,7 +192,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.7.12"
+          version: "0.12.21"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -283,7 +283,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.7.12"
+          version: "0.12.21"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -324,7 +324,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.7.12"
+          version: "0.12.21"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -363,7 +363,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.7.12"
+          version: "0.12.21"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -407,7 +407,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.7.12"
+          version: "0.12.21"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -452,7 +452,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.7.12"
+          version: "0.12.21"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -491,7 +491,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.7.12"
+          version: "0.12.21"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -525,7 +525,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.7.12"
+          version: "0.12.21"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
       - name: "Set up Python"

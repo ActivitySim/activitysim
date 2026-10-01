@@ -235,15 +235,38 @@ jobs:
   external_regional_models:
     needs: foundation
     env:
+      UV_PYTHON: ${{ matrix.python-version }}
       label: win-64
     strategy:
       matrix:
         include:
           - region: Standard 1-Zone Example (MTC)
+            python-version: "3.11"
+            region-org: ActivitySim
+            region-repo: activitysim-prototype-mtc
+            region-branch: extended
+          - region: Standard 1-Zone Example (MTC)
+            python-version: "3.12"
+            region-org: ActivitySim
+            region-repo: activitysim-prototype-mtc
+            region-branch: extended
+          - region: Standard 1-Zone Example (MTC)
+            python-version: "3.13"
             region-org: ActivitySim
             region-repo: activitysim-prototype-mtc
             region-branch: extended
           - region: Standard 2-Zone Example (SANDAG)
+            python-version: "3.11"
+            region-org: ActivitySim
+            region-repo: sandag-abm3-example
+            region-branch: main
+          - region: Standard 2-Zone Example (SANDAG)
+            python-version: "3.12"
+            region-org: ActivitySim
+            region-repo: sandag-abm3-example
+            region-branch: main
+          - region: Standard 2-Zone Example (SANDAG)
+            python-version: "3.13"
             region-org: ActivitySim
             region-repo: sandag-abm3-example
             region-branch: main
@@ -251,7 +274,7 @@ jobs:
     defaults:
       run:
         shell: pwsh
-    name: ${{ matrix.region }}
+    name: ${{ matrix.region }}-py${{ matrix.python-version }}
     runs-on: windows-latest
     steps:
       - name: Checkout ActivitySim

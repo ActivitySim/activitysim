@@ -12,6 +12,7 @@ from activitysim.abm.models.location_choice import run_location_choice
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core import los, workflow
 from activitysim.core.configuration.logit import TourLocationComponentSettings
+from activitysim.core.exceptions import SystemConfigurationError
 
 LAND_USE_FIELDS = [
     "e01_nrm",
@@ -333,6 +334,9 @@ def persons() -> pd.DataFrame:
         }
     )
 
+    persons["school_segment_string"] = persons["school_segment"].astype(str)
+    persons["school_segment_string_99"] = "99"
+
     return persons
 
 
@@ -570,6 +574,114 @@ def test_shadow_pricing_simulate(state, model_settings, network_los):
                 choices_df.index
             ),
         )
+
+
+def test_shadow_pricing_simulate_custom_segment(state, model_settings, network_los):
+    """Run simulation shadow pricing with string-valued chooser segments."""
+    segment_ids = {
+        "university": "3",
+        "highschool": "2",
+        "gradeschool": "1",
+    }
+    custom_model_settings = model_settings.model_copy(
+        update={
+            "CHOOSER_SEGMENT_COLUMN_NAME": "school_segment_string",
+            "SEGMENT_IDS": segment_ids,
+        }
+    )
+    custom_model_settings.LOGSUM_SETTINGS = None
+
+    spc = shadow_pricing.load_shadow_price_calculator(state, custom_model_settings)
+
+    max_iterations = 5
+    chooser_segment_column = "school_segment_string"
+    save_sample_df = choices_df = None
+    persons_merged = state.get_dataframe("persons_merged")
+
+    for iteration in range(1, max_iterations + 1):
+        old_shadow_prices = spc.shadow_prices["highschool"].values
+        persons_merged_df_ = persons_merged.copy()
+
+        if spc.use_shadow_pricing and iteration > 1:
+            spc.update_shadow_prices(state)
+
+            if spc.shadow_settings.SHADOW_PRICE_METHOD == "simulation":
+                persons_merged_df_ = persons_merged_df_[
+                    persons_merged_df_.index.isin(spc.sampled_persons.index)
+                ].sort_index()
+
+        choices_df_, save_sample_df = run_location_choice(
+            state,
+            persons_merged_df_,
+            network_los,
+            shadow_price_calculator=spc,
+            want_logsums=False,
+            want_sample_table=False,
+            estimator=None,
+            model_settings=custom_model_settings,
+            chunk_size=0,
+            chunk_tag="school_location_string_segment",
+            trace_label=f"school_location_string_segment_{iteration}",
+        )
+
+        if spc.use_shadow_pricing:
+            if (
+                spc.shadow_settings.SHADOW_PRICE_METHOD == "simulation"
+                and iteration > 1
+            ):
+                if len(choices_df_) != 0:
+                    choices_df = pd.concat([choices_df, choices_df_], axis=0)
+                    choices_df_index = choices_df_.index.name
+                    choices_df = choices_df.reset_index()
+                    choices_df = choices_df.drop_duplicates(
+                        subset=[choices_df_index], keep="last"
+                    )
+                    choices_df = choices_df.set_index(choices_df_index).sort_index()
+            else:
+                choices_df = choices_df_.copy()
+
+        new_shadow_prices = spc.shadow_prices["highschool"].values
+        assert not any((old_shadow_prices == -999) & (new_shadow_prices != -999))
+        check_shadow_prices(spc, iteration)
+
+        spc.set_choices(
+            choices=choices_df["choice"],
+            segment_ids=persons_merged[chooser_segment_column].reindex(
+                choices_df.index
+            ),
+        )
+
+
+def test_shadow_pricing_simulate_segment_values_do_not_overlap(state, model_settings):
+    custom_segment_column = "school_segment_string_99"
+    custom_model_settings = model_settings.model_copy(
+        update={
+            "CHOOSER_SEGMENT_COLUMN_NAME": custom_segment_column,
+            "SEGMENT_IDS": {
+                "university": "3",
+                "highschool": "2",
+                "gradeschool": "1",
+            },
+        }
+    )
+    persons_merged = state.get_dataframe("persons_merged")
+    state.settings.use_shadow_pricing = True
+
+    try:
+        spc = shadow_pricing.load_shadow_price_calculator(state, custom_model_settings)
+        choices = pd.Series(22660, index=persons_merged.index, name="choice", dtype=int)
+        spc.set_choices(choices, persons_merged[custom_segment_column])
+
+        with pytest.raises(SystemConfigurationError) as error:
+            spc.update_shadow_prices(state)
+
+        assert str(error.value) == (
+            "No overlap between SEGMENT_IDS values (['1', '2', '3']) and "
+            "persons_merged['school_segment_string_99'] values for school "
+            "simulation shadow pricing"
+        )
+    finally:
+        persons_merged.pop(custom_segment_column)
 
 
 def test_shadow_pricing_dedicated_rng_channel_eet_only(

@@ -14,7 +14,7 @@ import time
 
 import numpy as np
 
-from activitysim.core import chunk, config, mem, timing, tracing, workflow
+from activitysim.core import calibration, chunk, config, mem, timing, tracing, workflow
 from activitysim.core.configuration import FileSystem, Settings
 from activitysim.core.run_id import RunId
 
@@ -336,8 +336,13 @@ def run(args):
     resume_after = state.settings.resume_after
 
     # cleanup if not resuming
-    if not resume_after:
+    preserve_calibration_outputs = calibration.calibration_run_should_preserve_outputs(
+        state
+    )
+    if not resume_after and not preserve_calibration_outputs:
         cleanup_output_files(state)
+    elif preserve_calibration_outputs:
+        logger.info("preserving output files based on calibration restart preflight")
     elif state.settings.cleanup_trace_files_on_resume:
         tracing.delete_trace_files(state)
 
@@ -418,7 +423,56 @@ def run(args):
         check_model_settings(state, extension_settings=extension_checker_settings)
 
     try:
-        if state.settings.multiprocess:
+        if calibration.calibration_enabled(state):
+            logger.info("evaluate calibration workflow")
+
+            calibration_result = calibration.run_calibration_loop(
+                state=state,
+                models=state.settings.models,
+            )
+
+            if calibration_result.model_system_ran:
+                logger.info(
+                    "calibration workflow complete converged=%s "
+                    "completed_global_iterations=%s configured_global_iterations=%s",
+                    calibration_result.converged,
+                    calibration_result.completed_global_iterations,
+                    calibration_result.configured_global_iterations,
+                )
+            else:
+                if (
+                    calibration_result.completed_global_iterations
+                    >= calibration_result.configured_global_iterations
+                ):
+                    logger.info(
+                        "calibration workflow skipped: no model system steps were run "
+                        "because completed_global_iterations=%s has reached the "
+                        "configured run.global_iterations=%s limit. Increase "
+                        "run.global_iterations to request additional iterations, or "
+                        "remove output/calibration/calibration_progress.json to start a fresh run.",
+                        calibration_result.completed_global_iterations,
+                        calibration_result.configured_global_iterations,
+                    )
+                else:
+                    logger.info(
+                        "calibration workflow skipped: no model system steps were run "
+                        "because the prior calibration run is already complete "
+                        "(completed_global_iterations=%s, run.global_iterations=%s). "
+                        "Change run.global_iterations to a new value above the completed "
+                        "count to request additional iterations, or remove "
+                        "output/calibration/calibration_progress.json to start a fresh run.",
+                        calibration_result.completed_global_iterations,
+                        calibration_result.configured_global_iterations,
+                    )
+
+            if state.settings.cleanup_pipeline_after_run:
+                state.checkpoint.cleanup()
+            else:
+                state.checkpoint.close_store()
+
+            mem.log_global_hwm()
+
+        elif state.settings.multiprocess:
             logger.info("run multiprocess simulation")
 
             from activitysim.core import mp_tasks

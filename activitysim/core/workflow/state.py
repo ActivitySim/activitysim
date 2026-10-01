@@ -1185,6 +1185,9 @@ class State:
         df : pandas.DataFrame
         """
 
+        if checkpoint_name is None and table_name in self._context:
+            return self._context[table_name]
+
         if table_name not in self.checkpoint.last_checkpoint and self.is_table(
             table_name
         ):

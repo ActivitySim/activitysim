@@ -7,7 +7,7 @@ ActivitySim 1.2 offers two internal frameworks for managing skim data.
   framework, that stores all skim data in one large omnibus array, with
   various offset lookups and tools to access values.
 - [`SkimDataset`](activitysim.core.skim_dataset.SkimDataset), an
-  [xarray.Dataset]() based framework, which mimics the
+  [xarray.Dataset](xarray.Dataset) based framework, which mimics the
   [`SkimDict`](activitysim.core.skim_dictionary.SkimDict) interface, and
   adds a number of features optimized specifically for use with `sharrow`.
   This framework is automatically used when sharrow is enabled, and there

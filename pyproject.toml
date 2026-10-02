@@ -137,19 +137,18 @@ dev = [
     "pytest-cov",
     "pytest-regressions",
     "requests>=2.32.3",
-    "rich==13.3",
+    "rich>=13.3",
     "ruby",  # for benchmarking pre-commit hooks
     "ruff",
     "setuptools_scm",
     "simwrapper > 1.7",
     "snakeviz",  # for profiling
-    "sphinx==6.1",
-    "sphinx-argparse",
+    "sphinx>=6.1,<9",  # sphinx-autosummary-accessors breaks on Sphinx 9
+    "sphinx-argparse>=0.4",
     "sphinx-autosummary-accessors",
     "sphinx-copybutton",
+    "sphinx-design",
     "sphinx-remove-toctrees",
-    "sphinx_rtd_theme==1.2",
-    "sphinx-argparse==0.4",
     "xlsxwriter==3.2.5",
     "xmle",
     "zstandard"

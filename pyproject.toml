@@ -149,7 +149,7 @@ dev = [
     "sphinx-copybutton",
     "sphinx-design",
     "sphinx-remove-toctrees",
-    "xlsxwriter==3.2.5",
+    "xlsxwriter>=3.2.5",
     "xmle",
     "zstandard"
 ]

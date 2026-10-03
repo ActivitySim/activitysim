@@ -82,6 +82,9 @@ class ParkAndRideLotChoiceSettings(LogitComponentSettings, extra="forbid"):
     TRACE_PNR_CAPACITIES_PER_ITERATION: bool = True
     """If True, output park-and-ride lot occupancy at each iteration to the trace folder."""
 
+    ALLOW_ZERO_PROBS: bool = False
+    """If True, return -1 when a chooser has no lot with positive probability."""
+
 
 def filter_chooser_to_transit_accessible_destinations(
     state: workflow.State,
@@ -205,6 +208,12 @@ def run_park_and_ride_lot_choice(
 
     pnr_alts = land_use[land_use[model_settings.LANDUSE_PNR_SPACES_COLUMN] > 0]
     pnr_alts["pnr_zone_id"] = pnr_alts.index.values
+
+    if pnr_alts.empty and model_settings.ALLOW_ZERO_PROBS:
+        logger.info(
+            "No park-and-ride lots are available. Returning -1 for all choosers."
+        )
+        return pd.Series(data=-1, index=choosers.index)
 
     # if we are running with capacitated pnr lots, we need to flag the lots that are over-capacitated
     if pnr_capacity_cls is not None:
@@ -349,6 +358,8 @@ def run_park_and_ride_lot_choice(
         estimator=estimator,
         explicit_chunk_size=model_settings.explicit_chunk,
         compute_settings=model_settings.compute_settings,
+        allow_zero_probs=model_settings.ALLOW_ZERO_PROBS,
+        zero_prob_choice_val=-1,
     )
 
     choices = choices.reindex(choosers.index, fill_value=-1)

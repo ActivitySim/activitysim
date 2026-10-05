@@ -150,3 +150,60 @@ def test_summarize(initialize_pipeline: workflow.State, caplog):
         )
     )
     assert temporary_dataframe_deleted["deleted"].tolist() == [True]
+
+
+def test_summarize_drop_unused_columns(
+    initialize_pipeline: workflow.State, monkeypatch
+):
+    from activitysim.abm.models import summarize as summarize_module
+    from activitysim.abm.models.summarize import SummarizeSettings
+
+    state = initialize_pipeline
+    state.settings.duplicate_step_execution = "allow"
+    read_settings_file = SummarizeSettings.read_settings_file.__func__
+
+    column_counts = []
+    trim_unused_columns = summarize_module.trim_unused_columns
+
+    def recording_trim(state, model_settings, spec, *tables):
+        trimmed = trim_unused_columns(state, model_settings, spec, *tables)
+        column_counts.append(
+            [(len(a.columns), len(b.columns)) for a, b in zip(tables, trimmed)]
+        )
+        return trimmed
+
+    monkeypatch.setattr(summarize_module, "trim_unused_columns", recording_trim)
+
+    output_dirs = {}
+    for drop_unused in (False, True):
+
+        def patched_read_settings_file(cls, *args, drop_unused=drop_unused, **kwargs):
+            model_settings = read_settings_file(cls, *args, **kwargs)
+            model_settings.EXPORT_PIPELINE_TABLES = False
+            model_settings.DROP_UNUSED_COLUMNS = drop_unused
+            model_settings.OUTPUT = f"summarize_drop_{drop_unused}"
+            return model_settings
+
+        monkeypatch.setattr(
+            SummarizeSettings,
+            "read_settings_file",
+            classmethod(patched_read_settings_file),
+        )
+        state.run.summarize()
+        output_dirs[drop_unused] = Path(
+            state.get_output_file_path(f"summarize_drop_{drop_unused}")
+        )
+
+    # trimming is only invoked when enabled, and must actually remove columns
+    assert len(column_counts) == 1
+    assert all(after < before for before, after in column_counts[0])
+
+    full_files = sorted(p.name for p in output_dirs[False].glob("*.csv"))
+    assert full_files
+    assert full_files == sorted(p.name for p in output_dirs[True].glob("*.csv"))
+    for name in full_files:
+        pd.testing.assert_frame_equal(
+            pd.read_csv(output_dirs[False] / name),
+            pd.read_csv(output_dirs[True] / name),
+            obj=name,
+        )

@@ -341,7 +341,11 @@ def test_run_pnr_allows_zero_probabilities(
         {"pnr_spaces": [10, 10]}, index=pd.Index([1, 2], name="zone_id")
     )
     choosers = pd.DataFrame(
-        {"destination": [1, 5, 2], "home_zone_id": [3, 3, 3]},
+        {
+            "destination": [1, 5, 2],
+            "home_zone_id": [3, 3, 3],
+            "in_period": [1, 1, 1],
+        },
         index=pd.Index([100, 100, 102], name="tour_id"),
     )
     _write_model_files(

@@ -65,7 +65,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.6.1" />
-    <meta name="docbuild:last-update" content="Sep 30, 2026"/>
+    <meta name="docbuild:last-update" content="Oct 08, 2026"/>
   </head>
   
   
@@ -452,28 +452,20 @@
 <h1>State.import_extensions<a class="headerlink" href="#state-import-extensions" title="Permalink to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.workflow.State.import_extensions">
-<span class="sig-prename descclassname"><span class="pre">State.</span></span><span class="sig-name descname"><span class="pre">import_extensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">append</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#activitysim.core.workflow.State.import_extensions" title="Permalink to this definition">#</a></dt>
-<dd><p>Import one or more extension modules for use with this model.</p>
-<p>This method isn’t really necessary for single-process model
-runs, as extension modules can be imported in the normal manner
-for python.  The real reason this methid is here is to support
-multiprocessing.  The names of extension modules imported with
-this method will be saved and passed through to subtask workers,
-which will also import the extensions and make them available as
-model steps within the workers.</p>
+<span class="sig-prename descclassname"><span class="pre">State.</span></span><span class="sig-name descname"><span class="pre">import_extensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><span class="pre">PathLike</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><span class="pre">PathLike</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">append</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#activitysim.core.workflow.State.import_extensions" title="Permalink to this definition">#</a></dt>
+<dd><p>Import extensions and register their locations for multiprocessing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>ext</strong><span class="classifier">str | Iterable[str]</span></dt><dd><p>Names of extension modules to import.  They should be module
-or package names that can be imported from this state’s working
-directory.  If they need to be imported from elsewhere, the
-name should be the relative path to the extension module from
-the working directory.</p>
+<dt><strong>ext</strong><span class="classifier">str, path-like, or iterable of these</span></dt><dd><p>Package paths or Python module names (including dotted names).
+Relative paths are resolved against this state’s working directory,
+or the current directory if no working directory is configured.
+For a single Python file, use the module name without <code class="docutils literal notranslate"><span class="pre">.py</span></code>.
+Absolute import locations are saved so workers can load the same
+extensions even if their current directory differs from the caller’s.</p>
 </dd>
-<dt><strong>append</strong><span class="classifier">bool, default True</span></dt><dd><p>Extension names will be appended to the “imported_extensions” list
-in this State’s context (creating it if needed).  Setting this
-argument to false will remove references to any existing extensions,
-before adding this new extension to the list.</p>
+<dt><strong>append</strong><span class="classifier">bool, default True</span></dt><dd><p>Append to the registered extensions. If false, replace the list.
+This does not unload previously imported Python modules.</p>
 </dd>
 </dl>
 </dd>
@@ -565,7 +557,7 @@ before adding this new extension to the list.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.6.1.dev2+ge44be4dc2, documentation last updated Sep 30, 2026.<br/>
+ActivitySim 1.6.1.dev3+g26382c34d, documentation last updated Oct 08, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

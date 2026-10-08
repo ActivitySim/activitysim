@@ -420,14 +420,14 @@ class Runner(StateAccessor):
                     for k in INJECTABLES
                     if (value := self._obj.get_injectable(k, None)) is not None
                 }
-                
+
                 # ``run_id`` is initialized lazily by the tracing accessor and
                 # is not necessarily present as a top-level injectable when a
                 # caller constructs State programmatically. The CLI mirrors it
                 # explicitly in ``handle_standard_args``; do the equivalent
                 # here so ``State.run.all()`` works for multiprocessing too.
                 injectables["run_id"] = self._obj.tracing.run_id
-                
+
                 injectables["settings"] = self._obj.settings
                 # injectables["settings_package"] = state.settings.dict()
                 mp_tasks.run_multiprocess(self._obj, injectables)

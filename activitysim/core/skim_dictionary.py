@@ -242,6 +242,10 @@ class SkimDict:
             f"SkimDict.build_3d_skim_block_offset_table registered {len(self.skim_dim3)} 3d keys"
         )
 
+    def __contains__(self, key):
+        """Return whether a 2D skim or a specific time-period skim is available."""
+        return key in self.skim_info.block_offsets
+
     def _offset_mapper(self, state):
         """
         Return an OffsetMapper to set self.offset_mapper for use with skims

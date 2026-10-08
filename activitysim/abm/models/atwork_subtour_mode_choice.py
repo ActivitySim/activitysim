@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 
 from activitysim.abm.models.util.mode import run_tour_mode_choice_simulate
+from activitysim.abm.models.util.logsums import setup_skims
+from activitysim.abm.models.park_and_ride_lot_choice import run_park_and_ride_lot_choice
 from activitysim.core import config, estimation, expressions, los, tracing, workflow
 from activitysim.core.configuration.logit import TourModeComponentSettings
 from activitysim.core.util import assign_in_place
@@ -64,38 +66,34 @@ def atwork_subtour_mode_choice(
     constants = {}
     constants.update(model_settings.CONSTANTS)
 
-    skim_dict = network_los.get_default_skim_dict()
+    if model_settings.run_atwork_pnr_lot_choice:
+        subtours_merged["pnr_zone_id"] = run_park_and_ride_lot_choice(
+            state,
+            choosers=subtours_merged.copy(),
+            land_use=state.get_dataframe("land_use"),
+            network_los=network_los,
+            model_settings=None,
+            choosers_dest_col_name="destination",
+            choosers_origin_col_name="workplace_zone_id",
+            estimator=None,
+            pnr_capacity_cls=None,
+            trace_label=tracing.extend_trace_label(trace_label, "pnr_lot_choice"),
+        )
+    elif "pnr_zone_id" in subtours_merged.columns:
+        # if the pnr_zone_id column is present in the tours table, fill any
+        # missing values with -1 to indicate no park-and-ride lot choice
+        subtours_merged["pnr_zone_id"].fillna(-1, inplace=True)
 
     # setup skim keys
-    orig_col_name = "workplace_zone_id"
-    dest_col_name = "destination"
-    out_time_col_name = "start"
-    in_time_col_name = "end"
-    odt_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=orig_col_name, dest_key=dest_col_name, dim3_key="out_period"
+    skims = setup_skims(
+        network_los,
+        subtours_merged,
+        add_periods=False,
+        include_pnr_skims=model_settings.run_atwork_pnr_lot_choice,
+        orig_col_name="workplace_zone_id",
+        dest_col_name="destination",
+        trace_label=trace_label,
     )
-    dot_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=dest_col_name, dest_key=orig_col_name, dim3_key="in_period"
-    )
-    odr_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=orig_col_name, dest_key=dest_col_name, dim3_key="in_period"
-    )
-    dor_skim_stack_wrapper = skim_dict.wrap_3d(
-        orig_key=dest_col_name, dest_key=orig_col_name, dim3_key="out_period"
-    )
-    od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
-
-    skims = {
-        "odt_skims": odt_skim_stack_wrapper,
-        "dot_skims": dot_skim_stack_wrapper,
-        "odr_skims": odr_skim_stack_wrapper,
-        "dor_skims": dor_skim_stack_wrapper,
-        "od_skims": od_skim_stack_wrapper,
-        "orig_col_name": orig_col_name,
-        "dest_col_name": dest_col_name,
-        "out_time_col_name": out_time_col_name,
-        "in_time_col_name": in_time_col_name,
-    }
 
     estimator = estimation.manager.begin_estimation(state, "atwork_subtour_mode_choice")
     if estimator:
@@ -119,6 +117,8 @@ def atwork_subtour_mode_choice(
         trace_label=trace_label,
         trace_choice_name="tour_mode_choice",
     )
+    if "pnr_zone_id" in subtours_merged:
+        choices_df["pnr_zone_id"] = subtours_merged["pnr_zone_id"]
 
     if estimator:
         estimator.write_choices(choices_df[mode_column_name])

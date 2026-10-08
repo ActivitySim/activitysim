@@ -206,7 +206,9 @@ def write_data_dictionary(state: workflow.State) -> None:
     if txt_format:
         with open(state.get_output_file_path(txt_format), "w") as output_file:
             # get max schema column widths from omnibus table
-            col_width = {c: schema_df[c].str.len().max() + 2 for c in schema_df}
+            col_width = {
+                c: int(schema_df[c].str.len().fillna(0).max()) + 2 for c in schema_df
+            }
 
             for table_name in table_names:
                 info = schema.get(table_name, None)

@@ -84,6 +84,69 @@ def test_one_zone():
     )
 
 
+def test_one_zone_parquet():
+    # same as test_one_zone, but skims are stored in parquet format rather than omx,
+    # to confirm parquet skims are auto-detected and read correctly
+    state = add_canonical_dirs("configs_1z_parquet").load_settings()
+
+    network_los = los.Network_LOS(state)
+
+    assert network_los.setting("zone_system") == los.ONE_ZONE
+
+    assert "z1_taz_skims.parquet" in network_los.omx_file_names("taz")
+
+    network_los.load_data()
+
+    od_df = pd.DataFrame({"orig": [5, 23, 23, 23], "dest": [7, 20, 21, 22]})
+
+    skim_dict = network_los.get_default_skim_dict()
+
+    skims = skim_dict.wrap("orig", "dest")
+    skims.set_df(od_df)
+    pdt.assert_series_equal(
+        skims["DIST"], pd.Series([0.4, 2.55, 1.9, 0.62]).astype(np.float32)
+    )
+    pdt.assert_series_equal(
+        skims["DISTBIKE"], pd.Series([0.4, 2.55, 1.9, 0.62]).astype(np.float32)
+    )
+
+    skims = skim_dict.wrap("dest", "orig")
+    skims.set_df(od_df)
+    pdt.assert_series_equal(
+        skims["DIST"], pd.Series([0.46, 2.45, 1.89, 0.89]).astype(np.float32)
+    )
+
+
+def test_one_zone_parquet_multi_file():
+    # skims are split across two parquet files, and the second file's rows are
+    # shuffled (not row-major or column-major), to confirm that each parquet
+    # skim file is independently inspected for its own layout/zone ordering
+    state = add_canonical_dirs("configs_1z_parquet_multi").load_settings()
+
+    network_los = los.Network_LOS(state)
+
+    assert network_los.setting("zone_system") == los.ONE_ZONE
+
+    file_names = network_los.omx_file_names("taz")
+    assert "z1_taz_skims_part1.parquet" in file_names
+    assert "z1_taz_skims_part2.parquet" in file_names
+
+    network_los.load_data()
+
+    od_df = pd.DataFrame({"orig": [5, 23, 23, 23], "dest": [7, 20, 21, 22]})
+
+    skim_dict = network_los.get_default_skim_dict()
+
+    skims = skim_dict.wrap("orig", "dest")
+    skims.set_df(od_df)
+    pdt.assert_series_equal(
+        skims["DIST"], pd.Series([0.4, 2.55, 1.9, 0.62]).astype(np.float32)
+    )
+    pdt.assert_series_equal(
+        skims["DISTBIKE"], pd.Series([0.4, 2.55, 1.9, 0.62]).astype(np.float32)
+    )
+
+
 def test_two_zone():
     state = add_canonical_dirs("configs_2z").load_settings()
 

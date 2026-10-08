@@ -703,6 +703,7 @@ def drop_unused_columns(
     if locals_d:
         unique_variables_in_spec.add(locals_d.get("orig_col_name", None))
         unique_variables_in_spec.add(locals_d.get("dest_col_name", None))
+        unique_variables_in_spec.add(locals_d.get("pnr_lot_dest_col_name", None))
         if locals_d.get("timeframe") == "trip":
             orig_col_name = locals_d.get("ORIGIN", None)
             dest_col_name = locals_d.get("DESTINATION", None)

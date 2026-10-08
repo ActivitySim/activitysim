@@ -107,3 +107,8 @@ Description,Output,Expression
 # TAZ population density quintiles
 ,_taz_pop_dens,land_use.TOTPOP/land_use.TOTACRE
 ,taz_population_density_quintiles,"quantiles(_taz_pop_dens, 5, '{rank}').rename('pop_dens_quintile').reset_index()"
+
+# Delete a temporary dataframe (to save memory) and verify it is unavailable to later expressions
+,_temporary_dataframe,trips_merged[['number_of_participants']]
+,_del,_temporary_dataframe
+,temporary_dataframe_deleted,"pd.Series(['_temporary_dataframe' not in locals()], name='deleted')"

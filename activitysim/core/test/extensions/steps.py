@@ -58,3 +58,11 @@ def create_households(state: workflow.State) -> None:
     state.get_rn_generator().add_channel("households", df)
 
     state.tracing.register_traceable_table("households", df)
+
+
+@workflow.step
+def record_random_draw(state: workflow.State) -> None:
+    """Record one global RNG draw for runner stream-name tests."""
+    draws = list(state.get_injectable("recorded_random_draws", []))
+    draws.append(state.get_rn_generator().get_global_rng().rand())
+    state.add_injectable("recorded_random_draws", draws)

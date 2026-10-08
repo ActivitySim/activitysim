@@ -1,0 +1,114 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from pydantic import Field, model_validator
+
+from activitysim.core import workflow
+from activitysim.core.configuration import PydanticReadable
+from activitysim.core.configuration.base import PydanticBase
+
+CALIBRATION_SETTINGS_FILE_NAME = "calibration.yaml"
+
+
+class CalibrationRunSettings(PydanticBase, extra="forbid"):
+    """Run-control settings for calibration."""
+
+    calibrate_models: list[str]
+    global_iterations: int = Field(default=1, ge=1)
+    complete_steps: bool = False
+    # Deprecated compatibility setting retained so existing configurations
+    # continue to parse. Exact calibration restores supersede this setting.
+    invalidate_tables: list[str] | None = None
+
+    @model_validator(mode="after")
+    def validate_run_settings(self):
+        if not self.calibrate_models:
+            raise ValueError(
+                "calibration.run.calibrate_models must contain at least one model name"
+            )
+        duplicate_models = sorted(
+            {
+                model
+                for model in self.calibrate_models
+                if self.calibrate_models.count(model) > 1
+            }
+        )
+        if duplicate_models:
+            raise ValueError(
+                "calibration.run.calibrate_models contains duplicate model "
+                f"name(s): {duplicate_models}"
+            )
+        return self
+
+
+class CalibrationReportsSettings(PydanticBase, extra="forbid"):
+    """Reporting settings for a calibrated component."""
+
+    generic: bool = True
+    bespoke: str | None = None
+
+
+class CalibrationComponentSettings(PydanticBase, extra="forbid"):
+    """Settings for one calibratable model component."""
+
+    calibration_spec: str
+    model_settings_file: str | None = None
+    helper_module: str | None = None
+    submodel_max_iterations: int = Field(default=1, ge=1)
+    reports: CalibrationReportsSettings = CalibrationReportsSettings()
+
+
+class CalibrationConfig(PydanticReadable, extra="forbid"):
+    """Top-level calibration configuration."""
+
+    enable: bool = False
+    run: CalibrationRunSettings
+    model_settings: dict[str, CalibrationComponentSettings] = {}
+
+    @model_validator(mode="after")
+    def validate_model_settings(self):
+        """Validate that configured components are aligned with run settings."""
+        for component in self.run.calibrate_models:
+            if component not in self.model_settings:
+                raise ValueError(
+                    f"calibration model '{component}' is not in model_settings"
+                )
+
+        return self
+
+
+@dataclass
+class CalibrationComponentResult:
+    """Result details from calibrating one component."""
+
+    component: str
+    converged: bool
+    component_iterations: int
+
+
+@dataclass
+class CalibrationRunResult:
+    """Result details from a complete global calibration loop."""
+
+    converged: bool
+    completed_global_iterations: int
+    configured_global_iterations: int
+    model_system_ran: bool = True
+
+
+def read_calibration_settings(state: workflow.State) -> CalibrationConfig | None:
+    """Read and validate calibration settings if calibration.yaml exists."""
+    return CalibrationConfig.read_settings_file(
+        state.filesystem,
+        CALIBRATION_SETTINGS_FILE_NAME,
+        mandatory=False,
+    )
+
+
+def calibration_enabled(state: workflow.State) -> bool:
+    """Return True when calibration.yaml exists and is enabled."""
+    settings = read_calibration_settings(state)
+    return bool(settings and settings.enable)

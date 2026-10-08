@@ -4,24 +4,26 @@ from pandas import DataFrame
 from pydantic import BaseModel as PydanticBase
 from typing import Type, Optional
 
+from activitysim.core import config
+from activitysim.core.calibration.settings import (
+    CALIBRATION_SETTINGS_FILE_NAME,
+    CalibrationConfig,
+)
 from activitysim.core.configuration.base import PydanticReadable
-
-# import core settings
 from activitysim.core.configuration.logit import (
     LogitNestSpec,
     TourLocationComponentSettings,
     TourModeComponentSettings,
     TemplatedLogitComponentSettings,
 )
-from activitysim.core import config
 from activitysim.core.configuration.network import NetworkSettings
+from activitysim.core.exceptions import ModelConfigurationError
 from activitysim.core.workflow import State
 from activitysim.core.simulate import (
     eval_coefficients,
     eval_nest_coefficients,
     read_model_coefficient_template,
 )
-from activitysim.core.exceptions import ModelConfigurationError
 
 # import model settings
 from activitysim.abm.models.accessibility import AccessibilitySettings
@@ -636,6 +638,24 @@ def check_model_settings(
 
     # Collect all errors
     all_errors = []
+
+    # calibration.yaml is optional and is not itself a model step, so validate
+    # it explicitly using the same Pydantic/error-aggregation path as model
+    # settings files.
+    try:
+        CalibrationConfig.read_settings_file(
+            state.filesystem,
+            CALIBRATION_SETTINGS_FILE_NAME,
+            mandatory=False,
+        )
+    except Exception as error:
+        all_errors.append(
+            SettingsCheckerError(
+                "calibration",
+                error,
+                CALIBRATION_SETTINGS_FILE_NAME,
+            )
+        )
 
     # additional logging set up
     formatter = logging.Formatter(

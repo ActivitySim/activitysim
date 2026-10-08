@@ -13,29 +13,39 @@ on:
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
+  UV_PYTHON: "3.11"
 
 jobs:
   foundation:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
 
     defaults:
       run:
         shell: bash -l {0}
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
     name: linux-64-py${{ matrix.python-version }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.7.12"
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.21"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Install activitysim
         run: |
@@ -72,36 +82,55 @@ jobs:
     # completion before starting regional model tests
     needs: foundation
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-latest
             label: macOS
-            python-version: "3.10"
+            python-version: "3.11"
+
+          - os: macos-latest
+            label: macOS
+            python-version: "3.12"
+
+          - os: macos-latest
+            label: macOS
+            python-version: "3.13"
 
           - os: windows-latest
             label: win-64
-            python-version: "3.10"
+            python-version: "3.11"
+
+          - os: windows-latest
+            label: win-64
+            python-version: "3.12"
+
+          - os: windows-latest
+            label: win-64
+            python-version: "3.13"
 
     defaults:
       run:
         shell: bash -l {0}
 
-    name: ${{ matrix.label }}
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
+    name: ${{ matrix.label }}-py${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.7.12"
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.21"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Install activitysim
         run: |
@@ -136,10 +165,14 @@ jobs:
   builtin_regional_models:
     needs: foundation
     env:
-      python-version: "3.10"
+      UV_PYTHON: ${{ matrix.python-version }}
       label: win-64
     strategy:
       matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
         region:
           - prototype_mtc
           - placeholder_psrc
@@ -151,22 +184,22 @@ jobs:
     defaults:
       run:
         shell: pwsh
-    name: ${{ matrix.region }}
+    name: ${{ matrix.region }}-py${{ matrix.python-version }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.7.12"
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.21"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Install activitysim
         run: |
@@ -202,16 +235,38 @@ jobs:
   external_regional_models:
     needs: foundation
     env:
-      python-version: "3.10"
+      UV_PYTHON: ${{ matrix.python-version }}
       label: win-64
     strategy:
       matrix:
         include:
           - region: Standard 1-Zone Example (MTC)
+            python-version: "3.11"
+            region-org: ActivitySim
+            region-repo: activitysim-prototype-mtc
+            region-branch: extended
+          - region: Standard 1-Zone Example (MTC)
+            python-version: "3.12"
+            region-org: ActivitySim
+            region-repo: activitysim-prototype-mtc
+            region-branch: extended
+          - region: Standard 1-Zone Example (MTC)
+            python-version: "3.13"
             region-org: ActivitySim
             region-repo: activitysim-prototype-mtc
             region-branch: extended
           - region: Standard 2-Zone Example (SANDAG)
+            python-version: "3.11"
+            region-org: ActivitySim
+            region-repo: sandag-abm3-example
+            region-branch: main
+          - region: Standard 2-Zone Example (SANDAG)
+            python-version: "3.12"
+            region-org: ActivitySim
+            region-repo: sandag-abm3-example
+            region-branch: main
+          - region: Standard 2-Zone Example (SANDAG)
+            python-version: "3.13"
             region-org: ActivitySim
             region-repo: sandag-abm3-example
             region-branch: main
@@ -219,23 +274,23 @@ jobs:
     defaults:
       run:
         shell: pwsh
-    name: ${{ matrix.region }}
+    name: ${{ matrix.region }}-py${{ matrix.python-version }}
     runs-on: windows-latest
     steps:
       - name: Checkout ActivitySim
         uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.7.12"
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.21"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Install activitysim
         run: |
@@ -256,7 +311,6 @@ jobs:
   random_seed_generation:
     needs: foundation
     env:
-      python-version: "3.10"
       label: win-64
     defaults:
       run:
@@ -267,17 +321,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.7.12"
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.21"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Install activitysim
         run: |
@@ -290,27 +344,33 @@ jobs:
   estimation_mode:
     needs: foundation
     env:
-      python-version: "3.10"
-      label: win-64
+      UV_PYTHON: ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
     defaults:
       run:
         shell: pwsh
-    name: Estimation Mode Unit Tests
+    name: Estimation Mode Unit Tests py${{ matrix.python-version }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.7.12"
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.21"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Install activitysim
         run: |
@@ -323,12 +383,18 @@ jobs:
   estimation_notebooks:
     needs: foundation
     env:
-      python-version: "3.10"
-      label: win-64
+      UV_PYTHON: ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
     defaults:
       run:
         shell: pwsh
-    name: Estimation Notebooks Test
+    name: Estimation Notebooks Test py${{ matrix.python-version }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -336,12 +402,12 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.7.12"
+          version: "0.12.21"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -367,27 +433,33 @@ jobs:
   estimation_edb_creation:
     needs: foundation
     env:
-      python-version: "3.10"
-      label: win-64
+      UV_PYTHON: ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
     defaults:
       run:
         shell: pwsh
-    name: estimation_edb_creation_test
+    name: estimation_edb_creation_test py${{ matrix.python-version }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.7.12"
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.21"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Install activitysim
         run: |
@@ -400,27 +472,33 @@ jobs:
   expression-profiling:
     needs: foundation
     env:
-      python-version: "3.10"
-      label: win-64
+      UV_PYTHON: ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
     defaults:
       run:
         shell: pwsh
-    name: Expression Profiling Tests
+    name: Expression Profiling Tests py${{ matrix.python-version }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.7.12"
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.21"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Install activitysim
         run: |
@@ -444,16 +522,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # get all tags, lets setuptools_scm do its thing
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.7.12"
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.21"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
       - name: Install activitysim
         run: |
           uv sync --locked

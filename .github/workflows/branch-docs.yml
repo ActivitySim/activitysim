@@ -9,8 +9,10 @@ jobs:
   docbuild:
     if: "github.event_name == 'workflow_dispatch' || (contains(github.event.head_commit.message, '[makedocs]') && (github.repository_owner != 'ActivitySim') && (github.ref_name != 'develop'))"
     # develop branch docs are built at the end of the core test workflow, regardless of repository owner or commit message flags
-    name: ubuntu-latest py3.10
+    name: ubuntu-latest py3.11
     runs-on: ubuntu-latest
+    env:
+      UV_PYTHON: "3.11"
     permissions:
       contents: write
     defaults:
@@ -21,17 +23,17 @@ jobs:
         with:
           fetch-depth: 0  # get all tags, lets setuptools_scm do its thing
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.7.12"
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.21"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Install activitysim
         run: |

@@ -52,6 +52,7 @@ names must be supplied for the implementing model.
    COEFFICIENTS: park_and_ride_lot_choice_coefficients.csv
    LANDUSE_PNR_SPACES_COLUMN: pnr_spaces
    LANDUSE_COL_FOR_PNR_ELIGIBLE_DEST: pnr_eligible_destination
+   ALLOW_ZERO_PROBS: true
    ITERATE_WITH_TOUR_MODE_CHOICE: false
    ```
 
@@ -75,6 +76,11 @@ column takes precedence; if neither is supplied, all destinations are eligible.
 This is a destination screen, so the utility specification must still handle
 unavailable paths for individual lot/destination pairs. Filtered-out tours
 receive `pnr_zone_id = -1`.
+
+Set `ALLOW_ZERO_PROBS: true` to return `pnr_zone_id = -1` when a tour has no
+lot with positive choice probability, including when no zones have positive
+park-and-ride spaces. The default is `false`. The mode-choice specification
+must make park-and-ride modes unavailable for tours with `pnr_zone_id == -1`.
 
 ### Skims and Utility Expressions
 

@@ -412,19 +412,22 @@ class Runner(StateAccessor):
                 from activitysim.cli.run import INJECTABLES
                 from activitysim.core import mp_tasks
 
+                # API callers need not define optional CLI injectables (such as
+                # cache_dir). Preserve the state's working directory as well:
+                # its config/data paths need not be relative to the process CWD.
+                injectables = {
+                    k: value
+                    for k in INJECTABLES
+                    if (value := self._obj.get_injectable(k, None)) is not None
+                }
+                
                 # ``run_id`` is initialized lazily by the tracing accessor and
                 # is not necessarily present as a top-level injectable when a
                 # caller constructs State programmatically. The CLI mirrors it
                 # explicitly in ``handle_standard_args``; do the equivalent
                 # here so ``State.run.all()`` works for multiprocessing too.
-                injectables = {
-                    key: (
-                        self._obj.tracing.run_id
-                        if key == "run_id"
-                        else self._obj.get_injectable(key)
-                    )
-                    for key in INJECTABLES
-                }
+                injectables["run_id"] = self._obj.tracing.run_id
+                
                 injectables["settings"] = self._obj.settings
                 # injectables["settings_package"] = state.settings.dict()
                 mp_tasks.run_multiprocess(self._obj, injectables)

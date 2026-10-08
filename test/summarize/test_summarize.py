@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 # import models is necessary to initalize the model steps
-from activitysim.abm import models
+from activitysim.abm import models  # noqa: F401
 from activitysim.core import los, workflow
 
 
@@ -18,12 +18,13 @@ def initialize_pipeline(
     tables: dict[str, str],
     initialize_network_los: bool,
     base_dir: Path,
+    tmp_path_factory: pytest.TempPathFactory,
 ) -> workflow.State:
     if base_dir is None:
         base_dir = Path("test").joinpath(module)
     configs_dir = base_dir.joinpath("configs")
     data_dir = base_dir.joinpath("data")
-    output_dir = base_dir.joinpath("output")
+    output_dir = tmp_path_factory.mktemp("summarize-output")
 
     state = (
         workflow.State()
@@ -50,7 +51,7 @@ def initialize_pipeline(
 
     # Add the dataframes to the pipeline
     state.checkpoint.restore()
-    state.checkpoint.add(module)
+    state.checkpoint.add("init")
     state.checkpoint.close_store()
 
     # By convention, this method needs to yield something
@@ -122,8 +123,6 @@ def test_summarize(initialize_pipeline: workflow.State, caplog):
     output_location = (
         model_settings["OUTPUT"] if "OUTPUT" in model_settings else "summaries"
     )
-    output_dir = state.get_output_file_path(output_location)
-
     # Check that households are counted correctly
     households_count = pd.read_csv(
         state.get_output_file_path(
@@ -143,3 +142,11 @@ def test_summarize(initialize_pipeline: workflow.State, caplog):
     assert int(trips_by_mode_count.BIKE.iloc[0]) == len(
         trips[trips.trip_mode == "BIKE"]
     )
+
+    # Check that _del removes temporary dataframes from the expression namespace
+    temporary_dataframe_deleted = pd.read_csv(
+        state.get_output_file_path(
+            os.path.join(output_location, "temporary_dataframe_deleted.csv")
+        )
+    )
+    assert temporary_dataframe_deleted["deleted"].tolist() == [True]

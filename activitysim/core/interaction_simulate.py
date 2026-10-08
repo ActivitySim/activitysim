@@ -993,6 +993,7 @@ def interaction_simulate(
     estimator=None,
     explicit_chunk_size=0,
     compute_settings: ComputeSettings | None = None,
+    chunk_size: int | None = None,
 ):
     """
     Run a simulation in the situation in which alternatives must
@@ -1032,6 +1033,9 @@ def interaction_simulate(
         when household tracing enabled. No tracing occurs if label is empty or None.
     trace_choice_name: str
         This is the column label to be used in trace file csv dump of choices
+    chunk_size : int, optional
+        Adaptive memory budget; zero disables inner chunking. Defaults to the
+        global setting when omitted.
     explicit_chunk_size : float, optional
         If > 0, specifies the chunk size to use when chunking the interaction
         simulation. If < 1, specifies the fraction of the total number of choosers.
@@ -1054,7 +1058,11 @@ def interaction_simulate(
         chunk_trace_label,
         chunk_sizer,
     ) in chunk.adaptive_chunked_choosers(
-        state, choosers, trace_label, explicit_chunk_size=explicit_chunk_size
+        state,
+        choosers,
+        trace_label,
+        explicit_chunk_size=explicit_chunk_size,
+        chunk_size=chunk_size,
     ):
         choices = _interaction_simulate(
             state,

@@ -15,10 +15,18 @@ from activitysim.abm.models.util.school_escort_tours_trips import (
     split_out_school_escorting_trips,
 )
 from activitysim.abm.models.util.trip import cleanup_failed_trips, failed_trip_cohorts
-from activitysim.core import chunk, config, estimation, expressions, tracing, workflow
+from activitysim.core import (
+    chunk,
+    config,
+    estimation,
+    expressions,
+    mem,
+    tracing,
+    workflow,
+)
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
-from activitysim.core.util import reindex
 from activitysim.core.exceptions import InvalidTravelError, PipelineError
+from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
 
@@ -521,6 +529,7 @@ def trip_scheduling(
         )
 
     trips_df = trips.copy()
+    original_trip_columns = trips.columns
 
     if state.is_table("school_escort_trips"):
         school_escort_trips = state.get_dataframe("school_escort_trips")
@@ -630,14 +639,36 @@ def trip_scheduling(
 
                 choices_list.append(choices)
 
-    trips_df = trips.copy()
-
     if state.is_table("school_escort_trips"):
+        # The working frame contains only non-school-escort trips, so rebuild
+        # the complete output frame as before. Release it first to avoid
+        # briefly retaining two full trip-table copies.
+        del trips_chunk, trips_df
+        mem.release_memory()
+        trips_df = trips.copy()
+
         # separate out school escorting trips to exclude them from the model and estimation data bundle
         trips_df, se_trips_df, full_trips_index = split_out_school_escorting_trips(
             trips_df, school_escort_trips
         )
         non_se_trips_df = trips_df
+    else:
+        # ``trips_df`` began as an exact copy of ``trips`` and scheduling only
+        # added working columns to this outer frame.  Reuse it instead of
+        # allocating a second complete copy of a potentially 30-million-row
+        # trip table merely to discard those columns.
+        temporary_columns = trips_df.columns.difference(original_trip_columns)
+        if len(temporary_columns):
+            trips_df.drop(columns=temporary_columns, inplace=True)
+
+        # Preserve the old reset-to-``trips`` semantics for the unlikely case
+        # where a caller supplied columns that trip scheduling also uses as
+        # scratch space.
+        overwritten_columns = original_trip_columns.intersection(
+            ["earliest", "latest", "tour_hour", "stop_num", "chunk_id"]
+        )
+        for column in overwritten_columns:
+            trips_df[column] = trips[column]
 
     choices = pd.concat(choices_list)
     choices = choices.reindex(trips_df.index)

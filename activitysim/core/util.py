@@ -692,7 +692,9 @@ def drop_unused_columns(
     pattern = r"[a-zA-Z_][a-zA-Z0-9_]*"
 
     unique_variables_in_spec = set(
-        spec.reset_index()["Expression"].apply(lambda x: re.findall(pattern, x)).sum()
+        spec.reset_index()["Expression"]
+        .apply(lambda x: re.findall(pattern, x) if isinstance(x, str) else [])
+        .sum()
     )
 
     unique_variables_in_spec |= set(additional_columns or [])

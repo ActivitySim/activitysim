@@ -32,6 +32,8 @@ from . import (
     school_escorting,
     stop_frequency,
     summarize,
+    telework_arrangement,
+    telework_duration,
     telecommute_frequency,
     telecommute_status,
     tour_mode_choice,

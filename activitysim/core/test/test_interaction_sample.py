@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import numpy as np
 import pandas as pd
 import pytest
+import sharrow as sh
 
 from activitysim.core import interaction_sample, workflow
 from activitysim.core.configuration.base import ComputeSettings
@@ -18,6 +19,67 @@ def state() -> workflow.State:
     state = workflow.State().default_settings()
     state.settings.check_for_variability = False
     return state
+
+
+@pytest.mark.parametrize("sample_method", [None, "eet", "inverse_cdf"])
+@pytest.mark.parametrize("all_failed", [False, True])
+@pytest.mark.parametrize("explicit_chunk_size", [0, 1])
+def test_interaction_sample_skips_underflowed_probs(
+    state, tmp_path, sample_method, all_failed, explicit_chunk_size
+):
+    (tmp_path / "configs").mkdir()
+    (tmp_path / "data").mkdir()
+    state.initialize_filesystem(working_dir=tmp_path, configs_dir=("configs",))
+    state.filesystem.sharrow_cache_dir = tmp_path / "sharrow-cache"
+    state.set("skim_dataset", sh.Dataset())
+    state.settings.sharrow = True
+    state.settings.chunk_training_mode = "explicit"
+    state.settings.skip_failed_choices = True
+    state.settings.use_explicit_error_terms = True
+    choosers = pd.DataFrame(
+        {
+            "household_id": [101, 102, 103],
+            # exp(-120) underflows in float32, but not in float64.
+            "utility": [-120.0 if all_failed else 0.0, -120.0, -120.0],
+        },
+        index=pd.Index([1, 2, 3], name="person_id"),
+    )
+    alternatives = pd.DataFrame(
+        {"alt_utility": [0.0, -1.0]},
+        index=pd.Index([10, 20], name="alt_id"),
+    )
+    spec = pd.DataFrame(
+        {"coefficient": [1.0, 1.0]},
+        index=pd.Index(["utility", "alt_utility"], name="Expression"),
+    )
+    state.rng().add_channel("person_id", choosers)
+    state.rng().begin_step("test_underflowed_probs")
+
+    sample = interaction_sample.interaction_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size=2,
+        alt_col_name="alt_id",
+        explicit_chunk_size=explicit_chunk_size,
+        compute_settings=ComputeSettings(sample_method=sample_method),
+        stable_alt_positions=np.array([0, 2]),
+        n_total_alts=3,
+    )
+
+    assert sample.index.name == "person_id"
+    assert set(sample.index) == (set() if all_failed else {1})
+    assert (sample["prob"] > 0).all()
+    assert sample["alt_id"].isin(alternatives.index).all()
+    assert (sample["pick_count"] > 0).all()
+    skipped_households = {
+        household_id
+        for ids in state.get("skipped_household_ids").values()
+        for household_id in ids
+    }
+    assert skipped_households == ({101, 102, 103} if all_failed else {102, 103})
+    assert state.get("num_skipped_households") == len(skipped_households)
 
 
 def test_interaction_sample_ignores_stable_positions_without_global_eet(

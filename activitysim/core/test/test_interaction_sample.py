@@ -39,8 +39,8 @@ def test_interaction_sample_skips_underflowed_probs(
     choosers = pd.DataFrame(
         {
             "household_id": [101, 102, 103],
-            # exp(-120) underflows in float32, but not in float64.
-            "utility": [-120.0 if all_failed else 0.0, -120.0, -120.0],
+            # at or below UTIL_MIN: no alternative is available, in any dtype
+            "utility": [-1000.0 if all_failed else 0.0, -1000.0, -1000.0],
         },
         index=pd.Index([1, 2, 3], name="person_id"),
     )

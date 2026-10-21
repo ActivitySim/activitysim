@@ -346,10 +346,7 @@ def _interaction_sample_simulate(
         )
 
         if allow_zero_probs:
-            zero_probs = (
-                utilities_df.sum(axis=1)
-                <= utilities_df.shape[1] * logit.UTIL_UNAVAILABLE
-            )
+            zero_probs = logit.no_available_alternatives(utilities_df)
             if zero_probs.any():
                 # copied from proabability below, fix when that gets fixed
                 # FIXME this is kind of gnarly, but we force choice of first alt

@@ -15,6 +15,7 @@ from activitysim.core import (
     config,
     estimation,
     expressions,
+    logit,
     los,
     simulate,
     tracing,
@@ -175,7 +176,9 @@ def _destination_sample(
 
     # remember person_id in chosen alts so we can merge with persons in subsequent steps
     # (broadcasts person_id onto all alternatives sharing the same tour_id index value)
-    choices[chooser_id_column] = choosers[chooser_id_column]
+    # reindex: assigning a Series to an empty sample would create rows for
+    # choosers whose sampling failed
+    choices[chooser_id_column] = choosers[chooser_id_column].reindex(choices.index)
 
     return choices
 
@@ -749,7 +752,7 @@ def run_destination_sample(
 
     # remember person_id in chosen alts so we can merge with persons in subsequent steps
     # (broadcasts person_id onto all alternatives sharing the same tour_id index value)
-    choices[chooser_id_column] = tours[chooser_id_column]
+    choices[chooser_id_column] = tours[chooser_id_column].reindex(choices.index)
 
     return choices
 
@@ -1026,6 +1029,19 @@ def run_tour_destination(
             chunk_size=state.settings.chunk_size,
             trace_label=tracing.extend_trace_label(segment_trace_label, "sample"),
         )
+
+        if state.settings.skip_failed_choices:
+            # Failed sampling choices have no alternatives for logsums or
+            # simulation. Record their households (the sample choosers carry no
+            # household_id) so add_table drops them with the rest of the household.
+            failed = ~choosers.index.isin(location_sample_df.index)
+            if failed.any():
+                logit.record_skipped_households(
+                    state, choosers.loc[failed, "household_id"], segment_trace_label
+                )
+                choosers = choosers[~failed]
+            if choosers.empty:
+                continue
 
         # - destination_logsums
         # if LOGSUM_SETTINGS is set to 'None', we skip this step

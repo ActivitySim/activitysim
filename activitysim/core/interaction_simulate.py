@@ -957,6 +957,13 @@ def _interaction_simulate(
     # tranche of this choosers alternatives created by cross join of alternatives and choosers
     # offsets is the offset into model_design df of first row of chooser alternatives
     offsets = np.arange(len(positions)) * sample_size
+
+    # make_choices marks failed choices with -99 when skip_failed_choices is
+    # enabled; clip so take() below cannot wrap into another chooser's
+    # alternatives (the failed chooser's household is skipped anyway)
+    if state.settings.skip_failed_choices:
+        positions = positions.clip(lower=0)
+
     # resulting Int64Index has one element per chooser row and is in same order as choosers
     choices = interaction_utilities.index.take(positions + offsets)
 

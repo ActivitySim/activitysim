@@ -1161,6 +1161,21 @@ def run_tour_od(
             ),
         )
 
+        if state.settings.skip_failed_choices:
+            # Failed sampling choices have no alternatives for logsums or
+            # simulation; record their households so add_table drops them.
+            failed = ~choosers.index.isin(od_sample_df.index)
+            if failed.any():
+                if "household_id" in choosers:
+                    logit.record_skipped_households(
+                        state,
+                        choosers.loc[failed, "household_id"],
+                        tracing.extend_trace_label(trace_label, segment_name),
+                    )
+                choosers = choosers[~failed]
+            if choosers.empty:
+                continue
+
         if model_settings.ORIG_FILTER == "original_MAZ > 0":
             pass
         elif model_settings.ORIG_FILTER == "external_TAZ > 0":

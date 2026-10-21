@@ -1247,6 +1247,13 @@ def run_tour_od(
 
     if len(choices_list) > 0:
         choices_df = pd.concat(choices_list)
+    else:
+        # every segment was empty, e.g. all of its choosers failed sampling
+        logger.warning("%s no choices", trace_label)
+        choices_df = pd.DataFrame(
+            columns=["choice", origin_col_name, model_settings.DEST_COL_NAME]
+            + (["logsum"] if want_logsums else [])
+        )
 
     if len(sample_list) > 0:
         save_sample_df = pd.concat(sample_list)

@@ -1877,3 +1877,42 @@ def test_alts_context_from_num_alts(
     assert ctx.min_alt_id == expected_min
     assert ctx.max_alt_id == expected_max
     assert ctx.n_alts_to_cover_max_id == expected_n_cover
+
+
+@pytest.mark.parametrize("dtype", [np.float32, np.float64])
+@pytest.mark.parametrize("num_alts", [1, 2, 15, 20, 24, 100])
+def test_no_available_alternatives_is_exact(dtype, num_alts):
+    """Rows are flagged exactly when every utility is at or below UTIL_MIN.
+
+    The row-sum comparison with num_alts * UTIL_UNAVAILABLE that this replaced
+    missed some float64 counts and nearly every float32 row.
+    """
+    utils = pd.DataFrame(np.full((3, num_alts), -1000.0, dtype=dtype))
+    utils.iloc[0, 0] = 0.0  # one available alternative
+    utils.iloc[1, :] = -650.0  # all low, but above UTIL_MIN
+    expected = [False, False, True]
+
+    assert logit.no_available_alternatives(utils).tolist() == expected
+    # also after validate_utils has replaced -1000 with UTIL_UNAVAILABLE
+    validated = logit.validate_utils(None, utils.copy(), allow_zero_probs=True)
+    assert logit.no_available_alternatives(validated).tolist() == expected
+
+
+def test_record_skipped_households_ignores_duplicates_and_missing_ids():
+    state = workflow.State().default_settings()
+    assert logit.skipped_household_ids(state) == set()
+
+    assert logit.record_skipped_households(state, [101, 102, None], "first") == 2
+    assert (
+        logit.record_skipped_households(
+            state, pd.Series([102.0, 103.0, np.nan]), "second"
+        )
+        == 3
+    )
+    assert logit.record_skipped_households(state, [], "third") == 3
+
+    assert logit.skipped_household_ids(state) == {101, 102, 103}
+    assert state.get("num_skipped_households") == 3
+    assert {
+        label: set(ids) for label, ids in state.get("skipped_household_ids").items()
+    } == {"first": {101, 102}, "second": {103}}

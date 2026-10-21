@@ -82,6 +82,116 @@ def test_interaction_sample_skips_underflowed_probs(
     assert state.get("num_skipped_households") == len(skipped_households)
 
 
+@pytest.fixture(scope="module")
+def sharrow_cache_dir(tmp_path_factory):
+    # shared so the flow for the spec below compiles once per module
+    return tmp_path_factory.mktemp("sharrow-cache")
+
+
+# Utility of every alternative of the two "poor" choosers. -120 is low but
+# available: exp() underflows only in float32. -1000 is at or below UTIL_MIN,
+# so no alternative is available in any dtype.
+LOW_UTILITY = -120.0
+UNAVAILABLE_UTILITY = -1000.0
+
+
+@pytest.mark.parametrize(
+    "utility", [LOW_UTILITY, UNAVAILABLE_UTILITY], ids=["low", "unavailable"]
+)
+@pytest.mark.parametrize(
+    "allow_zero_probs", [False, True], ids=["location", "trip_dest"]
+)
+@pytest.mark.parametrize("skip_failed_choices", [True, False], ids=["skip", "no_skip"])
+@pytest.mark.parametrize(
+    "sample_method, use_explicit_error_terms",
+    [("inverse_cdf", False), ("poisson", True)],
+    ids=["mnl", "eet"],
+)
+@pytest.mark.parametrize("sharrow", [False, True], ids=["float64", "float32"])
+def test_interaction_sample_zero_probability_outcomes(
+    request,
+    tmp_path,
+    sharrow_cache_dir,
+    sharrow,
+    sample_method,
+    use_explicit_error_terms,
+    skip_failed_choices,
+    allow_zero_probs,
+    utility,
+):
+    """Which choosers are sampled, skipped or dropped, by utility level.
+
+    Sharrow evaluates utilities as float32, plain evaluation as float64.
+    Overflow protection (the row shift) is on only when neither
+    skip_failed_choices nor allow_zero_probs turns it off.
+    """
+    unavailable = utility == UNAVAILABLE_UTILITY
+    shifted = not skip_failed_choices and not allow_zero_probs
+    if sharrow and not unavailable and not shifted:
+        request.applymarker(
+            pytest.mark.xfail(
+                strict=True,
+                reason="unshifted float32 exp() underflows below about -103, so "
+                "an available chooser fails (#1115, #1129)",
+            )
+        )
+
+    (tmp_path / "configs").mkdir()
+    (tmp_path / "data").mkdir()
+    state = workflow.State().default_settings()
+    state.initialize_filesystem(working_dir=tmp_path, configs_dir=("configs",))
+    state.filesystem.sharrow_cache_dir = sharrow_cache_dir
+    state.set("skim_dataset", sh.Dataset())
+    state.settings.check_for_variability = False
+    state.settings.sharrow = sharrow
+    state.settings.use_explicit_error_terms = use_explicit_error_terms
+    state.settings.skip_failed_choices = skip_failed_choices
+
+    choosers = pd.DataFrame(
+        {"household_id": [101, 102, 103], "utility": [0.0, utility, utility]},
+        index=pd.Index([1, 2, 3], name="person_id"),
+    )
+    alternatives = pd.DataFrame(
+        {"alt_utility": [0.0, -1.0]},
+        index=pd.Index([10, 20], name="alt_id"),
+    )
+    spec = pd.DataFrame(
+        {"coefficient": [1.0, 1.0]},
+        index=pd.Index(["utility", "alt_utility"], name="Expression"),
+    )
+    state.rng().add_channel("person_id", choosers)
+    state.rng().begin_step("test_zero_probability_outcomes")
+
+    sample = interaction_sample.interaction_sample(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size=2,
+        alt_col_name="alt_id",
+        allow_zero_probs=allow_zero_probs,
+        compute_settings=ComputeSettings(sample_method=sample_method),
+    )
+
+    if unavailable and not shifted:
+        # dropped from the sample; recorded as skipped only when it is a failure
+        expected_sampled = {1}
+        expected_skipped = set() if allow_zero_probs else {102, 103}
+    else:
+        # available choosers, or a forced choice under overflow protection
+        expected_sampled = {1, 2, 3}
+        expected_skipped = set()
+    assert set(sample.index) == expected_sampled
+    assert (sample["prob"] > 0).all()
+    assert sample["alt_id"].isin(alternatives.index).all()
+    skipped = {
+        household_id
+        for ids in state.get("skipped_household_ids", {}).values()
+        for household_id in ids
+    }
+    assert skipped == expected_skipped
+
+
 def test_interaction_sample_ignores_stable_positions_without_global_eet(
     state, monkeypatch
 ):

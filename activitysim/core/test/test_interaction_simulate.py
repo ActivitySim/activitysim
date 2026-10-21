@@ -277,3 +277,41 @@ def test_eval_interaction_utilities_locals_override_global_constants(tmp_path):
     )
 
     np.testing.assert_allclose(utilities.utility.to_numpy(), df.distance_km.to_numpy())
+
+
+def test_interaction_simulate_skips_failed_choice_within_own_alternatives(state):
+    """A chooser with no available alternative is skipped without a bad lookup.
+
+    make_choices marks the failed choice with -99; unclipped, take() wrapped
+    into another chooser's alternatives or raised IndexError for small chunks.
+    """
+    state.settings.skip_failed_choices = True
+    choosers = pd.DataFrame(
+        {"household_id": [101, 102], "chooser_ok": [1.0, 0.0]},
+        index=pd.Index([10, 11], name="person_id"),
+    )
+    alternatives = pd.DataFrame(
+        {"alt_attr": [0.0, 0.0]},
+        index=pd.Index([1, 2], name="alt_id"),
+    )
+    # chooser 11: every alternative at -1000, so all probabilities are zero
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["-1000 * (1 - chooser_ok)"], name="Expression"),
+    )
+    state.rng().set_base_seed(42)
+    state.rng().add_channel("person_id", choosers)
+    state.rng().begin_step("test_skips_failed_choice")
+
+    choices = interaction_simulate.interaction_simulate(
+        state, choosers, alternatives, spec, sample_size=2
+    )
+
+    assert choices.index.tolist() == [10, 11]
+    assert choices.isin(alternatives.index).all()
+    assert state.get("num_skipped_households", 0) == 1
+    assert {
+        household_id
+        for ids in state.get("skipped_household_ids").values()
+        for household_id in ids
+    } == {102}

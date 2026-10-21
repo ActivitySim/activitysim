@@ -156,3 +156,7 @@ dev = [
 
 [tool.uv]
 default-groups = ["dev"]
+
+# eMuhdra incident, see https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576
+required-version = ">=0.13.4"
+constraint-dependencies = ["certifi>=2026.10.19"]

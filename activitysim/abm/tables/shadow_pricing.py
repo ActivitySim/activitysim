@@ -6,11 +6,13 @@ import ctypes
 import logging
 import multiprocessing
 import time
+import warnings
 from collections import OrderedDict
 from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
+from pydantic import model_validator
 
 from activitysim.abm.tables.size_terms import size_terms as get_size_terms
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
@@ -127,6 +129,21 @@ class ShadowPriceSettings(PydanticReadable, extra="forbid"):
     school_segmentation_targets: dict[str, str] | None = None
 
     WRITE_ITERATION_CHOICES: bool = False
+
+    SEGMENT_TO_NAME: dict[str, str] | None = None
+    """Deprecated compatibility setting; chooser segmentation comes from model settings."""
+
+    @model_validator(mode="before")
+    @classmethod
+    def warn_deprecated_segment_to_name(cls, data: Any) -> Any:
+        if isinstance(data, dict) and "SEGMENT_TO_NAME" in data:
+            warnings.warn(
+                "SEGMENT_TO_NAME is deprecated and ignored; use "
+                "CHOOSER_SEGMENT_COLUMN_NAME in location choice settings instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return data
 
 
 class ShadowPriceCalculator:
@@ -867,18 +884,24 @@ class ShadowPriceCalculator:
                     f"for {self.model_selector} simulation shadow pricing"
                 )
 
+            if type(self.choices_synced) != pd.DataFrame:
+                self.choices_synced = self.choices_synced.to_frame()
+
             # Fail fast on obvious misconfiguration instead of silently sampling no one.
             segment_values = set(self.segment_ids.values())
-            chooser_values = set(persons_merged[segment_name].dropna().unique())
+            chooser_values = set(
+                persons_merged[segment_name]
+                .reindex(self.choices_synced.index)
+                .dropna()
+                .unique()
+            )
             if not segment_values.intersection(chooser_values):
                 raise SystemConfigurationError(
                     f"No overlap between SEGMENT_IDS values ({sorted(segment_values)}) and "
-                    f"persons_merged['{segment_name}'] values for {self.model_selector} "
+                    f"modeled chooser values in persons_merged['{segment_name}'] "
+                    f"for {self.model_selector} "
                     "simulation shadow pricing"
                 )
-
-            if type(self.choices_synced) != pd.DataFrame:
-                self.choices_synced = self.choices_synced.to_frame()
 
             choices_synced = self.choices_synced.merge(
                 persons_merged[segment_name],

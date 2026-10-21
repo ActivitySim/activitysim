@@ -652,7 +652,9 @@ def test_shadow_pricing_simulate_custom_segment(state, model_settings, network_l
         )
 
 
-def test_shadow_pricing_simulate_segment_values_do_not_overlap(state, model_settings):
+def test_shadow_pricing_simulate_segment_values_do_not_overlap(
+    state, model_settings, network_los
+):
     custom_segment_column = "school_segment_string_99"
     custom_model_settings = model_settings.model_copy(
         update={
@@ -677,11 +679,58 @@ def test_shadow_pricing_simulate_segment_values_do_not_overlap(state, model_sett
 
         assert str(error.value) == (
             "No overlap between SEGMENT_IDS values (['1', '2', '3']) and "
-            "persons_merged['school_segment_string_99'] values for school "
+            "modeled chooser values in persons_merged['school_segment_string_99'] for school "
             "simulation shadow pricing"
         )
     finally:
         persons_merged.pop(custom_segment_column)
+
+
+def test_shadow_pricing_simulate_segment_overlap_ignores_unmodeled_choosers(
+    state, model_settings, network_los
+):
+    custom_segment_column = "school_segment_string_99"
+    custom_model_settings = model_settings.model_copy(
+        update={
+            "CHOOSER_SEGMENT_COLUMN_NAME": custom_segment_column,
+            "SEGMENT_IDS": {
+                "university": "3",
+                "highschool": "2",
+                "gradeschool": "1",
+            },
+        }
+    )
+    persons_merged = state.get_dataframe("persons_merged")
+    persons_merged[custom_segment_column] = "99"
+    unmodeled_chooser = persons_merged.index[0]
+    persons_merged.loc[unmodeled_chooser, custom_segment_column] = "1"
+    modeled_choosers = persons_merged.drop(index=unmodeled_chooser)
+    state.settings.use_shadow_pricing = True
+
+    try:
+        spc = shadow_pricing.load_shadow_price_calculator(state, custom_model_settings)
+        choices = pd.Series(
+            22660, index=modeled_choosers.index, name="choice", dtype=int
+        )
+        spc.set_choices(choices, modeled_choosers[custom_segment_column])
+
+        with pytest.raises(
+            SystemConfigurationError, match="No overlap between SEGMENT_IDS"
+        ):
+            spc.update_shadow_prices(state)
+    finally:
+        persons_merged.pop(custom_segment_column)
+
+
+def test_shadow_price_settings_accept_deprecated_segment_to_name():
+    legacy_setting = {"school": "school_segment"}
+
+    with pytest.warns(DeprecationWarning, match="SEGMENT_TO_NAME is deprecated"):
+        settings = shadow_pricing.ShadowPriceSettings.model_validate(
+            {"SEGMENT_TO_NAME": legacy_setting}
+        )
+
+    assert settings.SEGMENT_TO_NAME == legacy_setting
 
 
 def test_shadow_pricing_dedicated_rng_channel_eet_only(

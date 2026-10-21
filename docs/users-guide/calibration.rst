@@ -266,6 +266,22 @@ Required Columns
      - Absolute difference threshold. A coefficient is "converged" when
        ``|target_value - model_value| <= tolerance``.
 
+Bounds and Fixed Coefficients
+-----------------------------
+
+Bounds apply only when updating a coefficient that is neither held nor
+converged. A coefficient with ``hold_fast: True`` or a model value within
+``tolerance`` of its target retains its current value, even if that coefficient
+is outside the configured bounds. This preserves the coefficient used by the
+simulation that established convergence.
+
+Starting values outside the bounds generate warnings, not errors. If a held
+or converged value violates an intended hard constraint, correct the starting
+coefficient or bounds before calibration; the framework will not silently
+clip it. Held coefficients still have their target differences evaluated and
+are not automatically marked converged. The ``at_min`` and ``at_max`` flags
+continue to identify values at or beyond their respective bounds.
+
 Optional Columns
 -----------------
 
@@ -280,8 +296,11 @@ Optional Columns
    * - ``default_increment``
      - numeric
      - ``2.0``
-     - Fallback delta when the chosen method encounters invalid inputs (e.g.,
-       zero or negative values for ``log_ratio``).
+     - Finite, nonnegative fallback magnitude when the chosen method encounters
+       invalid inputs (e.g., zero or negative values for ``log_ratio``). The
+       adjustment direction is determined by the model and target values.
+       An omitted column or blank cell uses ``2.0``; ``0`` disables the fallback
+       adjustment for that row.
 
 Comment Rows
 -------------
@@ -662,6 +681,14 @@ A coefficient is considered **converged** when:
 A component is converged when **all** of its coefficients are converged. The
 component inner loop stops early upon convergence.
 
+If the component reaches ``submodel_max_iterations`` without converging, it
+runs once more with the last updated coefficients. This final pass evaluates
+convergence and refreshes the histories, generic reports, and bespoke reports
+without adjusting or rewriting coefficients. Its history entry uses
+``component_iter = submodel_max_iterations + 1`` and records zero coefficient
+change; the component iteration count still counts only calibration update
+passes.
+
 The outer loop also stops early when every calibrated component converges in
 the same global iteration. Otherwise, it runs until ``global_iterations`` have
 completed. In either case, the remaining downstream models run once with the
@@ -675,8 +702,12 @@ Calibration coefficients must satisfy these requirements:
 
 1. **Present in utility specification**: Every ``coefficient`` in the calibration
    spec must appear as a token in the component's utility expression CSV (the
-   files referenced by settings keys ending in ``SPEC``). A validation error is
-   raised at startup if any are missing.
+   files referenced by settings keys ending in ``SPEC``). For templated models,
+   a utility-column token must reference a row in ``COEFFICIENT_TEMPLATE`` that
+   maps to the calibration coefficient. Merely listing a coefficient in an
+   unused template row is insufficient. A validation error is raised before
+   the component runs if any are missing. This checks static references; it
+   does not guarantee that the corresponding segment occurs in the sample.
 
 2. **Present in coefficients file**: If a calibration coefficient is not found in
    the component's coefficients CSV, it is automatically added with an initial

@@ -3,11 +3,14 @@ from __future__ import annotations
 import copy
 import math
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pandas as pd
 import pytest
 from pydantic import ValidationError
 
+from activitysim.core.calibration import component
 from activitysim.core.calibration.component import _evaluate_and_update
 from activitysim.core.calibration.expressions import _compute_delta
 from activitysim.core.calibration.multiprocess import (
@@ -21,7 +24,10 @@ from activitysim.core.calibration.reporting import (
     _coefficient_trajectory,
     _read_component_iteration_records,
 )
-from activitysim.core.calibration.settings import CalibrationConfig
+from activitysim.core.calibration.settings import (
+    CalibrationComponentSettings,
+    CalibrationConfig,
+)
 from activitysim.core.random import Random
 
 
@@ -450,3 +456,366 @@ def test_recovery_attempts_preserve_complete_coefficient_trajectory(tmp_path):
     # labels: one "Start" entry (initial value) plus one label per recorded iteration
     assert labels == ["Start", "G1-A1-C1", "G1-A2-C1"]
     assert list(trajectory["coef_a"]) == [1.0, 1.5, 1.75]
+
+
+@pytest.mark.parametrize(
+    "model_values, expected_converged",
+    [([0.25, 0.5], True), ([0.25, 0.75], False), ([0.5], True)],
+)
+def test_component_reports_final_simulation(
+    monkeypatch, tmp_path, model_values, expected_converged
+):
+    """Report final results without losing the last update or updating again."""
+    coefficients = pd.DataFrame({"value": [0.0]}, index=["coef"])
+    spec = pd.DataFrame(
+        [
+            dict(
+                description="target",
+                coefficient="coef",
+                model_value="modeled",
+                target_value=0.5,
+                hold_fast=False,
+                min=-10.0,
+                max=10.0,
+                damping=1.0,
+                method="log_ratio",
+                tolerance=0.01,
+            )
+        ]
+    )
+    state = SimpleNamespace(
+        settings=SimpleNamespace(multiprocess=False),
+        filesystem=SimpleNamespace(
+            read_model_settings=Mock(return_value={}),
+            read_model_coefficients=Mock(return_value=coefficients),
+        ),
+        checkpoint=SimpleNamespace(add=Mock()),
+        get_output_file_path=lambda name: tmp_path / name,
+    )
+    settings = CalibrationComponentSettings(
+        calibration_spec="calibration.csv", submodel_max_iterations=1
+    )
+    bespoke = Mock()
+    generic = Mock()
+    persist = Mock()
+    runs = []
+    values = iter(model_values)
+
+    def run_model(**kwargs):
+        runs.append(kwargs["run_model_name"])
+        state.modeled = next(values)
+
+    monkeypatch.setattr(component, "_run_component_model", run_model)
+    monkeypatch.setattr(component, "_read_calibration_spec", lambda *args: spec)
+    monkeypatch.setattr(
+        component, "_extract_utility_coefficient_names", lambda *args: {"coef"}
+    )
+    monkeypatch.setattr(
+        component, "_load_helper_symbols", lambda *args: ({}, bespoke, None)
+    )
+    monkeypatch.setattr(
+        component,
+        "_build_expression_context",
+        lambda *args: {"modeled": state.modeled},
+    )
+    monkeypatch.setattr(component, "_persist_coefficients_to_config", persist)
+    monkeypatch.setattr(component, "_write_generic_report", generic)
+
+    result = component._calibrate_component(
+        state, "test_component", settings, "prior_step", global_iter=2, attempt=3
+    )
+
+    assert result.converged is expected_converged
+    assert result.component_iterations == 1
+    assert len(runs) == len(model_values)
+    if len(model_values) == 2:
+        assert runs[-1] == "test_component.c_final;g_i2;a_i3"
+    persist.assert_called_once()
+    persisted = persist.call_args.args[2]
+    expected_coefficient = math.log(2) if len(model_values) == 2 else 0.0
+    assert persisted.loc["coef", "value"] == pytest.approx(expected_coefficient)
+
+    history = pd.read_csv(tmp_path / "calibration/calibration_iteration_records.csv")
+    local_history = pd.read_csv(
+        tmp_path / "calibration/test_component/calibration_iteration_records.csv"
+    )
+    pd.testing.assert_frame_equal(history, local_history)
+    assert history["model_value"].tolist() == model_values
+    assert history["component_iter"].tolist() == list(range(1, len(model_values) + 1))
+    final = history.iloc[-1]
+    assert bool(final["converged"]) is expected_converged
+    assert final["prev_coefficient"] == pytest.approx(expected_coefficient)
+    assert final["next_coefficient"] == pytest.approx(expected_coefficient)
+    assert final["coef_delta"] == 0.0
+    if len(model_values) == 2:
+        assert history.iloc[0]["coef_delta"] == pytest.approx(math.log(2))
+
+    summary = pd.read_csv(tmp_path / "calibration/calibration_iteration_summary.csv")
+    assert len(summary) == len(model_values)
+    assert summary.iloc[-1]["num_unconverged"] == int(not expected_converged)
+    assert summary.iloc[-1]["max_difference"] == abs(0.5 - model_values[-1])
+    assert summary.iloc[-1]["max_change"] == 0.0
+    assert generic.call_count == bespoke.call_count == len(model_values)
+    assert generic.call_args.args[2][0]["model_value"] == model_values[-1]
+    assert bespoke.call_args.args[0] == dict(
+        modeled=model_values[-1],
+        calibration_global_iteration=2,
+        calibration_attempt=3,
+        calibration_component_iteration=len(model_values),
+    )
+    state.checkpoint.add.assert_called_once_with("test_component")
+
+
+def test_evaluation_only_does_not_clip_or_compute_adjustments(monkeypatch):
+    coefficients = pd.DataFrame({"value": [5.0]}, index=["coef"])
+    spec = pd.DataFrame(
+        [
+            dict(
+                description="target",
+                coefficient="coef",
+                model_value=0.0,
+                target_value=0.5,
+                hold_fast=False,
+                min=-1.0,
+                max=1.0,
+                damping=1.0,
+                method="log_ratio",
+                tolerance=0.01,
+            )
+        ]
+    )
+    compute_delta = Mock(side_effect=AssertionError("must not compute an update"))
+    monkeypatch.setattr(component, "_compute_delta", compute_delta)
+    records, summary, updated, converged = _evaluate_and_update(
+        "test_component", spec, coefficients, {}, 1, 2, update_coefficients=False
+    )
+    pd.testing.assert_frame_equal(updated, coefficients)
+    assert not converged
+    assert records[0]["coef_delta"] == summary["max_change"] == 0.0
+    assert records[0]["at_max"]
+    compute_delta.assert_not_called()
+
+
+@pytest.fixture
+def calibration_spec_csv(tmp_path):
+    """Write real CSV inputs so tests exercise optional-column parsing."""
+
+    def read(rows):
+        path = tmp_path / "calibration.csv"
+        pd.DataFrame(rows).to_csv(path, index=False)
+        state = SimpleNamespace(
+            filesystem=SimpleNamespace(get_config_file_path=lambda name: path)
+        )
+        return component._read_calibration_spec(state, path.name)
+
+    return read
+
+
+@pytest.mark.parametrize(
+    "method, model_value, target_value, direction",
+    [
+        ("log_ratio", 0.0, 0.5, 1),
+        ("log_ratio", 0.5, 0.0, -1),
+        ("odds_ratio", 0.0, 0.5, 1),
+        ("odds_ratio", 1.0, 0.5, -1),
+    ],
+)
+@pytest.mark.parametrize("include_increment", [False, True])
+def test_csv_default_increment_reaches_coefficient_update(
+    calibration_spec_csv,
+    method,
+    model_value,
+    target_value,
+    direction,
+    include_increment,
+):
+    rows = []
+    for i, increment in enumerate([0.25, None, 0.0, "  "]):
+        row = dict(
+            description=f"target {i}",
+            coefficient=f"coef_{i}",
+            model_value=model_value,
+            target_value=target_value,
+            hold_fast=False,
+            min=-10.0,
+            max=10.0,
+            damping=1.0,
+            method=method,
+            tolerance=0.01,
+        )
+        if include_increment:
+            row["default_increment"] = increment
+        rows.append(row)
+    spec = calibration_spec_csv(rows)
+    magnitudes = [0.25, 2.0, 0.0, 2.0] if include_increment else [2.0] * 4
+    assert spec["default_increment"].tolist() == magnitudes
+    coefficients = pd.DataFrame(
+        {"value": [1.0] * 4}, index=[f"coef_{i}" for i in range(4)]
+    )
+
+    records, _, updated, converged = _evaluate_and_update(
+        "test_component", spec, coefficients, {}, 1, 1
+    )
+
+    assert not converged
+    assert updated["value"].tolist() == pytest.approx(
+        [1.0 + direction * magnitude for magnitude in magnitudes]
+    )
+    assert [row["coef_delta"] for row in records] == pytest.approx(magnitudes)
+
+
+@pytest.mark.parametrize("increment", ["invalid", "inf", "-inf", -0.25])
+def test_csv_rejects_invalid_default_increment(calibration_spec_csv, increment):
+    row = dict(
+        description="target",
+        coefficient="coef",
+        model_value=0.0,
+        target_value=0.5,
+        hold_fast=False,
+        min=-10.0,
+        max=10.0,
+        damping=1.0,
+        method="log_ratio",
+        tolerance=0.01,
+        default_increment=increment,
+    )
+    with pytest.raises(
+        ValueError,
+        match="calibration.csv default_increment must be finite, numeric, and nonnegative",
+    ):
+        calibration_spec_csv([row])
+
+
+@pytest.mark.parametrize("initial_value", [-5.0, 5.0])
+@pytest.mark.parametrize(
+    "hold_fast, model_value, expected_converged",
+    [(True, 0.25, False), (True, 0.5, True), (False, 0.5, True)],
+)
+def test_bounds_preserve_held_and_converged_coefficients(
+    monkeypatch, caplog, initial_value, hold_fast, model_value, expected_converged
+):
+    spec = pd.DataFrame(
+        [
+            dict(
+                description="target",
+                coefficient="coef",
+                model_value=model_value,
+                target_value=0.5,
+                hold_fast=hold_fast,
+                min=-1.0,
+                max=1.0,
+                damping=1.0,
+                method="log_ratio",
+                tolerance=0.01,
+            )
+        ]
+    )
+    coefficients = pd.DataFrame({"value": [initial_value]}, index=["coef"])
+    compute_delta = Mock(side_effect=AssertionError("fixed values need no update"))
+    monkeypatch.setattr(component, "_compute_delta", compute_delta)
+
+    component._warn_if_initial_values_outside_bounds(
+        "test_component", spec, coefficients
+    )
+    assert "test_component coefficient coef starts" in caplog.text
+    assert (
+        "below min bound" if initial_value < 0 else "above max bound"
+    ) in caplog.text
+    records, summary, updated, converged = _evaluate_and_update(
+        "test_component", spec, coefficients, {}, 1, 1
+    )
+
+    pd.testing.assert_frame_equal(updated, coefficients)
+    compute_delta.assert_not_called()
+    assert converged is expected_converged
+    assert records[0]["converged"] is expected_converged
+    assert records[0]["prev_coefficient"] == initial_value
+    assert records[0]["next_coefficient"] == initial_value
+    assert records[0]["coef_delta"] == summary["max_change"] == 0.0
+    assert records[0]["at_min"] == (initial_value < 0)
+    assert records[0]["at_max"] == (initial_value > 0)
+    assert summary["num_unconverged"] == int(not expected_converged)
+
+
+@pytest.mark.parametrize(
+    "initial_value, model_value, target_value, expected_value",
+    [(0.9, 0.25, 0.5, 1.0), (-0.9, 0.5, 0.25, -1.0)],
+)
+def test_bounds_still_clip_eligible_updates(
+    initial_value, model_value, target_value, expected_value
+):
+    spec = pd.DataFrame(
+        [
+            dict(
+                description="target",
+                coefficient="coef",
+                model_value=model_value,
+                target_value=target_value,
+                hold_fast=False,
+                min=-1.0,
+                max=1.0,
+                damping=1.0,
+                method="log_ratio",
+                tolerance=0.01,
+            )
+        ]
+    )
+    coefficients = pd.DataFrame({"value": [initial_value]}, index=["coef"])
+
+    records, summary, updated, converged = _evaluate_and_update(
+        "test_component", spec, coefficients, {}, 1, 1
+    )
+
+    assert updated.loc["coef", "value"] == expected_value
+    assert not converged
+    assert records[0]["coef_delta"] == pytest.approx(0.1)
+    assert summary["max_change"] == pytest.approx(0.1)
+    assert records[0]["at_min"] == (expected_value == -1.0)
+    assert records[0]["at_max"] == (expected_value == 1.0)
+
+
+@pytest.mark.parametrize("templated", [False, True])
+def test_utility_coefficient_names_follow_referenced_template_rows(tmp_path, templated):
+    # Only alternative columns count. Labels, descriptions, expressions, and
+    # commented rows must not make an otherwise unused template row reachable.
+    (tmp_path / "spec.csv").write_text(
+        "Label,Description,Expression,A,B\n"
+        "coef_unused,coef_unused,coef_unused,coef_generic + 2 * coef_shared,0\n"
+        "#comment,ignored,1,coef_unused,coef_unused\n"
+    )
+    (tmp_path / "sample.csv").write_text(
+        "description,expression,utility\nignored,1,-coef_extra\n"
+    )
+    (tmp_path / "template.csv").write_text(
+        "coefficient_name,work,school\n"
+        "coef_generic,coef_work,coef_school\n"
+        "coef_shared,,\n"
+        "coef_extra,coef_extra_work,coef_extra_school\n"
+        "coef_unused,coef_unused_work,coef_unused_school\n"
+    )
+    state = SimpleNamespace(
+        filesystem=SimpleNamespace(get_config_file_path=lambda name: tmp_path / name)
+    )
+    settings = {"SPEC": "spec.csv", "SAMPLE_SPEC": "sample.csv"}
+    if templated:
+        settings["COEFFICIENT_TEMPLATE"] = "template.csv"
+    names = component._extract_utility_coefficient_names(state, settings)
+    expected = (
+        {
+            "coef_work",
+            "coef_school",
+            "coef_shared",
+            "coef_extra_work",
+            "coef_extra_school",
+        }
+        if templated
+        else {"coef_generic", "coef_shared", "coef_extra"}
+    )
+    assert names == expected
+    component._validate_calibration_coefficients_against_utility_spec(
+        "test_component", pd.DataFrame({"coefficient": sorted(expected)}), names
+    )
+    with pytest.raises(ValueError, match="coef_unused_work"):
+        component._validate_calibration_coefficients_against_utility_spec(
+            "test_component", pd.DataFrame({"coefficient": ["coef_unused_work"]}), names
+        )

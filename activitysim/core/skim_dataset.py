@@ -41,6 +41,22 @@ class SkimDataset:
         )
         self.usage = set()  # track keys of skims looked up
 
+    def __contains__(self, key):
+        """Return whether a 2D skim or a specific time-period skim is available."""
+        if isinstance(key, tuple):
+            if len(key) != 2:
+                return False
+            name, period = key
+            return (
+                name in self.dataset.data_vars
+                and "time_period" in self.dataset[name].dims
+                and period in self.time_map
+            )
+        return (
+            key in self.dataset.data_vars
+            and "time_period" not in self.dataset[key].dims
+        )
+
     @property
     def odim(self):
         if "omaz" in self.dataset.dims:

@@ -1,16 +1,20 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
+from typing import Literal
 
 import numpy as np
 import pandas as pd
-from typing import Literal
 
+from activitysim.abm.models.util import logsums
+from activitysim.abm.models.util.park_and_ride_capacity import ParkAndRideCapacity
 from activitysim.core import (
     config,
+    estimation,
     expressions,
     los,
-    estimation,
     simulate,
     tracing,
     util,
@@ -21,8 +25,6 @@ from activitysim.core.configuration.logit import (
     PreprocessorSettings,
 )
 from activitysim.core.interaction_simulate import interaction_simulate
-from activitysim.abm.models.util import logsums
-from activitysim.abm.models.util.park_and_ride_capacity import ParkAndRideCapacity
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +35,7 @@ class ParkAndRideLotChoiceSettings(LogitComponentSettings, extra="forbid"):
     """
 
     CHOOSER_FILTER_EXPR: str | None = None
-    """An optional expression to filter the chooser table before simulating the model.  
+    """An optional expression to filter the chooser table before simulating the model.
     Applied after preprocessing as a .query() expression."""
 
     LANDUSE_PNR_SPACES_COLUMN: str
@@ -121,10 +123,10 @@ def filter_chooser_to_transit_accessible_destinations(
                 # If the skim name contains '__', it is a 3D skim
                 # we need to pass the skim name as a tuple to the lookup method, e.g. ('WALK_TRANSIT_IVTT', 'MD')
                 skim_name = tuple(skim_name.split("__"))
-            if skim_name not in skim_dict.skim_info.omx_keys.keys():
+            if skim_name not in skim_dict:
                 raise ValueError(
                     f"Skim '{skim_name}' not found in the skim dictionary."
-                    "Please update the model setting TRANSIT_SKIMS_FOR_ELIGIBILITY with valid skim names."
+                    " Please update the model setting TRANSIT_SKIMS_FOR_ELIGIBILITY with valid skim names."
                 )
             # Filter choosers to only those with destinations that have transit access
             # want to check whether ANY of the lot locations have transit access to EVERY destination

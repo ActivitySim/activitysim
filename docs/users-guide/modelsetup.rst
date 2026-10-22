@@ -16,7 +16,7 @@ assumes the user is more experienced in running travel demand models and profici
 used ActivitySim or has not used recent versions of ActivitySim. More detailed instructions for installing
 and running ActivitySim are also available in this Users Guide.
 
-* Use the :ref:`pre-packaged installer`
+* Install ActivitySim with the :ref:`UV Package and Project Manager`
 * :ref:`Run the Primary Example`
 * Placeholder (Edit model input files, configs, as needed)
 
@@ -87,47 +87,14 @@ Activitysim is implemented in the Python programming language. It uses several o
 Installing ActivitySim
 ----------------------
 
-There are two recommended ways to install ActivitySim:
-
-1. Using a :ref:`pre-packaged installer`
-
-2. Using the :ref:`UV Package and Project Manager`
-
-The first is recommended for users who are new to Python and use Windows, do not actively create and manage Python virtual environments,
-and do not need to change the ActivitySim code. The second is recommended for users who actively create and manage Python virtual environments,
-and/or want to change/customize the ActivitySim code.
-
-
-Pre-packaged Installer
-______________________
-
-Beginning with version 1.2, ActivitySim is now available for Windows via a
-pre-packaged installer.  This installer provides everything you need to run
-ActivitySim, including Python, all the necessary supporting packages, and
-ActivitySim itself.  You should only choose this installation process if you
-plan to use ActivitySim but you don't need or want to do other Python
-development.  Note this installer is provided as an "executable" which (of course)
-installs a variety of things on your system, and it is quite likely to be flagged by
-Windows, anti-virus, or institutional IT policies as "unusual" software, which
-may require special treatment to actually install and use.
-
-Download the installer from GitHub `here <https://github.com/ActivitySim/activitysim/releases/download/v1.3.1/Activitysim-1.3.1-Windows-x86_64.exe>`_.
-It is strongly recommended to choose the option to install "for me only", as this
-should not require administrator privileges on your machine.  Pay attention
-to the *complete path* of the installation location. You will need to know
-that path to run ActivitySim in the future, as the installer does not modify
-your "PATH" and the location of the `ActivitySim.exe` command line tool will not
-be available without knowing the path to where the install has happened.
-
-Once the install is complete, ActivitySim can be run directly from any command
-prompt by running `<install_location>/Scripts/ActivitySim.exe`.
+The recommended way to install ActivitySim is using the :ref:`UV Package and Project Manager`.
+The pre-packaged Windows installer that was available for earlier releases is no longer provided.
 
 
 UV Package and Project Manager
 ______________________________________
 
-This method is recommended for ActivitySim users who are familiar with
-Python, create and manage ActivitySim Python virtual environments, and optionally wish to customize ActivitySim code to run their models.
+This method is recommended for all ActivitySim users, including those who wish to customize ActivitySim code to run their models.
 UV is a free open source cross-platform package and project manager that runs
 on Windows, OS X, and Linux. It is 10-100x faster than conda, and pip itself, which is
 the standard Python package manager. The *uv* features include automatic

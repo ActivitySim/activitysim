@@ -1,9 +1,9 @@
 # How to issue an ActivitySim release
 
 1.  Check that the main branch is passing tests, especially the "core tests" on
-    [GitHub Actions](https://github.com/ActivitySim/activitysim/actions/workflows/core_tests.yml). 
-    It is generally the policy that the main branch should always be passing tests, 
-    because PRs must pass tests before they can be merged.  However, it is 
+    [GitHub Actions](https://github.com/ActivitySim/activitysim/actions/workflows/core_tests.yml).
+    It is generally the policy that the main branch should always be passing tests,
+    because PRs must pass tests before they can be merged.  However, it is
     possible that tests may fail after a PR is merged, so it is important to
     double-check that the main branch is passing tests before issuing a release.
 
@@ -75,7 +75,7 @@
 7.  Tag the release commit with the new version number.  ActivitySim uses
     dynamic versioning, so the version number is not stored in a file but
     is instead read from the most recent git tag, so it is important to tag
-    the repository with the correct version.  The following command will 
+    the repository with the correct version.  The following command will
     generate a new tag with the version number "1.2.3" (for example):
     ```sh
     git -a v1.2.3 -m "Release v1.2.3"
@@ -91,7 +91,7 @@
     ```sh
     gh release create v1.2.3
     ```
-    But it may be easier to do this through the 
+    But it may be easier to do this through the
     [GitHub web interface](https://github.com/ActivitySim/activitysim/releases/new),
     where you can select the tag you just created and add a title and description.
     Both the interactive command line tool shown above and the web interface include
@@ -103,11 +103,4 @@
     trigger various GitHub Actions scripts to build, test, and publish the
     new release to PyPI, assuming there are no errors.
 
-10. Build the ActivitySim Standalone Windows Installer.  This is done using 
-    GitHub Actions, but it is not done automatically when a release is created, 
-    instead it requires a manual workflow dispatch trigger.  You can do this by 
-    going to the [build_installer workflow page](https://github.com/ActivitySim/activitysim/actions/workflows/build_installer.yml)
-    and clicking on the "Run workflow" button.  You will need to provide the 
-    version number and choose to add the built installer to the release.
-
-11. Clean up your environment as is good practice by deleting `.venv` inside your workspace. However, `uv` will do this for you. Prior to every `uv run` invocation, `uv` will verify that the lockfile is up-to-date with the `pyproject.toml`, and that the environment is up-to-date with the lockfile, keeping your project in-sync without the need for manual intervention. `uv run` guarantees that your command is run in a consistent, locked environment. (Be sure to use `uv add` and `uv remove` to adjust dependencies always. Manually editing `pyproject.toml` dependencies *can* result in some problems with the environment that require `uv sync` before `uv run`.)
+10. Clean up your environment as is good practice by deleting `.venv` inside your workspace. However, `uv` will do this for you. Prior to every `uv run` invocation, `uv` will verify that the lockfile is up-to-date with the `pyproject.toml`, and that the environment is up-to-date with the lockfile, keeping your project in-sync without the need for manual intervention. `uv run` guarantees that your command is run in a consistent, locked environment. (Be sure to use `uv add` and `uv remove` to adjust dependencies always. Manually editing `pyproject.toml` dependencies *can* result in some problems with the environment that require `uv sync` before `uv run`.)

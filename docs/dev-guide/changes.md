@@ -13,6 +13,11 @@ This section describes changes that are implemented in current development
 branch (i.e., the main branch on GitHub), but not yet released in a stable version
 of ActivitySim.
 
+### Windows Installer Discontinued
+
+The pre-packaged Windows installer is no longer built or provided. Install
+ActivitySim with *uv* instead, as described in the Users Guide.
+
 ### Minimum uv and certifi Versions
 
 Installing ActivitySim from source with the lockfile now requires *uv* 0.13.4 or

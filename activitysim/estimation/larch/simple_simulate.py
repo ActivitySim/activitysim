@@ -311,6 +311,34 @@ def telecommute_status_model(
     )
 
 
+def telework_arrangement_model(
+    name="telework_arrangement",
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+):
+    return simple_simulate_model(
+        name=name,
+        edb_directory=edb_directory,
+        return_data=return_data,
+        choices={
+            True: 1,
+            False: 2,
+        },  # True is has in-home work, false is does not have in-home work, names match spec positions
+    )
+
+
+def telework_duration_model(
+    name="telework_duration",
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+):
+    return simple_simulate_model(
+        name=name,
+        edb_directory=edb_directory,
+        return_data=return_data,
+    )
+
+
 def mandatory_tour_frequency_model(
     name="mandatory_tour_frequency",
     edb_directory="output/estimation_data_bundle/{name}/",

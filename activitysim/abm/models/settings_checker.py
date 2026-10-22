@@ -55,6 +55,8 @@ from activitysim.abm.models.school_escorting import SchoolEscortSettings
 from activitysim.abm.models.stop_frequency import StopFrequencySettings
 from activitysim.abm.models.summarize import SummarizeSettings
 from activitysim.abm.models.telecommute_frequency import TelecommuteFrequencySettings
+from activitysim.abm.models.telework_arrangement import TeleworkArrangementSettings
+from activitysim.abm.models.telework_duration import TeleworkDurationSettings
 from activitysim.abm.models.tour_scheduling_probabilistic import (
     TourSchedulingProbabilisticSettings,
 )
@@ -238,6 +240,14 @@ CHECKER_SETTINGS = {
     "telecommute_frequency": {
         "settings_cls": TelecommuteFrequencySettings,
         "settings_file": "telecommute_frequency.yaml",
+    },
+    "telework_arrangement": {
+        "settings_cls": TeleworkArrangementSettings,
+        "settings_file": "telework_arrangement.yaml",
+    },
+    "telework_duration": {
+        "settings_cls": TeleworkDurationSettings,
+        "settings_file": "telework_duration.yaml",
     },
     "tour_mode_choice_simulate": {
         "settings_cls": TourModeComponentSettings,

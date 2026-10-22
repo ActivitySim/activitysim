@@ -21,8 +21,7 @@ jobs:
       # Python versions for the slower jobs after the core test suite. Pull
       # requests and pushes to other branches use the newest supported Python
       # only. Pushes to main (i.e. merges) and manual runs use every supported
-      # version; run this workflow manually on main before each release (see
-      # HOW_TO_RELEASE.md).
+      # version.
       test_versions: ${{ (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) && '["3.11", "3.12", "3.13"]' || '["3.13"]' }}
     strategy:
       fail-fast: false
@@ -514,11 +513,6 @@ jobs:
       - name: Install activitysim
         run: |
           uv sync --locked
-      - name: localize version switcher
-        run: |
-          python .github/workflows/localize-base-urls.py docs/_static/switcher.json
-          git update-index --assume-unchanged docs/_static/switcher.json
-          cat docs/_static/switcher.json
       - name: Build the docs
         run: |
           cd docs

@@ -1,6 +1,21 @@
 # How to issue an ActivitySim release
 
-1.  Check that the main branch is passing tests, especially the "core tests" on
+1.  (Optional) Update dependencies. Pull in the latest versions of all
+    dependencies that still satisfy current constraints:
+    ```sh
+    uv lock --upgrade
+    ```
+    Make any adjustments using `uv add ...` with version constraints as needed
+    to pass tests. If a version constraint is created, there should be a github
+    issue created that identifies the need in the future to debug and remove
+    this constraint. Merge the updated `uv.lock` through a pull request, so that
+    the full test suite runs on it before the release.
+
+2.  Update the change log. In `docs/dev-guide/changes.md`, move the entries
+    under "Upcoming Changes" into a new section for the release (for example
+    `## v1.2`), and merge this change through a pull request.
+
+3.  Check that the main branch is passing tests, especially the "core tests" on
     [GitHub Actions](https://github.com/ActivitySim/activitysim/actions/workflows/core_tests.yml).
     It is generally the policy that the main branch should always be passing tests,
     because PRs must pass tests before they can be merged.  However, it is
@@ -8,92 +23,56 @@
     double-check that the main branch is passing tests before issuing a release.
 
     Pull requests run the regional model, estimation, and other slower tests on
-    the newest supported Python version only. Before a release, run the full
-    test suite on every supported Python version: on the
-    [Core Testing workflow page](https://github.com/ActivitySim/activitysim/actions/workflows/core_tests.yml),
-    click "Run workflow", select the `main` branch, and check that all jobs pass.
-    (The full suite also runs automatically on every merge into `main`.)
+    the newest supported Python version only; every merge into `main` runs them
+    on all supported versions. A failure that only affects an older Python
+    version therefore first shows up in the runs on `main`.
 
-2.  Start from a completely clean environment
-    and git repository.  Assuming you have `uv` installed, you can do so
-    by starting where ActivitySim is not yet cloned (e.g. in an empty
-    directory) and running:
+4.  Test the two supported example models, MTC and SANDAG, at full scale if
+    possible. These runs are too large for GitHub Actions and take many hours.
+    Each example repository has a script that downloads the full-scale data
+    and runs the model:
+    - [activitysim-prototype-mtc](https://github.com/ActivitySim/activitysim-prototype-mtc):
+      `scripts/run-large-sharrow.py`
+    - [sandag-abm3-example](https://github.com/ActivitySim/sandag-abm3-example):
+      `scripts/run-large-sharrow.py` (see `scripts/README.md` there)
+
+    On their own, these scripts use the ActivitySim release locked in each
+    example repository. To test the code being released instead, run them with
+    the environment of an up-to-date ActivitySim `main` checkout. For example,
+    with both example repositories cloned next to the `activitysim` directory:
     ```sh
-    gh auth login   # <--- (only needed if gh is not logged in)
-    gh repo clone ActivitySim/activitysim
-    cd activitysim
-    uv sync
+    cd activitysim-prototype-mtc
+    uv run --project ../activitysim --locked python scripts/run-large-sharrow.py
+    cd ../sandag-abm3-example
+    uv run --project ../activitysim --locked --with wring python scripts/run-large-sharrow.py
     ```
+    The scripts simulate a sample of the full-scale data (500,000 households
+    for MTC, 100,000 for SANDAG). For a full-scale run, set
+    `households_sample_size` to `0` in the script.
 
-3.  Run `black` to ensure that the codebase passes all style checks.
-    This check should only take a few seconds.  These checks are also done on
-    GitHub Actions and are platform independent, so they should not be necessary to
-    replicate locally, but are listed here for completeness.
-    ```sh
-    uv run black --check --diff .
-    ```
+5.  Test the notebooks in `activitysim/examples/prototype_mtc/notebooks`.
+    There are also demo notebooks for estimation; those are run automatically
+    by the "Estimation Notebooks Test" job in the core tests.
 
-4.  Run the regular test suite on Windows. Most GitHub Actions tests are done on
-    Linux (it's faster to start up and run a new clean VM for testing) but most
-    users are on Windows, and the test suite should also be run on Windows to
-    ensure that it works on that platform as well.  If you
-    are not preparing this release on Windows, you should be sure to run
-    at least through this step on a Windows machine before finalizing a
-    release.
-
-    A few of the tests require pre-created data that is not included in the
-    repository directly, but rather recreated on the fly before testing. The
-    regular test suite takes some time to run, between about half an hour and
-    two hours depending on the specs of your machine.
-    ```sh
-    uv run activitysim/examples/placeholder_multiple_zone/scripts/two_zone_example_data.py
-    uv run activitysim/examples/placeholder_multiple_zone/scripts/three_zone_example_data.py
-    uv run pytest .
-    ```
-
-5.  Test the full-scale regional examples. These examples are big, too
-    large to run on GitHub Actions, and will take a lot of time (many hours) to
-    download and run.
-    ```sh
-    mkdir tmp-asim
-    cd activitysim/examples
-    python create_run_all_examples.py > ../../tmp-asim/run_all_examples.bat
-    cd ../../tmp-asim
-    call run_all_examples.bat
-    ```
-    These tests will run through the gamut even if some of them crash, so
-    if you don't sit and watch them go (please don't do this) you'll need
-    to scan through the results to make sure there are no errors after the
-    fact.
-    ```sh
-    python ../activitysim/examples/scan_examples_for_errors.py .
-    ```
-
-6.  Test the notebooks in `activitysim/examples/prototype_mtc/notebooks`.
-    There are also demo notebooks for estimation, but their functionality
-    is completely tested in the unit tests run previously.
-
-6.  (Optional) After ensuring the code on the branch is passing all tests, pull in the latest versions of all dependencies that still satisfy current constraints, and repeat all above tests again.
-    ```sh
-    uv lock --upgrade
-    ```
-    Make any adjustments using `uv add ...` with version constraints as needed to pass tests. If a version constraint is created, there should be a github issue created that identities the need in the future to debug and remove this constraint.
-
-7.  Tag the release commit with the new version number.  ActivitySim uses
+6.  Tag the release commit with the new version number.  ActivitySim uses
     dynamic versioning, so the version number is not stored in a file but
     is instead read from the most recent git tag, so it is important to tag
-    the repository with the correct version.  The following command will
-    generate a new tag with the version number "1.2.3" (for example):
+    the repository with the correct version.  Tag the latest commit on `main`
+    of ActivitySim/activitysim, not of a fork. The following commands will
+    generate a new tag with the version number "1.2.3" (for example), assuming
+    the `origin` remote points to ActivitySim/activitysim:
     ```sh
-    git -a v1.2.3 -m "Release v1.2.3"
+    git switch main
+    git pull origin main
+    git tag -a v1.2.3 -m "Release v1.2.3"
     ```
 
-8.  Push the tagged commit to GitHub.
+7.  Push the tag to GitHub.
     ```sh
-    git push --tags
+    git push origin v1.2.3
     ```
 
-9.  Create a "release" on GitHub.  You can do this from the command line using
+8.  Create a "release" on GitHub.  You can do this from the command line using
     the `gh` command line tool:
     ```sh
     gh release create v1.2.3
@@ -108,6 +87,22 @@
 
     The process of creating and tagging a release will automatically
     trigger various GitHub Actions scripts to build, test, and publish the
-    new release to PyPI, assuming there are no errors.
+    new release to PyPI, assuming there are no errors. It also publishes the
+    documentation for the release to the `v1.2.3` folder of the `gh-pages` branch.
 
-10. Clean up your environment as is good practice by deleting `.venv` inside your workspace. However, `uv` will do this for you. Prior to every `uv run` invocation, `uv` will verify that the lockfile is up-to-date with the `pyproject.toml`, and that the environment is up-to-date with the lockfile, keeping your project in-sync without the need for manual intervention. `uv run` guarantees that your command is run in a consistent, locked environment. (Be sure to use `uv add` and `uv remove` to adjust dependencies always. Manually editing `pyproject.toml` dependencies *can* result in some problems with the environment that require `uv sync` before `uv run`.)
+9.  Update the documentation's version menu and landing page. Both are edited
+    by hand on the `gh-pages` branch, once the release's documentation has been
+    published there:
+    - `switcher.json`: add an entry for the new version named "(Latest)", remove
+      "(Latest)" from the previous release's entry, and update the version of
+      the "Development" entry.
+    - `index.html`: point the redirect at the new version (for example
+      `url='v1.2.3'`).
+
+10. Update the conda-forge package. Shortly after the release is published on
+    PyPI, a bot opens a pull request on the
+    [activitysim feedstock](https://github.com/conda-forge/activitysim-feedstock)
+    and merges it automatically if its checks pass. If the dependencies or the
+    supported Python versions changed, update the recipe to match
+    `pyproject.toml`, either in the bot's pull request before it is merged or
+    in a separate pull request.

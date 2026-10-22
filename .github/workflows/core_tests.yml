@@ -17,6 +17,13 @@ env:
 
 jobs:
   foundation:
+    outputs:
+      # Python versions for the slower jobs after the core test suite. Pull
+      # requests and pushes to other branches use the newest supported Python
+      # only. Pushes to main (i.e. merges) and manual runs use every supported
+      # version; run this workflow manually on main before each release (see
+      # HOW_TO_RELEASE.md).
+      test_versions: ${{ (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) && '["3.11", "3.12", "3.13"]' || '["3.13"]' }}
     strategy:
       fail-fast: false
       matrix:
@@ -169,10 +176,7 @@ jobs:
       label: win-64
     strategy:
       matrix:
-        python-version:
-          - "3.11"
-          - "3.12"
-          - "3.13"
+        python-version: ${{ fromJSON(needs.foundation.outputs.test_versions) }}
         region:
           - prototype_mtc
           - placeholder_psrc
@@ -239,34 +243,16 @@ jobs:
       label: win-64
     strategy:
       matrix:
+        python-version: ${{ fromJSON(needs.foundation.outputs.test_versions) }}
+        region:
+          - Standard 1-Zone Example (MTC)
+          - Standard 2-Zone Example (SANDAG)
         include:
           - region: Standard 1-Zone Example (MTC)
-            python-version: "3.11"
-            region-org: ActivitySim
-            region-repo: activitysim-prototype-mtc
-            region-branch: extended
-          - region: Standard 1-Zone Example (MTC)
-            python-version: "3.12"
-            region-org: ActivitySim
-            region-repo: activitysim-prototype-mtc
-            region-branch: extended
-          - region: Standard 1-Zone Example (MTC)
-            python-version: "3.13"
             region-org: ActivitySim
             region-repo: activitysim-prototype-mtc
             region-branch: extended
           - region: Standard 2-Zone Example (SANDAG)
-            python-version: "3.11"
-            region-org: ActivitySim
-            region-repo: sandag-abm3-example
-            region-branch: main
-          - region: Standard 2-Zone Example (SANDAG)
-            python-version: "3.12"
-            region-org: ActivitySim
-            region-repo: sandag-abm3-example
-            region-branch: main
-          - region: Standard 2-Zone Example (SANDAG)
-            python-version: "3.13"
             region-org: ActivitySim
             region-repo: sandag-abm3-example
             region-branch: main
@@ -311,11 +297,16 @@ jobs:
   random_seed_generation:
     needs: foundation
     env:
+      UV_PYTHON: ${{ matrix.python-version }}
       label: win-64
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJSON(needs.foundation.outputs.test_versions) }}
     defaults:
       run:
         shell: pwsh
-    name: random_seed_generation_test
+    name: random_seed_generation_test py${{ matrix.python-version }}
     runs-on: windows-latest
 
     steps:
@@ -348,10 +339,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version:
-          - "3.11"
-          - "3.12"
-          - "3.13"
+        python-version: ${{ fromJSON(needs.foundation.outputs.test_versions) }}
     defaults:
       run:
         shell: pwsh
@@ -387,10 +375,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version:
-          - "3.11"
-          - "3.12"
-          - "3.13"
+        python-version: ${{ fromJSON(needs.foundation.outputs.test_versions) }}
     defaults:
       run:
         shell: pwsh
@@ -437,10 +422,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version:
-          - "3.11"
-          - "3.12"
-          - "3.13"
+        python-version: ${{ fromJSON(needs.foundation.outputs.test_versions) }}
     defaults:
       run:
         shell: pwsh
@@ -476,10 +458,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version:
-          - "3.11"
-          - "3.12"
-          - "3.13"
+        python-version: ${{ fromJSON(needs.foundation.outputs.test_versions) }}
     defaults:
       run:
         shell: pwsh

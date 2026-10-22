@@ -7,6 +7,13 @@
     possible that tests may fail after a PR is merged, so it is important to
     double-check that the main branch is passing tests before issuing a release.
 
+    Pull requests run the regional model, estimation, and other slower tests on
+    the newest supported Python version only. Before a release, run the full
+    test suite on every supported Python version: on the
+    [Core Testing workflow page](https://github.com/ActivitySim/activitysim/actions/workflows/core_tests.yml),
+    click "Run workflow", select the `main` branch, and check that all jobs pass.
+    (The full suite also runs automatically on every merge into `main`.)
+
 2.  Start from a completely clean environment
     and git repository.  Assuming you have `uv` installed, you can do so
     by starting where ActivitySim is not yet cloned (e.g. in an empty

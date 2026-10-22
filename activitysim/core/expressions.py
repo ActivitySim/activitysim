@@ -130,6 +130,8 @@ def compute_columns(
             _locals_dict["skim_dict"] = state.get_injectable("skim_dataset_dict")
         else:
             _locals_dict["skim_dict"] = state.get_injectable("skim_dict")
+
+        _locals_dict["network_los"] = state.get_injectable("network_los")
     except FileNotFoundError:
         pass  # maybe we don't even need the skims
 

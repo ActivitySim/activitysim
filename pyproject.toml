@@ -157,6 +157,7 @@ dev = [
 [tool.uv]
 default-groups = ["dev"]
 
-# eMuhdra incident, see https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576
+# eMudhra incident, see https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576
+# Added virtualenv 21.14.12 because it embeds pip 26.2.2, which pre-commit uses to install hooks.
 required-version = ">=0.13.4"
-constraint-dependencies = ["certifi>=2026.10.19"]
+constraint-dependencies = ["certifi>=2026.10.19", "virtualenv>=21.14.12"]

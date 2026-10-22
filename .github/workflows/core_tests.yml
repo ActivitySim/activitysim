@@ -41,9 +41,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.3.1
         with:
-          version: "0.12.21"
+          version: "0.13.4"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -126,9 +126,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.3.1
         with:
-          version: "0.12.21"
+          version: "0.13.4"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -195,9 +195,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.3.1
         with:
-          version: "0.12.21"
+          version: "0.13.4"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -286,9 +286,9 @@ jobs:
           python-version: ${{ env.UV_PYTHON }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.3.1
         with:
-          version: "0.12.21"
+          version: "0.13.4"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -327,9 +327,9 @@ jobs:
           python-version: ${{ env.UV_PYTHON }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.3.1
         with:
-          version: "0.12.21"
+          version: "0.13.4"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -366,9 +366,9 @@ jobs:
           python-version: ${{ env.UV_PYTHON }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.3.1
         with:
-          version: "0.12.21"
+          version: "0.13.4"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -405,9 +405,9 @@ jobs:
           python-version: ${{ env.UV_PYTHON }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.3.1
         with:
-          version: "0.12.21"
+          version: "0.13.4"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -455,9 +455,9 @@ jobs:
           python-version: ${{ env.UV_PYTHON }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.3.1
         with:
-          version: "0.12.21"
+          version: "0.13.4"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -494,9 +494,9 @@ jobs:
           python-version: ${{ env.UV_PYTHON }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.3.1
         with:
-          version: "0.12.21"
+          version: "0.13.4"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
@@ -527,9 +527,9 @@ jobs:
         with:
           python-version: ${{ env.UV_PYTHON }}
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.3.1
         with:
-          version: "0.12.21"
+          version: "0.13.4"
           enable-cache: true
           cache-dependency-glob: "uv.lock"
       - name: Install activitysim

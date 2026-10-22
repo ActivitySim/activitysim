@@ -158,6 +158,7 @@ def model_settings_base():
         compute_settings=None,
         preprocessor=_EmptyPreprocessor(),
         alts_preprocessor=None,
+        ALLOW_ZERO_PROBS=False,
     )
 
 
@@ -327,6 +328,75 @@ coef_neg,-100.0,F
 
     assert choices.index.tolist() == [10, 10, 11]
     assert (choices == 1).all()
+
+
+@pytest.mark.parametrize("use_explicit_error_terms", [False, True])
+def test_run_pnr_allows_zero_probabilities(
+    state, network_los, model_settings_base, use_explicit_error_terms
+):
+    """Return -1 only for choosers with no available lot."""
+    model_settings_base.ALLOW_ZERO_PROBS = True
+    state.settings.use_explicit_error_terms = use_explicit_error_terms
+    land_use = pd.DataFrame(
+        {"pnr_spaces": [10, 10]}, index=pd.Index([1, 2], name="zone_id")
+    )
+    choosers = pd.DataFrame(
+        {
+            "destination": [1, 5, 2],
+            "home_zone_id": [3, 3, 3],
+            "in_period": [1, 1, 1],
+        },
+        index=pd.Index([100, 100, 102], name="tour_id"),
+    )
+    _write_model_files(
+        state,
+        "pnr_zero_prob_spec.csv",
+        """
+Description,Expression,coefficient
+availability,@-1000 * (df.destination != df.pnr_zone_id),coef_one
+""",
+        "pnr_zero_prob_coeffs.csv",
+        """
+coefficient_name,value,constrain
+coef_one,1.0,F
+""",
+    )
+    model_settings_base.SPEC = "pnr_zero_prob_spec.csv"
+    model_settings_base.COEFFICIENTS = "pnr_zero_prob_coeffs.csv"
+
+    state.get_rn_generator().begin_step("test_run_pnr_allows_zero_probabilities")
+    choices = pnr_lot_choice.run_park_and_ride_lot_choice(
+        state=state,
+        choosers=choosers,
+        land_use=land_use,
+        network_los=network_los,
+        model_settings=model_settings_base,
+    )
+    state.get_rn_generator().end_step("test_run_pnr_allows_zero_probabilities")
+
+    assert choices.index.tolist() == [100, 100, 102]
+    assert choices.tolist() == [1, -1, 2]
+
+
+def test_run_pnr_allows_no_lots(state, network_los, model_settings_base):
+    model_settings_base.ALLOW_ZERO_PROBS = True
+    land_use = pd.DataFrame(
+        {"pnr_spaces": [0, 0]}, index=pd.Index([1, 2], name="zone_id")
+    )
+    choosers = pd.DataFrame(
+        {"destination": [1], "home_zone_id": [3]},
+        index=pd.Index([100], name="tour_id"),
+    )
+
+    choices = pnr_lot_choice.run_park_and_ride_lot_choice(
+        state=state,
+        choosers=choosers,
+        land_use=land_use,
+        network_los=network_los,
+        model_settings=model_settings_base,
+    )
+
+    assert choices.to_dict() == {100: -1}
 
 
 def test_run_pnr_calculates_drive_transit_and_capacity_utilities(

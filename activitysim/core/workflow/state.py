@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import importlib
 import io
 import logging
 import os
-import sys
 import textwrap
 import warnings
 from collections.abc import Iterable
@@ -21,6 +19,7 @@ from sharrow.dataset import construct as _dataset_construct
 import activitysim.core.random
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
 from activitysim.core.exceptions import StateAccessError, CheckpointNameNotFoundError
+from activitysim.core.extensions import import_extension, resolve_extension
 from activitysim.core.workflow.checkpoint import LAST_CHECKPOINT, Checkpoints
 from activitysim.core.workflow.chunking import Chunking
 from activitysim.core.workflow.dataset import Datasets
@@ -191,61 +190,43 @@ class State:
                 base_seed = self.settings.rng_base_seed
         self._context["prng"].set_base_seed(base_seed)
 
-    def import_extensions(self, ext: str | Iterable[str] = None, append=True) -> None:
-        """
-        Import one or more extension modules for use with this model.
-
-        This method isn't really necessary for single-process model
-        runs, as extension modules can be imported in the normal manner
-        for python.  The real reason this methid is here is to support
-        multiprocessing.  The names of extension modules imported with
-        this method will be saved and passed through to subtask workers,
-        which will also import the extensions and make them available as
-        model steps within the workers.
+    def import_extensions(
+        self, ext: str | os.PathLike | Iterable[str | os.PathLike] = None, append=True
+    ) -> None:
+        """Import extensions and register their locations for multiprocessing.
 
         Parameters
         ----------
-        ext : str | Iterable[str]
-            Names of extension modules to import.  They should be module
-            or package names that can be imported from this state's working
-            directory.  If they need to be imported from elsewhere, the
-            name should be the relative path to the extension module from
-            the working directory.
+        ext : str, path-like, or iterable of these
+            Package paths or Python module names (including dotted names).
+            Relative paths are resolved against this state's working directory,
+            or the current directory if no working directory is configured.
+            For a single Python file, use the module name without ``.py``.
+            Absolute import locations are saved so workers can load the same
+            extensions even if their current directory differs from the caller's.
         append : bool, default True
-            Extension names will be appended to the "imported_extensions" list
-            in this State's context (creating it if needed).  Setting this
-            argument to false will remove references to any existing extensions,
-            before adding this new extension to the list.
+            Append to the registered extensions. If false, replace the list.
+            This does not unload previously imported Python modules.
         """
         if ext is None:
             return
-        if isinstance(ext, str):
+        if isinstance(ext, (str, os.PathLike)):
             ext = [ext]
-        if append:
-            extensions = self.get("imported_extensions", [])
-        else:
-            extensions = []
-        if self.filesystem.working_dir:
+        extensions = list(self.get("imported_extensions", [])) if append else []
+        locations = dict(self.get("_extension_locations", {})) if append else {}
+        try:
             working_dir = self.filesystem.working_dir
-        else:
-            working_dir = Path.cwd()
+        except StateAccessError:
+            working_dir = None
         for e in ext:
-            basepath, extpath = os.path.split(working_dir.joinpath(e))
-            if not basepath:
-                basepath = "."
-            sys.path.insert(0, os.path.abspath(basepath))
-            try:
-                importlib.import_module(extpath)
-            except ImportError:
-                logger.exception("ImportError")
-                raise
-            except Exception as err:
-                logger.exception(f"Error {err}")
-                raise
-            finally:
-                del sys.path[0]
-            extensions.append(e)
+            location = resolve_extension(e, working_dir)
+            module = import_extension(location)
+            # Keep the public registry usable with importlib (e.g. external
+            # settings checkers). Worker lookup paths are separate metadata.
+            extensions.append(module.__name__)
+            locations[module.__name__] = location
         self.set("imported_extensions", extensions)
+        self.set("_extension_locations", locations)
 
     filesystem: FileSystem = StateAttr(FileSystem)
     settings: Settings = StateAttr(Settings)

@@ -7,3 +7,4 @@ skim wrapper test,od_distance_wrapper,skims2d['DIST']
 sov time,od_sov_time,skims3d['SOV_TIME']
 testing constant from locals_dict,constant_test,test_constant / 2
 testing global constant,global_constant_test,global_test_constant / 2
+network los period label test,los_period,network_los.skim_time_period_label(df.depart)

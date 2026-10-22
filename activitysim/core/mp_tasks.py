@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import glob
-import importlib
 import logging
 import multiprocessing
 import os
@@ -928,18 +927,8 @@ def setup_injectables_and_logging(injectables, locutor: bool = True) -> workflow
 
         # re-import extension modules to register injectables
         ext = state.get_injectable("imported_extensions", default=())
-        for e in ext:
-            basepath, extpath = os.path.split(e)
-            if not basepath:
-                basepath = "."
-            sys.path.insert(0, basepath)
-            try:
-                importlib.import_module(e)
-            except ImportError as err:
-                logger.exception("ImportError")
-                raise
-            finally:
-                del sys.path[0]
+        locations = state.get_injectable("_extension_locations", default={})
+        state.import_extensions([locations.get(e, e) for e in ext], append=False)
 
         state.add_injectable("is_sub_task", True)
         state.add_injectable("locutor", locutor)

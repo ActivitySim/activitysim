@@ -90,12 +90,17 @@
     new release to PyPI, assuming there are no errors. It also publishes the
     documentation for the release to the `v1.2.3` folder of the `gh-pages` branch.
 
-9.  Update the documentation's version menu and landing page. Both are edited
-    by hand on the `gh-pages` branch, once the release's documentation has been
-    published there:
-    - `switcher.json`: add an entry for the new version named "(Latest)", remove
-      "(Latest)" from the previous release's entry, and update the version of
-      the "Development" entry.
+9.  Update the documentation's version menu and landing page. Both are files
+    at the root of the `gh-pages` branch, edited by hand through a pull request
+    into that branch once the release's documentation has been published there:
+    - `switcher.json`: the menu has one entry per minor version, pointing at its
+      latest release. For a new minor version, add an entry for it at the top
+      (below "Development"), for example
+      `{"name": "1.2.0 (Latest)", "version": "1.2.0", "url": "https://activitysim.github.io/activitysim/v1.2.0/index.html"}`,
+      and rename the previous "(Latest)" entry to its minor version (for
+      example "1.1"). For a patch release, update the existing entry for its
+      minor version instead: its version and URL, and its name if that shows
+      the full version (for example "1.2.0 (Latest)" becomes "1.2.1 (Latest)").
     - `index.html`: point the redirect at the new version (for example
       `url='v1.2.3'`).
 

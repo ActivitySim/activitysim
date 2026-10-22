@@ -35,6 +35,10 @@ def est_data():
 
 
 def _regression_check(dataframe_regression, df, basename=None, rtol=None):
+    # Single-model parameters have unique names. The nonmandatory-frequency
+    # check concatenates segment tables with repeated names; retain its grouping.
+    if df.index.is_unique:
+        df = df.sort_index()
     if rtol is None:
         rtol = 0.1
     dataframe_regression.check(

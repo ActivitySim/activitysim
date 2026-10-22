@@ -1,0 +1,7 @@
+description,coefficient,model_value,target_value,hold_fast,min,max,damping,method,tolerance
+#Distance 1 to 2 mi share,coef_calib_dist_1_2,"summarize_model(context, min_dist=.1, max_dist=.2)","summarize_survey(context, min_dist=.1, max_dist=.2)",FALSE,-5,5,1,log_ratio,0.02
+#Distance 5 to 15 mi share,coef_calib_dist_5_15,"summarize_model(context, min_dist=.15, max_dist=.5)","summarize_survey(context, min_dist=.15, max_dist=.5)",FALSE,-5,5,1,log_ratio,0.01
+#Distance 15+ mi share,coef_calib_dist_15_up,"summarize_model(context, min_dist=.5, max_dist=999)","summarize_survey(context, min_dist=.5, max_dist=999)",FALSE,-5,5,1,log_ratio,0.01
+Distance 0 to 2 mi share,coef_calib_dist_0_2,"summarize_model(context, min_dist=.0, max_dist=.5)",0.05,FALSE,-5,5,1,log_ratio,0.02
+Distance 5 to 15 mi share,coef_calib_dist_5_15,"summarize_model(context, min_dist=.5, max_dist=1)",0.25,FALSE,-5,5,1,log_ratio,0.01
+Distance 15+ mi share,coef_calib_dist_15_up,"summarize_model(context, min_dist=2, max_dist=999)",0.1,FALSE,-5,5,1,log_ratio,0.01

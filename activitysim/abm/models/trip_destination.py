@@ -258,7 +258,7 @@ def destination_sample(
     chunk_size,
     trace_label,
 ):
-    chunk_tag = "trip_destination.sample"
+    chunk_tag = f"trip_destination.sample.{primary_purpose}"
 
     skims = skim_hotel.sample_skims(presample=False)
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
@@ -630,7 +630,7 @@ def destination_presample(
     trace_label,
 ):
     trace_label = tracing.extend_trace_label(trace_label, "presample")
-    chunk_tag = "trip_destination.presample"  # distinguish from trip_destination.sample
+    chunk_tag = f"trip_destination.presample.{primary_purpose}"  # distinguish from trip_destination.sample
 
     alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
 
@@ -876,7 +876,7 @@ def compute_logsums(
     logger.debug("Running %s with %d samples", trace_label, destination_sample.shape[0])
 
     # chunk usage is uniform so better to combine
-    chunk_tag = "trip_destination.compute_logsums"
+    chunk_tag = f"trip_destination.compute_logsums.{primary_purpose}"
 
     # FIXME should pass this in?
     network_los = state.get_injectable("network_los")
@@ -995,7 +995,7 @@ def trip_destination_simulate(
         destination alt chosen
     """
     trace_label = tracing.extend_trace_label(trace_label, "trip_dest_simulate")
-    chunk_tag = "trip_destination.simulate"
+    chunk_tag = f"trip_destination.simulate.{primary_purpose}"
 
     spec = simulate.spec_for_segment(
         state,

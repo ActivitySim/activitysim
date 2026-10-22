@@ -22,7 +22,7 @@ jobs:
       # requests and pushes to other branches use the newest supported Python
       # only. Pushes to main (i.e. merges) and manual runs use every supported
       # version.
-      test_versions: ${{ (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) && '["3.11", "3.12", "3.13"]' || '["3.13"]' }}
+      test_versions: ${{ (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) && '["3.11", "3.12", "3.13"]' || '["3.11"]' }}
     strategy:
       fail-fast: false
       matrix:

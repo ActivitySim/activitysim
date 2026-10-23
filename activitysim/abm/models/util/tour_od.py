@@ -683,6 +683,16 @@ def od_presample(
         trace_label,
     )
 
+    alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
+    chooser_orig_col_name = model_settings.CHOOSER_ORIG_COL_NAME
+
+    if state.settings.skip_failed_choices and orig_MAZ_dest_TAZ_sample.empty:
+        # every chooser failed sampling, so there is no TAZ to choose a MAZ for
+        return pd.DataFrame(
+            columns=[alt_dest_col_name, chooser_orig_col_name, "prob", "pick_count"],
+            index=orig_MAZ_dest_TAZ_sample.index,
+        )
+
     orig_MAZ_dest_TAZ_sample[ORIG_MAZ] = (
         orig_MAZ_dest_TAZ_sample[alt_od_col_name].str.split("_").str[0].astype(int)
     )
@@ -705,8 +715,6 @@ def od_presample(
     # outputs
     assert DEST_MAZ in maz_choices
 
-    alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
-    chooser_orig_col_name = model_settings.CHOOSER_ORIG_COL_NAME
     maz_choices = maz_choices.rename(
         columns={DEST_MAZ: alt_dest_col_name, ORIG_MAZ: chooser_orig_col_name}
     )

@@ -540,6 +540,11 @@ def interaction_sample_simulate(
         when household tracing enabled. No tracing occurs if label is empty or None.
     trace_choice_name: str
         This is the column label to be used in trace file csv dump of choices
+    allow_zero_probs : bool, optional
+        Accept choosers for which no sampled alternative is available.
+    zero_prob_choice_val : optional
+        Choice value to return for those choosers. Required when allow_zero_probs
+        is True, unless skip_choice is True.
     skip_choice: bool
         This skips the logit choice step and simply returns the alternatives table with logsums
         (used in disaggregate accessibility)
@@ -571,6 +576,15 @@ def interaction_sample_simulate(
 
     trace_label = tracing.extend_trace_label(trace_label, "interaction_sample_simulate")
     chunk_tag = chunk_tag or trace_label
+
+    # Choosers with no available alternative get their first alternative as a
+    # placeholder, and only zero_prob_choice_val replaces it. Without a value they
+    # would silently keep an alternative they cannot choose. Logsum-only calls
+    # (skip_choice) make no choice.
+    if allow_zero_probs and zero_prob_choice_val is None and not skip_choice:
+        raise ValueError(
+            f"{trace_label}: zero_prob_choice_val is required when allow_zero_probs is True"
+        )
 
     # Note: when use_explicit_error_terms is True but alts_context is None, EET draws are
     # keyed to the per-call active alternative count rather than a stable universe, so they

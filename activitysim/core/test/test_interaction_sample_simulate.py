@@ -216,6 +216,50 @@ def test_interaction_sample_simulate_eet_unavailable_alternatives(state):
     assert not choices_eet.isin([2, 3, 4]).any()
 
 
+def _call_with_unavailable_chooser(state, **kwargs):
+    """Person 2 has no available alternative; person 1 has two at utility 0."""
+    choosers = pd.DataFrame(
+        {"chooser_ok": [1.0, 0.0]},
+        index=pd.Index([1, 2], name="person_id"),
+    )
+    alternatives = pd.DataFrame(
+        {"alt_id": [1, 2, 1, 2]},
+        index=pd.Index([1, 1, 2, 2], name="person_id"),
+    )
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["-1000 * (1 - chooser_ok)"], name="Expression"),
+    )
+    state.rng().set_base_seed(42)
+    state.rng().add_channel("person_id", choosers)
+    state.rng().begin_step("test_zero_prob_choice_val")
+
+    return interaction_sample_simulate.interaction_sample_simulate(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        choice_column="alt_id",
+        allow_zero_probs=True,
+        **kwargs,
+    )
+
+
+def test_interaction_sample_simulate_allow_zero_probs_requires_choice_val(state):
+    """Without zero_prob_choice_val, a chooser with no available alternative would
+    silently keep its placeholder (first) alternative."""
+    with pytest.raises(ValueError, match="zero_prob_choice_val is required"):
+        _call_with_unavailable_chooser(state)
+
+
+def test_interaction_sample_simulate_skip_choice_needs_no_choice_val(state):
+    """Logsum-only calls make no choice, so they need no zero_prob_choice_val."""
+    result = _call_with_unavailable_chooser(state, want_logsums=True, skip_choice=True)
+
+    assert result["logsums"].iloc[0] == pytest.approx(np.log(2.0))
+    assert result["logsums"].iloc[1] == -np.inf
+
+
 def test_interaction_sample_simulate_passes_alts_context_and_alt_nrs_df(
     state, monkeypatch
 ):

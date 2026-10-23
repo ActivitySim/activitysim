@@ -667,6 +667,10 @@ def destination_presample(
         n_total_alts=len(full_taz_index) if full_taz_index is not None else None,
     )
 
+    if state.settings.skip_failed_choices and taz_sample.empty:
+        # every chooser failed sampling, so there is no TAZ to choose a MAZ for
+        return taz_sample.rename(columns={DEST_TAZ: alt_dest_col_name})
+
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
     maz_choices = choose_MAZ_for_TAZ(
         state,

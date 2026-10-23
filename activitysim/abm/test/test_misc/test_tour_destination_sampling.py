@@ -170,6 +170,70 @@ def test_destination_presample_uses_taz_stable_mapping(monkeypatch):
     )
 
 
+@pytest.mark.parametrize("use_explicit_error_terms", [False, True], ids=["mnl", "eet"])
+def test_destination_presample_returns_empty_sample_when_every_chooser_failed(
+    monkeypatch, use_explicit_error_terms
+):
+    """An empty TAZ sample is returned as is, without choosing MAZs.
+
+    Under skip_failed_choices, the TAZ sample is empty when every chooser in the
+    segment failed sampling. choose_MAZ_for_TAZ raises on an empty sample.
+    """
+
+    def fake_destination_sample(*_args, **_kwargs):
+        # interaction_sample's result when every chooser failed
+        return pd.DataFrame(
+            {
+                tour_destination.DEST_TAZ: pd.Series(dtype="int64"),
+                "prob": pd.Series(dtype="float32"),
+                "pick_count": pd.Series(dtype="uint32"),
+                "person_id": pd.Series(dtype="int64"),
+            },
+            index=pd.Index([], name="tour_id", dtype="int64"),
+        )
+
+    monkeypatch.setattr(
+        tour_destination, "_destination_sample", fake_destination_sample
+    )
+
+    state = workflow.State().default_settings()
+    state.settings.skip_failed_choices = True
+    state.settings.use_explicit_error_terms = use_explicit_error_terms
+    choosers = pd.DataFrame(
+        {"origin": [101, 103]},
+        index=pd.Index([7001, 7002], name="tour_id"),
+    )
+    model_settings = type(
+        "ModelSettings",
+        (),
+        {
+            "ALT_DEST_COL_NAME": "zone_id",
+            "CHOOSER_ORIG_COL_NAME": "origin",
+        },
+    )()
+    network_los = _DummyNetworkLos({101: 1, 102: 2, 103: 3})
+    destination_size_terms = pd.DataFrame(
+        {"size_term": [1.0, 2.0, 3.0]},
+        index=pd.Index([101, 102, 103], name="zone_id"),
+    )
+
+    out = tour_destination.destination_presample(
+        state,
+        "segment",
+        choosers,
+        model_settings,
+        network_los,
+        destination_size_terms,
+        destination_size_terms,
+        estimator=None,
+        trace_label="test_trace",
+    )
+
+    assert out.empty
+    assert out.index.name == "tour_id"
+    assert list(out.columns) == ["zone_id", "prob", "pick_count", "person_id"]
+
+
 def test_choose_maz_for_taz_supports_variable_taz_counts():
     state = _DummyState([[0.2, 0.81], [0.1, 0.9]])
 

@@ -170,6 +170,69 @@ def test_od_presample_passes_full_taz_index_for_eet_poisson(monkeypatch):
     )
 
 
+@pytest.mark.parametrize("use_explicit_error_terms", [False, True], ids=["mnl", "eet"])
+def test_od_presample_returns_empty_sample_when_every_chooser_failed(
+    monkeypatch, use_explicit_error_terms
+):
+    """An empty OD sample gives an empty result with the usual columns.
+
+    Under skip_failed_choices, the OD sample is empty when every chooser in the
+    segment failed sampling. choose_MAZ_for_TAZ raises on an empty sample.
+    """
+    alt_od_col_name = tour_od.get_od_id_col(tour_od.ORIG_MAZ, tour_od.DEST_TAZ)
+
+    def fake_od_sample(*_args, **_kwargs):
+        # interaction_sample's result when every chooser failed
+        return pd.DataFrame(
+            {
+                alt_od_col_name: pd.Series(dtype="object"),
+                "prob": pd.Series(dtype="float32"),
+                "pick_count": pd.Series(dtype="uint32"),
+            },
+            index=pd.Index([], name="tour_id", dtype="int64"),
+        )
+
+    monkeypatch.setattr(tour_od, "_od_sample", fake_od_sample)
+
+    state = workflow.State().default_settings()
+    state.settings.skip_failed_choices = True
+    state.settings.use_explicit_error_terms = use_explicit_error_terms
+    choosers = pd.DataFrame(
+        {tour_od.ORIG_TAZ: [1, 3]},
+        index=pd.Index([7001, 7002], name="tour_id"),
+    )
+    model_settings = type(
+        "ModelSettings",
+        (),
+        {
+            "ALT_DEST_COL_NAME": "alt_dest",
+            "CHOOSER_ORIG_COL_NAME": "origin",
+        },
+    )()
+    network_los = _DummyNetworkLos({101: 1, 102: 2, 103: 3})
+    destination_size_terms = pd.DataFrame(
+        {"size_term": [1.0, 2.0, 3.0]},
+        index=pd.Index([101, 102, 103], name="zone_id"),
+    )
+
+    out = tour_od.od_presample(
+        state,
+        "segment",
+        choosers,
+        model_settings,
+        network_los,
+        destination_size_terms,
+        destination_size_terms,
+        estimator=None,
+        chunk_size=0,
+        trace_label="test_trace",
+    )
+
+    assert out.empty
+    assert out.index.name == "tour_id"
+    assert list(out.columns) == ["alt_dest", "origin", "prob", "pick_count"]
+
+
 def test_od_presample_omits_full_taz_index_for_eet_non_poisson(monkeypatch):
     captured = {}
 

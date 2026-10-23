@@ -252,6 +252,12 @@ def run_park_and_ride_lot_choice(
             f" {len(choosers.index)} != {len(original_index)}"
         )
 
+    if estimator:
+        survey_pnr_zone_id = estimator.get_survey_values(
+            choosers, "tours", "pnr_zone_id"
+        )
+        choosers = choosers.loc[survey_pnr_zone_id != -1].copy()
+
     trn_accessible_choosers = filter_chooser_to_transit_accessible_destinations(
         state,
         choosers,
@@ -336,14 +342,26 @@ def run_park_and_ride_lot_choice(
 
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
-        estimator.write_coefficients_template(model_settings=model_settings)
+        # no write_coefficients_template: not needed for this model
         estimator.write_spec(model_settings)
         estimator.write_model_settings(model_settings, model_settings_file_name)
-        # in production, all choosers with a transit accessible destination are selected as choosers
-        # but in estimation, it would only be those who actually reported a pnr lot
-        # unclear exactly how to handle this, but for now, we will write all choosers
         estimator.write_choosers(trn_accessible_choosers)
         estimator.write_alternatives(pnr_alts)
+
+        # same convention as other interaction models: chooser index copied into a column
+        # AFTER write_choosers so the EDB choosers table doesn't get a duplicate ID column
+        chooser_id = trn_accessible_choosers.index.name
+        assert chooser_id is not None, "PNR choosers need a named index for estimation"
+        assert chooser_id not in trn_accessible_choosers.columns
+        trn_accessible_choosers = trn_accessible_choosers.copy()
+        trn_accessible_choosers[chooser_id] = trn_accessible_choosers.index
+
+        estimator.set_alt_id("pnr_zone_id")
+        estimator.set_chooser_id(chooser_id)
+
+        # estimation expression tables are only keyed by chooser ID when the
+        # interaction dataframe's index is unnamed
+        pnr_alts = pnr_alts.rename_axis(None)
 
     choices = interaction_simulate(
         state,
@@ -363,20 +381,21 @@ def run_park_and_ride_lot_choice(
     )
 
     choices = choices.reindex(choosers.index, fill_value=-1)
+    has_alternatives = choices.index.isin(trn_accessible_choosers.index)
+
+    if estimator:
+        edb_choices = choices[has_alternatives]
+        estimator.write_choices(edb_choices)
+        estimator.write_override_choices(
+            estimator.get_survey_values(edb_choices, "tours", "pnr_zone_id")
+        )
+        choices = estimator.get_survey_values(choices, "tours", "pnr_zone_id")
+        estimator.end_estimation()
 
     if original_index is not None:
         # set the choices index back to the original index
         choices.index = original_index
         state.get_rn_generator().drop_channel("pnr_lot_choice")
-
-    if estimator:
-        # careful -- there could be some tours in estimation data that are not transit accessible
-        # but still reported a pnr location
-        # warning! untested code!
-        estimator.write_choices(choices)
-        choices = estimator.get_survey_values(choices, "tours", "pnr_zone_id")
-        estimator.write_override_choices(choices)
-        estimator.end_estimation()
 
     return choices
 

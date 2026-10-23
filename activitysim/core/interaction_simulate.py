@@ -924,9 +924,7 @@ def _interaction_simulate(
             trace_choosers=choosers,
         )
         if allow_zero_probs:
-            zero_probs = (
-                utilities.sum(axis=1) <= utilities.shape[1] * logit.UTIL_UNAVAILABLE
-            )
+            zero_probs = logit.no_available_alternatives(utilities)
             if zero_probs.any():
                 # Give unavailable rows a temporary choice before replacing it below.
                 utilities.loc[zero_probs, 0] = logit.UTIL_LARGE_ENOUGH
@@ -981,6 +979,13 @@ def _interaction_simulate(
     # tranche of this choosers alternatives created by cross join of alternatives and choosers
     # offsets is the offset into model_design df of first row of chooser alternatives
     offsets = np.arange(len(positions)) * sample_size
+
+    # make_choices marks failed choices with -99 when skip_failed_choices is
+    # enabled; clip so take() below cannot wrap into another chooser's
+    # alternatives (the failed chooser's household is skipped anyway)
+    if state.settings.skip_failed_choices:
+        positions = positions.clip(lower=0)
+
     # resulting Int64Index has one element per chooser row and is in same order as choosers
     choices = interaction_utilities.index.take(positions + offsets)
 
@@ -1066,7 +1071,8 @@ def interaction_simulate(
     allow_zero_probs : bool, optional
         Accept choosers for which every alternative has zero probability.
     zero_prob_choice_val : optional
-        Choice value to return for those choosers when allow_zero_probs is True.
+        Choice value to return for those choosers. Required when allow_zero_probs
+        is True.
 
     Returns
     -------
@@ -1076,6 +1082,14 @@ def interaction_simulate(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, "interaction_simulate")
+
+    # Choosers with no available alternative get their first alternative as a
+    # placeholder, and only zero_prob_choice_val replaces it. Without a value they
+    # would silently keep an alternative they cannot choose.
+    if allow_zero_probs and zero_prob_choice_val is None:
+        raise ValueError(
+            f"{trace_label}: zero_prob_choice_val is required when allow_zero_probs is True"
+        )
 
     assert len(choosers) > 0
 

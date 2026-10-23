@@ -7,7 +7,7 @@ import logging
 import pandas as pd
 
 from activitysim.abm.models.util import tour_destination
-from activitysim.core import estimation, los, tracing, workflow, expressions
+from activitysim.core import estimation, expressions, logit, los, tracing, workflow
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.util import assign_in_place
 
@@ -123,9 +123,12 @@ def non_mandatory_tour_destination(
             state.settings.downcast_float,
         )
 
-    assert all(
-        ~tours["destination"].isna()
-    ), f"Tours are missing destination: {tours[tours['destination'].isna()]}"
+    # tours of households skipped under skip_failed_choices have no destination;
+    # add_table drops them
+    missing = tours["destination"].isna() & ~tours["household_id"].isin(
+        logit.skipped_household_ids(state)
+    )
+    assert not missing.any(), f"Tours are missing destination: {tours[missing]}"
 
     state.add_table("tours", tours)
 

@@ -26,7 +26,6 @@ from activitysim.core import (
     estimation,
     expressions,
     los,
-    mem,
     simulate,
     tracing,
     workflow,
@@ -761,8 +760,7 @@ def destination_presample(
         )
         maz_sample_chunks.append(maz_sample_chunk)
         del taz_sample, maz_sample_chunk
-        if explicit_chunk_size:
-            mem.release_memory()
+        chunk.release_explicit_chunk_memory(state, explicit_chunk_size)
 
     maz_sample = pd.concat(maz_sample_chunks)
 
@@ -1037,7 +1035,7 @@ def compute_logsums(
         dp_logsum_chunks.append(dp_logsum_chunk)
         chunk_sizer.log_df(chunk_trace_label, "logsum_choosers", None)
         del choosers, od_logsum_chunk, dp_logsum_chunk
-        mem.release_memory()
+        chunk.release_explicit_chunk_memory(state, model_settings.explicit_chunk)
 
     od_logsums = pd.concat(od_logsum_chunks)
     dp_logsums = pd.concat(dp_logsum_chunks)
@@ -1200,7 +1198,7 @@ def trip_destination_simulate(
             )
             destination_chunks.append(destination_chunk)
             del destination_chunk
-            mem.release_memory()
+            chunk.release_explicit_chunk_memory(state, model_settings.explicit_chunk)
 
         destinations = pd.concat(destination_chunks)
 
@@ -1421,7 +1419,7 @@ def choose_trip_destination(
         assert destination_sample is None
         destination_chunks.append(destinations_chunk)
         del destinations_chunk, destination_sample
-        mem.release_memory()
+        chunk.release_explicit_chunk_memory(state, model_settings.explicit_chunk)
 
     return pd.concat(destination_chunks), None
 
@@ -1755,8 +1753,9 @@ def run_trip_destination(
                 # allocator pressure relief prevents freed chunks from
                 # accumulating in a long-lived multiprocess worker before the
                 # next purpose begins.
-                if model_settings.explicit_chunk:
-                    mem.release_memory()
+                chunk.release_explicit_chunk_memory(
+                    state, model_settings.explicit_chunk
+                )
 
             destinations_df = pd.concat(choices_list)
 

@@ -119,7 +119,7 @@ def test_destination_pipeline_chunk_boundary(
         return chooser.copy(), None
 
     monkeypatch.setattr(td, "_choose_trip_destination_unchunked", choose)
-    monkeypatch.setattr(td.mem, "release_memory", lambda: False)
+    monkeypatch.setattr(chunk.mem, "release_memory", lambda: False)
     use_outer = mode == chunk.MODE_EXPLICIT and explicit_chunk and legacy_reason is None
     if not use_outer:
         outer = Mock(

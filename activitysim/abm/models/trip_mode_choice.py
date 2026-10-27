@@ -9,11 +9,11 @@ import pandas as pd
 from activitysim.abm.models.util import school_escort_tours_trips
 from activitysim.abm.models.util.mode import mode_choice_simulate
 from activitysim.core import (
+    chunk,
     config,
     estimation,
     expressions,
     los,
-    mem,
     simulate,
     tracing,
     workflow,
@@ -280,7 +280,7 @@ def trip_mode_choice(
             trips_segment.iloc[:0].copy(), skims, allow_partial_success=False
         )
         del trips_segment, base_trips_segment
-        mem.release_memory()
+        chunk.release_explicit_chunk_memory(state, model_settings.explicit_chunk)
 
     choices_df = pd.concat(choices_list)
 

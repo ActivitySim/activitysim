@@ -63,7 +63,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.6.1" />
-    <meta name="docbuild:last-update" content="Oct 22, 2026"/>
+    <meta name="docbuild:last-update" content="Oct 27, 2026"/>
   </head>
   
   
@@ -381,9 +381,28 @@ shadow price of 0. (In this approach, the shadow price variable is really just a
 zone on or off for selection in the subsequent iterations. For this reason, warm-start functionality
 for this approach is not applicable.)  This process repeats until the overall convergence criteria
 is met or the maximum number of allowed iterations is reached.</p>
+<p>Note that the simulation approach compares the modeled employment/enrollment share against the target
+employment/enrollment share for each zone, rather than the absolute number. Therefore, it does not require
+the absolute total workers/students to match the regional employment/enrollment totals.</p>
 <p>Because the simulation approach only re-simulates workers / students who were over-assigned in the
 previous iteration, run time is significantly less (~90%) than the CTRAMP or DaySim approaches which
 re-simulate all workers and students at each iteration.</p>
+<p>When choosing workers or students for re-simulation, the simulation approach selects individuals from
+overassigned zones by shadow pricing segment. In version 1.6.0 and prior, the segmentation was defaulted
+to use income groups for workers and school segments for students, and changable via the <code class="docutils literal notranslate"><span class="pre">SEGMENT_TO_NAME</span></code>
+setting in the <code class="docutils literal notranslate"><span class="pre">shadow_pricing.yaml</span></code>. However, this setting was easily overlooked or misconfigured,
+which could cause the shadow pricing to be accidentally skipped or cause a mismatch between the segmentation
+used for shadow pricing re-simulation and the segmentation used for work and school location choice simulation,
+if the latter uses a different segmentation scheme from the default income and school segments.
+In version 1.6.1, the segmentation used for shadow pricing re-simulation now inherits the segmentation
+used in the work and school location choice simulation, e.g., defined as <code class="docutils literal notranslate"><span class="pre">CHOOSER_SEGMENT_COLUMN_NAME</span></code> in
+the <code class="docutils literal notranslate"><span class="pre">workplace_location.yaml</span></code>. The legacy setting <code class="docutils literal notranslate"><span class="pre">SEGMENT_TO_NAME</span></code> in the <code class="docutils literal notranslate"><span class="pre">shadow_pricing.yaml</span></code> is now
+deprecated and ignored.</p>
+<p>The segmentation in shadow pricing re-simulation, e.g., occupation or income groups, accommodates but
+does not require occupation- or income-specific land use employment controls. For example,
+the example SANDAG model segments workplace location choice by occupation, but all occupation segments
+share the same <code class="docutils literal notranslate"><span class="pre">total_emp_revised</span></code> target. Under the SANDAG configuration, ActivitySim combines the modeled
+workers across segments sharing that target when evaluating whether a zone is over- or under-assigned.</p>
 </section>
 </section>
 <section id="configuration">
@@ -410,7 +429,7 @@ re-simulate all workers and students at each iteration.</p>
 <li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.MAX_ITERATIONS_SAVED" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.MAX_ITERATIONS_SAVED"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_ITERATIONS_SAVED</span> <span class="pre">(int)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.PERCENT_TOLERANCE" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.PERCENT_TOLERANCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PERCENT_TOLERANCE</span> <span class="pre">(float)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SCALE_SIZE_TABLE" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SCALE_SIZE_TABLE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCALE_SIZE_TABLE</span> <span class="pre">(bool)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SEGMENT_TO_NAME" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SEGMENT_TO_NAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SEGMENT_TO_NAME</span> <span class="pre">(dict[str,</span> <span class="pre">str])</span></code></a></p></li>
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SEGMENT_TO_NAME" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SEGMENT_TO_NAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SEGMENT_TO_NAME</span> <span class="pre">(dict[str,</span> <span class="pre">str]</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SHADOW_PRICE_METHOD" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SHADOW_PRICE_METHOD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SHADOW_PRICE_METHOD</span> <span class="pre">(Literal['ctramp',</span> <span class="pre">'daysim',</span> <span class="pre">'simulation'])</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SIZE_THRESHOLD" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SIZE_THRESHOLD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIZE_THRESHOLD</span> <span class="pre">(float)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.TARGET_THRESHOLD" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.TARGET_THRESHOLD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TARGET_THRESHOLD</span> <span class="pre">(float)</span></code></a></p></li>
@@ -421,27 +440,60 @@ re-simulate all workers and students at each iteration.</p>
 <li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.workplace_segmentation_targets" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.workplace_segmentation_targets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">workplace_segmentation_targets</span> <span class="pre">(dict[str,</span> <span class="pre">str]</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 </ul>
 </dd>
+<dt class="field-odd">Validators<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a> » <code class="xref py py-obj docutils literal notranslate"><span class="pre">all</span> <span class="pre">fields</span></code></p></li>
+</ul>
+</dd>
 </dl>
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAMPING_FACTOR">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DAMPING_FACTOR</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAMPING_FACTOR" title="Permalink to this definition">#</a></dt>
 <dd><p>ctramp-style damping factor</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAYSIM_ABSOLUTE_TOLERANCE">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DAYSIM_ABSOLUTE_TOLERANCE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAYSIM_ABSOLUTE_TOLERANCE" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAYSIM_PERCENT_TOLERANCE">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DAYSIM_PERCENT_TOLERANCE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.DAYSIM_PERCENT_TOLERANCE" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.FAIL_THRESHOLD">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FAIL_THRESHOLD</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.FAIL_THRESHOLD" title="Permalink to this definition">#</a></dt>
 <dd><p>max percentage of zones allowed to fail</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
@@ -449,12 +501,26 @@ re-simulate all workers and students at each iteration.</p>
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LOAD_SAVED_SHADOW_PRICES</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.LOAD_SAVED_SHADOW_PRICES" title="Permalink to this definition">#</a></dt>
 <dd><p>Global switch to enable/disable loading of saved shadow prices.</p>
 <p>This is ignored if global use_shadow_pricing switch is False</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.MAX_ITERATIONS">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MAX_ITERATIONS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.MAX_ITERATIONS" title="Permalink to this definition">#</a></dt>
 <dd><p>Number of shadow price iterations for cold start.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
@@ -462,51 +528,114 @@ re-simulate all workers and students at each iteration.</p>
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MAX_ITERATIONS_SAVED</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.MAX_ITERATIONS_SAVED" title="Permalink to this definition">#</a></dt>
 <dd><p>Number of shadow price iterations for warm start.</p>
 <p>A warm start means saved shadow_prices were found in a file and loaded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.PERCENT_TOLERANCE">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PERCENT_TOLERANCE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.PERCENT_TOLERANCE" title="Permalink to this definition">#</a></dt>
 <dd><p>zone passes if modeled is within percent_tolerance of  predicted_size</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SCALE_SIZE_TABLE">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SCALE_SIZE_TABLE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SCALE_SIZE_TABLE" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SEGMENT_TO_NAME">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SEGMENT_TO_NAME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'school':</span> <span class="pre">'school_segment',</span> <span class="pre">'workplace':</span> <span class="pre">'income_segment'}</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SEGMENT_TO_NAME" title="Permalink to this definition">#</a></dt>
-<dd><p>Mapping from model_selector to persons_segment_name.</p>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SEGMENT_TO_NAME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SEGMENT_TO_NAME" title="Permalink to this definition">#</a></dt>
+<dd><p>Deprecated compatibility setting; chooser segmentation comes from model settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SHADOW_PRICE_METHOD">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SHADOW_PRICE_METHOD</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'ctramp'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'daysim'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'simulation'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ctramp'</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SHADOW_PRICE_METHOD" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SIZE_THRESHOLD">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SIZE_THRESHOLD</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.SIZE_THRESHOLD" title="Permalink to this definition">#</a></dt>
 <dd><p>ignore criteria for zones smaller than size_threshold</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.TARGET_THRESHOLD">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TARGET_THRESHOLD</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.TARGET_THRESHOLD" title="Permalink to this definition">#</a></dt>
 <dd><p>ignore criteria for zones smaller than target_threshold (total employmnet or enrollment)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.WRITE_ITERATION_CHOICES">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">WRITE_ITERATION_CHOICES</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.WRITE_ITERATION_CHOICES" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.school_segmentation_targets">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">school_segmentation_targets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.school_segmentation_targets" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.shadow_pricing_models">
@@ -514,11 +643,30 @@ re-simulate all workers and students at each iteration.</p>
 <dd><p>List model_selectors and model_names of models that use shadow pricing.
 This list identifies which size_terms to preload which must be done in single process mode, so
 predicted_size tables can be scaled to population</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.workplace_segmentation_targets">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">workplace_segmentation_targets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.workplace_segmentation_targets" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_deprecated_segment_to_name</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method pydantic_validator">
+<dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name">
+<em class="property"><span class="pre">validator</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">warn_deprecated_segment_to_name</span></span><em class="autodoc_pydantic_validator_arrow property">&#160; <span class="pre">»</span>&#160; </em><em class="xref py py-obj"><span class="pre">all</span> <span class="pre">fields</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -777,6 +925,7 @@ block_shapes: dict {&lt;model_selector&gt;: &lt;block_shape&gt;}</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.school_segmentation_targets"><code class="docutils literal notranslate"><span class="pre">ShadowPriceSettings.school_segmentation_targets</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.shadow_pricing_models"><code class="docutils literal notranslate"><span class="pre">ShadowPriceSettings.shadow_pricing_models</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.workplace_segmentation_targets"><code class="docutils literal notranslate"><span class="pre">ShadowPriceSettings.workplace_segmentation_targets</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.abm.tables.shadow_pricing.ShadowPriceSettings.warn_deprecated_segment_to_name"><code class="docutils literal notranslate"><span class="pre">ShadowPriceSettings.warn_deprecated_segment_to_name</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
@@ -829,7 +978,7 @@ block_shapes: dict {&lt;model_selector&gt;: &lt;block_shape&gt;}</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.6.1.dev5+gcc1944cb4, documentation last updated Oct 22, 2026.<br/>
+ActivitySim 1.6.1.dev6+g9da9141ab, documentation last updated Oct 27, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

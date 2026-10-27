@@ -64,7 +64,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.6.1" />
-    <meta name="docbuild:last-update" content="Oct 22, 2026"/>
+    <meta name="docbuild:last-update" content="Oct 27, 2026"/>
   </head>
   
   
@@ -450,6 +450,18 @@ configurations or code to fail to run correctly.</p>
 branch (i.e., the main branch on GitHub), but not yet released in a stable version
 of ActivitySim.
 No unreleased changes are currently documented.</p>
+<section id="shadow-pricing-re-simulation-segmentation">
+<h3>Shadow Pricing Re-Simulation Segmentation<a class="headerlink" href="#shadow-pricing-re-simulation-segmentation" title="Permalink to this heading">#</a></h3>
+<p>In version 1.6.1, the segmentation used for shadow pricing re-simulation now
+inherits the segmentation used in the work and school location choice simulation,
+e.g., defined as <code class="docutils literal notranslate"><span class="pre">CHOOSER_SEGMENT_COLUMN_NAME</span></code> in the <code class="docutils literal notranslate"><span class="pre">workplace_location.yaml</span></code>.
+The legacy setting <code class="docutils literal notranslate"><span class="pre">SEGMENT_TO_NAME</span></code> in the <code class="docutils literal notranslate"><span class="pre">shadow_pricing.yaml</span></code> is now deprecated
+and ignored. This ensures consistency between the segmentation used for shadow
+pricing re-simulation and the segmentation used for work and school location
+choice simulation. See
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/issues/1082">Issue #1082</a> and
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/pull/1083">PR #1083</a>.</p>
+</section>
 </section>
 <section id="v1-6">
 <h2>v1.6<a class="headerlink" href="#v1-6" title="Permalink to this heading">#</a></h2>
@@ -1027,7 +1039,10 @@ development cycle, including:</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upcoming-changes">Upcoming Changes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upcoming-changes">Upcoming Changes</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shadow-pricing-re-simulation-segmentation">Shadow Pricing Re-Simulation Segmentation</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-6">v1.6</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#removal-of-three-zone-models">Removal of Three-Zone Models</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#updated-dependency-requirements">Updated Dependency Requirements</a></li>
@@ -1111,7 +1126,7 @@ development cycle, including:</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.6.1.dev5+gcc1944cb4, documentation last updated Oct 22, 2026.<br/>
+ActivitySim 1.6.1.dev6+g9da9141ab, documentation last updated Oct 27, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

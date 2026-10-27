@@ -27,6 +27,7 @@ def pnr_context(monkeypatch):
         CHOOSER_FILTER_EXPR=None,
         explicit_chunk=0.5,
         compute_settings=None,
+        ALLOW_ZERO_PROBS=False,
     )
     spec = pd.DataFrame({"coefficient": [1.0]}, index=["1"])
     fs = type(state.filesystem)

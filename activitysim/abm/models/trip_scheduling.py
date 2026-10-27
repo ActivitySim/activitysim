@@ -642,8 +642,10 @@ def trip_scheduling(
     if state.is_table("school_escort_trips"):
         # The working frame contains only non-school-escort trips, so rebuild
         # the complete output frame as before. Release it first to avoid
-        # briefly retaining two full trip-table copies.
-        del trips_chunk, trips_df
+        # briefly retaining two full trip-table copies. ``non_se_trips_df``
+        # aliases the working frame, so it must be dropped too, or deleting
+        # ``trips_df`` would free nothing. All of these are rebuilt below.
+        del trips_chunk, trips_df, non_se_trips_df, se_trips_df
         mem.release_memory()
         trips_df = trips.copy()
 

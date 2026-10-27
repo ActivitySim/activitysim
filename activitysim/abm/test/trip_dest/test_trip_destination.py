@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pandas as pd
@@ -166,3 +167,62 @@ def test_trip_destination_training_ignores_explicit_chunk(tmp_path):
         chunk_training_mode=chunk.MODE_RETRAIN,
     )
     pd.testing.assert_frame_equal(explicit, unchunked)
+
+
+@pytest.mark.parametrize("want_sample_table", [False, True])
+def test_simulate_keeps_preprocessed_columns_in_sample_table(
+    monkeypatch, want_sample_table
+):
+    # The sample table is written from the caller's destination_sample, so the
+    # alternatives preprocessor must annotate that whole table when it is wanted.
+    trips = pd.DataFrame(
+        {"trip_period": [0, 1]}, index=pd.Index([1, 2], name="trip_id")
+    )
+    destination_sample = pd.DataFrame(
+        {"dest_taz": [10, 11, 20], "od_logsum": 0.0, "dp_logsum": 0.0},
+        index=pd.Index([1, 1, 2], name="trip_id"),
+    )
+    model_settings = SimpleNamespace(
+        SPEC="spec.csv",
+        COEFFICIENTS="coefs.csv",
+        ALT_DEST_COL_NAME="dest_taz",
+        CONSTANTS={},
+        explicit_chunk=0.5,
+    )
+    state = wf.State.make_temp()
+    state.settings.chunk_training_mode = chunk.MODE_EXPLICIT
+    state.add_table("land_use", pd.DataFrame(index=pd.Index([10], name="zone_id")))
+    skim_hotel = SimpleNamespace(
+        sample_skims=lambda presample: {"odt_skims": SimpleNamespace()}
+    )
+    size_term_matrix = SimpleNamespace(df=pd.DataFrame())
+
+    monkeypatch.setattr(td.simulate, "spec_for_segment", lambda *a, **k: None)
+
+    def preprocess(_state, df, **kwargs):
+        df["alt_derived"] = df["dest_taz"] * 2
+
+    monkeypatch.setattr(td.expressions, "annotate_preprocessors", preprocess)
+
+    def simulate_sampled(_state, choosers, alternatives, **kwargs):
+        first = alternatives[~alternatives.index.duplicated()]
+        return first.loc[choosers.index, "dest_taz"]
+
+    monkeypatch.setattr(td, "interaction_sample_simulate", simulate_sampled)
+
+    result = td.trip_destination_simulate(
+        state,
+        primary_purpose="work",
+        trips=trips,
+        destination_sample=destination_sample,
+        model_settings=model_settings,
+        want_logsums=False,
+        size_term_matrix=size_term_matrix,
+        skim_hotel=skim_hotel,
+        estimator=None,
+        trace_label="test",
+        want_sample_table=want_sample_table,
+    )
+
+    assert result.choice.tolist() == [10, 20]
+    assert ("alt_derived" in destination_sample) is want_sample_table

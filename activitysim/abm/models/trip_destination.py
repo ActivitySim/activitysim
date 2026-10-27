@@ -1060,10 +1060,14 @@ def trip_destination_simulate(
     estimator,
     trace_label,
     alts_context: AltsContext | None = None,
+    want_sample_table: bool = False,
 ):
     """
     Chose destination from destination_sample (with od_logsum and dp_logsum columns added)
 
+    If ``want_sample_table`` is True, the alternatives preprocessor is applied
+    to the complete ``destination_sample`` in place, so that its derived
+    columns are retained in the sample table written by the caller.
 
     Returns
     -------
@@ -1114,8 +1118,11 @@ def trip_destination_simulate(
     locals_dict.update(skims)
 
     log_alt_losers = state.settings.log_alt_losers
-    if estimator:
+    if estimator or want_sample_table:
         # Preserve the estimator's single-call lifecycle and output bundle.
+        # The sample table also needs the whole-table path: preprocessing
+        # chunk slices would leave the alts_preprocessor_simulate columns off
+        # the destination_sample that is written out as the sample table.
         expressions.annotate_preprocessors(
             state,
             df=destination_sample,
@@ -1304,6 +1311,7 @@ def _choose_trip_destination_unchunked(
         estimator=estimator,
         trace_label=trace_label,
         alts_context=alts_context,
+        want_sample_table=want_sample_table,
     )
 
     # Check for temporary fix to bias logsums for Poisson sampling results to align with MC/eet sampling.

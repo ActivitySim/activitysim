@@ -5,7 +5,8 @@ from types import SimpleNamespace
 import pandas as pd
 import pytest
 
-from activitysim.abm.models import location_choice, park_and_ride_lot_choice as pnr
+from activitysim.abm.models import location_choice
+from activitysim.abm.models import park_and_ride_lot_choice as pnr
 from activitysim.abm.models.util import logsums, tour_destination
 from activitysim.core import interaction_simulate, workflow
 

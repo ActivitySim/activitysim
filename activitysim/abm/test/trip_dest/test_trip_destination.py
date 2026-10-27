@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 import shutil
-from unittest.mock import Mock
 from pathlib import Path
+from unittest.mock import Mock
 
 import pandas as pd
 import pytest
 
+from activitysim import abm  # noqa: F401
 from activitysim.abm.models import trip_destination as td
 from activitysim.core import chunk
-
-from activitysim import abm  # noqa: F401
 from activitysim.core import workflow as wf
 
 

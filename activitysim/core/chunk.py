@@ -1206,6 +1206,27 @@ def chunk_log_skip():
     None
 
 
+def release_explicit_chunk_memory(
+    state: workflow.State, explicit_chunk_size: float | None = 0
+) -> bool:
+    """Return freed allocator pages to the OS, but only under explicit chunking.
+
+    Between chunks of a bounded pipeline, ``mem.release_memory`` keeps a
+    long-lived worker's resident set from ratcheting upward. It is not free,
+    however: a full garbage collection plus an allocator trim on a large heap
+    can take a noticeable fraction of a second. When explicit chunking is not
+    configured there is usually only one chunk, so skip the call entirely
+    rather than pay that cost for no benefit.
+
+    Returns True only if the platform allocator reported releasing memory.
+    """
+    if not explicit_chunk_size:
+        return False
+    if chunk_training_mode(state) != MODE_EXPLICIT:
+        return False
+    return mem.release_memory()
+
+
 def adaptive_chunked_choosers(
     state: workflow.State,
     choosers: pd.DataFrame,

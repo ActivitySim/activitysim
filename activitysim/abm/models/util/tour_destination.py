@@ -12,6 +12,7 @@ from activitysim.abm.models.util.bias_logsums import maybe_bias_logsums
 from activitysim.abm.models.util.maz_sampling import draw_maz_rands
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 from activitysim.core import (
+    chunk,
     config,
     estimation,
     expressions,
@@ -712,8 +713,7 @@ def run_destination_sample(
     if pre_sample_taz and not state.settings.want_dest_choice_presampling:
         pre_sample_taz = False
         logger.info(
-            f"Disabled destination zone presampling for {trace_label} "
-            f"because 'want_dest_choice_presampling' setting is False"
+            f"Disabled destination zone presampling for {trace_label} because 'want_dest_choice_presampling' setting is False"
         )
 
     if pre_sample_taz:
@@ -793,31 +793,63 @@ def run_destination_logsums(
 
     chunk_tag = "tour_destination.logsums"
 
-    # merge persons into tours
-    choosers = pd.merge(
-        destination_sample,
-        persons_merged,
-        left_on=chooser_id_column,
-        right_index=True,
-        how="left",
-    )
-
-    logger.debug("Running %s with %s rows", trace_label, len(choosers))
-
     state.tracing.dump_df(DUMP, persons_merged, trace_label, "persons_merged")
-    state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
-    logsums = logsum.compute_location_choice_logsums(
-        state,
-        choosers,
-        tour_purpose,
-        logsum_settings,
-        model_settings,
-        network_los,
-        chunk_size,
-        chunk_tag,
-        trace_label,
+    # One chooser row per tour, aligned with the repeated tour index of the
+    # sampled alternatives. Merge person attributes and run the logsum
+    # preprocessor inside this outer chunk so the full sampled table is never
+    # materialized with all person and derived columns at once.
+    tour_choosers = destination_sample.loc[
+        ~destination_sample.index.duplicated(keep="first"), [chooser_id_column]
+    ]
+    pnr_index_multiplier = logsum.get_pnr_index_multiplier(
+        destination_sample, logsum_settings
     )
+    logsum_chunks = []
+    for (
+        _i,
+        tour_choosers_chunk,
+        destination_sample_chunk,
+        chunk_trace_label,
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers_and_alts(
+        state,
+        tour_choosers,
+        destination_sample,
+        trace_label,
+        chunk_tag,
+        chunk_size=chunk_size,
+        explicit_chunk_size=model_settings.explicit_chunk,
+    ):
+        choosers = pd.merge(
+            destination_sample_chunk,
+            persons_merged,
+            left_on=chooser_id_column,
+            right_index=True,
+            how="left",
+        )
+        assert choosers.index.equals(destination_sample_chunk.index)
+        chunk_sizer.log_df(chunk_trace_label, "logsum_choosers", choosers)
+
+        logsum_chunks.append(
+            logsum.compute_location_choice_logsums(
+                state,
+                choosers,
+                tour_purpose,
+                logsum_settings,
+                model_settings,
+                network_los,
+                0,
+                chunk_tag,
+                chunk_trace_label,
+                explicit_chunk_size=0,
+                pnr_index_multiplier=pnr_index_multiplier,
+            )
+        )
+        chunk_sizer.log_df(chunk_trace_label, "logsum_choosers", None)
+
+    logsums = pd.concat(logsum_chunks)
+    assert logsums.index.equals(destination_sample.index)
 
     destination_sample["mode_choice_logsum"] = logsums
 
@@ -951,6 +983,7 @@ def run_destination_simulate(
         trace_choice_name="destination",
         estimator=estimator,
         skip_choice=skip_choice,
+        explicit_chunk_size=model_settings.explicit_chunk,
         compute_settings=model_settings.compute_settings,
         alts_context=alts_context,
     )

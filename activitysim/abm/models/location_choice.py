@@ -11,7 +11,15 @@ from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.models.util import tour_destination
 from activitysim.abm.models.util.bias_logsums import maybe_bias_logsums
 from activitysim.abm.tables import shadow_pricing
-from activitysim.core import estimation, expressions, los, simulate, tracing, workflow
+from activitysim.core import (
+    chunk,
+    estimation,
+    expressions,
+    los,
+    simulate,
+    tracing,
+    workflow,
+)
 from activitysim.core.configuration.logit import (
     TourLocationComponentSettings,
     TourModeComponentSettings,
@@ -520,8 +528,7 @@ def run_location_sample(
     full_dest_size_terms = dest_size_terms
 
     logger.debug(
-        f"dropping {(~(dest_size_terms.size_term > 0)).sum()} "
-        f"of {len(dest_size_terms)} rows where size_term is zero"
+        f"dropping {(~(dest_size_terms.size_term > 0)).sum()} of {len(dest_size_terms)} rows where size_term is zero"
     )
     dest_size_terms = dest_size_terms[dest_size_terms.size_term > 0]
 
@@ -532,8 +539,7 @@ def run_location_sample(
     if pre_sample_taz and not state.settings.want_dest_choice_presampling:
         pre_sample_taz = False
         logger.info(
-            f"Disabled destination zone presampling for {trace_label} "
-            f"because 'want_dest_choice_presampling' setting is False"
+            f"Disabled destination zone presampling for {trace_label} because 'want_dest_choice_presampling' setting is False"
         )
 
     if pre_sample_taz:
@@ -616,23 +622,56 @@ def run_location_logsums(
 
     logger.info(f"Running {trace_label} with {len(location_sample_df.index)} rows")
 
-    choosers = location_sample_df.join(persons_merged_df, how="left")
-
     tour_purpose = model_settings.LOGSUM_TOUR_PURPOSE
     if isinstance(tour_purpose, dict):
         tour_purpose = tour_purpose[segment_name]
 
-    logsums = logsum.compute_location_choice_logsums(
-        state,
-        choosers,
-        tour_purpose,
-        logsum_settings,
-        model_settings,
-        network_los,
-        chunk_size,
-        chunk_tag,
-        trace_label,
+    # Join sampled alternatives to person attributes inside the chooser chunk.
+    # The old full-table join could retain millions of rows and all derived
+    # logsum preprocessor columns before the utility evaluator began chunking.
+    # At production scale that defeated explicit chunking and exhausted memory.
+    pnr_index_multiplier = logsum.get_pnr_index_multiplier(
+        location_sample_df, logsum_settings
     )
+    logsum_chunks = []
+    for (
+        _i,
+        persons_chunk,
+        location_sample_chunk,
+        chunk_trace_label,
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers_and_alts(
+        state,
+        persons_merged_df,
+        location_sample_df,
+        trace_label,
+        chunk_tag,
+        chunk_size=chunk_size,
+        explicit_chunk_size=model_settings.explicit_chunk,
+    ):
+        choosers = location_sample_chunk.join(persons_chunk, how="left")
+        assert choosers.index.equals(location_sample_chunk.index)
+        chunk_sizer.log_df(chunk_trace_label, "logsum_choosers", choosers)
+
+        logsum_chunks.append(
+            logsum.compute_location_choice_logsums(
+                state,
+                choosers,
+                tour_purpose,
+                logsum_settings,
+                model_settings,
+                network_los,
+                0,
+                chunk_tag,
+                chunk_trace_label,
+                explicit_chunk_size=0,
+                pnr_index_multiplier=pnr_index_multiplier,
+            )
+        )
+        chunk_sizer.log_df(chunk_trace_label, "logsum_choosers", None)
+
+    logsums = pd.concat(logsum_chunks)
+    assert logsums.index.equals(location_sample_df.index)
 
     # "add_column series should have an index matching the table to which it is being added"
     # when the index has duplicates, however, in the special case that the series index exactly

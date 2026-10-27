@@ -50,9 +50,31 @@ zone on or off for selection in the subsequent iterations. For this reason, warm
 for this approach is not applicable.)  This process repeats until the overall convergence criteria
 is met or the maximum number of allowed iterations is reached.
 
+Note that the simulation approach compares the modeled employment/enrollment share against the target 
+employment/enrollment share for each zone, rather than the absolute number. Therefore, it does not require
+the absolute total workers/students to match the regional employment/enrollment totals.
+
 Because the simulation approach only re-simulates workers / students who were over-assigned in the
 previous iteration, run time is significantly less (~90%) than the CTRAMP or DaySim approaches which
 re-simulate all workers and students at each iteration.
+
+When choosing workers or students for re-simulation, the simulation approach selects individuals from 
+overassigned zones by shadow pricing segment. In version 1.6.0 and prior, the segmentation was defaulted
+to use income groups for workers and school segments for students, and changable via the `SEGMENT_TO_NAME`
+setting in the `shadow_pricing.yaml`. However, this setting was easily overlooked or misconfigured, 
+which could cause the shadow pricing to be accidentally skipped or cause a mismatch between the segmentation 
+used for shadow pricing re-simulation and the segmentation used for work and school location choice simulation, 
+if the latter uses a different segmentation scheme from the default income and school segments. 
+In version 1.6.1, the segmentation used for shadow pricing re-simulation now inherits the segmentation 
+used in the work and school location choice simulation, e.g., defined as `CHOOSER_SEGMENT_COLUMN_NAME` in 
+the `workplace_location.yaml`. The legacy setting `SEGMENT_TO_NAME` in the `shadow_pricing.yaml` is now 
+deprecated and ignored.
+
+The segmentation in shadow pricing re-simulation, e.g., occupation or income groups, accommodates but 
+does not require occupation- or income-specific land use employment controls. For example, 
+the example SANDAG model segments workplace location choice by occupation, but all occupation segments 
+share the same `total_emp_revised` target. Under the SANDAG configuration, ActivitySim combines the modeled 
+workers across segments sharing that target when evaluating whether a zone is over- or under-assigned.
 
 ## Configuration
 

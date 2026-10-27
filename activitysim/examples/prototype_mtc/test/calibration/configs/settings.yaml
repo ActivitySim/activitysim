@@ -1,0 +1,42 @@
+inherit_settings: true
+
+strict: false
+multiprocess: false
+rng_base_seed: 0
+households_sample_size: 25
+chunk_size: 0
+use_shadow_pricing: false
+want_dest_choice_sample_tables: false
+cleanup_pipeline_after_run: false
+
+models:
+  - initialize_landuse
+  - initialize_households
+  - compute_accessibility
+  - school_location
+  - workplace_location
+  - auto_ownership_simulate
+  - free_parking
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - joint_tour_destination
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - tour_mode_choice_simulate
+  - write_tables
+
+output_tables:
+  h5_store: false
+  action: include
+  prefix: final_
+  sort: true
+  tables:
+    - households
+    - persons
+    - tours

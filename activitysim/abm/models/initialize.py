@@ -154,12 +154,19 @@ def initialize_households(
         households = state.get_dataframe("households")
         assert not households._is_view
         chunk_sizer.log_df(trace_label, "households", households)
-        del households
-        chunk_sizer.log_df(trace_label, "households", None)
 
         persons = state.get_dataframe("persons")
         assert not persons._is_view
         chunk_sizer.log_df(trace_label, "persons", persons)
+
+        rng = state.get_rn_generator()
+        if "households" not in rng.channels:
+            rng.add_channel("households", households)
+        if "persons" not in rng.channels:
+            rng.add_channel("persons", persons)
+
+        del households
+        chunk_sizer.log_df(trace_label, "households", None)
         del persons
         chunk_sizer.log_df(trace_label, "persons", None)
 

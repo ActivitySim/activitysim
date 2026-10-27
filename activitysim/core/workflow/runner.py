@@ -5,6 +5,7 @@ import multiprocessing
 import time
 from collections.abc import Callable, Iterable
 from datetime import timedelta
+from typing import Any
 
 from activitysim.core import tracing
 from activitysim.core.exceptions import DuplicateWorkflowNameError
@@ -246,7 +247,9 @@ class Runner(StateAccessor):
 
         self.timing_notes.clear()
 
-    def _pre_run_step(self, model_name: str) -> bool | None:
+    def _pre_run_step(
+        self, model_name: str, rng_step_name: str | None = None
+    ) -> bool | None:
         """
 
         Parameters
@@ -270,8 +273,6 @@ class Runner(StateAccessor):
                     f"Cannot run model '{model_name}' more than once"
                 )
 
-        self._obj.rng().begin_step(model_name)
-
         # check for args
         if "." in model_name:
             step_name, arg_string = model_name.split(".", 1)
@@ -284,6 +285,13 @@ class Runner(StateAccessor):
         else:
             step_name = model_name
             args = {}
+
+        # Preserve ActivitySim's normal behavior: the complete invocation name,
+        # including arguments and a no-checkpoint prefix, identifies its random
+        # stream. Specialized callers such as calibration may explicitly reuse
+        # a canonical stream while retaining a unique checkpoint/logging name.
+        self.rng_step_name = model_name if rng_step_name is None else rng_step_name
+        self._obj.rng().begin_step(self.rng_step_name)
 
         # check for no_checkpoint prefix
         if step_name[0] == NO_CHECKPOINT_PREFIX:
@@ -313,9 +321,23 @@ class Runner(StateAccessor):
         model_name : str
             model_name is assumed to be the name of a registered workflow step
         """
+        return self._by_name(model_name, rng_step_name=None, **kwargs)
+
+    def by_name_with_rng(self, model_name: str, rng_step_name: str, **kwargs) -> None:
+        """Run a model using an explicit deterministic random-stream name.
+
+        This specialized entry point lets calibration retain a unique labeled
+        invocation for checkpointing and logging while reusing the canonical
+        component's random stream. Ordinary ``by_name`` callers retain the
+        complete invocation name as their stream identifier.
+        """
+        return self._by_name(model_name, rng_step_name=rng_step_name, **kwargs)
+
+    def _by_name(self, model_name: str, rng_step_name: str | None, **kwargs) -> None:
         self.t0 = time.time()
+        self.rng_step_name = None
         try:
-            should_skip = self._pre_run_step(model_name)
+            should_skip = self._pre_run_step(model_name, rng_step_name=rng_step_name)
             if should_skip:
                 return
 
@@ -351,7 +373,8 @@ class Runner(StateAccessor):
         except Exception:
             self.t0 = self._log_elapsed_time(f"run.{model_name} UNTIL ERROR", self.t0)
             self._obj.add_injectable("step_args", None)
-            self._obj.rng().end_step(model_name)
+            if self.rng_step_name is not None:
+                self._obj.rng().end_step(self.rng_step_name)
             raise
 
         else:
@@ -361,7 +384,7 @@ class Runner(StateAccessor):
 
             self._obj.add_injectable("step_args", None)
 
-            self._obj.rng().end_step(model_name)
+            self._obj.rng().end_step(self.rng_step_name)
             if self.checkpoint:
                 self._obj.checkpoint.add(model_name)
             else:

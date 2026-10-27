@@ -23,6 +23,10 @@ from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
 
+# Temporary time-period column that keys the 3-D skims used by post-choice
+# trip annotations; it is removed again before trip_mode_choice returns.
+ANNOTATION_TRIP_PERIOD = "_trip_mode_choice_annotation_trip_period"
+
 
 class TripModeChoiceSettings(TemplatedLogitComponentSettings, extra="forbid"):
     """
@@ -118,16 +122,14 @@ def trip_mode_choice(
 
     skim_dict = network_los.get_default_skim_dict()
 
-    def add_trip_period(choosers):
-        choosers["trip_period"] = network_los.skim_time_period_label(
+    def add_trip_period(choosers, column="trip_period"):
+        choosers[column] = network_los.skim_time_period_label(
             choosers.depart, as_cat=True
         )
         if hasattr(skim_dict, "map_time_periods_from_series"):
-            trip_period_idx = skim_dict.map_time_periods_from_series(
-                choosers["trip_period"]
-            )
+            trip_period_idx = skim_dict.map_time_periods_from_series(choosers[column])
             if trip_period_idx is not None:
-                choosers["trip_period"] = trip_period_idx
+                choosers[column] = trip_period_idx
 
     odt_skim_stack_wrapper = skim_dict.wrap_3d(
         orig_key=orig_col, dest_key=dest_col, dim3_key="trip_period"
@@ -343,29 +345,34 @@ def trip_mode_choice(
 
     # need to update locals_dict to access skims that are the same .shape as trips table
     locals_dict = {}
+    # Three-dimensional skim wrappers need a time-period column. Post-choice
+    # table annotators may use these skims, but the full trips table no longer
+    # carries trip_period (it only exists on the purpose-sized chooser frames
+    # above). Key the annotation wrappers on a private temporary column rather
+    # than trip_period, so that an annotator or CHOOSER_COLS_TO_KEEP that
+    # produces a real trip_period column is never removed by the cleanup.
+    annotation_skims = dict(skims)
+    annotation_skims["odt_skims"] = skim_dict.wrap_3d(
+        orig_key=orig_col, dest_key=dest_col, dim3_key=ANNOTATION_TRIP_PERIOD
+    )
+    annotation_skims["dot_skims"] = skim_dict.wrap_3d(
+        orig_key=dest_col, dest_key=orig_col, dim3_key=ANNOTATION_TRIP_PERIOD
+    )
     locals_dict.update(constants)
-    locals_dict.update(skims)
+    locals_dict.update(annotation_skims)
     locals_dict["timeframe"] = "trip"
-    # Three-dimensional skim wrappers require trip_period. It is normally only
-    # needed in the purpose-sized chooser frames above, but post-choice table
-    # annotators may also use those skims. Add it to the full trips table only
-    # for annotation, then restore the original table schema.
-    temporary_trip_period = "trip_period" not in trips_df.columns
-    if temporary_trip_period:
-        add_trip_period(trips_df)
+    add_trip_period(trips_df, ANNOTATION_TRIP_PERIOD)
     try:
         expressions.annotate_tables(
             state,
             locals_dict=locals_dict,
-            skims=skims,
+            skims=annotation_skims,
             model_settings=model_settings,
             trace_label=trace_label,
         )
     finally:
-        # CHOOSER_COLS_TO_KEEP may have made trip_period an output column.
-        # Remove it only when this annotation block created it temporarily.
-        if temporary_trip_period:
-            trips_df.drop(columns="trip_period", inplace=True)
-            state_trips = state.get_dataframe("trips", as_copy=False)
-            if state_trips is not trips_df:
-                state_trips.drop(columns="trip_period", inplace=True)
+        # annotate_tables may have stored a copy of trips, so clean both.
+        trips_df.drop(columns=ANNOTATION_TRIP_PERIOD, inplace=True)
+        state_trips = state.get_dataframe("trips", as_copy=False)
+        if ANNOTATION_TRIP_PERIOD in state_trips.columns:
+            state_trips.drop(columns=ANNOTATION_TRIP_PERIOD, inplace=True)

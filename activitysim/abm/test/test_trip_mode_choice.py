@@ -12,14 +12,17 @@ from activitysim.abm.models import trip_mode_choice as trip_mode_choice_module
 
 class _DummySkimWrapper:
     df = None
+    dim3_key = None
 
     def set_df(self, df):
         self.df = df
 
 
 class _DummySkimDict:
-    def wrap_3d(self, **_kwargs):
-        return _DummySkimWrapper()
+    def wrap_3d(self, **kwargs):
+        wrapper = _DummySkimWrapper()
+        wrapper.dim3_key = kwargs["dim3_key"]
+        return wrapper
 
     def wrap(self, *_args):
         return _DummySkimWrapper()
@@ -60,8 +63,13 @@ class _DummyState:
 @pytest.mark.parametrize("keep_trip_period", [False, True])
 @pytest.mark.parametrize("copy_annotation_table", [False, True])
 @pytest.mark.parametrize("annotation_error", [False, True])
+@pytest.mark.parametrize("annotation_creates_trip_period", [False, True])
 def test_post_choice_annotations_preserve_requested_trip_period(
-    monkeypatch, keep_trip_period, copy_annotation_table, annotation_error
+    monkeypatch,
+    keep_trip_period,
+    copy_annotation_table,
+    annotation_error,
+    annotation_creates_trip_period,
 ):
     trips = pd.DataFrame(
         {
@@ -138,11 +146,18 @@ def test_post_choice_annotations_preserve_requested_trip_period(
 
     monkeypatch.setattr(trip_mode_choice_module, "mode_choice_simulate", choose_mode)
 
-    def annotate_tables(_state, **_kwargs):
+    period_column = trip_mode_choice_module.ANNOTATION_TRIP_PERIOD
+
+    def annotate_tables(_state, **kwargs):
         annotated = _state.get_dataframe("trips", as_copy=copy_annotation_table)
         assert annotated.index.equals(trips.index)
-        assert annotated["trip_period"].tolist() == [0, 1, 0]
+        assert annotated[period_column].tolist() == [0, 1, 0]
+        assert kwargs["skims"]["odt_skims"].dim3_key == period_column
+        assert kwargs["skims"]["dot_skims"].dim3_key == period_column
         annotated["post_choice_skim_value"] = [10.0, 20.0, 30.0]
+        if annotation_creates_trip_period:
+            # An annotator may legitimately write its own trip_period output.
+            annotated["trip_period"] = [7, 8, 9]
         _state.add_table("trips", annotated)
         if annotation_error:
             raise RuntimeError("annotation failed")
@@ -164,8 +179,17 @@ def test_post_choice_annotations_preserve_requested_trip_period(
     assert all(ref() is None for ref in chooser_refs)
     assert all(wrapper.df.empty for wrapper in wrappers)
     result = state.get_dataframe("trips", as_copy=False)
-    assert ("trip_period" in trips) == keep_trip_period
-    assert ("trip_period" in result) == keep_trip_period
-    if keep_trip_period:
+    assert period_column not in trips
+    assert period_column not in result
+    annotated_in_place = not copy_annotation_table
+    assert ("trip_period" in trips) == (
+        keep_trip_period or (annotation_creates_trip_period and annotated_in_place)
+    )
+    assert ("trip_period" in result) == (
+        keep_trip_period or annotation_creates_trip_period
+    )
+    if annotation_creates_trip_period:
+        assert result["trip_period"].tolist() == [7, 8, 9]
+    elif keep_trip_period:
         assert result["trip_period"].tolist() == [0, 1, 0]
     assert result["post_choice_skim_value"].tolist() == [10.0, 20.0, 30.0]

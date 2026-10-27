@@ -15,8 +15,11 @@ class ProgrammaticState:
     def __contains__(self, key):
         return key == "preload_injectables"
 
-    def get_injectable(self, key):
-        assert key != "run_id"
+    def get_injectable(self, key, default=None):
+        # A programmatically constructed State has no top-level run_id
+        # injectable; the runner must take it from the tracing accessor.
+        if key == "run_id":
+            return default
         return f"value-for-{key}"
 
 

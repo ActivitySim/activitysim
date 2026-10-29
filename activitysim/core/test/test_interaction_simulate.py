@@ -277,3 +277,118 @@ def test_eval_interaction_utilities_locals_override_global_constants(tmp_path):
     )
 
     np.testing.assert_allclose(utilities.utility.to_numpy(), df.distance_km.to_numpy())
+
+
+def test_interaction_simulate_skips_failed_choice_within_own_alternatives(state):
+    """A chooser with no available alternative is skipped without a bad lookup.
+
+    make_choices marks the failed choice with -99; unclipped, take() wrapped
+    into another chooser's alternatives or raised IndexError for small chunks.
+    """
+    state.settings.skip_failed_choices = True
+    choosers = pd.DataFrame(
+        {"household_id": [101, 102], "chooser_ok": [1.0, 0.0]},
+        index=pd.Index([10, 11], name="person_id"),
+    )
+    alternatives = pd.DataFrame(
+        {"alt_attr": [0.0, 0.0]},
+        index=pd.Index([1, 2], name="alt_id"),
+    )
+    # chooser 11: every alternative at -1000, so all probabilities are zero
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["-1000 * (1 - chooser_ok)"], name="Expression"),
+    )
+    state.rng().set_base_seed(42)
+    state.rng().add_channel("person_id", choosers)
+    state.rng().begin_step("test_skips_failed_choice")
+
+    choices = interaction_simulate.interaction_simulate(
+        state, choosers, alternatives, spec, sample_size=2
+    )
+
+    assert choices.index.tolist() == [10, 11]
+    assert choices.isin(alternatives.index).all()
+    assert state.get("num_skipped_households", 0) == 1
+    assert {
+        household_id
+        for ids in state.get("skipped_household_ids").values()
+        for household_id in ids
+    } == {102}
+
+
+@pytest.mark.parametrize("utility_dtype", [np.float64, np.float32])
+@pytest.mark.parametrize("num_alts", [2, 15, 20, 100])
+@pytest.mark.parametrize("use_explicit_error_terms", [False, True])
+def test_interaction_simulate_allow_zero_probs_flags_unavailable_rows(
+    state, monkeypatch, utility_dtype, num_alts, use_explicit_error_terms
+):
+    """A chooser with no available alternative gets zero_prob_choice_val.
+
+    This holds for any number of alternatives and either utility dtype
+    (Sharrow evaluates utilities as float32). Under explicit error terms, the
+    row-sum test this replaced missed some counts in float64 and most in float32.
+    """
+    eval_interaction_utilities = interaction_simulate.eval_interaction_utilities
+
+    def eval_utilities_as_dtype(*args, **kwargs):
+        utilities, trace_results = eval_interaction_utilities(*args, **kwargs)
+        return utilities.astype(utility_dtype), trace_results
+
+    monkeypatch.setattr(
+        interaction_simulate, "eval_interaction_utilities", eval_utilities_as_dtype
+    )
+
+    # chooser 10 can choose alternative 1 only; chooser 11 has no available alternative
+    choosers = pd.DataFrame(
+        {"household_id": [101, 102], "chooser_ok": [1.0, 0.0]},
+        index=pd.Index([10, 11], name="person_id"),
+    )
+    alternatives = pd.DataFrame(
+        {"alt_ok": [1.0] + [0.0] * (num_alts - 1)},
+        index=pd.Index(range(1, num_alts + 1), name="alt_id"),
+    )
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["-1000 * (1 - chooser_ok * alt_ok)"], name="Expression"),
+    )
+
+    state.settings.use_explicit_error_terms = use_explicit_error_terms
+    state.rng().set_base_seed(42)
+    state.rng().add_channel("person_id", choosers)
+    state.rng().begin_step("test_allow_zero_probs")
+
+    choices = interaction_simulate.interaction_simulate(
+        state,
+        choosers,
+        alternatives,
+        spec,
+        sample_size=num_alts,
+        allow_zero_probs=True,
+        zero_prob_choice_val=-1,
+    )
+
+    assert choices.tolist() == [1, -1]
+    assert state.get("num_skipped_households", 0) == 0
+
+
+def test_interaction_simulate_allow_zero_probs_requires_choice_val(state):
+    """Without zero_prob_choice_val, a chooser with no available alternative would
+    silently keep its placeholder (first) alternative."""
+    choosers = pd.DataFrame(
+        {"chooser_ok": [1.0, 0.0]},
+        index=pd.Index([10, 11], name="person_id"),
+    )
+    alternatives = pd.DataFrame(
+        {"alt_attr": [0.0, 0.0]},
+        index=pd.Index([1, 2], name="alt_id"),
+    )
+    spec = pd.DataFrame(
+        {"coefficient": [1.0]},
+        index=pd.Index(["-1000 * (1 - chooser_ok)"], name="Expression"),
+    )
+
+    with pytest.raises(ValueError, match="zero_prob_choice_val is required"):
+        interaction_simulate.interaction_simulate(
+            state, choosers, alternatives, spec, sample_size=2, allow_zero_probs=True
+        )

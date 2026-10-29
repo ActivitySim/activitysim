@@ -7,10 +7,9 @@ import logging
 import pandas as pd
 
 from activitysim.abm.models.util import tour_destination
-from activitysim.core import estimation, los, tracing, workflow, expressions
+from activitysim.core import estimation, expressions, los, tracing, workflow
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.util import assign_in_place
-
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +93,6 @@ def joint_tour_destination(
         state.settings.downcast_int,
         state.settings.downcast_float,
     )
-    state.add_table("tours", tours)
 
     if want_logsums:
         joint_tours[logsum_column_name] = choices_df["logsum"]
@@ -105,9 +103,14 @@ def joint_tour_destination(
             state.settings.downcast_float,
         )
 
+    # add_table drops the tours of households skipped under skip_failed_choices,
+    # so assign every column first
+    state.add_table("tours", tours)
+
     tracing.print_summary("destination", joint_tours.destination, describe=True)
 
-    if want_sample_table:
+    # save_sample_df is None if every chooser failed sampling under skip_failed_choices
+    if want_sample_table and save_sample_df is not None:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
         # save_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
         state.extend_table(sample_table_name, save_sample_df)

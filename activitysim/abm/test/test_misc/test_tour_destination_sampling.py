@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from unittest.mock import Mock
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from activitysim.abm.models.util import tour_destination
-from activitysim.core import workflow
+from activitysim.core import logit, los, workflow
 
 
 class _DummySkimDict:
@@ -166,6 +168,70 @@ def test_destination_presample_uses_taz_stable_mapping(monkeypatch):
         captured["full_taz_index"],
         pd.Index([1, 2, 3], name=tour_destination.DEST_TAZ),
     )
+
+
+@pytest.mark.parametrize("use_explicit_error_terms", [False, True], ids=["mnl", "eet"])
+def test_destination_presample_returns_empty_sample_when_every_chooser_failed(
+    monkeypatch, use_explicit_error_terms
+):
+    """An empty TAZ sample is returned as is, without choosing MAZs.
+
+    Under skip_failed_choices, the TAZ sample is empty when every chooser in the
+    segment failed sampling. choose_MAZ_for_TAZ raises on an empty sample.
+    """
+
+    def fake_destination_sample(*_args, **_kwargs):
+        # interaction_sample's result when every chooser failed
+        return pd.DataFrame(
+            {
+                tour_destination.DEST_TAZ: pd.Series(dtype="int64"),
+                "prob": pd.Series(dtype="float32"),
+                "pick_count": pd.Series(dtype="uint32"),
+                "person_id": pd.Series(dtype="int64"),
+            },
+            index=pd.Index([], name="tour_id", dtype="int64"),
+        )
+
+    monkeypatch.setattr(
+        tour_destination, "_destination_sample", fake_destination_sample
+    )
+
+    state = workflow.State().default_settings()
+    state.settings.skip_failed_choices = True
+    state.settings.use_explicit_error_terms = use_explicit_error_terms
+    choosers = pd.DataFrame(
+        {"origin": [101, 103]},
+        index=pd.Index([7001, 7002], name="tour_id"),
+    )
+    model_settings = type(
+        "ModelSettings",
+        (),
+        {
+            "ALT_DEST_COL_NAME": "zone_id",
+            "CHOOSER_ORIG_COL_NAME": "origin",
+        },
+    )()
+    network_los = _DummyNetworkLos({101: 1, 102: 2, 103: 3})
+    destination_size_terms = pd.DataFrame(
+        {"size_term": [1.0, 2.0, 3.0]},
+        index=pd.Index([101, 102, 103], name="zone_id"),
+    )
+
+    out = tour_destination.destination_presample(
+        state,
+        "segment",
+        choosers,
+        model_settings,
+        network_los,
+        destination_size_terms,
+        destination_size_terms,
+        estimator=None,
+        trace_label="test_trace",
+    )
+
+    assert out.empty
+    assert out.index.name == "tour_id"
+    assert list(out.columns) == ["zone_id", "prob", "pick_count", "person_id"]
 
 
 def test_choose_maz_for_taz_supports_variable_taz_counts():
@@ -417,3 +483,116 @@ def test_destination_sample_uses_maz_stable_mapping(monkeypatch):
     assert captured["n_total_alts"] == 3
     assert captured["alt_dest_col_name"] == "zone_id"
     assert captured["zone_layer"] is None
+
+
+@pytest.mark.parametrize("sampled_tours", [[], [5, 5, 6]], ids=["empty", "sampled"])
+def test_run_destination_sample_copies_person_id_without_adding_rows(
+    monkeypatch, sampled_tours
+):
+    """person_id is broadcast onto sampled rows; an empty sample stays empty."""
+    tours = pd.DataFrame({"person_id": [7, 8]}, index=pd.Index([5, 6], name="tour_id"))
+    persons_merged = pd.DataFrame(
+        {"home_zone_id": [1, 2]}, index=pd.Index([7, 8], name="person_id")
+    )
+    sample = pd.DataFrame(
+        {"alt_dest": [10, 20, 10][: len(sampled_tours)]},
+        index=pd.Index(sampled_tours, name="tour_id", dtype="int64"),
+    )
+    monkeypatch.setattr(
+        tour_destination, "destination_sample", lambda *args, **kwargs: sample.copy()
+    )
+
+    result = tour_destination.run_destination_sample(
+        SimpleNamespace(settings=SimpleNamespace(want_dest_choice_presampling=True)),
+        "shopping",
+        tours,
+        persons_merged,
+        SimpleNamespace(CHOOSER_ID_COLUMN="person_id"),
+        SimpleNamespace(zone_system=los.ONE_ZONE),
+        None,
+        None,
+        None,
+        chunk_size=0,
+        trace_label="test",
+    )
+
+    assert result.index.tolist() == sampled_tours
+    assert result["person_id"].tolist() == [7, 7, 8][: len(sampled_tours)]
+    assert result["alt_dest"].notna().all()
+
+
+class _SizeTerms:
+    def __init__(self, state, size_term_selector):
+        self.destination_size_terms = pd.DataFrame(
+            {"shopping": [1.0, 1.0]}, index=pd.Index([101, 202], name="zone_id")
+        )
+
+    def dest_size_terms_df(self, segment_name, trace_label):
+        return self.destination_size_terms[[segment_name]].rename(
+            columns={segment_name: "size_term"}
+        )
+
+
+@pytest.mark.parametrize(
+    "sampled_tours", [[], [2, 2]], ids=["all_failed", "one_failed"]
+)
+def test_run_tour_destination_skips_failed_samples(monkeypatch, sampled_tours):
+    """Tours without a sample skip logsums and simulation; their households are recorded.
+
+    The sample choosers carry no household_id, so sampling cannot record them.
+    """
+    tours = pd.DataFrame(
+        {
+            "household_id": [11, 12],
+            "person_id": [1, 2],
+            "tour_type": ["shopping", "shopping"],
+        },
+        index=pd.Index([1, 2], name="tour_id"),
+    )
+    sample = pd.DataFrame(
+        {"alt_dest": [101, 202][: len(sampled_tours)]},
+        index=pd.Index(sampled_tours, name="tour_id", dtype="int64"),
+    )
+    expected_tours = tours.loc[tours.index.isin(sampled_tours)]
+    logsums_model = Mock(return_value=sample.assign(mode_choice_logsum=0.0))
+    simulate_model = Mock(
+        side_effect=lambda state, segment, choosers, *args, **kwargs: pd.DataFrame(
+            {"choice": 101}, index=choosers.index
+        )
+    )
+    monkeypatch.setattr(tour_destination, "SizeTermCalculator", _SizeTerms)
+    monkeypatch.setattr(
+        tour_destination, "run_destination_sample", Mock(return_value=sample)
+    )
+    monkeypatch.setattr(tour_destination, "run_destination_logsums", logsums_model)
+    monkeypatch.setattr(tour_destination, "run_destination_simulate", simulate_model)
+    state = workflow.State().default_settings()
+    state.settings.skip_failed_choices = True
+    model_settings = SimpleNamespace(
+        SIZE_TERM_SELECTOR="non_mandatory",
+        SEGMENTS=["shopping"],
+        CHOOSER_SEGMENT_COLUMN_NAME="tour_type",
+        LOGSUM_SETTINGS="tour_mode_choice.yaml",
+        ALT_DEST_COL_NAME="alt_dest",
+    )
+
+    choices, _ = tour_destination.run_tour_destination(
+        state,
+        tours,
+        persons_merged=pd.DataFrame(),
+        want_logsums=False,
+        want_sample_table=False,
+        model_settings=model_settings,
+        network_los=None,
+        estimator=None,
+        trace_label="non_mandatory_tour_destination",
+    )
+
+    failed = tours.loc[~tours.index.isin(sampled_tours), "household_id"]
+    assert logit.skipped_household_ids(state) == set(failed)
+    assert choices.index.tolist() == expected_tours.index.tolist()
+    if expected_tours.empty:
+        logsums_model.assert_not_called()
+        simulate_model.assert_not_called()
+    else:
+        pd.testing.assert_frame_equal(simulate_model.call_args.args[2], expected_tours)

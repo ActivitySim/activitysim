@@ -8,6 +8,9 @@ on:
     tags:
       - 'v*'
 
+env:
+  UV_PYTHON: "3.11"
+
 jobs:
   build-artifacts:
     runs-on: ubuntu-latest
@@ -19,10 +22,17 @@ jobs:
       - uses: actions/setup-python@v5
         name: Install Python
         with:
-          python-version: "3.10"
+          python-version: ${{ env.UV_PYTHON }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.1
+        with:
+          version: "0.13.4"
+          enable-cache: false
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          # Upgrade pip with uv, not with the runner's older pip, which trusts the
+          # compromised eMudhra CA (see the eMudhra note in pyproject.toml).
+          uv pip install --system "pip>=26.2.2"
           python -m pip install build setuptools setuptools-scm wheel twine check-manifest
       - name: Build tarball and wheels
         run: |
@@ -46,12 +56,27 @@ jobs:
 
   test-built-dist:
     needs: build-artifacts
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
+    name: test-built-dist py${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
     steps:
       - uses: actions/setup-python@v5
         name: Install Python
         with:
-          python-version: "3.10"
+          python-version: ${{ env.UV_PYTHON }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.1
+        with:
+          version: "0.13.4"
+          enable-cache: false
       - uses: actions/download-artifact@v4
         with:
           name: releases
@@ -61,16 +86,15 @@ jobs:
           ls -ltrh
           ls -ltrh dist
       - name: Verify the built dist/wheel is valid
-        if: github.event_name == 'push'
         run: |
-          python -m pip install --upgrade pip
+          uv pip install --system "pip>=26.2.2"
           python -m pip install dist/activitysim*.whl
           python -m activitysim --version
 
   docbuild:
     needs: test-built-dist
     if: github.event_name == 'release'
-    name: ubuntu-latest py3.9
+    name: ubuntu-latest py3.11
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -81,16 +105,16 @@ jobs:
         with:
           name: releases
           path: dist
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.7.12"
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ".python-version"
+          python-version: ${{ env.UV_PYTHON }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.1
+        with:
+          version: "0.13.4"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
       - name: Install activitysim
         run: |
           uv sync --locked --dev
@@ -117,7 +141,7 @@ jobs:
           name: releases
           path: dist
       - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.13.0
+        uses: pypa/gh-action-pypi-publish@v1.14.3
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}

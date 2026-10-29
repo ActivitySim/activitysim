@@ -53,7 +53,7 @@ bash are all different).
 
 ### Windows Command Line
 
-```{cmd}
+```bat
 set MKL_NUM_THREADS=1
 set OMP_NUM_THREADS=1
 set NUMBA_NUM_THREADS=1
@@ -63,7 +63,7 @@ set NUMEXPR_NUM_THREADS=1
 
 ### Linux / MacOS (bash / zsh)
 
-```{bash}
+```bash
 export MKL_NUM_THREADS=1
 export OMP_NUM_THREADS=1
 export NUMBA_NUM_THREADS=1

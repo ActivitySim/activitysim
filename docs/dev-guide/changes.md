@@ -12,7 +12,34 @@ configurations or code to fail to run correctly.
 This section describes changes that are implemented in current development
 branch (i.e., the main branch on GitHub), but not yet released in a stable version
 of ActivitySim.
-No unreleased changes are currently documented.
+
+### Skip Failed Choices Fixes
+
+This release fixes several failures in model runs with `skip_failed_choices`
+enabled ([#1129](https://github.com/ActivitySim/activitysim/issues/1129),
+[PR #1130](https://github.com/ActivitySim/activitysim/pull/1130)):
+
+- A chooser for which no alternative can be sampled is now skipped together
+  with its household, like other failed choices. Previously the failure was
+  logged, but the model step then crashed. This applies to work and school
+  location choice and to tour destination choice (non-mandatory, joint and
+  at-work), including steps in which every chooser fails while destination
+  sample tables are written.
+- With `allow_zero_probs`, `interaction_simulate` and
+  `interaction_sample_simulate` now find choosers with no available
+  alternative by testing each utility against the availability threshold. The
+  previous comparison of row sums was not exact and could miss such choosers.
+
+Code that calls `interaction_simulate` or `interaction_sample_simulate` with
+`allow_zero_probs=True` must now also pass `zero_prob_choice_val`, or a
+`ValueError` is raised. Previously, choosers with no available alternative
+silently kept an alternative they cannot choose. Logsum-only calls to
+`interaction_sample_simulate` with `skip_choice=True` do not need a value. All
+built-in models already pass one.
+
+A known limitation remains: because `skip_failed_choices` turns off overflow
+protection, valid but very low utilities can still underflow to zero
+probability with `float32` utilities, and the household is then skipped.
 
 
 ## v1.6
@@ -142,27 +169,27 @@ to `True` in the `compute_settings` for each model component where it is desired
 
 ### Skipping Failed Choices
 
-A new feature is introduced to ActivitySim to skip failed choices during model execution. 
-By default, ActivitySim will skip any failed choices during a model run, i.e., `skip_failed_choices` is set to `True`. 
-A failed choice occurs when the computed utilities for all alternatives are zero, or infinite, or nan, which can happen due to 
-data issues or model specification problems. A warning message is logged when a failed choice is encountered, 
+A new feature is introduced to ActivitySim to skip failed choices during model execution.
+By default, ActivitySim will skip any failed choices during a model run, i.e., `skip_failed_choices` is set to `True`.
+A failed choice occurs when the computed utilities for all alternatives are zero, or infinite, or nan, which can happen due to
+data issues or model specification problems. A warning message is logged when a failed choice is encountered,
 and the corresponding household (along with its persons, vehicles, tours, trips, etc) will be excluded from further model steps.
 At the end of the model run, a summary of all skipped households is provided in the log file for user reference. Users can set
-a threshold for the maximum allowed percentage of skipped households `fraction_of_failed_choices_allowed`, 
-and if the percentage of skipped households exceeds this threshold, 
-the model run will be terminated with an error. The default threshold is set to `0.001`, 0.1% of households. 
+a threshold for the maximum allowed percentage of skipped households `fraction_of_failed_choices_allowed`,
+and if the percentage of skipped households exceeds this threshold,
+the model run will be terminated with an error. The default threshold is set to `0.001`, 0.1% of households.
 
-This feature helps to ensure that the model can continue running even in the presence of data or specification issues, 
+This feature helps to ensure that the model can continue running even in the presence of data or specification issues,
 while also providing visibility into such issues that need to be addressed.
 See more information in ActivitySim's users guide "Skip Failed Choices" and code updates in [PR #1023](https://github.com/ActivitySim/activitysim/pull/1023)
 
 #### Potential Impact on Existing Model Runs
 
-With `skip_failed_choices` defaulted to `True` and an allowed failure threshold defaulted as 0.1% of households, 
-failures that were previously silently masked will now generate warnings, be explicitly skipped, and counted toward the threshold. 
-As a result, model runs that previously completed "successfully" may now fail earlier, 
+With `skip_failed_choices` defaulted to `True` and an allowed failure threshold defaulted as 0.1% of households,
+failures that were previously silently masked will now generate warnings, be explicitly skipped, and counted toward the threshold.
+As a result, model runs that previously completed "successfully" may now fail earlier,
 surfacing underlying specification or data issues that require attention rather than being silently absorbed. If an agency does not
-want to address the underlying issues immediately, they can set `skip_failed_choices` to `False` to maintain the previous model results, 
+want to address the underlying issues immediately, they can set `skip_failed_choices` to `False` to maintain the previous model results,
 but it is recommended to review the log file for any warnings about failed choices and address them as soon as possible to ensure model quality.
 
 ### Shadow Price Zones Reopening

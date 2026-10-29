@@ -65,8 +65,6 @@ def _settings():
         (),
         {
             "CHOOSER_FILTER_COLUMN_NAME": "has_in_home_work_activity",
-            "DURATION_CATEGORY_COLUMN_NAME": "telework_duration_category",
-            "DURATION_HOURS_COLUMN_NAME": "telework_duration_hours",
             "ALTS": "telework_duration_alts.csv",
             "ALT_NAME_COLUMN": "alt",
             "ALT_DURATION_COLUMN": "duration_hours",
@@ -165,8 +163,6 @@ def real_example_root(tmp_path_factory):
     (config_dir / "settings.yaml").write_text("input_table_list: []\n")
     (config_dir / "telework_duration.yaml").write_text(
         "CHOOSER_FILTER_COLUMN_NAME: has_in_home_work_activity\n"
-        "DURATION_CATEGORY_COLUMN_NAME: telework_duration_category\n"
-        "DURATION_HOURS_COLUMN_NAME: telework_duration_hours\n"
         "ALTS: telework_duration_alts.csv\n"
         "ALT_NAME_COLUMN: alt\n"
         "ALT_DURATION_COLUMN: duration_hours\n"
@@ -178,12 +174,10 @@ def real_example_root(tmp_path_factory):
     (config_dir / "telework_duration_probs.csv").write_text("short,long\n0.0,1.0\n")
     (config_dir / "telework_duration_mnl.yaml").write_text(
         "CHOOSER_FILTER_COLUMN_NAME: has_in_home_work_activity\n"
-        "DURATION_CATEGORY_COLUMN_NAME: telework_duration_category\n"
-        "DURATION_HOURS_COLUMN_NAME: telework_duration_hours\n"
         "ALTS: telework_duration_alts.csv\n"
         "ALT_NAME_COLUMN: alt\n"
         "ALT_DURATION_COLUMN: duration_hours\n"
-        "CHOICE_MODEL: MNL\n"
+        "CHOICE_MODEL: LOGIT\n"
         "SPEC: telework_duration_mnl.csv\n"
         "COEFFICIENTS: telework_duration_mnl_coeffs.csv\n"
         "LOGIT_TYPE: MNL\n"

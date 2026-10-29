@@ -19,6 +19,9 @@ from activitysim.core import (
 )
 from activitysim.core.configuration.logit import LogitComponentSettings
 
+TELEWORK_DURATION_CATEGORY_COLUMN = "telework_duration_category"
+TELEWORK_DURATION_HOURS_COLUMN = "telework_duration_hours"
+
 logger = logging.getLogger("activitysim")
 
 
@@ -27,17 +30,11 @@ class TeleworkDurationSettings(LogitComponentSettings, extra="forbid"):
     Settings for the `telework_duration` component.
     """
 
-    CHOICE_MODEL: Literal["PROBABILISTIC", "MNL"] = "PROBABILISTIC"
+    CHOICE_MODEL: Literal["PROBABILISTIC", "LOGIT"] = "PROBABILISTIC"
     """Choice model type to use for telework duration."""
 
     CHOOSER_FILTER_COLUMN_NAME: str = "has_in_home_work_activity"
     """Column name in chooser table to represent workers with in-home work activity on the simulation day."""
-
-    DURATION_CATEGORY_COLUMN_NAME: str = "telework_duration_category"
-    """Persons column for the chosen telework duration category."""
-
-    DURATION_HOURS_COLUMN_NAME: str = "telework_duration_hours"
-    """Persons column for telework duration in hours."""
 
     ALTS: str = "telework_duration_alts.csv"
     """Alternatives file with duration category to hour mapping."""
@@ -49,13 +46,13 @@ class TeleworkDurationSettings(LogitComponentSettings, extra="forbid"):
     """Alternatives file column containing duration values in hours."""
 
     SPEC: str | None = None
-    """MNL utility specification file. Required only when CHOICE_MODEL is MNL."""
+    """Logit utility specification file. Required only when CHOICE_MODEL is LOGIT."""
 
     COEFFICIENTS: str | None = None
-    """MNL coefficients file. Required only when CHOICE_MODEL is MNL."""
+    """Logit coefficients file. Required only when CHOICE_MODEL is LOGIT."""
 
     LOGIT_TYPE: Literal["MNL", "NL"] = "MNL"
-    """Logit type when running MNL mode."""
+    """Logit type when running LOGIT mode."""
 
     NESTS: dict | None = None
     """Nest settings for NL mode, if ever used."""
@@ -74,11 +71,13 @@ class TeleworkDurationSettings(LogitComponentSettings, extra="forbid"):
 
     @model_validator(mode="after")
     def validate_choice_specific_files(self):
-        if self.CHOICE_MODEL == "MNL":
+        if self.CHOICE_MODEL == "LOGIT":
             if not self.SPEC:
-                raise ValueError("SPEC is required when CHOICE_MODEL is 'MNL'.")
+                raise ValueError("SPEC is required when CHOICE_MODEL is 'LOGIT'.")
             if not self.COEFFICIENTS:
-                raise ValueError("COEFFICIENTS is required when CHOICE_MODEL is 'MNL'.")
+                raise ValueError(
+                    "COEFFICIENTS is required when CHOICE_MODEL is 'LOGIT'."
+                )
         elif self.CHOICE_MODEL == "PROBABILISTIC":
             if not self.PROBS_SPEC:
                 raise ValueError(
@@ -175,7 +174,7 @@ def telework_duration(
     This model applies only to workers where `has_in_home_work_activity` is True
     from the telework arrangement model. It supports either:
     - probabilistic sampling from `PROBS_SPEC`, or
-    - MNL simulation from `SPEC` and `COEFFICIENTS`.
+    - logit simulation from `SPEC` and `COEFFICIENTS`.
     """
 
     if model_settings is None:
@@ -190,8 +189,8 @@ def telework_duration(
 
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    category_col = model_settings.DURATION_CATEGORY_COLUMN_NAME
-    duration_col = model_settings.DURATION_HOURS_COLUMN_NAME
+    category_col = TELEWORK_DURATION_CATEGORY_COLUMN
+    duration_col = TELEWORK_DURATION_HOURS_COLUMN
     alts = _load_alternatives(state, model_settings)
     category_dtype = pd.api.types.CategoricalDtype(
         categories=alts[model_settings.ALT_NAME_COLUMN].tolist() + [""],
@@ -225,7 +224,7 @@ def telework_duration(
 
     choice_model = model_settings.CHOICE_MODEL
 
-    if choice_model == "MNL":
+    if choice_model == "LOGIT":
         model_spec = state.filesystem.read_model_spec(file_name=model_settings.SPEC)
         coefficients_df = state.filesystem.read_model_coefficients(model_settings)
         model_spec = simulate.eval_coefficients(

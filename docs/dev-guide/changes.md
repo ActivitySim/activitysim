@@ -32,6 +32,18 @@ newer, and the lockfile requires certifi 2026.10.19 or newer. Older versions
 trust a compromised certificate authority; see the
 [eMudhra/emSign CA certificate incident](https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576).
 
+### Shadow Pricing Re-Simulation Segmentation
+
+In version 1.6.1, the segmentation used for shadow pricing re-simulation now 
+inherits the segmentation used in the work and school location choice simulation, 
+e.g., defined as `CHOOSER_SEGMENT_COLUMN_NAME` in the `workplace_location.yaml`. 
+The legacy setting `SEGMENT_TO_NAME` in the `shadow_pricing.yaml` is now deprecated 
+and ignored. This ensures consistency between the segmentation used for shadow 
+pricing re-simulation and the segmentation used for work and school location 
+choice simulation. See
+[Issue #1082](https://github.com/ActivitySim/activitysim/issues/1082) and
+[PR #1083](https://github.com/ActivitySim/activitysim/pull/1083).
+
 
 ## v1.6
 

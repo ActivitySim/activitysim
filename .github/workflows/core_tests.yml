@@ -19,7 +19,7 @@ jobs:
   foundation:
     outputs:
       # Python versions for the slower jobs after the core test suite. Pull
-      # requests and pushes to other branches use the newest supported Python
+      # requests and pushes to other branches use the oldest supported Python
       # only. Pushes to main (i.e. merges) and manual runs use every supported
       # version.
       test_versions: ${{ (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) && '["3.11", "3.12", "3.13"]' || '["3.11"]' }}

@@ -13,6 +13,13 @@ This section describes changes that are implemented in current development
 branch (i.e., the main branch on GitHub), but not yet released in a stable version
 of ActivitySim.
 
+### Python 3.11 or Newer Required
+
+ActivitySim now requires Python 3.11, 3.12 or 3.13. Python 3.10 is no longer
+supported because it has reached end of life. Installing ActivitySim into a
+Python 3.10 environment selects an older ActivitySim release instead of the
+latest one, so recreate such environments with Python 3.11 or newer.
+
 ### Windows Installer Discontinued
 
 The pre-packaged Windows installer is no longer built or provided. Install

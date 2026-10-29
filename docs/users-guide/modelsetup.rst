@@ -201,8 +201,8 @@ Open Command Prompt (not Anaconda Prompt), and run the following commands.
   cd asim_project
 
   # initialize a virtual environment
-  # This sets the Python version to 3.10, which is currently fully tested for ActivitySim development
-  uv init --python 3.10
+  # This sets the Python version to 3.11, on which ActivitySim's full test suite runs for every change
+  uv init --python 3.11
 
   # add ActivitySim package from the latest release on PyPI
   uv add activitysim
@@ -404,7 +404,7 @@ If you'd still like to proceed, here are the recommended steps to follow (procee
 
 ::
 
-  uv python install 3.10
+  uv python install 3.11
 
 6. Under Environment Variables > System variables (requires Admin), create a new system environment variable named ``UV_PYTHON`` and set its value to the ``python.exe`` created in step 5.
 

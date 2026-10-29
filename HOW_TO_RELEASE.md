@@ -23,8 +23,8 @@
     double-check that the main branch is passing tests before issuing a release.
 
     Pull requests run the regional model, estimation, and other slower tests on
-    the newest supported Python version only; every merge into `main` runs them
-    on all supported versions. A failure that only affects an older Python
+    the oldest supported Python version only; every merge into `main` runs them
+    on all supported versions. A failure that only affects a newer Python
     version therefore first shows up in the runs on `main`.
 
 4.  Test the two supported example models, MTC and SANDAG, at full scale if

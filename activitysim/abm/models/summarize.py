@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from pathlib import Path
 
 import numpy as np
@@ -12,6 +13,7 @@ import pandas as pd
 from activitysim.core import expressions, timing, workflow
 from activitysim.core.configuration.base import PreprocessorSettings, PydanticReadable
 from activitysim.core.los import Network_LOS
+from activitysim.core.util import drop_unused_columns
 
 logger = logging.getLogger(__name__)
 
@@ -202,6 +204,62 @@ def manual_breaks(
         return bins
 
 
+def trim_unused_columns(
+    state: workflow.State,
+    model_settings: SummarizeSettings,
+    spec: pd.DataFrame,
+    *tables: pd.DataFrame,
+) -> tuple[pd.DataFrame, ...]:
+    """
+    Drop columns that are not referenced by the summarize specification.
+
+    Column references are found in the summarize spec, the preprocessor spec (if any),
+    and the BIN / AGGREGATE columns in the settings.  Because `trips` and `tours_merged`
+    are merged with ``_trip`` / ``_tour`` suffixes, the unsuffixed names of any suffixed
+    references are retained in both tables so that the merge produces the same columns.
+    """
+    expressions_df = spec[["Expression"]].dropna().astype(str)
+    if model_settings.preprocessor is not None:
+        preprocessor_spec = pd.read_csv(
+            state.filesystem.get_config_file_path(model_settings.preprocessor.SPEC),
+            comment="#",
+        )
+        expressions_df = pd.concat(
+            [expressions_df, preprocessor_spec[["Expression"]].dropna().astype(str)]
+        )
+
+    identifiers = set(
+        re.findall(r"[a-zA-Z_][a-zA-Z0-9_]*", " ".join(expressions_df["Expression"]))
+    )
+
+    # columns needed to merge trips and tours, and by wrap_skims
+    keep = {"tour_id", "person_id", "household_id", "start", "end", "depart"}
+    keep |= {"origin", "destination"}
+    keep |= {i.removesuffix(s) for i in identifiers for s in ("_trip", "_tour")}
+
+    for table_name in ("persons_merged", "trips_merged", "tours_merged", "land_use"):
+        meta = getattr(model_settings, table_name, None) or {}
+        for slicer in (meta.get("AGGREGATE") or []) + (meta.get("BIN") or []):
+            keep.add(slicer["column"])
+
+    return tuple(
+        drop_unused_columns(
+            table,
+            expressions_df,
+            None,
+            custom_chooser=None,
+            additional_columns=keep,
+        )
+        for table in tables
+    )
+
+
+def delete_temporary_variables(locals_d: dict[str, object], variables: str) -> None:
+    logger.debug(f"Deleting temporary variable(s): {variables}")
+    for var in variables.split(","):
+        locals_d.pop(var.strip(), None)
+
+
 class SummarizeSettings(PydanticReadable, extra="allow"):
     """
     Settings for the `summarize` component.
@@ -215,6 +273,12 @@ class SummarizeSettings(PydanticReadable, extra="allow"):
 
     EXPORT_PIPELINE_TABLES: bool = True
     """To export pipeline tables for expression development."""
+
+    DROP_UNUSED_COLUMNS: bool = True
+    """Drop trips and tours columns not referenced by the summarize specs before merging.
+
+    Ignored (no columns are dropped) when `EXPORT_PIPELINE_TABLES` is True.  Set to False
+    if expressions access columns indirectly, e.g. by names assembled at runtime."""
 
     preprocessor: PreprocessorSettings | None = None
 
@@ -260,6 +324,13 @@ def summarize(
         state.filesystem.get_config_file_path(model_settings.SPECIFICATION),
         comment="#",
     )
+
+    # Trim the tables that are merged below to only the columns the specs use,
+    # unless the full tables are going to be exported for expression development
+    if model_settings.DROP_UNUSED_COLUMNS and not model_settings.EXPORT_PIPELINE_TABLES:
+        trips, tours_merged = trim_unused_columns(
+            state, model_settings, spec, trips, tours_merged
+        )
 
     # Load dataframes from pipeline
     tours = tours_merged
@@ -366,10 +437,8 @@ def summarize(
 
         # delete temporary variables listed in Expression when Output == "_del"
         if out_file == "_del":
-            logger.debug(f"Deleting temporary variable(s): {expr}")
             with performance_timer.time_expression(expr):
-                for var in str(expr).split(","):
-                    locals_d.pop(var.strip(), None)
+                delete_temporary_variables(locals_d, str(expr))
             continue
 
         # Save temporary variables starting with underscores in locals_d

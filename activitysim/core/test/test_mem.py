@@ -33,8 +33,6 @@ def test_release_memory_platforms(monkeypatch, platform, gc_enabled, outcome):
             malloc_trim=release,
             malloc_default_zone=handle,
             malloc_zone_pressure_relief=release,
-            GetCurrentProcess=handle,
-            SetProcessWorkingSetSize=release,
         )
     loader = Mock(return_value=library)
     if outcome == "load_error":
@@ -42,9 +40,12 @@ def test_release_memory_platforms(monkeypatch, platform, gc_enabled, outcome):
     elif outcome == "call_error":
         release.side_effect = OSError("allocator call failed")
     monkeypatch.setattr(mem.ctypes, "CDLL", loader)
+    # Windows must not touch any native library: a working-set trim costs time
+    # without reducing commit charge. Replace WinDLL so a call would be caught.
     monkeypatch.setattr(mem.ctypes, "WinDLL", loader, raising=False)
 
-    assert mem.release_memory() is (outcome == "success" and platform != "unsupported")
+    gc_only = platform in ("win32", "unsupported")
+    assert mem.release_memory() is (outcome == "success" and not gc_only)
     gc.collect.assert_called_once_with()
     if gc_enabled:
         gc.enable.assert_not_called()
@@ -56,32 +57,18 @@ def test_release_memory_platforms(monkeypatch, platform, gc_enabled, outcome):
             "collect",
             "disable",
         ]
-    if platform == "unsupported":
+    if gc_only:
         loader.assert_not_called()
     else:
-        if platform == "win32":
-            loader.assert_called_once_with("kernel32", use_last_error=True)
-        else:
-            loader.assert_called_once_with(None)
+        loader.assert_called_once_with(None)
         if outcome in ("success", "no_release", "call_error"):
             if platform == "linux":
                 release.assert_called_once_with(0)
                 assert release.argtypes == [ctypes.c_size_t]
                 assert release.restype == ctypes.c_int
-            elif platform == "darwin":
+            else:
                 handle.assert_called_once_with()
                 release.assert_called_once_with(1234, 0)
                 assert handle.restype == ctypes.c_void_p
                 assert release.argtypes == [ctypes.c_void_p, ctypes.c_size_t]
                 assert release.restype == ctypes.c_size_t
-            else:
-                handle.assert_called_once_with()
-                maximum_size = ctypes.c_size_t(-1).value
-                release.assert_called_once_with(1234, maximum_size, maximum_size)
-                assert handle.restype == ctypes.c_void_p
-                assert release.argtypes == [
-                    ctypes.c_void_p,
-                    ctypes.c_size_t,
-                    ctypes.c_size_t,
-                ]
-                assert release.restype == ctypes.c_int

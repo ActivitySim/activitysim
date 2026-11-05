@@ -49,6 +49,14 @@ def release_memory():
     The allocator-pressure calls below are advisory and platform specific. A
     failed or unavailable call is harmless: collection has still occurred and
     the model continues normally.
+
+    Windows gets garbage collection only. Its heap already returns large blocks
+    such as NumPy arrays to the OS when they are freed, so there is little for
+    an allocator call to do. ``SetProcessWorkingSetSize`` is not an equivalent:
+    it only moves pages out of the working set without reducing commit charge,
+    and touching them again faults them back in, including shared skim pages.
+    Full-scale runs measured that as 0.6-0.8 s per call for no reduction in
+    peak commit, while also making RSS-based memory logs overstate savings.
     """
 
     was_disabled = not gc.isenabled()
@@ -78,26 +86,6 @@ def release_memory():
                 pressure_relief.restype = ctypes.c_size_t
                 return bool(pressure_relief(malloc_default_zone(), 0))
 
-        elif sys.platform == "win32":
-            kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
-            get_current_process = kernel32.GetCurrentProcess
-            get_current_process.argtypes = []
-            get_current_process.restype = ctypes.c_void_p
-            set_working_set_size = kernel32.SetProcessWorkingSetSize
-            set_working_set_size.argtypes = [
-                ctypes.c_void_p,
-                ctypes.c_size_t,
-                ctypes.c_size_t,
-            ]
-            set_working_set_size.restype = ctypes.c_int
-            maximum_size = ctypes.c_size_t(-1).value
-            return bool(
-                set_working_set_size(
-                    get_current_process(),
-                    maximum_size,
-                    maximum_size,
-                )
-            )
     except (AttributeError, OSError, TypeError, ValueError):
         logger.debug("Platform allocator did not release memory", exc_info=True)
 

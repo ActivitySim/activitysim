@@ -1,0 +1,2 @@
+description,coefficient,model_value,target_value,hold_fast,min,max,damping,method,tolerance
+Walk tour share for auto-sufficient households,coef_calib_WALK_auto_suff,len(tours[tours.tour_mode == 'WALK']) / len(tours),0.271828,FALSE,-10,10,1,log_ratio,0

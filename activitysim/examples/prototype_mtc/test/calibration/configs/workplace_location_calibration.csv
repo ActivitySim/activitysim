@@ -1,0 +1,2 @@
+description,coefficient,model_value,target_value,hold_fast,min,max,damping,method,tolerance
+Workplace distance under 2 miles,coef_calib_dist_0_2,"workplace_distance_share(context, 0, 2)",0.271828,FALSE,-10,10,1,log_ratio,0

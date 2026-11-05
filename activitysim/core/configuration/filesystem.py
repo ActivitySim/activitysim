@@ -724,6 +724,7 @@ class FileSystem(PydanticBase, validate_assignment=True):
             file_name = "%s.yaml" % (file_name,)
 
         inheriting = False
+        settings_file_found = False
         settings = {}
         if isinstance(include_stack, list):
             source_file_paths = include_stack.copy()
@@ -732,6 +733,7 @@ class FileSystem(PydanticBase, validate_assignment=True):
         for dir in configs_dir_list:
             file_path = os.path.join(dir, file_name)
             if os.path.exists(file_path):
+                settings_file_found = True
                 if inheriting:
                     # we must be inheriting
                     logger.debug(
@@ -835,7 +837,7 @@ class FileSystem(PydanticBase, validate_assignment=True):
         settings.pop("inherit_settings", None)
         settings.pop("include_settings", None)
 
-        if validator_class is not None:
+        if validator_class is not None and (mandatory or settings_file_found):
             settings = validator_class.model_validate(settings)
 
         if include_stack:

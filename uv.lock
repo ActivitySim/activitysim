@@ -29,6 +29,7 @@ wheels = [
 name = "activitysim"
 source = { editable = "." }
 dependencies = [
+    { name = "cffi" },
     { name = "cytoolz" },
     { name = "numba" },
     { name = "numpy" },
@@ -105,6 +106,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "cffi", specifier = ">=1.0" },
     { name = "cytoolz", specifier = ">=0.8.1" },
     { name = "numba", specifier = ">=0.57" },
     { name = "numpy", specifier = ">=2.0,<3" },

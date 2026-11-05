@@ -1,13 +1,11 @@
-
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Larch Tool API &#8212; ActivitySim</title>
   
@@ -28,36 +26,37 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/theme_overrides.css?v=a9acb3ca" />
   
   <!-- So that users can add custom icons -->
-  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="../../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
-    <script src="../../_static/clipboard.min.js"></script>
-    <script src="../../_static/copybutton.js"></script>
-    <script src="../../_static/design-tabs.js"></script>
+    <script src="../../_static/documentation_options.js?v=8e50e698"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'users-guide/estimation-mode/larch-api';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_version = '0.22.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.6.1';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Other Example Models" href="../other_examples.html" />
@@ -65,21 +64,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.6.1" />
-    <meta name="docbuild:last-update" content="Oct 27, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 05, 2026"/>
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
   </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
+  <body data-default-mode="">
   
   
   <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
+  
+  
+  
   
   <dialog id="pst-search-dialog">
     
@@ -105,9 +110,9 @@
 </div>
 
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -165,7 +170,7 @@
         <div class="navbar-item navbar-persistent--container">
           
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -200,7 +205,7 @@
   
     <div class="navbar-persistent--mobile">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -209,7 +214,7 @@
   
 
   
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
       <span class="fa-solid fa-outdent"></span>
     </button>
   
@@ -287,7 +292,15 @@
   </div>
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
         <div class="sidebar-primary-item">
+
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
@@ -314,7 +327,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Estimation Mode</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="asim-est.html"> Running ActivitySim in Estimation Mode</a></li>
 <li class="toctree-l2"><a class="reference internal" href="larch.html"> Using Larch to Re-estimate Models</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#"> ActivitySim Larch Tool API</a></li>
+<li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#"> ActivitySim Larch Tool API</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../other_examples.html">Other Example Models</a></li>
@@ -382,12 +395,12 @@
                 <article class="bd-article">
                   
   <section id="larch-tool-api">
-<h1>Larch Tool API<a class="headerlink" href="#larch-tool-api" title="Permalink to this heading">#</a></h1>
+<h1>Larch Tool API<a class="headerlink" href="#larch-tool-api" title="Link to this heading">#</a></h1>
 <section id="module-activitysim.estimation.larch.general">
-<span id="activitysim-estimation-larch-general"></span><h2>activitysim.estimation.larch.general<a class="headerlink" href="#module-activitysim.estimation.larch.general" title="Permalink to this heading">#</a></h2>
+<span id="activitysim-estimation-larch-general"></span><h2>activitysim.estimation.larch.general<a class="headerlink" href="#module-activitysim.estimation.larch.general" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.general.apply_coef_template">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">apply_coef_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linear_utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.apply_coef_template" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">apply_coef_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linear_utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.apply_coef_template" title="Link to this definition">#</a></dt>
 <dd><p>Apply a coefficient template over a linear utility function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -407,7 +420,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.general.apply_coefficients">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">apply_coefficients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.apply_coefficients" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">apply_coefficients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.apply_coefficients" title="Link to this definition">#</a></dt>
 <dd><p>Read the coefficients CSV file to a DataFrame and set model parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -424,7 +437,7 @@ for this model.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.general.clean_values">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">clean_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choice_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'override_choice'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_names_to_codes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choice_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'override_choice_code'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.clean_values" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">clean_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choice_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'override_choice'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_names_to_codes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choice_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'override_choice_code'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.clean_values" title="Link to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -451,7 +464,7 @@ be added to <cite>values</cite>.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.general.construct_nesting_tree">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">construct_nesting_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nesting_settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.construct_nesting_tree" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">construct_nesting_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nesting_settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.construct_nesting_tree" title="Link to this definition">#</a></dt>
 <dd><p>Construct a NestingTree from ActivitySim settings.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -475,7 +488,7 @@ names, and unique sequential codes will be created starting from 1.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.general.cv_to_ca">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">cv_to_ca</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alt_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'float64'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.cv_to_ca" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">cv_to_ca</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alt_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'float64'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.cv_to_ca" title="Link to this definition">#</a></dt>
 <dd><p>Convert a choosers-variables DataFrame to an idca DataFrame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -506,7 +519,7 @@ alternative, and one column per variable.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.general.dict_of_linear_utility_from_spec">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">dict_of_linear_utility_from_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_validator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.dict_of_linear_utility_from_spec" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">dict_of_linear_utility_from_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_validator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.dict_of_linear_utility_from_spec" title="Link to this definition">#</a></dt>
 <dd><p>Create a linear function from a spec DataFrame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -546,7 +559,7 @@ in the x_validator.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.general.explicit_value_parameters">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">explicit_value_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.explicit_value_parameters" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">explicit_value_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.explicit_value_parameters" title="Link to this definition">#</a></dt>
 <dd><p>Define and lock parameters given as fixed values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -555,14 +568,12 @@ in the x_validator.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"></dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.general.explicit_value_parameters_from_spec">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">explicit_value_parameters_from_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.explicit_value_parameters_from_spec" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">explicit_value_parameters_from_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.explicit_value_parameters_from_spec" title="Link to this definition">#</a></dt>
 <dd><p>Define and lock parameters given as fixed values in the spec.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -581,14 +592,12 @@ function.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"></dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.general.linear_utility_from_spec">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">linear_utility_from_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segment_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_validator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.linear_utility_from_spec" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">linear_utility_from_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segment_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_validator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.linear_utility_from_spec" title="Link to this definition">#</a></dt>
 <dd><p>Create a linear function from a spec DataFrame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -631,7 +640,7 @@ in the x_validator.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.general.prevent_overlapping_column_names">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">prevent_overlapping_column_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_ca</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_co</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.prevent_overlapping_column_names" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">prevent_overlapping_column_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_ca</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_co</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.prevent_overlapping_column_names" title="Link to this definition">#</a></dt>
 <dd><p>Rename columns in idca data to prevent overlapping names.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -650,7 +659,7 @@ in the x_validator.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.general.remove_apostrophes">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">remove_apostrophes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.remove_apostrophes" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">remove_apostrophes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.remove_apostrophes" title="Link to this definition">#</a></dt>
 <dd><p>Remove apostrophes from columns names and from data in given columns.</p>
 <p>Also strips leading and trailing whitespace.</p>
 <p>This function operates in-place on DataFrames.</p>
@@ -671,70 +680,70 @@ in the x_validator.</p>
 
 </section>
 <section id="module-activitysim.estimation.larch.data_maker">
-<span id="activitysim-estimation-larch-data-maker"></span><h2>activitysim.estimation.larch.data_maker<a class="headerlink" href="#module-activitysim.estimation.larch.data_maker" title="Permalink to this heading">#</a></h2>
+<span id="activitysim-estimation-larch-data-maker"></span><h2>activitysim.estimation.larch.data_maker<a class="headerlink" href="#module-activitysim.estimation.larch.data_maker" title="Link to this heading">#</a></h2>
 </section>
 <section id="module-activitysim.estimation.larch.simple_simulate">
-<span id="activitysim-estimation-larch-simple-simulate"></span><h2>activitysim.estimation.larch.simple_simulate<a class="headerlink" href="#module-activitysim.estimation.larch.simple_simulate" title="Permalink to this heading">#</a></h2>
+<span id="activitysim-estimation-larch-simple-simulate"></span><h2>activitysim.estimation.larch.simple_simulate<a class="headerlink" href="#module-activitysim.estimation.larch.simple_simulate" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.simple_simulate.SimpleSimulateData">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.simple_simulate.</span></span><span class="sig-name descname"><span class="pre">SimpleSimulateData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edb_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef_template</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_codes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_names_to_codes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_codes_to_names</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.simple_simulate.</span></span><span class="sig-name descname"><span class="pre">SimpleSimulateData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edb_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef_template</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_codes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_names_to_codes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_codes_to_names</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData" title="Link to this definition">#</a></dt>
 <dd><dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.simple_simulate.SimpleSimulateData.alt_codes">
-<span class="sig-name descname"><span class="pre">alt_codes</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.alt_codes" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">alt_codes</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.alt_codes" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 7</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.simple_simulate.SimpleSimulateData.alt_codes_to_names">
-<span class="sig-name descname"><span class="pre">alt_codes_to_names</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.alt_codes_to_names" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">alt_codes_to_names</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.alt_codes_to_names" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 9</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.simple_simulate.SimpleSimulateData.alt_names">
-<span class="sig-name descname"><span class="pre">alt_names</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.alt_names" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">alt_names</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.alt_names" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 6</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.simple_simulate.SimpleSimulateData.alt_names_to_codes">
-<span class="sig-name descname"><span class="pre">alt_names_to_codes</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.alt_names_to_codes" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">alt_names_to_codes</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.alt_names_to_codes" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 8</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.simple_simulate.SimpleSimulateData.chooser_data">
-<span class="sig-name descname"><span class="pre">chooser_data</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.chooser_data" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">chooser_data</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.chooser_data" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.simple_simulate.SimpleSimulateData.coef_template">
-<span class="sig-name descname"><span class="pre">coef_template</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.coef_template" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">coef_template</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.coef_template" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 4</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.simple_simulate.SimpleSimulateData.coefficients">
-<span class="sig-name descname"><span class="pre">coefficients</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.coefficients" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">coefficients</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.coefficients" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 3</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.simple_simulate.SimpleSimulateData.edb_directory">
-<span class="sig-name descname"><span class="pre">edb_directory</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.edb_directory" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">edb_directory</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.edb_directory" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.simple_simulate.SimpleSimulateData.settings">
-<span class="sig-name descname"><span class="pre">settings</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.settings" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">settings</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.settings" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.simple_simulate.SimpleSimulateData.spec">
-<span class="sig-name descname"><span class="pre">spec</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.spec" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">spec</span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.SimpleSimulateData.spec" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 5</p>
 </dd></dl>
 
@@ -742,7 +751,7 @@ in the x_validator.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.simple_simulate.construct_availability">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.simple_simulate.</span></span><span class="sig-name descname"><span class="pre">construct_availability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_codes_to_names</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.construct_availability" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.simple_simulate.</span></span><span class="sig-name descname"><span class="pre">construct_availability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_codes_to_names</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.construct_availability" title="Link to this definition">#</a></dt>
 <dd><p>Construct an availability dataframe based on -999 parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -762,16 +771,16 @@ in the x_validator.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.simple_simulate.read_spec">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.simple_simulate.</span></span><span class="sig-name descname"><span class="pre">read_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.15)"><span class="pre">PathLike</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.read_spec" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.simple_simulate.</span></span><span class="sig-name descname"><span class="pre">read_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.15)"><span class="pre">PathLike</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.read_spec" title="Link to this definition">#</a></dt>
 <dd><p>Read a simple simulate spec file</p>
 </dd></dl>
 
 </section>
 <section id="module-activitysim.estimation.larch.cdap">
-<span id="activitysim-estimation-larch-cdap"></span><h2>activitysim.estimation.larch.cdap<a class="headerlink" href="#module-activitysim.estimation.larch.cdap" title="Permalink to this heading">#</a></h2>
+<span id="activitysim-estimation-larch-cdap"></span><h2>activitysim.estimation.larch.cdap<a class="headerlink" href="#module-activitysim.estimation.larch.cdap" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.apply_replacements">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">apply_replacements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokens</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.apply_replacements" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">apply_replacements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokens</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.apply_replacements" title="Link to this definition">#</a></dt>
 <dd><p>Convert general person terms to specific person terms for the CDAP model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -796,7 +805,7 @@ of cdap_INDIV_AND_HHSIZE1_SPEC.csv, or similar.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.cdap_base_utility_by_person">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">cdap_base_utility_by_person</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_tokens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_joint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.cdap_base_utility_by_person" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">cdap_base_utility_by_person</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_tokens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_joint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.cdap_base_utility_by_person" title="Link to this definition">#</a></dt>
 <dd><p>Build the base utility by person for each pattern.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -824,7 +833,7 @@ from the estimation data bundle.  Only used when
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.cdap_interaction_utility">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">cdap_interaction_utility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_persons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">interaction_coef</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficients</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.cdap_interaction_utility" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">cdap_interaction_utility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_persons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">interaction_coef</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficients</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.cdap_interaction_utility" title="Link to this definition">#</a></dt>
 <dd><p>Build the interaction utility for each pattern.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -849,7 +858,7 @@ the ActivitySim framework.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.cdap_joint_tour_utility">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">cdap_joint_tour_utility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.cdap_joint_tour_utility" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">cdap_joint_tour_utility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.cdap_joint_tour_utility" title="Link to this definition">#</a></dt>
 <dd><p>FIXME: Not fully implemented!!!!</p>
 <p>Code is adapted from the cdap model in ActivitySim with the joint tour component
 Structure is pretty much in place, but dependencies need to be filtered out.</p>
@@ -857,7 +866,7 @@ Structure is pretty much in place, but dependencies need to be filtered out.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.generate_alternatives">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">generate_alternatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_joint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.generate_alternatives" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">generate_alternatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_joint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.generate_alternatives" title="Link to this definition">#</a></dt>
 <dd><p>Generate a dictionary of CDAP alternatives.</p>
 <p>The keys are the names of the patterns, and
 the values are the alternative code numbers.</p>
@@ -877,7 +886,7 @@ the values are the alternative code numbers.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.interact_pattern">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">interact_pattern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.interact_pattern" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">interact_pattern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.interact_pattern" title="Link to this definition">#</a></dt>
 <dd><p>Compile a regex pattern to match CDAP alternatives.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -899,67 +908,67 @@ the values are the alternative code numbers.</p>
 
 </section>
 <section id="module-activitysim.estimation.larch.location_choice">
-<span id="activitysim-estimation-larch-location-choice"></span><h2>activitysim.estimation.larch.location_choice<a class="headerlink" href="#module-activitysim.estimation.larch.location_choice" title="Permalink to this heading">#</a></h2>
+<span id="activitysim-estimation-larch-location-choice"></span><h2>activitysim.estimation.larch.location_choice<a class="headerlink" href="#module-activitysim.estimation.larch.location_choice" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.location_choice.LocationChoiceData">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.location_choice.</span></span><span class="sig-name descname"><span class="pre">LocationChoiceData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edb_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">landuse</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">master_size_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_selector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.location_choice.</span></span><span class="sig-name descname"><span class="pre">LocationChoiceData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edb_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">landuse</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">master_size_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_selector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData" title="Link to this definition">#</a></dt>
 <dd><dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.location_choice.LocationChoiceData.alt_values">
-<span class="sig-name descname"><span class="pre">alt_values</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.alt_values" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">alt_values</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.alt_values" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.location_choice.LocationChoiceData.chooser_data">
-<span class="sig-name descname"><span class="pre">chooser_data</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.chooser_data" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">chooser_data</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.chooser_data" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.location_choice.LocationChoiceData.coefficients">
-<span class="sig-name descname"><span class="pre">coefficients</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.coefficients" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">coefficients</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.coefficients" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 3</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.location_choice.LocationChoiceData.edb_directory">
-<span class="sig-name descname"><span class="pre">edb_directory</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.edb_directory" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">edb_directory</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.edb_directory" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.location_choice.LocationChoiceData.landuse">
-<span class="sig-name descname"><span class="pre">landuse</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.landuse" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">landuse</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.landuse" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 4</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.location_choice.LocationChoiceData.master_size_spec">
-<span class="sig-name descname"><span class="pre">master_size_spec</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.master_size_spec" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">master_size_spec</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.master_size_spec" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 7</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.location_choice.LocationChoiceData.model_selector">
-<span class="sig-name descname"><span class="pre">model_selector</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.model_selector" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">model_selector</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.model_selector" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 8</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.location_choice.LocationChoiceData.settings">
-<span class="sig-name descname"><span class="pre">settings</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.settings" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">settings</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.settings" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 9</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.location_choice.LocationChoiceData.size_spec">
-<span class="sig-name descname"><span class="pre">size_spec</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.size_spec" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">size_spec</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.size_spec" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 6</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.location_choice.LocationChoiceData.spec">
-<span class="sig-name descname"><span class="pre">spec</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.spec" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">spec</span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.LocationChoiceData.spec" title="Link to this definition">#</a></dt>
 <dd><p>Alias for field number 5</p>
 </dd></dl>
 
@@ -967,7 +976,7 @@ the values are the alternative code numbers.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.location_choice.location_choice_model">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.location_choice.</span></span><span class="sig-name descname"><span class="pre">location_choice_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'workplace_location'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edb_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'output/estimation_data_bundle/{name}/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficients_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{name}_coefficients.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{name}_SPEC.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_spec_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{name}_size_terms.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_values_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{name}_alternatives_combined.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{name}_choosers_combined.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{name}_model_settings.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">landuse_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{name}_landuse.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_values_to_feather</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunking_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts_in_cv_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">availability_expression</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Model</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">larch.model.jaxmodel.Model</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../model_dev.html#activitysim.estimation.larch.location_choice.LocationChoiceData" title="activitysim.estimation.larch.location_choice.LocationChoiceData"><span class="pre">LocationChoiceData</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.location_choice_model" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.location_choice.</span></span><span class="sig-name descname"><span class="pre">location_choice_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'workplace_location'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edb_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'output/estimation_data_bundle/{name}/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficients_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{name}_coefficients.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{name}_SPEC.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_spec_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{name}_size_terms.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_values_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{name}_alternatives_combined.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{name}_choosers_combined.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{name}_model_settings.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">landuse_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{name}_landuse.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_values_to_feather</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunking_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts_in_cv_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">availability_expression</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Model</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Model</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../model_dev.html#activitysim.estimation.larch.location_choice.LocationChoiceData" title="activitysim.estimation.larch.location_choice.LocationChoiceData"><span class="pre">LocationChoiceData</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#activitysim.estimation.larch.location_choice.location_choice_model" title="Link to this definition">#</a></dt>
 <dd><p>Construct a location choice model from the estimation data bundle.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1023,7 +1032,7 @@ expressions, but this is not reliable. The default is None.</p>
 
 <span class="target" id="module-activitysim.estimation.larch.mode_choice"></span><span class="target" id="module-activitysim.estimation.larch.nonmand_tour_freq"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.nonmand_tour_freq.nonmand_tour_freq_model">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.nonmand_tour_freq.</span></span><span class="sig-name descname"><span class="pre">nonmand_tour_freq_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edb_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'output/estimation_data_bundle/{name}/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condense_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segment_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts_in_cv_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.nonmand_tour_freq.nonmand_tour_freq_model" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.nonmand_tour_freq.</span></span><span class="sig-name descname"><span class="pre">nonmand_tour_freq_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edb_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'output/estimation_data_bundle/{name}/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condense_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segment_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts_in_cv_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.nonmand_tour_freq.nonmand_tour_freq_model" title="Link to this definition">#</a></dt>
 <dd><p>Prepare nonmandatory tour frequency models for estimation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1044,7 +1053,7 @@ have the same initial value are converted to have the same name
 
 <span class="target" id="module-activitysim.estimation.larch.scheduling"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.scheduling.construct_availability_ca">
-<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.scheduling.</span></span><span class="sig-name descname"><span class="pre">construct_availability_ca</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_codes_to_names</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.scheduling.construct_availability_ca" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.scheduling.</span></span><span class="sig-name descname"><span class="pre">construct_availability_ca</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_codes_to_names</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.scheduling.construct_availability_ca" title="Link to this definition">#</a></dt>
 <dd><p>Construct an availability dataframe based on -999 parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1111,8 +1120,8 @@ have the same initial value are converted to have the same name
     class="page-toc tocsection onthispage">
     <i class="fa-solid fa-list"></i> On this page
   </div>
-  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="visible nav section-nav flex-column">
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-activitysim.estimation.larch.general">activitysim.estimation.larch.general</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.estimation.larch.general.apply_coef_template"><code class="docutils literal notranslate"><span class="pre">apply_coef_template()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.estimation.larch.general.apply_coefficients"><code class="docutils literal notranslate"><span class="pre">apply_coefficients()</span></code></a></li>
@@ -1178,13 +1187,13 @@ have the same initial value are converted to have the same name
   </nav></div>
 
   <div class="sidebar-secondary-item">
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../../_sources/users-guide/estimation-mode/larch-api.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div></div>
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/users-guide/estimation-mode/larch-api.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
 
 </div></div>
               
@@ -1199,8 +1208,8 @@ have the same initial value are converted to have the same name
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
-<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1209,14 +1218,13 @@ have the same initial value are converted to have the same name
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.6.1.dev6+g9da9141ab, documentation last updated Oct 27, 2026.<br/>
+ActivitySim 1.6.1.dev7+g99c800ac0, documentation last updated Nov 05, 2026.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
-    <br/>
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
   </p>
 </div>
       
@@ -1229,7 +1237,7 @@ ActivitySim 1.6.1.dev6+g9da9141ab, documentation last updated Oct 27, 2026.<br/>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
 </p></div>
       
     </div>

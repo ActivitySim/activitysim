@@ -1,13 +1,11 @@
-
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>State API &#8212; ActivitySim</title>
   
@@ -28,36 +26,37 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=a9acb3ca" />
   
   <!-- So that users can add custom icons -->
-  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/documentation_options.js?v=8e50e698"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev-guide/core-workflow-api';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_version = '0.22.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.6.1';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="State" href="_generated/activitysim.core.workflow.State.html" />
@@ -65,21 +64,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.6.1" />
-    <meta name="docbuild:last-update" content="Oct 27, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 05, 2026"/>
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
   </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
+  <body data-default-mode="">
   
   
   <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
+  
+  
+  
   
   <dialog id="pst-search-dialog">
     
@@ -105,9 +110,9 @@
 </div>
 
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -165,7 +170,7 @@
         <div class="navbar-item navbar-persistent--container">
           
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -200,7 +205,7 @@
   
     <div class="navbar-persistent--mobile">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -209,7 +214,7 @@
   
 
   
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
       <span class="fa-solid fa-outdent"></span>
     </button>
   
@@ -287,14 +292,22 @@
   </div>
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
         <div class="sidebar-primary-item">
+
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Developer Installation</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="core-workflow.html">Workflow State</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active has-children"><a class="current reference internal" href="#">State API</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 current active has-children"><a aria-current="page" class="current reference internal" href="#">State API</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.__init__.html">State.__init__</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.make_default.html">State.make_default</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_generated/activitysim.core.workflow.State.make_temp.html">State.make_temp</a></li>
@@ -443,8 +456,8 @@
                 <article class="bd-article">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="state-api">
-<h1>State API<a class="headerlink" href="#state-api" title="Permalink to this heading">#</a></h1>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<h1>State API<a class="headerlink" href="#state-api" title="Link to this heading">#</a></h1>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.State"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State</span></code></a>([context])</p></td>
 <td><p>The encapsulated state of an ActivitySim model.</p></td>
@@ -453,8 +466,8 @@
 </table>
 </div>
 <section id="constructors">
-<h2>Constructors<a class="headerlink" href="#constructors" title="Permalink to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<h2>Constructors<a class="headerlink" href="#constructors" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.workflow.State.__init__.html#activitysim.core.workflow.State.__init__" title="activitysim.core.workflow.State.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.__init__</span></code></a>([context])</p></td>
 <td><p>Initialize the encapsulated state of an ActivitySim model.</p></td>
@@ -473,8 +486,8 @@
 </div>
 </section>
 <section id="model-setup">
-<h2>Model Setup<a class="headerlink" href="#model-setup" title="Permalink to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<h2>Model Setup<a class="headerlink" href="#model-setup" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.workflow.State.init_state.html#activitysim.core.workflow.State.init_state" title="activitysim.core.workflow.State.init_state"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.init_state</span></code></a>()</p></td>
 <td><p>Initialize this state.</p></td>
@@ -504,12 +517,12 @@
 </table>
 </div>
 <section id="importing-extensions">
-<h3>Importing extensions<a class="headerlink" href="#importing-extensions" title="Permalink to this heading">#</a></h3>
+<h3>Importing extensions<a class="headerlink" href="#importing-extensions" title="Link to this heading">#</a></h3>
 <p>Register custom model packages with <code class="docutils literal notranslate"><span class="pre">State.import_extensions</span></code> before running
 the model. Relative package paths are interpreted relative to the state’s
 working directory, which need not be the Python process’s current directory:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="o">=</span> <span class="n">State</span><span class="o">.</span><span class="n">make_default</span><span class="p">(</span><span class="s2">&quot;/path/to/model&quot;</span><span class="p">)</span>
-<span class="n">state</span><span class="o">.</span><span class="n">import_extensions</span><span class="p">(</span><span class="s2">&quot;extensions&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="o">=</span> <span class="n">State</span><span class="o">.</span><span class="n">make_default</span><span class="p">(</span><span class="s2">"/path/to/model"</span><span class="p">)</span>
+<span class="n">state</span><span class="o">.</span><span class="n">import_extensions</span><span class="p">(</span><span class="s2">"extensions"</span><span class="p">)</span>
 <span class="n">state</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -532,14 +545,14 @@ adds its parent directory to <code class="docutils literal notranslate"><span cl
 </section>
 </section>
 <section id="basic-context-management">
-<h2>Basic Context Management<a class="headerlink" href="#basic-context-management" title="Permalink to this heading">#</a></h2>
+<h2>Basic Context Management<a class="headerlink" href="#basic-context-management" title="Link to this heading">#</a></h2>
 <p>The most basic function of the <code class="docutils literal notranslate"><span class="pre">State</span></code> object is to serve as a defined
 namespace for storing model-relevant variables.  This includes the top-level
 model settings, data tables, skims, and any other Python variables
 that represent the current state of a particular modeling system (or when
 multiprocessing, sub-system).  Below are the basic methods to get and set values
 in this context in their “raw” form, with minimal additional processing.</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.workflow.State.get.html#activitysim.core.workflow.State.get" title="activitysim.core.workflow.State.get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.get</span></code></a>(key[, default])</p></td>
 <td><p>Automated access to values stored in this state's context.</p></td>
@@ -564,7 +577,7 @@ in this context in their “raw” form, with minimal additional processing.</p>
 </div>
 </section>
 <section id="data-access-and-manipulation">
-<h2>Data Access and Manipulation<a class="headerlink" href="#data-access-and-manipulation" title="Permalink to this heading">#</a></h2>
+<h2>Data Access and Manipulation<a class="headerlink" href="#data-access-and-manipulation" title="Link to this heading">#</a></h2>
 <p>In addition to “raw” access to context variable, several methods are provided
 to simplify different kinds access to the “tables” that represent the
 simulation inputs and outputs of ActivitySim.  We say “tables” here in the
@@ -572,7 +585,7 @@ abstract sense – historically these tables have been stored internally by
 ORCA as <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>s, but the exact internal storage format is abstracted
 away here in favor of providing access to the data in several specific formats.</p>
 <p class="rubric">Methods</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.workflow.State.get_dataset.html#activitysim.core.workflow.State.get_dataset" title="activitysim.core.workflow.State.get_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.get_dataset</span></code></a>(table_name[, ...])</p></td>
 <td><p>Get a workflow table or dataset as a xarray.Dataset.</p></td>
@@ -605,7 +618,7 @@ away here in favor of providing access to the data in several specific formats.<
 </table>
 </div>
 <p class="rubric">Accessor</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated2/activitysim.core.workflow.State.dataset.html#activitysim.core.workflow.State.dataset" title="activitysim.core.workflow.State.dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.dataset</span></code></a></p></td>
 <td><p>This accessor provides easy access to state tables and datasets.</p></td>
@@ -615,10 +628,10 @@ away here in favor of providing access to the data in several specific formats.<
 </div>
 </section>
 <section id="run">
-<h2>Run<a class="headerlink" href="#run" title="Permalink to this heading">#</a></h2>
+<h2>Run<a class="headerlink" href="#run" title="Link to this heading">#</a></h2>
 <p>Executing model components is handled by methods in the <code class="docutils literal notranslate"><span class="pre">run</span></code> accessor.</p>
 <p class="rubric">Accessor</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated2/activitysim.core.workflow.State.run.html#activitysim.core.workflow.State.run" title="activitysim.core.workflow.State.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.run</span></code></a>(models[, resume_after, ...])</p></td>
 <td><p>run the specified list of models, optionally loading checkpoint and resuming after specified checkpoint.</p></td>
@@ -627,7 +640,7 @@ away here in favor of providing access to the data in several specific formats.<
 </table>
 </div>
 <p class="rubric">Attributes</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.workflow.State.run.heading_level.html#activitysim.core.workflow.State.run.heading_level" title="activitysim.core.workflow.State.run.heading_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.run.heading_level</span></code></a></p></td>
 <td><p>Individual component heading level to use when running in a notebook.</p></td>
@@ -636,7 +649,7 @@ away here in favor of providing access to the data in several specific formats.<
 </table>
 </div>
 <p class="rubric">Methods</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.workflow.State.run.by_name.html#activitysim.core.workflow.State.run.by_name" title="activitysim.core.workflow.State.run.by_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.run.by_name</span></code></a>(model_name, **kwargs)</p></td>
 <td><p>Run the specified model and add checkpoint for model_name</p></td>
@@ -649,11 +662,11 @@ away here in favor of providing access to the data in several specific formats.<
 </div>
 </section>
 <section id="checkpoints">
-<span id="state-checkpoint"></span><h2>Checkpoints<a class="headerlink" href="#checkpoints" title="Permalink to this heading">#</a></h2>
+<span id="state-checkpoint"></span><h2>Checkpoints<a class="headerlink" href="#checkpoints" title="Link to this heading">#</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">State</span></code> object provides access to <a class="reference internal" href="checkpointing.html"><span class="std std-doc">checkpointing</span></a> functions
 within the <code class="docutils literal notranslate"><span class="pre">checkpoint</span></code> accessor.</p>
 <p class="rubric">Accessor</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated2/activitysim.core.workflow.State.checkpoint.html#activitysim.core.workflow.State.checkpoint" title="activitysim.core.workflow.State.checkpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.checkpoint</span></code></a></p></td>
 <td><p>State accessor for checkpointing operations.</p></td>
@@ -662,7 +675,7 @@ within the <code class="docutils literal notranslate"><span class="pre">checkpoi
 </table>
 </div>
 <p class="rubric">Attributes</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.workflow.State.checkpoint.last_checkpoint.html#activitysim.core.workflow.State.checkpoint.last_checkpoint" title="activitysim.core.workflow.State.checkpoint.last_checkpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.checkpoint.last_checkpoint</span></code></a></p></td>
 <td><p>Metadata about the last saved checkpoint.</p></td>
@@ -677,7 +690,7 @@ within the <code class="docutils literal notranslate"><span class="pre">checkpoi
 </table>
 </div>
 <p class="rubric">Methods</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.workflow.State.checkpoint.store_is_open.html#activitysim.core.workflow.State.checkpoint.store_is_open" title="activitysim.core.workflow.State.checkpoint.store_is_open"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.checkpoint.store_is_open</span></code></a>()</p></td>
 <td><p>Whether this checkpoint store is open.</p></td>
@@ -729,9 +742,9 @@ within the <code class="docutils literal notranslate"><span class="pre">checkpoi
 </div>
 </section>
 <section id="tracing">
-<h2>Tracing<a class="headerlink" href="#tracing" title="Permalink to this heading">#</a></h2>
+<h2>Tracing<a class="headerlink" href="#tracing" title="Link to this heading">#</a></h2>
 <p class="rubric">Attributes</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.traceable_tables.html#activitysim.core.workflow.State.tracing.traceable_tables" title="activitysim.core.workflow.State.tracing.traceable_tables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.tracing.traceable_tables</span></code></a></p></td>
 <td><p></p></td>
@@ -752,7 +765,7 @@ within the <code class="docutils literal notranslate"><span class="pre">checkpoi
 </table>
 </div>
 <p class="rubric">Methods</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.workflow.State.tracing.initialize.html#activitysim.core.workflow.State.tracing.initialize" title="activitysim.core.workflow.State.tracing.initialize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.tracing.initialize</span></code></a>()</p></td>
 <td><p></p></td>
@@ -795,9 +808,9 @@ within the <code class="docutils literal notranslate"><span class="pre">checkpoi
 </div>
 </section>
 <section id="logging">
-<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this heading">#</a></h2>
+<h2>Logging<a class="headerlink" href="#logging" title="Link to this heading">#</a></h2>
 <p class="rubric">Methods</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.workflow.State.logging.config_logger.html#activitysim.core.workflow.State.logging.config_logger" title="activitysim.core.workflow.State.logging.config_logger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.logging.config_logger</span></code></a>([basic])</p></td>
 <td><p>Configure logger</p></td>
@@ -810,9 +823,9 @@ within the <code class="docutils literal notranslate"><span class="pre">checkpoi
 </div>
 </section>
 <section id="reporting">
-<h2>Reporting<a class="headerlink" href="#reporting" title="Permalink to this heading">#</a></h2>
+<h2>Reporting<a class="headerlink" href="#reporting" title="Link to this heading">#</a></h2>
 <p class="rubric">Accessor</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated2/activitysim.core.workflow.State.report.html#activitysim.core.workflow.State.report" title="activitysim.core.workflow.State.report"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.report</span></code></a></p></td>
 <td><p>Tools for reporting and visualization</p></td>
@@ -821,18 +834,18 @@ within the <code class="docutils literal notranslate"><span class="pre">checkpoi
 </table>
 </div>
 <p class="rubric">Methods</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 </tbody>
 </table>
 </div>
 </section>
 <section id="extending">
-<h2>Extending<a class="headerlink" href="#extending" title="Permalink to this heading">#</a></h2>
+<h2>Extending<a class="headerlink" href="#extending" title="Link to this heading">#</a></h2>
 <p>Methods to extend ActivitySim’s functionality are available under the <code class="docutils literal notranslate"><span class="pre">extend</span></code>
 accessor.</p>
 <p class="rubric">Accessor</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated2/activitysim.core.workflow.State.extend.html#activitysim.core.workflow.State.extend" title="activitysim.core.workflow.State.extend"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.extend</span></code></a></p></td>
 <td><p>Methods to extend the capabilities of ActivitySim.</p></td>
@@ -841,7 +854,7 @@ accessor.</p>
 </table>
 </div>
 <p class="rubric">Methods</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.workflow.State.extend.declare_table.html#activitysim.core.workflow.State.extend.declare_table" title="activitysim.core.workflow.State.extend.declare_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State.extend.declare_table</span></code></a>(table_name[, ...])</p></td>
 <td><p>Declare a new table.</p></td>
@@ -897,8 +910,8 @@ accessor.</p>
     class="page-toc tocsection onthispage">
     <i class="fa-solid fa-list"></i> On this page
   </div>
-  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="visible nav section-nav flex-column">
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constructors">Constructors</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#model-setup">Model Setup</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#importing-extensions">Importing extensions</a></li>
@@ -922,13 +935,13 @@ accessor.</p>
   </nav></div>
 
   <div class="sidebar-secondary-item">
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/dev-guide/core-workflow-api.md.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div></div>
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/dev-guide/core-workflow-api.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
 
 </div></div>
               
@@ -943,8 +956,8 @@ accessor.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -953,14 +966,13 @@ accessor.</p>
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.6.1.dev6+g9da9141ab, documentation last updated Oct 27, 2026.<br/>
+ActivitySim 1.6.1.dev7+g99c800ac0, documentation last updated Nov 05, 2026.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
-    <br/>
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
   </p>
 </div>
       
@@ -973,7 +985,7 @@ ActivitySim 1.6.1.dev6+g9da9141ab, documentation last updated Oct 27, 2026.<br/>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
 </p></div>
       
     </div>

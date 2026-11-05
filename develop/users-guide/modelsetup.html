@@ -1,13 +1,11 @@
-
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Model Setup &#8212; ActivitySim</title>
   
@@ -28,36 +26,37 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.4cbf315f70debaebd550c87a6162cf0f.min.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=a9acb3ca" />
   
   <!-- So that users can add custom icons -->
-  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/documentation_options.js?v=8e50e698"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'users-guide/modelsetup';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_version = '0.22.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.6.1';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Ways to Run the Model" href="ways_to_run.html" />
@@ -65,21 +64,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.6.1" />
-    <meta name="docbuild:last-update" content="Oct 27, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 05, 2026"/>
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
   </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
+  <body data-default-mode="">
   
   
   <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
+  
+  
+  
   
   <dialog id="pst-search-dialog">
     
@@ -105,9 +110,9 @@
 </div>
 
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -165,7 +170,7 @@
         <div class="navbar-item navbar-persistent--container">
           
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -200,7 +205,7 @@
   
     <div class="navbar-persistent--mobile">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -209,7 +214,7 @@
   
 
   
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
       <span class="fa-solid fa-outdent"></span>
     </button>
   
@@ -287,12 +292,20 @@
   </div>
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
         <div class="sidebar-primary-item">
+
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Model Setup</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Model Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ways_to_run.html">Ways to Run the Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling-methods.html">Sampling Methods</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="performance/index.html">Runtime Performance</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -379,29 +392,29 @@
                 <article class="bd-article">
                   
   <section id="model-setup">
-<h1>Model Setup<a class="headerlink" href="#model-setup" title="Permalink to this heading">#</a></h1>
+<h1>Model Setup<a class="headerlink" href="#model-setup" title="Link to this heading">#</a></h1>
 <p>This page describes the system requirements and installation procedures to set up ActivitySim.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>ActivitySim is under active development</p>
 </div>
 <section id="quick-reference">
-<h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Permalink to this heading">#</a></h2>
+<h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Link to this heading">#</a></h2>
 <p>This section briefly describes the quickest way to install and start running ActivitySim. This section
 assumes the user is more experienced in running travel demand models and proficient in Python, but has not
 used ActivitySim or has not used recent versions of ActivitySim. More detailed instructions for installing
 and running ActivitySim are also available in this Users Guide.</p>
 <ul class="simple">
-<li><p>Use the <a class="reference internal" href="#pre-packaged-installer"><span class="std std-ref">Pre-packaged Installer</span></a></p></li>
+<li><p>Install ActivitySim with the <a class="reference internal" href="#uv-package-and-project-manager"><span class="std std-ref">UV Package and Project Manager</span></a></p></li>
 <li><p><a class="reference internal" href="run_primary_example.html#run-the-primary-example"><span class="std std-ref">Run the Primary Example</span></a></p></li>
 <li><p>Placeholder (Edit model input files, configs, as needed)</p></li>
 </ul>
 </section>
 <section id="system-requirements">
-<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Permalink to this heading">#</a></h2>
+<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Link to this heading">#</a></h2>
 <p>This section highlights the software requirements for any implementation, as well as hardware recommendations.</p>
 <section id="hardware">
-<h3>Hardware<a class="headerlink" href="#hardware" title="Permalink to this heading">#</a></h3>
+<h3>Hardware<a class="headerlink" href="#hardware" title="Link to this heading">#</a></h3>
 <p>The computing hardware required to run a model implemented in the ActivitySim framework generally depends on:</p>
 <ul class="simple">
 <li><dl class="simple">
@@ -469,68 +482,40 @@ scripts, and runtimes are in the &lt;todo: cross-ref&gt; <code class="docutils l
 </div>
 </section>
 <section id="software">
-<h3>Software<a class="headerlink" href="#software" title="Permalink to this heading">#</a></h3>
+<h3>Software<a class="headerlink" href="#software" title="Link to this heading">#</a></h3>
 <p>Activitysim is implemented in the Python programming language. It uses several open source Python packages such as pandas, numpy, pytables, openmatrix etc.</p>
 </section>
 </section>
 <section id="installing-activitysim">
-<h2>Installing ActivitySim<a class="headerlink" href="#installing-activitysim" title="Permalink to this heading">#</a></h2>
-<p>There are two recommended ways to install ActivitySim:</p>
-<ol class="arabic simple">
-<li><p>Using a <a class="reference internal" href="#pre-packaged-installer"><span class="std std-ref">Pre-packaged Installer</span></a></p></li>
-<li><p>Using the <a class="reference internal" href="#uv-package-and-project-manager"><span class="std std-ref">UV Package and Project Manager</span></a></p></li>
-</ol>
-<p>The first is recommended for users who are new to Python and use Windows, do not actively create and manage Python virtual environments,
-and do not need to change the ActivitySim code. The second is recommended for users who actively create and manage Python virtual environments,
-and/or want to change/customize the ActivitySim code.</p>
-<section id="pre-packaged-installer">
-<h3>Pre-packaged Installer<a class="headerlink" href="#pre-packaged-installer" title="Permalink to this heading">#</a></h3>
-<p>Beginning with version 1.2, ActivitySim is now available for Windows via a
-pre-packaged installer.  This installer provides everything you need to run
-ActivitySim, including Python, all the necessary supporting packages, and
-ActivitySim itself.  You should only choose this installation process if you
-plan to use ActivitySim but you don’t need or want to do other Python
-development.  Note this installer is provided as an “executable” which (of course)
-installs a variety of things on your system, and it is quite likely to be flagged by
-Windows, anti-virus, or institutional IT policies as “unusual” software, which
-may require special treatment to actually install and use.</p>
-<p>Download the installer from GitHub <a class="reference external" href="https://github.com/ActivitySim/activitysim/releases/download/v1.3.1/Activitysim-1.3.1-Windows-x86_64.exe">here</a>.
-It is strongly recommended to choose the option to install “for me only”, as this
-should not require administrator privileges on your machine.  Pay attention
-to the <em>complete path</em> of the installation location. You will need to know
-that path to run ActivitySim in the future, as the installer does not modify
-your “PATH” and the location of the <cite>ActivitySim.exe</cite> command line tool will not
-be available without knowing the path to where the install has happened.</p>
-<p>Once the install is complete, ActivitySim can be run directly from any command
-prompt by running <cite>&lt;install_location&gt;/Scripts/ActivitySim.exe</cite>.</p>
-</section>
+<h2>Installing ActivitySim<a class="headerlink" href="#installing-activitysim" title="Link to this heading">#</a></h2>
+<p>The recommended way to install ActivitySim is using the <a class="reference internal" href="#uv-package-and-project-manager"><span class="std std-ref">UV Package and Project Manager</span></a>.
+The pre-packaged Windows installer that was available for earlier releases is no longer provided.</p>
 <section id="uv-package-and-project-manager">
-<h3>UV Package and Project Manager<a class="headerlink" href="#uv-package-and-project-manager" title="Permalink to this heading">#</a></h3>
-<p>This method is recommended for ActivitySim users who are familiar with
-Python, create and manage ActivitySim Python virtual environments, and optionally wish to customize ActivitySim code to run their models.
+<h3>UV Package and Project Manager<a class="headerlink" href="#uv-package-and-project-manager" title="Link to this heading">#</a></h3>
+<p>This method is recommended for all ActivitySim users, including those who wish to customize ActivitySim code to run their models.
 UV is a free open source cross-platform package and project manager that runs
 on Windows, OS X, and Linux. It is 10-100x faster than conda, and pip itself, which is
 the standard Python package manager. The <em>uv</em> features include automatic
 environment management including installation and management of Python
 versions and dependency locking.</p>
 <section id="install-uv">
-<h4>Install UV<a class="headerlink" href="#install-uv" title="Permalink to this heading">#</a></h4>
+<h4>Install UV<a class="headerlink" href="#install-uv" title="Link to this heading">#</a></h4>
 <p>We recommend installing UV as an independent tool on your machine, separate from any existing package managers you may have such as conda or pip.</p>
 <p>For Windows users, run the following command in PowerShell to install <em>uv</em>. It does not require administrator privileges and installs <em>uv</em> for the current user only.
 By default, uv is installed to <code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code> directory. Usually, this is <code class="docutils literal notranslate"><span class="pre">C:/Users/&lt;username&gt;/.local/bin</span></code>.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Run the installer. Please review the printed message after installation.
-powershell -ExecutionPolicy ByPass -c &quot;irm https://astral.sh/uv/install.ps1 | iex&quot;
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 # Add uv to PATH
-$env:PATH = &quot;$env:USERPROFILE\.local\bin;$env:Path&quot;
+$env:PATH = "$env:USERPROFILE\.local\bin;$env:Path"
 </pre></div>
 </div>
 <p>If an agency wants to install <em>uv</em> globally for all users on Windows, run PowerShell as Administrator and run the following command.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Run the installer with a custom install directory (e.g., C:\shared\uv) that is accessible to all users
-powershell -ExecutionPolicy ByPass -c {$env:UV_INSTALL_DIR = &quot;C:\shared\uv&quot;;irm https://astral.sh/uv/install.ps1 | iex}
+powershell -ExecutionPolicy ByPass -c {$env:UV_INSTALL_DIR = "C:\shared\uv";irm https://astral.sh/uv/install.ps1 | iex}
 
 # Add uv to PATH for all users (requires administrator privileges)
-[Environment]::SetEnvironmentVariable(&quot;PATH&quot;, $env:PATH + &quot;;C:\shared\uv&quot;, [EnvironmentVariableTarget]::Machine)
+[Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";C:\shared\uv", [EnvironmentVariableTarget]::Machine)
 </pre></div>
 </div>
 <p>For more instructions on installing <em>uv</em> on Windows, MacOS, or Linux, please visit <a class="reference external" href="https://docs.astral.sh/uv/getting-started/installation/">https://docs.astral.sh/uv/getting-started/installation/</a>.</p>
@@ -540,13 +525,26 @@ powershell -ExecutionPolicy ByPass -c {$env:UV_INSTALL_DIR = &quot;C:\shared\uv&
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you already have <em>uv</em> installed from an older project and you encounter errors
+<p>ActivitySim requires <em>uv</em> 0.13.4 or newer, because older versions trust a compromised
+certificate authority (see the <a class="reference external" href="https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576">eMudhra/emSign CA certificate incident</a>).
+If you already have <em>uv</em> installed from an older project and you encounter errors
 such as</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>error: Required uv version `&gt;=0.13.4` does not match the running version ...
+</pre></div>
+</div>
+<p>or</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">error</span><span class="p">:</span> <span class="n">Failed</span> <span class="n">to</span> <span class="n">parse</span> <span class="n">uv</span><span class="o">.</span><span class="n">lock</span><span class="o">...</span> <span class="n">missing</span> <span class="n">field</span> <span class="n">version</span><span class="o">...</span>
 </pre></div>
 </div>
-<p>later in the process, you may need to update <em>uv</em> to the latest version by reinstalling it via the official
-installation script: <a class="reference external" href="https://docs.astral.sh/uv/getting-started/installation/#standalone-installer">https://docs.astral.sh/uv/getting-started/installation/#standalone-installer</a>.
+<p>later in the process, you need to update <em>uv</em> to the latest version. If you installed <em>uv</em> with the
+official installation script, run</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="bp">self</span> <span class="n">update</span> <span class="o">--</span><span class="n">system</span><span class="o">-</span><span class="n">certs</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">--system-certs</span></code> flag makes <em>uv</em> check the download with your operating system’s trusted
+certificates, instead of its own outdated list. <em>uv</em> versions older than 0.11 report an error for this
+flag. In that case, or if you installed <em>uv</em> another way, reinstall <em>uv</em> via the official installation
+script: <a class="reference external" href="https://docs.astral.sh/uv/getting-started/installation/#standalone-installer">https://docs.astral.sh/uv/getting-started/installation/#standalone-installer</a>.
 You can check the version of <em>uv</em> you have installed by running</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="o">--</span><span class="n">version</span>
 </pre></div>
@@ -554,7 +552,7 @@ You can check the version of <em>uv</em> you have installed by running</p>
 </div>
 </section>
 <section id="install-activitysim-with-uv">
-<h4>Install ActivitySim with UV<a class="headerlink" href="#install-activitysim-with-uv" title="Permalink to this heading">#</a></h4>
+<h4>Install ActivitySim with UV<a class="headerlink" href="#install-activitysim-with-uv" title="Link to this heading">#</a></h4>
 <p>There are two options to install ActivitySim using <em>uv</em>.</p>
 <p>The first is to use <em>uv</em> to install an official ActivitySim release from the Python Package Index (PyPI).
 The second is to use <em>uv</em> to install ActivitySim from the source code repository and use the dependency lockfile.</p>
@@ -567,7 +565,7 @@ exactly as it was tested by the developers using the dependency lockfile which r
 </div>
 <p>The steps involved are described as follows.</p>
 <section id="option-1-from-pypi">
-<h5>Option 1: From PyPI<a class="headerlink" href="#option-1-from-pypi" title="Permalink to this heading">#</a></h5>
+<h5>Option 1: From PyPI<a class="headerlink" href="#option-1-from-pypi" title="Link to this heading">#</a></h5>
 <p>You will use <em>uv</em> to create a project and virtual environment to work from and add ActivitySim.</p>
 <p>Open Command Prompt (not Anaconda Prompt), and run the following commands.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># create a new project directory and cd into it</span>
@@ -575,8 +573,8 @@ exactly as it was tested by the developers using the dependency lockfile which r
 <span class="n">cd</span> <span class="n">asim_project</span>
 
 <span class="c1"># initialize a virtual environment</span>
-<span class="c1"># This sets the Python version to 3.10, which is currently fully tested for ActivitySim development</span>
-<span class="n">uv</span> <span class="n">init</span> <span class="o">--</span><span class="n">python</span> <span class="mf">3.10</span>
+<span class="c1"># This sets the Python version to 3.11, on which ActivitySim's full test suite runs for every change</span>
+<span class="n">uv</span> <span class="n">init</span> <span class="o">--</span><span class="n">python</span> <span class="mf">3.11</span>
 
 <span class="c1"># add ActivitySim package from the latest release on PyPI</span>
 <span class="n">uv</span> <span class="n">add</span> <span class="n">activitysim</span>
@@ -598,7 +596,7 @@ If you want to ensure exact versions of ActivitySim’s deep dependencies, you s
 For example, running the command <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">add</span> <span class="pre">activitysim==1.2.1</span></code> installs ActivitySim version 1.2.1.</p>
 </section>
 <section id="option-2-from-source-with-lockfile">
-<h5>Option 2: From Source with Lockfile<a class="headerlink" href="#option-2-from-source-with-lockfile" title="Permalink to this heading">#</a></h5>
+<h5>Option 2: From Source with Lockfile<a class="headerlink" href="#option-2-from-source-with-lockfile" title="Link to this heading">#</a></h5>
 <p>To install dependencies from the lockfile and run ActivitySim exactly how
 its developers tested it, after installing <em>uv</em>, open Command Prompt, clone the ActivitySim project using Git. (If Git is not installed,
 instructions can be found <a class="reference external" href="https://git-scm.com/downloads">here</a>.)</p>
@@ -627,7 +625,7 @@ that would install via <code class="docutils literal notranslate"><span class="p
 with <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span></code>.</p>
 </section>
 <section id="which-option-should-i-use">
-<h5>Which Option Should I Use?<a class="headerlink" href="#which-option-should-i-use" title="Permalink to this heading">#</a></h5>
+<h5>Which Option Should I Use?<a class="headerlink" href="#which-option-should-i-use" title="Link to this heading">#</a></h5>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>If I want to …</p></th>
@@ -662,7 +660,7 @@ with <code class="docutils literal notranslate"><span class="pre">uv</span> <spa
 </section>
 </section>
 <section id="run-activitysim-with-uv">
-<h4>Run ActivitySim with UV<a class="headerlink" href="#run-activitysim-with-uv" title="Permalink to this heading">#</a></h4>
+<h4>Run ActivitySim with UV<a class="headerlink" href="#run-activitysim-with-uv" title="Link to this heading">#</a></h4>
 <p>Activate the virtual environment created by <em>uv</em>. This option is similar to using Python’s classic venv or Conda env.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># cd into the project directory if not already there</span>
 <span class="c1">## if you used the From PyPI option</span>
@@ -686,9 +684,9 @@ the <a class="reference internal" href="ways_to_run.html#ways-to-run-the-model">
 </div>
 </section>
 <section id="common-q-a">
-<h4>Common Q&amp;A<a class="headerlink" href="#common-q-a" title="Permalink to this heading">#</a></h4>
+<h4>Common Q&amp;A<a class="headerlink" href="#common-q-a" title="Link to this heading">#</a></h4>
 <section id="my-travel-demand-model-requires-additional-python-packages-not-included-with-activitysim-how-do-i-add-them">
-<h5>My travel demand model requires additional Python packages not included with ActivitySim. How do I add them?<a class="headerlink" href="#my-travel-demand-model-requires-additional-python-packages-not-included-with-activitysim-how-do-i-add-them" title="Permalink to this heading">#</a></h5>
+<h5>My travel demand model requires additional Python packages not included with ActivitySim. How do I add them?<a class="headerlink" href="#my-travel-demand-model-requires-additional-python-packages-not-included-with-activitysim-how-do-i-add-them" title="Link to this heading">#</a></h5>
 <p>You can add additional packages to your <em>uv</em> project by using the <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">add</span></code> command. For example, to add the <code class="docutils literal notranslate"><span class="pre">geopandas</span></code> package,
 run the following command within your existing <em>uv</em> project directory.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># cd into your project directory</span>
@@ -729,7 +727,7 @@ In such cases, we also recommend creating a separate <em>uv</em> project for the
 </div>
 </section>
 <section id="how-to-share-my-working-environment-with-others">
-<h5>How to share my working environment with others?<a class="headerlink" href="#how-to-share-my-working-environment-with-others" title="Permalink to this heading">#</a></h5>
+<h5>How to share my working environment with others?<a class="headerlink" href="#how-to-share-my-working-environment-with-others" title="Link to this heading">#</a></h5>
 <p>You can share your working environment with others by sharing the <code class="docutils literal notranslate"><span class="pre">uv.lock</span></code> file and the <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file located in your project directory (and <code class="docutils literal notranslate"><span class="pre">.python-version</span></code> file if it exists).
 The <code class="docutils literal notranslate"><span class="pre">uv.lock</span></code> file contains the exact versions of all packages and dependencies used in your project.
 Others can recreate the same environment by running the <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span> <span class="pre">--locked</span></code> command in a new project directory containing the shared files.</p>
@@ -750,7 +748,7 @@ Others can recreate the same environment by running the <code class="docutils li
 </div>
 </section>
 <section id="can-other-users-on-the-same-server-or-machine-use-my-already-created-virtual-environment">
-<h5>Can other users on the same server or machine use my already created virtual environment?<a class="headerlink" href="#can-other-users-on-the-same-server-or-machine-use-my-already-created-virtual-environment" title="Permalink to this heading">#</a></h5>
+<h5>Can other users on the same server or machine use my already created virtual environment?<a class="headerlink" href="#can-other-users-on-the-same-server-or-machine-use-my-already-created-virtual-environment" title="Link to this heading">#</a></h5>
 <p>This is doable but it requires additional setup and admin rights - therefore we do not generally recommend it. We recommend following the practice in <a class="reference internal" href="#how-to-share-my-working-environment-with-others"><span class="std std-ref">How to share my working environment with others?</span></a>.</p>
 <p>If you’d still like to proceed, here are the recommended steps to follow (proceed with caution!):</p>
 <ol class="arabic simple">
@@ -766,7 +764,7 @@ Others can recreate the same environment by running the <code class="docutils li
 <li><p>Under Environment Variables &gt; System variables (requires Admin), create a new system environment variable named <code class="docutils literal notranslate"><span class="pre">UV_PYTHON_INSTALL_DIR</span></code> and set its value to the Python directory created in step 3 <code class="docutils literal notranslate"><span class="pre">C:\shared\uv\uv_python\</span></code>.</p></li>
 <li><p>Run the following command to install Python globally for UV. This should install Python executables globally in the <code class="docutils literal notranslate"><span class="pre">UV_PYTHON_INSTALL_DIR</span></code> directory.</p></li>
 </ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">python</span> <span class="n">install</span> <span class="mf">3.10</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">python</span> <span class="n">install</span> <span class="mf">3.11</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="6">
@@ -787,7 +785,7 @@ Others can recreate the same environment by running the <code class="docutils li
 </div>
 </section>
 <section id="if-i-use-the-from-pypi-option-to-install-activitysim-would-i-run-into-dependency-issues">
-<h5>If I use the From PyPI option to install ActivitySim, would I run into dependency issues?<a class="headerlink" href="#if-i-use-the-from-pypi-option-to-install-activitysim-would-i-run-into-dependency-issues" title="Permalink to this heading">#</a></h5>
+<h5>If I use the From PyPI option to install ActivitySim, would I run into dependency issues?<a class="headerlink" href="#if-i-use-the-from-pypi-option-to-install-activitysim-would-i-run-into-dependency-issues" title="Link to this heading">#</a></h5>
 <p>Using the <a class="reference internal" href="#option-1-from-pypi"><span class="std std-ref">Option 1: From PyPI</span></a> option to install ActivitySim may result in different versions of deep dependencies than those tested by ActivitySim developers.
 This is because the <a class="reference internal" href="#option-1-from-pypi"><span class="std std-ref">Option 1: From PyPI</span></a> option installs only the direct dependencies listed in ActivitySim’s <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file,
 and relies on <em>uv</em> to resolve and install the deep dependencies. It is likely that a newer version of ActivitySim deep dependencies
@@ -797,7 +795,7 @@ you are using the exact same deep dependencies as those tested by ActivitySim de
 report the compatibility issues to the ActivitySim development team via GitHub Issues, so that they can address them in future releases.</p>
 </section>
 <section id="if-i-want-to-use-uv-run-to-run-activitysim-commands-do-i-still-need-to-activate-the-virtual-environment">
-<h5>If I want to use <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span></code> to run ActivitySim commands, do I still need to activate the virtual environment?<a class="headerlink" href="#if-i-want-to-use-uv-run-to-run-activitysim-commands-do-i-still-need-to-activate-the-virtual-environment" title="Permalink to this heading">#</a></h5>
+<h5>If I want to use <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span></code> to run ActivitySim commands, do I still need to activate the virtual environment?<a class="headerlink" href="#if-i-want-to-use-uv-run-to-run-activitysim-commands-do-i-still-need-to-activate-the-virtual-environment" title="Link to this heading">#</a></h5>
 <p>No, if you use <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span></code> to run ActivitySim commands, you do not need to activate the virtual environment first.
 However, you will need to call <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span></code> in the project directory where the virtual environment is located. Also, like <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span></code>,
 <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span></code> automatically updates the lockfile and installs any missing dependencies before running the command.</p>
@@ -852,8 +850,8 @@ However, you will need to call <code class="docutils literal notranslate"><span 
     class="page-toc tocsection onthispage">
     <i class="fa-solid fa-list"></i> On this page
   </div>
-  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="visible nav section-nav flex-column">
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-reference">Quick Reference</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#system-requirements">System Requirements</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hardware">Hardware</a></li>
@@ -861,7 +859,6 @@ However, you will need to call <code class="docutils literal notranslate"><span 
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installing-activitysim">Installing ActivitySim</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pre-packaged-installer">Pre-packaged Installer</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#uv-package-and-project-manager">UV Package and Project Manager</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#install-uv">Install UV</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#install-activitysim-with-uv">Install ActivitySim with UV</a><ul class="nav section-nav flex-column">
@@ -887,13 +884,13 @@ However, you will need to call <code class="docutils literal notranslate"><span 
   </nav></div>
 
   <div class="sidebar-secondary-item">
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/users-guide/modelsetup.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div></div>
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/users-guide/modelsetup.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
 
 </div></div>
               
@@ -908,8 +905,8 @@ However, you will need to call <code class="docutils literal notranslate"><span 
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -918,14 +915,13 @@ However, you will need to call <code class="docutils literal notranslate"><span 
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.6.1.dev6+g9da9141ab, documentation last updated Oct 27, 2026.<br/>
+ActivitySim 1.6.1.dev7+g99c800ac0, documentation last updated Nov 05, 2026.<br/>
 </p></div>
       
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.0.
-    <br/>
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
   </p>
 </div>
       
@@ -938,7 +934,7 @@ ActivitySim 1.6.1.dev6+g9da9141ab, documentation last updated Oct 27, 2026.<br/>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
 </p></div>
       
     </div>

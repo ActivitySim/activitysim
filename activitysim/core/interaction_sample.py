@@ -394,7 +394,7 @@ def make_sample_choices(
     assert isinstance(alternatives, pd.DataFrame)
     assert len(alternatives) == alternative_count
 
-    if allow_zero_probs:
+    if allow_zero_probs or state.settings.skip_failed_choices:
         zero_probs = probs.sum(axis=1) == 0
         if zero_probs.all():
             return pd.DataFrame(
@@ -897,7 +897,7 @@ def _interaction_sample(
     else:
         # eet and poisson: optionally trim choosers with all-zero probs. The
         # inverse-CDF path handles this inside make_sample_choices
-        if allow_zero_probs:
+        if allow_zero_probs or state.settings.skip_failed_choices:
             non_zero = probs.sum(axis=1) != 0
             if not non_zero.any():
                 return pd.DataFrame(
@@ -1159,9 +1159,13 @@ def interaction_sample(
     # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
     if len(result_list) > 1:
         choices = pd.concat(result_list)
+    elif result_list:
+        choices = result_list[0]
 
-    assert allow_zero_probs or (
-        len(choosers.index) == len(np.unique(choices.index.values))
+    assert (
+        allow_zero_probs
+        or state.settings.skip_failed_choices
+        or len(choosers.index) == len(np.unique(choices.index.values))
     )
 
     # keep alts in canonical order so choices based on their probs are stable across runs

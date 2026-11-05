@@ -7,7 +7,7 @@ import logging
 import pandas as pd
 
 from activitysim.abm.models.util import tour_od
-from activitysim.core import estimation, los, workflow, expressions
+from activitysim.core import estimation, expressions, los, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +134,8 @@ def tour_od_choice(
     state.add_table("persons", persons)
     state.add_table("households", households)
 
-    if want_sample_table:
+    # save_sample_df is None if every chooser failed sampling under skip_failed_choices
+    if want_sample_table and save_sample_df is not None:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
         state.extend_table(sample_table_name, save_sample_df)
 

@@ -7,7 +7,7 @@ import logging
 import pandas as pd
 
 from activitysim.abm.models.util import tour_destination
-from activitysim.core import config, estimation, los, tracing, workflow, expressions
+from activitysim.core import config, estimation, expressions, los, tracing, workflow
 from activitysim.core.configuration.logit import TourLocationComponentSettings
 from activitysim.core.util import assign_in_place
 
@@ -111,7 +111,8 @@ def atwork_subtour_destination(
         destination_column_name, subtours[destination_column_name], describe=True
     )
 
-    if want_sample_table:
+    # save_sample_df is None if every chooser failed sampling under skip_failed_choices
+    if want_sample_table and save_sample_df is not None:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
         # save_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
         state.extend_table(sample_table_name, save_sample_df)

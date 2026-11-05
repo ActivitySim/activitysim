@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+from unittest.mock import Mock
+
 import pandas as pd
 
 from activitysim.abm.models import location_choice
@@ -21,6 +24,58 @@ class _DummyNetworkLos:
     def get_skim_dict(self, layer):
         assert layer == "taz"
         return _DummySkimDict()
+
+
+def test_location_presample_skips_empty_taz_sample(monkeypatch):
+    state = workflow.State().default_settings()
+    state.settings.skip_failed_choices = True
+    state.settings.use_explicit_error_terms = True
+    taz_sample = pd.DataFrame(
+        columns=[location_choice.DEST_TAZ, "prob", "pick_count"],
+        index=pd.Index([], name="person_id"),
+    )
+    monkeypatch.setattr(
+        location_choice, "_location_sample", Mock(return_value=taz_sample)
+    )
+    monkeypatch.setattr(
+        location_choice.shadow_pricing,
+        "load_shadow_price_calculator",
+        Mock(return_value=SimpleNamespace(use_shadow_pricing=False)),
+    )
+    choose_maz = Mock()
+    monkeypatch.setattr(
+        location_choice.tour_destination, "choose_MAZ_for_TAZ", choose_maz
+    )
+    persons = pd.DataFrame(
+        {location_choice.HOME_MAZ: [9001], location_choice.HOME_TAZ: [90]},
+        index=pd.Index([1001], name="person_id"),
+    )
+    size_terms = pd.DataFrame(
+        {
+            "size_term": [1.0, 2.0],
+            "shadow_price_size_term_adjustment": [1.0, 1.0],
+            "shadow_price_utility_adjustment": [0.0, 0.0],
+        },
+        index=pd.Index([101, 102], name="zone_id"),
+    )
+
+    out = location_choice.location_presample(
+        state,
+        "workers",
+        persons,
+        _DummyNetworkLos({101: 1, 102: 2}),
+        size_terms,
+        estimator=None,
+        model_settings=SimpleNamespace(ALT_DEST_COL_NAME="zone_id"),
+        chunk_size=0,
+        chunk_tag="workplace_location",
+        trace_label="workplace_location",
+    )
+
+    pd.testing.assert_frame_equal(
+        out, taz_sample.rename(columns={location_choice.DEST_TAZ: "zone_id"})
+    )
+    choose_maz.assert_not_called()
 
 
 def test_location_presample_uses_taz_stable_mapping(monkeypatch):

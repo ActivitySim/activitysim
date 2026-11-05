@@ -22,6 +22,7 @@ from activitysim.core.util import GB
 
 logger = logging.getLogger(__name__)
 
+
 #
 # CHUNK_METHODS and METRICS
 #
@@ -88,6 +89,85 @@ MODE_ADAPTIVE = "adaptive"
 MODE_PRODUCTION = "production"
 MODE_CHUNKLESS = "disabled"
 MODE_EXPLICIT = "explicit"
+
+# Auto-mode per-worker chunk budget (bytes) below which we WARN that memory is very tight. This is only
+# a warning threshold — NOT a hard floor (flooring the per-worker budget would sum across workers and
+# over-commit the shared ceiling). The actual budget is floored only to a positive value (>= 1) so that
+# chunking stays active (chunk_size == 0 would disable chunking and OOM a large sample).
+MIN_AUTO_BUDGET_WARN = 256_000_000
+
+# Default for the chunk_peak_backoff_ratio setting: fraction of the (auto) per-worker budget a
+# chunk's INCREMENTAL peak may reach before the adaptive sizer halves the next chunk (proactive
+# back-off). Not a hard abort — just steers the ramp.
+PEAK_BACKOFF_RATIO = 0.9
+
+# Under chunk_size_mode=auto the first ("probe") chunk of a model with no cached row_size is the
+# one allocation the budget cannot control — the per-row memory is unknown until it is measured, and
+# in multiprocess ALL workers hit it simultaneously. Cap that probe small so measuring is cheap and
+# a mis-guess cannot burst the ceiling (observed: a 15_000-row default probe drove per-worker peaks
+# to ~2x the budget and OOM-killed a full-population run before any adaptation could kick in).
+MAX_AUTO_PROBE_ROWS = 2000
+
+# Under auto, cap post-probe growth by default: extrapolating a big chunk linearly from a tiny probe
+# is the other unguarded leap. A user-set chunk_growth_cap still wins; 0 (legacy "no cap") only
+# applies to fixed mode.
+AUTO_DEFAULT_GROWTH_CAP = 2.0
+
+
+def _effective_growth_cap(settings) -> float:
+    """chunk_growth_cap, defaulting to AUTO_DEFAULT_GROWTH_CAP under chunk_size_mode=auto.
+
+    A user-set cap (>= 1) wins. In fixed mode 0 (uncapped) remains the legacy default; auto mode
+    is expected to be safe out of the box, so growth is always capped there — to effectively
+    disable the cap under auto, set a large value (e.g. 100).
+    """
+    cap = getattr(settings, "chunk_growth_cap", 0) or 0
+    if not cap and getattr(settings, "chunk_size_mode", "fixed") == "auto":
+        return AUTO_DEFAULT_GROWTH_CAP
+    return cap
+
+
+# one settings line per process (workers each log their own on first chunked model)
+_CHUNK_SETTINGS_LOGGED = False
+
+
+def log_chunking_settings(state: workflow.State) -> None:
+    """Log every effective chunking parameter once per process, for run audits.
+
+    The values that govern chunking are spread across several settings (and two of them
+    have auto-mode defaults applied at runtime), so a run log otherwise never shows the
+    complete picture in one place. Emitted on the first chunked model of each process.
+    """
+    global _CHUNK_SETTINGS_LOGGED
+    if _CHUNK_SETTINGS_LOGGED:
+        return
+    _CHUNK_SETTINGS_LOGGED = True
+    s = state.settings
+    num_processes = 1
+    if getattr(s, "multiprocess", False):
+        try:
+            injected = state.get_injectable("num_processes", None)
+        except Exception:
+            injected = None
+        num_processes = injected or getattr(s, "num_processes", 1) or 1
+    logger.info(
+        "chunking settings: "
+        f"chunk_size_mode={getattr(s, 'chunk_size_mode', 'fixed')} "
+        f"chunk_size={getattr(s, 'chunk_size', 0)} "
+        f"chunk_size_safety_factor={getattr(s, 'chunk_size_safety_factor', None)} "
+        f"chunk_growth_cap={getattr(s, 'chunk_growth_cap', 0)} "
+        f"(effective={_effective_growth_cap(s)}) "
+        f"chunk_row_size_margin={getattr(s, 'chunk_row_size_margin', 1.0)} "
+        f"chunk_training_mode={s.chunk_training_mode} "
+        f"chunk_method={getattr(s, 'chunk_method', None)} "
+        f"default_initial_rows_per_chunk={getattr(s, 'default_initial_rows_per_chunk', None)} "
+        f"(auto probe cap={MAX_AUTO_PROBE_ROWS} rows) "
+        f"num_processes={num_processes} "
+        f"chunk_peak_backoff_ratio={getattr(s, 'chunk_peak_backoff_ratio', PEAK_BACKOFF_RATIO)} "
+        f"min_auto_budget_warn={MIN_AUTO_BUDGET_WARN}"
+    )
+
+
 TRAINING_MODES = [
     MODE_RETRAIN,
     MODE_ADAPTIVE,
@@ -183,6 +263,77 @@ def trace_label_for_chunk(state: workflow.State, trace_label: str, chunk_size, i
 def get_base_chunk_size(state: workflow.State):
     assert len(state.chunk.CHUNK_SIZERS) > 0
     return state.chunk.CHUNK_SIZERS[0].chunk_size
+
+
+def resolve_chunk_size(state: workflow.State) -> int:
+    """Memory budget (bytes) for adaptive chunking.
+
+    Legacy ``chunk_size_mode='fixed'`` returns the static ``chunk_size`` setting. ``'auto'`` derives
+    the budget from the process's REAL memory ceiling — the cgroup limit inside a container (what
+    actually OOM-kills us), else host RAM — scaled by ``chunk_size_safety_factor``. The existing
+    ``available_headroom`` logic (budget − current rss) then automatically discounts memory already
+    resident (framework + shared skims), so no separate baseline subtraction is needed here.
+    """
+    if getattr(state.settings, "chunk_size_mode", "fixed") != "auto":
+        return state.settings.chunk_size
+
+    limit = mem.get_memory_limit()
+    if not limit:
+        logger.warning(
+            "chunk_size_mode=auto but the memory limit could not be determined; "
+            f"falling back to static chunk_size {GB(state.settings.chunk_size)}"
+        )
+        return state.settings.chunk_size
+
+    safety = state.settings.chunk_size_safety_factor
+    # Base the budget on (limit − current usage). The shared skim set is memory-mapped from disk
+    # (reclaimable page cache), but the pages a chunk is actively reading are momentarily in-use, so the
+    # skim working set is a REAL transient cost that scales with chunk size. Counting currently-resident
+    # memory (which includes the resident skim cache) keeps the budget honest: it shrinks as more skim
+    # pages fault in, tracking the working set. `available == 0` legitimately means "no headroom" — only a
+    # None (couldn't read usage) falls back to the raw limit.
+    available = mem.get_available_memory()
+    if available is not None:
+        basis = max(0, min(limit, available))
+    else:
+        basis = limit
+    # Multiprocess: the N workers share the single ceiling, so the budget is the shared free memory
+    # divided by the REAL per-step worker count — the 'num_processes' injectable mp_tasks sets per step
+    # (state.settings.num_processes is 0 when the count is auto-derived, and a worker reading it would
+    # divide by 1 and size to the FULL budget → collective OOM). Fall back to the setting outside a worker.
+    num_processes = 1
+    if getattr(state.settings, "multiprocess", False):
+        try:
+            injected = state.get_injectable("num_processes", None)
+        except Exception:
+            injected = None
+        num_processes = injected or getattr(state.settings, "num_processes", 1) or 1
+    aggregate = int(basis * safety)
+    budget = aggregate // num_processes if num_processes > 1 else aggregate
+    # Keep chunking active: a budget of 0 makes chunk_size == 0, which disables chunking (process ALL
+    # choosers at once) and OOMs a large sample. Floor to a small positive value so rows-per-chunk clips
+    # to >= 1. Do NOT floor to a large PER-WORKER minimum — that sums across workers and over-commits
+    # (e.g. 8 workers x 1 GB on a 2 GB node, the very failure this feature prevents). A tiny budget is a
+    # genuine "memory is very tight" signal, so warn rather than silently inflate it.
+    if budget < MIN_AUTO_BUDGET_WARN and basis > 0:
+        logger.warning(
+            f"chunk_size_mode=auto: per-worker chunk budget {GB(budget)} is very small "
+            f"(limit={GB(limit)}, {num_processes} worker(s)); memory is tight — chunks will be minimal "
+            "and the run may be slow. Consider fewer workers or a higher memory limit."
+        )
+    budget = max(budget, 1)
+    baseline, _ = mem.get_rss(force_garbage_collect=True)
+    # include the kernel's exact lifetime peak (getrusage ru_maxrss — never misses a transient
+    # spike, unlike a sampled high-water mark) so a completed run shows how close this process
+    # came to the ceiling: the number to look at when tuning chunk_size_safety_factor.
+    logger.info(
+        f"chunk_size_mode=auto: limit={GB(limit)} "
+        f"available={GB(available) if available is not None else 'n/a'} x safety_factor={safety}"
+        f"{f' / {num_processes} workers' if num_processes > 1 else ''} "
+        f"-> base_chunk_size={GB(budget)} "
+        f"(current rss={GB(baseline)}, peak rss={GB(mem.get_peak_rss())})"
+    )
+    return budget
 
 
 def overhead_for_chunk_method(state: workflow.State, overhead, method=None):
@@ -508,8 +659,17 @@ class ChunkLedger:
         if not self.base_chunk_size:
             return
 
+        auto = getattr(state.settings, "chunk_size_mode", "fixed") == "auto"
         mem_panic_threshold = self.base_chunk_size * (1 + MAX_OVERDRAFT)
-        bytes_panic_threshold = self.headroom + (self.base_chunk_size * MAX_OVERDRAFT)
+        # In auto mode the budget (base_chunk_size) is the available-memory allowance and chunk 'bytes'
+        # are tracked incrementally, so compare tracked bytes against the budget directly. The legacy
+        # headroom-based threshold subtracts absolute xss, which the shared skim buffer pollutes in
+        # multiprocess.
+        bytes_panic_threshold = (
+            mem_panic_threshold
+            if auto
+            else self.headroom + (self.base_chunk_size * MAX_OVERDRAFT)
+        )
 
         if bytes > bytes_panic_threshold:
             logger.warning(
@@ -517,21 +677,25 @@ class ChunkLedger:
                 f"bytes: {bytes} headroom: {self.headroom} chunk_size: {self.base_chunk_size} {msg}"
             )
 
-        if chunk_metric(state) == RSS and rss > mem_panic_threshold:
-            rss, _ = mem.get_rss(force_garbage_collect=True, uss=False)
-            if rss > mem_panic_threshold:
-                logger.warning(
-                    f"out_of_chunk_memory: "
-                    f"rss: {rss} chunk_size: {self.base_chunk_size} {msg}"
-                )
+        # Absolute rss/uss include memory-mapped SHARED skim pages (tens of GB in multiprocess), so in
+        # auto mode they are not a meaningful per-chunk overflow signal and would spam false warnings —
+        # real OOM pressure is handled by the cgroup memory watchdog + the incremental peak-backoff.
+        if not auto:
+            if chunk_metric(state) == RSS and rss > mem_panic_threshold:
+                rss, _ = mem.get_rss(force_garbage_collect=True, uss=False)
+                if rss > mem_panic_threshold:
+                    logger.warning(
+                        f"out_of_chunk_memory: "
+                        f"rss: {rss} chunk_size: {self.base_chunk_size} {msg}"
+                    )
 
-        if chunk_metric(state) == USS and uss > mem_panic_threshold:
-            _, uss = mem.get_rss(force_garbage_collect=True, uss=True)
-            if uss > mem_panic_threshold:
-                logger.warning(
-                    f"out_of_chunk_memory: "
-                    f"uss: {uss} chunk_size: {self.base_chunk_size} {msg}"
-                )
+            if chunk_metric(state) == USS and uss > mem_panic_threshold:
+                _, uss = mem.get_rss(force_garbage_collect=True, uss=True)
+                if uss > mem_panic_threshold:
+                    logger.warning(
+                        f"out_of_chunk_memory: "
+                        f"uss: {uss} chunk_size: {self.base_chunk_size} {msg}"
+                    )
 
     def close(self):
         logger.debug(f"ChunkLedger.close trace_label: {self.trace_label}")
@@ -706,8 +870,9 @@ class MemMonitor(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        tick = mem.MEM_SNOOP_TICK_LEN
         log_rss(self.state, self.trace_label)
-        while not self.stop_snooping.wait(timeout=mem.MEM_SNOOP_TICK_LEN):
+        while not self.stop_snooping.wait(timeout=tick):
             log_rss(self.state, self.trace_label)
 
 
@@ -837,9 +1002,37 @@ class ChunkSizer:
                     f"base_chunk_size: {util.INT(self.base_chunk_size)}"
                 )
 
+            # In 'auto' mode, prefer to SHRINK the chunk (down to the real headroom) rather than force
+            # a min_chunk_size chunk that can exceed real memory and OOM — since the budget already
+            # tracks the true ceiling. rows_per_chunk clips to >= 1 downstream, so progress continues
+            # with tiny chunks under pressure (slow but safe). Legacy 'fixed' mode keeps the old floor.
+            if getattr(self.state.settings, "chunk_size_mode", "fixed") == "auto":
+                return max(headroom, 0)
+
             headroom = self.min_chunk_size
 
         return headroom
+
+    def sizing_budget(self):
+        """Memory basis for CHOOSING rows-per-chunk (auto mode) — the deterministic 'auto-explicit' path.
+
+        Legacy adaptive sizing divides ``available_headroom = base_chunk_size - xss`` by the row_size.
+        But ``xss`` (per-worker rss/uss) counts memory-mapped SHARED skim pages: in a multiprocess run
+        the ~38 GB skim buffer lives in /dev/shm and is mapped into every worker, so each worker's xss
+        is inflated by tens of GB. Subtracting it collapses the headroom to ~0 and forces 1-row chunks
+        (the crawl we observed), even though the chunk's real marginal cost is small.
+
+        The correct basis is the BUDGET itself: ``base_chunk_size`` is already derived (in
+        resolve_chunk_size) from AVAILABLE memory = cgroup limit − current usage, so the resident shared
+        skims + framework are ALREADY excluded. Chunk overhead is accounted incrementally (hwm − prev),
+        so rows = budget / incremental_row_size is the right, shared-memory-immune sizing — deterministic
+        like explicit chunking, but with the size computed automatically from the real budget. The
+        growth-cap + incremental peak-backoff in adaptive_rows_per_chunk remain the safety net against an
+        under-estimated first row_size. Legacy 'fixed' mode keeps the original headroom-based sizing.
+        """
+        if getattr(self.state.settings, "chunk_size_mode", "fixed") == "auto":
+            return self.base_chunk_size
+        return self.headroom
 
     def initial_rows_per_chunk(self):
         if self.chunk_training_mode == MODE_EXPLICIT:
@@ -868,8 +1061,11 @@ class ChunkSizer:
             ), f"len(state.chunk.CHUNK_LEDGERS): {len(self.state.chunk.CHUNK_LEDGERS)}"
 
             if self.initial_row_size > 0:
+                margin = (
+                    getattr(self.state.settings, "chunk_row_size_margin", 1.0) or 1.0
+                )
                 max_rows_per_chunk = np.maximum(
-                    int(self.headroom / self.initial_row_size), 1
+                    int(self.sizing_budget() / (self.initial_row_size * margin)), 1
                 )
                 rows_per_chunk = np.clip(max_rows_per_chunk, 1, self.num_choosers)
                 estimated_number_of_chunks = math.ceil(
@@ -882,10 +1078,19 @@ class ChunkSizer:
             else:
                 # if no initial_row_size from cache, fall back to default_initial_rows_per_chunk
                 self.initial_row_size = 0
-                rows_per_chunk = min(
-                    self.num_choosers,
-                    self.state.settings.default_initial_rows_per_chunk,
-                )
+                probe_rows = self.state.settings.default_initial_rows_per_chunk
+                if (
+                    getattr(self.state.settings, "chunk_size_mode", "fixed") == "auto"
+                    and probe_rows > MAX_AUTO_PROBE_ROWS
+                ):
+                    # auto: the probe's per-row memory is unknown, so the budget cannot bound it —
+                    # keep the probe small; adaptation takes over from chunk 2
+                    logger.info(
+                        f"{self.trace_label}.initial_rows_per_chunk - capping probe chunk "
+                        f"{probe_rows} -> {MAX_AUTO_PROBE_ROWS} rows (chunk_size_mode=auto)"
+                    )
+                    probe_rows = MAX_AUTO_PROBE_ROWS
+                rows_per_chunk = min(self.num_choosers, probe_rows)
                 estimated_number_of_chunks = None
 
                 if self.chunk_training_mode == MODE_PRODUCTION:
@@ -965,10 +1170,56 @@ class ChunkSizer:
 
         # rows_per_chunk is closest number of chooser rows to achieve chunk_size without exceeding it
         if observed_row_size > 0:
-            self.rows_per_chunk = int(self.headroom / observed_row_size)
+            # inflate the (typically under-estimated) row size by the safety margin for a memory buffer
+            margin = getattr(self.state.settings, "chunk_row_size_margin", 1.0) or 1.0
+            self.rows_per_chunk = int(
+                self.sizing_budget() / (observed_row_size * margin)
+            )
         else:
             # they don't appear to have used any memory; increase cautiously in case small sample size was to blame
             self.rows_per_chunk = 2 * prev_rows_per_chunk
+
+        # --- robust adaptive sizing (AIMD): cap growth + back off if we neared the ceiling ----------
+        # Adaptive chunking's classic OOM comes from (a) leaping to an over-large chunk by extrapolating
+        # a small, unrepresentative first chunk linearly, and (b) growing each chunk toward the budget
+        # even after a chunk already peaked dangerously close to it. Two guards address both, using only
+        # data already measured (no mid-flight interruption needed):
+        settings = self.state.settings
+        growth_cap = _effective_growth_cap(settings)
+        if growth_cap and prev_rows_per_chunk > 0:
+            capped = int(growth_cap * prev_rows_per_chunk)
+            if capped < self.rows_per_chunk:
+                logger.debug(
+                    f"{self.trace_label}: growth-capped next chunk "
+                    f"{self.rows_per_chunk} -> {capped} rows (<= {growth_cap}x prev)"
+                )
+                self.rows_per_chunk = capped
+
+        if (
+            getattr(settings, "chunk_size_mode", "fixed") == "auto"
+            and self.chunk_training_mode != MODE_PRODUCTION
+            and self.base_chunk_size > 0
+            and prev_rows_per_chunk > 0
+        ):
+            # Compare the chunk's INCREMENTAL peak (hwm − prev, this chunk's own marginal memory) to the
+            # budget — NOT absolute rss, which in multiprocess includes the shared skim pages and would
+            # trip the back-off on every chunk (collapsing to 1-row chunks). overhead[] is incremental.
+            peak_incremental = (
+                overhead[USS] if chunk_metric(self.state) == USS else overhead[RSS]
+            )
+            backoff_ratio = (
+                getattr(settings, "chunk_peak_backoff_ratio", PEAK_BACKOFF_RATIO)
+                or PEAK_BACKOFF_RATIO
+            )
+            if peak_incremental > backoff_ratio * self.base_chunk_size:
+                backed_off = max(1, prev_rows_per_chunk // 2)
+                if backed_off < self.rows_per_chunk:
+                    logger.warning(
+                        f"{self.trace_label}: chunk peaked at {GB(peak_incremental)} (incremental) "
+                        f"(> {backoff_ratio:.0%} of budget {GB(self.base_chunk_size)}); "
+                        f"backing off next chunk {self.rows_per_chunk} -> {backed_off} rows"
+                    )
+                    self.rows_per_chunk = backed_off
 
         self.rows_per_chunk = np.clip(self.rows_per_chunk, 1, rows_remaining)
         self.rows_processed += self.rows_per_chunk
@@ -1215,6 +1466,7 @@ def adaptive_chunked_choosers(
     chunk_size: int | None = None,
     explicit_chunk_size: float = 0,
 ):
+    log_chunking_settings(state)
     # generator to iterate over choosers
 
     if state.settings.chunk_training_mode == MODE_CHUNKLESS or (
@@ -1244,8 +1496,14 @@ def adaptive_chunked_choosers(
             chunk_size = math.ceil(num_choosers * explicit_chunk_size)
         else:
             chunk_size = math.ceil(explicit_chunk_size / num_processes)
-    elif chunk_size is None:
-        chunk_size = state.settings.chunk_size
+    elif chunk_size is None or (
+        getattr(state.settings, "chunk_size_mode", "fixed") == "auto" and chunk_size
+    ):
+        # auto replaces a POSITIVE statically passed chunk_size with the runtime budget
+        # (callers historically pass settings.chunk_size down explicitly; honoring it here
+        # would silently run parts of the pipeline on the static value). chunk_size == 0 is
+        # preserved in every mode: callers use it to run a component deliberately chunkless.
+        chunk_size = resolve_chunk_size(state)
 
     assert num_choosers > 0
     assert chunk_size >= 0
@@ -1303,6 +1561,7 @@ def adaptive_chunked_choosers_and_alts(
     chunk_size: int | None = None,
     explicit_chunk_size: int = 0,
 ):
+    log_chunking_settings(state)
     """
     generator to iterate over choosers and alternatives in chunk_size chunks
 
@@ -1387,8 +1646,14 @@ def adaptive_chunked_choosers_and_alts(
             chunk_size = math.ceil(num_choosers * explicit_chunk_size)
         else:
             chunk_size = int(explicit_chunk_size / num_processes)
-    elif chunk_size is None:
-        chunk_size = state.settings.chunk_size
+    elif chunk_size is None or (
+        getattr(state.settings, "chunk_size_mode", "fixed") == "auto" and chunk_size
+    ):
+        # auto replaces a POSITIVE statically passed chunk_size with the runtime budget
+        # (callers historically pass settings.chunk_size down explicitly; honoring it here
+        # would silently run parts of the pipeline on the static value). chunk_size == 0 is
+        # preserved in every mode: callers use it to run a component deliberately chunkless.
+        chunk_size = resolve_chunk_size(state)
 
     chunk_sizer = ChunkSizer(
         state,
@@ -1468,6 +1733,7 @@ def adaptive_chunked_choosers_by_chunk_id(
     chunk_tag=None,
     explicit_chunk_size: int = 0,
 ):
+    log_chunking_settings(state)
     # generator to iterate over choosers in chunk_size chunks
     # like chunked_choosers but based on chunk_id field rather than dataframe length
     # (the presumption is that choosers has multiple rows with the same chunk_id that
@@ -1496,7 +1762,7 @@ def adaptive_chunked_choosers_by_chunk_id(
     if state.settings.chunk_training_mode == MODE_EXPLICIT:
         chunk_size = explicit_chunk_size
     else:
-        chunk_size = state.settings.chunk_size
+        chunk_size = resolve_chunk_size(state)
     chunk_sizer = ChunkSizer(
         state,
         chunk_tag,

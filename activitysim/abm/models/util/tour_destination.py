@@ -195,7 +195,7 @@ def destination_sample(
     chunk_size,
     trace_label,
 ):
-    chunk_tag = "tour_destination.sample"
+    chunk_tag = f"tour_destination.sample.{spec_segment_name}"
 
     # create wrapper with keys for this lookup
     # the skims will be available under the name "skims" for any @ expressions
@@ -605,7 +605,7 @@ def destination_presample(
     trace_label,
 ):
     trace_label = tracing.extend_trace_label(trace_label, "presample")
-    chunk_tag = "tour_destination.presample"
+    chunk_tag = f"tour_destination.presample.{spec_segment_name}"
 
     logger.debug(f"{trace_label} location_presample")
 
@@ -798,7 +798,7 @@ def run_destination_logsums(
     # if special person id is passed
     chooser_id_column = model_settings.CHOOSER_ID_COLUMN
 
-    chunk_tag = "tour_destination.logsums"
+    chunk_tag = f"tour_destination.logsums.{tour_purpose}"
 
     # merge persons into tours
     choosers = pd.merge(
@@ -850,7 +850,7 @@ def run_destination_simulate(
     run destination_simulate on tour_destination_sample
     annotated with mode_choice logsum to select a destination from sample alternatives
     """
-    chunk_tag = "tour_destination.simulate"
+    chunk_tag = f"tour_destination.simulate.{spec_segment_name}"
 
     model_spec = simulate.spec_for_segment(
         state,

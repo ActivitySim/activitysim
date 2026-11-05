@@ -14,6 +14,8 @@ Components
    auto_ownership
    vehicle_type_choice
    telecommute_frequency
+   telework_arrangement
+   telework_duration
    cdap
    mandatory_tour_frequency
    school_escorting

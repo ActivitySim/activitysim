@@ -31,9 +31,12 @@ It was decided that the existing CDAP definitions would remain unchanged. The ne
 to model hybrid workers—those who work both in-home and out-of-home on the simulation day. To support this, 
 the Consortium recommended adding two new models: a Telecommute Arrangement model and an In-Home Work Activity Duration model.
 
-As of August 2025, these two models remain at the design stage and have not yet been implemented. Once deployed, 
-they will supersede the current telecommute status model, which will no longer be needed. In the interim, 
-the telecommute status model can be used to flag telecommuters in the simulation.
+The daily {doc}`telework_arrangement` and {doc}`telework_duration` components
+have since been implemented.
+They explicitly identify in-home work activity (including hybrid work) and its
+duration. They supersede the interim purpose of this status model in model
+sequences that use them; this component remains available for implementations
+that still need its simpler `is_telecommuting` flag.
 
 The main interface to the telecommute status model is the
 [telecommute_status](activitysim.abm.models.telecommute_status) function. This

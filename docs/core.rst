@@ -602,7 +602,7 @@ then chunking can be setup so each mini process table of choosers is split into 
 10 tables of 100,000 choosers to 20 tables of 50,000 choosers.
 
 If the user desires the fastest runtimes possible given their hardware, model inputs, and model configuration, then ActivitySim
-should be configured to use most of the CPUs/cores (physical, not virtual), most of the RAM, and with the :ref:`mkl_settings`. For
+should be configured to use most of the CPUs/cores (physical, not virtual), most of the RAM, and with the :doc:`multithreading settings </users-guide/performance/multithreading>`. For
 example, if the machine has 12 cores and 256 GB of RAM, then try configuring the model with ``num_processes: 10`` and
 ``chunk_size: 0`` to start and seeing if the model can fit the problem into the available RAM.  If not, then try setting ``chunk_size``
 to something like 225 GB, ``chunk_size: 225_000_000_000``.  Experimentation of the desired configuration of the CPUs and RAM should be done

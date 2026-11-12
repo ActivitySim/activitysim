@@ -7,7 +7,7 @@ Traceback (most recent call last):
   File "/home/runner/work/activitysim/activitysim/.venv/lib/python3.11/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
     return loop.run_until_complete(inner)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+  File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
     return future.result()
            ^^^^^^^^^^^^^^^
   File "/home/runner/work/activitysim/activitysim/.venv/lib/python3.11/site-packages/nbclient/client.py", line 709, in async_execute

@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="_static/documentation_options.js?v=8e50e698"></script>
+    <script src="_static/documentation_options.js?v=8acfc816"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -64,7 +64,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.6.1" />
-    <meta name="docbuild:last-update" content="Nov 05, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 12, 2026"/>
   
     
     <script src="_static/searchtools.js"></script>
@@ -3583,7 +3583,8 @@ simulation. If &lt; 1, specifies the fraction of the total number of choosers.</
 </dd>
 <dt><strong>allow_zero_probs</strong><span class="classifier">bool, optional</span></dt><dd><p>Accept choosers for which every alternative has zero probability.</p>
 </dd>
-<dt><strong>zero_prob_choice_val</strong><span class="classifier">optional</span></dt><dd><p>Choice value to return for those choosers when allow_zero_probs is True.</p>
+<dt><strong>zero_prob_choice_val</strong><span class="classifier">optional</span></dt><dd><p>Choice value to return for those choosers. Required when allow_zero_probs
+is True.</p>
 </dd>
 </dl>
 </dd>
@@ -3642,6 +3643,11 @@ for an evaluation of an expression that begins with &#64;</p>
 when household tracing enabled. No tracing occurs if label is empty or None.</p>
 </dd>
 <dt><strong>trace_choice_name: str</strong></dt><dd><p>This is the column label to be used in trace file csv dump of choices</p>
+</dd>
+<dt><strong>allow_zero_probs</strong><span class="classifier">bool, optional</span></dt><dd><p>Accept choosers for which no sampled alternative is available.</p>
+</dd>
+<dt><strong>zero_prob_choice_val</strong><span class="classifier">optional</span></dt><dd><p>Choice value to return for those choosers. Required when allow_zero_probs
+is True, unless skip_choice is True.</p>
 </dd>
 <dt><strong>skip_choice: bool</strong></dt><dd><p>This skips the logit choice step and simply returns the alternatives table with logsums
 (used in disaggregate accessibility)</p>
@@ -4050,6 +4056,24 @@ is an index into the columns of <cite>probs</cite>.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.logit.no_available_alternatives">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">no_available_alternatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utils</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Series</span></span></span><a class="headerlink" href="#activitysim.core.logit.no_available_alternatives" title="Link to this definition">#</a></dt>
+<dd><p>Flag rows in which no alternative is available.</p>
+<p>An alternative is available when its utility exceeds UTIL_MIN, the threshold
+validate_utils uses before setting utilities to UTIL_UNAVAILABLE. Testing the
+threshold directly is exact for any dtype; comparing a row sum with a
+multiple of UTIL_UNAVAILABLE is not.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.logit.record_skipped_households">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">record_skipped_households</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">household_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></span><a class="headerlink" href="#activitysim.core.logit.record_skipped_households" title="Link to this definition">#</a></dt>
+<dd><p>Record households to skip under <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">household_ids</span></code> may contain missing values and households already recorded;
+both are ignored. Returns the total number of skipped households.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.logit.report_bad_choices">
 <span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">report_bad_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">bad_row_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_failed_choices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_choosers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raise_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.report_bad_choices" title="Link to this definition">#</a></dt>
 <dd><dl class="field-list simple">
@@ -4072,6 +4096,12 @@ values from alternatives df</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.logit.skipped_household_ids">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">skipped_household_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dev-guide/_generated/activitysim.core.workflow.State.html#activitysim.core.workflow.State" title="activitysim.core.workflow.state.State"><span class="pre">State</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#set" title="(in Python v3.15)"><span class="pre">set</span></a></span></span><a class="headerlink" href="#activitysim.core.logit.skipped_household_ids" title="Link to this definition">#</a></dt>
+<dd><p>Household ids recorded as skipped under <code class="docutils literal notranslate"><span class="pre">skip_failed_choices</span></code> so far.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -5784,7 +5814,10 @@ if no output_tables list is specified, then all checkpointed tables will be writ
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.make_choices_explicit_error_term_mnl"><code class="docutils literal notranslate"><span class="pre">make_choices_explicit_error_term_mnl()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.make_choices_explicit_error_term_nl"><code class="docutils literal notranslate"><span class="pre">make_choices_explicit_error_term_nl()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.make_choices_utility_based"><code class="docutils literal notranslate"><span class="pre">make_choices_utility_based()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.no_available_alternatives"><code class="docutils literal notranslate"><span class="pre">no_available_alternatives()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.record_skipped_households"><code class="docutils literal notranslate"><span class="pre">record_skipped_households()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.report_bad_choices"><code class="docutils literal notranslate"><span class="pre">report_bad_choices()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.skipped_household_ids"><code class="docutils literal notranslate"><span class="pre">skipped_household_ids()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.utils_to_logsums"><code class="docutils literal notranslate"><span class="pre">utils_to_logsums()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.utils_to_probs"><code class="docutils literal notranslate"><span class="pre">utils_to_probs()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#activitysim.core.logit.validate_utils"><code class="docutils literal notranslate"><span class="pre">validate_utils()</span></code></a></li>
@@ -5939,7 +5972,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
       
         <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.6.1.dev7+g99c800ac0, documentation last updated Nov 05, 2026.<br/>
+ActivitySim 1.6.1.dev8+g4916024bd, documentation last updated Nov 12, 2026.<br/>
 </p></div>
       
         <div class="footer-item">

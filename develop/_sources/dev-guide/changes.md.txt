@@ -13,6 +13,34 @@ This section describes changes that are implemented in current development
 branch (i.e., the main branch on GitHub), but not yet released in a stable version
 of ActivitySim.
 
+### Skip Failed Choices Fixes
+
+This release fixes several failures in model runs with `skip_failed_choices`
+enabled ([#1129](https://github.com/ActivitySim/activitysim/issues/1129),
+[PR #1130](https://github.com/ActivitySim/activitysim/pull/1130)):
+
+- A chooser for which no alternative can be sampled is now skipped together
+  with its household, like other failed choices. Previously the failure was
+  logged, but the model step then crashed. This applies to work and school
+  location choice and to tour destination choice (non-mandatory, joint and
+  at-work), including steps in which every chooser fails while destination
+  sample tables are written.
+- With `allow_zero_probs`, `interaction_simulate` and
+  `interaction_sample_simulate` now find choosers with no available
+  alternative by testing each utility against the availability threshold. The
+  previous comparison of row sums was not exact and could miss such choosers.
+
+Code that calls `interaction_simulate` or `interaction_sample_simulate` with
+`allow_zero_probs=True` must now also pass `zero_prob_choice_val`, or a
+`ValueError` is raised. Previously, choosers with no available alternative
+silently kept an alternative they cannot choose. Logsum-only calls to
+`interaction_sample_simulate` with `skip_choice=True` do not need a value. All
+built-in models already pass one.
+
+A known limitation remains: because `skip_failed_choices` turns off overflow
+protection, valid but very low utilities can still underflow to zero
+probability with `float32` utilities, and the household is then skipped.
+
 ### Python 3.11 or Newer Required
 
 ActivitySim now requires Python 3.11, 3.12 or 3.13. Python 3.10 is no longer
@@ -34,12 +62,12 @@ trust a compromised certificate authority; see the
 
 ### Shadow Pricing Re-Simulation Segmentation
 
-In version 1.6.1, the segmentation used for shadow pricing re-simulation now 
-inherits the segmentation used in the work and school location choice simulation, 
-e.g., defined as `CHOOSER_SEGMENT_COLUMN_NAME` in the `workplace_location.yaml`. 
-The legacy setting `SEGMENT_TO_NAME` in the `shadow_pricing.yaml` is now deprecated 
-and ignored. This ensures consistency between the segmentation used for shadow 
-pricing re-simulation and the segmentation used for work and school location 
+In version 1.6.1, the segmentation used for shadow pricing re-simulation now
+inherits the segmentation used in the work and school location choice simulation,
+e.g., defined as `CHOOSER_SEGMENT_COLUMN_NAME` in the `workplace_location.yaml`.
+The legacy setting `SEGMENT_TO_NAME` in the `shadow_pricing.yaml` is now deprecated
+and ignored. This ensures consistency between the segmentation used for shadow
+pricing re-simulation and the segmentation used for work and school location
 choice simulation. See
 [Issue #1082](https://github.com/ActivitySim/activitysim/issues/1082) and
 [PR #1083](https://github.com/ActivitySim/activitysim/pull/1083).

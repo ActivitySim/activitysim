@@ -31,7 +31,6 @@ source = { editable = "." }
 dependencies = [
     { name = "cytoolz" },
     { name = "matplotlib" },
-    { name = "multimethod" },
     { name = "numba" },
     { name = "numpy" },
     { name = "openmatrix" },
@@ -109,7 +108,6 @@ dev = [
 requires-dist = [
     { name = "cytoolz", specifier = ">=0.8.1" },
     { name = "matplotlib" },
-    { name = "multimethod", specifier = "<2.0" },
     { name = "numba", specifier = ">=0.57" },
     { name = "numpy", specifier = ">=2.0,<3" },
     { name = "openmatrix", specifier = ">=0.3.4.1" },

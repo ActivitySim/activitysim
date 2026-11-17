@@ -12,7 +12,6 @@ dynamic = ["version"]
 dependencies = [
     "cytoolz >= 0.8.1",
     "matplotlib",
-    "multimethod < 2.0",
     "numba >= 0.57",
     "numpy >= 2.0, <3",
     "openmatrix >= 0.3.4.1",

@@ -65,3 +65,7 @@ coef_retail_auto_workers,-0.53111245140175878,0,0,,,0,-0.53111245140175878
 coef_retail_non_motor,-0.029999999999999999,0,0,,,1,-0.029999999999999999
 coef_retail_transit_no_workers,-0.33344704884648813,0,0,,,0,-0.33344704884648813
 coef_retail_transit_workers,-0.46438215846637165,0,0,,,0,-0.46438215846637165
+coef_calib_auto_0,0,0,0,,,1,0
+coef_calib_auto_2,0,0,0,,,1,0
+coef_calib_auto_3,0,0,0,,,1,0
+coef_calib_auto_4,0,0,0,,,1,0

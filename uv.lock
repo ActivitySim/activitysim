@@ -30,6 +30,7 @@ name = "activitysim"
 source = { editable = "." }
 dependencies = [
     { name = "cytoolz" },
+    { name = "matplotlib" },
     { name = "numba" },
     { name = "numpy" },
     { name = "openmatrix" },
@@ -106,6 +107,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "cytoolz", specifier = ">=0.8.1" },
+    { name = "matplotlib" },
     { name = "numba", specifier = ">=0.57" },
     { name = "numpy", specifier = ">=2.0,<3" },
     { name = "openmatrix", specifier = ">=0.3.4.1" },

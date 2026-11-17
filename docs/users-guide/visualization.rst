@@ -36,6 +36,15 @@ Rows with output values that begin with an alphanumeric character will be saved 
 
 Rows with output values that begin with underscores (e.g., ``_output_name``) will be stored as temporary variables in the local namespace so they can be used in following expressions. Expressions defining temporary variables can produce any data type. Users are encouraged to follow the ActivitySim convention using capitals to denote constants (e.g., ``_TEMP_CONSTANT``), though this convention is not formally enforced for summarize expressions.
 
+Temporary variables that are no longer needed can be removed from the local
+namespace, allowing their memory to be reclaimed when no other references
+remain. Set the ``Output`` column to the reserved value ``_del`` and list one or more
+comma-separated temporary variable names in ``Expression``. Missing names are
+ignored, and the row does not create an output file. For example::
+
+  Description,Output,Expression
+  Delete intermediate tables,_del,"_trips_with_income, _work_tours"
+
 Summarize expressions can make use of several convenience functions for binning numeric Pandas Series' into quantiles, equal intervals, or manually-specified ranges. These functions are available in the local namespace used to evaluate summarize expressions (as well as for preprocessing the ``trips_merged`` table; see below), so they can be used directly in summary expressions. These functions include:
 
 * ``quantiles``: Construct quantiles from a Series given a number of bins.

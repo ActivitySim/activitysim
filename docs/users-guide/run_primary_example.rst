@@ -10,12 +10,6 @@ To setup and run the primary example (see :ref:`examples`) from the command line
 * Review the outputs in the output directory
 * ActivitySim will log progress and write outputs to the output folder.
 
-.. note::
-  Or, if you used the :ref:`pre-packaged installer<Pre-packaged Installer>`,
-  replace all the commands below that call ``activitysim ...`` with the complete
-  path to your installed location, which is probably something
-  like ``c:\programdata\activitysim\scripts\activitysim.exe``.
-
 The example should run in a few minutes since it runs a small sample of households.
 
 

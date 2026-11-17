@@ -67,6 +67,43 @@ class AltsContext:
         return self.max_alt_id + 1
 
 
+def skipped_household_ids(state: workflow.State) -> set:
+    """Household ids recorded as skipped under ``skip_failed_choices`` so far."""
+    import itertools
+
+    return set(
+        itertools.chain.from_iterable(
+            state.get("skipped_household_ids", dict()).values()
+        )
+    )
+
+
+def record_skipped_households(state: workflow.State, household_ids, trace_label) -> int:
+    """
+    Record households to skip under ``skip_failed_choices``.
+
+    ``household_ids`` may contain missing values and households already recorded;
+    both are ignored. Returns the total number of skipped households.
+    """
+    num_skipped_households = state.get("num_skipped_households", 0)
+    skipped = state.get("skipped_household_ids", dict())
+
+    new_ids = set(pd.Series(household_ids).dropna().unique()) - skipped_household_ids(
+        state
+    )
+    if new_ids:
+        skipped.setdefault(trace_label, []).extend(new_ids)
+        num_skipped_households += len(new_ids)
+
+    # make sure the number of skipped households is consistent with the ids recorded
+    assert num_skipped_households == sum(
+        len(hh_list) for hh_list in skipped.values()
+    ), "Inconsistent number of skipped households and recorded ids"
+    state.set("num_skipped_households", num_skipped_households)
+    state.set("skipped_household_ids", skipped)
+    return num_skipped_households
+
+
 def report_bad_choices(
     state: workflow.State,
     bad_row_map,
@@ -130,40 +167,11 @@ def report_bad_choices(
         logger.warning(row_msg)
 
     if skip_failed_choices:
-        # update counter in state
-        num_skipped_households = state.get("num_skipped_households", 0)
-        skipped_household_ids = state.get("skipped_household_ids", dict())
-
-        # Get current household IDs and filter out None values
-        current_hh_ids = set(df[trace_col].dropna().unique())
-
-        # Get all previously skipped household IDs across all trace_labels
-        import itertools
-
-        already_skipped = set(
-            itertools.chain.from_iterable(skipped_household_ids.values())
+        num_skipped_households = record_skipped_households(
+            state, df[trace_col], trace_label
         )
-
-        # Find truly new household IDs that haven't been skipped before
-        new_skipped_hh_ids = current_hh_ids - already_skipped
-
-        # Only process if there are new households to skip
-        if new_skipped_hh_ids:
-            # Initialize list for this trace_label if it doesn't exist
-            if trace_label not in skipped_household_ids:
-                skipped_household_ids[trace_label] = []
-            skipped_household_ids[trace_label].extend(new_skipped_hh_ids)
-            num_skipped_households += len(new_skipped_hh_ids)
-
-        # make sure the number of skipped households is consistent with the ids recorded
-        assert num_skipped_households == sum(
-            len(hh_list) for hh_list in skipped_household_ids.values()
-        ), "Inconsistent number of skipped households and recorded ids"
-        state.set("num_skipped_households", num_skipped_households)
-        state.set("skipped_household_ids", skipped_household_ids)
-
         logger.warning(
-            f"Skipping {bad_row_map.sum()} bad choices. Total skipped households so far: {num_skipped_households}. Skipped household IDs: {skipped_household_ids}"
+            f"Skipping {bad_row_map.sum()} bad choices. Total skipped households so far: {num_skipped_households}. Skipped household IDs: {state.get('skipped_household_ids', dict())}"
         )
 
         return
@@ -207,6 +215,18 @@ def utils_to_logsums(utils, exponentiated=False, allow_zero_probs=False):
     logsums = pd.Series(logsums, index=utils.index)
 
     return logsums
+
+
+def no_available_alternatives(utils: pd.DataFrame) -> pd.Series:
+    """
+    Flag rows in which no alternative is available.
+
+    An alternative is available when its utility exceeds UTIL_MIN, the threshold
+    validate_utils uses before setting utilities to UTIL_UNAVAILABLE. Testing the
+    threshold directly is exact for any dtype; comparing a row sum with a
+    multiple of UTIL_UNAVAILABLE is not.
+    """
+    return pd.Series(~(utils.to_numpy() > UTIL_MIN).any(axis=1), index=utils.index)
 
 
 def validate_utils(

@@ -364,6 +364,14 @@ def summarize(
         out_file = row["Output"]
         expr = row["Expression"]
 
+        # delete temporary variables listed in Expression when Output == "_del"
+        if out_file == "_del":
+            logger.debug(f"Deleting temporary variable(s): {expr}")
+            with performance_timer.time_expression(expr):
+                for var in str(expr).split(","):
+                    locals_d.pop(var.strip(), None)
+            continue
+
         # Save temporary variables starting with underscores in locals_d
         if out_file.startswith("_"):
             logger.debug(f"Temp Variable: {expr} -> {out_file}")

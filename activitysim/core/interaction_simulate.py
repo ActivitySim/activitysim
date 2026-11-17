@@ -662,6 +662,8 @@ def _interaction_simulate(
     estimator=None,
     chunk_sizer=None,
     compute_settings: ComputeSettings | None = None,
+    allow_zero_probs=False,
+    zero_prob_choice_val=None,
 ):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -915,8 +917,17 @@ def _interaction_simulate(
 
     if state.settings.use_explicit_error_terms:
         utilities = logit.validate_utils(
-            state, utilities, trace_label=trace_label, trace_choosers=choosers
+            state,
+            utilities,
+            allow_zero_probs=allow_zero_probs,
+            trace_label=trace_label,
+            trace_choosers=choosers,
         )
+        if allow_zero_probs:
+            zero_probs = logit.no_available_alternatives(utilities)
+            if zero_probs.any():
+                # Give unavailable rows a temporary choice before replacing it below.
+                utilities.loc[zero_probs, 0] = logit.UTIL_LARGE_ENOUGH
         positions, rands = logit.make_choices_utility_based(
             state, utilities, trace_label=trace_label, trace_choosers=choosers
         )
@@ -928,7 +939,12 @@ def _interaction_simulate(
         # convert to probabilities (utilities exponentiated and normalized to probs)
         # probs is same shape as utilities, one row per chooser and one column for alternative
         probs = logit.utils_to_probs(
-            state, utilities, trace_label=trace_label, trace_choosers=choosers
+            state,
+            utilities,
+            allow_zero_probs=allow_zero_probs,
+            trace_label=trace_label,
+            trace_choosers=choosers,
+            overflow_protection=not allow_zero_probs,
         )
         chunk_sizer.log_df(trace_label, "probs", probs)
 
@@ -941,6 +957,12 @@ def _interaction_simulate(
                 tracing.extend_trace_label(trace_label, "probs"),
                 column_labels=["alternative", "probability"],
             )
+
+        if allow_zero_probs:
+            zero_probs = probs.sum(axis=1) == 0
+            if zero_probs.any():
+                # Give unavailable rows a temporary choice before replacing it below.
+                probs.loc[zero_probs, 0] = 1.0
 
         # make choices
         # positions is series with the chosen alternative represented as a column index in probs
@@ -957,11 +979,20 @@ def _interaction_simulate(
     # tranche of this choosers alternatives created by cross join of alternatives and choosers
     # offsets is the offset into model_design df of first row of chooser alternatives
     offsets = np.arange(len(positions)) * sample_size
+
+    # make_choices marks failed choices with -99 when skip_failed_choices is
+    # enabled; clip so take() below cannot wrap into another chooser's
+    # alternatives (the failed chooser's household is skipped anyway)
+    if state.settings.skip_failed_choices:
+        positions = positions.clip(lower=0)
+
     # resulting Int64Index has one element per chooser row and is in same order as choosers
     choices = interaction_utilities.index.take(positions + offsets)
 
     # create a series with index from choosers and the index of the chosen alternative
     choices = pd.Series(choices, index=choosers.index)
+    if allow_zero_probs and zero_probs.any() and zero_prob_choice_val is not None:
+        choices.loc[zero_probs] = zero_prob_choice_val
     chunk_sizer.log_df(trace_label, "choices", choices)
 
     if have_trace_targets:
@@ -993,6 +1024,8 @@ def interaction_simulate(
     estimator=None,
     explicit_chunk_size=0,
     compute_settings: ComputeSettings | None = None,
+    allow_zero_probs=False,
+    zero_prob_choice_val=None,
 ):
     """
     Run a simulation in the situation in which alternatives must
@@ -1035,6 +1068,11 @@ def interaction_simulate(
     explicit_chunk_size : float, optional
         If > 0, specifies the chunk size to use when chunking the interaction
         simulation. If < 1, specifies the fraction of the total number of choosers.
+    allow_zero_probs : bool, optional
+        Accept choosers for which every alternative has zero probability.
+    zero_prob_choice_val : optional
+        Choice value to return for those choosers. Required when allow_zero_probs
+        is True.
 
     Returns
     -------
@@ -1044,6 +1082,14 @@ def interaction_simulate(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, "interaction_simulate")
+
+    # Choosers with no available alternative get their first alternative as a
+    # placeholder, and only zero_prob_choice_val replaces it. Without a value they
+    # would silently keep an alternative they cannot choose.
+    if allow_zero_probs and zero_prob_choice_val is None:
+        raise ValueError(
+            f"{trace_label}: zero_prob_choice_val is required when allow_zero_probs is True"
+        )
 
     assert len(choosers) > 0
 
@@ -1070,6 +1116,8 @@ def interaction_simulate(
             estimator=estimator,
             chunk_sizer=chunk_sizer,
             compute_settings=compute_settings,
+            allow_zero_probs=allow_zero_probs,
+            zero_prob_choice_val=zero_prob_choice_val,
         )
 
         result_list.append(choices)

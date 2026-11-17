@@ -95,7 +95,13 @@ def make_asv_argparser(parser):
     help_parser = subparsers.add_parser("help", help="Display usage information")
     help_parser.set_defaults(afunc=help)
 
-    commands = dict((x.__name__, x) for x in util.iter_subclasses(Command))
+    # only asv's own commands; ActivitySim's subclasses (Latest, Batch, ...) are
+    # added explicitly below, and listing them twice is an error on Python >= 3.11
+    commands = dict(
+        (x.__name__, x)
+        for x in util.iter_subclasses(Command)
+        if x.__module__.startswith("asv.")
+    )
 
     hide_commands = [
         "quickstart",

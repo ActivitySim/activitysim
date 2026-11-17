@@ -38,6 +38,37 @@
     State.network_settings
 ```
 
+### Importing extensions
+
+Register custom model packages with `State.import_extensions` before running
+the model. Relative package paths are interpreted relative to the state's
+working directory, which need not be the Python process's current directory:
+
+```python
+state = State.make_default("/path/to/model")
+state.import_extensions("extensions")
+state.run.all()
+```
+
+Absolute package paths, path-like objects, and lists of extensions are also
+accepted. Python module names, including dotted names such as `my_package.models`,
+are supported; for a single Python file, omit the `.py` suffix. Use a unique
+package name for each extension, as Python caches imports by module name.
+
+The CLI uses the same loader, for example
+`activitysim run -w /path/to/model --ext extensions`, or
+`activitysim run -c model/configs -d model/data -o output --ext model/extensions`.
+Both interfaces retain importable module names in `imported_extensions`, so
+existing consumers can use them with `importlib.import_module`, including to
+load an extension's `settings_checker` submodule. Absolute import locations are
+stored separately in internal worker metadata, allowing multiprocessing workers
+to reimport extensions even from another current directory. Package paths may include `./` or a trailing directory separator.
+These rules are the same for single-process and multiprocessing runs.
+
+`append=False` replaces the registered extension list; it does not unload modules
+already imported into the Python process. Importing extension code temporarily
+adds its parent directory to `sys.path`, which is restored even if import fails.
+
 
 
 ## Basic Context Management

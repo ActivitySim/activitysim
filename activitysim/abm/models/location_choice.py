@@ -463,6 +463,9 @@ def location_presample(
         n_total_alts=n_total_alts,
     )
 
+    if state.settings.skip_failed_choices and taz_sample.empty:
+        return taz_sample.rename(columns={DEST_TAZ: alt_dest_col_name})
+
     # print(f"taz_sample\n{taz_sample}")
     #            dest_TAZ      prob  pick_count
     # person_id
@@ -868,6 +871,12 @@ def run_location_choice(
                 trace_label, "sample.%s" % segment_name
             ),
         )
+
+        if state.settings.skip_failed_choices:
+            # Failed sampling choices have no alternatives for logsums or simulation.
+            choosers = choosers[choosers.index.isin(location_sample_df.index)]
+            if choosers.empty:
+                continue
 
         # - location_logsums
         # skip logsum calculations if LOGSUM_SETTINGS is None

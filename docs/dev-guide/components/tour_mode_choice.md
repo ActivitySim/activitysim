@@ -43,6 +43,14 @@ See [writing_logsums](writing_logsums) for how to write logsums for estimation.
 - *Result Field*: `mode`
 - *Skims Keys*: `TAZ, destination, start, end`
 
+## Park-and-Ride
+
+Run {ref}`component-park-and-ride-lot-choice` before tour mode choice to evaluate
+park-and-ride modes using an explicit lot location. Its configuration controls
+optional capacity iteration, which resimulates lot and mode choices for excess
+demand. The component documentation describes the required land-use inputs,
+skim wrappers, mode availability rules, and logsum settings.
+
 ## Configuration
 
 ```{eval-rst}

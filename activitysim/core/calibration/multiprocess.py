@@ -185,6 +185,7 @@ def _restore_from_subprocess_pipelines(
         True if the restore succeeded; False if subprocess pipelines don't
         exist or don't contain the requested checkpoint.
     """
+    from activitysim.core import mp_tasks
     from activitysim.core.workflow.checkpoint import (
         CHECKPOINT_NAME,
         CHECKPOINT_TABLE_NAME,
@@ -268,6 +269,7 @@ def _restore_from_subprocess_pipelines(
                     f"calibration: subprocess pipeline missing table "
                     f"{table_name} at {cp_for_table}"
                 )
+                return False
     finally:
         first_store.close()
 
@@ -275,7 +277,15 @@ def _restore_from_subprocess_pipelines(
         return False
 
     # Determine sliced tables that need concatenation across processes
-    sliced_table_names = set(slice_info.get("tables", [])) if slice_info else set()
+    # Use the same dependency inference and explicit coalesce overrides as
+    # normal multiprocessing, including tables created by model steps.
+    sliced_table_names = set()
+    if slice_info:
+        slice_rules = mp_tasks.build_slice_rules(state, slice_info, tables)
+        sliced_table_names = {
+            name for name, rule in slice_rules.items() if rule["slice_by"] is not None
+        }
+        sliced_table_names.update(slice_info.get("coalesce", []))
 
     # Read sliced tables from remaining subprocesses and concatenate
     if num_processes > 1 and sliced_table_names:
@@ -296,16 +306,38 @@ def _restore_from_subprocess_pipelines(
 
             try:
                 proc_cp_df = proc_store.get_dataframe(CHECKPOINT_TABLE_NAME)
-                proc_row = proc_cp_df[proc_cp_df[CHECKPOINT_NAME] == resume_after].iloc[
-                    -1
-                ]
+                proc_rows = proc_cp_df[proc_cp_df[CHECKPOINT_NAME] == resume_after]
+                if proc_rows.empty:
+                    logger.warning(
+                        "calibration: subprocess %s missing checkpoint %s",
+                        proc_name,
+                        resume_after,
+                    )
+                    return False
+                proc_row = proc_rows.iloc[-1]
 
                 for table_name in list(omnibus.keys()):
                     cp_for_table = proc_row.get(table_name, "")
-                    if cp_for_table:
+                    if not cp_for_table or pd.isna(cp_for_table):
+                        logger.warning(
+                            "calibration: subprocess %s missing table %s at %s",
+                            proc_name,
+                            table_name,
+                            resume_after,
+                        )
+                        return False
+                    try:
                         omnibus[table_name].append(
                             proc_store.get_dataframe(table_name, cp_for_table)
                         )
+                    except (FileNotFoundError, KeyError):
+                        logger.warning(
+                            "calibration: subprocess %s missing table %s at %s",
+                            proc_name,
+                            table_name,
+                            cp_for_table,
+                        )
+                        return False
             finally:
                 proc_store.close()
 
@@ -539,6 +571,15 @@ def _initialize_mp_shared_resources(state: workflow.State) -> dict:
     )
     t0 = tracing.print_elapsed_time(
         "calibration: allocate shared shadow_pricing choice buffer", t0
+    )
+
+    shared_data_buffers.update(
+        mp_tasks.allocate_park_and_ride_lot_choice_buffers(
+            state, {"models": state.settings.models}
+        )
+    )
+    t0 = tracing.print_elapsed_time(
+        "calibration: allocate park_and_ride_lot_choice buffer", t0
     )
 
     # Load skim data into the shared buffers.

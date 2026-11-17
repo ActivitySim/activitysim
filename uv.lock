@@ -25,6 +25,7 @@ name = "activitysim"
 source = { editable = "." }
 dependencies = [
     { name = "cytoolz" },
+    { name = "matplotlib" },
     { name = "multimethod" },
     { name = "numba" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -107,6 +108,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "cytoolz", specifier = ">=0.8.1" },
+    { name = "matplotlib" },
     { name = "multimethod", specifier = "<2.0" },
     { name = "numba", specifier = ">=0.57" },
     { name = "numpy", specifier = ">=2.0,<3" },

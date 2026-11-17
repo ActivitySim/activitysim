@@ -560,6 +560,15 @@ def run_calibration_loop(
                         resume_after=last_calibrated_component,
                         shared_data_buffers=shared_data_buffers,
                     )
+                elif skipped_components:
+                    # On the first resumed component, start after the actual
+                    # resume point, which may be beyond the last skipped model.
+                    _run_intermediate_components(
+                        state,
+                        models=models[first_model_idx : models.index(component)],
+                        resume_after=resume_after,
+                        shared_data_buffers=shared_data_buffers,
+                    )
 
                 component_result = _calibrate_component(
                     state=state,

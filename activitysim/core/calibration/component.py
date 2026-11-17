@@ -116,6 +116,7 @@ def _calibrate_component(
         utility_coeff_names,
     )
 
+    original_coefficient_names = coefficients_df.index
     coefficients_df = _ensure_coefficients_exist(
         component_name,
         calibration_spec_df,
@@ -125,6 +126,10 @@ def _calibrate_component(
     _warn_if_initial_values_outside_bounds(
         component_name, calibration_spec_df, coefficients_df
     )
+
+    # Model steps read coefficients from disk, including on the first pass.
+    if not coefficients_df.index.equals(original_coefficient_names):
+        _persist_coefficients_to_config(state, model_settings, coefficients_df)
 
     component_converged = False
     component_iterations = 0
@@ -259,7 +264,7 @@ def _read_calibration_spec(state: workflow.State, file_name: str) -> pd.DataFram
     df["coefficient"] = df["coefficient"].astype(str)
 
     # Normalize booleans and defaults to keep row math deterministic.
-    df["hold_fast"] = (
+    df["hold_fast"] = df["hold_fast"].eq(1) | (
         df["hold_fast"]
         .fillna(False)
         .astype(str)

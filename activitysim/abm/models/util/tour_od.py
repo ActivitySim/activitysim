@@ -683,6 +683,16 @@ def od_presample(
         trace_label,
     )
 
+    alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
+    chooser_orig_col_name = model_settings.CHOOSER_ORIG_COL_NAME
+
+    if state.settings.skip_failed_choices and orig_MAZ_dest_TAZ_sample.empty:
+        # every chooser failed sampling, so there is no TAZ to choose a MAZ for
+        return pd.DataFrame(
+            columns=[alt_dest_col_name, chooser_orig_col_name, "prob", "pick_count"],
+            index=orig_MAZ_dest_TAZ_sample.index,
+        )
+
     orig_MAZ_dest_TAZ_sample[ORIG_MAZ] = (
         orig_MAZ_dest_TAZ_sample[alt_od_col_name].str.split("_").str[0].astype(int)
     )
@@ -705,8 +715,6 @@ def od_presample(
     # outputs
     assert DEST_MAZ in maz_choices
 
-    alt_dest_col_name = model_settings.ALT_DEST_COL_NAME
-    chooser_orig_col_name = model_settings.CHOOSER_ORIG_COL_NAME
     maz_choices = maz_choices.rename(
         columns={DEST_MAZ: alt_dest_col_name, ORIG_MAZ: chooser_orig_col_name}
     )
@@ -1161,6 +1169,21 @@ def run_tour_od(
             ),
         )
 
+        if state.settings.skip_failed_choices:
+            # Failed sampling choices have no alternatives for logsums or
+            # simulation; record their households so add_table drops them.
+            failed = ~choosers.index.isin(od_sample_df.index)
+            if failed.any():
+                if "household_id" in choosers:
+                    logit.record_skipped_households(
+                        state,
+                        choosers.loc[failed, "household_id"],
+                        tracing.extend_trace_label(trace_label, segment_name),
+                    )
+                choosers = choosers[~failed]
+            if choosers.empty:
+                continue
+
         if model_settings.ORIG_FILTER == "original_MAZ > 0":
             pass
         elif model_settings.ORIG_FILTER == "external_TAZ > 0":
@@ -1232,6 +1255,13 @@ def run_tour_od(
 
     if len(choices_list) > 0:
         choices_df = pd.concat(choices_list)
+    else:
+        # every segment was empty, e.g. all of its choosers failed sampling
+        logger.warning("%s no choices", trace_label)
+        choices_df = pd.DataFrame(
+            columns=["choice", origin_col_name, model_settings.DEST_COL_NAME]
+            + (["logsum"] if want_logsums else [])
+        )
 
     if len(sample_list) > 0:
         save_sample_df = pd.concat(sample_list)

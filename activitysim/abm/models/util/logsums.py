@@ -7,12 +7,12 @@ import logging
 import pandas as pd
 from pydantic import BaseModel as PydanticBase
 
+from activitysim.abm.models.park_and_ride_lot_choice import run_park_and_ride_lot_choice
 from activitysim.core import config, expressions, los, simulate, tracing, workflow
 from activitysim.core.configuration.logit import (
     TourLocationComponentSettings,
     TourModeComponentSettings,
 )
-from activitysim.abm.models.park_and_ride_lot_choice import run_park_and_ride_lot_choice
 
 logger = logging.getLogger(__name__)
 
@@ -179,6 +179,24 @@ def filter_chooser_columns(
     return choosers
 
 
+def get_pnr_index_multiplier(choosers, logsum_settings):
+    """Keep PNR synthetic chooser IDs stable across complete chooser chunks.
+
+    Lot choice disambiguates repeated destination-sample indices using a
+    multiplier rounded up to a multiple of ten. Compute it over the full
+    segment so changing chunk size cannot change the random-number keys.
+    """
+    include_pnr = (
+        logsum_settings.get("include_pnr_for_logsums", False)
+        if isinstance(logsum_settings, dict)
+        else getattr(logsum_settings, "include_pnr_for_logsums", False)
+    )
+    if not include_pnr or choosers.index.is_unique:
+        return None
+    max_count = int(choosers.groupby(level=0).size().max())
+    return ((max_count + 9) // 10) * 10
+
+
 def compute_location_choice_logsums(
     state: workflow.State,
     choosers: pd.DataFrame,
@@ -192,6 +210,8 @@ def compute_location_choice_logsums(
     in_period_col: str | None = None,
     out_period_col: str | None = None,
     duration_col: str | None = None,
+    explicit_chunk_size: float | None = None,
+    pnr_index_multiplier: int | None = None,
 ):
     """
 
@@ -299,6 +319,11 @@ def compute_location_choice_logsums(
             estimator=None,
             pnr_capacity_cls=None,
             trace_label=tracing.extend_trace_label(trace_label, "pnr_lot_choice"),
+            # The caller may already own the logsum chunk ledger. Propagate
+            # both overrides through lot choice, not just mode simulation.
+            chunk_size=chunk_size,
+            explicit_chunk_size=explicit_chunk_size,
+            chooser_index_multiplier=pnr_index_multiplier,
         )
 
     logsum_spec = state.filesystem.read_model_spec(file_name=logsum_settings.SPEC)
@@ -351,6 +376,9 @@ def compute_location_choice_logsums(
             trace_label=trace_label,
         )
 
+    if explicit_chunk_size is None:
+        explicit_chunk_size = model_settings.explicit_chunk
+
     logsums = simulate.simple_simulate_logsums(
         state,
         choosers,
@@ -361,7 +389,7 @@ def compute_location_choice_logsums(
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
-        explicit_chunk_size=model_settings.explicit_chunk,
+        explicit_chunk_size=explicit_chunk_size,
         compute_settings=logsum_settings.compute_settings,
     )
 

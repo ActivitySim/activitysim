@@ -764,12 +764,8 @@ class Checkpoints(StateAccessor):
             checkpoints = checkpoints.loc[:i]
 
             # if the store is not open in read-only mode,
-            # write it to the store to ensure so any subsequent checkpoints are forgotten
-            if (
-                store is None
-                and not self.is_readonly
-                and isinstance(self.store, pd.HDFStore)
-            ):
+            # write it to the store to ensure any subsequent checkpoints are forgotten
+            if store is None and not self.is_readonly():
                 self._write_df(checkpoints, CHECKPOINT_TABLE_NAME)
 
         except IndexError:
